@@ -1,0 +1,34 @@
+This is the atomsk package.
+
+atomsk stands for Atom/Molecule/Material Software Kit.
+
+PURPOSE:
+========
+atomsk is a command-line program meant to manipulate
+atomic systems, and convert from and to various file formats.
+
+QUICK START:
+============
+For impatients: enter the src directory and type "make atomsk".
+For a thorough description of the program, open the file
+"doc/index.html" in your web browser.
+
+CONTENT OF THIS PACKAGE:
+========================
+README          This file
+LICENSE         The GNU General Public License v.3
+CHANGELOG       Modification history
+doc/            Documentation of the program (html)
+etc/            Sample configuration file
+examples/       Examples to test the program
+man/            Man page of the program
+src/            Source code of the program (Fortran95)
+tools/          Companion programs and scripts
+
+(C) P. Hirel 2010
+This program is distributed under the GNU/GPL
+(General Public License) version 3 or any later version.
+A copy of this license can be found in the file LICENSE
+that is provided with this program, or on the Web at:
+http://www.gnu.org/licenses/gpl.html
+

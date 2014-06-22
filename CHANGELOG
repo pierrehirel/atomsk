@@ -1,0 +1,336 @@
+CHANGELOG FOR ATOMSK
+====================
+
+beta 0.9 TODO LIST
+------------------
+- use OpenMP to parallelize some parts of the code, like the loops for neighbor search, for computing the Nye tensor, for constructing Voronoi polycrystals, or for converting files in mode "--list". The code should auto-detect the number of cores on the user's machine, and by default use as many threads. A command-line parameter should allow the user to specify the max. number of threads to use (e.g. "-threads N").
+
+
+
+beta 0.8 (in development)
+-------------------------
+- many changes make this version incompatible with branch 0.7. Source files were re-organized. The main Makefile was modified (simplified), new Makefiles were added in sub-directories for better dependency support. Also fixed many issues with the compilation on Microsoft(R) Windows(R) systems.
+- from now on, both 32-bits and 64-bits static binaries will be available for GNU/Linux platforms.
+- new mode "--average" allows to average atom positions over a list of configurations.
+- new mode "--interpolate" allows to generate a chain of configurations between two given configurations.
+- new mode "--nye" allows to compute the Nye tensor. Thanks to P. Carrez (UMET, Lille, France) for implementing this mode.
+- new mode "--polycrystal" allows to generate a 2-D or 3-D polycrystal from a unit cell using the Voronoi method. Positions and crystallographic orientations of the grains can be explicitely given, or randomly generated.
+- added support for both reading and writing XMD files (*.xmd).
+- new option "-add-atom" allows to add an atom at given position, or near an existing atom, or add N atoms at random positions.
+- new option "-center" allows to shift the system to place an atom, or the center of mass, at the center of the box.
+- new option "-disturb" allows to apply random displacements to atoms.
+- new option "-mirror" allows to apply a mirror plane normal to a cartesian axis or a crystallographic direction.
+- new option "-options" allows to read a list of options from a file.
+- new option "-velocity" allows to generate a Maxwell-Boltzmann distribution of velocities.
+- new algorithm for constructing neighbor list.
+- mode interactive now offers a command-line interpreter, much more flexible than the former "interactive questions". The cli allows to read and write files, supports options and the mode "create", and can take scripts as standard input (e.g. "atomsk < script.at").
+- mode "--rdf" now constructs a neighbor list before computing the radial distribution functions (RDFs). Also, the maximum radius Rmax for the RDF must be provided, and Rmax can be larger than the system.
+- option "-deform" now interprets real numbers as the value of the deformation. The symbol "%" must be used to specify a deformation in percent, e.g. "-deform x 1.5% 0.0".
+- option "-properties" allows to read atom velocities from a file.
+- option "-remove-doubles" now only removes selected atoms if a selection is defined.
+- option "-remove-properties" does not remove the auxiliary property anymore if a selection is defined, instead the property is set to zero for selected atoms. If no selection is defined the property is still completely removed.
+- option "-rotate" now also rotates atom velocity and force vectors if they are defined.
+- option "-select" now allows to select the neighbors of an atom. The selection can be on the N nearest neighbors, or neighbors within a radius, or the first nearest neighbors. This option also allows to select a given percentage of the atoms, or a percentage of atoms of a given species.
+- option "-unit" allows to convert atom velocities.
+- option "-wrap" now only wraps selected atoms if a selection is defined.
+- the positions of shells (in the sense of an ionic core-shell potential) are now written in LAMMPS data files.
+- when reading LAMMPS custom file (*.lmc), the atom "type" is not required anymore. Furthermore if the "element" appears it is read.
+- support for longer filenames (up to 4096 characters).
+- fixed a bug where some file formats would not be detected correctly if the file name was given through a path.
+- fixed a bug where atom electric charges would not be read from LAMMPS data files (*.lmp).
+- fixed a bug where the compliance tensor would not be properly inverted to give the stiffness tensor in option "-properties".
+- when no comment exists, the auto-generated comment that appears in the output file now contains the user name, and the date is now written with the ISO format (yyyy-mm-dd).
+
+
+
+
+beta 0.7.6 (28 March 2014)
+--------------------------
+- fixed a major issue that was slowing down the writing of files in the following formats: CIF, IMD, LAMMPS data files, MBPP, Quantum Espresso Pwscf files, Siesta, VASP POSCAR files, and XYZ files. Writing files in these formats should be much faster, especially for large systems.
+- fixed a minor bug in the reading of comments from Atomeye CFG files.
+
+
+beta 0.7.5 (15 March 2014)
+--------------------------
+- fixed a bug that prevented to read some atoms in some CIF files. Thanks to P. Bonfa' (Uni. Parma, Italy) for pointing out this bug.
+- fixed a bug that prevented to read some CFG files.
+- fixed a bug that prevented to read some LAMMPS custom files (*.lmc).
+
+
+beta 0.7.4 (20 Feb. 2014)
+-------------------------
+- fixed a bug where the force on the first atom would always be zero when reading a file in XSF format.
+- fixed a bug where atoms would not be properly removed if they were at the exact same position in option "-remove-doubles". Thanks to S. Ritterbex (UMET, Lille, France) for pointing out this bug.
+
+
+beta 0.7.3 (01 Feb. 2014)
+-------------------------
+- fixed a bug where Quantum Espresso PWscf files (*.pw) would not always be read correctly. Thanks to J. Czernek (IMC, Prague, Czech Republic) for pointing out this bug.
+- fixed a bug when the user answered "yes" when prompted for atom sorting when writing POSCAR files: atoms would be sorted but not their auxiliary properties. Thanks to D. Marrocchelli (MIT, Boston, USA) for pointing out this bug.
+- fixed a bug that was causing a crash when the program prompted which file to use as an input and the user would enter something else than an integer.
+
+
+beta 0.7.2 (16 Nov. 2013)
+-------------------------
+- fixed a bug where oriented unit cells would not always be properly created in mode "--create", when running a 32-bits version of the program. Thanks to P. Carrez (UMET, Lille, France) for pointing out this bug.
+- fixed a bug that could cause a segfault in mode "--merge" when files contained auxiliary properties.
+- fixed a bug that could cause a segfault when calling option "-cut" and no selection was defined.
+- fixed a bug where atoms would not be sorted when writing a VASP POSCAR file, when the program was run in French. Thanks to N. Garvik (UMET, Lille, France) for pointing out this bug.
+
+
+beta 0.7.1 (08 June 2013)
+-------------------------
+- added possibility to create rocksalt lattices in mode "--create".
+- in mode "--difference" the step for the histogram is now equal to the maximum value of the displacements divided by 20, or if the latter is greater than 1 A, it is reset to 1 A. The cumulated number of atoms is also computed.
+- fixed a bug that prevented to read some CIF files.
+- fixed a bug in mode "--create" that prevented to create oriented zincblende structures.
+- fixed a bug where the XYZ file would not contain the displacements in mode "--difference".
+- fixed a bug where the list of selected atoms would be wrong when selecting atoms with option "-select", and then deleting some atoms with option "-cut".
+- fixed several bugs that occured when reading Quantum Espresso output files (*.out) in mode "--one-in-all".
+
+
+beta 0.7 (06 April 2013)
+------------------------
+- name changed from "pikashu" to "atomsk".
+- many changes make the branch 0.7 incompatible with branch 0.6.
+- source code was re-organized into sub-folders. The main Makefile was partly re-written to better define dependency rules, and allow for faster parallel compilation when using -jN with N>3 on machines with more than 2 cores.
+- new mode "--rdf" allows to compute the partial and total radial distribution functions (RDF) of a system.
+- added support for both reading and writing files in a binary format specific to atomsk (*.atsk).
+- added support for both reading and writing Crystallographic Information Files (*.cif).
+- added support for both reading and writing Protein Data Bank files (*.pdb).
+- added support for both reading and writing Quantum Espresso PWscf files (*.pw).
+- added support for reading Quantum Espresso PWscf output files (*.out) in mode "--one-in-all".
+- added support for multiple-line comments.
+- mode "--create" now allows to create cubic lattices with a given crystallographic orientation.
+- mode "--merge" is now conserving auxiliary properties.
+- in mode "--all-in-one", forces are now written to the animated XSF file if they exist.
+- in modes and options that work with crystallographic direction, Miller indices can now be given as underscore-separated values, and with or without square brackets. E.g. "1-10", "[1-10]", "1_-1_0", "[1_-1_0]" (without quotation marks) are all valid.
+- option "-unit" now supports fm, pm, µm.
+- option "-region" was renamed to "-select". It now allows to invert the selection by using "-select invert". It also allows to select N atoms of a given species at random. It also allows to select all atoms of a given species.
+- options "-cut", "-fix", "-select", "-shift", can now apply to atoms above or below a given plane normal to a crystallographic axis.
+- option "-remove-random-atoms" was removed. Instead, atoms can be randomly selected with option "-select", and then removed with option "-cut".
+- options "-cut", "-crack", "-dislocation", "-fix", "-select", "-shift" now allow to use the keyword "BOX" (or "box") to refer to box dimensions, e.g. "0.2*BOX", "BOX/2" or "BOX-20". It is also possible to use the keywords "-INF" and "INF". Note that in these options, values given between 0 and 1 are *not* automatically treated as reduced coordinates anymore, e.g. 0.5 is now considered a cartesian coordinate.
+- option "-properties" now allows to read values for any custom auxiliary property from a file.
+- option "-rotate" does not rotate the box anymore if some atoms were previously selected with the option -select, only the selected atoms are rotated. If no selection was defined (i.e. the array SELECT is not allocated, all atoms are selected) then the box is rotated.
+- option "-shear" now allows to specify the applied shear in %.
+- fixed a bug where supercell parameters would not always be read correctly from the INP file when reading a COORAT file. Thanks to D. Di Stefano (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed a bug where VASP POSCAR files would be written with a wrong format when writing fractional coordinates. Thanks to D. Di Stefano (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed a bug where the position of a dislocation would be incorrect when the dislocation line and the normal to the glide plane were not a permutation of x,y,z. Thanks to P. Carrez and A. Kraych (UMET, Lille, France) for pointing out this bug.
+- fixed a bug where the option "-dislocation" would fail to compute the solutions to the equations of anisotropic elasticity in some cases. Thanks to B. Ziebarth (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed a bug where option "-unit" would erroneously scale the atom positions when they are reduced.
+- fixed a bug where the target "make all" would fail to install the code after compiling.
+- fixed bugs where lines would be truncated at the 80th character when writing some file formats, when the code was compiled with Intel Fortran compiler.
+- on GNU/Linux systems, added the possibility to use a system-wide configuration file "/etc/atomsk.conf". User's personal configuration file is now "~/.config/atomsk.conf".
+- detection of operating system (introduced in b0.6) is not done at run time anymore. Instead it is decided at compilation time, thanks to pre-processing instructions.
+- new and improved scripts in /tools/.
+- l10n: documentation is now organized in sub-directories corresponding to languages. French documentation is now available in /doc/fr/.
+
+
+
+
+CHANGELOG FOR PIKASHU
+=====================
+
+beta 0.6.5 (06 July 2012)
+-------------------------
+- fixed a bug where reduced coordinates would not be detected in some cases.
+
+
+beta 0.6.4 (17 June 2012)
+-------------------------
+- mode "--create" now allows to create a basic hexagonal close-packed (hcp) structure.
+- mode "--diff" now also outputs a CFG file containing displacements as auxiliary property.
+- when reading COORAT file, if the volume of the cell (instead of lattice parameter alat) is provided in the INP file, pikashu will now read the supercell properly.
+- fixed a bug when reading GULP files where atom species were not followed by "core" nor "shell".
+- fixed a bug where atom velocities were not read from LAMMPS data files (LMP). Thanks to E.M. Kalivoda (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed a bug where reduced coordinates would not be detected in some cases, and hence not converted to cartesian coordinates. Thanks to A. Hashibon (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed bugs in the neighbor search algorithms that occured when searching for neighbors in non-orthogonal cells. Performance was also improved, with gains up to 30%.
+
+
+beta 0.6.3 (22 May 2012)
+------------------------
+- new option "-crack" allows to insert a crack in the system.
+- new option "-remove-random-atoms" allows to remove atoms at random from the system.
+- mode "--edm" now also outputs positions and polarization vectors in a dat file.
+- added support of auxiliary properties and velocities when reading and writing GULP gin/res files.
+- fixed a bug where the theoretical stresses associated with an edge dislocation (isotropic case) would not be correctly computed.
+- fixed a bug that occured when reading LAMMPS custom files (LMC) that contained non-triclinic boxes which origin was non zero. Thanks to E.M. Kalivoda (Fraunhofer-IWM, Freiburg, Germany) for correcting this bug.
+- fixed a bug where VASP POSCAR files were not always properly recognized and read.
+- fixed a bug that prevented reading GULP files when the first atom had a fractional coordinate.
+- improved some scripts in /tools/.
+
+
+beta 0.6.2 (01 March 2012)
+--------------------------
+- new mode "--electronic-polarization" allows to compute the polarization of ions in the framework of an ionic core-shell model.
+- new option "-bind-shells" allows to re-associate shells with their core in the framework of an ionic core-shell model.
+- new option "-unskew" allows to reduce the tilt of the supercell vectors.
+- fixed bugs that would prevent to recognize some file formats.
+- in GNU/Linux environments, the locale environment variable is now used to set up the default language of pikashu (the language defined in ~/.pikashu will still override it).
+
+
+beta 0.6.1 (22 Feb. 2012)
+-------------------------
+- new mode "--all-in-one" allows to read many snapshots and store them in a unique file in XYZ and/or animated XSF formats.
+- new option "-remove-atom" allows to remove one atom according to its index, or all atoms of a given species.
+- added support for both reading and writing of SIESTA XV files. Thanks to E.M. Kalivoda (Fraunhofer-IWM, Freiburg, Germany) for developing these modules.
+- when using mode "--edm" with an ionic core-shell model, the total charge (core+shell) of each ion is now used.
+- the option "-properties" now allows to specify the charges of cores and shells for use with an ionic core-shell model.
+- fixed a bug preventing mode "--all-in-one" to work.
+- fixed a bug in neighbour search algorithms.
+- fixed bugs in option "-cut" that would arise with ionic core-shell models. Also fixed a bug in the display of the message for remaining atoms.
+- fixed bugs that would generate strange output file names when an input file had no extension.
+
+
+beta 0.6 (01 Dec. 2011)
+-----------------------
+- many changes make the branch 0.6 incompatible with branch 0.5.
+- introduces dependency to LAPACK 3.3.0 (or higher).
+- pikashu is now natively compatible with Microsoft(R) Windows(R) environments. Environment-dependent system calls were removed or replaced by standard Fortran 95 calls for compatibility. Program was successfully compiled with GNU Make + MinGW/gfortran under Windows XP and Windows 7.
+- new mode "edm" allows to compute individual electric dipole moments of polyhedra.
+- new mode "one-in-all" allows to convert files containing several configurations. Supported input formats are standard and extended XYZ, animated XSF, and DL_POLY HISTORY files.
+- new mode "unwrap" allows to unwrap atoms, using a reference system.
+- mode "difference" does not attempt to unwrap displacement vectors anymore. Unwrapped coordinates must be provided.
+- mode "merge" now allows to merge more than two systems, and its syntax has changed. Also, it now allows to juxtapose systems along an axis.
+- added support for both reading and writing of DL_POLY_4 configuration files (CONFIG, REVCON...).
+- added support for both reading and writing of MOLDY system files (system.in).
+- added support for writing BOP files.
+- added support of auxiliary properties for formats that support it. Auxiliary properties are also transformed by some options, and generated by some modes (like edm).
+- added support of shells (in the sense of an ionic core-shell model). The shell positions are now read from formats that support it (GIN, CONFIG), and written to formats that support it (GIN, CONFIG). Shells are also transformed by some options.
+- new option "-create-shells" allows for creating shells for some or all atoms (in the sense of an ionic core-shell model).
+- new option "-fix" allows to fix some atoms in one or all directions of space.
+- new option "-rmprop" allows for removing one or all auxiliary properties.
+- option "-dislocation" can now introduce dislocations using anisotropic elasticity, which is automatically triggered when an elastic tensor is provided thanks to the option "-properties". This option now also computes the theoretical elastic stresses of dislocations and saves them as auxiliary properties. The usage was also changed to make it easier to specify the plane of cut.
+- option "-expand" now duplicates the system as a block, adding the new atoms after the ones that already exist. The reason is that it makes the construction of CONFIG files (for DL_POLY) more convenient. This behaviour does not introduce any restriction since options like "-sort" can be used to change the order of atoms.
+- option "-properties" now allows to specify atom charges, atom types, elastic tensor, compliance tensor (Voigt notation or 6x6 tensors).
+- option "-sort" now allows to sort atoms according to one of their auxiliary properties (increasing or decreasing values, or pack).
+- options that change the crystallographic orientation of the system (like "-alignx", "-orient", "-rotate") also rotate the elastic tensor if it was defined.
+- new routines for neighbour search (in subroutines.f90): FIND_NNN finds the N nearest neighbours; FIND_NNR finds nearest neighbours in a given radius; FIND_1NN attempts to find the first nearest neighbours. These are used e.g. by the mode --edm.
+- fixed bugs that prevented to use paths containing the / sign (like "../file" or "/folder/file") in some modes and options.
+- fixed several bugs that occured when the code was compiled with Intel Fortran Compiler. Code was verified to compile with ifort 10.1, 11 and 12 on different machines.
+- i18n: all messages are now removed from the code and gathered in one specific module (messages_EN.f90).
+- l10n: added translations for French language.
+
+
+
+beta 0.5.2 (20 Apr. 2011)
+-------------------------
+- fixed bug that occured when inserting a dislocation of "edge" type.
+
+
+beta 0.5.1 (18 Apr. 2011)
+-------------------------
+- added the possibility to pack atoms in the option "-sort".
+- fixed bugs that occured when writing POSCAR files. The program now checks if atom species are contiguous and, if they are not, proposes to sort them (same as "-sort species pack"), as this is required by VASP to link species with their pseudopotential.
+- fixed a bug when reading GULP input files (gin or res) that contained atomic species concatenated with numbers (e.g. "O1", "O2", etc.). pikashu can now read such a format.
+
+
+beta 0.5 (30 Mar. 2011)
+-----------------------
+- changed the usage for modes. They must now be called with double minus signs, e.g. "--create" or "--list". Alternatively one can use a one-letter form with only one minus sign and one capital letter (e.g. "-C" or "-L"). This is to better differentiate them from options, and also better detect the number of options in a command-line. However this change makes the current version incompatible with the previous branch 0.4.x.
+- added support of both reading and writing of IMD file format.
+- added support of both reading and writing of COORAT files (used by MBPP code). If present, the INP file is also read to get supercell parameters.
+- cleared out the reading/writing of the different XYZ formats. An extended XYZ format actually already existed, that uses keywords in the 2nd line (instead of a comment); pikashu can now read and write this extended XYZ format. The former "extended" XYZ is now renamed special XYZ format. In the special XYZ format, the supercell can be specified as supercell vectors or conventional vectors.
+- the "molecular" variant of XSF files (using the keyword "ATOMS") can now be read. Since no supercell parameters are specified in this variant, pikashu will try to define a bounding box.
+- the "standard" CFG format can now be read (as well as the extended CFG format).
+- added option "-remove-doubles" to remove duplicate atoms (i.e. those that are at the same position as another one).
+- option "-H" was removed to avoid confusion with modes. Instead the option "-properties" must be used, which reads a file containing system properties including supercell parameters either in conventional notation (a b c alpha beta gamma) or in vector notation.
+- added the possibility to save some parameters in a config file in the home directory of the user (~/.pikashu). The program looks for this file, and if it exists it reads the default parameters (see readconf.f90). These parameters are replaced if different ones are used in the command-line. This is documented in "doc/progbe_configfile.html".
+- the syntax of the mode "create" was changed. Also, this mode now allows to create nanotubes.
+- program is less verbose about reading the input file(s).
+- corrected a bug in the "-orient" option. It now uses the subroutines cart2frac and frac2cart to perform the transformation.
+- corrected a bug in the "-dislocation" option: the plane of cut for screw dislocations is now determined by the order of rotation X, Y, Z.
+- corrected a bug when reading files with the POSCAR format. Also, when reading this format pikashu now searches for a file named "POTCAR" to read atom species from it. Also, the detection of this format by the "guess_format" subroutine was enhanced.
+- corrected bugs concerning the passing of comments from one format to another. The writing of comments is now standardized in all output modules: comment will always start with a dash character (#).
+
+
+
+beta 0.4.4 (13 Dec. 2010)
+-------------------------
+- new subroutines cart2frac and frac2cart added to "subroutines.f90". They are now used by several input and output modules (in_cfg...).
+- major changes in xyz_differences.f90: bugs were present when "wrapping" displacement vectors into the bounding box. Displacements vectors are now calculated from reduced coordinates, bound to be between -0.5 and 0.5, and converted back to cartesian coordinates.
+- corrected a bug when reading GIN files containing cartesian coordinates. The attempt to read fractions is now only used when fractional coordinates are detected.
+- added new option "opt_useH.f90" (-H <file>) and corresponding documentation. This option forces the use of supercell parameters specified in the <file>.
+- replaced old detection of cart/reduced coordinates by the subroutine "FIND_IF_REDUCED" in "in_xyz.f90".
+- changed name of norm file in "xyz_difference.f90", it is now called *_norm.txt.
+- solved a bug that occured when several dots were present in the input file name (e.g. "test.0.34.xyz").
+- corrected a bug in "modes.f90": when using mode create, and when a file name with extension *and* one or several other extensions were specified, the extension corresponding to the file name was not activated for output.
+- corrected a bug in "modes.f90": when using mode merge, and when a file name with extension *and* one or several other extensions were specified, the extension corresponding to the file name was not activated for output.
+- LAMMPS custom files (lmc) are now parsed for properties. The format is read from the "ITEM: ATOMS" line, which allows to know on which column the coordinates and atom species will be. Corresponding doc added (formats.html).
+- corrected bug when reading tricilinic box properties from LAMMPS custom file format (in_lammps_custom.f90).
+- added option 'shear' and corresponding doc.
+- added the option "region" to select atoms inside or outside a region (which for now can be a box or a sphere). Several changes were made to various options, so that they apply only to the selected atoms.
+
+
+beta 0.4.3 (08 Nov. 2010)
+-------------------------
+- bug corrections for mode list.
+- replaced several 'X' in formats by '1X' to comply to Fortran 95 standard and make the compilation with g95 possible.
+- standardized messages in opt_* modules when no change is to be made (e.g. when "-e 1 1 1" is called).
+- added module "opt_cart2frac" to force output to fractional coordinates.
+- corrected some output modules after the -frac option is used.
+- solved a minor display bug when using file list mode.
+- corrected bugs in the reading of POSCAR files.
+
+
+beta 0.4.2 (29 Oct. 2010)
+-------------------------
+- corrected several bugs in in_cfg.f90 that were leading to errors when reading CFG files containing a lot of spacing between keywords and numerical values (for instance "A =                   1.0"). Now this should not happen as long as the line is less than 128 characters long.
+- can now read some custom formats from LAMMPS; this has to be improved in the future
+- option "substitute" now accepts numbers or atomic species
+- output to LAMMPS data file (lmp) uses now "ID type charge x y z", implying that "atom_style charge" has to be used in the LAMMPS input file
+- the Makefile now copies the style file (css) along with the documentation when using the "make install" command.
+- "mode_create" now returns atom positions in an array P, which can be used by options and output.
+- corrected a bug in cut_cell that did not properly set the size of array P, which could result in segfault.
+
+
+beta 0.4.1 (20 Oct. 2010)
+-------------------------
+- fixed a bug in the reading of GIN files.
+- fixed a bug in the reading of BOP files.
+- fixed a minor bug affecting a message in opt_disloc.f90
+- fixed a bug in the Makefile.
+- changed the option "shift". Now the three components of the shift vector must be specified as parameters.
+- added option 'unit' and doc.
+- removed possibility for options in interactive mode.
+- options are now in a separate module "options.f90" so it can be called from any part of the program (no need to call the whole CONVERT_AFF anymore)
+- code cleanup: options are now sorted in alphabetical order in many modules for better clarity.
+
+
+beta 0.4 (15 Oct.2010)
+----------------------
+- removed a lot of disk I/O: the temporary file 'pikashu.xyz' is no longer used. Now the atomic positions are loaded into memory (by in_* modules) and transformed into memory (by opt_* modules) before being written to output file(s). This concerns almost all modules.
+- fixed bugs in difference mode.
+- fixed bugs in the writing of CFG files.
+- fixed a bug in "alignx" option.
+- output to several formats/files is now dealt with by separate new module "writeout.f90".
+- cleanup of the code by removing many unused variables.
+- added "wrap" option.
+- added "substitute" option.
+- the Makefile now setups the rights for the documentation when "make install" is used.
+- changed the welcome message.
+
+
+beta 0.3 (28 July 2010)
+-----------------------
+- added mode "difference".
+- added option "alignx".
+- added option "orient".
+- added option "dislocation".
+- LAMMPS data files can be output (*.lmp).
+
+
+beta 0.2 (1 June 2010)
+----------------------
+- added mode "list".
+- added mode "ddplot".
+- added option "deform".
+- added option "sort" (uses bubble sort algorithm).
+- can now write GIN as output.
+
+
+beta 0.1 (27 Apr. 2010)
+-----------------------
+- supports XYZ, XSF, CFG, GIN.
+- options expand, cut, shift.
+- lots of disk I/O: converts one file to pikashu.xyz, then each option reads and writes to pikashu.xyz, and finally pikashu.xyz is converted to the final format.
