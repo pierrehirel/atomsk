@@ -1,0 +1,75 @@
+body
+{max-width: 920px;
+ margin: auto;
+ margin-top: 10px;
+ margin-bottom: 10px;
+ margin-left: 10px;
+ margin-right: 20px;
+}
+
+.figure
+{margin-left: 60px;
+}
+.figleg
+{color: black;
+ text-indent: 20px;
+ font-size: small;
+ font-style: italic;
+ margin-left: 80px;
+ max-width: 500px;
+}
+
+a:visited
+{color: magenta;
+ text-decoration: none;
+}
+a
+{color: blue;
+ text-decoration: none;
+}
+a:hover
+{text-decoration: underline;
+}
+a[href^="http"]
+{display: inline-block;
+ padding-right: 16px;
+ background: transparent url("../img/external.svg") center right no-repeat;
+}
+.more
+{display: none;
+}
+a.showLink
+{text-decoration: none;
+ color: black;
+}
+
+.command
+{display:block;
+ color: white;
+ background-color: black;
+ margin: 15px;
+ padding: 4px;
+ width: 80%;
+ border: 2px ridge black;
+}
+.over
+{text-decoration: overline;
+}
+.txtfile
+{display:block;
+ color: black;
+ background-color: white;
+ margin: 15px;
+ width: 80%;
+ border: 2px ridge black;
+}
+.txtfile h5
+{display:block;
+ color: black;
+ background: silver;
+ margin: 0px;
+ padding: 5px;
+}
+.txtfile p
+{margin: 5px;
+}

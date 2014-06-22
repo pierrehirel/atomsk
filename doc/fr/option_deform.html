@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option deform - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : deform</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-deform &#60;direction&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
+
+<p><code>-def &#60;direction&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet d'appliquer une déformation uniaxiale à un système.</p>
+
+<p>Les paramètres associés à cette option sont :</p>
+
+<ul>
+  <li><strong>direction</strong> : direction de la déformation appliquée ; doit être x, y ou z.</li>
+  <li><strong>&epsilon;</strong> : valeur de déformation appliquée (le symbole &#37; peut être utilisé pour donner un pourcentage) ; une valeur positive provoquera une tension, une valeur négative une compression.</li>
+  <li><strong>&nu;</strong>: coefficient de Poisson du matériau.</li>
+</ul>
+
+<p>Cette transformation devrait résulter en une <strong>contrainte uniaxiale</strong>, c-à-d. que la contrainte sera non-nulle suivant la &#60;direction&#62; mais devrait être nulle dans les autres directions (si le coefficient de Poisson est correct).</p>
+
+<p>Pour appliquer une <strong>déformation uniaxiale</strong> (c-à-d. déformer une seule dimension) il suffit d'utiliser un coefficient de Poisson nul.</p>
+
+<p>Pour appliquer une <strong>déformation anisotrope</strong> il est possible d'utiliser cette option suivant chaque axe en utilisant &nu;=0 et des valeurs différentes de &epsilon; (voir l'exemple 3 ci-dessous).</p>
+
+<p>Pour appliquer la même déformation dans toutes les directions il faut utiliser un coefficient de Poisson égal à -1. Ceci peut être utile par ex. pour déformer un matériau d'après son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;T.</p>
+
+<p>Pour une contrainte de cisaillement référez-vous à l'<a href="./option_shear.html">option <code>-shear</code></a>.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le système n'est pas déformé.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -deform x 0.06 0.3 final.xyz</code>
+<p>Ceci allongera le système <code>initial.cfg</code> de &epsilon;=6&#37; suivant X, avec un coefficient de Poisson de 0.3 ; ceci est équivalent à une contrainte uniaxiale. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def y 2.5&#37; 0.0 final.xyz</code>
+<p>Ceci appliquera une déformation uniaxiale (parce que le coefficient de Poisson vaut 0) de 2.5&#37; suivant Y.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def x 1&#37; 0 -def y -0.76&#37; 0 -def z -0.73&#37; 0 final.xyz</code>
+<p>Cet exemple utilise l'option "-deform" trois fois pour appliquer des déformations différentes suivant chaque axe cartésien (le coefficient de Poisson vaut toujours zéro). Ceci est équivalent à une déformation anisotropique.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def x 0.003 -1 final.xyz</code>
+<p>Ceci appliquera une tension de 0.3&#37; dans toutes les directions, mimant l'effet d'un coefficient d'expansion thermique &alpha;=10<sup>-5</sup> K<sup>-1</sup> à une température de 300 K.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

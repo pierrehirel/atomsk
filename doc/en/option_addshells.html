@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option add-shells - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: add-shells</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-add-shells &#60;species&#62;</code></p>
+
+<p><code>-as &#60;species&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option creates shells (in the sense of an ionic core-shell model) for a given atomic species. If &#60;species&#62; is "all" then shells are created for all atoms; otherwise they are created only for the specified atom species.</p>
+
+<p>If some atoms already have shells and &#60;species&#62; is set to "all", then the shells will first be deleted and then created for all atoms.</p>
+
+<p>Note that the shells positions can be output only to some specific formats, like the <a href="./format_gin.html">GIN format</a> or the <a href="./format_dlp.html">DL_POLY 4 format</a>. When writing to other formats the shells will not be written and will be lost.</p>
+
+
+<h4>Default</h4>
+
+<p>By default no shell is introduced.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.cfg -add-shells O system.gin</code>
+<p>This will read the file <code>initial.gin</code>, add shells on all oxygen ions, and write the result to the GULP file <code>system.gin</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -as all final.gin</code>
+<p>This will create shells for all atoms.</p></li>
+
+<li><code class="command">atomsk initial.cfg -as Ti -as O final.gin</code>
+<p>This will create shells for Ti and O atoms.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

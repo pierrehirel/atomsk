@@ -1,0 +1,328 @@
+.TH atomsk 1 LOCAL
+
+.SH NAME
+atomsk - Atom/Molecule/Material Software Kit
+
+.SH SYNOPSIS
+.B atomsk
+
+.B atomsk <inputfile> <outputfile>
+
+.B atomsk <inputfile> <format>
+
+.B atomsk <inputfile> <format> <options...>
+
+.B atomsk [--mode] <inputfile> <outputfile> [-options] [formats]
+
+.SH AVAILABILITY
+Atomsk is intended to run in UNIX/Linux and Microsoft(R) Windows(R) environments.
+
+.SH DESCRIPTION
+Atomsk is a command-line program intended to read many types of atomic position files, and convert them to many other formats. A list of supported formats is given below. Additionnaly, atomsk can also perform some simple transformations of atomic positions (thanks to the so-called options).
+
+.SH SUPPORTED FILE FORMATS
+.SH Input:
+.TP
+.B atsk
+Specific atomsk binary format.
+.TP
+.B bop
+Bond-Order Potential (BOP) format.
+.TP
+.B cfg
+Atomeye configuration.
+.TP
+.B cif
+Crystallographic Information Files.
+.TP
+.B CONFIG
+DL_POLY configuration.
+.TP
+.B COORAT
+Mixed-Basis Pseudo Potential (MBPP) coordinates.
+.TP
+.B gin
+GULP input file.
+.TP
+.B imd
+IMD configuration.
+.TP
+.B lmc
+LAMMPS custom format.
+.TP
+.B lmp
+LAMMPS data file.
+.TP
+.B mol
+MOLDY configuration file.
+.TP
+.B pdb
+Protein Data Bank format.
+.TP
+.B POSCAR
+VASP format.
+.TP
+.B PW
+Quantum Espresso PWscf format.
+.TP
+.B xmd
+XMD file.
+.TP
+.B xsf
+XCrySDen file.
+.TP
+.B XV
+SIESTA XV file.
+.TP
+.B xyz/exyz/sxyz
+XYZ general purpose format.
+
+
+.SH Output:
+.TP
+.B atsk
+Specific atomsk binary format.
+.TP
+.B bop
+Bond-Order Potential (BOP) format.
+.TP
+.B cfg
+Atomeye configuration.
+.TP
+.B cif
+Crystallographic Information Files.
+.TP
+.B CONFIG
+DL_POLY format.
+.TP
+.B COORAT
+Mixed-Basis Pseudo Potential (MBPP) coordinates.
+.TP
+.B ddplot
+DDplot format (ddplot mode only).
+.TP
+.B gin
+GULP input file.
+.TP
+.B imd
+IMD configuration.
+.TP
+.B lmp
+LAMMPS data file.
+.B mol
+MOLDY configuration file.
+.TP
+.B pdb
+Protein Data Bank format.
+.TP
+.B POSCAR
+VASP format.
+.TP
+.B PW
+Quantum Espresso PWscf format.
+.TP
+.B xmd
+XMD file.
+.TP
+.B xsf
+XCrySDen file.
+.TP
+.B XV
+SIESTA XV file.
+.TP
+.B xyz/exyz/sxyz
+XYZ general purpose format.
+
+
+.SH MODES
+Modes decide how the files will be treated. Only one mode can be used at a time. If the program is called without any argument then the mode will be "interactive", i.e. the user will be prompted for an input file name and an output format. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
+.TP
+.B --all-in-one, -AI1
+Converts several files to one file containing all snapshots.
+.TP
+.B --average
+Averages atomic positions over several configurations.
+.TP
+.B --create, -C
+Creates a system from scratch.
+.TP
+.B --ddplot
+Converts two files to a ddplot file.
+.TP
+.B --diff
+Computes the difference in atom positions between two files.
+.TP
+.B --edm
+Computes individual electric dipole moments.
+.TP
+.B --electronic-polarization, -PE
+Computes polarization of ions in a core-shell model.
+.TP
+.B --help
+Displays help.
+.TP
+.B --list, -L
+Converts a list of files.
+.TP
+.B --merge, -M
+Merges several systems into one.
+.TP
+.B --nye
+Computes the Nye tensor.
+.TP
+.B --one-in-all, -1IA
+Converts a file containing many snapshots into several files.
+.TP
+.B --polycrystal
+Construct a polycrystal.
+.TP
+.B --rdf
+Computes the radial distribution function(s) of a system.
+.TP
+.B --unwrap
+Unwraps atom coordinates of a system.
+
+.SH OPTIONS
+Options apply some transformations to the system. If several options are called in the same command line, they are applied successively in the order they are called.
+.TP
+.B -add-atom <species> at <x> <y> <z>
+.TP
+.B -add-atom <species> near <index>
+.TP
+.B -add-atom <species> random <N>
+Adds an atom at the given position, or near the atom with the given index, or N atoms at random positions.
+.TP
+.B -add-shells <species>, -as <species>
+Creates shells (in the sense of a shell model) for the <species>. <species> can be set to "all".
+.TP
+.B -alignx
+Aligns the first supercell vector with the X axis, and the second supercell vector in the XY plane.
+.TP
+.B -bind-shells, -bs
+Re-associates shells (in the sense of a shell model) with their core.
+.TP
+.B -crack <crackmode> <cracktype> <K> <pos1> <pos2> <crackline> <crackplane> <μ> <ν>
+Introduces a crack in the system.
+.TP
+.B -cut <above|below> <d> <normal>
+Removes all atoms that are above or below the plane defined by its <normal>.
+.TP
+.B -deform <direction> <strain> <poisson>
+Applies normal strain.
+.TP
+.B -dislocation <pos1> <pos2> <disloctype> <dislocline> <dislocplane> <b> <ν>
+Introduces a straight edge or screw dislocation line in the system.
+.TP
+.B -disturb <dx>
+Apply a random displacement (maximum dx) to all atoms.
+.TP
+.B -expand <ex> <ey> <ez>, -e <ex> <ey> <ez>
+Expands the system.
+.TP
+.B -fix
+Fixes atoms in one or all directions of space.
+.TP
+.B -fractional, -frac
+Converts atom positions to reduced coordinates.
+.TP
+.B -mirror <d> <direction>
+Applies a mirror plane normal to the <direction> at distance <d> from origin.
+.TP
+.B -options <file>
+Reads a list of options from a file, and apply these options to the system.
+.TP
+.B -orient <Hx> <Hy> <Hz> <H'x> <H'y> <H'z>
+Changes the crystallographic orientation of the system.
+.TP
+.B -properties <file>, -prop <file>
+Reads some properties of the system from <file>.
+.TP
+.B -rebox
+Attempts to determine the supercell parameters.
+.TP
+.B -remove-atom <index/species>, -rmatom <index/species>
+Removes an atom given its index, or all atoms of a given species.
+.TP
+.B -remove-doubles <distance>, -rmd <distance>
+Removes atoms that are too close to other atoms.
+.TP
+.B -remove-property <property>, -rmprop <property>
+Removes one or all auxiliary properties.
+.TP
+.B -remove-shells <species>, -rmshells <species>
+Removes the shells from ions with the given species, or all ions.
+.TP
+.B -rotate <axis> <angle>
+Rotates the system around a cartesian <axis>.
+.TP
+.B -select all
+.TP
+.B -select invert
+.TP
+.B -select <index>
+.TP
+.B -select <species>
+.TP
+.B -select random <N> <species>
+.TP
+.B -select <above|below> <x1> <dir>
+.TP
+.B -select <N> <species> neighbor <index>
+.TP
+.B -select <in/out> <geometry> <x1> <y1> [<z1>] <x2> [<y2> <z2>]
+Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
+.TP
+.B -shear <surface normal> <shear amp> <shear direction>
+Applies shear strain to the system.
+.TP
+.B -shift <above|below> <d> <normal> <tauX> <tauY> <tauZ>
+Shifts some atoms.
+.TP
+.B -sort <property> <order>
+Sorts the atoms according to one <property>. <order> can be "up", "down", or "pack".
+.TP
+.B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
+Substitutes atoms of a given species by another.
+.TP
+.B -unit <unit1> <unit2>, -u <unit1> <unit2>
+Changes the unit in which atom positions and supercell parameters are written.
+.TP
+.B -unskew
+Reduces the skew of the box.
+.TP
+.B -velocity
+Generate a Maxwell-Boltzmann distribution a velocities.
+.TP
+.B -wrap
+Wraps atoms back into the supercell.
+
+
+
+.SH EXAMPLES
+.TP
+.B atomsk
+The program will ask you which file you want to convert, and to which format to convert it.
+.TP
+.B atomsk oldfile.xsf newfile.cfg
+The program will convert "oldfile.xsf" to "newfile.cfg".
+.TP
+.B atomsk file.xsf cfg
+The program will convert "file.xsf" to "file.cfg".
+.TP
+.B atomsk initial.xsf final cfg xyz lmp
+The program will convert "initial.xsf" to "final.cfg", "final.xyz" and "final.lmp".
+.TP
+.B atomsk unitcell.xsf -e 4 4 6 -shift above BOX/2 z 0.2*BOX 0 0 -wrap final.xsf
+The program will read "unitcell.xsf", expand it to form a 2x2x4 supercell, shift atoms of the upper half of the supercell by 0.2 times the box length along X, wrap atoms so that they are all in the simulation box, and write the final result to "final.xsf".
+
+
+.SH SEE ALSO
+.TP
+This man page only summarizes the capabilities of atomsk. A more complete documentation in html format is provided with the program and available at:
+http://pierrehirel.info/codes/atomsk/
+
+
+.SH AUTHOR
+Dr. Pierre Hirel (pierre.hirel@univ-lille1.fr)
+
+UMET, Université de Lille 1 (France)

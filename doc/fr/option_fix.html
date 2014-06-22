@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option fix - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : fix</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-fix &#60;axe&#62; &#60;above|below&#62; &#60;d&#62; &#60;normale&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de figer la position de certains atomes suivant X, Y et/ou Z.</p>
+
+<p>Les paramètres associés à cette option sont :</p>
+<ul>
+  <li><strong>axe</strong> : direction suivant laquelle les atomes seront figés, peut être 'x', 'y', 'z' (axes cartésiens), ou 'all' (ce dernier indiquant que les atomes seront figés dans les trois directions de l'espace).</li>
+  <li><strong>above|below</strong> : ce mot-clé décide si ce sont les atomes au-dessus (above) ou en-dessous (below) du plan qui seront figés.</li>
+  <li><strong>d</strong> : distance entre le plan et l'origine, en angstr&ouml;ms (&Aring;).</li>
+  <li><strong>normale</strong> : normale au plan définissant la sélection ; peut être 'x', 'y', 'z', ou une direction cristallographique (voir ci-dessous).</li>
+</ul>
+
+<p>La distance &#60;d&#62; est généralement donnée en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</p>
+
+<p>La direction &#60;normale&#62; au plan peut être 'x', 'y', 'z' (axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation crystallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001].</p>
+
+<p>Notez que cette option ne rend pas ces atomes inertes pour <code>atomsk</code>, elle ne fait que définir l'état (figé ou non) des atomes comme propriétés auxiliaires. Les options de <code>atomsk</code> ne traitent pas les atomes figés différemment des autres atomes. Ce n'est que lors de l'écriture d'un fichier de sortie que ces atomes seront marqués différemment si le format le permet (voir la <a href="./formats.html">liste des formats</a>). Pour restreindre les options de <code>atomsk</code> à certains atomes il est possible d'utiliser l'<a href="./option_select.html">option <code>-select</code></a>.</p>
+
+<p>Cette option peut être utilisée plusieurs fois pour figer les atomes dans différentes directions, ou pour figer des atomes différents (voir l'exemple 2 ci-dessous).</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront fixés.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucun atome n'est figé.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk system.xsf -fix x above 5 z gin</code>
+<p>Ceci lira <code>system.xsf</code>, et figera la composante X de tous les atomes situés au-dessus de 5 &Aring; suivant Z. Le résultat sera écrit dans <code>system.gin</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -fix x below 2.4 z -fix y below 2.4 z final.gin</code>
+<p>Ceci fixera les composantes X et Y des atomes situés en-dessous de 2.4 &Aring; suivant Z.</p></li>
+
+<li><code class="command">atomsk initial.xsf -fix all below 0.2*BOX z -fix all above 0.8*BOX z final.gin</code>
+<p>Ceci figera complètement les atomes situés en-dessous de 0.2 fois la hauteur de boîte suivant Z, ou au-dessus de 0.8 fois cette hauteur.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select out box 10 10 0 60 60 100 -fix all above -1000 x final.bop</code>
+<p>Ceci va <a href="./option_select.html">sélectionner les atomes dans une région</a>, et figera ces atomes dans les trois directions de l'espace. Ceci peut être utile pour figer les atomes en bord de boîte.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

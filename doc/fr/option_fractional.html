@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option fractional - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : fractional</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-fractional</code></p>
+
+<p><code>-frac</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option convertit toutes les positions des atomes en coordonnées réduites (aussi appelées coordonnées fractionnaires), c-à-d. en coordonnées normalisées aux vecteurs de boîte.</p>
+
+<p>De fait les coordonnées seront écrites en coordonnées fractionnaires dans le fichier de sortie, quel que soit le format. Par exemple, par défaut <code>atomsk</code> écrit les coordonnées en base cartésienne dans un fichier au format XYZ, mais avec cette option elles seront écrites en coordonnées réduites. Pour certains formats (comme le CFG) les positions sont toujours écrites en coordonnées réduites.</p>
+
+<p>Cette option peut affecter certains modes. Par exemple si elle est utilisée avec le <a href="./mode_difference.html">mode difference</a> alors les déplacements calculés seront en coordonnées réduites. Certaines options peuvent aussi agir différemment si elles sont appelées après l'option <code>-fractional</code>.</p>
+
+<p>Cette option ne fera rien si les positions des atomes sont déjà en coordonnées réduites (par ex. si cette option a déjà été appelée avant).</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut <code>atomsk</code> utilise des coordonnées cartésiennes en interne, et n'écrit des coordonnées réduites que dans les formats de fichier qui le requièrent explicitement (comme le CFG).</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk sto.xsf -frac sto.xyz</code>
+<p>Ceci lira le fichier <code>sto.xsf</code> et écrira des coordonnées réduites vers <code>sto.xyz</code>.</p></li>
+
+<li><code class="command">atomsk sto.xsf -frac sto.gin</code>
+<p>Ceci lira le fichier <code>sto.xsf</code> et écrira des coordonnées réduites vers <code>sto.gin</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

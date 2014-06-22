@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Comportement du programme, écraser - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Comportement du programme : écraser</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-overw</code></p>
+<p><code>-ow</code></p>
+
+
+<h4>Description</h4>
+
+<p>Avec cette option <code>atomsk</code> écrase automatiquement les fichiers de sortie s'ils existent, sans demander. Par défaut (c-à-d. quand <code>-ow</code> n'est pas utilisé), <code>atomsk</code> demande à l'utilisateur s'il faut écraser le fichier ou lui choisir un nouveau nom.</p>
+
+<p>Si les deux options <a href="./progbe_ow.html"><code>-overw</code></a> et <code>-ignore</code> sont utilisées en même temps, alors les fichiers existants ne sont pas écrasés mais sont ignorés.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les fichiers de sortie qui existent déjà ne sont <em>pas</em> écrasés. Il est demandé à l'utilisateur s'il faut écraser le fichier ou lui donner un autre nom.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -ow</code>
+<p>Ceci va lire le fichier <code>initial.gin</code> et le convertir en CFG. Si <code>initial.cfg</code> existe déjà, il sera écrasé.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

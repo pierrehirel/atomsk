@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode unwrap - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: unwrap</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --unwrap &#60;reference&#62; &#60;configuration&#62; [&#60;outputfile&#62;] [&#60;formats&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This mode allows to unwrap atom coordinates of the &#60;configuration&#62;.</p>
+
+<p>Some codes wrap coordinates, i.e. place atoms back inside the simulation box if they leave it during a simulation for instance (see also the <a href="./option_wrap.html">option <code>-wrap</code></a> of <code>atomsk</code>). This is inconvenient if one is interested in the "absolute" coordinates of atoms -that is, their <em>unwrapped</em> coordinates.</p>
+
+<p>In this mode <code>atomsk</code> compares the atom positions of the &#60;configuration&#62; to the ones in the &#60;reference&#62;. Both files must have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. If the displacement vector of an atom is not in the range of ]-0.5;+0.5] times the vectors of the supercell, then <code>atomsk</code> considers that this atom must be unwrapped. It will be shifted by one or several supercell vectors, until its displacement vector falls in the aforementionned range.</p>
+
+<p>Beware that in simulations where atoms diffuse a lot (typically by an amount greater than the cell length), if you attempt to unwrap coordinates of the last snapshot using the initial snapshot as a reference, then <code>atomsk</code> will erronously unwrap atoms. In such cases it is recommended to use the previous snapshot as a reference.</p>
+
+<p>Note that contrary to the <a href="./option_wrap.html">wrapping of atoms</a>, unwrapping requires a reference. That is because in a configuration where all atoms are in the simulation box, there is no general way of telling which ones have been wrapped or not -and therefore which ones have to be unwrapped.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a> they will be applied to the &#60;reference&#62; and &#60;configuration&#62; <em>before</em> unwrapping atom coordinates.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --unwrap system_MD0.xyz system_MD200.xyz xsf</code>
+<p>This will unwrap atom coordinates of the file <code>system_MD200.xyz</code>, using <code>system_MD0.xyz</code> as a reference. The unwrapped coordinates will be written to <code>system_MD200.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --unwrap initial.gin final.grs final_uw.xsf cfg</code>
+<p>This will unwrap coordinates from the file <code>final.grs</code>, and write them to <code>final_uw.xsf</code> and <code>final_uw.cfg</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

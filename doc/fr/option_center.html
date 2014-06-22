@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option center - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option: center</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-center &#60;indice&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option translate tous les atomes, de sorte que l'atome de l'&#60;indice&#62; donné soit exactement au centre de la boîte.</p>
+
+<p>Si &#60;indice&#62;=0 ou "com", alors tous les atomes sont translatés de sorte que leur centre de masse soit au centre de la boîte.</p>
+
+
+<h4>Default</h4>
+
+<p>Par défaut le système n'est pas recentré.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -center 23 final.xsf</code>
+<p>Cette commande va lire le fichier <code>initial.cfg</code> et translater tous les atomes pour que l'atome &#35;23 soit exactement au centre de la boîte. Le résultata sera écrit dans <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -center com final.xsf</code>
+<p>Ceci va translater tous les atomes pour que leur centre de masse soit au centre de la boîte.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

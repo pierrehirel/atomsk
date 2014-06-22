@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>FAQ - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+    <script language="javascript" type="text/javascript">
+    function showHide(shID) {
+      if (document.getElementById(shID)) {
+          if (document.getElementById(shID+'-show').style.display != 'block') {
+            document.getElementById(shID+'-show').style.display = 'block';
+          }
+          else {
+            document.getElementById(shID+'-show').style.display = 'none';
+          }
+      }
+    }
+    </script>
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>FAQ - Foire Aux Questions</h2>
+
+<h3>Questions générales</h3>
+
+<ul>
+
+<li><a href="#" id="genname" class="showLink" onclick="showHide('genname');return false;"><strong>Pourquoi ce programme s'appelle-t-il "<code>atomsk</code>" ?</strong></a></li>
+
+<div id="genname-show" class="more"><p>Auparavant ce programme s'appelait <code>pikashu</code>, et bien que je n'accorde pas beaucoup d'importance au nom de ce code j'ai décidé que ce n'était pas assez sérieux. <code>Atomsk</code> est un nom plus simple, et la présence du mot "atome" dans le nom suggère que ce programme sert à manipuler des systèmes atomiques.</p></div>
+
+<li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Où peut-on obtenir <code>atomsk</code>?</strong></a></li>
+
+<div id="gendl-show" class="more"><p>Il est recommandé de visiter <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">cette page</a> et de télécharger la version exécutable pour votre plate-forme. Vous pouvez aussi télécharger le code source si vous désirez compiler le programme vous-même ou y jeter un &oelig;il.</p></div>
+
+
+<li><a href="#" id="genprec" class="showLink" onclick="showHide('genprec');return false;"><strong>Quelle est la précision sur les positions atomiques ?</strong></a></li>
+
+<div id="genprec-show" class="more"><p>En interne tous les nombres réels sont enregistrés avec une précision de 64 bits. Dans les fichiers de sortie les coordonnées des atomes sont écrites avec une précision de 8 digits. Ceci devrait être suffisant pour la plupart des applications.</p></div>
+
+
+<li><a href="#" id="gennp" class="showLink" onclick="showHide('gennp');return false;"><strong>Quel est le nombre maximum d'atomes que <code>atomsk</code> peut manipuler ?</strong></a></li>
+
+<div id="gennp-show" class="more"><p>En principe la limite est celle des entiers codés sur 32 bits (4 octets), soit environ 2 milliards (2<sup>32</sup>/2), mais dans la pratique il est fort probable que la quantité de mémoire virtuelle disponible sur la machine sera le facteur limitant. Chaque atome est caractérisé par sa position x, y, z, et son numéro atomique, ce qui fait un total de quatre nombres qui sont enregistrés comme des réels 64 bits : au final chaque atome utilise 256 bits, soit 32 octets, de mémoire. Les atomes sont stockés dans un tableau de taille Nx4, où N est le nombre d'atomes. Un système composé d'un million d'atomes occupera donc environ 32 Mo (ou 30,5 Mio) de mémoire, un de 10 millions d'atomes environ 320 Mo, et ainsi de suite.</p>
+
+<p>De plus, si le système inclut des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), celles-ci nécessitent un second tableau de réels de taille Nx4. Enfin si les atomes ont des propriétés auxiliaires (comme les forces, vitesses...), ces propriétés sont aussi enregistrées dans un tableau de réels 64 bits de taille NxM où M est le nombre de propriétés associées à chaque atome.</p></div>
+
+
+<li><a href="#" id="genunit" class="showLink" onclick="showHide('genunit');return false;"><strong>Quelles unités sont utilisées ?</strong></a></li>
+
+<div id="genunit-show" class="more"><p>Par défaut des angstr&ouml;ms, bien que dans la pratique <code>atomsk</code> transfère les nombres d'un fichier à l'autre sans se soucier du système d'unités.
+
+<p>Notez que <code>atomsk</code> n'opère absolument aucune transformation implicite des unités. Par exemple, si vous lisez un fichier contenant des positions atomiques en Bohrs, alors dans le fichier de sortie elles apparaîtront également en Bohrs. Pour changer explicitement les unités il est possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
+
+
+<li><a href="#" id="gennclo" class="showLink" onclick="showHide('gennclo');return false;"><strong>Combien d'options puis-je utiliser dans une même ligne de commandes ?</strong></a></li>
+
+<div id="gennclo-show" class="more"><p>Il n'y a virtuellement aucune limitation, autre que celle de votre environnement. Sous UNIX/Linux vous pouvez taper "<code>getconf ARG_MAX</code>" pour connaître la longueur maximale de ligne de commande que votre shell supporte.</p></div>
+
+</ul>
+
+
+
+
+<h3>Usage</h3>
+
+<ul>
+<li><a href="#" id="usecalc" class="showLink" onclick="showHide('usecalc');return false;"><strong>J'ai créé un fichier d'entrée avec <code>atomsk</code>, mais mon code de calcul <em>ab initio</em> ou de dynamique moléculaire ne se lance pas.</strong></a></li>
+
+<div id="usecalc-show" class="more"><p>Bien que l'un des buts de <code>atomsk</code> soit effectivement d'aider à la préparation de fichiers à des fins de simulations, il n'est pas conçu pour préparer tous les fichiers ni tous les paramètres de votre simulation. La plupart du temps <code>atomsk</code> préparera seulement un brouillon que vous devrez éditer avant de lancer une simulation. Éditer un tel fichier signifie que vous devez savoir ce que vous voulez faire et comment le faire avec le code de simulation que vous utilisez. Si ce n'est pas le cas, alors <code>atomsk</code> ne peut pas vous aider : référez-vous à la documentation du code que vous voulez utiliser.</p></div>
+
+
+<li><a href="#" id="useuc" class="showLink" onclick="showHide('useuc');return false;"><strong>Comment puis-je créer une cellule élémentaire ?</strong></a></li>
+
+<div id="useuc-show" class="more"><p><code>atomsk</code> peut générer des cellules élémentaires pour certains réseaux cristallins simples grâce au <a href="./mode_create.html">mode create</a>. Par exemple pour créer une cellule élémentaire d'aluminium cubique à faces centrées (paramètre de maille 4.02 &Aring;) et l'écrire dans le fichier <code>aluminium.xsf</code> :</p>
+
+<p><code class="command">atomsk --create fcc 4.02 Al aluminium.xsf</code></p>
+
+<p>Cependant cette méthode est assez limitée, puisque beaucoup de types de réseau ne peuvent tout simplement pas être générés. Si vous connaissez le groupe d'espace et les positions de Wyckoff du cristal que vous voulez générer, alors le <a href="http://www.cryst.ehu.es/cryst/get_wp.html">Bilbao Crystallographic server</a> peut être extrêmement utile. Certains codes permettent également de générer des structures cristallines, comme <a href="http://jp-minerals.org/vesta/">VESTA</a>, <a href="https://wiki.fysik.dtu.dk/ase/">ASE</a>, ou certains codes de simulation comme <a href="http://xmd.sourceforge.net/">XMD</a> ou <a href="https://projects.ivec.org/gulp/">GULP</a>.</p>
+
+<p>Il est possible que <code>atomsk</code> intègre ce genre de fonctionnalité dans le futur, mais aucun plan précis n'est prévu pour l'instant.</p></div>
+
+
+<li><a href="#" id="usesc" class="showLink" onclick="showHide('usesc');return false;"><strong>J'ai une cellule unité, comment puis-je générer une super-cellule ?</strong></a></li>
+
+<div id="usesc-show" class="more"><p>Ceci peut être fait grâce à l'option <a href="./option_expand.html">option <code>-expand</code></a>. Si votre cellule unité est dans le fichier <code>cellule.xsf</code>, et que vous voulez créer une super-cellule de taille 4x4x2, alors la commande serait :</p>
+
+<p><code class="command">atomsk cellule.xsf -expand 4 4 2 supercellule.xsf</code></p>
+
+<p>et la supercellule sera écrite dans le fichier <code>supercellule.xsf</code>.</p>
+</div>
+
+
+<li><a href="#" id="useconv" class="showLink" onclick="showHide('useconv');return false;"><strong>Comment convertir un fichier pour un programme de simulation ou de visualisation ?</strong></a></li>
+
+<div id="useconv-show" class="more"><p>Exécutez <code>atomsk</code> avec le nom du fichier d'entrée et le format de fichier de sortie que vous désirez (voir <a href="./formats.html">cette page</a> pour une liste des formats de fichiers supportés par <code>atomsk</code>). Par exemple, pour convertir le fichier "file.xsf" au format CFG pour Atomeye, exécutez :</p>
+
+<p><code class="command">atomsk file.xsf cfg</code></p>
+
+<p>Plusieurs formats de fichiers peuvent être spécifiés en sortie, par exemple la commande suivante produira les fichiers aux formats CFG (Atomeye) et LAMMPS :</p>
+
+<p><code class="command">atomsk file.xsf cfg lmp</code></p>
+</div>
+
+
+<li><a href="#" id="useverb" class="showLink" onclick="showHide('useverb');return false;"><strong>Je n'aime pas la façon dont <code>atomsk</code> affiche constamment des informations sur mon écran, comment changer cela ?</strong></a></li>
+
+<div id="useverb-show" class="more"><p>L'affichage d'informations est le comportement par défaut, une manière pour le programme d'indiquer ce qu'il fait. Ce comportement par défaut peut être changé grâce au <a href="./progbe_verb.html">paramètre de ligne de commande <code>-verbosity</code></a>. Par exemple pour rendre le programme complètement silencieux, appelez-le avec <code>-v 0</code>.</p>
+
+<p>Pour rendre ce changement plus permanent, il est aussi possible de créer un <a href="progbe_configfile.html">fichier de configuration personnel</a>. Si vous utilisez un système GNU/Linux, créez un fichier <code>~/.config/atomsk.conf</code> et écrivez-y la ligne : <code>verbosity 0</code>.</p>
+
+<p>Notez que même si la verbosité est égale à zéro, les messages d'alerte et d'erreur seront toujours affichés à l'écran. Pour éviter cela, utilisez la redirection standard : <code>&#62;/dev/null 2&#62;&amp;1</code>.</div>
+
+
+<li><a href="#" id="usecrash" class="showLink" onclick="showHide('usecrash');return false;"><strong>J'ai voulu utiliser <code>atomsk</code>, et il a planté.</strong></a></li>
+
+<div id="usecrash-show" class="more"><p>Le programme est censé détecter les causes possibles d'erreurs et se fermer proprement, mais dans certains cas il est possible qu'il se termine brutalement avec une erreur de segmentation ou toute autre forme d'erreur ou de plantage. Dans la plupart des cas cela signifie qu'il y a un bug dans le programme, et ce bug peut être n'importe quoi. La meilleure chose à faire est d'envoyer un email à <a href="./contact.html">l'auteur</a>, avec votre fichier d'entrée et la ligne de commande complète que vous avez utilisée pour exécuter <code>atomsk</code>. Le bug pourra alors être corrigé dans une future version du programme.</p>
+
+<p>Veuillez notez que si vous pestez contre le programme (ou contre son auteur) mais n'envoyez pas de rapport de bug, il est très improbable que le bug soit jamais corrigé.</p></div>
+
+</ul>
+
+
+
+
+<br/>
+<h3 id="compil">Compilation / Installation</h3>
+
+<ul>
+
+<li><a href="#" id="instcomp" class="showLink" onclick="showHide('instcomp');return false;"><strong>Le programme ne compile pas avec mon compilateur.</strong></a></li>
+
+<div id="instcomp-show" class="more"><p>De nombreux efforts ont été faits pour tester le programme avec différents compilateurs (GNU Fortran, g95, Intel Fortran) et sur différentes plates-formes (différentes variantes de Linux et Windows), référez-vous à la <a href="./install.html">page d'installation</a> pour une liste des compilateurs testés. Cependant pour des raisons évidentes de temps et de ressources, <em>tous</em> les environnements possibles et imaginables n'ont pas été testés -il est donc possible que, dans des cas particuliers, la compilation échoue.</p>
+
+<p>Certaines vieilles versions des compilateurs ne permettent pas de compiler le présent code. Par exemple <code>atomsk</code> <em>ne compilera pas</em> avec GNU Fortran 4.1, mais compile parfaitement avec GNU Fortran 4.4 et supérieur. Il est donc recommandé d'utiliser une version à jour de votre compilateur. Si cela ne fonctionne toujours pas, essayez avec un compilateur différent.</p></div>
+
+
+<li><a href="#" id="instundef" class="showLink" onclick="showHide('instundef');return false;"><strong>Lors de la compilation j'ai le message d'erreur "<strong>undefined reference to dgesv_</strong>" (ou un message similaire).</strong></a></li>
+
+<div id="instundef-show" class="more"><p>Cela signifie que le compilateur n'a pas réussi à lier <code>atomsk</code> à la bibliothèque LAPACK. Tout d'abord assurez-vous que LAPACK est installé sur votre système, et compilé avec le même compilateur que celui que vous utilisez pour compiler <code>atomsk</code>. Ensuite, assurez-vous que la variable <code>LAPACK</code> (dans le Makefile que vous utilisez) pointe bien vers la bibliothèque LAPACK.</p></div>
+
+
+
+<li><a href="#" id="instwin" class="showLink" onclick="showHide('instwin');return false;"><strong>Ce programme fonctionne-t-il sur Windows XP, Vista, Seven, 3.1 ou autre ?</strong></a></li>
+
+<div id="instwin-show" class="more"><p>Oui, <code>atomsk</code> fonctionne nativement sur les systèmes Microsoft&reg; Windows&reg;. Le plus simple est de télécharger l'exécutable pour Windows depuis la <a href="http://pierrehirel.info/codes_atomsk.php">page de téléchargement</a>, puis d'exécuter le programme.</p>
+
+<p>Si vous avez le courage de compiler le programme sous Microsoft&reg; Windows&reg;, suivez les <a href="./install.html">instructions d'installation</a>. Il est nécessaire d'installer le programme <a href="http://gnuwin32.sourceforge.net/">GNU Make</a> pour pouvoir utiliser la commande "<code>make</code>", ainsi qu'un compilateur Fortran 95 (<a href="http://www.mingw.org/">MinGW</a> est recommandé). La bibliothèque LAPACK doit aussi être installée, référez-vous à <a href="http://gcc.gnu.org/wiki/LAPACK%20on%20Windows">cette page (GNU Fortran)</a> et/ou <a href="http://icl.cs.utk.edu/lapack-for-windows/">cette page (Intel&reg; Fortran)</a>. Un Makefile pour Windows est fourni dans le dossier <em>src</em> (<code>Makefile.windows</code>), vous pouvez l'éditer pour l'adapter à votre système. Ensuite exécutez GNU make :</p>
+
+<p><code>make.exe -f Makefile.windows atomsk</code></p>
+
+<p>De manière non-native, <code>atomsk</code> devrait également fonctionner sous Windows dans un environnement Linux tel que <a href="http://www.cygwin.com">Cygwin</a>, bien que cela n'a pas été testé.</p></div>
+
+
+<li><a href="#" id="instbin" class="showLink" onclick="showHide('instbin');return false;"><strong>Pouvez-vous fournir un paquet (rpm, deb...) pour ma distribution GNU/Linux préférée ?</strong></a></li>
+
+<div id="instbin-show" class="more"><p>Non. J'admets qu'il serait très utile d'avoir un paquet <code>atomsk</code>, mais n'ai pas le temps ni le savoir-faire pour en créer. Mais si des volontaires veulent packager atomsk, ils sont bienvenus.</p>
+
+<p>La plus simple alternative est sans doute d'utiliser la version binaire pour Linux proposée sur la <a href="http://pierrehirel.info/codes_atomsk.php">page Web d'atomsk</a>.</p></div>
+
+
+<li><a href="#" id="instlinux" class="showLink" onclick="showHide('instlinux');return false;"><strong>Sous Linux, pourquoi le programme s'installe-t-il dans <em>/usr/local/bin</em> par défaut ?</strong></a></li>
+
+<div id="instlinux-show" class="more"><p>Les gestionnaires de paquets de la plupart des distributions GNU/Linux travaillent dans le dossier  <em>/usr/bin</em>. Il est donc recommandé de ne pas modifier manuellement le contenu de ce dossier -c'est pourquoi <code>atomsk</code> n'y touche pas. Le dossier <em>/usr/local/bin</em> est prévu pour recevoir des programmes ajoutés par l'utilisateur (comme <code>atomsk</code>).</p>
+
+<p>Une autre possibilité serait d'installer <code>atomsk</code> dans le dossier <em>/opt/bin</em>, qui est aussi réservé pour des programmes non gérés par le système. Pour cela vous pouvez modifier la variable <code>INSTPATH</code> dans le <code>Makefile</code> que vous utilisez, avant d'utiliser la commande "<code>make install</code>".</p>
+
+<p>Si vous n'êtes pas sûr de la meilleure solution pour votre système, utilisez les paramètres par défaut fournis avec <code>atomsk</code> ou demandez à votre administrateur système.</p></div>
+
+</ul>
+
+
+
+<br/>
+<h3>Développement</h3>
+
+
+<ul>
+
+
+<li><a href="#" id="devcloc" class="showLink" onclick="showHide('devcloc');return false;"><strong>Combien de lignes de codes contient le code source ?</strong></a></li>
+
+<div id="devcloc-show" class="more"><p>Dans sa version beta 0.8 <code>atomsk</code> comporte environ 22 000 lignes de code.</p></div>
+
+
+<li><a href="#" id="devgui" class="showLink" onclick="showHide('devgui');return false;"><strong>Y aura-t-il une interface graphique (GUI) ?</strong></a></li>
+
+<div id="devgui-show" class="more"><p>Certaines personnes sont plus enclines à utiliser une interface avec des fenêtres et des menus déroulants, au lieu d'un terminal austère. Ils seront sans doute déçus par <code>atomsk</code>. Ce programme est conçu pour être utilisé en ligne de commande, ce qui signifie qu'il doit être léger et rapide, doit pouvoir être utilisé sur des machines distantes, et pouvoir être appelé depuis des scripts bash. Il est difficile de remplir ce cahier des charges avec une interface graphique. Donc la réponse courte est non : il n'y a aucune interface graphique de prévue pour <code>atomsk</code>. Si vous n'aimez pas les lignes de commandes et recherchez un programme avec une interface graphique, alors <code>atomsk</code> n'est probablement pas ce que vous cherchez.</p></div>
+
+
+
+<li><a href="#" id="devadd" class="showLink" onclick="showHide('devadd');return false;"><strong>Pouvez-vous ajouter le support du format X / Pouvez-vous ajouter l'option Y ?</strong></a></li>
+
+<div id="devadd-show" class="more"><p>Si j'en ai besoin ou si je suis d'humeur excessivement joviale j'ajouterai le support de nouveaux formats de fichiers et de nouvelles transformations. Mais si vous avez besoin de quelque chose de particulier il sera sans doute plus rapide de le développer vous-même. Lisez les <a href="./developers.html">informations pour les développeurs</a>.</p></div>
+
+
+<li><a href="#" id="devlang" class="showLink" onclick="showHide('devlang');return false;"><strong>Pourquoi ce programme est-il écrit en Fortran et pas en Python/C/C++/Java/&#60;mon langage préféré&#62; ?!?</strong></a></li>
+
+<div id="devlang-show" class="more"><p>En premier lieu parce que Fortran est le langage de programmation que je connais le mieux. <em>A posteriori</em> je ne regrette pas ce choix : Fortran peut manipuler des nombres complexes de manière simple, et s'interface naturellement avec LAPACK (une bibliothèque également écrite en Fortran). Mais puisque <code>atomsk</code> est un logiciel libre, le ré-écrire dans un autre langage fait partie de vos droits.</p></div>
+
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

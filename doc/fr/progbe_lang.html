@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Comportement du programme, langue - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Comportement du programme : langue</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-language &#60;langue&#62;</code></p>
+<p><code>-lang &#60;langue&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option change la langue des messages affichés par <code>atomsk</code>.</p>
+
+<p>Les langues disponibles sont :</p>
+
+<ul>
+  <li><strong>en</strong> pour l'anglais.</li>
+  <li><strong>fr</strong> pour le français.</li>
+</ul>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut, sur les systèmes GNU/Linux la variable d'environnement <code>$LANG</code> est lue, et si elle correspond à un langage connu par <code>atomsk</code> alors ce langage est utilisé. Sur les systèmes Microsoft&reg; Windows&reg; l'anglais est utilisé par défaut. Ce défaut est écrasé par le <a href="./progbe_configfile.html">fichier de configuration</a> si l'utilisateur en possède un. Enfin, l'option en ligne de commandes <code>-lang</code> écrase toutes les définitions précédentes.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin -lang fr cfg</code>
+<p>Ceci lira le fichier <code>initial.gin</code> et le convertira en CFG. Tous les messages seront affichés en français.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

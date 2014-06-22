@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>CFG format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format: CFG</h2>
+
+<p><strong>Nom :</strong> fichier de configuration AtomEye</p>
+
+<p><strong>Extension :</strong> cfg</p>
+
+<p><strong>Specification :</strong> <a href="http://mt.seas.upenn.edu/Archive/Graphics/A/#standard_CFG">page Web d'AtomEye</a></p>
+
+<p><strong>Programmes de visualisation :</strong> <a href="http://mt.seas.upenn.edu/Archive/Graphics/A/">Atomeye</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> peut lire les fichiers CFG aux formats standard et étendus. Lors de la lecture d'un fichier CFG, les masses des atomes sont igorées (seules les espèces chimiques sont utilisées). Les propriétés supplémentaires (ou <em>propriétés auxiliaires</em>) sont automatiquement lues par <code>atomsk</code>, et transférées vers les formats qui les supportent (comme le format CFG lui-même, ou le format <a href="./format_xyz.html">XYZ spécial</a>).</p>
+
+<p>Lorsqu'il écrit un fichier CFG, <code>atomsk</code> utilise le format CFG étendu, réputé pour utiliser moins d'espace disque. Comme défini dans la spécification, les positions des atomes sont toujours écrites en coordonnées réduites. Les masses des atomes sont celles des isotopes les plus communs tels que définis par le <a href="http://www.nist.gov/pml/data/periodic.cfm">National Institute of Standards and Technology (NIST)</a>. Lorsque des propriétés auxiliaires sont présentes, elles sont toutes écrites dans le fichier CFG.</p>
+
+<p>Bien que le format CFG soit bien documenté, certains programmes le traitent de façon plus ou moins étrange, remplaçant par exemple les masses des atomes par le numéro atomique (ce qui ne devrait pas poser problème à <code>atomsk</code>), ou utilisant une casse incorrecte pour écrire les symboles des espèces chimiques (par ex. "si" ou "SI", que <code>atomsk</code> ne peut pas comprendre, au lieu de la notation standard "Si" pour le silicium).</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk mon_systeme.xsf cfg</code>
+<p>Ceci va lire le fichier <code>mon_systeme.xsf</code>, et le convertira en <code>mon_systeme.cfg</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

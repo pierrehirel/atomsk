@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option options - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : options</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-options &#60;fichier&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de lire une liste d'options depuis un fichier.</p>
+
+<p>Le &#60;fichier&#62; doit être un fichier texte contenant des mots-clés suivis des valeurs appropriées. Chaque mot-clé doit être une <a href="./options.html">option</a> valide, et doit être suivi de ses paramètres, dans le même ordre que s'ils étaient saisis en ligne de commandes.</p>
+
+<p>Les options lues depuis le &#60;fichier&#62; remplaceront l'appel à l'option <code>-options</code>.</p>
+
+<p>L'option <code>-options</code> elle-même ne peut pas apparaître dans le &#60;fichier&#62;, le cas échéant elle sera ignorée. Autrement dit cette option ne peut pas être utilisée de façon récursive. Cependant l'option <code>-options</code> peut être appelée plusieurs fois dans une même ligne de commandes.</p>
+
+
+
+<h4>Default</h4>
+
+<p>Par défaut aucune option n'est lue depuis un fichier.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><div class="txtfile">
+<h5>mes_options.txt</h5>
+<p><code># Ceci est un commentaire<br/>
+# Ré-orienter la cellule<br/>
+-orient [110] [1-10] [001] [100] [010] [001]<br/>
+# Remplacer les types d'atomes par des espèces chimiques<br/>
+-sub 1 Si<br/>
+-sub 2 C<br/>
+</code></p></div>
+<code class="command">atomsk SiC_relaxed.lmc -options mes_options.txt xsf</code>
+<p>Ceci va lire le fichier de sortie LAMMPS <code>SiC_relaxed.lmc</code>, appliquera les options décrites dans le fichier <code>mes_options.txt</code>, et écrira le résultat final dans <code>SiC_relaxed.xsf</code>.</p></li>
+
+
+<li><code class="command">atomsk initial.cfg -e 3 3 2 -options mes_options.txt -alignx -wrap final.xsf</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, <a href="./option_expand.html">étendra le système</a> 3x3x2, puis appliquera les options décrites dans le fichier <code>mes_options.txt</code>, puis appliquera les options <a href="./option_alignx.html"><code>-alignx</code></a> et <a href="./option_wrap.html"><code>-wrap</code></a>, et enfin écrira le résultat final dans <code>final.xsf</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

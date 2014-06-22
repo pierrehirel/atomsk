@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option rebox - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : rebox</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-rebox</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option force le programme à re-calculer les vecteurs de boîte.</p>
+
+<p>ATTENTION : cette option tente de définir une <strong>boîte parallélépipédique</strong> englobant tous les atomes (elle ne sera donc PAS correcte pour des systèmes tricliniques), et est très imprécise. Ne faites pas confiance à cette option : vérifiez les vecteurs de boîte !</p>
+
+<p>Si vous connaissez les vecteurs de boîte de façon précise, il est recommandé d'utiliser l'<a href="./option_properties.html">option <code>-properties</code></a> au lieu de la présente option.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut <code>atomsk</code> utilise toujours les vecteurs de boîte lus depuis le fichier d'entrée. Cependant si aucun vecteur de boîte n'est trouvé dans le fichier d'entrée, cette option est automatiquement invoquée juste après la lecture du fichier, et avant l'application de toute autre option. C'est le cas par exemple du <a href="./format_xyz.html">format XYZ par défaut</a>, qui ne contient pas de vecteur de boîte.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk system.gin -rebox xsf</code>
+<p>Ceci lira le fichier <code>system.gin</code> et re-calculera les vecteurs de la boîte. Le résultat final sera écrit dans <code>system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk exemple.cfg -cut above 12 z -rebox xsf xyz</code>
+<p>Ceci va <a href="./option_cut.html">couper le système</a> <code>exemple.cfg</code> au-dessus de Z=12 &Aring;, puis re-calculera les vecteurs de boîte. Le résultat sera écrit dans <code>exemple.xsf</code> et <code>exemple.xyz</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

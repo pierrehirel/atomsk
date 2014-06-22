@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode interpolate - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: interpolate</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --interpolate &#60;firstfile&#62; &#60;secondfile&#62; &#60;Nimages&#62; [&#60;outputfile&#62;] [formats] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This mode constructs a chain of &#60;Nimages&#62; configurations by interpolating linearly the positions of atoms between the configurations given by the &#60;firstfile&#62; and the &#60;secondfile&#62;. The vectors of the simulation box are also interpolated.</p>
+
+<p>The two given files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the interpolation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
+
+<p>If the initial and final systems contain shells (in the sense of an ionic core-shell model) then the positions of shells will also be interpolated. If only one of the initial or final system contains shells but not the others, then shells will be ignored and will not appear in interpolated images.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied to each interpolated configuration.</p>
+
+<p>Note that only the interpolated images are written by this mode, and <em>not</em> the initial and final images. Also, note that some of the configurations produced by interpolations may not correspond to stable stables, or even to physically realistic states, of the system. Such a chain of configurations may be used e.g. as a starting point for a Nudged Elastic Band (NEB) calculation.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --interpolate initial.xsf final.xsf 7 chain cfg</code>
+<p>This will construct 7 configurations by interpolating between <code>initial.xsf</code> and <code>final.xsf</code>. The interpolated configurations will be named <code>chain_img1.cfg</code>, <code>chain_img2.cfg</code>, ..., <code>chain_img7.cfg</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

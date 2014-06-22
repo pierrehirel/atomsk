@@ -1,0 +1,60 @@
+# Makefile for compiling atomsk on a Microsoft(R) Windows(R) environment
+# using GNU make and GNU MinGW/gfortran.
+
+# USAGE
+#    make.exe -f Makefile.windows
+# Or, to use parallel compilation:
+#    make.exe -j3 -f Makefile.windows
+
+# REQUIREMENTS:
+# (1) GNU Make must be installed on your computer:
+#       http://gnuwin32.sourceforge.net/packages/make.htm
+#
+# (2) A Fortran 95 compiler must be installed, e.g. MinGW-gfortran:
+#       http://www.mingw.org/
+#
+# (3) BLAS/LAPACK libraries must be compiled with a compiler that
+#     matches the one defined in the variable FORTRAN below.
+#     For compiling BLAS/LAPACK for Windows with GNU Fortran,
+#     see e.g. this page:
+#       http://gcc.gnu.org/wiki/LAPACK%20on%20Windows
+#     People using Intel(R) Fortran Compiler may use the MKL library,
+#     please refer to Intel documentation.
+#
+# Note that these links are provided as indications.
+# The author of atomsk will NOT provide any support for
+# MinGW, nor Fortran compilers, nor BLAS/LAPACK libraries.
+
+# NOTE: make sure that the paths containing the
+# executables (make.exe, gfortran.exe, etc.) are in
+# your environment %PATH% variable, otherwise the commands
+# below will not work.
+
+export
+
+# Folder separator
+SEP=\\
+
+# COMPILER:
+FORTRAN=gfortran.exe
+
+# COMPILATION FLAGS:
+# (note that the flag "-DWINDOWS" is mandatory for Windows systems)
+FFLAGS=-O2 -DWINDOWS -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+
+# Path to the LAPACK library
+# The following assumes that the LAPACK and BLAS libraries
+# for Windows are in "C:\Windows\System32\"
+LAPACK=C:\Windows\System32\liblapack.a C:\Windows\System32\librefblas.a
+
+# INSTALL PATHS:
+# (do NOT insert antislash \ at the end of the paths)
+INSTPATH="C:\Program Files\atomsk"
+# BINPATH: the binary will be copied there
+BINPATH=$(INSTPATH)\bin
+# DOCUMENTATION PATH: the html documentation
+# will be copied into the folder $(DOCPATH)\atomsk\
+DOCPATH=$(INSTPATH)\share\doc
+
+# Goto main Makefile
+include Makefile

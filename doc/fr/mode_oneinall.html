@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode One-in-all - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode : One-in-all</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --one-in-all &#60;fichier&#62; [&#60;préfixe&#62;] &#60;formats&#62; [options]</code></p>
+
+<p><code>atomsk -1IA &#60;fichier&#62; &#60;formats&#62; [options] [&#60;préfixe&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Dans ce mode <code>atomsk</code> lit un fichier contenant plusieurs configurations atomiques, et écrit chaque configuration dans un fichier de sortie différent.</p>
+
+<p>Les formats de fichier d'entrée pris en charge par ce mode sont :</p>
+
+<ul>
+ <li><strong>HISTORY</strong> : fichiers produits par DL_POLY (voir les <a href="./format_dlp.html">spécifications de DL_POLY</a>) ; le pas de simulation du fichier HISTORY est utilisé pour nommer les fichiers de sortie.</li>
+ 
+ <li><strong>Les fichiers de sortie de Quantum Espresso PWscf</strong> (voir les <a href="./format_qeout.html">spécifications</a>).</li>
+ 
+ <li><strong>Les fichiers XSF animés</strong> (voir les <a href="./format_xsf.html">spécifications</a>).</li>
+ 
+ 
+ <li><strong>Les fichiers XYZ</strong>, au format par défaut ou au format étendu (voir les <a href="./format_xyz.html">spécifications</a>) ; les fichiers au format XYZ spécial ne sont pas reconnus dans ce mode.</li>
+</ul>
+
+<p>Chaque configuration peut être écrite dans un ou plusieurs &#60;formats&#62;.</p>
+
+<p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a>, celles-ci s'appliqueront à chaque configuration.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --one-in-all monfichier.xyz xsf</code>
+<p>Ceci va lire le fichier <code>monfichier.xyz</code>, et écrira chaque configuration dans un fichier XSF séparé : <code>monfichier1.xsf</code>, <code>monfichier2.xsf</code>, etc.</p></li>
+
+<li><code class="command">atomsk -1IA scf.out -unit B A xsf</code>
+<p>Ceci lira le fichier de sortie de Quantum Espresso PWscf <code>scf.out</code>, <a href="./option_unit.html">convertira les unités</a> des vecteurs de boîte et des coordonnées des atomes de Bohrs vers Angstr&ouml;ms, et écrira chaque configuration dans un fichier XSF : <code>scf1.xsf</code>, <code>scf2.xsf</code>, etc.</p></li>
+
+<li><code class="command">atomsk -1IA HISTORY xsf cfg</code>
+<p>Ceci lira le fichier <code>HISTORY</code> produit par DL_POLY, et écrira chaque configuration aux formats XSF et CFG : <code>HISTORY1.xsf</code> et <code>HISTORY1.cfg</code>, <code>HISTORY2.xsf</code> et <code>HISTORY2.cfg</code>, etc.</p></li>
+
+<li><code class="command">atomsk -1IA monfichier.xsf nouveau_ xsf cfg</code>
+<p>Cet exemple utilise un préfixe ("nouveau_"). Le fichier XSF animé <code>monfichier.xsf</code> sera lu, et chaque configuration sera convertie aux formats XSF et CFG : <code>nouveau_1.xsf</code> et <code>nouveau_1.cfg</code>, <code>nouveau_2.xsf</code> et <code>nouveau_2.cfg</code>, etc..</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

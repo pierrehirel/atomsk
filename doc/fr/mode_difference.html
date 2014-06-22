@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode difference - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : difference</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --difference &#60;fichier1&#62; &#60;fichier2&#62; [options]</code></p>
+<p><code>atomsk --diff &#60;fichier1&#62; &#60;fichier2&#62; [options]</code></p>
+<p><code>atomsk -D &#60;fichier1&#62; &#60;fichier2&#62; [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ce mode calcule la différence de positions atomiques entre deux configurations.</p>
+
+<p>Les vecteurs de déplacement sont définis comme la soustraction des positions contenues dans le &#60;fichier1&#62; de celles contenues dans le &#60;fichier2&#62; (autrement dit disp=&#60;fichier2&#62;-&#60;fichier1&#62; ). Les deux fichiers <em>doivent</em> contenir exactement le même nombre d'atomes, et correspondre au même système (c-à-d. mêmes vecteurs de boîte, mêmes types d'atomes, etc.) pour que le calcul ait du sens. Les deux fichiers peuvent être dans des formats différents, tant que ces formats sont <a href="./formats.html">pris en charge par <code>atomsk</code></a>.</p>
+
+<p>Le résultat est écrit dans six fichiers différents dont les noms sont préfixés avec le nom du &#60;fichier2&#62;:</p>
+
+<ul>
+ <li><strong>*_diff.xyz</strong> : contient les positions atomiques du &#60;fichier1&#62; et les vecteurs de déplacement (en coordonnées cartésiennes) ; ce fichier est compatible avec le format XYZ.</li>
+
+ <li><strong>*_diff.xsf</strong> : contient les mêmes informations que le fichier précédent mais au format XSF, il peut donc être lu par xCrySDen ; notez cependant que xCrySDen interprètera les vecteurs comme des forces (et non comme des déplacements), il peut donc être difficile de les visualiser à la bonne échelle.</li>
+
+ <li><strong>*_both.xsf</strong> : contient les positions atomiques des deux fichiers, au format XSF. Il peut parfois être utile de "superposer" les deux configurations pour visualiser leurs différences.</li>
+ 
+ <li><strong>*_stat.txt</strong> : fichier texte contenant les statistiques des déplacements : déplacements minimum/maximum, déplacements moyens, écart type... Ces statistiques sont données pour la totalité du système, ainsi que pour chaque espèce chimique individuelle.</li>
+
+ <li><strong>*_norm.dat</strong> : contient les normes des vecteurs de déplacement pour chaque atome (in &Aring;), au format "<code>i dr species</code>" (<code>i</code>=indice de l'atome, <code>dr</code>=norme du déplacement).</li>
+
+ <li><strong>*_hist.dat</strong> : contient le nombre d'atomes en fonction de leur déplacement, c-à-d. le nombre d'atomes ayant un déplacement compris entre <em>x</em> et <em>x+dx</em>, pour <em>x</em> compris entre zéro et la valeur maximum des déplacements. Ces données peuvent être visualisées sous forme d'histogramme.</li>
+</ul>
+
+
+<p>Notez que ce mode suppose que les coodonnées des atomes n'ont pas été emballées. Si des atomes ont été remballés (soit par le code de simulation utilisé, soit parce que <code>atomsk</code> a été exécuté avec l'<a href="./option_wrap.html">option <code>-wrap</code></a>) alors certains atomes peuvent donner l'impression d'avoir été "téléportés" d'une extrémité de la boîte à l'opposé, et les vecteurs de déplacements peuvent être incorrects. Si des atomes ont été remballés vous pouvez les déballer avec le <a href="./mode_unwrap.html">mode <code>--unwrap</code></a> avant d'utiliser le mode <code>--difference</code>.</p>
+
+<p>Si ce mode est appelé avec des <a href="./options.html">options</a>, alors ces options seront appliquées à chacun des deux systèmes <em>avant</em> le calcul de leur différence.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --difference initial.grs final.xsf</code>
+<p>Ceci calculera les différences de positions atomiques entre <code>initial.grs</code> et <code>final.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

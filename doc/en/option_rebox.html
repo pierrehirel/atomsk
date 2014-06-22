@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option rebox - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: rebox</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-rebox</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option forces the program to re-calculate the supercell vectors.</p>
+
+<p>BEWARE: the calculation tries to provide a <strong>rectangular</strong> bounding box (so the box will NOT be correct for non-rectangular systems), and is very inaccurate. Don't trust it blindly: check the supercell vectors afterwards!</p>
+
+<p>If you know the supercell parameters precisely, you may consider specifying them with the <a href="./option_properties.html">option <code>-properties</code></a> instead of the present one.</p>
+
+
+<h4>Default</h4>
+
+<p>By default <code>atomsk</code> uses the supercell parameters read from the input file. If no supercell parameters are found in the input file, then a warning is displayed and the present option is automatically called after reading the file (and before applying any other option). For instance, this is the case with the <a href="./format_xyz.html">default XYZ format</a> which does not contain supercell parameters.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.gin -rebox xsf</code>
+<p>This will read the file <code>system.gin</code> and re-calculate the supercell base vectors. The result will be output in <code>system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk example.cfg -cut above 12 z -rebox xsf xyz</code>
+<p>This will <a href="./option_cut.html">cut the system</a> <code>example.cfg</code> above 12 &Aring; along Z, and then re-calculate the supercell base vectors. The result will be output in <code>example.xsf</code> and <code>example.xyz</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

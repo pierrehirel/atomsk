@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>XV format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: XV</h2>
+
+<p><strong>Name:</strong> SIESTA XV format</p>
+
+<p><strong>Extension:</strong> XV</p>
+
+<p><strong>Specification:</strong> <a href="http://www.icmab.es/dmmis/leem/siesta/">SIESTA documentation</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://www.projectaten.com/">Aten</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> can read and write files in the SIESTA XV format. Note that this format can contain atom positions in Bohrs, however <code>atomsk</code> does <em>not</em> automatically convert them. If needed, one can use the <a href="./option_unit.html">option <code>-unit</code></a> to perform the conversion before writing or after reading an XV file.</p>
+
+<p>The velocities of atoms are read from and written to XV files. If velocities are undefined then zeros are written instead.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg xv</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.xv</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

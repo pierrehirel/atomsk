@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>CONFIG format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: CONFIG</h2>
+
+<p><strong>Name:</strong> DL_POLY configuration file</p>
+
+<p><strong>Extension:</strong> none (file must be named CONFIG for being used in DL_POLY)</p>
+
+<p><strong>Specification:</strong> <a href="http://www.cse.scitech.ac.uk/ccg/software/DL_POLY/">DL_POLY web site</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://www.projectaten.com/">Aten</a>, <a href="http://gdis.sourceforge.net/">gdis</a>, <a href="http://jp-minerals.org/vesta/">VESTA</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p>The format of DL_POLY configuration files (CONFIG, REVCON, CFGMIN...) is somewhat permissive concerning "atom names", as it can be any character string the user wants. Sometimes the names chosen by the users can be confusing (e.g. using "Os" for oxygen shells can lead to a confusion with osmium), or completely impossible to interpret by a conversion program (e.g. "atom1", "elem2" etc.).</p>
+
+<p><code>atomsk</code> can read CONFIG (and REVCON, CFGMIN...) files under some restrictions. As mentionned in the specification, the first line of the file is a comment. The second line must contain three integers. The first one is the number <code>levcfg</code>, which specifies the "level" of the CONFIG file: 0 means only atoms (and shells) positions are present; 1 means that velocities are present; and 2 means that velocities and forces are present. <code>atomsk</code> will read these properties when they exist. The second integer <code>imcon</code> specifies the boundary conditions; this is ignored by <code>atomsk</code>. Finally the third integer <code>megatm</code> specifies the total number of particles (atoms+shells).</p>
+
+<p>Then come the three vectors of the supercell, and the description of all atoms. The "name" of atoms should start with their actual atomic symbol, followed by any string or number (e.g. C1, O1, Nb_d20...). If shells are present, their name should also start with the atomic symbol, and contain the string "_s" (e.g. C_s, O_s, Nb_d20_s...). If it is not the case, then the atom species may not be recognized, may be replaced by the symbol "XX" or by zeros, or shells may be interpreted as atoms or cores.</p>
+
+<p><code>atomsk</code> can also read HISTORY files, however by default only the first snapshot will be read. In order to read all the snapshots and convert them to several individual files, one can use the <a href="./mode_oneinall.html">mode <code>--one-in-all</code></a>.</p>
+
+<p>When writing CONFIG files, <code>atomsk</code> always assumes <code>imcon=3</code> i.e. 3-D periodic boundary conditions (what is called "parallelepiped periodic boundary" in the DL_POLY manual). The atom species of each atom is written, followed by its position, and its velocity and force if they are defined. Then if shells are defined, each one is written just after the corresponding core, with "_s" appened to the element name. If <code>levcfg&#62;0</code> then the velocities and forces of the shells are set to zero. The output file will look like:</p>
+
+<div class="txtfile">
+<h5>CONFIG</h5>
+<p><code>
+         &#35;comment <br/>
+         &#60;levcfg&#62; 3 &#60;NP&#62; <br/>
+         &#60;H(1,1)&#62; &#60;H(1,2)&#62; &#60;H(1,3)&#62; <br/>
+         &#60;H(2,1)&#62; &#60;H(2,2)&#62; &#60;H(2,3)&#62; <br/>
+         &#60;H(3,1)&#62; &#60;H(3,2)&#62; &#60;H(3,3)&#62; <br/>
+         &#60;atom1&#62; 1<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;x1&#62; &#60;y1&#62; &#60;z1&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;v1&#62; &#60;v1&#62; &#60;v1&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;f1&#62; &#60;f1&#62; &#60;f1&#62;<br/>
+         &#60;atom1&#62;_s 2<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;x2&#62; &#60;y2&#62; &#60;z2&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;0.00 0.00 0.00<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;0.00 0.00 0.00<br/>
+         &#60;atom2&#62; 3<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;x3&#62; &#60;y3&#62; &#60;z3&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;v3&#62; &#60;v3&#62; &#60;v3&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;f3&#62; &#60;f3&#62; &#60;f3&#62;<br/>
+         &#60;atom2&#62;_s 4<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;x4&#62; &#60;y4&#62; &#60;z4&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;0.00 0.00 0.00<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;0.00 0.00 0.00<br/>
+         ...   ...  ...<br/>
+         &#60;atomN&#62; (N-1)<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;x(N-1)&#62; &#60;y(N-1)&#62; &#60;z(N-1)&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;v(N-1)&#62; &#60;v(N-1)&#62; &#60;v(N-1)&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;f(N-1)&#62; &#60;f(N-1)&#62; &#60;f(N-1)&#62;<br/>
+         &#60;atomN&#62;_s N<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&#60;xN&#62; &#60;yN&#62; &#60;zN&#62;<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;0.00 0.00 0.00<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;0.00 0.00 0.00<br/>
+</code></p></div>
+
+<p>Note that the FIELD file used by DL_POLY must match the CONFIG file. In the FIELD file the interatomic potential is defined for "molecules", therefore the CONFIG file must be a succession of the same elementary pattern. A convenient way to achieve this with <code>atomsk</code> is, starting with a single unit cell, to use the <a href="./option_expand.html">option <code>-expand</code></a> to create supercells. In case a shell-model shall be used, one can either include the shells in the unit cell or use the <a href="./option_createshells.html">option <code>-create-shells</code></a> to automatically add shells.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.xsf CONFIG</code>
+<p>This will read the file <code>my_system.xsf</code>, and convert it to the DL_POLY file <code>CONFIG</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

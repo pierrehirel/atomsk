@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Program behaviour overwrite - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Program behaviour: overwrite</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-overw</code></p>
+<p><code>-ow</code></p>
+
+
+<h4>Description</h4>
+
+<p>This will make <code>atomsk</code> automatically overwrite the output files if they exist. By default (i.e. when <code>-ow</code> is not used), the user is prompted if the file shall be overwritten or another file name shall be used.</p>
+
+<p>If both <code>-ow</code> and <a href="./progbe_ig.html"><code>-ignore</code></a> are used, then the existing files are not overwritten but are ignored.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default files that already exist are <em>not</em> overwritten; instead the user is prompted whether to overwrite them or choose another name.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -ow</code>
+<p>This will read <code>initial.gin</code> and convert it to CFG; if <code>initial.cfg</code> already exists, it will be overwritten.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

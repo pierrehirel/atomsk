@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option remove doubles - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: remove-doubles</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-remove-doubles &#60;distance&#62;</code></p>
+
+<p><code>-rmd &#60;distance&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option removes duplicate atoms.</p>
+
+<p>Only the first atom found at a given position is conserved. All other atoms that are at the same position or at a distance smaller than the specified &#60;distance&#62; are removed.  It may be necessary to <a href="./option_wrap.html">wrap atoms</a> before using the present option for the neighbour search to give proper results.</p>
+
+<p>If &#60;distance&#62;=0 then only atoms that have exactly the same position are removed.</p>
+
+<p>Note that the comparison of distances is based only on cores. If shells are present, both core and shell of duplicate atoms are removed for consistency.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the neighbor search will be performed only on selected atoms, and only selected atoms will be removed.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default duplicate atoms are not removed.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -remove-doubles 0.2 final.xyz</code>
+<p>This will remove atoms that are closer than 0.2 &Aring; from another atom.</p></li>
+
+<li><code class="command">atomsk --merge 2 system1.xyz system2.xyz final.xsf -rmd 0.3</code>
+<p>This option can be useful when <a href="./mode_merge.html">merging systems</a>. Beware that in that case, if atoms of the two systems overlap, then it is the atoms belonging to the second system that are removed.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

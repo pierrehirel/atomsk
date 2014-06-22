@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option sort - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: sort</h2>
+
+<h4>Syntax</h4>
+
+<code>-sort &#60;property&#62; &#60;order&#62;</code>
+
+
+<h4>Description</h4>
+
+<p>This option sorts atoms according to one of their properties.</p>
+
+<p>The parameters for this option are:</p>
+
+<ul>
+  <li><strong>property</strong>: atom property that will be sorted; can be one of 'species' (or 's'), 'x', 'y', 'z', or any per-atom auxiliary property (read from the input file or defined with the <a href="./option_properties.html">option <code>-properties</code></a>);</li>
+  <li><strong>order</strong>: if 'up' or 'down' the property will be sorted by increasing or decreasing values, respectively. If 'pack', identical values of the property will be packed so that they are contiguous (but without sorting them by increasing or decreasing values).</li>
+</ul>
+
+<p>This option does not transform the system or move atoms; it just changes the order in which they appear in the final file.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default atoms are not rearranged at all.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -sort species up final.xyz</code>
+<p>This will rearrange the order in which atoms are written, sorting them by increasing value of their atomic weigth.</p></li>
+
+<li><code class="command">atomsk initial.cfg -sort z down final.xyz</code>
+<p>This will sort atoms by decreasing values of their Z coordinate.</p></li>
+
+<li><code class="command">atomsk initial.cfg -sort s pack POSCAR</code>
+<p>This will pack atoms that have the same atomic number so that they are contiguous.</p></li>
+
+<li><code class="command">atomsk initial.lmc -sort vx up final.xyz exyz</code>
+<p>This will read the file <code>initial.lmc</code> and sort atoms by increasing values of their velocity along X. These data will then be written to the file <code>final.xyz</code> in extended XYZ format.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

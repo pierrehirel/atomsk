@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>IMD format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: IMD</h2>
+
+<p><strong>Name:</strong> Institut für Theoretische und Angewandte Physik (ITAP) Molecular Dynamics configuration file</p>
+
+<p><strong>Extension:</strong> imd</p>
+
+<p><strong>Specification:</strong> <a href="http://www.itap.physik.uni-stuttgart.de/~imd/userguide/config.html">IMD manual</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://ovito.org">OVITO</a></p>
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> only supports IMD files that are "atom configuration files" (not "distribution files"), and only in ASCII format (i.e. those with "<code>#F A</code>" in the header). In IMD format the total number of atoms is not specified, therefore <code>atomsk</code> must parse the file a first time to count atoms, then allocate the necessary memory, and then parse the file a second time to load atom positions into memory. As a result the reading of files in this format can be quite slow, especially when the number of atoms is large.</p>
+
+<p>In the IMD format the atom species are not specified and are replaced by IMD atom "types" (0, 1, 2...). Because of technical issues, these "types" are all incremented (type 0 becomes 1, 1 becomes 2, etc.), and <code>atomsk</code> interprets them as atomic numbers (1=H, 2=He, etc.). These dummy "types" can be replaced with the <a href="./option_substitute.html">option <code>-substitute</code></a>. If velocities are present then <code>atomsk</code> reads them. No other auxiliary property is supported for now.<p>
+
+<p>When writing IMD files <code>atomsk</code> automatically replaces the atom species by IMD "types" (0, 1, 2...), for the same reason as above. Alternatively the types can be defined thanks to the <a href="./option_properties.html">option <code>-properties</code></a>. If atom velocities are defined (e.g. if they were read from a <a href="./formats.html">format that supports it</a>) they will be written to the IMD file, otherwise velocities equal to zero will be written.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg imd</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.imd</code>.</p></li>
+</ul>
+
+
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

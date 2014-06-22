@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option add-atom - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option: add-atom</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-add-atom &#60;espèce&#62; at &#60;x&#62; &#60;y&#62; &#60;z&#62;</code></p>
+
+<p><code>-add-atom &#60;espèce&#62; near &#60;indice&#62;</code></p>
+
+<p><code>-add-atom &#60;espèce&#62; random &#60;N&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet d'insérer un ou plusieurs atomes de l'&#60;espèce&#62; chimique donnée dans le système.</p>
+
+<p>Lorsque le mot-clé <strong>at</strong> est utilisé, l'atome est inséré exactement à la position donnée. Les positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; sont généralement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</p>
+
+<p>Avec le mot-clé <strong>near &#60;indice&#62;</strong> (où &#60;indice&#62; est un entier), le nouvel atome est inséré près de l'atome possédant l'&#60;indice&#62; donné. Le nouvel atome sera inséré au centre du site octahédrique formé par l'atome possédant l'&#60;indice&#62; donné et ses trois premiers voisins.</p>
+
+<p>Avec le mot-clé <strong>random &#60;N&#62;</strong> (où &#60;N&#62; est un entier), &#60;N&#62; nouveaux atomes sont introduits à des positions aléatoires dans le système. La position de chaque nouvel atome est d'abord décidée aléatoirement, puis ré-ajustée pour être au centre des quatre premiers voisins de cette position aléatoire. Notez que cette option tente de définir des positions au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et en appliquant cette option il est très probable d'obtenir des résultats différents.</p>
+
+<p>Les nouveaux atomes seront ajoutés à la fin de la liste d'atomes, de sorte que les anciens atomes conservent leurs indices. Pour changer l'ordre dans lequel les atomes sont triés il est possible d'utiliser l'<a href="./option_sort.html">option <code>-sort</code></a>.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucun nouvel atome n'est introduit.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.xsf -add-atom Si at 3.0 2.5 6 final.cfg</code>
+<p>Ceci va lire le fichier <code>initial.xsf</code>, ajouter un nouvel atome de silicium à la position (3.0,2.5,6), et écrira le résultat dans le fichier <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -add-atom Si at 0.25*box 0.33*box 0.5*box final.cfg</code>
+<p>Ceci va ajouter un atome de silicium avec les coordonnées réduites (0.25,0.33,0.5).</p></li>
+
+<li><code class="command">atomsk initial.xsf -add-atom Fe near 3815 final.cfg</code>
+<p>Ceci va ajouter un atome de fer près de l'atome &#35;3815. Le nouvel atome sera placé dans un site tétrahédrique formé par l'atome &#35; et ses trois plus proches voisins.</p></li>
+
+<li><code class="command">atomsk initial.xsf -add-atom C random 25 final.cfg</code>
+<p>Ceci va ajouter 25 nouveaux atomes de carbone à des positions aléatoires dans le système.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

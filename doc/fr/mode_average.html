@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de" >
+<head>
+    <title>Mode average - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : average</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --average &#60;fichierliste&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Dans ce mode <code>atomsk</code> moyenne les positions atomiques d'une liste de fichiers. Ceci peut être utile par ex. pour obtenir une moyenne temporelle des positions atomiques à partir de configurations issues d'une simulation en dynamique moléculaire à haute température.</p>
+
+<p>Le fichier &#60;fichierliste&#62; est un fichier texte qui doit contenir une liste de fichiers à traiter (un nom de fichier par ligne). Les lignes vides et celles commençant par &#35; sont ignorées (ceci peut être utilisé pour insérer des commentaires). Tous les fichiers <em>doivent</em> contenir exactement le même nombre d'atomes, et correspondre au même système (c-à-d. mêmes vecteurs de boîte, mêmes types d'atomes, etc.) pour que le calcul ait du sens. Les fichiers peuvent être dans des formats différents, tant que ces formats sont <a href="./formats.html">pris en charge par <code>atomsk</code></a>.</p>
+
+<p>Les dimensions de la boîte seront aussi moyennées. Si elles sont les mêmes pour tous les fichiers alors elles seront aussi identiques dans le fichier de sortie. Si elles changent dans certains fichiers, alors le fichier final contiendra une moyenne des différentes boîtes et des coordonnées réduites des atomes.</p>
+
+<p>Si tous les fichiers contiennent des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) alors les positions des coquilles seront aussi moyennées. Si tous les fichiers contiennent les mêmes propriétés auxiliaires alors elles seront aussi moyennées, à l'exception des types d'atomes. Si un ou plusieurs fichiers ne contiennent pas de coquilles (ou de propriétés auxiliaires) alors les coquilles (respectivement les propriétés auxiliaires) seront ignorées et seront absentes du fichier final.</p>
+
+<p>Si ce mode est utilisé avec des <a href="./options.html">options</a> alors ces options seront appliquées au fichier final (celui contenant les positions moyennées).</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --average liste.lst moyenne.cfg</code>
+<p>Ceci va lire tous les fichiers dont les noms sont donnés dans <code>liste.lst</code>, et produira une moyenne des positions atomiques de tous ces systèmes. Le résultat final sera écrit dans <code>moyenne.cfg</code>.</p></li>
+
+<li><code class="command">ls *.xsf > liste.lst &amp;&amp; atomsk --average liste.lst -e 2 2 2 moyenne.cfg xsf</code>
+<p>Ceci va lister tous les fichiers portant l'extension .xsf et enregistrera la liste dans <code>liste.lst</code>, puis exécutera <code>atomsk</code> pour produire une moyenne des positions atomiques de tous ces systèmes. Le système moyenné sera dupliqué deux fois dans chaque dimension (grâce à l'<a href="./option_expand.html">option <code>-expand</code></a>), et enfin le résultat final sera écrit dans <code>moyenne.cfg</code> et <code>moyenne.xsf</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

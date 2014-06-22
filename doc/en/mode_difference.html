@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode difference - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: difference</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --difference &#60;firstfile&#62; &#60;secondfile&#62; [options]</code></p>
+<p><code>atomsk --diff &#60;firstfile&#62; &#60;secondfile&#62; [options]</code></p>
+<p><code>atomsk -D &#60;firstfile&#62; &#60;secondfile&#62; [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This mode computes the difference in atomic positions between two configurations.</p>
+
+<p>The displacement vectors are defined by the subtraction of the positions of the &#60;firstfile&#62; from those of the &#60;secondfile&#62; (in other words disp=&#60;secondfile&#62;-&#60;firstfile&#62; ). Both files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
+
+<p>The results are written in six separate files which names are prefixed with the name of the &#60;secondfile&#62;:</p>
+
+<ul>
+ <li><strong>*_diff.xyz</strong>: contains atomic positions from the first file, and the displacement vectors between the two files (in cartesian coordinates); this file is compatible with the XYZ format.</li>
+
+ <li><strong>*_diff.xsf</strong>: same as above, but complying to XSF format; xCrySDen can read this file and display displacement vectors; beware that xCrySDen understands these vectors as FORCES (not as displacement vectors), so it may be tricky to set these vectors to the correct scale.</li>
+
+ <li><strong>*_both.xsf</strong>: contains the atomic positions of both files in the XSF format. Sometimes it can be useful to "superimpose" the two structures to see how they differ.</li>
+ 
+ <li><strong>*_stat.txt</strong>: text file containing statistics about the displacements: minimum/maximum displacements, average, standard deviation... Statistics are given for the whole system, as well as for each individual atom species.</li>
+
+ <li><strong>*_norm.dat</strong>: contains the norm of the displacement vector for each atom (in &Aring;), with the format "<code>i dr species</code>" (<code>i</code>=index of atom, <code>dr</code>=norm of displacement).</li>
+
+ <li><strong>*_hist.dat</strong>: contains the number of atoms versus the displacement, i.e. the number of atoms that have a displacement between <em>x</em> and <em>x+dx</em>, for <em>x</em> ranging from zero to the maximum value of displacement. Meant to be displayed as a histogram.</li>
+</ul>
+
+
+<p>Note that this mode assumes that coordinates are <em>not wrapped</em>. If they are wrapped (either because the simulation code has written wrapped coordinates in the file, or because you run <code>atomsk</code> with the <a href="./option_wrap.html">option <code>-wrap</code></a>) then some atoms may seem to teleport from one end of the supercell to another, and displacement vectors may be wrong. If coordinates are wrapped you may unwrap them first with the <a href="./mode_unwrap.html">mode <code>--unwrap</code></a>.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied on the two files <em>before</em> the difference is computed.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --difference initial.grs final.xsf</code>
+<p>This will compute the difference in atom positions between <code>initial.grs</code> and <code>final.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

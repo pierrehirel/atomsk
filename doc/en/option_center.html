@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option center - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: center</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-center &#60;index&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option shifts all atoms so that the atom with the given &#60;index&#62; is at the center of the box.</p>
+
+<p>If &#60;index&#62;=0 or "com", then all atoms are shifted so that the center of mass is at the center of the box.</p>
+
+
+<h4>Default</h4>
+
+<p>By default the system is not centered.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -center 23 final.xsf</code>
+<p>This will read the file <code>initial.cfg</code> and shift all atoms so that the atom &#35;23 is exactly at the center of the cell. The result will be output to the file <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -center com final.xsf</code>
+<p>This will shift atoms so that their center of mass is at the center of the box.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

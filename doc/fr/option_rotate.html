@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option rotate - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : rotate</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-rotate &#60;axe&#62; &#60;&theta;&#62;</code></p>
+
+<p><code>-rot &#60;axe&#62; &#60;&theta;&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de pivoter le système autour d'un axe cartésien.</p>
+
+<p>Il est nécessaire de fournir l'axe de rotation (x, y ou z), et l'angle de rotation &theta; (en degrés).</p>
+
+<p>Le centre de rotation est l'origine (0,0,0). Pour effectuer une rotation autour d'un autre point il est possible d'employer l'<a href="./option_shift.html">option <code>-shift</code></a> pour amener ce point en (0,0,0), puis appeler la présente option.</p>
+
+<p>Si les forces (fx,fy,fz) ou les vitesses (vx,vy,vz) existent comme propriétés auxiliaires, alors la rotation s'appliquera aussi à ces vecteurs.</p>
+
+<p>Cette option affectera certaines propriétés du système (par ex. le tenseur élastique) si elles avaient été précédemment définies par l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la rotation ne sera appliquée qu'aux atomes sélectionnés.</p>
+
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le système n'est aps pivoté.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -rotate x 45 final.xyz</code>
+<p>Ceci tournera le système de 45 degrés autour de l'axe X.</p></li>
+
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Comportement du programme, ignore - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Comportement du programme : ignore</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-ignore</code></p>
+<p><code>-ig</code></p>
+
+
+<h4>Description</h4>
+
+<p>Avec cette option <code>atomsk</code> n'écrit pas le fichier de sortie s'il existe déjà. La plupart du temps cela signifie qu'il ne ré-écrira pas les fichiers qui ont déjà été écrits précédemment.</p>
+
+<p>Si les deux options <a href="./progbe_ow.html"><code>-overw</code></a> et <code>-ignore</code> sont utilisées en même temps, alors les fichiers existants ne sont pas écrasés mais sont ignorés.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les fichiers de sortie qui existent déjà ne sont <em>pas</em> ignorés. Il est demandé à l'utilisateur s'il faut écraser le fichier ou lui donner un autre nom.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -ig</code>
+<p>Ceci lira le fichier <code>initial.gin</code> et le convertira au format CFG ; mais si <code>initial.cfg</code> existe déjà, il ne sera pas écrasé.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

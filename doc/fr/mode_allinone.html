@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode All-in-one - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : All-in-one</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --all-in-one &#60;fichierliste&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+
+<p><code>atomsk -AI1 &#60;fichierliste&#62; &#60;fichiersortie&#62; [options] [&#60;formats&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Dans ce mode ("tout-en-un") <code>atomsk</code> lit plusieurs fichiers, et écrit toutes les configurations atomiques (ou "images") dans un seul fichier de sortie.</p>
+
+<p>Les noms des fichiers d'entrée doivent apparaître dans le <code>&#60;fichierliste&#62;</code>, un fichier texte au même format que celui employé par le <a href="./mode_filelist.html">mode file list</a>. Un tel fichier liste peut être facilement produit avec une commande du type "<code>ls &#62;maliste.lst</code>".</p>
+
+<p>Les formats de sortie supportés par ce mode sont :</p>
+
+<ul>
+ <li><strong>Format XSF animé</strong> ("Animated XSF", seulement au format "variable-cell animated XSF", voir <a href="./format_xsf.html">les spécifications du format XSF</a>);</li>
+ <li><strong>XYZ</strong>, soit au format XYZ standard soit au format XYZ étendu (voir les <a href="./format_xyz.html">spécifications du format XYZ</a>); notez que le format XYZ spécial n'est pas pris en charge par ce mode.</li>
+</ul>
+
+<p>Pour le <strong>format XSF animé</strong>, si les forces sur les atomes existent dans le permier fichier du &#60;fichierliste&#62; alors ces forces seront écrites pour toutes les configurations dans le fichier XSF animé final. Si les forces sont manquantes dans un fichier suivant de la liste, alors les forces de cette configuration seront définies comme nulles dans le fichier XSF final. En revanche, si les forces n'apparaissent pas dans le premier fichier du &#60;fichierliste&#62;, alors aucune force ne sera écrite pour aucune configuration dans le fichier XSF animé final.</p>
+
+<p>Lors de l'écriture vers le <strong>format XYZ standard</strong>, les propriétés auxiliaires sont ignorées et seules les positions atomiques sont écrites. Lors de l'écriture vers le <strong>format XYZ étendu</strong>, toutes les propriétés auxiliaires sont conservées et écrites dans le fichier final.</p>
+
+<p>Plusieurs formats de sortie peuvent être spécifiés.</p>
+
+<p>Si vous utilisez ce mode avec une ou plusieurs <a href="./options.html">options</a>, alors ces options seront appliquées à chaque configuration (chaque image) avant qu'elle ne soit écrite dans le fichier de sortie.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --all-in-one maliste.lst animation.xsf</code>
+<p>Ceci lira tous les fichiers dont les noms apparaissent dans <code>maliste.lst</code>, et écrira toutes les images dans le fichier XSF animé <code>animation.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --all-in-one maliste.lst images.xyz exyz xsf</code>
+<p>Ceci lira tous les fichiers dont les noms apparaissent dans <code>maliste.lst</code>, et écrira toutes les images dans les fichiers <code>images.xyz</code> (au format XYZ étendu) et <code>images.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

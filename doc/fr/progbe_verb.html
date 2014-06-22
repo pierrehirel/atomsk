@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Comportement du programme, verbosité - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Comportement du programme : verbosité</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-verbosity &#60;n&#62; </code></p>
+<p><code>-v &#60;n&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ceci permet de changer le niveau de verbosité du programme. L'entier <code>&#60;n&#62;</code> peut prendre les valeurs suivantes :</p>
+
+<ul>
+  <li><strong>0</strong> : silencieux, aucun message n'est affiché à l'écran ni écrit dans un fichier (sauf les messages d'erreur).</li>
+  <li><strong>1</strong> : les messages sont affichés à l'écran seulement.</li>
+  <li><strong>2</strong> : Les messages sont écrits dans le fichier journal uniquement.</li>
+  <li><strong>3</strong> : les messages sont affichés à l'écran et écrits dans le fichier journal.</li>
+  <li><strong>4</strong> : niveau de déboguage, des messages supplémentaires sont écrits dans le fichier journal (mais pas à l'écran). Dans ce mode le programme peut être beaucoup plus lent, et le fichier journal peut être beaucoup plus volumineux. Ce mode ne devrait être utilisé que par des développeurs pour déboguer le programme, et seulement sur des systèmes comportant peu de particules.</li>
+</ul>
+
+<p>Par défaut le fichier journal est <code>atomsk.log</code> mais il est possible d'en <a href="./progbe_log.html">changer</a>.</p>
+
+<p>Lorsque le programme est exécuté en <a href="./mode_interactive.html">mode interactif</a> le niveau de verbosité est automatiquement égal à 1.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le niveau de verbosité est égal à 1.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin initial.cfg -v 3</code>
+<p>Avec ceci le programme affichera ses messages à l'écran et les écrira dans le fichier journal <code>atomsk.log</code>.</li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

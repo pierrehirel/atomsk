@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option mirror - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option: mirror</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-mirror &#60;d&#62; &#60;normale&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet d'appliquer un plan miroir au système.</p>
+
+<p>Le plan miroir est défini comme suit:</p>
+<ul>
+  <li><strong>d</strong>: distance entre le plan miroir et l'origine des coordonnées cartésiennes.</li>
+  <li><strong>normale</strong>: direction normale au plan miroir; peut être x, y, z, ou une direction cristallographique (voir ci-dessous).</li>
+</ul>
+
+<p>La position &#60;d&#62; est généralement donnée en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</p>
+
+<p>La &#60;normale&#62; au plan miroir peut être 'x', 'y', 'z' (axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation crystallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001].</p>
+
+<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), le miroir leur est aussi appliqué. De même, si des forces ou des vitesses sont définies alors elles sont aussi transformées.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront transformés.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le système n'est pas transformé.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -mirror 30 x final.xsf</code>
+<p>Cette commande va lire le fichier <code>initial.cfg</code>, et y appliquer un miroir placé à 30 &Aring; le long de l'axe cartésien X. Le résultat sera écrit dans le fichier <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -mirror 0.5*box Y final.xyz</code>
+<p>Dans ce cas le miroir sera placé à mi-hauteur de la boîte suivant Y.</p></li>
+
+<li><code class="command">atomsk initial.cfg -mirror 50 [111] final.xyz</code>
+<p>Le plan miroir sera normal à la direction [111] et à une distance de 50 &Aring; de l'origine.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

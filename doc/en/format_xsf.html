@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>XSF format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: XSF</h2>
+
+<p><strong>Name:</strong> X-window Crystalline and Structure Densities (XCrySDen) Structure Format</p>
+
+<p><strong>Extension:</strong> xsf</p>
+
+<p><strong>Specification:</strong> <a href="http://www.xcrysden.org/doc/XSF.html">XCrySDen documentation</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://jp-minerals.org/vesta/">VESTA</a>, <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>, <a href="http://www.xcrysden.org">XCrySDen</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> can read both periodic and molecular structures written in XSF format (see specification). For molecular XSF, since it contains no cell parameter <code>atomsk</code> will try to automatically create a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>). Alternatively one can use the <a href="./option_properties.html">option <code>-properties</code></a> to set up the supercell parameters. If forces are present in the file, <code>atomsk</code> will also read them.</p>
+
+<p>When writing to XSF format <code>atomsk</code> assumes periodic structure. If auxiliary properties exist, then only the forces (<code>fx, fy, fz</code>) are written.</p>
+
+<p>If the file is an animated XSF file (which contains several snapshots) then only the first snapshot will be read and converted. To convert all the snapshots one can use the <a href="./mode_oneinall.html">mode one-in-all</a>. To create an animated XSF file one can use the <a href="./mode_allinone.html">mode all-in-one</a>.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.xsf POSCAR</code>
+<p>This will read the XSF file <code>system.xsf</code>, and convert it to the file <code>POSCAR</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, and convert it to the file <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --all-in-one myfiles.lst animation.xsf</code>
+<p>This will read all the files specified in the list <code>myfiles.lst</code>, and output all snapshots in the animated XSF file <code>animation.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --one-in-all animation.xsf cfg</code>
+<p>This will read the animated XSF file <code>animation.xsf</code>, and output each snapshot in a separate file with the CFG format: <code>animation_1.cfg</code>, <code>animation_2.cfg</code>, etc.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

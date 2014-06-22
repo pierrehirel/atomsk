@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option remove shells - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : remove-shells</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-remove-shells &#60;espèce&#62;</code></p>
+
+<p><code>-rmshells &#60;espèce&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option supprime les coquilles (dans le cadre d'un potentiel ionique c&oelig;ur-coquille) des ions de l'espèce donnée. Si &#60;espèce&#62; vaut "all" ou "any" alors toutes les coquilles sont retirées du système.</p>
+
+<p>Si une sélection a été définie (grâce à l'<a href="./option_select.html">option <code>-select</code></a>) alors les coquilles ne seront supprimées que sur les ions sélectionnés.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucune coquille n'est supprimée.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin -remove-shells Ti final.gin</code>
+<p>Ceci va lire le fichier GULP <code>initial.gin</code>, supprimera les coquilles des ions titane, et écrira le résultat dans le fichier GULP <code>final.gin</code>.</p></li>
+
+<li><code class="command">atomsk REVCON -rmshells all final.gin</code>
+<p>Ceci supprimera toutes les coquilles du système.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>PDB format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: PDB</h2>
+
+<p><strong>Name:</strong> Protein Data Bank (PDB) format</p>
+
+<p><strong>Extension:</strong> .pdb</p>
+
+<p><strong>Specification:</strong> <a href="http://www.wwpdb.org/docs.html">Protein Data Bank website</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://mt.seas.upenn.edu/Archive/Graphics/A/">Atomeye</a>, <a href="http://jmol.sourceforge.net/">Jmol</a>, <a href="http://www.openrasmol.org/">RasMol</a>, <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>, <a href="http://jp-minerals.org/vesta/">VESTA</a></p>
+
+<h4>Restrictions</h4>
+
+<p>The Protein Data Bank file format (pdb) is a standard file format for organic and non-organic compounds which structure has been determined experimentally. As such this format contains details about the experimental setup used to determine the structure, the journal article references where the work was published, the name of authors, etc.</p>
+
+<p>When reading a PDB file, <code>atomsk</code> stores the lines EXPDTA, AUTHORS... as comments. These lines will appear as comments in other file formats, or will be re-used if a PDB file is produced as output. All atom positions (contained in lines starting with <code>ATOM</code> and <code>HETATM</code>) are read by <code>atomsk</code>. If present, the occupancy and charge of each atom are stored as auxiliary properties.</p>
+
+<p><code>atomsk</code> can write files in the PDB format. However since <code>atomsk</code> does not deal with experimental data, only a draft file is produced, and it will contain a <code>CAVEAT</code> line indicating that it does not fully comply to the PDB standard. The produced file will have to be edited to add the data required by the PDB.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk 1B8H.pdb cfg</code>
+<p>This will read the file <code>1B8H.pdb</code>, and convert it to <code>1B8H.cfg</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

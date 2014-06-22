@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option select - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: select</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-select all</code></p>
+
+<p><code>-select invert</code></p>
+
+<p><code>-select &#60;species&#62;</code></p>
+
+<p><code>-select &#60;index&#62;</code></p>
+
+<p><code>-select random &#60;N&#62; &#60;species&#62;</code></p>
+
+<p><code>-select &#60;above|below&#62; &#60;d&#62; &#60;dir&#62;</code></p>
+
+<p><code>-select &#60;in|out&#62; box &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;x'&#62; &#60;y'&#62; &#60;z'&#62;</code></p>
+
+<p><code>-select &#60;in|out&#62; sphere &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62;</code></p>
+
+<p><code>-select &#60;in|out&#62; cylinder &#60;dir&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
+
+<p><code>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to select atoms according to given criteria. The selection can include atoms of a given species, atoms above or below a given plane, atoms inside or outside of a geometric region, or a random set of atoms.</p>
+
+<p>When using <strong>-select all</strong> the selection is cleared, i.e. all atoms are selected (and no other argument must be specified).</p>
+
+<p>When using <strong>-select invert</strong> the selection is inverted (i.e. any selected atom is un-selected, and unselected atoms are selected). If no selection was previously defined (i.e. all atoms are selected) then nothing is done since it does not make sense to select no atom.</p>
+
+<p>When using <strong>-select &#60;species&#62;</strong>, all atoms of the given species are selected. The chemical symbol must be used (e.g. Al, Si, C, Cu...).</p>
+
+<p>When using <strong>-select &#60;index&#62;</strong> (where &#60;index&#62; in an integer), only the atom of the given index is selected.</p>
+
+<p>When using <strong>-select random</strong>, N atoms of the given &#60;species&#62; are selected randomly (where N in an integer). If N is a real number followed by the symbol "%", then the given percentage of atoms will be selected. If &#60;species&#62; is set to "any" or "all" then N atoms will be randomly selected regardless of their species. Note that this option attempts to generate random indices of the atoms to be selected, therefore it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
+
+<p>When using <strong>-select above</strong> (respectively, <strong>-select below</strong>), all atoms that are at a distance greater (repectively lesser) than the distance &#60;d&#62; with respect to the cartesian origin (0,0,0) along the given direction &#60;dir&#62; are selected. The direction &#60;dir&#62; can be one of "X", "Y", "Z" (referring to cartesian axes), or a crystallographic direction defined by its Miller indices (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are 
+considered with respect 
+to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001].</p>
+
+<p>When selection is done relatively to a geometric region, the parameters depend on the geometry of the region:</p>
+
+<ul>
+  <li><strong>in|out</strong>: decides if it is the inside or the outside of the region that is selected.</li>
+  <li><strong>x, y, z</strong>: for the box, coordinates of the first corner; for the sphere, coordinates of the center of the sphere; for the cylinder (only two values must be provided), the position of the center of the cylinder in the plane normal to the direction &#60;dir&#62; (see below).</li>
+  <li><strong>x', y', z'</strong>: for the box only, coordinates of the last corner.</li>
+  <li><strong>R</strong>: for the sphere and cylinder only, the radius.</li>
+  <li><strong>dir</strong>: for the cylinder only, the main axis direction, must be "X", "Y" or "Z".</li>
+</ul>
+
+<p>The <strong>box</strong> is a parallelepipedic box defined by two points of coordinates (x,y,z) and (x',y',z').</p>
+
+<p>The <strong>sphere</strong> is defined by its center (x,y,z) and its radius R.</p>
+
+<p>The <strong>cylinder</strong> is defined by its center (x<sub>1</sub>,x<sub>2</sub>) in the plane normal to the direction &#60;dir&#62;, and its radius R. The directions x<sub>1</sub> and x<sub>2</sub> are decided after the direction &#60;dir&#62; by permutation X, Y, Z (e.g. if &#60;dir&#62;=Y then x<sub>1</sub> will be the position along the cartesian Z direction, and x<sub>2</sub> the position along X).</p>
+
+<p>The positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). Note that these keywords can only be used for positions: the radius &#60;R&#62; of sphere or cylinder must always be given in &Aring;.</p>
+
+<p>When using <strong>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</strong>, the neighbors of the atom of the given &#60;index&#62; are selected. If &#60;NNN&#62; is a positive integer then the &#60;NNN&#62; closest neighbors are selected, regardless of their distance (&#60;NNN&#62; must then be smaller than 100). If &#60;NNN&#62; is a negative real number then all neighbors within a radius of |&#60;NNN&#62;| are selected, regardless of their number. If &#60;NNN&#62; is zero, then the first nearest neighbors are selected. Note that if some atoms are out of the box then the neighbor search can give wrong results (the <a href="./option_wrap.html">option <code>-wrap</code></a> can be used to wrapp all atoms into the box). If &#60;species&#62; is the chemical symbol of a species then only atoms of that species are selected. If &#60;species&#62; is set to "all" or "any" then atoms are selected regardless of their species.</p>
+
+<p>The options called after the option <code>-select</code> will be applied only to the atoms that are selected by the present option. Beware that some options can result in strange (i.e. non-physical) results when applied to some atoms only.</p>
+
+<p>Each time this option is called, a new set of atoms will be selected, causing any previous selection to be lost.</p>
+
+<p>Note that this option has no effect on the output: no matter which atoms are selected or not, all atoms coordinates are written in the output file(s).</p>
+
+
+<h4>Default</h4>
+
+<p>By default no selection is defined, hence all atoms are selected.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -select Si -shift above 0 x 0.1 0.1 0.1 -select invert -shift above 0 x -0.1 -0.1 -0.1 final.xyz</code>
+<p>This will read the file <code>initial.cfg</code>, select all silicon atoms and shift them by a vector (0.1,0.1,0.1), invert the selection and shift all other atoms by a vector (-0.1,-0.1,-0.1). The resulting system will be written to <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select above 40 y -rot z 45 final.xyz</code>
+<p>This will select atoms that have a Y coordinate greater than 40 &Aring;. The following <a href="./option_rotate.html">option <code>-rotate</code></a> will be applied only to atoms that are in this region.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select above 40 [111] -cut above -100 x final.xyz</code>
+<p>This will select atoms that are at a distance from the cartesian origin greater than 40 &Aring; along [111] direction. The following <a href="./option_cut.html">option <code>-cut</code></a> will remove the selected atoms.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select in box 0 0 0 20 10 3 -shift above 0 x -10 0 0 final.xyz</code>
+<p>This will select atoms that are within the rectangular box defined by the coordinates (0,0,0) and (20,10,3). In other words all atoms which coordinates are within the ranges X=[0;20], Y=[0;10], Z=[0;3] will be selected. The following <a href="./option_shift.html">option <code>-shift</code></a> will be applied only to atoms that are in this region *and* are above 0 &Aring; along the X axis.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select out box 10 20 -INF BOX-10 BOX-20 INF -fix all above -100 x -10 0 0 final.xyz</code>
+<p>This will select atoms that are outside of the rectangular box with X coordinates between 10 &Aring; and 10 &Aring; before the box edge along X ("BOX-10"), the Y coordinates between 20 &Aring; and 20 &Aring; before the box edge along Y ("BOX-20"), and Z coordinates between -&infin; and +&infin;. The following <a href="./option_fix.html">option <code>-fix</code></a> will be applied only to atoms that are in this region *and* are above -100 &Aring; along the X axis.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select out sphere 0.5*BOX 0.5*BOX 0.5*BOX 10.0 -cut above 0 x final.xyz</code>
+<p>This will select atoms that are out of the sphere which center is at the center of the box, and with a radius of 10 &Aring;. The following <a href="./option_cut.html">option <code>-cut</code></a> will be applied only to atoms that are selected *and* are above 0 &Aring; along the X axis, so that eventually only the atoms inside of the sphere remain.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select out cylinder y 40 30 20 -fix all above -1000 x final.xyz</code>
+<p>This will select atoms that are outside of the cylinder which axis is along Y, center is at 40 &Aring; along Z and 30 &Aring; along X, and which radius is 20 &Aring;. Then these selected atoms will be <a href="./option_fix.html">fixed</a>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select random 20 Fe -cut above 0 x final.xyz</code>
+<p>This will select 20 iron atoms at random in the system. The following <a href="./option_cut.html">option <code>-cut</code></a> will remove atoms that are selected *and* are above 0 &Aring; along the X axis.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select random 5% Si -substitute Si C final.xyz</code>
+<p>This will select 5% of the silicon atoms at random. The following option will <a href="./option_substitute.html">substitute</a> the silicon atoms that are selected by carbon atoms.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select random 150 any -substitute Fe C final.xyz</code>
+<p>This will select 150 atoms at random in the system (regardless of their species). The following option will <a href="./option_substitute.html">substitute</a> the iron atoms that are selected by carbon atoms.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select 6 any neighbors 9578 final.xyz</code>
+<p>This will select the 6 nearest neighbors of atom &#35;9578 (no matter the species of these neighbors).</p></li>
+
+<li><code class="command">atomsk initial.cfg -select 12 Si neighbors 1245 -rmatom Si final.xyz</code>
+<p>This will select the 12 nearest silicon neighbors of atom &#35;1245, and then <a href="./option_rmatom.html">remove these atoms</code></a>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select -8.5 any neighbors 566 final.xyz</code>
+<p>This will select all neighbors of atom &#35;566 within a radius of 8.5 &Aring;.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

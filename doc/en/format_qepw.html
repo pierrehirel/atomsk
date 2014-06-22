@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>PW format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: PW</h2>
+
+<p><strong>Name:</strong> Quantum Espresso PWscf format</p>
+
+<p><strong>Extension:</strong> pw</p>
+
+<p><strong>Specification:</strong> <a href="http://www.quantum-espresso.org/wp-content/uploads/Doc/INPUT_PW.html">Quantum Espresso documentation</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://jp-minerals.org/vesta/">VESTA</a>, <a href="http://www.xcrysden.org">XCrySDen</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> can read Quantum Espresso PWscf files (*.pw). If coordinates are reduced (i.e. if they appear after <code>ATOMIC_POSITIONS crystal</code>) then <code>atomsk</code> will immediately convert them to cartesian coordinates. To convert back to reduced coordinates one can use the <a href="./option_fractional.html">option <code>-frac</code></a>. If atom positions are given in lattice coordinates (i.e. if they appear after <code>ATOMIC_POSITIONS alat</code>) then <code>atomsk</code> will also immediately convert them to cartesian coordinates.</p>
+
+<p>By default in the Quantum Espresso PW file format, all quantities whose dimensions are not explicitly specified are in <em>Rydberg</em> atomic units, in particular cell dimensions and atom positions are in units of Bohr radius. So, if cell dimensions and atom coordinates are all expressed in the same units (e.g. all in Bohr, or all in anstroms), then <code>atomsk</code> conserves this unit (i.e. coordinates are NOT converted to angstroms). However, if no unit is specified for the cell (meaning it is in Bohr), while the atom coordinates are specified in angstroms, then the cell dimensions will be converted to angstroms for consistency. To convert units one can also use the <a href="./option_unit.html">option <code>-unit</code></a>.</p>
+
+<p>Note that in this format the cell vectors and atom positions can be specified in Bohrs (if <code>ATOMIC_POSITIONS bohr</code> is used), however <code>atomsk</code> does <em>not</em> automatically convert them to Angstr&ouml;ms (nor to any other arbitrary unit). If needed, one can use the <a href="./option_unit.html">option <code>-unit</code></a> to perform the conversion before writing or after reading a PW file.</p>
+
+<p>When writing a file in the PW format, <code>atomsk</code> will use a format similar to the following:</p>
+
+<div class="txtfile"><h5>example.pw</h5>
+<p><code>
+&amp;CONTROL<br/>
+  title = '&#60;comment&#62;'<br/>
+  pseudo_dir = '/your/path/to/pseudo/'<br/>
+  calculation = 'scf'<br/>
+/<br/>
+<br/>
+&amp;SYSTEM<br/>
+  nat= &#60;NP&#62;<br/>
+  ntyp= &#60;Nspecies&#62;<br/>
+  ibrav= 0<br/>
+  ecutwfc= 20.0<br/>
+/<br/>
+<br/>
+  &amp;ELECTRONS<br/>
+  mixing_beta = 0.7<br/>
+  conv_thr =  1.0d-8<br/>
+  /<br/>
+<br/>
+&amp;IONS<br/>
+/<br/>
+<br/>
+&amp;CELL<br/>
+/<br/>
+<br/>
+      ATOMIC_SPECIES<br/>
+      &#60;sp1&#62;   &#60;mass1&#62;  sp1.fixme.upf<br/>
+      ...<br/>
+      &#60;spN&#62;   &#60;massN&#62;  spN.fixme.upf<br/>
+<br/>
+      CELL_PARAMETERS angstrom<br/>
+      &#60;H(1,1)&#62; &#60;H(1,2)&#62; &#60;H(1,3)&#62; <br/>
+      &#60;H(2,1)&#62; &#60;H(2,2)&#62; &#60;H(2,3)&#62; <br/>
+      &#60;H(3,1)&#62; &#60;H(3,2)&#62; &#60;H(3,3)&#62; <br/>
+<br/>
+      ATOMIC_POSITIONS angstrom<br/>
+      &#60;atom1&#62; &#60;x1&#62; &#60;y1&#62; &#60;z1&#62; [&#60;fixx1&#62; &#60;fixy1&#62; &#60;fixz1&#62;]<br/>
+      &#60;atom2&#62; &#60;x2&#62; &#60;y2&#62; &#60;z2&#62; [&#60;fixx2&#62; &#60;fixy2&#62; &#60;fixz2&#62;]<br/>
+      ...   ...  ...<br/>
+      &#60;atomN&#62; &#60;xN&#62; &#60;yN&#62; &#60;zN&#62; [&#60;fixxN&#62; &#60;fixyN&#62; &#60;fixzN&#62;]<br/>
+<br/>
+K_POINTS automatic<br/>
+2 2 2  0 0 0<br/>
+
+</code></p></div>
+
+
+<p>That file is just a draft and will have to be edited, it is NOT fully set for a simulation.</p>
+
+<p>The paths to the pseudopotentials (i.e. "pseudo_dir") has to be set according to your local configuration. The file names of pseudopotentials (in the section "ATOMIC_SPECIES") are also dummy ones and have to be replaced.</p>
+
+<p>By default <code>atomsk</code> uses <code>ATOMIC_POSITIONS crystal</code> if atom coordinates are reduced (e.g. if the <a href="./option_fractional.html">option <code>-frac</code></a> was used), or <code>ATOMIC_POSITIONS angstrom</code> if coordinates are cartesian. As a result, if coordinates and cell parameters are in Bohrs, then the lines <code>ATOMIC_POSITIONS</code> and <code>CELL_PARAMETERS</code> will be wrong and will have to be modified manually; the <a href="./tools.html">tool <code>qepw_bohr.sh</code></a> can fix these lines.</p>
+
+<p>If auxiliary properties exist, then only the fixed coordinates (<code>fixx, fixy, fixz</code>) are written for each atom.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg -frac pw</code>
+<p>This will read the file <code>my_system.cfg</code>, convert atom positions to <a href="./options_fractional.html">reduced coordinates</a>, and write the final result to <code>my_system.pw</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

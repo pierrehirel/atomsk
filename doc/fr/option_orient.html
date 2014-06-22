@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option orient - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : orient</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-orient &#60;(<em>hkl</em>)<sub>X</sub>&#62; &#60;(<em>hkl</em>)<sub>Y</sub>&#62; &#60;(<em>hkl</em>)<sub>Z</sub>&#62; &#60;(<em>hkl</em>)'<sub>X</sub>&#62; &#60;(<em>hkl</em>)'<sub>Y</sub>&#62; &#60;(<em>hkl</em>)'<sub>Z</sub>&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option effectue une rotation du système, depuis une orientation cristallographique donnée vers une autre.</p>
+
+<p>Les vecteurs pour chaque orientation cristallographique doivent être donnés sous forme d'indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>).</p>
+
+<p>Notez que les directions cristallographiques d'arrivée doivent former des angles égaux à celles de départ.</p>
+
+<p>Cette option affectera certaines propriétés du système (par ex. le tenseur élastique) si elles ont précédemment été définies par l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
+
+<p>Notez que cette option ne modifie pas le système, elle n'effectue qu'une rotation. Pour créer une cellule unité avec une certaine orientation cristallographique il est possible d'utiliser le <a href="./mode_create.html">mode <code>--create</code></a>.</p>
+
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut l'orientation du système n'est pas changée.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -orient [110] [1-10] [001] [100] [010] [001] final.xsf</code>
+<p>Le système initial (<code>initial.cfg</code>) possède l'orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]. Il sera pivoté de sorte à avoir l'orientation X=[100], Y=[010], Z=[001]. Le résultat final sera écrit dans <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -orient 001 [1_-1_0] 110 2_1_1 [0_-1_1] [1_-1_-1] final.xsf</code>
+<p>Le système <code>initial.cfg</code>, ayant l'orientation [001] [1<span class="over">1</span>0] [110], sera pivoté de sorte à être orienté X=[211], Y=[0<span class="over">1</span>1], et Z=[1<span class="over">1</span><span class="over">1</span>]. Notez que les deux notations (avec et sans tiret bas ou crochets) peuvent être employées dans la même ligne de commandes.</p></li>
+
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

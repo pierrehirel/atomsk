@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Exemples - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Exemples</h2>
+
+<h4>Convertir un fichier vers un autre fichier</h4>
+
+<ul>
+<li><code>atomsk initial.cfg final.xsf</code>
+<p>Ceci convertira le fichier <code>initial.cfg</code> (au format CFG) vers le fichier <code>final.xsf</code> (au format XSF).</p></li>
+</ul>
+
+<h4>Convertir un fichier vers un autre format</h4>
+
+<ul>
+<li><code>atomsk fichier.cfg xsf</code>
+<p>Ceci convertira <code>fichier.cfg</code> (format CFG) vers <code>fichier.xsf</code> (format XSF).</p></li>
+</ul>
+
+
+<h4>Convertir un fichier vers plusieurs formats</h4>
+
+<ul>
+<li><code>atomsk fichier.cfg xsf lmp</code>
+<p>Ceci convertira <code>fichier.cfg</code> (format CFG) vers <code>fichier.xsf</code> (format XSF) et <code>fichier.lmp</code> (LAMMPS data).</p></li>
+</ul>
+
+
+
+<h4>Générer une cellule élémentaire d'aluminium cfc avec une orientation cristalline donnée</h4>
+
+<ul>
+<li><code class="command">atomsk --create fcc 4.02 Al orient [0-11] [100] [011] cfg</code>
+<p>Cet exemple utilise le <a href="./mode_create.html">mode <code>--create</code></a> pour générer une cellule élémentaire d'aluminium cubique à faces centrées (cfc) avec l'orientation cristallographique X=[0<span class="over">1</span>1], Y=[100], Z=[011].</p></li>
+</ul>
+
+
+<h4>Utiliser les options</h4>
+
+<p>Veuillez vous référer à la section sur les <a href="./options.html">options</a>. Plusieurs options peuvent être utiliées consécutivement dans la même ligne de commande, comme dans l'exemple ci-dessous.</p>
+
+<ul>
+<li><code>atomsk unitcell.xyz -expand 20 10 1 -deform x 2 0.33 final.xsf lmp</code>
+<p>Dans cet exemple <code>atomsk</code> va lire le fichier <code>unitcell.xyz</code> (format XYZ), <a href="./option_expand.html">étendre le système</a> pour former une supercellule de dimensions 20x10x1, puis <a href="./option_deform.html">le déformer</a> de 2&#37; suivant X (en utilisant un ratio de Poisson égal à 0.33), et enfin écrire le système final dans les fichiers <code>final.xsf</code> (au format XSF) et <code>final.lmp</code> (LAMMPS data).</p></li>
+</ul>
+
+
+<h4>Autres exemples</h4>
+
+<p>Le dossier "examples" fourni avec le programme contient des scripts bash commentés qui utilisent <code>atomsk</code> pour construire différents systèmes. Les commentaires sont censés être ignorés par l'ordinateur, pas par vous : lisez-les pour comprendre ce que font les scripts. Bien sûr vous pouvez modifier ces scripts pour tester le programme.</p>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

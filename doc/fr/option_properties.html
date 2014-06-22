@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option properties - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : properties</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-properties &#60;fichier&#62;</code></p>
+
+<p><code>-prop &#60;fichier&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de lire certaines propriétés du système depuis un fichier.</p>
+
+<p>Le &#60;fichier&#62; doit contenir des mots-clés suivis de valeurs correspondantes. Les lignes vides, et les lignes commençant avec un croisillon (&#35;), sont ignorées. Si une propriété est définie plusieurs fois, la dernière occurence écrase les précédentes.</p>
+
+<p><em>Les propriétés individuelles des atomes</em> (aussi appelées propriétés <em>auxiliaires</em>) sont définies pour chaque atome, c'est le cas par ex. des vitesses des atomes ; elles sont écrites dans certains formats de fichiers, voir <a href="./formats.html">cette page</a>. <em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
+
+<p>Voici la liste des <strong>propriétés atomiques individuelles</strong>, qui sont enregistrées comme propriétés auxiliaires pour chaque atome :</p>
+
+<ul>
+  <li><strong>Les charges des ions</strong> peuvent être définies grâce au mot-clé "charge", suivi de lignes contenant le symbole chimique de l'ion et sa charge (généralement en unités de charges élémentaires <em>e</em>, bien que <code>atomsk</code> travaillera quel que soit le nombre donné). Dans le cas d'un modèle ionique c&oelig;ur-coquille deux charges peuvent être données, correspondant à la charge du c&oelig;ur et à celle de la coquille :<br/>
+      <p><code>charge<br/>
+            &#60;espèce1&#62; &#60;charge1&#62; [&#60;coquille1&#62;]<br/>
+            &#60;espèce2&#62; &#60;charge2&#62; [&#60;coquille2&#62;]<br/>
+            ...</code></p>
+  <p>Si des charges avaient été définies auparavant, elles seront remplacées par celles-ci. Ces charges sont utilisées par exemple dans le <a href="./mode_edm.html">mode <code>--edm</code></a>, ou encore pour calculer la <a href="./mode_epola.html">polarisation électronique</a>.</p></li>
+  
+  <li><strong>Les types d'atomes</strong> peuvent être définis grâce au mot-clé "type":<br/>
+      <p><code>type<br/>
+            &#60;espèce1&#62; &#60;type1&#62;<br/>
+            &#60;espèce2&#62; &#60;type2&#62;<br/>
+            ...</code></p>
+  <p>Cette option va assigner un &#60;type&#62; à chaque &#60;espèce&#62;. Notez que le &#60;type&#62; est enregistré comme propriété auxiliaire pour chaque atome, et est utilisé lors de l'écriture de certains formats de fichiers (par ex. les <a href="./format_lmp.html">fichiers de données de LAMMPS</a> ou <a href="./format_imd.html">les fichiers IMD</a>).</p>
+  
+  <p>Pour l'opération inverse (c-à-d. remplacer les types d'atomes par des espèces chimiques) il est possible d'utiliser l'<a href="./option_substitute.html">option <code>-substitute</code></a>.</p></li>
+  
+  <li>N'importe quelle propriété auxiliaire peut être définie grâce au mot-clé "auxiliary" suivi du nom de la propriété, les lignes suivantes contenant chacune l'indice d'un atome et la valeur de la propriété pour cet atome :<br/>
+      <p><code>auxiliary &#60;propriété&#62;<br/>
+            &#60;id1&#62; &#60;valeur1&#62;<br/>
+            &#60;id2&#62; &#60;valeur2&#62;<br/>
+            ...</code></p>
+  <p>Ceci associera donnera la &#60;value1&#62; à l'atome &#60;id1&#62;, etc. Les valeurs peuvent être données pour tous les atomes, ou seulement pour certains atomes. Les atomes pour lesquels aucune valeur n'est donnée conservent toute valeur définie précédemment, ou le cas échéant seront attribués une valeur de zéro.</p></li>
+</ul>
+
+<br/>
+<p>Et voici la liste des <strong>propriétés globales</strong> :</p>
+
+<ul>
+  <li><p><strong>Les vecteurs de boîte</strong> peuvent être définis grâce au mot-clé "supercell" :</p>
+      <p><code>supercell<br/>
+            H(1,1) H(1,2) H(1,3)<br/>
+            H(2,1) H(2,2) H(2,3)<br/>
+            H(3,1) H(3,2) H(3,3)<br/></code></p>
+      <p>Il est également possible de les définir en notation conventionnelle grâce au mot-clé "conventional" (angles en degrés):</p>
+      <p><code>conventional<br/>
+            a b c<br/>
+            &alpha; &beta; &gamma;</code></p>
+      <p>Notez que les coordonnées (cartésiennes) des atomes ne sont pas affectées, seuls les vecteurs de boîte sont modifiés.</p></li>
+  
+  <li><p><strong>L'orientation cristallographique</strong> peut être définie grâce au mot-clé "orientation", suivi des orientations des axes cartésiens X,Y,Z en notation de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>) :</p>
+      <p><code>orientation<br/>
+            (<em>hkl</em>)<sub>X</sub><br/>
+            (<em>hkl</em>)<sub>Y</sub><br/>
+            (<em>hkl</em>)<sub>Z</sub></code></p>
+
+      <p>Ces valeurs n'appliquent <em>pas</em> de rotation au système, elles ne font que définir l'orientation actuelle du système, quelle qu'ai été son orientation précédente (et peu importe si l'orientation donnée ici est correcte ou pas). Si le tenseur élastique a été défini avant cette orientation cristallographique (voir ci-dessous), alors il est pivoté pour correspondre à cette orientation.</p></li>
+  
+  <li><p><strong>Le tenseur élastique</strong> peut être défini grâce au mot-clé "elastic" suivi des valeurs (6x6 array) des constantes élastiques en GPa:</p>
+      <p><code>elastic<br/>
+            C<sub>11</sub> C<sub>12</sub> ... C<sub>16</sub><br/>
+            C<sub>21</sub> C<sub>22</sub> ... C<sub>26</sub><br/>
+            ... ... ...<br/>
+            C<sub>61</sub> C<sub>62</sub> ... C<sub>66</sub><br/></code></p>
+      <p>Si le matériau est orthotrope il est également possible d'utiliser la notation de Voigt en ajoutant le mot-clé "Voigt" après "elastic":</p>
+      <p><code>elastic Voigt<br/>
+            C<sub>11</sub> C<sub>22</sub> C<sub>33</sub><br/> need not be present in the list
+            C<sub>23</sub> C<sub>31</sub> C<sub>12</sub><br/>
+            C<sub>44</sub> C<sub>55</sub> C<sub>66</sub><br/></code></p>
+      <p>Attention : au moment où il est lu par <code>atomsk</code>, ce tenseur élastique est toujours considéré comme le tenseur correspondant à l'orientation actuelle du système. Le tenseur élastique est lu sans tenir compte d'une quelconque définition précédente de l'orientation du système. Autrement dit les coefficients <em>C<sub>ij</sub>'</em> doivent toujours être fournis. Au contraire, si l'orientation du système est définie ou modifiée <em>après</em> avoir lu le tenseur élastique, alors le tenseur élastique sera pivoté pour correspondre à cette orientation.</p>
+      
+      <p>De façon similaire, si une option de rotation (telle que <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> ou <a href="./option_orient.html"><code>-orient</code></a>) est utilisée <em>avant</em> que le tenseur élastique ne soit lu, alors le tenseur élastique fourni doit correspondre au système déjà pivoté. Si une option de rotation est appelée <em>après</em> avoir lu le tenseur élastique, alors celui-ci sera pivoté en conséquence.</p>
+      
+      <p>Ces constantes élastiques affectent l'<a href="./option_disloc.html">option <code>-dislocation</code></a> en activant l'utilisation de l'élasticité anisotrope pour construire des dislocations.</p></li>
+  
+  <li><p>De façon similaire le <strong>tenseur de complaisance</strong> peut être donné grâce au mot-clé "compliance" (valeurs en GPa<sup>-1</sup>) :</p>
+      <p><code>compliance<br/>
+            S<sub>11</sub> S<sub>12</sub> ... S<sub>16</sub><br/>
+            S<sub>21</sub> S<sub>22</sub> ... S<sub>26</sub><br/>
+            ... ... ...<br/>
+            S<sub>61</sub> S<sub>62</sub> ... S<sub>66</sub><br/></code></p>
+      <p>Il est aussi possible d'utiliser la notation de Voigt en ajoutant le mot-clé "Voigt" :</p>
+      <p><code>compliance Voigt<br/>
+            S<sub>11</sub> S<sub>22</sub> S<sub>33</sub><br/>
+            S<sub>23</sub> S<sub>31</sub> S<sub>12</sub><br/>
+            S<sub>44</sub> S<sub>55</sub> S<sub>66</sub><br/></code></p>
+      <p>Le tenseur de complaisance sera immédiatement inversé pour obtenir le tenseur élastique. Les considérations de transformation du tenseur élastique expliquées ci-avant s'appliquent alors.</p></li>
+
+</ul>
+
+<br/>
+
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucune propriété du système n'est définie.</p>
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk Fe.xsf -properties fer.txt cfg</code>
+<p>Ceci lira le fichier <code>Fe.xsf</code> et lira les propriétés du système depuis <code>fer.txt</code>. Le résultat final sera écrit dans <code>Fe.cfg</code>.</p></li>
+
+<li>L'exemple ci-dessous montre comment définir les vecteurs de boîte :
+
+<div class="txtfile">
+<h5>nouveaux_vecteurs.txt</h5>
+<p><code>#Ceci est un commentaire<br/>
+<br/>
+#Définition des nouveaux vecteurs de boîte<br/>
+#a, b, c en Angstroms, angles en degrés<br/>
+conventional<br/>
+145.2 160.6 20.19<br/>
+90.0 90.0 120.0<br/>
+</code></p></div>
+</li>
+
+<li>L'exemple ci-dessous illustre comment définir des charges et des types d'atomes. Notez que deux charges sont données pour les ions oxygène, elles seront considérées comme les charges des noyaux et des nuages électroniques :
+
+<div class="txtfile">
+<h5>propriétés.txt</h5>
+<p><code>#Ceci est un commentaire<br/>
+<br/>
+#Charges des ions<br/>
+charge<br/>
+Sr 2<br/>
+Ti 4<br/>
+O  0.2 -2.2<br/>
+#Types d'atomes pour LAMMPS ou IMD<br/>
+#Notez que n'importe quel nombre peut être assigné à chaque espèce<br/>
+type<br/>
+Sr 2<br/>
+Ti 4<br/>
+O 3<br/>
+Ba 1<br/></code></p></div>
+</li>
+
+
+<li>L'exemple ci-dessous montre comment définir une propriété appelée "mon_énergie" pour certains atomes. La première colonne est l'indice de l'atome, la seconde contient la valeur de "mon_énergie" de chaque atome. Notez que la liste ne contient pas forcément tous les atomes du système. Il n'est pas non plus obligatoire de donner les indices des atomes par ordre croissant.
+
+<div class="txtfile">
+<h5>energie.txt</h5>
+<p><code>#Energie par atome calculée avec mon code<br/>
+auxiliary mon_énergie<br/>
+2  -20.3<br/>
+3  -20.4<br/>
+4  -19.9<br/>
+6  -19.86<br/>
+15  -20.4<br/>
+9  -19.9<br/>
+</code></p></div>
+</li>
+
+
+<li>Dans le fichier "<code>fer.txt</code>" ci-dessous, le tenseur élastique est défini en premier -il est donc supposé correspondre à l'orientation cristallographique X=[100], Y=[010], Z=[001]. Puis l'orientation du système est définie, donc <code>atomsk</code> va automatiquement pivoter le tenseur élastique pour obtenir les coefficients <em>C'</em> correspondant à la nouvelle orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001] :
+
+<div class="txtfile">
+<h5>fer.txt</h5>
+<p><code># Les constantes élastiques du fer<br/>
+elastic Voigt<br/>
+243.30 243.30 243.30<br/>
+145.00 145.00 145.00<br/>
+116.10 116.10 116.10<br/>
+<br/>
+# L'orientation de mon cristal<br/>
+orientation<br/>
+110<br/>
+1-10<br/>
+001<br/></code></p></div>
+
+<p>Il s'agit là de la manière la plus simple d'obtenir un tenseur élastique adapté à un système donné.</p></li>
+
+<li>Dans l'exemple ci-dessous, l'orientation du cristal est donnée en premier. Le tenseur élastique fourni ensuite doit donc correspondre à cette orientation -souvenez-vous qu'au moment où <code>atomsk</code> lit le tenseur élastique il considère toujours qu'il s'agit du tenseur adapté à l'orientation actuelle :
+
+<div class="txtfile">
+<h5>fer.txt</h5>
+<p><code># L'orientation de mon cristal<br/>
+orientation<br/>
+[1_1_0]<br/>
+[1_-1_0]<br/>
+[0_0_1]<br/>
+<br/>
+# Les constantes élastiques C'<br/>
+elastic<br/>
+243   72.5  145   72.5  0.0  0.0<br/>
+72.5  60.8  97.1  60.8  0.0  0.0<br/>
+145   97.1  310   155   0.0  0.0<br/>
+72.5  60.8  155   89.8  0.0  0.0<br/>
+0.0   0.0   0.0   0.0   116  58.0<br/>
+0.0   0.0   0.0   0.0   58.0 58.0<br/></code></p></div>
+</li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

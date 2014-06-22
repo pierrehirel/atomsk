@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode average - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: average</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --average &#60;listfile&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>In this mode <code>atomsk</code> will average atom positions over a list of files. This can be convenient e.g. to obtain a time-average of atom positions from snapshots of a high-temperature molecular dynamics run.</p>
+
+<p>The file &#60;listfile&#62; is a text file that should contain a list of files to convert (one file name per line). Empty lines and lines starting with &#35; are ignored (this can be used to insert comments). All files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
+
+<p>The coordinates of cell vectors are also averaged. If they are the same for all systems then they will also be the same in the final file. If they change over the snapshots, then the final system will contain an average of all cells and all fractional coordinates of atoms.</p>
+
+<p>If all files contain shells (in the sens of an ionic core-shell model) then the positions of shells will also be averaged. If all files contain auxiliary properties, they will also be averaged, except for the property related to atom types. If one or several files do not contain shells (or auxiliary properties) then the shells (respectively auxiliary properties) will be ignored and will not be present in the final system.</p>
+
+<p>If this mode is used with one or several <a href="./options.html">options</a>, these options will be applied to the final file (i.e. the one containing the averaged atom positions).</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --average filelist.lst averaged.cfg</code>
+<p>This will read all the files which names are specified in <code>filelist.lst</code>, and make an average of each atom position. The final result will be output into <code>averaged.cfg</code>.</p></li>
+
+<li><code class="command">ls *.xsf > list.lst &amp;&amp; atomsk --average list.lst -e 2 2 2 average.cfg xsf</code>
+<p>This will list all files with the extension .xsf and save the list in <code>list.lst</code>. Then it will run <code>atomsk</code> to make an average of atom positions of all these systems. The averaged system will be duplicated twice in each direction (thanks to the <a href="./option_expand.html">option <code>-expand</code></a>), and the final result will be written to <code>average.cfg</code> and <code>average.xsf</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

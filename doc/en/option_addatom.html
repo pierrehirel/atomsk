@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option add-atom - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: add-atom</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-add-atom &#60;species&#62; at &#60;x&#62; &#60;y&#62; &#60;z&#62;</code></p>
+
+<p><code>-add-atom &#60;species&#62; near &#60;index&#62;</code></p>
+
+<p><code>-add-atom &#60;species&#62; random &#60;N&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option adds one or more new atom(s) of the given &#60;species&#62; in the system.</p>
+
+<p>When using the keyword <strong>at</strong>, a new atom will be inserted exactly at the given location. The positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</p>
+
+<p>When using the keyword <strong>near &#60;index&#62;</strong> (where &#60;index&#62; is an integer), a new atom will be inserted near the atom with the given &#60;index&#62;. The new atom will be inserted in the tetrahedral site formed by the atom with the given &#60;index&#62; and its three nearest neighbors.</p>
+
+<p>When using the keyword <strong>random &#60;N&#62;</strong> (where &#60;N&#62; is an integer), then &#60;N&#62; new atoms will be inserted at random positions in the system. The position of each new atom will be decided randomly, and then changed to be at the center of the four nearest neighbors of that position. Note that this option attempts to generate random positions for the new atoms, therefore it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
+
+<p>The new atom(s) will be added at the end of the atom list, so that old atoms keep their former indices. In order to change the way atoms are sorted it is possible to use the <a href="./option_sort.html">option <code>-sort</code></a>.</p>
+
+
+<h4>Default</h4>
+
+<p>By default no new atom is introduced.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.xsf -add-atom Si at 3.0 2.5 6 final.cfg</code>
+<p>This will read the file <code>initial.xsf</code>, add a silicon atom at the position (3.0,2.5,6), and output the result into <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -add-atom Si at 0.25*box 0.33*box 0.5*box final.cfg</code>
+<p>This will read the file <code>initial.xsf</code>, add a silicon atom at the fractional coordinate (0.25,0.33,0.5), and output the result into <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -add-atom Fe near 3815 final.cfg</code>
+<p>This will read the file <code>initial.xsf</code>, and add an iron atom near the atom &#35;3815. The new atom will be inserted in the middle of the tetrahedral site formed by the atom &#35; and its three nearest neighbors.</p></li>
+
+<li><code class="command">atomsk initial.xsf -add-atom C random 25 final.cfg</code>
+<p>This will read the file <code>initial.xsf</code>, and add 25 new carbon atoms at random positions in the system.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

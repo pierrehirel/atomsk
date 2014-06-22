@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode normal - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: normal</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk &#60;inputfile&#62; &#60;outputfile&#62; [options]</code></p>
+
+<p><code>atomsk &#60;inputfile&#62; &#60;formats&#62; [options]</code></p>
+
+<p><code>atomsk &#60;inputfile&#62; &#60;prefix&#62; &#60;formats&#62; [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This will read the &#60;inputfile&#62; and convert it to &#60;outputfile&#62;.</p>
+
+<p>If the &#60;outputfile&#62; has a recognisable extension (e.g. .xyz or .cfg) then <code>atomsk</code> will convert it to the corresponding format.</p>
+
+<p>Instead of specifying an output file name, one can also specify one or several &#60;format&#62; among <a href="./formats.html">those supported by <code>atomsk</code></a>. The program will then use the input file name and replace its extension with the one appropriate for each &#60;format&#62;.</p>
+
+<p>If a &#60;prefix&#62; (i.e. a file name with no extension) and one or several &#60;formats&#62; are specified, then the program will use the prefix to produce all the output files according to the &#60;formats&#62;.</p>
+
+<p>If you want to convert all the files in a directory, do NOT use a star (for instance <code>atomsk * cfg</code> to convert all files to CFG), because this will not be recognized. I recommend that you create a file list (for instance <code>ls * &#62;list.lst</code>), and then run atomsk in <a href="./mode_filelist.html">File list</a> mode.</p>
+
+<p>In addition to the conversion, you can transform atomic positions by using one or several <a href="./options.html">options</a>.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk mysystem.gin example.cfg</code>
+<p>This will convert the file <code>mysystem.gin</code> into <code>example.cfg</code>.</p></li>
+
+<li><code class="command">atomsk example.cfg mysystem.gin</code>
+<p>Same as previous example, assuming the file <code>mysystem.gin</code> exists and <code>example.cfg</code> does not. The program recognizes which file exists, and which file has to be created. If both files already exist, you will be prompted which one to use as an input file.</p></li>
+
+<li><code class="command">atomsk mysystem.gin cfg</code>
+<p>This will convert the file <code>mysystem.gin</code> into <code>mysystem.cfg</code>.</p></li>
+
+<li><code class="command">atomsk mysystem.gin new_system cfg xsf</code>
+<p>This example uses a prefix (<code>new_system</code>) and several output formats. It will convert the file <code>mysystem.gin</code> into <code>new_system.cfg</code> and <code>new_system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk xsf new_system cfg mysystem.gin</code>
+<p>Same as previous example. Note that command-line parameters can be specified in any order.</p></li>
+
+<li><code class="command">atomsk unitcell.xyz -e 2 2 6 -shift above 6.5 z 0.2 0.6 0.0 stackingfault.xsf</code>
+<p>This example uses several options. The file <code>unitcell.xyz</code> will be read, then the system will be <a href="./option_expand.html">expanded</a> to a 2x2x6 supercell, then part of the system will be <a href="./option_shift.html">shifted</a>, and the resulting system will be written to <code>stackingfault.xsf</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

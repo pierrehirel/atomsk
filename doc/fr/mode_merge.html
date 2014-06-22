@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode joindre - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : joindre</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --merge [&#60;direction&#62;] &#60;Nfichiers&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+
+<p><code>atomsk -M [&#60;direction&#62;] &#60;Nfichiers&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ce mode permet de joindre plusieurs systèmes en un seul, soit en réunissant les atomes des différents systèmes dans la même boîte, soit en juxtaposant les systèmes suivant une direction donnée. Le résultat est écrit dans le &#60;fichiersortie&#62;, aux &#60;formats&#62; donnés.</p>
+
+<p>L'entier &#60;Nfichiers&#62; indique combien de systèmes seront joints. Il doit être suivi des noms des fichiers contenant ces systèmes, de &#60;fichier1&#62; à &#60;fichierN&#62;.</p>
+
+<p>La &#60;direction&#62; est un paramètre optionnel. Par défaut, s'il n'est pas utilisé, les vecteurs de boîte du &#60;fichier1&#62; sont utilisés, et les atomes de tous les systèmes sont intégrés à cette boîte.</p>
+
+<p>Lorsque le paramètre &#60;direction&#62; est utilisé, il doit valoir 'x', 'y' ou 'z'. Il indique que les systèmes doivent être accolés côte à côte suivant la direction donnée. Par exemple si &#60;direction&#62;=Y alors les boîtes des différents systèmes seront juxtaposées suivant la direction  <code>H(2,:)</code> du &#60;fichier1&#62;. Bien sûr une telle construction n'a de sens que si tous les systèmes ont des géométries similaires, c-à-d. que leur dimension suivant la &#60;direction&#62; peut prendre n'importe quelle valeur, mais les dimensions dans les deux autres dimensions doivent être les mêmes pour tous les systèmes à joindre. Le résultat final peut être farfelu si, par exemple, un système trilclinique est joint à un système orthorhombique.</p>
+
+<p>Attention : <code>atomsk</code> n'ajuste pas les positions atomiques, et ne trouve pas "automagiquement" les interfaces optimales ni quoi que ce soit de ce genre. Il appartient à l'utilisateur de vérifier les orientations cristallographiques et les géométries de ses systèmes avant de les joindre. Pour rapidement redéfinir les vecteurs de boîte après avoir joint des systèmes il est possible d'utiliser l'<a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
+
+<p>Les propriétés auxiliaires sont conservées lorsque plusieurs systèmes sont joints, c-à-d. que chaque atome conserve les propriétés auxiliaires qui sont définies pour lui. Si une propriété est définie dans certains fichiers mais pas tous, alors cette propriété prendra une valeur de zéro pour les atomes pour lesquels elle n'est pas définie.</p>
+
+<p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a> elles seront appliquées au système final, après avoir joint les systèmes individuels.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --merge 2 aluminium_bas.cfg fer_haut.xsf interface.xyz xsf</code>
+<p>Ceci réunira les atomes des systèmes contenus dans <code>aluminium_bas.cfg</code> et <code>fer_haut.xsf</code> dans la même boîte (la boîte définie dans <code>aluminium_bas.cfg</code>), et écrira le résultat final dans <code>interface.xyz</code> et <code>interface.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --merge z 3 un.cfg deux.xsf trois.cfg final.xsf</code>
+<p>Ceci accolera les systèmes <code>un.cfg</code>, <code>deux.xsf</code> et <code>trois.cfg</code> suivant l'axe Z, et écrira le résultat dans <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --merge x 4 fichier.cfg fichier.cfg fichier.cfg fichier.cfg final.xsf</code>
+<p>Ceci copiera le système <code>fichier.cfg</code> quatre fois suivant l'axe X.</p></li>
+
+<li><p>D'autres exemples se trouvent dans le dossier "examples" fourni avec le programme. Le dossier "<code>Cu_Fe_interface</code>" contient un script bash qui construit une interface entre deux systèmes : du cuivre cfc et du fer cubique centré.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

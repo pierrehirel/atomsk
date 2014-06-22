@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Program behaviour verbosity - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Program behaviour: verbosity</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-verbosity &#60;n&#62; </code></p>
+<p><code>-v &#60;n&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This allows you to change the level of verbosity of the program. The integer <code>&#60;n&#62;</code> can be set up as:</p>
+
+<ul>
+  <li><strong>0</strong>: silent, no message is ever displayed nor written in log file (except for error messages);</li>
+  <li><strong>1</strong>: all messages are written on the screen only;</li>
+  <li><strong>2</strong>: all messages are written in log file only;</li>
+  <li><strong>3</strong>: messages are written in log file and on screen;</li>
+  <li><strong>4</strong>: debug, some additional messages are written in log file (but not on screen). Beware that in this mode, the program can be much slower, and the log file can be much bigger. This mode should be used only by developers for debugging purposes, and only with systems with a small number of particles.</li>
+</ul>
+
+<p>By default the logfile is <code>atomsk.log</code> but you can <a href="./progbe_log.html">change it</a>.</p>
+
+<p>When running in <a href="./mode_interactive.html">interactive mode</a> the verbosity level is automatically reset to 1 if it is set to 0 or 2.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default the verbosity level is set to 1.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin initial.cfg -v 3</code>
+<p>This will write messages both on screen and in the log file <code>atomsk.log</code>.</li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

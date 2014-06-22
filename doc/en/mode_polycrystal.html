@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode polycrystal - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: polycrystal</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --polycrystal &#60;seed&#62; &#60;param_file&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This mode generates a polycrystal from a given &#60;seed&#62;, using the Voronoi tesselation method and the parameters provided in the file &#60;param_file&#62;. The positions and crystallographic orientations of the grains can be given explicitely, or generated randomly.</p>
+
+<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually it is a unit cell of material with the crystallographic orientation X=[100], Y=[010], Z=[001] (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be any system that you provide.</p>
+
+<p>The &#60;param_file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored.</p>
+
+<p>The keyword <strong>box</strong> is mandatory and must appear before any other keyword. It must be followed by three real numbers defining the size of the final box (in &Aring;). The final box can only be a parallelepiped.</p>
+
+<p>The keyword <strong>random &#60;N&#62;</strong> can be used to generate a random structure containing &#60;N&#62; grains. The positions and crystallographic orientations of the grains will be decided randomly by the program. Note that this method attempts to generate random numbers, therefore it is largely non-reproducible, i.e. starting from the exact same &#60;param_file&#62; and constructing a polycrystal with the present mode will most likely lead to different results.</p>
+
+<p>The keyword <strong>node</strong> can be used to define the position (x,y,z) and orientation of a grain. The cartesian coordinates x, y, z, are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). The crystallographic orientation can be specified as Miller indices (see <a href="./options.html">how to specify Miller indices</a>); note that this assumes that the orientation of the &#60;seed&#62; is X=[100], Y=[010], Z=[001]. Alternatively the angles of rotation of the seed can also be given explicitely in degrees, as real numbers with the degree 
+symbol (°). The seed will be rotated by the first angle around the cartesian X axis, then by the second angle around Y, and finally by the third angle around Z. Finally, the crystal orientation of a grain can also be set to "random", in which case the program will apply a random rotation 
+matrix. Each line starting with the keyword <strong>node</strong> defines one grain.</p>
+
+<p>The keywords <strong>node</strong> and <strong>random</strong> are mutually exclusive and cannot be used in the same file.</p>
+
+<p>By default the grains are constructed thanks to a <strong>3-D</strong> Voronoi tesselation of space: the &#60;seed&#62; is placed at the position of each node, and expanded into the Voronoi polyhedron. Periodic bounday conditions are used in the three dimensions of space.</p>
+
+<p>If one dimension of the box is as short as a unit cell vector, then a <strong>2-D</strong> Voronoi tesselation will be automatically used. If a random orientation of the grains is asked for, the lattice will only be rotated around the small axis, i.e. all grains will have the same crystallographic orientation along that axis. Note that afterwards, one can use the <a href="./option_expand.html">option <code>-expand</code></a> along that direction to generate a columnar structure.</p>
+
+<p>If the initial &#60;seed&#62; contains shells (in the sense of an ionic core-shell model) they are duplicated along with the atoms (or cores). If auxiliary properties are defined for each atom in the initial &#60;seed&#62;, then the atom replica will be assigned the same auxiliary properties.</p>
+
+<p>Once the polycrystal is generated, the grain size distribution is computed and written to a data file (*.dat), named after the output file.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then they will apply to the created system.</p>
+
+<p>After generation of the polycrystal some atoms may not be inside of the simulation box, which can be fixed thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>. Some atoms may also be too close to one another (at grain boundaries), which can be fixed thanks to the <a href="./option_rmd.html">option <code>-remove-doubles</code></a>.</p>
+
+<p>Beware that the system you create with this mode is <em>not</em> relaxed nor optimized.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li>
+<div class="txtfile"><h5>voronoi_random.txt</h5>
+<p><code>&#35; Voronoi polycrystal with 12 random grains<br/>
+box 250 250 200<br/>
+random 12<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_random.txt fcc_polycrystal.cfg lmp</code>
+<p>This is the most simple way to construct a polycrystal with <code>atomsk</code>. In the file <code>voronoi_random.txt</code> we ask for a system that is 250x250x200 &Aring;<sup>3</sup>, made of twelve grains with random positions and orientations. The atom positions of the seed are in <code>fcc_unitcell.xsf</code>. The final polycrystal will be written into the files <code>fcc_polycrystal.cfg</code> and <code>fcc_polycrystal.lmp</code>.</p></li>
+
+<li>
+<div class="txtfile"><h5>my_polycrystal.txt</h5>
+<p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
+box 100 100 100<br/>
+node 0 0 0 [100] [010] [001]<br/>
+node 0.4*box 0.8*box 0.6*box [001] [110] [1-10]<br/>
+node 0.8*box 0.6*box 0.9*box [11-1] [112] [1-10]<br/>
+node 0.5*box 5 0.6*box [110] [1-10] [001]<br/>
+node 0.75*box 0.75*box 1 [112] [1-10] [11-1]<br/>
+node 0.6*box 1 0.8*box [001] [100] [010]<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp</code>
+<p>The file <code>my_polycrystal.txt</code> indicates to build a cubic system with a size 100x100x100 &Aring;<sup>3</sup>, with six grains having the given orientations. <code>Atomsk</code> will use these parameters, and the unit cell defined in the file <code>fcc_unitcell.xsf</code>, to generate such a polycrystal, and write the final result to the files <code>fcc_polycrystal.cfg</code> and <code>fcc_polycrystal.lmp</code>.</p></li>
+
+
+<li>
+<div class="txtfile"><h5>my_polycrystal.txt</h5>
+<p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
+box 100 100 100<br/>
+node 0 0 0 [100] [010] [001]<br/>
+node 0.4*box 0.8*box 0.6*box 56° -83° 45°<br/>
+node 0.8*box 0.6*box 0.9*box [11-1] [112] [1-10]<br/>
+node 0.75*box 0.75*box 1 -31.4° 28.7° 90.0°<br/>
+node 0.6*box 1 0.8*box [001] [100] [010]<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp</code>
+<p>Similar to the previous example, except that for some grains the rotation angles are given. For instance, in the second grain the seed will be rotated by 56° around the cartesian X axis, then by -83° around the Y axis, and then 45° around Z.</p></li>
+
+
+<li>
+<div class="txtfile"><h5>my_polycrystal.txt</h5>
+<p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
+box 250 250 250<br/>
+node 0 0 0 [100] [010] [001]<br/>
+node 0.4*box 0.8*box 0.6*box random<br/>
+node 0.8*box 0.6*box 0.9*box random<br/>
+node 0.5*box  5  0.6*box random<br/>
+node 0.75*box  0.75*box  1 random<br/>
+node 0.6*box 1 0.8*box random<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp -wrap</code>
+<p>The file <code>my_polycrystal.txt</code> indicates to build a cubic system that is 250x250x250 &Aring;<sup>3</sup>, with six grains located at the given position. The first grain will have the crystallographic orientation X=[100], Y=[010], Z=[001], and the other grains will have random crystallographic orientations. The <a href="./option_wrap.html">option <code>-wrap</code></a> ensures that all atoms are inside the simulation box.</p></li>
+
+<li>
+<div class="txtfile"><h5>bcc_polycrystal.txt</h5>
+<p><code>&#35; Parameters for constructing a columnar Voronoi polycrystal with atomsk<br/>
+box 300 300 2.9<br/>
+random 12<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal bcc_unitcell.xsf bcc_polycrystal.txt bcc_polycrystal.xsf -wrap -e 1 1 16</code>
+<p>Assume that the file <code>bcc_unitcell.xsf</code> contains a unit cell of a bcc metal with lattice parameter 2.9 &Aring;. The file <code>bcc_polycrystal.txt</code> indicates to build a system that is 300x300x2.9 &Aring;<sup>3</sup>, with twelve grains generated randomly. Because the system's dimension along the Z direction is equal to the lattice parameter (2.9 &Aring;) it will be a 2-D Voronoi crystal, i.e. all grains will have the same crystallographic orientation along Z. The <a href="./option_wrap.html">option <code>-wrap</code></a> will wrap all atoms inside the simulation box. The <a href="./option_expand.html">option <code>-expand</code></a> will repeat the system 16 times along Z, creating a columnar system.</p></li>
+
+<li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Al_polycrystal</code>" contains a bash script that builds a polycrystal of f.c.c. aluminium. The folder "<code>MgO_2Dpolycrystal</code>" contains a bash script that builds a 2-D polycrystal of rocksalt magnesium oxide (MgO).</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

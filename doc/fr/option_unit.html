@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option unit - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : unit</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-unit &#60;unité1&#62; &#60;unité2&#62;</code></p>
+
+<p><code>-u &#60;unité1&#62; &#60;unité2&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de convertir les coordonnées des atomes d'un système d'&#60;unité1&#62; vers une autre &#60;unité2&#62;.</p>
+
+<p>Les unités de distance supportées sont :</p>
+
+<ul>
+  <li><strong>km</strong></li>
+  <li><strong>m</strong></li>
+  <li><strong>mm</strong></li>
+  <li><strong>micron</strong> ou <strong>µm</strong></li>
+  <li><strong>nm</strong></li>
+  <li><strong>A</strong> ou <strong>Angstroms</strong> ou <strong>angstroms</strong></li>
+  <li><strong>B</strong> ou <strong>Bohr</strong> ou <strong>bohr</strong></li>
+  <li><strong>pm</strong></li>
+  <li><strong>fm</strong></li>
+</ul>
+
+<p>Et les unités de temps :</p>
+
+<ul>
+  <li><strong>h</strong></li>
+  <li><strong>min</strong></li>
+  <li><strong>s</strong></li>
+  <li><strong>ms</strong></li>
+  <li><strong>µs</strong></li>
+  <li><strong>ns</strong></li>
+  <li><strong>ps</strong></li>
+  <li><strong>fs</strong></li>
+</ul>
+
+<p>Les unités de vitesse doivent être spécifiées comme la concaténation d'une unité de distance, d'un symbole de division (/), et d'une unité de temps (voir les exemples ci-dessous).</p>
+
+<p>Notez que <code>atomsk</code> effectuera la conversion aveuglément, puisqu'il n'a aucun moyen de connaître le véritable système d'unités employé dans le fichier d'entrée. Il appartient à l'utilisateur de vérifier que les coordonnées sont bien dans l'&#60;unité1&#62; avant d'effectuer la conversion.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les unités ne sont pas changées.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.xyz -unit Bohr Angstroms final.xsf</code>
+<p>Ceci lira le fichier <code>initial.xyz</code>, dans lequel les coordonnées sont exprimées en rayons de Bohr, convertira en angstroms, et écrira le résultat dans <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf final.xyz -u A nm</code>
+<p>Ceci convertira des Angstroms en nanomètres.</p></li>
+
+<li><code class="command">atomsk initial.lmc final.cfg -u A/ps nm/ps</code>
+<p>Ceci convertira les vitesses des atomes de Angstroms par picoseconde (&Aring;/ps) vers des nanomètres par picoseconde (nm/ps).</p></li>
+
+<li><code class="command">atomsk initial.lmc final.cfg -u nm/fs km/h</code>
+<p>Ceci convertira les vitesses des atomes de nanomètres par femtoseconde (nm/fs) vers des kilomètres par heure (km/h).</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

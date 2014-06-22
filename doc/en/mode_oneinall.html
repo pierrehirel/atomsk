@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode One-in-all - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: One-in-all</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --one-in-all &#60;file&#62; [&#60;prefix&#62;] &#60;formats&#62; [options]</code></p>
+
+<p><code>atomsk -1IA &#60;file&#62; &#60;formats&#62; [options] [&#60;prefix&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>In this mode, <code>atomsk</code> will read one file containing several configurations (or snapshots), and output each configuration into a separate file.</p>
+
+<p>The input formats supported in this mode are:</p>
+
+<ul>
+ <li><strong>HISTORY</strong> files produced by DL_POLY (see <a href="./format_dlp.html">DL_POLY specifications</a>); the actual timestep from the HISTORY file is used to name output files.</li>
+ 
+ <li><strong>Quantum Espresso PWscf output files</strong> (see <a href="./format_qeout.html">specifications</a>).</li>
+ 
+ <li><strong>Animated XSF</strong> (see <a href="./format_xsf.html">XSF specifications</a>).</li>
+ 
+ 
+ <li><strong>XYZ</strong>, either normal XYZ or extended XYZ (see <a href="./format_xyz.html">XYZ specifications</a>); the special XYZ format is not recognized.</li>
+</ul>
+
+<p>Each snapshot can be output to one or several &#60;formats&#62;.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied to each snapshot.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --one-in-all myfile.xyz xsf</code>
+<p>This will read <code>myfile.xyz</code> and output each snapshot to XSF format: <code>myfile1.xsf</code>, <code>myfile2.xsf</code>, etc.</p></li>
+
+<li><code class="command">atomsk -1IA scf.out -unit B A xsf</code>
+<p>This will read the Quantum Espresso PWscf output file <code>scf.out</code>, <a href="./option_unit.html">convert the unit</a> of cell vectors and atom coordinates from Bohrs to Angstr&ouml;ms, and output each snapshot to the XSF format: <code>scf1.xsf</code>, <code>scf2.xsf</code>, etc.</p></li>
+
+<li><code class="command">atomsk -1IA HISTORY xsf cfg</code>
+<p>This will read the DL_POLY file <code>HISTORY</code>, and output each snapshot to XSF and CFG formats: <code>HISTORY1.xsf</code> and <code>HISTORY1.cfg</code>, <code>HISTORY2.xsf</code> and <code>HISTORY2.cfg</code>, etc.</p></li>
+
+<li><code class="command">atomsk -1IA myfile.xsf new_ xsf cfg</code>
+<p>This example uses a prefix ("new_"). It will read the "animated XSF" file <code>myfile.xsf</code> and output each snapshot to the XSF and CFG formats: <code>new_1.xsf</code> and <code>new_1.cfg</code>, <code>new_2.xsf</code> and <code>new_2.cfg</code>, etc..</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Formats - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" alt="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Supported formats</h2>
+
+<p>The formats supported by <code>atomsk</code> appear in the table below. To put it simple, <code>atomsk</code> can convert from any <img src="../img/yes.png" alt="YES"> in the INPUT column to any <img src="../img/yes.png" alt="YES"> in the OUTPUT column. Click on a format name in the first column to display a page detailing its specification, how <code>atomsk</code> deals with it, the possible restrictions, and examples showing how to convert from or to this format. Please read these pages carefully.</p>
+
+
+<table border="1">
+  <tr> <th>FORMAT</th> <th><strong>INPUT</strong></th> <th><strong>OUTPUT</strong></th> </tr>
+  
+  <tr> <th align="left"><a href="./format_atsk.html">atsk</a> (atomsk binary format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [all]</td>     <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [all]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_bop.html">bop</a> (BOP format)</th>      <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [fix]</td>       <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [fix]</td>  </tr>
+  
+  <tr> <th align="left"><a href="./format_cfg.html">cfg</a> (AtomEye format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [all]</td>   <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [all]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_cif.html">cif</a> (Crystallographic Information File)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"></td>   <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"></td> </tr>
+  
+  <tr> <th align="left"><a href="./format_dlp.html">CONFIG</a> (DL_POLY format)</th>     <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [f,v]</td>      <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [f,v]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_coorat.html">COORAT</a> (MBPP format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"></td>   <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"></td> </tr>
+  
+  <tr> <th align="left"><a href="./format_dd.html">dd</a> (ddplot format)</th>     <td><img src="../img/no.png" alt="NO" title="atomsk can not read this format"></td>      <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> (<a href="./mode_ddplot.html">mode ddplot</a> only)</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_gin.html">gin</a> (GULP format)</th>      <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [fix,occ,q,bsrad,v]</td>       <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [fix,occ,q,bsrad,v]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_imd.html">imd</a> (IMD format)</th>     <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [type,v]</td>      <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [type,v]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_lmc.html">lmc</a> (LAMMPS custom format)</th>      <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [all]</td>       <td><img src="../img/no.png" alt="NO" title="atomsk can not write to this format"></td>  </tr>
+  
+  <tr> <th align="left"><a href="./format_lmp.html">lmp</a> (LAMMPS data file)</th>      <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [type,v]</td>       <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [f,q,type,v]</td>  </tr>
+  
+  <tr> <th align="left"><a href="./format_moldy.html">mol</a> (MOLDY file format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"></td>     <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"></td> </tr>
+  
+  <tr> <th align="left"><a href="./format_pdb.html">pdb</a> (Protein Data Bank format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [q,occ]</td>     <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [q,occ]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_pos.html">POSCAR</a> (VASP format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [fix]</td>     <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [fix]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_qepw.html">pw</a> (Quantum Espresso format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"></td>     <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [fix]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_qeout.html">PWout</a> (Quantum Espresso output format)</th>   <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [f] (<a href="./mode_oneinall.html">mode one-in-all</a> only)</td>     <td><img src="../img/no.png" alt="NO" title="atomsk can not write to this format"> </td></tr>
+  
+  <tr> <th align="left"><a href="./format_xmd.html">xmd</a> (XMD format)</th>  <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [type,v]</td>                         <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [type,v]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_xsf.html">xsf</a> (xCrySDen format)</th>  <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [f]</td>                         <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [f]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_xv.html">xv</a> (SIESTA format)</th>  <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [v]</td>                         <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [v]</td> </tr>
+  
+  <tr> <th align="left"><a href="./format_xyz.html">xyz/exyz/sxyz</a> (general purpose format)</th>                    <td><img src="../img/yes.png" alt="YES" title="atomsk can read this format"> [all]</td>   <td><img src="../img/yes.png" alt="YES" title="atomsk can write to this format"> [all]</td> </tr>
+  
+</table>
+
+
+
+<p>For each format, the INPUT and OUTPUT columns also indicate [in square brackets] the <strong>auxiliary properties</strong> that, if they exist, can be read or written by <code>atomsk</code>:</p>
+
+<ul>
+  <li>[all] means that all auxiliary properties are read (or written) regardless of their names or number;</li>
+  
+  <li>[bsrad] stands for breathing shell radius (for ionic core-shell model);</li>
+  
+  <li>[f] stands for forces (fx,fy,fz)</li>
+  
+  <li>[fix] stands for fixed (or "frozen") atoms (fixx, fixy, fixz);</li>
+  
+  <li>[occ] stands for the site occupancies;</li>
+  
+  <li>[q] stands for the electric charges of ions (and shells);</li>
+  
+  <li>[type] stands for "atom types" used by some formats;</li>
+  
+  <li>[v] stands for atom velocities (vx,vy,vz);</li>
+</ul>
+
+<p>When nothing is specified then it means that no auxiliary property is read or written to that format. Note that all auxiliary properties are not transferable from one format to another, so some properties may be lost during conversion. For instance if atom charges, velocities and forces are read from an LMC file, then when converted to CFG they will all be written, but when converted to XSF only the forces will be written.</p>
+
+<p>Some <a href="./modes.html">modes</a> and <a href="./options.html">options</a> may create new auxiliary properties, or update existing ones. Refer to the page of each of these for more information. For removing auxiliary properties one can use the <a href="./option_rmprop.html">option <code>-rmprop</code></a>.</p>
+
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

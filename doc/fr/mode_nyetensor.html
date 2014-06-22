@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode tenseur de Nye - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : Nye tensor</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --nye &#60;fichier1&#62; &#60;fichier2&#62; [options] [&#60;fichiersortie&#62;] [formats]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ce mode calcule le tenseur de Nye de chaque atome, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des dislocations. Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
+
+<p>Ce mode requiert deux fichiers : un &#60;fichier1&#62; contenant le système de référence, c-à-d. le système sans défaut et où les atomes sont dans leurs positions idéales ; et un &#60;fichier2&#62; qui peut contenir un défaut (par ex. une dislocation). Les deux fichiers donnés <em>doivent</em> contenir exactement le même nombre de particules, et devraient correspondre au même type de système (i.e. vecteurs de boîte similaires, mêmes types d'atomes, etc.) pour que le calcul ait du sens. Les deux fichiers peuvent être dans des formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par <code>atomsk</code></a>.</p>
+
+<p>Les neuf composantes du tenseur de Nye (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), sont enregistrées comme propriétés auxiliaires pour chaque atome. Notez que <code>atomsk</code> n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
+
+<p>Si ce mode est utilisé avec une ou plusieurs <a href="./options.html">options</a> alors celles-ci seront appliquées au &#60;fichier1&#62; et au &#60;fichier2&#62; <em>avant</em> que le tenseur de Nye ne soit calculé.</p>
+
+<p>Notez que ce mode suppose que tous les atomes se trouvent dans la boîte. Si ce n'est pas le cas alors le calcul peut donner de mauvais résultats. Les atomes peuvent être replacés dans la boîte grâce à l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --nye reference.xsf dislocation.cfg nye.cfg</code>
+<p>Ceci calculera les valeurs du tenseur de Nye dues aux déplacements dans le fichiers <code>dislocation.cfg</code>, en utilisant <code>reference.xsf</code> comme système de référence. Les positions et valeurs du tenseur de Nye seront écrites dans le fichier <code>nye.cfg</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

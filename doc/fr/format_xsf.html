@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format XSF - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : XSF</h2>
+
+<p><strong>Nom :</strong> structure pour X-window Crystalline and Structure Densities (XCrySDen)</p>
+
+<p><strong>Extension :</strong> xsf</p>
+
+<p><strong>Spécification :</strong> <a href="http://www.xcrysden.org/doc/XSF.html">documentation de XCrySDen</a></p>
+
+<p><strong>Programmes de visualisation :</strong> <a href="http://jp-minerals.org/vesta/">VESTA</a>, <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>, <a href="http://www.xcrysden.org">XCrySDen</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> peut lire les fichiers aux formats XSF contenant des structures périodiques ou moléculaires (voir la spécification). Pour les structures moléculaires, puisqu'aucune boîte n'est définie dans le fichier <code>atomsk</code> créera automatiquement une boîte (ceci est identique à l'<a href="./option_rebox.html">option <code>-rebox</code></a>). Pour définir une boîte manuellement il est possible d'utiliser l'<a href="./option_properties.html">option <code>-properties</code></a>. Si les forces pour chaque atome sont présentes dans le fichier XSF, <code>atomsk</code> les enregistrera comme propriétés auxiliaires.</p>
+
+<p>Lorsqu'il écrit un fichier au format XSF <code>atomsk</code> utilise toujours une structure périodique. Si des propriétés auxiliaires existent, alors seules les forces (<code>fx, fy, fz</code>) seront écrites.</p>
+
+<p>Si le fichier est un fichier XSF animé (contenant plusieurs images) alors seule la première image sera lue et convertie. Pour convertir toutes les images il est possible d'utiliser le <a href="./mode_oneinall.html">mode one-in-all</a>. Pour créer un fichier au format XSF animé, il est possible d'utiliser le <a href="./mode_allinone.html">mode all-in-one</a>.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk systeme.xsf POSCAR</code>
+<p>Ceci lira le fichier XSF <code>systeme.xsf</code>, et le convertira en fichier <code>POSCAR</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg final.xsf</code>
+<p>Ceci lira le fichier <code>initial.cfg</code>, et le convertira en <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --all-in-one mesfichiers.lst animation.xsf</code>
+<p>Ceci va lire les fichiers apparaissant dans la liste <code>myfiles.lst</code>, et écrira toutes les configurations dans le fichier XSF animé <code>animation.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --one-in-all animation.xsf cfg</code>
+<p>Ceci va lire le fichier XSF animé <code>animation.xsf</code>, et écrira chaque configuration dans un fichier séparé au format CFG : <code>animation_1.cfg</code>, <code>animation_2.cfg</code>, etc.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

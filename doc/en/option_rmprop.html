@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option rmprop - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: remove-property</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-remove-property &#60;property&#62;</code></p>
+<p><code>-rmprop &#60;property&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option removes one or all auxiliary properties associated with the atoms.</p>
+
+<p>The value of &#60;property&#62; should correspond to a property that was read from the input file, or set up with the <a href="./option_properties.html">option <code>-properties</code></a>. If &#60;property&#62; is "all" then all auxiliary properties are deleted.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the property will <em>not</em> be removed. Instead the property will be set to zero for selected atoms.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default the auxiliary properties are <em>not</em> deleted, but they are written into files only when their format supports it.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.cfg -rmprop all xsf</code>
+<p>This will read the file <code>system.cfg</code> and convert it to <code>system.xsf</code>, removing all auxiliary properties (if any).</p></li>
+
+<li><code class="command">atomsk system.lmc -rmprop fx -rmprop fy -rmprop fz exyz</code>
+<p>This will read the file <code>system.lmc</code> and remove the three components of the forces <code>fx,fy,fz</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

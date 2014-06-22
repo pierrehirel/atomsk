@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>ATSK format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: ATSK</h2>
+
+<p><strong>Name:</strong> binary atomsk file</p>
+
+<p><strong>Extension:</strong> .atsk</p>
+
+<p><strong>Specification:</strong> see source code of <code>atomsk</code></p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+<h4>Restrictions</h4>
+
+<p>This file format is specific to <code>atomsk</code>. Because it is a binary format it usually uses less disk space than ASCII (text) files, hence it is faster to read and write ATSK files, however it also means that such files cannot be read in a text editor. This format can be useful to read and write intermediate files when invoking <code>atomsk</code> several times to design a system, especially if the system is large (several 100,000 atoms).</p>
+
+<p>This file format is intended for use with <code>atomsk</code> only. It is unlikely to ever be transferable to any other program, and may even not be readable by <code>atomsk</code> on another computer. Its use should be restricted to temporary or intermediate files. Saving or archiving files in this format is strongly discouraged.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg atsk</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.atsk</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

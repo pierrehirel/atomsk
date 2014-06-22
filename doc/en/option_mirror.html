@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option mirror - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: mirror</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-mirror &#60;d&#62; &#60;normal&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option applies a mirror transformation to the system.</p>
+
+<p>The mirror plane is defined as follows:</p>
+<ul>
+  <li><strong>d</strong>: distance between the mirror plane and the origin of cartesian coordinates.</li>
+  <li><strong>normal</strong>: direction normal to the mirror plane; can be x, y, z, or a crystallographic direction (see below).</li>
+</ul>
+
+<p>The position &#60;d&#62; is usually given in &Aring;. It is also possible to give it with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</p>
+
+<p>The &#60;normal&#62; can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices  (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001].</p>
+
+<p>If some atoms have shells (in the sense of an ionic core-shell model), they are also mirrored along with their cores. If forces or velocities are defined, then they are also mirrored.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only the selected atoms will be mirrored.</p>
+
+
+<h4>Default</h4>
+
+<p>By default the system is not mirrored.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -mirror 30 x final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, and apply a mirror plane at 30 &Aring; along the X cartesian axis. The result will be output to the file <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -mirror 0.5*box Y final.xyz</code>
+<p>In this case the mirror plane will be placed at the middle of the box along Y.</p></li>
+
+<li><code class="command">atomsk initial.cfg -mirror 50 [111] final.xyz</code>
+<p>The mirror plane will be normal to [111] and at a distance of 50 &Aring; from the origin.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode ddplot - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode : ddplot</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --ddplot &#60;fichier1&#62; &#60;fichier&#62; [&#60;fichiersortie&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Dans ce mode <code>atomsk</code> lit deux fichiers d'entrée et écrit un fichier au <a href="format_dd.html">format ddplot (.dd)</a>. Le &#60;fichier1&#62; doit correspondre au système idéal (sans dislocation) et le &#60;fichier2&#62; au système contenant une dislocation. Les deux fichiers DOIVENT contenir le même nombre de particules. Ils peuvent être dans des formats différents, tant que ces formats sont <a href="./formats.html">supportés</a>.</p>
+
+<p>Dans ce mode, tout &#60;format&#62; spécifié est ignoré, l'écriture n'étant possible qu'au format ddplot (.dd).</p>
+
+<p>Si vous utillisez ce mode avec une ou plusieurs <a href="./options.html">options</a>, alors ces options seront appliquées à chacun des deux fichiers d'entrée <em>avant</em> que le fichier ddplot ne soit construit.</p>
+
+<p>Notez qu'il existe une limite au nombre d'atomes que le programme ddplot peut afficher, et <code>atomsk</code> affichera un message d'alerte si votre système dépasse ce nombre. Il est possible d'utiliser ce mode avec l'<a href="./option_cut.html">option <code>-cut</code></a> pour ne conserver que la partie du système intéressante à regarder.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --ddplot initial.gin dislocation.xyz visuel.dd</code>
+<p>Ceci lira les deux fichiers <code>initial.gin</code> et <code>dislocation.xyz</code>, et créera le fichier ddplot <code>visuel.dd</code>.</p></li>
+
+<li><code class="command">atomsk --ddplot initial.gin dislocation.xyz -cut above 60 z -cut below 40 z visuel.dd</code>
+<p>Cet exemple utilise l'<a href="./option_cut.html">option <code>-cut</code></a>. Ici le programme lira les fichiers <code>initial.gin</code> et <code>dislocations.xyz</code>, et supprimera les atomes ayant une coordonnée suivant Z supérieure à 60 &Aring; ou inférieure à 40 &Aring;. Le résultat final sera écrit dans le fichier <code>visual.dd</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

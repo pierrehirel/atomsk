@@ -1,0 +1,27 @@
+# Makefile for compiling atomsk on a Unix/Linux machine
+# using Intel Fortran Compiler (ifort) and Intel MKL library.
+# Tested and works with GNU make and ifort 13.0
+
+# USAGE:
+#    make -f Makefile.ifort
+# Or, to use parallel compilation:
+#    make -j3 -f Makefile.ifort
+
+export 
+
+# COMPILER:
+FORTRAN=ifort
+
+# COMPILATION FLAGS:
+# -module is used to specify the folder where the compiler will store the *.mod files
+FFLAGS=-O2 -module ../OBJ -funroll-loops
+# -g -traceback
+
+# Paths and names of Intel Compiler Libraries
+LAPACK=-L /opt/intel/lib/intel64/             \
+       -L /opt/intel/mkl/lib/intel64/         \
+       -lmkl_intel_lp64 -lmkl_intel_thread    \
+       -lmkl_lapack95_lp64 -lmkl_core -liomp5
+
+# Goto main Makefile
+include Makefile

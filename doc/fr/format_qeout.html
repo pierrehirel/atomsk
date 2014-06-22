@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format PW - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : PW</h2>
+
+<p><strong>Nom :</strong> format de sortie de Quantum Espresso PWscf</p>
+
+<p><strong>Extension :</strong> out</p>
+
+<p><strong>Spécification :</strong> <a href="http://www.quantum-espresso.org/wp-content/uploads/Doc/INPUT_PW.html">documentation de Quantum Espresso</a></p>
+
+<p><strong>Programmes de visualisation :</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> ne peut lire les fichiers de sortie de Quantum Espresso PWscf (*.out) qu'à travers le <a href="./mode_oneinall.html">mode one-in-all</a>. Chaque configuration sera alors convertie vers un fichier différent.</p>
+
+<p>Par défaut dans le format Quantum Espresso PWscf, les quantités dont les dimensions ne sont pas définies explicitement sont en unités atomiques, et donc les vecteurs de boîte et positions atomiques sont en Bohrs. Ainsi, si les vecteurs de boîte et les coordonnées atomiques sont exprimées dans le même système d'unités (par ex. tous en Bohrs, ou tous en &Aring;) alors <code>atomsk</code> conserve cette unité (autrement dit les unités ne <em>sont pas</em> automatiquement converties en &Aring;). Cependant, si aucune unité n'est spécifiée pour les vecteurs de boîte (ce qui signifie qu'ils sont en Bohrs), tandis que les positions atomiques sont exprimées en &Aring;, alors les vecteurs de boîte sont convertis en &Aring; pour que le tout soit cohérent. Pour convertir les unités il est aussi possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p>
+
+<p><code>atomsk</code> ne peut pas produire de fichier au format de sortie de Quantum Espresso PWscf.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --one-in-all vc-relax.out xsf</code>
+<p>Ceci va lire le fichier de sortie de Quantum Espresso <code>vc-relax.out</code>, et écrira chaque configuration dans un fichier séparé au format XSF : <code>vc-relax_1.xsf</code>, <code>vc-relax_2.xsf</code>, etc.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Program behaviour log file - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Program behaviour: log file</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-log &#60;logfile&#62; </code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows you to change the file in which the program writes its journal of events, or so-called log file. By default the logfile is <code>atomsk.log</code>.</p>
+
+<p>Note that if you use another log file name, then the level of <a href="./progbe_verb.html">verbosity</a> will be automatically set to 3, unless you specify a verbosity level different from 0 and 1.</p>
+
+
+<h4>Default</h4>
+
+<p>By default the logfile is <code>atomsk.log</code>.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -log myrun.log</code>
+<p>This will write the progress of the program both on screen and in the file <code>myrun.log</code>.</p></li>
+
+<li><code class="command">atomsk initial.gin cfg -log myrun.log -v 0</code>
+<p>Same as before. Because you specified an alternate logfile, the level of verbosity cannot be 0 -it is reset to 3.</p></li>
+
+<li><code class="command">atomsk initial.gin cfg -log myrun.log -v 2</code>
+<p>This will write the progress of the program only in the file <code>myrun.log</code> (nothing will be displayed on screen except error messages).</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

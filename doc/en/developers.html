@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Developers - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Informations for developers</h2>
+
+<p align="right"><em>Lasciate ogni speranza voi ch'entrate.</em><br/>Dante's Inferno, Canto III 9</p>
+
+<p><code>atomsk</code> is a quite simple and dumb program, written by a humble physicist not so skilled at programming. The program was designed so that, in its properly compiled binary form, it can be understood by a computer, but that does not mean that the source code can easily be understood by a human being. I make this statement as a hint of what you will get into if you want to look at or modify the source code: lousy programming, non-optimized allocations, some GOTO statements, and a zest of global variables. And did I mention the many modules?</p>
+
+<p>This page contains some informations for courageous developers who would like to make their way through the source code, and some informations for those who would like to add their contribution, be it for their personal use or for public release. Take a deep breath before diving.</p>
+
+
+<h4>Structure of the program</h4>
+
+<p><code>atomsk</code> is made of many modules, each of which handling a very specific operation. For instance one module is responsible for writing XYZ file (<code>out_xyz.f90</code>), and it does just that -if you need to change the format of XYZ files you have to modify only this module. This structure facilitates the maintainance of the code, makes it easier for new developers to dive into the code (if you want to check something, most of the time you will only need to edit one module that is a few hundreds of lines of code), and also makes it easier to implement new modules.</p>
+
+<p>Besides the main module <code>atomsk.f90</code>, the source files are "organized" in subdirectories:</p>
+
+<ul>
+  <li><strong>include</strong> contain base modules, on which most other modules depend. These base modules define global variables (<code>comv.f90</code>), general subroutines (<code>subroutines.f90</code>), functions (<code>functions.f90</code>), messages (<code>messages.f90</code>) etc. that are used by several other modules.</li>
+  <li><strong>input</strong> contains the modules that have the role of reading data from one input file and load it into the memory. The main module performing this task is <code>readin.f90</code>, which first calls the module <code>guess_format.f90</code> to guess the format of the input file, and then calls the appropriate module to read the input file (these modules have a name that start with <code>in_</code>).</li>
+  <li><strong>options</strong> contain modules that apply some transformations to the system. The main module performing this task is <code>options.f90</code>, which then calls the necessary options modules (which names usually start with <code>opt_</code>).</li>
+  <li><strong>output</strong> contains modules that have the role of writing the data contained in the memory into one or several files. The main module performing this task is <code>writeout.f90</code>, which calls the necessary output modules, each of which writes the data into one specific file format (these modules have a name that start with <code>out_</code>).</li>
+  <li><strong>modes</strong> contain modules that decide how files are treated. Each mode can use any of the aforementionned modules.</li>
+</ul>
+
+<p>In order to keep things simple, some rules should be respected within each type of module. Input modules, option modules, and output modules, should <em>not</em> depend on one another, so be careful when introducing a <strong>USE</strong> statement in any module. For instance do not introduce a dependence to an input module (like "<code>USE in_xyz</code>") in an option module. In output modules, the arrays <strong>P</strong> and <strong>H</strong> must not be modified and should be <code>INTENT(IN)</code>. "Modes" modules can use any of the input, options and/or output. In the end the dependence tree should look like the following:</p>
+
+<object type="image/svg+xml" data="../img/deptree.svg" class="figure" style="scale: 200px;">
+   <img src="../img/deptree.png" alt="Dependence tree" title="" />
+</object >
+
+<p>A good way to start digging into the source code is to look at the structure of the file <code>mode_normal.f90</code>. One can see that this module reads in a file (by calling the reading module <code>readin.f90</code>), applies options if any (by calling the module <code>options.f90</code>), and then outputs one or several files (by calling <code>writeout.f90</code>). This is exactly what <code>atomsk</code> does when converting a file.</p>
+
+<p>In other modes, these modules are called in more or less different ways.</p>
+
+
+
+<h4>Arrays</h4>
+
+<p>Most variables and arrays are allocated dynamically and passed between modules. The following describes some arrays commonly used in <code>atomsk</code> and passed between modules:</p>
+
+<ul>
+  <li><strong>H(3,3)</strong>: the three vectors of the supercell H(1,:), H(2,:) and H(3,:) (cartesian coordinates in &Aring;).</li>
+  
+  <li><strong>P(:,:)</strong>: atom positions (cartesian coordinates in &Aring;); first dimension corresponds to the number of atoms; second dimension is 4 for storing X, Y, Z and atomic number.</li>
+  
+  <li><strong>S(:,:)</strong>: shell positions, must be unallocated (if no shell exist in the system) or have exactly the same dimensions as <strong>P</strong>. Similarly, <strong>S</strong> is used to store the cartesian coordinates (x,y,z) of the shells, and their atomic number. If the ion <em>i</em> possesses a shell, then <strong>S</strong>(i,4)=<strong>P</strong>(i,4), otherwise <strong>S</strong>(i,4)=0.0.</li>
+  
+  <li><strong>AUX(:,:)</strong>: values of auxiliary properties (real); first dimension must equal the number of particles in <strong>P</strong>; second dimension must be equal to the size of <strong>AUXNAMES</strong>, i.e. <strong>AUX</strong>(i,j) is the <em>j</em>-th property of atom <em>i</em>; if no auxiliary property exist then <strong>AUX</strong> and <strong>AUXNAMES</strong> should be unallocated.</li>
+  
+  <li><strong>AUXNAMES(:)</strong>: names of auxiliary properties (characters); <strong>AUXNAMES</strong>(j) is the name associated with the <em>j</em>-th property (i.e. the property which values are stored in <strong>AUX</strong>(:,j)).</li>
+  
+  <li><strong>SELECT(:)</strong>: boolean array of same size as <strong>P</strong>(1,:), deciding if each atom is selected (<code>.TRUE.</code>) or not (<code>.FALSE.</code>). This array is created when the <a href="./option_select.html">option <code>-select</code></a> is invoked. It is passed to some options, in which case the option is applied only to atoms that have a value <code>.TRUE.</code> in the array <strong>SELECT</strong>, or to all atoms if the array <strong>SELECT</strong> is unallocated.</li>
+</ul>
+
+<p>One in all one can have in mind that atom properties are stored according to the following scheme:</p>
+
+<table border="1">
+  <tr> <th>Atom positions + atomic number</th>  <th>Shells positions (optional)</th> <th>Auxiliary properties (optional)</th> <th>Selected atoms (optional)</th></tr>
+  
+  <tr> <td><code>P(1,1) P(1,2) P(1,3) P(1,4)</code></td> <td><code>S(1,1) S(1,2) S(1,3) S(1,4)</code></td> <td><code>AUX(1,1) AUX(1,2)...AUX(1,M)</code></td> <td><code>SELECT(1)</code></td></tr>
+  
+  <tr> <td><code>P(2,1) P(2,2) P(2,3) P(2,4)</code></td> <td><code>S(2,1) S(2,2) S(2,3) S(2,4)</code></td><td><code>AUX(2,1) AUX(2,2)...AUX(2,M)</code></td> <td><code>SELECT(2)</code></td></tr>
+  
+  <tr> <td>... ... ...</td> <td>... ... ...</td> <td>... ... ...</td> <td>... ... ...</td></tr>
+  
+  <tr> <td><code>P(NP,1) P(NP,2) P(NP,3) P(NP,4)</code></td> <td><code>S(NP,1) S(NP,2) S(NP,3) S(NP,4)</code></td><td><code>AUX(NP,1) AUX(NP,2)...AUX(NP,M)</code></td> <td><code>SELECT(NP)</code></td></tr>
+</table>
+
+
+
+<h4>Auxiliary properties</h4>
+
+<p>From version beta 0.6 <code>atomsk</code> reads and writes auxiliary properties, i.e. any per-atom property like velocities, forces, electric charges, etc. The array <strong>AUXNAMES</strong> contains strings that are the names of the auxiliary properties; the array <strong>AUX</strong> contains real numbers which are the values of the properties for each atom. As such, the array <strong>AUX</strong> must always have its first dimension equal to the first dimension of the array <strong>P</strong>.</p>
+
+<p>When reading file formats <code>atomsk</code> reads some or all auxiliary properties it may contain. The arrays <strong>AUXNAMES</strong> and <strong>AUX</strong> must then be allocated properly and consistently. If no auxiliary property exist then these arrays must <em>not</em> be allocated by input modules.</p>
+
+<p>Some common properties are recognized by <code>atomsk</code> by their names. Below is a list of names that one should use to store properties in the array <strong>AUXNAMES</strong>:</p>
+
+<ul>
+  <li><strong>type</strong> for atom types (e.g. used in LAMMPS data and custom formats);</li>
+  <li><strong>q</strong> for ion charges, and <strong>qs</strong> for the charge of shells in ionic core-shell models;</li>
+  <li><strong>vx, vy, vz</strong> for atom velocities;</li>
+  <li><strong>fx, fy, fz</strong> for forces on atoms;</li>
+  <li><strong>fixx, fixy, fixz</strong> for fixed coordinates of atoms (=1 if atom coordinate is fixed, 0 otherwise).</li>
+</ul>
+
+<p>Using these names ensure that these properties are properly recognized in all modules, especially output modules. As an example, if forces are stored with the names "force_x, force_y, force_z" then they will be seen as ordinary properties, not as forces, and as a result they will not be written to XSF format for instance. On the contrary if they are saved with the names above (fx, fy, fz) then they will be recognized as forces and written to XSF format.</p>
+
+<p>The array <strong>AUX</strong> is passed as a whole to output modules. It is up to each module to use the properties relevant for its file format. For instance <code>out_xsf.f90</code> searches for forces (fx, fy and fz) in the array <strong>AUXNAMES</strong>, and if they exist, writes forces to the XSF file. Each module shall look for properties supported by the file format it is writing.</p>
+
+
+
+<h4>Units for files</h4>
+
+<p>The following UNITs are used by specific files and should be followed by all modules:</p>
+
+<ul>
+  <li><strong>20</strong>: logfile (by default "atomsk.log");</li>
+  <li><strong>30-34</strong>: input files;</li>
+  <li><strong>35-39</strong>: intermediate files (used internally by <code>atomsk</code>);</li>
+  <li><strong>40-45</strong>: output files.</li>
+</ul>
+
+
+
+<h4>Conceiving your own mode to treat files or compute a property</h4>
+
+<p>A "mode" is a routine that decides what is done with the atom positions. For instance the default mode (so-called "<a href="./mode_normal.html">normal mode</a>") reads a file and converts it to one or many other formats. The "<a href="./mode_difference.html">mode difference</a>" computes the difference between two files. Many different things can be imagined, and the appropriate way to do them within <code>atomsk</code> is through a mode. If you add a new mode, it is advised that you take advantage of routines that are already implemented in <code>atomsk</code> to read/write files, and apply transformations.</p>
+
+<p>A mode should start by mentionning which modules of <code>atomsk</code> you wish to use. Using common variables defined in the file <code>/include/comv.f90</code> is mandatory (<code>USE comv</code>). If your module uses mathematical or physical constants, load the module <code>/include/constants.f90</code> (<code>USE constants</code>). The same holds for functions (<code>USE functions</code>, see <code>/include/functions.f90</code>) and/or subroutines (<code>USE subroutines</code>, see <code>/include/subroutines.f90</code>) already implemented in <code>atomsk</code>.</p>
+
+<p>If you wish to read a file containing atomic positions, insert the statement <code>USE readin</code>. Then you can use the subroutine READ_AFF as follows to read a file:</p>
+
+<p><code><strong>CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)</strong></code></p>
+
+<p>This will read the <code>inputfile</code> and store the data in the appropriate arrays: box vectors in <strong>H</strong>, atom positions in <strong>P</strong>, etc. as described above. If you need to read many files, then create the necessary arrays (e.g. <strong>P1</strong>, <strong>P2</strong>, <strong>P3</strong> etc. for atom positions) and call the routine READ_AFF for each file that must be read.</p>
+
+<p>Then you can write your mode, working with the arrays <strong>H</strong>, <strong>P</strong>, etc. at your convenience. If your mode computes per-atom quantities, it is advised to save them as auxiliary properties (see definition of arrays <strong>AUX</strong> and <strong>AUXNAMES</strong> above) so that output modules can write these auxiliary properties to the final files. For instance if your mode computes the local von Mises strain of each atom, it can be saved in <strong>AUX</strong> and written as auxiliary properties in a CFG file. This is of course a dumb example since this quantity can already be computed and displayed within Atomeye, but hopefully it gives the idea.</p>
+
+<p>If you wish to write one or several output files of atom positions, insert the statement <code>USE writeout</code> at the beginning of your module. Then you can call the routine WRITE_AFF as follows to write the file(s):</p>
+
+<p><code><strong>CALL WRITE_AFF(outputfile,outfileformats,H,P,S,comment,AUXNAMES,AUX)</strong></code></p>
+
+<p>where <code>outputfile</code> is the name of an output file (with or without an extension), <code>outfileformats</code> is a rank-1 character array containing the names of the output formats (e.g. cfg, xsf, lmp...). The file names with the corresponding extensions will be automatically generated. The other arrays have the same meaning as before: <strong>H</strong> for box vectors, <strong>P</strong> for atom positions etc.</p>
+
+<p>Finally you will need to attach your module to the rest of the code. For that the source code of the following files need to be edited:</p>
+
+<ul>
+  <li><strong>modes.f90</strong>: load your module at the beginning of the file (<em>USE ...</em>); add the corresponding section to call your module;</li>
+  <li><strong>read_cla.f90</strong>: this module interprets command-line arguments; add the section corresponding to your module, so that it is recognized and all its parameters are read when the user types it in the command-line.</li>
+</ul>
+
+<p>Also, please create the pages for your module in the documentation, explaining what it does.</p>
+
+
+
+
+<h4>Adding a file format to read in</h4>
+
+<p>Each module managing input (which names should start with in_) should read in one specific file format, and load it to memory. Ssupercell parameters must be saved in the array <strong>H</strong>, atom positions in <strong>P</strong>, and if relevant, shells in <strong>S</strong>, auxiliary properties in <strong>AUX</strong>, and names of auxiliary properties in <strong>AUXNAMES</strong>.</p>
+
+<p>It is of course recommended to take example on the existing modules.</p>
+
+<p>If you wrote a reading module and want to integrate it to <code>atomsk</code>, the source code has to be edited in the following way:</p>
+
+<ul>
+  <li><strong>readin.f90</strong>: load your module at the beginning of the file (<em>USE ...</em>); add the corresponding line in the 'read' section (label 200);</li>
+  <li><strong>guess_format.f90</strong>: add some rules by which <code>atomsk</code> can recognize the file format you add: file extension, keywords...</li>
+</ul>
+
+<p>Also, please add the new format in the documentation (i.e.  <em>DISPLAY_HELP</em> in the file <code>messages_EN.f90</code>, and in <em>doc/formats.html</em>), and indicate the restrictions if there are any.</p>
+
+
+<h4>Adding a file format to write to</h4>
+
+<p>Each module managing output (whose names should start with out_) must use the arrays that are stored into the memory: <strong>H</strong> (supercell parameters), <strong>P</strong> (atom positions), and if the format supports it, <strong>S</strong> (positions of shells), <strong>AUX</strong> and <strong>AUXNAMES</strong> (auxiliary properties), and write data to one specific file format. These input arrays (<strong>H</strong>, <strong>P</strong>, <strong>S</strong>...) must <em>not</em> be modified inside these modules, and should be declared as "<code>INTENT(IN)</code>".</p>
+
+<p>It is of course recommended to take example on the existing modules.</p>
+
+<p>If you wrote a writing module and want to integrate it to <code>atomsk</code>, the source code has to be edited in the following way:</p>
+
+<ul>
+  <li><strong>comv.f90</strong>: add the extension of your file format (e.g. 'xyz', 'cfg'...)  to the global array "listofformats";</li>
+  <li><strong>read_cla.f90</strong>: add the command-line keyword corresponding to the file format you are adding (e.g. 'xyz', 'cfg'...);</li>
+  <li><strong>writeout.f90</strong>: load your module at the beginning of the file (<em>USE ...</em>); and then add the corresponding lines to the "write" section (label 200);</li>
+  <li><strong>guess_format.f90</strong>: for <code>atomsk</code> to recognize the file format, add the file extension at label 100 (in <code>SELECT CASE(extension)</code>), in label 300 (line <code>likely=MAX(...)</code> and in the following <code>IF</code> statement);</li>
+</ul>
+
+<p>Also, please add the new format in the documentation (i.e.  <em>DISPLAY_HELP</em> in the file <code>messages_EN.f90</code>, and in <em>doc/formats.html</em>), and indicate the restrictions if there are any.</p>
+
+
+<h4>Adding an option</h4>
+
+<p>Options can apply transformations to the supercell (array <strong>H</strong>), to the atomic positions (array <strong>P</strong>), to the shells (<strong>S</strong>), and/or to the auxiliary properties (<strong>AUX</strong>, <strong>AUXNAMES</strong>). After the option is applied, the module must also return the values of the modified arrays. Keep in mind that these modules use the same arrays as input <strong>and</strong> output, and writing to an array while reading it can lead to errors. If necessary the arrays can be duplicated to apply the option -just don't forget to save the updated values to the correct arrays.</p>
+
+<p>It is of course recommended to take example on the existing modules.</p>
+
+<p>If you develop a module that applies such a transformation, you can include it in the program by editing the following files:</p>
+
+<ul>
+  <li><strong>read_cla.f90</strong>: you have to add your option parameters to the list of strings that are read from the command-line. Your option should start with a keyword (for instance "<code>-cut</code>") followed by a given number of parameters. All of this should be stored as a string in the global variable <code>options_array</code>.</li>
+  <li><strong>options.f90</strong>: you need to call your module at the beginning of the file (<code>USE ...</code>), and to call your module in the DO loop. Please respect the alphabetical order so that other developers can find an option easily.</li>
+  <li><strong>Makefile</strong>: add your module in the SOP variable of the Makefile so it is compiled together with the program. Make sure to add it before the module "options.f90".</li>
+</ul>
+
+<p>Also, please add the new option in the documentation (i.e.  <em>DISPLAY_HELP</em> in the file <code>messages_EN.f90</code>, and in <em>doc/options.html</em>), and indicate the restrictions if there are any.</p>
+
+
+
+
+
+<h4 id="lang">Adding a language</h4>
+
+<p>All messages displayed by <code>atomsk</code> are in a separate module to make it easy to add translations to other languages. For the program to speak a language of your choice, you will need to edit the following files:</p>
+
+<ul>
+  <li><strong>messages_XX.f90</strong>: copy the file "messages_EN.f90" to a new file, replacing the "EN" in the file name by the two-letters abbreviation of your language (e.g. "messages_FR.f90" for French, "messages_DE.f90" for German, etc.). Then you can start editing the new file and translating the English messages. The condition <code>CASE DEFAULT</code> should redirect to the English messages.</li>
+  <li><strong>messages.f90</strong>: add the conditions (<code>CASE("XX") ...</code>) for using the new language in the four subroutines. You may also define the one-letter abbreviations for "yes" and "no" in the subroutine PIKASHU_MSG (take example on existing languages).</li>
+  <li><strong>Makefile</strong>: add your module in the MSG variable of the Makefile so it is compiled together with the program. Make sure to add it <em>after</em> the module "messages.f90".</li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

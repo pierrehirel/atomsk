@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option wrap - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: wrap</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-wrap</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option wraps atoms back into the bounding box. In other words, all atoms that are not in the simulation box (defined by the simulation box vectors <code>H</code>) are translated by one or several box vectors until they end up inside of the simulation box.</p>
+
+<p>If some atoms have shells (in the sense of an ionic core-shell model) then the shells will be wrapped independantly of cores, i.e. so that all cores and shells are inside of the box. So, if a core is inside of the box but its shell is not, then the core will remain at the same position but the shell will be wrapped and will be very far from the core. In order to fix that one can use the <a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atomswill be wrapped.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default atoms are not wrapped.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -wrap final.xyz</code>
+<p>This will read the file <code>initial.cfg</code> and wrap all atoms so that all coordinates are inside the simulation box. The result will be output into <code>final.xyz</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

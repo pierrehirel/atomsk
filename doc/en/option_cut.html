@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option cut - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: cut</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-cut &#60;above|below&#62; &#60;d&#62; &#60;normal&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to "cut" a system, i.e. remove atoms that are above or below a given plane.</p>
+
+<p>The parameters for this option are the following:</p>
+<ul>
+  <li><strong>above|below</strong>: this keyword decides if it is the atoms above or below the plane that are removed.</li>
+  <li><strong>d</strong>: distance from the origin of the axis where the cut plane is placed, in angstr&ouml;ms (&Aring;).</li>
+  <li><strong>normal</strong>: direction perpendicular to the plane of cut; can be x, y, z, or a crystallographic direction (see below).</li>
+</ul>
+
+<p>The position &#60;d&#62; is usually given in &Aring;. It is also possible to give it with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</p>
+
+<p>The &#60;normal&#62; can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices  (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001].</p>
+
+<p>If some atoms have shells (in the sense of an ionic core-shell model), it is the position of the core that is compared to &#60;d&#62;. When an atom is removed, both its core and shell (and auxiliary properties if any) are removed.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only the selected atoms will be removed.</p>
+
+<p>Note that this option does not change the supercell parameters. In other words, it will result in a void region where atoms have been removed.</p>
+
+
+<h4>Default</h4>
+
+<p>By default the system is not cut.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.gin -cut above 0.5*BOX z xsf</code>
+<p>This will read the file <code>system.gin</code>, and delete all atoms that are above the plane placed at half the height along Z. The result will be output to the file <code>system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.gin -cut below 2.4 x -cut above 40 x final.xyz</code>
+<p>This will read the file <code>initial.gin</code>, delete all atoms that have an X coordinate smaller than 2.4 &Aring; or greater than 40 &Aring;. The result will be output in the file <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk final.xyz -cut below 2.4 x initial.gin -cut above 40 x</code>
+<p>Same as the previous example. Note that each option must be followed by its parameters, but input and output files can be placed in any order.</p></li>
+
+<li><code class="command">atomsk final.xyz -cut below 14 [011] initial.gin -cut above 40 [1-10]</code>
+<p>This will read the file <code>initial.gin</code>, delete all atoms that are closer than 14 &Aring; along the [011] direction, and those more far away than 40 &Aring; along [1<span class="over">1</span>0].</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

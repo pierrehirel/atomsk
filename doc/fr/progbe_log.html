@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Comportement du programme, journal - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Comportement du programme : fichier journal</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-log &#60;fichierjournal&#62; </code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de changer le nom du fichier dans lequel <code>atomsk</code> écrit son journal de progression ("fichier log"). Par défaut ce fichier est <code>atomsk.log</code>.</p>
+
+<p>Notez que si cette option est utilisée alors le <a href="./progbe_verb.html">niveau de verbosité</a> sera automatiquement égal à 3, sauf si un niveau de verbosité différent de 0 ou 1 est spécifié.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le fichier journal est <code>atomsk.log</code>.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -log myrun.log</code>
+<p>Ceci écrira la progression du programme sur lécran et dans le fichier <code>myrun.log</code>.</p></li>
+
+<li><code class="command">atomsk initial.gin cfg -log myrun.log -v 0</code>
+<p>Identique à l'exemple précédent. Puisqu'un nom de fichier journal est spécifié, le niveau de verbosité ne peut pas être égal à zéro -il est réinitialisé à 3.</p></li>
+
+<li><code class="command">atomsk initial.gin cfg -log myrun.log -v 2</code>
+<p>Ceci écrira la progression du programme seulement dans le fichier <code>myrun.log</code> (aucun message ne sera affiché à l'écran, sauf les messages d'erreur).</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

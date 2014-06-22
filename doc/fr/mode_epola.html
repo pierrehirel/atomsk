@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode electronic polarization - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : polarisation électronique</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --electronic-polarization &#60;fichier&#62; [options]</code></p>
+
+<p><code>atomsk -PE &#60;fichier&#62; [options]</code></p>
+
+<h4>Description</h4>
+
+<p>Ce mode calcule la polarisation électronique de chaque ion dans le cadre d'un modèle c&oelig;ur-coquille. Cette polarisation est définie par le déplacement du nuage électronique (coquille) par rapport au c&oelig;ur, c-à-d. pour l'ion <em>i</em> :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>P</strong><sub>i</sub> =  0.5*(|Q<sub>i</sub>|+|q<sub>i</sub>|) (<strong>R</strong><sub>i</sub>-<strong>r</strong><sub>i</sub>)</code></p>
+
+<p>où Q<sub>i</sub> et <strong>R</strong><sub>i</sub> sont la charge et la position du c&oelig;ur, et q<sub>i</sub> et <strong>r</strong><sub>i</sub> sont la charge et la position de la coquille.</p>
+
+<p>Ce mode ne calculera rien si les charges des c&oelig;urs et coquilles ne sont pas définies, ou s'il n'y a aucune coquille dans le système. Les charges peuvent être définies par l'<a href="./option_properties.html">option <code>-properties</code></a>. Par exemple, soit un système fictif comprenant des ions A et B, alors les charges peuvent être écrites dans un fichier texte au format suivant et lues avec l'option <code>-properties</code>:</p>
+
+<div class="txtfile"><h5>charges.txt</h5>
+<p><code>charge<br/>
+A &#60;qcoreA&#62; &#60;qshellA&#62;<br/>
+B &#60;qcoreB&#62; &#60;qshellB&#62;<br/>
+</code></p></div>
+
+<p>Si certains ions n'ont pas de coquille ("ions rigides") alors leur polarisation électronique sera égale à zéro.</p>
+
+<p>À la fin du calcul les fichiers suivants sont produits :</p>
+
+<ul>
+  <li><strong>*_PE.cfg</strong>: fichier au format CFG contenant les positions des c&oelig;ur, et les composantes (X,Y,Z) et l'amplitude du vecteur de polarisation comme propriétés auxiliaires.</li>
+  <li><strong>*_PE.xsf</strong>: fichier au format XSF contenant les positions des c&oelig;ur et les vecteurs de polarisation ; xCrySDen peut lire un tel fichier et afficher les vecteurs, cependant ces vecteurs sont interprétés comme des forces (et non comme des vecteurs de polarisation), il peut donc être difficile de les visualiser à la bonne échelle.</li>
+</ul>
+
+<p>Notez que quand <code>atomsk</code> lit un fichier contenant des coquilles, il tente d'associer chaque coquille à son c&oelig;ur. Si cette association est incorrecte (probablement parce que les c&oelig;ur et coquilles sont enregistrés dans des ordres différents dans le fichier d'entrée) il est possible de les ré-associer grâce à l'<a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+
+<p>Si ce mode est appelé avec des <a href="./options.html">options</a> alors elles seront appliquées au système <em>avant</em> le calcul de la polarisation électronique.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --electronic-polarization MgO.xsf</code>
+<p>Ceci ne calculera rien car les charges des c&oelig;ur et des coquille ne sont pas définies.</p></li>
+
+<li><div class="txtfile"><h5>mgo.txt</h5>
+<p><code>charge<br/>
+Mg 1.58 0.42<br/>
+O  0.513 -2.513<br/>
+</code></p></div>
+<code class="command">atomsk -PE MgO.gin -prop mgo.txt</code>
+<p>Ceci lira les positions des c&oelig;ur et des nuages depuis <code>MgO.gin</code>, et leurs charges depuis <code>mgo.txt</code> (les c&oelig;ur de Mg auront une charge de 1.58<em>e</em>, les coquille de Mg 0.42<em>e</em>, les c&oelig;ur d'oxygène une charge de 0.513<em>e</em> et les nuages d'oxygène -2.513<em>e</em>). Puis la polarisation électronique de chaque ion sera calculée.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

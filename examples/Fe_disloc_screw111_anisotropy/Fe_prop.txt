@@ -1,0 +1,14 @@
+#Properties for bcc Fe
+
+#Elastic constants (GPa)
+elastic Voigt
+243.30 243.30 243.30   #C11 C22 C33
+145.00 145.00 145.00   #C23 C31 C12
+119.00 119.00 119.00   #C44 C55 C66
+
+#Crystallographic orientation of the block
+#(this will rotate the elastic tensor accordingly)
+orientation
+[121]
+[-101]
+[1-11]

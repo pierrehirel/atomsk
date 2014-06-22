@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option alignx - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: alignx</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-alignx</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option aligns the first supercell vector with the cartesian X axis, and aligns the second supercell vector in the XY plane. In other words, it rotates the system so that the base vectors form a lower-triangular matrix <code>H'</code>:</p>
+
+<p>
+<code>
+H'1 = ( H'(1,1) 0.00000 0.00000 ) <br/>
+H'2 = ( H'(2,1) H'(2,2) 0.00000 ) <br/>
+H'3 = ( H'(3,1) H'(3,2) H'(3,3) )</code>
+</p>
+
+<p>Of course the atom coordinates are also computed accordingly.</p>
+
+<p>This option will affect some properties of the system (e.g. the elastic tensor) if they were read with the <a href="./option_properties.html">option <code>-properties</code></a> before the present option.</p>
+
+<p>Note that this option does not modify the system, it simply rotates it.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default the supercell vectors are not aligned.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.gin -alignx xsf</code>
+<p>This will read the file <code>system.gin</code>, align its supercell axes, and output the result into <code>system.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

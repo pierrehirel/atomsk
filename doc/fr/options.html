@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Options - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Options</h2>
+
+<p>Les options sont des opérations qui transforment la configuration atomique, par ex. une rotation, ajouter, supprimer ou déplacer des atomes, etc.</p>
+
+<p><strong>Plusieurs options peuvent être appelées dans une même ligne de commande.</strong> Elles seront alors appliquées consécutivement, dans l'ordre où elles sont appelées. Les options peuvent apparaître n'importe où dans la ligne de commande (par ex. avant ou après le fichier d'entrée, avant ou après les formats de sortie), cependant lorsqu'une option est invoquée elle <em>doit</em> être suivie de ses paramètres dans le bon ordre.</p>
+
+<p>Les options s'appliquent à tous les fichiers traités lors d'une exécution du programme. Par exemple, si le <a href="mode_filelist.html">mode 'list'</a> est employé, alors les options s'appliqueront à tous les fichiers de la liste. Veuillez vous référer à la page décrivant chaque <a href="modes.html">mode</a> pour savoir comment ils interagissent avec les options.</p>
+
+<p>L'<strong>option <a href="./option_select.html"><code>-select</code></strong></a> est un cas spécial, puisqu'elle peut être utilisée pour restreindre les options suivantes à certains atomes. Veuillez vous référer à la page correspondante pour en savoir plus.</p>
+
+<p>Dans les options utilisant des <strong>directions cristallographiques</strong>, les indices de Miller peuvent être soit <em>contigus</em>, soit <em>séparés par un tiret bas</em>. L'utilisation de crochets est optionelle. Par exemple la direction <code>[1<span class="over">1</span>0]</code> peut être spécifiée par "<code>1-10</code>", "<code>[1-10]</code>", "<code>1_-1_0</code>" ou  "<code>[1_-1_0]</code>" (sans guillemets). Notez qu'en aucun cas les indices d'une direction ne doivent être séparés par des espaces.</p>
+
+<p>Dans certaines options requérant une position, il est possible de fournir une position cartésienne en angströms, ou une position relative grâce au mot-clé. Consultez <a href="./box.html">cette page</a> pour en savoir plus.</p>
+
+<p>Ci-dessous les options sont listées par ordre alphabétique.</p>
+
+
+<h4>Liste des options</h4>
+
+<ul>
+    <li><a href="./option_addatom.html">add-atom</a> - Insérer un ou plusieurs nouveaux atomes</li>
+    <li><a href="./option_addshells.html">add-shells</a> - Créer des coquilles pour certains atomes</li>
+    <li><a href="./option_alignx.html">alignx</a> - Aligner le premier vecteur de boîte avec l'axe X</li>
+    <li><a href="./option_bindshells.html">bind-shells</a> - Re-associer les nuages électroniques avec leur c&oelig;ur</li>
+    <li><a href="./option_center.html">center</a> - Translater le système au centre de la boîte</li>
+    <li><a href="./option_crack.html">crack</a> - Insérer une fissure dans le système</li>
+    <li><a href="./option_cut.html">cut</a> - Supprimer une partie du système</li>
+    <li><a href="./option_deform.html">deform</a> - Appliquer une contrainte ou une déformation uniaxiale</li>
+    <li><a href="./option_disloc.html">dislocation</a> - Insérer une dislocation dans le système</li>
+    <li><a href="./option_disturb.html">disturb</a> - Perturber les positions des atomes aléatoirement</li>
+    <li><a href="./option_expand.html">expand</a> - Dupliquer le système, construire des super-cellules</li>
+    <li><a href="./option_fix.html">fix</a> - Fixer les coordonnées de certains atomes</li>
+    <li><a href="./option_fractional.html">fractional</a> - Convertir en coordonnées réduites</li>
+    <li><a href="./option_mirror.html">mirror</a> - Appliquer une transformation miroir</li>
+    <li><a href="./option_orient.html">orient</a> - Changer l'orientation crystallographique</li>
+    <li><a href="./option_properties.html">properties</a> - Définir des propriétés du système</li>
+    <li><a href="./option_rebox.html">rebox</a> - Tente de déterminer les vecteur de boîte</li>
+    <li><a href="./option_rmatom.html">remove-atom</a> - Supprimer un ou plusieurs atomes</li>
+    <li><a href="./option_rmd.html">remove-doubles</a> - Supprimer les atomes en double</li>
+    <li><a href="./option_rmprop.html">remove-property</a> - Supprimer une ou plusieurs propriétés auxiliaires</li>
+    <li><a href="./option_rmshells.html">remove-shells</a> - Supprimer les coquilles sur certains ions</li>
+    <li><a href="./option_rotate.html">rotate</a> - Tourner le système autour d'un axe</li>
+    <li><a href="./option_select.html">select</a> - Sélectionner les atomes à l'intérieur ou à l'extérieur d'une région</li>
+    <li><a href="./option_shear.html">shear</a> - Appliquer un cisaillement</li>
+    <li><a href="./option_shift.html">shift</a> - Translater une partie du système</li>
+    <li><a href="./option_sort.html">sort</a> - Changer l'ordre dans lequel les atomes sont rangés</li>
+    <li><a href="./option_substitute.html">substitute</a> - Remplacer des atomes par d'autres atomes</li>
+    <li><a href="./option_unit.html">unit</a> - Changer de système d'unités</li>
+    <li><a href="./option_unskew.html">unskew</a> - Réduire le cisaillement de la boîte</li>
+    <li><a href="./option_velocity.html">velocity</a> - Générer une distribution de vitesses de Maxwell-Boltzmann</li>
+    <li><a href="./option_wrap.html">wrap</a> - Remballer les atomes dans la boîte</li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

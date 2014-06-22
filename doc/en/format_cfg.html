@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>CFG format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: CFG</h2>
+
+<p><strong>Name:</strong> AtomEye configuration file</p>
+
+<p><strong>Extension:</strong> cfg</p>
+
+<p><strong>Specification:</strong> <a href="http://mt.seas.upenn.edu/Archive/Graphics/A/#standard_CFG">AtomEye web page</a></p>
+
+<p><strong>Visualization programs:</strong> <a href="http://mt.seas.upenn.edu/Archive/Graphics/A/">Atomeye</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p><code>atomsk</code> can read both standard and extended CFG formats. When reading CFG files, the atom masses are ignored (only atom species are used). Additional properties (so-called <em>auxiliary properties</em> of the CFG format) are automatically read by <code>atomsk</code>, and passed to formats that support it (like CFG itself, or <a href="./format_xyz.html">special XYZ</a>).</p>
+
+<p>When writing CFG files, <code>atomsk</code> uses the extended CFG format which is admittedly less fat than the "standard" CFG format. As defined in the specification, positions of atoms are always written as reduced coordinates. The atom masses that are written are those of the most common isotopes as provided by the <a href="http://www.nist.gov/pml/data/periodic.cfm">National Institute of Standards and Technology (NIST)</a>. When auxiliary properties are present, all of them are written to the CFG file.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.xsf cfg</code>
+<p>This will read the file <code>my_system.xsf</code>, and convert it to <code>my_system.cfg</code>.</p></li>
+
+<li><code class="command">atomsk my_system.cfg exyz</code>
+<p>This will read the CFG file <code>my_system.cfg</code>, and convert it to the extended XYZ format, thus conserving all auxiliary properties.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

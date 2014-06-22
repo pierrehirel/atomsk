@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option velocity - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : velocity</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-velocity &#60;T&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option attribue des vitesses aléatoires aux atomes, de façon à obtenir une distribution de vitesses de Maxwell-Boltzmann, et de sorte que la somme des vitesses soit nulle (pas de translation globale du système). La température cible désirée &#60;T&#62; doit être donnée en Kelvin.</p>
+
+<p>Après l'application de cette option, la distribution de vitesses est calculée et écrite dans le fichier <code>velocity_dist.dat</code>.</p>
+
+<p>Notez que cette option tente de générer des composantes de vitesse aléatoires suivant les axes cartésiens X, Y et Z, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et en appliquant cette option il est très probable d'obtenir des résultats différents.</p>
+
+<p>Si des vitesses étaient définies précédemment, elles seront remplacées par les vitesses définies par cette option. Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la distribution de vitesses ne sera appliquée qu'aux atomes sélectionnés ; les atomes non sélectionnés conserveront leur vitesses si elle était précédemment définie, ou se verront attribuer une vitesse nulle.</p>
+
+<p>Par défaut les vitesses sont définies en &Aring;/ps, cette unité peuvent être modifiées grâce à l'<a href="./option_unit.html">option <code>-unit</code></a>. Pour spécifier des vitesses manuellement il est possible d'utiliser l'<a href="./option_properties.html">option <code>-properties</code></a>. Pour supprimer les vitesses, il est possible d'utiliser l'<a href="./option_rmprop.html">option <code>-remove-property</code></a> pour supprimer les propriétés <code>vx</code>, <code>vy</code> et <code>vz</code>.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les vitesses des atomes ne sont pas définies ou restent inchangées.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk relax.cfg -velocity 300 MD.cfg lmp</code>
+<p>Cette commande va lire le fichier <code>relax.cfg</code> et attribuer des vitesses aux atomes correspondant à une distribution de Maxwell-Boltzmann à 300 K. Les positions et vitesses des atomes seront écrites dans les fichiers <code>MD.cfg</code> et <code>MD.lmp</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -select below 20 x -velocity 300 -select above box-20 x -velocity 1000 MD.cfg lmp</code>
+<p>Ceci va lire le fichier <code>initial.xsf</code>, attribuer aux atomes à gauche de la boîte (x&#60;20 &Aring;) une distribution de vitesses correspondant à 300 K, et aux atomes à droite de la boîte des vitesses correspondant à 1000 K.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

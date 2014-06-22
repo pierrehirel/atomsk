@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option deform - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: deform</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-deform &#60;direction&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
+
+<p><code>-def &#60;direction&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to apply a uniaxial stress or strain to a system.</p>
+
+<p>The user has to provide the direction of deformation, the applied strain, and the Poisson's ratio of the material. The program will then deform the material in the given direction according to the applied strain, and deform it in the other directions according to Poisson's ratio. The command-line parameters of importance are:</p>
+
+<ul>
+  <li><strong>direction</strong>: direction in which to apply the uniaxial stress; must be x, y or z;</li>
+  <li><strong>&epsilon;</strong>: value of the applied strain (if given in percent the symbol &#37; must be used); use a positive value for tension, or a negative value for compression;</li>
+  <li><strong>&nu;</strong>: value of Poisson's ratio for this material.</li>
+</ul>
+
+<p>This transformation should result in an <strong>uniaxial stress</strong>: the stress should be non-zero in one direction, and should be zero in the other directions (that is, if Poisson's ratio is specified correctly).</p>
+
+<p>In order to apply an <strong>uniaxial strain</strong> (i.e. elongate only one dimension), set Poisson's ratio to zero.</p>
+
+<p>In order to apply an <strong>anisotropic deformation</strong> one can use this option three times along the three axes, using &nu;=0 and different values of &epsilon; (see example 3 below).</p>
+
+<p>In order to apply the same deformation in all directions, set the Poisson's ratio value to -1. This can be useful, for instance, to deform a system according to its thermal expansion coefficient &alpha;, in which case one should use &epsilon;=&alpha;T.</p>
+
+<p>For shear stress one can use the <a href="./option_shear.html">option <code>-shear</code></a>.</p>
+
+
+<h4>Default</h4>
+
+<p>By default the system is not deformed at all.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -deform x 0.06 0.3 final.xyz</code>
+<p>This will elongate the system <code>initial.cfg</code> by &epsilon;=6&#37; along X, applying a Poisson's ratio of 0.3 along the other axes; this is equivalent to uniaxial stress. The result will be output into <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def y 2.5&#37; 0.0 final.xyz</code>
+<p>This will apply an uniaxial strain (Poisson's ratio is 0) of 2.5&#37; along Y to the system <code>unitcell.cfg</code>. The result will be output into <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def x 1&#37; 0 -def y -0.76&#37; 0 -def z -0.73&#37; 0 final.xyz</code>
+<p>This examples uses the option "-deform" three times to apply different deformations along the three axes (Poisson's ratio is always zero). This is equivalent to anisotropic axial deformation.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def x 0.003 -1 final.xyz</code>
+<p>This will apply a tension of 0.3&#37; in all directions, thus mimicking the effects of a thermal expansion coefficient &alpha;=10<sup>-5</sup> K<sup>-1</sup> at a temperature of 300 K.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

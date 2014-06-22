@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option crack - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : crack</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-crack &#60;modecrack&#62; &#60;typecrack&#62; &#60;<em>K<sub>s</sub></em>&#62; &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; &#60;lignecrack&#62; &#60;plancrack&#62; &#60;&mu;&#62; &#60;&nu;&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option insère une fracture dans le système. Les équations utilisées par cette option se trouvent par ex. dans L.B. Freund, <em>Dynamic fracture mechanics</em>.</p>
+
+<p>Les paramètres associés à cette option sont :</p>
+
+<ul>
+  <li><strong>modecrack</strong> : mode de fracture, doit être I (ouverture), II (cisaillement dans le plan) ou III (cisaillement hors-plan).</li>
+  <li><strong>typecrack</strong> : doit être "stress" ou "strain", décide si la fracture est introduite en supposant une contrainte plan ou une déformation plan, respectivement.</li>
+  <li><strong><em>K<sub>s</sub></em></strong> : facteur d'intensité de contrainte (en GPa.&Aring;<sup>1/2</sup>).</li>
+  <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordonnées de la fracture dans le plan normal à la ligne de fracture (voir <code>lignecrack</code>), dans l'ordre de permutation X, Y, Z (par ex. si <code>lignecrack=Y</code> alors p<sub>1</sub> sera la position suivant Z et p<sub>2</sub> celle suivant X).</li>
+  <li><strong>lignecrack</strong> : direction de la ligne de fracture, doit être x, y ou z;</li>
+  <li><strong>plancrack</strong> : normale au plan de coupure (aussi normale aux surfaces à l'intérieur de la fracture), doit être x, y ou z, et doit être différent de <code>lignecrack</code>;</li>
+  <li><strong>&mu;</strong> : module de cisaillement du matériau (en GPa).</li>
+  <li><strong>&nu;</strong> : coefficient de Poisson du matériau.</li>
+</ul>
+
+<p>Les positions &#60;p<sub>1</sub>&#62;, &#60;p<sub>2</sub>&#62; sont généralement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</p>
+
+<p>Si une contrainte plan est utilisée alors <code>&kappa;=(3-&nu;)/(1+&nu;)</code> ; sinon une déformation plan est utilisée et <code>&kappa;=3-4&nu;</code>.</p>
+
+<p>Pour une fracture en <strong>mode I</strong> (ouverture) les déplacements appliqués aux atomes du système sont :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<code>u<sub>x1</sub> = (<em>K<sub>s</sub></em>/2&mu;) &radic;<span style="text-decoration:overline"><em>r</em>/2&pi;</span> cos(&theta;/2) [&kappa; - 1 + 2sin²(&theta;/2)] </code></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<code>u<sub>x2</sub> = (<em>K<sub>s</sub></em>/2&mu;) &radic;<span style="text-decoration:overline"><em>r</em>/2&pi;</span> sin(&theta;/2) [&kappa; + 1 - 2cos²(&theta;/2)] </code></p>
+
+
+<p>où x<sub>3</sub> est la direction de &#60;lignecrack&#62; et x<sub>2</sub> la normale au plan de coupure (c-à-d. x2=&#60;plancrack&#62;), <code><em>r</em></code> est la distance de l'atome et le front de fracture, et <code>&theta;</code> est l'angle entre le &#60;plancrack&#62; et le segment formé par l'atome et le front de fracture. De plus pour une fracture en mode I la boîte est allongée suivant x<sub>2</sub> de <code>(<em>K<sub>s</sub></em>/&mu;)&radic;<span style="text-decoration:overline">p<sub>2</sub>/2&pi;</span>(&kappa;+1)</code>.</p>
+
+<p>Pour une fracture en <strong>mode II</strong> (cisaillement dans le plan) les déplacements seront :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<code>u<sub>x1</sub> = (<em>K<sub>s</sub></em>/2&mu;) &radic;<span style="text-decoration:overline"><em>r</em>/2&pi;</span> sin(&theta;/2) [&kappa; + 1 + 2cos²(&theta;/2)] </code></p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<code>u<sub>x2</sub> = -(<em>K<sub>s</sub></em>/2&mu;) &radic;<span style="text-decoration:overline"><em>r</em>/2&pi;</span> cos(&theta;/2) [&kappa; - 1 - 2sin²(&theta;/2)] </code></p>
+
+
+<p>Enfin pour une fracture en <strong>mode III</strong> (cisaillement hors-plan) :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<code>u<sub>x3</sub> = (<em>K<sub>s</sub></em>/&mu;) &radic;<span style="text-decoration:overline"><em>r</em>/2&pi;</span> sin(&theta;/2) </code></p>
+
+<p>En plus de ces déplacements, <code>atomsk</code> calcule également les contraintes théoriques (issues de la théorie continue) associées à la fracture ainsi construite, et enregistre les composantes de Voigt &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, &sigma;<sub>xy</sub>, &sigma;<sub>yz</sub> et &sigma;<sub>xz</sub> comme propriétés auxiliaires pour chaque atome.</p>
+
+<p>Dans un matériau élastique linéaire un mode mixte peut être traité en utilisant cette option trois fois pour ajouter les contributions des trois modes :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<code>u = u<sub>modeI</sub> + u<sub>modeII</sub> + u<sub>modeIII</sub> </code></p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucune fracture n'est introduite dans le matériau.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.xyz -crack I stress 20 30.0 0.5*BOX z y 90 0.3 fracture.cfg</code>
+<p>Ceci lira <code>initial.xyz</code> et insèrera une fracture en mode I suivant Z, en utilisant des contraintes plan, les surfaces de la fracture étant normales à l'axe Y, en utilisant un facteur <em>K<sub>s</sub></em>=20 GPa.&Aring;<sup>1/2</sup>, un module de cisaillement &mu;=90 GPa et un coefficient de Poisson &nu;=0.3. Le front de fracture sera positionné en X=30 &Aring; et au centre de la boîte suivant Y. Le résultat final sera écrit dans <code>fracture.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.xyz -crack I stress 40 30 0.5*BOX z y 90 0.3 -crack II stress 10 30 0.5*BOX z y 90 0.3 -crack III stress 10 30 0.5*BOX z y 90 0.3 fracture.cfg</code>
+<p>Ceci construira une fracture en ajoutant les contribution des modes I, II et III.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

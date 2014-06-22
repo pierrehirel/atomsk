@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode electronic polarization - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: electronic polarization</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --electronic-polarization &#60;file&#62; [options]</code></p>
+
+<p><code>atomsk -PE &#60;file&#62; [options]</code></p>
+
+<h4>Description</h4>
+
+<p>This mode computes the electronic polarization of each ion in the framework of an ionic core-shell model, defined by the displacement of the electonic shell with respect to the ionic core, i.e. for ion <em>i</em>:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>P</strong><sub>i</sub> =  0.5*(|Q<sub>i</sub>|+|q<sub>i</sub>|) (<strong>R</strong><sub>i</sub>-<strong>r</strong><sub>i</sub>)</code></p>
+
+<p>where Q<sub>i</sub> and <strong>R</strong><sub>i</sub> are the charge and position of the ionic core, and q<sub>i</sub> and <strong>r</strong><sub>i</sub> are the charge and position of the electronic shell.</p>
+
+<p>This mode will not compute anything if the charges for the ionic cores and shells are not set, or if there are no shells at all in the system. The charges can be defined thanks to the <a href="./option_properties.html">option <code>-properties</code></a>. For instance consider a fictitious system made of ions A and B, then the charges can be written in a file with the following format and read with the option <code>-properties</code>:</p>
+
+<div class="txtfile"><h5>charges.txt</h5>
+<p><code>charge<br/>
+A &#60;qcoreA&#62; &#60;qshellA&#62;<br/>
+B &#60;qcoreB&#62; &#60;qshellB&#62;<br/>
+</code></p></div>
+
+<p>If some ions have no shell (so-called "rigid ions"), then their electronic polarization will be set to zero.</p>
+
+<p>Output consists of the following files:</p>
+
+<ul>
+  <li><strong>*_PE.cfg</strong>: file in the CFG format containing the positions of ionic cores, and the polarization vector and amplitude as auxiliary properties;</li>
+  <li><strong>*_PE.xsf</strong>: file in the XSF format containing the positions of ionic cores and the polarization vector of the ion; xCrySDen can read this file and display vectors; beware that xCrySDen understands these vectors as FORCES (not as polarization vectors), so it may be tricky to set these vectors to the correct scale.</li>
+</ul>
+
+<p>Note that when <code>atomsk</code> reads a file containing shells, it tries to associate each shell to a core. If this association is wrong (most likely because cores and shell appear in random orders in the input file), it can be fixed with the <a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+
+<p>If this mode is used with one or several <a href="./options.html">options</a> they will be applied to the system <em>before</em> computing the electronic polarization.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --electronic-polarization MgO.xsf</code>
+<p>This will not compute anything because the charges of cores and shells are not set.</p></li>
+
+<li><div class="txtfile"><h5>mgo.txt</h5>
+<p><code>charge<br/>
+Mg 1.58 0.42<br/>
+O  0.513 -2.513<br/>
+</code></p></div>
+<code class="command">atomsk -PE MgO.gin -prop mgo.txt</code>
+<p>This will read the positions of cores and shells from <code>MgO.gin</code>, and their charges from <code>mgo.txt</code> (Mg cores will have a charge of 1.58<em>e</em>, Mg shells 0.42<em>e</em>, and oxygen cores a charge of 0.513<em>e</em> and oxygen shells -2.513<em>e</em>). Then the polarization of each ion will be computed.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

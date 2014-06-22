@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Tools - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Outils companion</h2>
+
+<p>Le dossier <code>/tools/</code> fourni avec le programme contient des scripts bash qui peuvent être utilisés pour opérer des transformations simples sur des fichiers. Lors de l'<a href="./install.html">installation de <code>atomsk</code> avec la commande "<code>make install</code>"</a>, ces scripts sont rendus exécutables et placés dans le dossier <em>/usr/local/bin</em>. Exécuter l'un de ces scripts sans argument affichera son utilisation.</p>
+
+<p>Comme le reste du code, ces scripts bash sont fournis tels quels et sans aucune garantie. Il est recommandé de les éditer pour vérifier ce qu'ils font et/ou les adapter à vos besoins.</p>
+
+
+
+<h4>cfg_setA.sh</h4>
+
+<p>Ce script donne au facteur d'échelle A la &#60;valeur&#62; donnée dans un ou plusieurs <a href="./format_cfg.html">fichiers Atomeye (CFG)</a>. Ce script peut être utile si Atomeye refuse d'afficher un système et affiche le message d'erreur "<code>ATOM_COORDINATION_MAX = 24 exceeded</code>". Par exemple, pour donner la valeur A=1.3 dans le fichier "monfichier.cfg" entrez :</p>
+
+<p><code class="command">cfg_setA.sh 1.3 monfichier.cfg</code></p>
+
+<p>Si plusieurs noms de fichiers sont donnés, ils seront tous convertis.</p>
+
+
+<h4>dat_mulvec.sh</h4>
+
+<p>Ce script bash lit un fichier de données contenant au moins six colonnes de nombres réels, en supposant qu'il s'agit des positions d'atomes et des composantes d'un vecteur (X Y Z Vx Vy Vz), et multiplis les composantes des vecteurs par le &#60;facteur&#62; donné. Pour convertir le fichier "monfichier.dat", entrez :</p>
+
+<p class="command"><code>dat_mulvec.sh &#60;facteur&#62; monfichier.dat</code></p>
+
+<p>Plusieurs noms de fichiers peuvent être donnés.</p>
+
+
+<h4>dat_rm0.sh</h4>
+
+<p>Ce script bash lit un fichier de données contenant au moins six colonnes de nombres réels, en supposant qu'il s'agit des positions d'atomes et des composantes d'un vecteur (X Y Z Vx Vy Vz), et supprime les lignes pour lesquelles les trois dernières valeurs sont zéro. Pour convertir le fichier "monfichier.dat", entrez :</p>
+
+<p class="command"><code>dat_rm0.sh monfichier.dat</code></p>
+
+<p>Plusieurs noms de fichiers peuvent être donnés.</p>
+
+
+<h4>lmp_atom2charge.sh</h4>
+
+<p>Ce script bash convertit un ou plusieurs <a href="./format_lmp.html">fichiers de données de LAMMPS (lmp)</a> au format "<code>ID type x y z</code>" (adapté pour le style "<code>atom_style atom</code>") vers le format "<code>ID type charge x y z</code>" (adapté pour le style "<code>atom_style charge</code>"). Pour convertir le fichier "monfichier.lmp", entrez :</p>
+
+<p><code class="command">lmp_atom2charge.sh monfichier.lmp</code></p>
+
+<p>Plusieurs noms de fichiers peuvent être donnés. Dans la pratique ce script copie les deux premières colonnes de données, ajoute des zéros dans la troisième colonne, et copie les trois dernières colonnes de données.</p>
+
+
+
+<h4>lmp_charge2atom.sh</h4>
+
+<p>Ce script bash fait l'inverse du script précédent, c-à-d. convertit un ou plusieurs <a href="./format_lmp.html">fichiers de données de LAMMPS (lmp)</a> au format "<code>ID type charge x y z</code>" (adapté pour le style "<code>atom_style charge</code>") vers le format "<code>ID type x y z</code>" (adapté pour le style "<code>atom_style atom</code>"). Pour convertir le fichier "monfichier.lmp", entrez :</p>
+
+<p><code class="command">lmp_charge2atom.sh monfichier.lmp</code></p>
+
+<p>Plusieurs noms de fichiers peuvent être donnés. Dans la pratique ce script copie les deux premières et les trois dernières colonnes de données.</p>
+
+
+
+<h4>qepw_bohr.sh</h4>
+
+<p>Ce script bash modifie les lignes "<code>CELL PARAMETERS</code>" et "<code>ATOMIC_POSITIONS</code>" pour leur ajouter le mot "bohr", dans un ou plusieurs <a href="./format_qepw.html">fichiers d'entrée pour Quantum Espresso pwscf </a> (*.pw). En effet lorsqu'il écrit un fichier au format PW <code>atomsk</code> ne connaît pas les unités des coordonnées et suppose toujours qu'il s'agit d'angstroms. Ce script permet de corriger cela si les coordonnées sont en réalité en Bohrs. Pour convertir le fichier "monfichier.pw", entrez :</p>
+
+<p><code class="command">qepw_bohr.sh monfichier.pw</code></p>
+
+<p>Plusieurs noms de fichiers peuvent être donnés.</p>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

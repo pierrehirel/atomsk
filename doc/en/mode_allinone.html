@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode All-in-one - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: All-in-one</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --all-in-one &#60;listfile&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+
+<p><code>atomsk -AI1 &#60;listfile&#62; &#60;outputfile&#62; [options] [&#60;formats&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>In this mode, <code>atomsk</code> will read several files, and write them to a single output file that will contain all the configurations (or snapshots).</p>
+
+<p>The names of the input files must be provided in the <code>&#60;listfile&#62;</code>, a text file with the same format as list files used in <a href="./mode_filelist.html">mode file list</a>. Such a list file can easily be produced e.g. with "<code>ls &#62;mylist.lst</code>".</p>
+
+<p>The output formats supported in this mode are:</p>
+
+<ul>
+ <li><strong>Animated XSF</strong> (only "variable-cell animated XSF", see <a href="./format_xsf.html">XSF specifications</a>);</li>
+ <li><strong>XYZ</strong>, either normal XYZ or extended XYZ (see <a href="./format_xyz.html">XYZ specifications</a>); the special XYZ format is not supported.</li>
+</ul>
+
+<p>Concerning <strong>animated XSF format</strong>, on one hand if forces on atoms exist in the first file of the &#60;listfile&#62; then forces will be written for all snapshots in the final animated XSF file. If forces are missing when reading other files from the &#60;listfile&#62;, then the forces will be set to zero for these snapshots. On the other hand, if forces do not appear in the first file of the &#60;listfile&#62;, then no force will be written at all for any snapshot in the animated XSF file.</p>
+
+<p>When writing to <strong>normal XYZ format</strong>, auxiliary properties are ignored and only atom positions are written. When writing to <strong>extended XYZ format</strong>, all auxiliary properties are conserved and written in the final file.</p>
+
+<p>If several formats are specified, then the multi-snapshot output files will be produced in all these formats.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied to each snapshot before they are written to the <code>outputfile</code>.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --all-in-one mylist.lst animation.xsf</code>
+<p>This will read files which names are specified in <code>mylist.lst</code>, and output all snapshots to the animated XSF file <code>animation.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --all-in-one mylist.lst snapshots.xyz exyz xsf</code>
+<p>This will read files which names are specified in <code>mylist.lst</code>, and output all snapshots to <code>snapshots.xyz</code> (in extended XYZ format), and to the animated XSF file <code>snapshots.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

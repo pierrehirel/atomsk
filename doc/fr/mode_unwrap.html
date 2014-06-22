@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode unwrap - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : unwrap</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --unwrap &#60;référence&#62; &#60;configuration&#62; [&#60;fichiersortie&#62;] [&#60;formats&#62;] [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ce mode permet de déballer les coordonnées des atomes de la &#60;configuration&#62; donnée.</p>
+
+<p>Certains code "remballent" les atomes, c-à-d. les replacent dans le boîte de simulation si jamais ils la quittent (voir aussi l'<a href="./option_wrap.html">option <code>-wrap</code></a> de <code>atomsk</code>). Ceci n'est pas pratique si l'on s'intéresse aux coordonnées "absolues" (ou réelles) des atomes, autrement dit leurs coordonnées <em>déballées</em>.</p>
+
+<p>Dans ce mode <code>atomsk</code> compare les positions des atomes de la &#60;configuration&#62; donnée à celles de la &#60;référence&#62;. Les deux fichiers doivent contenir exactement le même nombre d'atomes, et correspondre au même système (c-à-d. mêmes vecteurs de boîte, mêmes types d'atomes, etc.) pour que le calcul ait du sens. Si un vecteur de déplacement atomique n'est pas dans la fourchette ]-0.5;+0.5] fois les vecteurs de boîte, alors <code>atomsk</code> considère que cet atome doit être déballé. L'atome sera donc translaté d'un ou plusieurs vecteurs de boîte jusqu'à ce que son vecteur déplacement tombe dans cette fouchette.</p>
+
+<p>Attention : dans les simulations où la diffusion des atomes est importante (typiquement, lorsque des atomes franchissent des distances supérieures aux dimensions de la boîte), si vous tentez de déballer les atomes en utilisant l'état initial comme référence alors <code>atomsk</code> déballera certains atomes de façon erronée. Dans de tels cas il est préférable d'employer la configuration du pas de temps précédent comme référence.</p>
+
+<p>Notez que contrairement à l'<a href="./option_wrap.html">emballage des atomes</a>, le déballage nécessite une référence. En effet, dans une configuration où tous les atomes se trouvent dans la boîte, il est impossible de savoir quels atomes ont été remballés ou non, et donc de savoir quels atomes doivent être déballés.</p>
+
+<p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a>, celles-ci seront appliquées à la &#60;référence&#62; et à la &#60;configuration&#62; <em>avant</em> le déballage des coordonnées atomiques.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --unwrap systeme_MD0.xyz systeme_MD200.xyz xsf</code>
+<p>Ceci déballera les coordonnées atomiques du système <code>systeme_MD200.xyz</code>, en utilisant <code>systeme_MD0.xyz</code> comme référence. Les coordonnées des atomes déballés seront écrites dans <code>systeme_MD200.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --unwrap initial.gin final.grs final_uw.xsf cfg</code>
+<p>Ceci déballera les atomes de <code>final.grs</code>, et écrira leurs coordonnées dans <code>final_uw.xsf</code> et <code>final_uw.cfg</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

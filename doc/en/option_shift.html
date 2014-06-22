@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option shift - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: shift</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-shift &#60;above|below&#62; &#60;d&#62; &#60;normal&#62; &#60;&tau;<sub>X</sub>&#62; &#60;&tau;<sub>Y</sub>&#62; &#60;&tau;<sub>Z</sub>&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to shift a part of the system by a vector &tau;. It is for instance useful for building systems typically used to compute generalized stacking fault energies or so-called &gamma;-surfaces.</p>
+
+<p>All atoms that are above (or below) a certain plane along X, Y or Z axis will be shifted by the specified vector. The command-line parameters of importance are:</p>
+
+<ul>
+  <li><strong>above|below</strong>: this keyword decides if it is the atoms above or below the plane that are removed.</li>
+  <li><strong>d</strong>: distance of the plane of shift to the origin (in &Aring;); if this distance is zero then all atoms will be shifted.</li>
+  <li><strong>normal</strong>: direction normal to the plane that contains the shift; can be "x", "y", "z", or a crystallographic direction (see below).</li>
+  <li><strong>&tau;<sub>X</sub>, &tau;<sub>Y</sub>, &tau;<sub>Z</sub></strong>: components of the displacement vector along X, Y and Z (in &Aring;).</li>
+</ul>
+
+<p>The distance &#60;d&#62; and the vector components &tau;<sub>X</sub>, &tau;<sub>Y</sub>, &tau;<sub>Z</sub>, are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</p>
+
+<p>The &#60;normal&#62; can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001].</p>
+
+<p>Note that after being shifted, some atoms may end up out of the box. If you want to wrap these atoms back into the simulation cell you may consider using the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the translation will be applied only to selected atoms.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default no shift is applied.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -shift above 12 z 0.2 0.6 0.0 final.xyz</code>
+<p>This will read the file <code>initial.cfg</code> and shift all atoms that are above 12 &Aring; along Z by 0.2 &Aring; along X and 0.6 &Aring; along Y (no displacement along Z). The result will be output into <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -shift above 0.5*BOX z 0.2*BOX 0.6*BOX 0.0 final.xyz</code>
+<p>This will read the file <code>initial.cfg</code> and shift all atoms that are above half the height along Z by 0.2 times the box length along X, and 0.6 times the box length along along Y (no displacement along Z). The result will be output into <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -shift below 3.2 x 0 0 -0.5 final.xyz</code>
+<p>This will read <code>initial.cfg</code> and shift all atoms that have a X coordinate smaller than 3.2 &Aring; by -0.5 &Aring; along Z (shift is 0 along X and Y). The result will be output into <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -shift above 10 [2-11] 0 0 -0.5 final.xyz</code>
+<p>This will shift all atoms that are at a greater distance from the origin than 10 &Aring; along the [2<span class="over">1</span>1] direction by -0.5 &Aring; along Z (shift is 0 along X and Y).</p></li>
+
+<li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>SrTiO3_gamma_surface</code>" contains a bash script that builds the different systems for a (1-10) &gamma;-surface calculation in strontium titanate.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

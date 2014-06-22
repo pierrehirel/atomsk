@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Examples - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Examples</h2>
+
+<h4>Convert a file to another file</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg final.xsf</code>
+<p>This will convert the file <code>initial.cfg</code> (CFG format) into <code>final.xsf</code> (XSF format).</p></li>
+</ul>
+
+<h4>Convert a file to another format</h4>
+
+<ul>
+<li><code class="command">atomsk file.cfg xsf</code>
+<p>This will convert <code>file.cfg</code> (CFG format) into <code>file.xsf</code> (XSF format).</p></li>
+</ul>
+
+
+<h4>Convert a file to several other formats</h4>
+
+<ul>
+<li><code class="command">atomsk file.cfg xsf lmp</code>
+<p>This will convert <code>file.cfg</code> (CFG format) into <code>file.xsf</code> (XSF format) and <code>file.lmp</code> (LAMMPS data).</p></li>
+</ul>
+
+
+
+<h4>Create a unit cell of fcc aluminum with a given crystal orientation</h4>
+
+<ul>
+<li><code class="command">atomsk --create fcc 4.02 Al orient [0-11] [100] [011] cfg</code>
+<p>This uses the <a href="./mode_create.html">mode <code>--create</code></a> to create a unit cell of fcc aluminum with the crystallographic orientation X=[0<span class="over">1</span>1], Y=[100], Z=[011].</p></li>
+</ul>
+
+
+
+<h4>Using options</h4>
+
+<p>Please read the section about <a href="./options.html">options</a>. Several options can be used in a single command-line like in the example below.</p>
+
+<ul>
+<li><code class="command">atomsk unitcell.xyz -expand 20 10 1 -deform x 2 0.33 final.xsf lmp</code>
+<p>This will read <code>unitcell.xyz</code> (XYZ format), <a href="./option_expand.html">expand it</a> to form a 20x10x1 supercell, then <a href="./option_deform.html">deform it</a> by 2&#37; along the X direction (using a Poisson ratio of 0.33), and then write the final system to <code>final.xsf</code> (XSF format) and <code>final.lmp</code> (LAMMPS data).</p></li>
+</ul>
+
+
+<h4>More examples</h4>
+
+<p>The folder "examples" provided with the program contains some commented bash scripts that make use of <code>atomsk</code>. The comments are intended to be ignored by the computer, not by you -read them to better understand the scripts. You may also modify those scripts to test the program.</p>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

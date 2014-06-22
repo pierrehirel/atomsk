@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Keywords INF and BOX - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Defining positions with INF and BOX</h2>
+
+<p>In many options of <code>atomsk</code>, it is possible to specify a coordinate either in angstr&ouml;ms or with a keyword.</p>
+
+<p>The keywords <strong>-INF</strong> and <strong>INF</strong> can be used to define a position as -&infin; and +&infin; respectively. For instance, using the <a href="./option_select.html">option <code>-select</code></a> as follows:</p>
+
+<code class="command">-select in box -INF 0 50 INF 150 200</code>
+
+<p>includes all atoms which coordinates are in the intervals X=[-&infin;;+&infin;], Y=[0;150], Z=[50;200].</p>
+
+<p>The keyword <strong>BOX</strong> can be used to define coordinates with respect to the box dimensions. This keyword is replaced by the length of the bounding box of the system, i.e. if the simulation box is defined by three vectors H1, H2 and H3:</p>
+
+<p>
+<code>
+H1 = [ H(1,1) H(1,2) H(1,3) ]<br/>
+H2 = [ H(2,1) H(2,2) H(2,3) ]<br/>
+H3 = [ H(3,1) H(3,2) H(3,3) ]</code>
+</p>
+
+<p>then along the X, Y and Z directions the keyword BOX is replaced by:
+
+<p>
+<code>
+BOX = H(1,1) + H(2,1) + H(3,1) along X<br/>
+BOX = H(1,2) + H(2,2) + H(3,2) along Y<br/>
+BOX = H(1,3) + H(2,3) + H(3,3) along Z</code>
+</p>
+
+<p>If the box is orthogonal it simply reduces to BOX=H(1,1) along X, BOX=H(2,2) along Y and BOX=H(3,3) along Z.</p>
+
+<p>Multiplication or division with the keyword BOX are equivalent to reduced coordinates. For example, in the following option:</p>
+
+<code class="command">-select in sphere BOX/2 0.2*BOX 0.7*BOX 30.0</code>
+
+<p>the position of the sphere is defined as the fractional (or reduced) coordinates (1/2 0.2 0.7).</p>
+
+<p>Addition and subtraction allow to give distances with respect to the maximum value of H(:,:) along that direction. For instance, the following option:</p>
+
+<code class="command">-select out box 10 10 10 BOX-10 BOX-10 BOX-10</code>
+
+<p>will select all atoms that are within 10 &Aring; of the borders of the bounding box. Along the X axis, "BOX-10" means "max[H(1,1),H(2,1),H(3,1)] - 10". If the box is orthogonal it simply reduces to H(1,1)-10 along X, H(2,2)-10 along Y and H(3,3)-10 along Z.</p>
+
+<p>Note that only one operator can be used with the keyword BOX, it is not possible to use several operations like "0.4*BOX+2".</p>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

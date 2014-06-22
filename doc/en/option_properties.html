@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option properties - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: properties</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-properties &#60;file&#62;</code></p>
+
+<p><code>-prop &#60;file&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option can be used to define explicitely some properties of the system.</p>
+
+<p>The &#60;file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored. If a property is specified several times, then only the last one is used.</p>
+
+<p><em>Per-atom properties</em> (also called <em>auxiliary</em> properties) are defined for each atom, e.g. the atom velocities; they are written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
+
+<p>Below is the list of valid <strong>per-atom properties</strong>, which are saved as auxiliary properties of the atoms:</p>
+
+<ul>
+  <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but <code>atomsk</code> will work with whatever number is given). In case of an ionic core-shell model two charges can be specified, corresponding to the core and shell respectively:<br/>
+      <p><code>charge<br/>
+            &#60;species1&#62; &#60;charge1&#62; [&#60;shell1&#62;]<br/>
+            &#60;species2&#62; &#60;charge2&#62; [&#60;shell2&#62;]<br/>
+            ...</code></p>
+  <p>If charges were defined before, they will be replaced by those read with this option. These charges are used for instance in the <a href="./mode_edm.html">mode <code>--edm</code></a>, or to compute the <a href="./mode_epola.html">electronic polarization</a>.</p></li>
+  
+  <li><strong>Atom types</strong> can be defined using the keyword "type":<br/>
+      <p><code>type<br/>
+            &#60;species1&#62; &#60;type1&#62;<br/>
+            &#60;species2&#62; &#60;type2&#62;<br/>
+            ...</code></p>
+  <p>This option will associate each &#60;species&#62; with the corresponding &#60;type&#62;. Note that the &#60;type&#62; is defined as an auxiliary property for each atom, and used when writing files for programs that use "atom types" instead of atom species (e.g. <a href="./format_lmp.html">LAMMPS data files</a> or <a href="./format_imd.html">IMD files</a>).</p>
+  
+  <p>For the opposite operation (i.e. replace atom types by atom species) you may want to use the <a href="./option_substitute.html">option <code>-substitute</code></a>.</p></li>
+  
+  <li><strong>Atom velocities</strong> can be defined using the keyword "velocity":<br/>
+      <p><code>velocity<br/>
+            &#60;id1&#62; &#60;vx1&#62; &#60;vy1&#62; &#60;vz1&#62;<br/>
+            &#60;id2&#62; &#60;vx2&#62; &#60;vy2&#62; &#60;vz2&#62;<br/>
+            ...</code></p>
+  <p>The velocities can be given for all atoms, or only some of them. Atoms which velocity is not defined will be assigned a zero velocity. In order to generate random velocities with a Maxwell-Boltzmann distribution one can use the <a href="./option_velocity.html">option <code>-velocity</code></a>.</p></li>
+  
+  <li>Any arbitrary property can be defined for each atom using the keyword "auxiliary" followed by the name of the property, each following line containing an atom index and the value of the property for that atom:<br/>
+      <p><code>auxiliary &#60;property&#62;<br/>
+            &#60;id1&#62; &#60;value1&#62;<br/>
+            &#60;id2&#62; &#60;value2&#62;<br/>
+            ...</code></p>
+  <p>With this, the &#60;property&#62; of atom &#60;id1&#62; will take the &#60;value1&#62;, and so on. The list can contain values for all atoms, or only for some atoms. Atoms for which no value is given will keep their value if the &#60;property&#62; was previously defined for them, or else will be assigned a zero value.</p></li>
+</ul>
+
+<br/>
+<p>And here is the list of supported <strong>system-wide properties</strong>:</p>
+
+<ul>
+  <li><p><strong>Supercell parameters</strong> can be specified by using the keyword "supercell":</p>
+      <p><code>supercell<br/>
+            H(1,1) H(1,2) H(1,3)<br/>
+            H(2,1) H(2,2) H(2,3)<br/>
+            H(3,1) H(3,2) H(3,3)<br/></code></p>
+      <p>Alternatively the conventional notation can be used by using the keyword "conventional" (angles in degrees):</p>
+      <p><code>conventional<br/>
+            a b c<br/>
+            &alpha; &beta; &gamma;</code></p>
+      <p>Note that the (cartesian) coordinates of atoms are not affected, only the supercell parameters are modified.</p></li>
+  
+  <li><p>Current <strong>crystal orientation</strong> can be defined using the keyword "orientation" followed by Miller indices along the cartesian X, Y and Z axis (see <a href="./options.html">how to specify Miller indices</a>):</p>
+      <p><code>orientation<br/>
+            (<em>hkl</em>)<sub>X</sub><br/>
+            (<em>hkl</em>)<sub>Y</sub><br/>
+            (<em>hkl</em>)<sub>Z</sub></code></p>
+
+      <p>These values do <em>not</em> rotate the system but define the current crystal orientation, no matter what it was before (and no matter if it is correct or not). If the elastic tensor was defined before the crystal orientation (see below) then it will be rotated to match this orientation.</p></li>
+  
+  <li><p><strong>Elastic (or stiffness) tensor</strong> can be specified using the keyword "elastic" followed by the values (6x6 array) of the elastic constants in GPa:</p>
+      <p><code>elastic<br/>
+            C<sub>11</sub> C<sub>12</sub> ... C<sub>16</sub><br/>
+            C<sub>21</sub> C<sub>22</sub> ... C<sub>26</sub><br/>
+            ... ... ...<br/>
+            C<sub>61</sub> C<sub>62</sub> ... C<sub>66</sub><br/></code></p>
+      <p>Alternatively, if the material is orthotropic then Voigt notation can be used by appending the keyword "Voigt" to the keyword "elastic":</p>
+      <p><code>elastic Voigt<br/>
+            C<sub>11</sub> C<sub>22</sub> C<sub>33</sub><br/>
+            C<sub>23</sub> C<sub>31</sub> C<sub>12</sub><br/>
+            C<sub>44</sub> C<sub>55</sub> C<sub>66</sub><br/></code></p>
+      <p>Beware: when it is read by <code>atomsk</code>, the elastic tensor is always assumed to correspond to the current orientation of the system. The elastic tensor is read without taking any previous definition of the crystallographic orientation into account. In other words the <em>C<sub>ij</sub>'</em> coefficients must always be provided. On the contrary if the crystal orientation is defined or changed <em>after</em> reading the elastic tensor, then the elastic tensor will be rotated accordingly.</p>
+      
+      <p>Similarly, if a rotation option (such as <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> or <a href="./option_orient.html"><code>-orient</code></a>) is used <em>before</em> the elastic tensor is defined with the present option, then the elastic tensor is assumed to correspond to the rotated system. If a rotation option is called <em>after</em> the present option, then the elastic tensor will be transformed accordingly.</p>
+      
+      <p>These elastic constants affect the <a href="./option_disloc.html">option <code>-dislocation</code></a> by triggering the use of anisotropic elasticity for building dislocations.</p></li>
+  
+  <li><p>Similarly the <strong>compliance tensor</strong> can be specified using the keyword "compliance" followed by the values (6x6 array) of the compliances in GPa<sup>-1</sup>:</p>
+      <p><code>compliance<br/>
+            S<sub>11</sub> S<sub>12</sub> ... S<sub>16</sub><br/>
+            S<sub>21</sub> S<sub>22</sub> ... S<sub>26</sub><br/>
+            ... ... ...<br/>
+            S<sub>61</sub> S<sub>62</sub> ... S<sub>66</sub><br/></code></p>
+      <p>Alternatively the Voigt notation can be used by appending the keyword "Voigt":</p>
+      <p><code>compliance Voigt<br/>
+            S<sub>11</sub> S<sub>22</sub> S<sub>33</sub><br/>
+            S<sub>23</sub> S<sub>31</sub> S<sub>12</sub><br/>
+            S<sub>44</sub> S<sub>55</sub> S<sub>66</sub><br/></code></p>
+      <p>The compliance tensor will immediately be inverted to obtain the elastic tensor. Then the transformations of the elastic tensor explained above apply.</p></li>
+
+</ul>
+
+<br/>
+
+
+
+
+<h4>Default</h4>
+
+<p>By default none of these properties are defined.</p>
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk Fe.xsf -properties iron.txt cfg</code>
+<p>This will read the file <code>Fe.xsf</code> and read the system properties from the file <code>iron.txt</code>. The final result will be output to <code>Fe.cfg</code>.</p></li>
+
+<li>The example below shows how to define cell parameters:
+
+<div class="txtfile">
+<h5>new_cell.txt</h5>
+<p><code>#This is just a comment<br/>
+<br/>
+#Define the new supercell vectors<br/>
+#a, b, c are in Angstroms, angles in degrees<br/>
+conventional<br/>
+145.2 160.6 20.19<br/>
+90.0 90.0 120.0<br/>
+</code></p></div>
+</li>
+
+<li>The example below illustrates the format for defining atom charges and types. Note that two charges are specified for oxygen, so they will be interpreted as the charges of the oxygen core and shell:
+
+<div class="txtfile">
+<h5>properties.txt</h5>
+<p><code>#This is just a comment<br/>
+<br/>
+#Define charges<br/>
+charge<br/>
+Sr 2<br/>
+Ti 4<br/>
+O  0.2 -2.2<br/>
+#Atom types for use with LAMMPS or IMD<br/>
+#Note that any number can be assigned to each species<br/>
+type<br/>
+Sr 2<br/>
+Ti 4<br/>
+O 3<br/>
+Ba 1<br/></code></p></div>
+</li>
+
+
+<li>The example below shows how to define the property "my_energy" for some atoms. The first column is the atom index, the second column gives the value of "my_energy" for that atom. Note that it is not mandatory to give values for all atoms. Also, atom indices can appear in any order (not necessarily by increasing index).
+
+<div class="txtfile">
+<h5>energy.txt</h5>
+<p><code>#Per-atom energy computed with my code<br/>
+auxiliary my_energy<br/>
+2  -20.3<br/>
+3  -20.4<br/>
+4  -19.9<br/>
+6  -19.86<br/>
+15  -20.4<br/>
+9  -19.9<br/>
+</code></p></div>
+</li>
+
+
+<li>In the example file "<code>iron.txt</code>" below, the elastic tensor is defined first -therefore it is assumed to be the generic tensor <em>C</em> for the orientation X=[100], Y=[010], Z=[001]. Then the crystal orientation is given, so <code>atomsk</code> will automatically rotate the elastic tensor, yielding the <em>C'</em> corresponding to the orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]:
+
+<div class="txtfile">
+<h5>iron.txt</h5>
+<p><code># The elastic tensor<br/>
+elastic Voigt<br/>
+243.30 243.30 243.30<br/>
+145.00 145.00 145.00<br/>
+116.10 116.10 116.10<br/>
+<br/>
+# The crystal orientation<br/>
+orientation<br/>
+[110]<br/>
+[1-10]<br/>
+[001]<br/></code></p></div>
+
+<p>This is often the most convenient way to obtain an elastic tensor suitable for your system.</p></li>
+
+<li>Now in the example below, the crystal orientation is defined first, therefore the provided elastic tensor must be the rotated <em>C'</em> for that orientation -remember that when <code>atomsk</code> reads the elastic tensor it always assumes that it corresponds to the current orientation of the system:
+
+<div class="txtfile">
+<h5>iron.txt</h5>
+<p><code># The crystal orientation<br/>
+orientation<br/>
+[1_1_0]<br/>
+[1_-1_0]<br/>
+[0_0_1]<br/>
+<br/>
+# The elastic tensor<br/>
+elastic<br/>
+243   72.5  145   72.5  0.0  0.0<br/>
+72.5  60.8  97.1  60.8  0.0  0.0<br/>
+145   97.1  310   155   0.0  0.0<br/>
+72.5  60.8  155   89.8  0.0  0.0<br/>
+0.0   0.0   0.0   0.0   116  58.0<br/>
+0.0   0.0   0.0   0.0   58.0 58.0<br/></code></p></div>
+</li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

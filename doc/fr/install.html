@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Installation - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+
+<h2>Compatibilité</h2>
+
+<p><code>Atomsk</code> sont compatibles avec les environnements Unix/Linux et Microsoft&reg; Windows&reg;.</p>
+
+
+
+<h2>Disponibilité</h2>
+
+<p>Il est recommandé de télécharger <code>atomsk</code> depuis <a href="http://pierrehirel.info/codes_atomsk.php?lang=fr">cette page</a>. Selon votre préférence, vous pouvez télécharger l'exécutable pour votre plate-forme, ou bien télécharger le code source et le compiler comme expliqué ci-dessous.</p>
+
+
+<h2>Version exécutable</h2>
+
+<p>Le plus simple pour commencer à utiliser <code>atomsk</code> est de télécharger la version exécutable pour votre plate-forme depuis <a href="http://pierrehirel.info/codes_atomsk.php?lang=fr">cette page</a>. Cette version est prête à l'emploi et devrait s'exécuter sur votre machine sans aucune autre manipulation.</p>
+
+<p>Les versions GNU/Linux de <code>atomsk</code> sont fournies avec un script d'installation nommé "install.sh". Ce script doit être exécuté en tant que super-utilisateur (ou avec sudo), et il installe le programme dans le dossier <em>/usr/local/bin/</em> par défaut.</p>
+
+
+<h2>Compilation depuis le code source</h2>
+
+<p>Si vous ne souhaitez pas utiliser la version pré-compilée, vous pouvez télécharger le code source et le compiler vous-même. La compilation requiert que la bibliothèque LAPACK soit installée sur votre système.</p>
+
+<p>Le code source du programme est accompagné d'un Makefile. Pour un résumé des cibles possibles, entrez le répertoire <code>src</code> et tapez "<code>make</code>" ou "<code>make help</code>". Pour compiler le programme, tapez :</p>
+
+<p><code class="command">make atomsk</code></p>
+
+<p>Si votre machine possède plusieurs processeurs ou un processeur multi-cœur alors il est possible d'accélérer la procédure en activant la compilation parallèle grâce à l'option <code>-j</code>. Pour <code>atomsk</code> la solution optimale est d'utiliser trois processus, c'est-à-dire "<code>make -j3 atomsk</code>".</p>
+
+<p>Si la commande ci-dessus ne fonctionne pas alors vérifiez les points suivants. Premièrement le programme <strong>GNU Make</strong> doit être installé sur votre ordinateur. Deuxièmement, par défaut le Makefile fait appel au <strong>compilateur GNU Fortran</strong> (<code>gfortran</code>), il est donc recommandé qu'il soit installé.</p>
+
+<p>Ensuite, vérifiez que la <strong>bibliothèque LAPACK</strong> est installée sur votre système. Le chemin vers la bibliothèque doit être définie par la variable <code>LAPACK</code>. Sur les systèmes UNIX/Linux, si LAPACK est installé par le système alors il suffit d'utiliser "<code>LAPACK=-llapack</code>". Sinon (par ex. si vous avez compilé LAPACK dans votre dossier personnel), utilisez le chemin complet vers la bibliothèque de la manière suivante : "<code>LAPACK=-L/chemin/vers/la/bibliothèque -llapack</code>". Les utilisateurs de la bibliothèque Intel&reg; MKL sont invités à se référer à la documentation Intel&reg;. Sur les systèmes Microsoft&reg; Windows&reg;, une version de la bibliothèque LAPACK est aussi requise (le <code>Makefile.windows</code> fourni avec le programme donne des indications pour obtenir LAPACK pour Windows, voir aussi <a href="http://icl.cs.utk.edu/lapack-for-windows/">cette page</a> et/ou <a href="http://gcc.gnu.org/wiki/LAPACK%20on%20Windows">cette page</a>). Notez que l'auteur de 
+<code>atomsk</code> ne fournira <em>pas</em> de support pour LAPACK. 
+Si vous rencontrez des difficultés pour obtenir ou compiler LAPACK sur votre système, tournez-vous vers la communauté de LAPACK.</p>
+
+<p><strong>Pour personnaliser la compilation pour votre machine</strong>, veuillez <em>ne pas</em> éditer le Makefile principal (c'est-à-dire le fichier <code>Makefile</code>). À la place il est recommandé de créer un Makefile séparé, appelé par exemple <code>Makefile.truc</code>, que vous pourrez ré-utiliser à chaque fois que vous aurez besoin de compiler <code>atomsk</code>. Ce <code>Makefile.truc</code> personnalisé peut contenir seulement les variables nécessaires (<code>FORTRAN</code>, <code>LAPACK</code>, et au besoin <code>FFLAGS</code> et <code>INSTPATH</code>), et finir par la mention "<code>include Makefile</code>". Vous pouvez prendre exemple sur les Makefiles alternatifs <code>Makefile.g95</code> ou <code>Makefile.ifort</code> fournis avec le programme. Pour utiliser votre Makefile tapez alors :</p>
+
+<p><code class="command">make -f Makefile.truc atomsk</code></p>
+
+<p>Notez que le programme utilise certaines procédures qui n'existent qu'en Fortran 95, assurez-vous donc d'utiliser un compilateur compatible avec cette norme.  Jusqu'ici le programme a été testé et compile correctement avec les compilateurs suivants :</p>
+
+<p><strong>GNU/Linux:</strong></p>
+<ul>
+  <li><strong>GNU Fortran (gfortran)</strong> 4.4, 4.6, 4.7, 4.8</li>
+  <li><strong>G95</strong> 0.92, 0.93</li>
+  <li><strong>Intel&reg; Fortran (ifort)</strong> 10.1, 11.0, 12.0, 13.0, 14.0</li>
+</ul>
+
+<p><strong>Microsoft&reg; Windows&reg;:</strong></p>
+<ul>
+  <li><strong>MinGW-gfortran</strong> 1.0</li>
+</ul>
+
+<p>Afin d'optimiser le programme vous pouvez également modifier les options de compilation, pour les ajuster à l'architecture de votre machine, en modifiant la variable <code>FFLAGS</code>. Notez que <code>-O3</code> peut introduire des optimisations très agressives pouvant compromettre le comportement du programme, un niveau d'optimisation <code>-O2</code> est donc recommandé. Lors de la compilation dans un environnement Microsoft&reg; Windows&reg; l'option <code>-DWINDOWS</code> est requise.</p>
+
+<p>Si la compilation échoue et retourne une erreur, regardez d'abord la <a href="./faq.html#compil">FAQ</a>, et ensuite demandez de l'aide à votre administrateur système. Si vous pensez que l'erreur est due à un bug dans le code source du programme, vous pouvez envoyer un rapport de bug à <a href="./contact.html">l'auteur</a>. Merci de spécifier quel module a causé l'erreur lors de la compilation.</p>
+
+<p>Une fois la compilation terminée un fichier exécutable est créé, appelé "<code>atomsk</code>" sur les systèmes UNIX/Linux, et "<code>atomsk.exe</code>" sur les systèmes Microsoft&reg; Windows&reg;. Vous pouvez copier cet exécutable dans le répertoire de votre choix afin de l'exécuter.</p>
+
+<p>Le <code>Makefile</code> permet également de faciliter l'installation por tous les utilisateurs du système sur les systèmes Linux (voir ci-dessous).</p>
+
+
+
+<h2>Installation sur les systèmes Linux</h2>
+
+<p>Une fois la compilation terminée, si vous avez les droits administrateur sur votre machine vous pouvez taper :</p>
+<p><code class="command">make install</code></p>
+<p>Par défaut le programme <code>atomsk</code> sera copié dans le répertoire <em>/usr/local/bin</em>, de sorte que n'importe quel utilisateur du système puisse l'exécuter. Les <a href="./tools.html">outils compagnons</a> seront aussi copiés dans ce répertoire et rendus exécutables. La documentation html sera copiée vers le répertore <em>/usr/local/share/doc/atomsk</em> (copiez cette adresse dans un navigateur Web pour accéder à la documentation). La page de manuel sera copiée dans <em>/usr/local/share/man/man1/</em> et pourra ếtre lur en tapant "<code>man atomsk</code>". Ces chemins par défaut peuvent êtrre changés en configurant les variables <code>INSTPATH</code>, <code>DOCPATH</code> et <code>MANPATH</code> dans votre Makefile personnalisé.</p>
+
+<p>Vous pouvez également utiliser la commande "<code>make all</code>" avec les droits administrateurs pour compiler et installer le programme en une seule commande (ceci est équivalent à "<code>make atomsk &amp;&amp; make install &amp;&amp; make clean</code>").</p>
+
+<p>Si vous n'avez pas les droits administrateurs sur votre machine, vous pouvez exécuter le programme en tapant son chemin d'accès complet ; ajouter l'emplacement du programme à votre variable système <code>PATH</code> ; ou bien créer un alias.</p>
+
+
+
+<h2>Désinstallation sur les systèmes Linux</h2>
+
+<p>Si vous aviez  installé le programme avec la commande <code>make install</code>, alors vous pouvez le désinstaller aussi facilement en allant dans le répertoire <code>src</code> et en tapant (avec les droits administrateur) :</p>
+
+<p><code class="command">make uninstall</code></p>
+
+<p>Ceci supprimera le programme <em>atomsk</em> ainsi que toute la documentation de leurs chemins respectifs (voir la section <em>Installation</em> ci-dessus).</p>
+
+<p>Si vous n'aviez pas installé le programme avec la commande <code>make install</code>, supprimez entièrement le répertoire <em>atomsk</em> de votre disque dur. Au besoin, supprimez aussi ce chemin de votre variable système <code>PATH</code> et/ou les alias.</p>
+
+
+
+<h2>Créer une archive du programme</h2>
+
+<p>Il est possible de créer une archive du programme en entrant dans le dossier <code>/src/</code> et en tapant :</p>
+
+<p><code class="command">make tar</code></p>
+
+<p>Par défaut l'archive sera créée dans le dossier parent</p>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option wrap - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : wrap</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-wrap</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option replace les atomes dans la boîte. Autrement dit, tous les atomes qui se trouveraient à l'extérieur de la boîte (définie par les vecteurs de la boîte <code>H</code>) sont translatés d'un ou plusieurs vecteurs de boîte jusqu'à ce qu'ils se trouvent dans la boîte.</p>
+
+<p>Si certains atomes ont des coquilles (dans le sens d'un modèle ionique c&oelig;ur-coquille) alors les coquilles seront replacées dans la boîte indépendamment de leurs c&oelig;ur, c'est-à-dire de façon à ce que tous les c&oelig;ur et tous les coquilles soient à l'intérieur de la boîte. Donc, si un c&oelig;ur est dans la boîte mais pas sa coquille associée, le c&oelig;ur restera à la même position mais la coquille sera translatée pour être remise dans la boîte. Pour replacer la coquille près de son c&oelig;ur il est possible d'utiliser l'<a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront replacés dans la boîte.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les atomes ne sont pas replacés dans la boîte.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.xsf -wrap final.xyz</code>
+<p>Ceci lira le fichier <code>initial.xsf</code> et remballera tous les atomes dans la boîte. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

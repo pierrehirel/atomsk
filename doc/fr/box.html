@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mots-clés INF et BOX - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Définir des positions avec INF et BOX</h2>
+
+<p>Dans plusieurs options de <code>atomsk</code>, il est possible de définir une position en angstr&ouml;ms ou avec un mot-clé.</p>
+
+<p>Les mots-clés <strong>-INF</strong> et <strong>INF</strong> peuvent être utilisés pour définir une position à -&infin; et +&infin; respectivement. Par exemple, utiliser l'<a href="./option_select.html">option <code>-select</code></a> comme suit:</p>
+
+<code class="command">-select in box -INF 0 50 INF 150 200</code>
+
+<p>permet d'inclure tous les atomes dont les coordonnées sont dans les intervalles X=[-&infin;;+&infin;], Y=[0;150], Z=[50;200].</p>
+
+<p>Le mot-clé <strong>BOX</strong> peut être utilisé pour donner une coordonnée par rapport aux dimensions de la boîte. Ce mot-clé est remplacé par la longueur de la boîte encadrant le système, i.e. si la boîte est définie par les trois vecteurs H1, H2 and H3:</p>
+
+<p>
+<code>
+H1 = [ H(1,1) H(1,2) H(1,3) ]<br/>
+H2 = [ H(2,1) H(2,2) H(2,3) ]<br/>
+H3 = [ H(3,1) H(3,2) H(3,3) ]</code>
+</p>
+
+<p>alors suivant les coordonnées cartésiennes X, Y, Z le mot-clé BOX sera remplacé par:</p>
+
+<p>
+<code>
+BOX = H(1,1) + H(2,1) + H(3,1) suivant X<br/>
+BOX = H(1,2) + H(2,2) + H(3,2) suivant Y<br/>
+BOX = H(1,3) + H(2,3) + H(3,3) suivant Z</code>
+</p>
+
+<p>Si la boîte est orthogonale ceci se réduit simplement à BOX=H(1,1) suivant X, BOX=H(2,2) suivant Y et BOX=H(3,3) suivant Z.</p>
+
+<p>Les opérations de multiplication et division avec le mot-clé BOX sont équivalentes aux coordonnées réduites. Par exemple dans l'option suivante:</p>
+
+<code class="command">-select in sphere BOX/2 0.2*BOX 0.7*BOX 30.0</code>
+
+<p>la position de la boîte est équivalente aux coordonnées réduites (1/2 0.2 0.7).</p>
+
+<p>Les opérations d'addition et de soustraction permettent de donner des distances par rapport à la longueur maximale de la boîte suivant cette direction. Par exemple l'option suivante :</p>
+
+<code class="command">-select out box 10 10 10 BOX-10 BOX-10 BOX-10</code>
+
+<p>sélectionnera tous les atomes situés à moins de 10 &Aring; d'un bord de la boîte. Le long de l'axe X, "BOX-10" signifie "max[H(1,1),H(2,1),H(3,1)] - 10". Si la boîte est orthogonale cela se réduit simplement à H(1,1)-10 suivant X, H(2,2)-10 suivant Y, et H(3,3)-10 suivant Z.</p>
+
+<p>Notez qu'une seule opération peut être utilisée avec le mot-clé BOX, il n'est pas possible d'utiliser plusieurs opérations comme "0.4*BOX+2" par exemple.</p>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

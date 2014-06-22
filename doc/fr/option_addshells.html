@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option add-shells - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : add-shells</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-add-shells &#60;espèce&#62;</code></p>
+
+<p><code>-as &#60;espèce&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option crée des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) pour tous les atomes d'une espèce chimique donnée. Si &#60;espèce&#62; vaut "all" alors des coquilles seront créées pour tous les atomes.</p>
+
+<p>Si certains atomes possédaient déjà une coquille et que &#60;espèces&#62; vaut "all", alors les coquilles existantes seront d'abord supprimées, puis de nouvelles seront créées pour tous les atomes.</p>
+
+<p>Notez que les positions des coquilles ne peuvent être écrites que vers certains formats de fichiers, comme le <a href="./format_gin.html">format GIN</a> ou le <a href="./format_dlp.html">format de DL_POLY</a>. Lors de l'écriture d'un tel système vers des formats ne le supportant pas, les positions des coquilles seront perdues.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucune coquille n'est introduit.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -add-shells O final.gin</code>
+<p>Ceci créera des coquilles pour les atomes d'oxygène.</p></li>
+
+<li><code class="command">atomsk initial.cfg -as all final.gin</code>
+<p>Ceci créera des coquilles pour tous les atomes.</p></li>
+
+<li><code class="command">atomsk initial.cfg -as Ti -as O final.gin</code>
+<p>Ceci créera des coquilles pour les atomes de titane et d'oxygène.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

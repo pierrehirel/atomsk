@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option bind-shells - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: bind-shells</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-bind-shells</code></p>
+
+<p><code>-bs</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option re-associates the shells with their core. Shells (in the sense of an ionic core-shell model) must exist for this option to apply. Each ionic core gets associated with the closest shell, but only if the shell is less than 1.5 &Aring; away.</p>
+
+<p>This option can be useful when reading files where the positions of cores and shells are written in different orders.</p>
+
+
+<h4>Default</h4>
+
+<p>By default the shells are not re-associated.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin -bind-shells final.gin</code>
+<p>This will read <code>initial.gin</code>, re-bind all shells to the closest core, and write the result to <code>final.gin</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

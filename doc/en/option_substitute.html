@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option substitute - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: substitute</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-substitute &#60;sp1&#62; &#60;sp2&#62;</code></p>
+
+<p><code>-sub &#60;sp1&#62; &#60;sp2&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This will substitute all atoms of species &#60;sp1&#62; by atoms of species &#60;sp2&#62;.</p>
+
+<p>The &#60;sp1&#62; and &#60;sp2&#62; can be entered as atomic number or species names.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms will be substituted.</p>
+
+
+<h4>Default</h4>
+
+<p>By default no atom is substituted.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk sto.cfg -substitute 38 56 bto.xsf</code>
+<p>This will read the file <code>sto.cfg</code>, replace all strontium atoms (atomic number=38) by barium atoms (atomic number=56), and output the final system into <code>bto.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -sub Fe W final.xyz</code>
+<p>This will read <code>initial.cfg</code>, substitute iron (Fe) by tungsten (W) and write the result into <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.lmc -sub 1 Si -sub 2 C final.xyz</code>
+<p>This option can also be useful when reading file formats containing "atom types" (1, 2, 3...) instead of actual atomic numbers, like the <a href="./format_lmc.html">LAMMPS custom format (lmc)</a>. The command above will replace all atoms of type 1 by silicon (Si), and those of type 2 by carbon (C).</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

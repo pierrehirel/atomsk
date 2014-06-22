@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option alignx - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : alignx</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-alignx</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option aligne le premier vecteur de boîte avec l'axe cartésien X, et le second vecteur de boîte avec le plan (X,Y). Autrement dit elle fait pivoter le système de sorte que les vecteurs de boîte forment une matrice triangle <code>H'</code> :</p>
+
+<p>
+<code>
+| H'(1,1) 0.00000 0.00000 | <br/>
+| H'(2,1) H'(2,2) 0.00000 | <br/>
+| H'(3,1) H'(3,2) H'(3,3) |</code>
+</p>
+
+<p>Les atomes sont aussi pivotés.</p>
+
+<p>Cette option affectera certaines propriétés du système (par ex. le tenseur élastique) si elles avaient été précédemment définies par l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
+
+<p>Notez que cette option ne modifie pas le système, elle ne fait que le tourner.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les vecteurs de boîte ne sont pas ré-alignés.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk system.gin -alignx xsf</code>
+<p>Ceci lira le fichier <code>system.gin</code>, ré-alignera ses vecteurs de boîte, et écrira le résultat final dans <code>system.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

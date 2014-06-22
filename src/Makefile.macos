@@ -1,0 +1,29 @@
+# Makefile for compiling Atomsk on a Mac OS X machine
+# using gfortran and LAPACK library.
+# Tested and works with GNU make
+
+# USAGE
+#    make -f Makefile.macos
+# Or, to use parallel compilation
+#    make -j3 -f Makefile.macos
+
+# REQUIREMENTS
+# (1) Install the gfortran compiler, e.g. from http://hpc.sourceforge.net/
+# (2) Download the LAPACK library from http://www.netlib.org/lapack/
+#     and compile it. Copy the compiled files (liblapack.a and librefblas.a)
+#     into the directory /usr/local/lib/lapack/
+
+export 
+
+# COMPILER
+FORTRAN=gfortran
+
+# COMPILATION FLAGS
+FFLAGS=-O2 -I ../OBJ -J ../OBJ
+
+# Path to the LAPACK library:
+# replace this with the path where you compiled LAPACK
+LAPACK=-L/usr/local/lib/lapack/ -llapack -lrefblas
+
+# Goto main Makefile
+include Makefile

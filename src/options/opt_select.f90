@@ -1,0 +1,896 @@
+MODULE select
+!
+!**********************************************************************************
+!*  SELECT                                                                        *
+!**********************************************************************************
+!* This module selects a region of the system, by returning a mask array          *
+!* called SELECT: selected atoms have a .TRUE. value, others have                 *
+!* a .FALSE. value.                                                               *
+!**********************************************************************************
+!* (C) November 2010 - Pierre Hirel                                               *
+!*     Unité Matériaux Et Transformations (UMET),                                 *
+!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     pierre.hirel@univ-lille1.fr                                                *
+!* Last modification: P. Hirel - 26 Feb. 2014                                     *
+!**********************************************************************************
+!* This program is free software: you can redistribute it and/or modify           *
+!* it under the terms of the GNU General Public License as published by           *
+!* the Free Software Foundation, either version 3 of the License, or              *
+!* (at your option) any later version.                                            *
+!*                                                                                *
+!* This program is distributed in the hope that it will be useful,                *
+!* but WITHOUT ANY WARRANTY; without even the implied warranty of                 *
+!* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                  *
+!* GNU General Public License for more details.                                   *
+!*                                                                                *
+!* You should have received a copy of the GNU General Public License              *
+!* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
+!**********************************************************************************
+!
+USE comv
+USE constants
+USE messages
+USE neighbors
+USE files
+USE functions
+USE subroutines
+!
+!
+CONTAINS
+!
+!
+SUBROUTINE SELECT_XYZ(H,P,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
+!
+!
+IMPLICIT NONE
+CHARACTER(LEN=2):: species
+CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
+CHARACTER(LEN=8):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh'
+CHARACTER(LEN=8):: region_geom  !geometry of the region: "box" or "sphere". If "neighbors" then
+                                !neighbors of an atom must be searched
+CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
+CHARACTER(LEN=128):: msg
+LOGICAL:: exceeds100 !are there more than 100 neighboring atoms?
+LOGICAL:: keep  !keep atom?
+LOGICAL:: toselect !atomindices(:) contains atoms to select? (if FALSE, atoms to un-select)
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
+INTEGER:: a1, a2, a3
+INTEGER:: atomrank  !rank of atom to be selected
+INTEGER:: clock
+INTEGER:: i, j, k
+INTEGER:: Nselect !number of atoms selected
+INTEGER:: rand_N  !number of atoms to select randomly
+INTEGER:: sp_N     !number of atoms of the given species that exist in P
+INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be selected
+INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
+INTEGER,DIMENSION(:),ALLOCATABLE:: seed !seed for generating random numbers
+REAL(dp):: distance  !distance of an atom to the center of the sphere
+REAL(dp):: snumber   !atomic number
+REAL(dp):: tempreal
+REAL(dp):: V1, V2, V3  !vector components
+REAL(dp):: xmin, xmax, ymin, ymax, zmin, zmax !box parameters
+REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
+REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
+REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !supercell vectors
+REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
+REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
+REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries   !species, Natoms of this species
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q     !positions of atoms of a given species
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN  !final positions of 1st nearest neighbors
+!
+!
+!Initialize variables
+a1 = 1
+a2 = 1
+a3 = 1
+i = 0
+Nselect = 0
+snumber = 0.d0
+IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
+!
+!
+msg = 'Entering SELECT_XYZ'
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+!
+!Check if region_side contains an atom index: try to read an integer
+READ(region_side,*,ERR=10,END=10) atomrank
+!It does contain an integer => modify region_side
+region_side = "index"
+!Also modify region_1(1) for the message
+region_1(1) = DBLE(atomrank)
+!
+10 CONTINUE
+WRITE(msg,*) "region_side = ", TRIM(region_side)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "region_geom = ", TRIM(region_geom)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "region_dir = ", TRIM(region_dir)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "region_1 = ", region_1(:)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "region_2 = ", region_2(:)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+!
+!A message to the user of what this option will do
+CALL ATOMSK_MSG(2077, (/ region_side//'    ',                 &
+     &                 region_geom, region_dir//'       ' /), &
+     & (/ region_1(1), region_1(2), region_1(3),              &
+     &    region_2(1), region_2(2), region_2(3) /))
+!
+!
+!
+100 CONTINUE
+!The content of region_side decides what must be done
+SELECT CASE(region_side)
+!
+CASE('all','any')
+  !All atoms must be selected
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  Nselect = SIZE(P,1)
+  !
+  !
+CASE('index')
+  !All atoms must be un-selected, but one
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  IF( atomrank>SIZE(P,1) .OR. atomrank<=0 ) THEN
+    !index provided by user is out-of-bound
+    nerr = nerr+1
+    CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomrank)/))
+    Nselect = 0
+  ELSE
+    ALLOCATE( SELECT(SIZE(P,1)) )
+    SELECT(:) = .FALSE.
+    SELECT(atomrank) = .TRUE.
+    Nselect = 1
+  ENDIF
+  !
+  !
+CASE('invert','inv')
+  !Previous selection must be inverted
+  IF( .NOT.ALLOCATED(SELECT) .OR. SIZE(SELECT)<=0 ) THEN
+    !Previously all atoms were selected => inverting would mean selecting no atoms
+    !However selecting no atoms doesn't make sense, so we do nothing (SELECT remains unallocated)
+    Nselect = SIZE(P,1)
+  ELSE
+    !Atoms were selected before => invert selection
+    DO i=1,SIZE(SELECT)
+      SELECT(i) = .NOT.SELECT(i)
+      IF(SELECT(i)) THEN
+        Nselect = Nselect+1
+      ENDIF
+    ENDDO
+  ENDIF
+  !
+  !
+CASE('above','below')
+  !Select atoms that are above or below a distance along an axis
+  !region_dir=axis normal to plane; region_1(1)=distance along that axis
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  ALLOCATE( SELECT( SIZE(P,1) ) )
+  SELECT(:) = .TRUE.
+  !
+  SELECT CASE(region_dir)
+  CASE("x","X","y","Y","z","Z")
+    !region_dir contains a cartesian direction
+    !Define the axes: a3 is the direction of the main axis
+    SELECT CASE(region_dir)
+    CASE("x","X")
+      a1 = 1
+    CASE("y","Y")
+      a1 = 2
+    CASE("z","Z")
+      a1 = 3
+    CASE DEFAULT
+      CALL ATOMSK_MSG(2800,(/region_dir/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    END SELECT
+    WRITE(msg,*) 'a1 = ', a1
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,*) 'region_1(1) = ', region_1(1)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    IF(region_side=="above") THEN
+      !Select only atoms that are above the plane
+      DO i=1,SIZE(P,1)
+        IF( P(i,a1)>region_1(1) ) THEN
+          !atom is above the plane
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !atom is below the plane
+          SELECT(i) = .FALSE.
+        ENDIF
+      ENDDO
+    ELSE
+      !Select only atoms that are below the plane
+      DO i=1,SIZE(P,1)
+        IF( P(i,a1)<region_1(1) ) THEN
+          !atom is below the plane
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !atom is above the plane
+          SELECT(i) = .FALSE.
+        ENDIF
+      ENDDO
+    ENDIF
+    !
+  CASE DEFAULT
+    !region_dir should contain a crystallograhic direction
+    !convert it to a vector and save it in Vplane(1,:)
+    CALL INDEX_MILLER(region_dir,Vplane(1,:),j)
+    IF(j>0) GOTO 800
+    !
+    !If the system has a defined crystallographic orientation ORIENT,
+    !then Vplane(1,:) is defined in that basis
+    !=> rotate Vplane(1,:) to express it in cartesian basis
+    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+      DO i=1,3
+        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+      ENDDO
+      V1 = Vplane(1,1)
+      V2 = Vplane(1,2)
+      V3 = Vplane(1,3)
+      Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+      Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+      Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    ENDIF
+    !Normalize Vplane
+    Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
+    WRITE(msg,'(a8,3f12.3)') 'Vplane: ', Vplane(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !For each atom, determine if it is above or below the plane and select it
+    IF(region_side=="above") THEN
+      !Select only atoms that are above the plane
+      DO i=1,SIZE(P,1)
+        !determine if atom position is above or below the plane
+        tempreal = VEC_PLANE( Vplane(1,:) , region_1(1) , P(i,1:3) )
+        IF(tempreal>0.d0) THEN
+          !atom is above the plane
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !atom is below or in the plane
+          SELECT(i) = .FALSE.
+        ENDIF
+      ENDDO
+      !
+    ELSE
+      !Select only atoms that are below the plane
+      DO i=1,SIZE(P,1)
+        !determine if atom position is above or below the plane
+        tempreal = VEC_PLANE( Vplane(1,:) , region_1(1) , P(i,1:3) )
+        IF(tempreal<0.d0) THEN
+          !atom is below the plane
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !atom is above or in the plane
+          SELECT(i) = .FALSE.
+        ENDIF
+      ENDDO
+      !
+    ENDIF
+    !
+  END SELECT
+  !
+  !
+  !
+CASE('in','out')
+  !Select atoms inside or outside of a region
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  ALLOCATE( SELECT( SIZE(P,1) ) )
+  SELECT(:) = .TRUE.
+  !
+  SELECT CASE(region_geom)
+  !
+  CASE('box')
+  !region_1(:) = position of first corner of the box
+  !region_2(:) = position of last corner of the box
+  xmin = MIN( region_1(1),region_2(1) )
+  xmax = MAX( region_1(1),region_2(1) )
+  ymin = MIN( region_1(2),region_2(2) )
+  ymax = MAX( region_1(2),region_2(2) )
+  zmin = MIN( region_1(3),region_2(3) )
+  zmax = MAX( region_1(3),region_2(3) )
+  !
+  DO i=1,SIZE(P(:,1))
+    IF( P(i,1)>xmin .AND. P(i,1)<xmax .AND.                &
+      & P(i,2)>ymin .AND. P(i,2)<ymax .AND.                &
+      & P(i,3)>zmin .AND. P(i,3)<zmax       ) THEN
+      !If atom is inside the box...
+      IF(region_side=='in') THEN
+        !...and if we want to select the inside of the box, set to true
+        SELECT(i) = .TRUE.
+        Nselect = Nselect+1
+      ELSE
+        !...and if we want to select the outside of the box, set to false
+        SELECT(i) = .FALSE.
+      ENDIF
+    !
+    ELSE
+      !If atom is NOT inside the box...
+      IF(region_side=='in') THEN
+        !...and if we want to select the inside of the box, set to false
+        SELECT(i) = .FALSE.
+      ELSE
+        !...and if we want to select the outside of the box, set to true
+        SELECT(i) = .TRUE.
+        Nselect = Nselect+1
+      ENDIF
+    ENDIF
+  ENDDO
+  !
+  !
+  CASE('sphere')
+  !region_1(:) = center of the sphere
+  !region_2(1) = radius of the sphere
+  DO i=1,SIZE(P(:,1))
+    distance = VECLENGTH( P(i,1:3)-region_1(1:3) )
+    IF( distance<region_2(1) ) THEN
+      !If atom is inside the sphere...
+      IF(region_side=='in') THEN
+        !...and if we want to select the inside of the sphere, set to true
+        SELECT(i) = .TRUE.
+        Nselect = Nselect+1
+      ELSE
+        !...and if we want to select the outside of the sphere, set to false
+        SELECT(i) = .FALSE.
+      ENDIF
+    ELSE
+      !If atom is NOT inside the sphere...
+      IF(region_side=='in') THEN
+        !...and if we want to select the inside of the sphere, set to false
+        SELECT(i) = .FALSE.
+      ELSE
+        !...and if we want to select the outside of the sphere, set to true
+        SELECT(i) = .TRUE.
+        Nselect = Nselect+1
+      ENDIF
+    ENDIF
+  ENDDO
+  !
+  !
+  CASE('cylinder')
+    !Define the axes: a3 is the direction of the main axis
+    SELECT CASE(region_dir)
+    CASE("x","X")
+      a1 = 2
+      a2 = 3
+      a3 = 1
+    CASE("y","Y")
+      a1 = 3
+      a2 = 1
+      a3 = 2
+    CASE("z","Z")
+      a1 = 1
+      a2 = 2
+      a3 = 3
+    CASE DEFAULT
+      CALL ATOMSK_MSG(2800,(/region_dir/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    END SELECT
+    !region_1(1:2) = center of the cylinder (region_1(3) is ignored here)
+    !region_2(1) = radius of the cylinder
+    DO i=1,SIZE(P(:,1))
+      distance = VECLENGTH( (/P(i,a1)-region_1(1), P(i,a2)-region_1(2),0.d0/) )
+      IF( distance<region_2(1) ) THEN
+        !If atom is inside the cylinder...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the cylinder, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !...and if we want to select the outside of the cylinder, set to false
+          SELECT(i) = .FALSE.
+        ENDIF
+      ELSE
+        !If atom is NOT inside the sphere...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the cylinder, set to false
+          SELECT(i) = .FALSE.
+        ELSE
+          !...and if we want to select the outside of the cylinder, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+  END SELECT
+  !
+  !
+CASE('random','rand','random%','rand%')
+  !Select N atoms of the given species at random
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  !
+  IF( region_1(1)<=0.d0 ) THEN
+    !The user gave a zero or negative number of atoms to select => warning and exit
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2746,(/rand_sp/),(/DBLE(rand_N)/))
+    GOTO 1000
+  ENDIF
+  !
+  ALLOCATE( SELECT( SIZE(P,1) ) )
+  SELECT(:) = .FALSE.
+  snumber = 0.d0
+  rand_N  = region_1(1)
+  rand_sp = region_geom
+  !Check if rand_sp contains an atom species
+  IF( LEN_TRIM(rand_sp)<=2 ) THEN
+    species = TRIM(ADJUSTL(rand_sp))
+    CALL ATOMNUMBER(species,snumber)
+  ENDIF
+  !
+  IF( NINT(snumber)==0 ) THEN
+    species = ''
+    !rand_sp does not contain an atom species
+  ENDIF
+  !
+  i=0
+  sp_N = 0
+  IF(snumber>0.1d0) THEN
+    !rand_sp contains a species: only atoms of that species must be selected
+    !Count how many atoms of the given species exist in P
+    DO i=1,SIZE(P,1)
+      IF( NINT(P(i,4))==NINT(snumber) ) THEN
+        sp_N = sp_N+1
+      ENDIF
+    ENDDO
+  ELSE
+    !rand_sp is "all" or "any": atoms can be selected regardless of their species
+    sp_N = SIZE(P,1)
+  ENDIF
+  !
+  !If region_side contains "%" then the user wants to select a given percentage of atoms
+  !NOTE: the number was already divided by 100, don't do it again
+  IF( INDEX(region_side,"%") > 0 ) THEN
+    rand_N = NINT( region_1(1)*DBLE(sp_N) )
+  ENDIF
+  !
+  WRITE(msg,*) 'sp_N, rand_N = ', sp_N, rand_N
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  IF( sp_N==0 ) THEN
+    !no such atom in the system => exit
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2723,(/rand_sp/),(/0.d0/))
+    !
+  ELSEIF( sp_N < rand_N ) THEN
+    !The user asked to select more atoms than there are in the system.
+    !Warn about that and adjust the numbers
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2745,(/''/),(/DBLE(sp_N)/))
+    rand_N = sp_N
+    !This becomes simple, there is no randomness possible
+    IF(snumber>0.1d0) THEN
+      !All atoms of the given species must be selected
+      SELECT(:) = .FALSE.
+      DO i=1,SIZE(P,1)
+        IF( NINT(P(i,4)) == NINT(snumber) ) THEN
+          SELECT(i) = .TRUE.
+        ENDIF
+      ENDDO
+    ELSE
+      !All atoms must be selected
+      IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+    ENDIF
+    Nselect = sp_N
+    !
+  ELSE
+    !At last, this is what this part was written for:
+    !rand_N atoms must be selected at random.
+    !
+    !If rand_N < 0.5*sp_N then generate a random list of atoms to select.
+    !Otherwise it is faster to generate a list of atoms to be un-selected.
+    IF( DBLE(rand_N) <= 0.5d0*DBLE(sp_N) ) THEN
+      toselect = .TRUE.
+    ELSE
+      toselect = .FALSE.
+    ENDIF
+    !
+    !Generate random numbers
+    IF(toselect) THEN
+      CALL GEN_NRANDNUMBERS( rand_N , randarray )
+    ELSE
+      CALL GEN_NRANDNUMBERS( sp_N-rand_N , randarray )
+    ENDIF
+    !
+    !randarray now contains random real numbers between 0.d0 and 1.d0
+    !Sort them by increasing values (this is bubble sort algorithm)
+    DO j=1,SIZE(randarray)
+      DO i=j+1,SIZE(randarray)
+        !If element i is smaller than element j, swap them
+        IF( randarray(i) < randarray(j) ) THEN
+          tempreal = randarray(i)
+          randarray(i) = randarray(j)
+          randarray(j) = tempreal
+        ENDIF
+      ENDDO
+    ENDDO
+    IF(verbosity==4) THEN
+      WRITE(msg,*) 'randarray (sorted):', SIZE(randarray), ' entries'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      DO i=1,SIZE(randarray)
+        WRITE(msg,*) '     ', randarray(i)
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDDO
+    ENDIF
+    !
+    !Use it to generate the indices of the atoms that will be (un-)selected
+    ALLOCATE( atomindices(SIZE(randarray)) )
+    atomindices(:) = 0
+    DO i=1,SIZE(randarray)
+      !
+      atomrank = NINT(randarray(i)*sp_N)
+      !
+      IF( snumber>0.1d0 ) THEN
+        !Look for the atomrank-th atom of the given <species>
+        !and set atomindices(i) to its index
+        k=0
+        DO j=1,SIZE(P,1)
+          IF( NINT(P(j,4))==NINT(snumber) ) THEN
+            k=k+1
+            IF(k==atomrank) THEN
+              atomindices(i) = j
+              EXIT
+            ENDIF
+          ENDIF
+        ENDDO
+        !
+      ELSE
+        !Don't bother with atom species: look for the atomrank-th atom
+        !and set atomindices(i) to its index
+        k=0
+        DO j=1,SIZE(P,1)
+          k=k+1
+          IF(k==atomrank) THEN
+            atomindices(i) = j
+            EXIT
+          ENDIF
+        ENDDO
+      ENDIF
+      !
+      !Refuse illegal indices
+      IF( atomindices(i)==0 ) atomindices(i) = 1
+      !
+      !NOTE: There is a probability that the same index appears twice
+      !     in atomindices(:). Of course this probability is expected to be small
+      !     if rand_N << sp_N, but still the possibility should not be overlooked.
+      !     As a result we have to check for duplicate indices.
+      !     If the current index already exists in atomindices(:),
+      !     then increase it by 1 until it is different from all other indices
+      IF(i>1) THEN
+        161 CONTINUE
+        DO j=1,i-1  !loop on all values in atomindices(:)
+          IF ( atomindices(i)==atomindices(j) ) THEN
+            WRITE(msg,*) 'duplicate index in atomindices: ', &
+                      & atomindices(i), atomindices(j)
+            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+            !
+            atomindices(i) = atomindices(i)+1
+            !
+            IF( atomrank>=sp_N ) THEN
+              atomindices(i) = 1
+            ENDIF
+            IF( snumber>0.1d0 ) THEN
+              !Increase index until finding the next atom of the given species
+              DO WHILE( NINT(P(atomindices(i),4)).NE.NINT(snumber) )
+                atomindices(i) = atomindices(i)+1
+                IF( atomindices(i)>SIZE(P,1) ) THEN
+                  atomindices(i) = 1
+                ENDIF
+              ENDDO
+            ENDIF
+            !
+            WRITE(msg,*) '                     new index: ', atomindices(i)
+            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+            !Index of atomindices(i) has changed:
+            !go back to checking if it exists elsewhere in atomindices(:)
+            GOTO 161
+            !
+          ENDIF
+          !
+        ENDDO !atomindices(:)
+      ENDIF
+    ENDDO !i
+    !
+    IF(verbosity==4) THEN
+      WRITE(msg,*) 'indices of random atoms:'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      DO i=1,SIZE(atomindices)
+        WRITE(msg,*) '     ', atomindices(i)
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDDO
+    ENDIF
+    !
+    !Save the selection into SELECT
+    IF(toselect) THEN
+      !atomindices(:) contains the indices of atoms to select
+      SELECT(:) = .FALSE.
+      DO i=1,SIZE(atomindices)
+        SELECT(atomindices(i)) = .TRUE.
+        Nselect=Nselect+1
+      ENDDO
+    ELSE
+      !atomindices(:) contains the indices of atoms to un-select
+      Nselect = sp_N
+      SELECT(:) = .FALSE.
+      IF( snumber<0.1d0 ) THEN
+        !Select all atoms
+        SELECT(:) = .TRUE.
+      ELSE
+        !Select all atoms of the given species
+        DO i=1,SIZE(P,1)
+          IF( NINT(P(i,4))==NINT(snumber) ) THEN
+            SELECT(i) = .TRUE.
+          ENDIF
+        ENDDO
+      ENDIF
+      DO i=1,SIZE(atomindices)
+        !Un-select atoms with the given indices
+        SELECT(atomindices(i)) = .FALSE.
+        Nselect=Nselect-1
+      ENDDO
+    ENDIF
+    !
+  ENDIF
+  !
+  !
+CASE("neigh","neighbors")
+  !The neighbors of the atom with the given index must be searched
+  Nselect=0
+  exceeds100 = .FALSE.
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  ALLOCATE( SELECT( SIZE(P,1) ) )
+  SELECT(:) = .FALSE.
+  !region_1(1) = number of neighbors, or cutoff radius for neighbor search
+  !region_geom = species of neighboring atoms
+  !region_1(2) = index of central atom (=atom whose neighbors must be found)
+  !
+  atomrank = NINT( region_1(2) )
+  IF( atomrank>SIZE(P,1) .OR. atomrank<=0 ) THEN
+    !index provided by user is out-of-bound => display error and abandon ship
+    nerr = nerr+1
+    CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomrank)/))
+    Nselect = 0
+    GOTO 1000
+  ENDIF
+  !
+  snumber=-1.d0
+  !try to recognize if region_geom contains a recognizable species
+  species = TRIM(ADJUSTL(region_geom))
+  CALL ATOMNUMBER(species,snumber)
+  !
+  !Find how many different species exist in the system
+  CALL FIND_NSP(P(:,4),aentries)
+  !
+  IF( snumber>0.1d0 ) THEN
+    !Only atoms of a given species must be selected
+    !Check if the desired atom species exists in this system
+    k=0
+    DO i=1,SIZE(aentries,1)
+      IF( DABS(aentries(i,1)-snumber)<1.d-12 ) THEN
+        k=1  !found it
+      ENDIF
+    ENDDO
+    !
+    IF( k==0 ) THEN
+      !The species that should be selected does not exist in this system
+      !=> display warning and exit
+      CALL ATOMSPECIES(snumber,species)
+      CALL ATOMSK_MSG(2723,(/species/),(/0.d0/))
+      GOTO 1000
+    ENDIF
+    !
+    IF( SIZE(aentries,1)==1 ) THEN
+      !There is only one atom species and it must be selected => ignore species
+      snumber=-1.d0
+      !
+    ELSEIF( SIZE(aentries,1)>1 ) THEN
+      !There are several atom species
+      !Save positions of atoms of the species that must be selected
+      DO i=1,SIZE(aentries,1)
+        IF( .NOT.ALLOCATED(Q) .AND. DABS(aentries(i,1)-snumber)<1.d-12 ) THEN
+          !aentries(i,1) is the species that must be selected
+          !aentries(i,2) is the number of atoms of that species
+          ALLOCATE( Q( NINT(aentries(i,2)),4) )
+          Q(:,:) = 0.d0
+          !Save positions of atoms of given species into Q
+          k=0
+          DO j=1,SIZE(P,1)
+            IF( DABS(P(j,4)-snumber)<1.d-12 ) THEN
+              k=k+1
+              Q(k,:) = P(j,:)
+            ENDIF
+          ENDDO
+        ENDIF
+      ENDDO
+      !
+    ENDIF
+  ENDIF
+  !
+  !Search for the neighbors
+  !NOTE: the central atom must not be selected (only its neighbors are selected)
+  IF( region_1(1)==0.d0 ) THEN
+    !Search for the first nearest neighbors (their number or distance are unknown)
+    IF( snumber>0.1d0 .AND. ALLOCATED(Q) .AND. SIZE(Q,1)>0 ) THEN
+      CALL FIND_1NN(H,Q,P(atomrank,:),V_NN,Nlist,exceeds100)
+      IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    ELSE
+      CALL FIND_1NN(H,P,P(atomrank,:),V_NN,Nlist,exceeds100)
+    ENDIF
+    !
+    IF( exceeds100 ) THEN
+      !This atom has more than 100 neighbors => display a warning
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(4705,(/''/),(/DBLE(atomrank)/))
+    ENDIF
+    !
+    !The indices of neighbors are stored in Nlist => select these atoms
+    IF( SIZE(Nlist)>0 ) THEN
+      IF( snumber>0.1d0 ) THEN
+        !Count atoms of given species, select those who appear in Nlist(:)
+        k=0
+        DO i=1,SIZE(P,1)
+          IF( DABS(P(i,4)-snumber)<1.d-12 ) THEN
+            !This atom is of the desired species => increase counter
+            k=k+1
+            !Search if this index is in Nlist(:)
+            DO j=1,SIZE(Nlist)
+              IF( k==Nlist(j) .AND. k.NE.atomrank ) THEN
+                !Atom #i is in the list => select it
+                SELECT(i) = .TRUE.
+                Nselect = Nselect+1
+              ENDIF
+            ENDDO
+          ENDIF
+        ENDDO
+        !
+      ELSE
+        DO i=1,SIZE(Nlist)
+          IF( Nlist(i).NE.atomrank ) THEN
+            SELECT(Nlist(i)) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDDO
+      ENDIF
+    ENDIF
+    !
+  ELSEIF( region_1(1)>0.d0 .AND. IS_INTEGER(region_1(1)) ) THEN
+    !Search for the N closest neighbors
+    k=NINT(region_1(1))
+    IF( snumber<0.1d0 .OR. DABS(P(atomrank,4)-snumber)<1.d-12 ) THEN
+      !Look for 1 more neighbor because the central atom will be found as its own neighbor
+      !(this will be corrected for afterwards)
+      k = k+1
+    ENDIF
+    !
+    IF( snumber>0.1d0 .AND. ALLOCATED(Q) .AND. SIZE(Q,1)>0 ) THEN
+      CALL FIND_NNN(H,Q,P(atomrank,:),k,V_NN,Nlist,exceeds100)
+      IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    ELSE
+      CALL FIND_NNN(H,P,P(atomrank,:),k,V_NN,Nlist,exceeds100)
+    ENDIF
+    !
+    IF( exceeds100 ) THEN
+      !This atom has more than 100 neighbors => display a warning
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(4705,(/''/),(/DBLE(atomrank)/))
+    ENDIF
+    !
+    !The indices of neighbors are stored in Nlist => select these atoms
+    IF( SIZE(Nlist)>0 ) THEN
+      IF( snumber>0.1d0 ) THEN
+        !Count atoms of given species, select those who appear in Nlist(:)
+        k=0
+        DO i=1,SIZE(P,1)
+          IF( DABS(P(i,4)-snumber)<1.d-12 ) THEN
+            !This atom is of the desired species => increase counter
+            k=k+1
+            IF( i.NE.atomrank ) THEN
+              !Do not select central atom
+              !Search if this index is in Nlist(:)
+              DO j=1,SIZE(Nlist)
+                IF( k==Nlist(j) ) THEN
+                  !Atom #i is in the list => select it
+                  SELECT(i) = .TRUE.
+                  Nselect = Nselect+1
+                ENDIF
+              ENDDO
+            ENDIF
+          ENDIF
+        ENDDO
+        !
+      ELSE
+        !Easy case: select atoms with indices in Nlist(:)
+        DO i=1,SIZE(Nlist)
+          IF( Nlist(i).NE.atomrank ) THEN
+            SELECT(Nlist(i)) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDDO
+      ENDIF
+    ENDIF
+    !
+    !
+  ELSE
+    !Search for all neighbors in the radius R=DABS(region_1(1))
+    !This is similar to "-select in sphere"
+    !P(atomrank,:) = center of the sphere
+    !region_1(1) = radius of the sphere
+    DO i=1,SIZE(P,1)
+      distance = VECLENGTH( P(i,1:3) - P(atomrank,1:3) )
+      IF( distance < DABS(region_1(1)) ) THEN
+        !Atom is inside the sphere
+        IF( snumber<0.1d0 .OR. DABS(P(i,4)-snumber)<1.d-12 ) THEN
+          !We don't care about the atom species, or atom is of the right species => select it
+          IF( i.NE.atomrank ) THEN
+            SELECT(i) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDDO
+  ENDIF
+  !
+  !
+  !
+CASE DEFAULT
+  IF( LEN_TRIM(region_side)<=2 ) THEN
+    !Last case, it should be an atom species: select all atoms of the given species
+    IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+    !
+    CALL ATOMNUMBER(region_side(1:2),snumber)
+    IF( NINT(snumber)==0 ) THEN
+      !could not recognize an atom species => error
+      nerr=nerr+1
+      GOTO 1000
+    ELSE
+      !Select all atoms of the given species
+      ALLOCATE( SELECT( SIZE(P,1) ) )
+      SELECT(:) = .FALSE.
+      DO i=1,SIZE(P,1)
+        IF( NINT(P(i,4))==NINT(snumber) ) THEN
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
+      ENDDO
+    ENDIF
+  ENDIF
+  !
+  !
+END SELECT
+!
+!
+!
+300 CONTINUE
+CALL ATOMSK_MSG(2078,(/''/),(/DBLE(Nselect)/))
+GOTO 1000
+!
+!
+!
+800 CONTINUE
+CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
+nerr = nerr+1
+!
+!
+!
+1000 CONTINUE
+!IF( ALLOCATED(SELECT) .AND. Nselect<=0 .AND. SIZE(SELECT)>0 ) THEN
+!  DEALLOCATE(SELECT)
+!ENDIF
+!
+!
+END SUBROUTINE SELECT_XYZ
+!
+!
+END MODULE select

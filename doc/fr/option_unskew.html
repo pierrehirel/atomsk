@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option unskew - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : unskew</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-unskew</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de "détordre" la boîte. Soient les vecteurs de boîte suivants :</p>
+
+<p>
+<code>
+| H(1,1) H(1,2) H(1,3) | <br/>
+| H(2,1) H(2,2) H(2,3) | <br/>
+| H(3,1) H(3,2) H(3,3) |</code>
+</p>
+
+<p>Si un élément non-diagonal a une valeur supérieure à son composant principal (c-à-d. si <code>|H(i,j)|&#62;0.5*H(j,j)</code> pour i&ne;j) alors la boîte est considérée comme "tordue". Cette option "détord" la boîte (c-à-d. ajoute ou soustrait <code>H(j,j)</code> à la composante inciminée).</p>
+
+<p>Notez que les coordonnées (cartésiennes) des atomes ne sont pas modifiées par cette option, certains atomes peuvent donc se retrouver à l'extérieur de la nouvelle boîte. Pour les replacer à l'intérieur de la boîte il est possible d'utiliser l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut la boîte n'est pas détordue.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk system.xsf -unskew lmp</code>
+<p>Ceci lira le fichier <code>system.xsf</code>, détordra la boîte, et écrira le résultat final dans le fichier de données de LAMMPS <code>system.lmp</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

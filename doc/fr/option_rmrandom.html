@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option remove random atoms - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: remove random atoms</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-remove-random-atoms &#60;N&#62; &#60;species&#62;</code></p>
+
+<p><code>-rmrand &#60;N&#62; &#60;species&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option randomly removes N atoms of the given &#60;species&#62; from the system.</p>
+
+<p>If &#60;species&#62; is set to "any" or "all" then N atoms will be randomly removed from the system regardless of their species.</p>
+
+<p>Since this option attempts to generate random indices of the atoms to be removed it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
+
+<p>If atoms are selected with the <a href="./option_region.html">option <code>-region</code></a>, then only atoms from that region will be removed at random.</p>
+
+<p>Note that if the removed atoms had shells (in the sense of a core-shell model) and/or auxiliary properties, they are also deleted. In addition, some of the remaining atoms may have a different index after this option is applied.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default no atom is removed.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -rmrand 12 Fe final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, remove 12 iron atoms randomly from the system, and output the result to <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -rmrand 3 any final.xyz</code>
+<p>This will randomly remove 3 atoms from the system.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

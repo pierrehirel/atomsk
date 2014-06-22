@@ -1,0 +1,27 @@
+# Makefile for compiling atomsk on a Unix/Linux machine
+# Tested and works with GNU make and g95 0.91.
+
+# USAGE:
+#    make -f Makefile.g95
+# Or, to use parallel compilation:
+#    make -j3 -f Makefile.g95
+
+export
+
+# COMPILER:
+FORTRAN=g95
+
+# COMPILATION FLAGS:
+# -fmod is used to specify the folder where the compiler will store the *.mod files
+# -B/usr/lib/x86_64-linux-gnu/  for 64-bits systems
+# -B/usr/lib/i386-linux-gnu/    for 32-bits systems
+FFLAGS=-O2 -I../OBJ -fmod=../OBJ -B/usr/lib/x86_64-linux-gnu/
+
+# Path to the LAPACK library
+# If it is installed system-wide just use "-llapack"
+# If it is in a specific folder, use the option -L, e.g.:
+# LAPACK=-L/path/to/library  -llapack
+LAPACK=-llapack
+
+# Goto main Makefile
+include Makefile

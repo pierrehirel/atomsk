@@ -1,0 +1,17 @@
+# Makefile for compiling atomsk and installing it locally
+# (i.e. in the user's home directory).
+# All defaults are used (see main Makefile)
+# except the installation path which is defined below.
+
+# USAGE:
+#    make -f Makefile.local all
+
+export
+
+# Here we define the user's home directory as installation path.
+# This way, the program atomsk will be installed in ~/bin/
+# and the html documentation will be copied to ~/share/doc/atomsk/
+INSTPATH=~
+
+# Goto main Makefile
+include Makefile

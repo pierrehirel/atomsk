@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option orient - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: orient</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-orient &#60;(<em>hkl</em>)<sub>X</sub>&#62; &#60;(<em>hkl</em>)<sub>Y</sub>&#62; &#60;(<em>hkl</em>)<sub>Z</sub>&#62; &#60;(<em>hkl</em>)'<sub>X</sub>&#62; &#60;(<em>hkl</em>)'<sub>Y</sub>&#62; &#60;(<em>hkl</em>)'<sub>Z</sub>&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option rotates the system from a given crystallographic orientation into another one.</p>
+
+<p>The vectors for each crystallographic orientation must be given as Miller indices (see <a href="./options.html">how to specify Miller indices</a>).</p>
+
+<p>Note that the final crystallographic directions must form the same angles as the original ones.</p>
+
+<p>This option will affect some properties of the system (e.g. the elastic tensor) if they were read with the <a href="./option_properties.html">option <code>-properties</code></a> before the present option.</p>
+
+<p>Note that this option simply rotates the whole system, it does not modify it nor find a new unit cell. Creating a unit cell with a given crystal orientation can be done thanks to the <a href="./mode_create.html">mode <code>--create</code></a>.</p>
+
+
+
+
+<h4>Default</h4>
+
+<p>By default the orientation of the system is not changed.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -orient [110] [1-10] [001] [100] [010] [001] final.xsf</code>
+<p>The initial system (<code>initial.cfg</code>) has the crystallographic orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]. It will be rotated so that the [100] direction lies along X, the [010] along Y, and the [001] along Z. The final result will be output to <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -orient [001] [1_-1_0] 110 2_1_1 [0_-1_1] [1_-1_-1] final.xsf</code>
+<p>The system <code>initial.cfg</code>, with the original orientation X=[001], Y=[1<span class="over">1</span>0], Z=[110], will be rotated so that the [211] direction lies along X, the [0<span class="over">1</span>1] along Y, and the [1<span class="over">1</span><span class="over">1</span>] along Z. Note that both vector notations (with or without underscore or brackets) can be used in the same command line.</p></li>
+
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

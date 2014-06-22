@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option options - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: options</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-options &#60;file&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to read a list of options from a file.</p>
+
+<p>The &#60;file&#62; is a text file that must contain keywords followed by appropriate values. Each keyword must be a valid <a href="./options.html">option</a> and must be followed by its parameters, as it would be in a command-line.</p>
+
+<p>The options read from the &#60;file&#62; will substitute the call to the option <code>-options</code>.</p>
+
+<p>The option <code>-options</code> itself cannot be used in the &#60;file&#62;, and will be ignored if it does. In other words this option cannot be used recursively. However the option <code>-options</code> can be called several times in the same command-line.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default no option is read from any file.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><div class="txtfile">
+<h5>my_options.txt</h5>
+<p><code># This is just a comment<br/>
+# Re-orient the cell<br/>
+-orient [110] [1-10] [001] [100] [010] [001]<br/>
+# Replace atom types by actual species<br/>
+-sub 1 Si<br/>
+-sub 2 C<br/>
+</code></p></div>
+<code class="command">atomsk SiC_relaxed.lmc -options my_options.txt xsf</code>
+<p>This will read the LAMMPS output file <code>SiC_relaxed.lmc</code>, apply the options that are described in the file <code>my_options.txt</code>, and write the final result to <code>SiC_relaxed.xsf</code>.</p></li>
+
+
+<li><code class="command">atomsk initial.cfg -e 3 3 2 -options my_options.txt -alignx -wrap final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, <a href="./option_expand.html">expand the system</a> 3x3x2, then will apply the options described in <code>my_options.txt</code>, then will apply the options <a href="./option_alignx.html"><code>-alignx</code></a> and <a href="./option_wrap.html"><code>-wrap</code></a>, and finally will write the result in <code>final.xsf</code>.</p></li>
+
+
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Aperçu - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Aperçu</h2>
+
+<h4>But</h4>
+
+<p><code>Atomsk</code> est un programme en ligne de commandes conçu pour créer, manipuler, et convertir des systèmes atomiques. Il supporte de nombreux formats de fichiers, dont ceux de LAMMPS, VASP, Quantum Espresso, Atomeye, et xCrySDen (voir la <a href="./formats.html">liste des formats supportés</a>), ce qui facilite la conversion de fichiers pour les calculs <em>ab initio</em>, les simulations avec des potentiels inter-atomiques, ou la visualisation. De plus <code>atomsk</code> peut aussi effectuer des transformations simples sur les positions atomiques (grâce aux nombreuses <a href="./options.html">options</a>), comme créer des super-cellules, couper des plans cristallographiques, appliquer une contrainte, ou encore insérer des dislocations.</p>
+
+<p>Notez cependant que ce programme <em>n'a pas</em> pour vocation de préparer tous les fichiers, ni définir tous les paramètres de simulation, pour quelque utilisation particulière que ce soit. Dans la plupart des cas <code>atomsk</code> produira un fichier de positions atomiques qui ne sera qu'un brouillon, et qui devra être édité, modifié et/ou complété avant d'effectuer une simulation.</p>
+
+
+<h4>Démarrage rapide</h4>
+
+<p>La façon la plus simple d'obtenir ce code est de télécharger l'exécutable pour votre plate-forme depuis <a href="http://pierrehirel.info/codes_atomsk.php">cette page</a>. Si vous préférez compiler le code vous-même, lisez <a href="./install.html">ces instructions détaillées</a>.</p>
+
+<p>Ce programme est conçu pour être simple à utiliser. Si vous n'y connaissez  rien en programmation, ne savez pas par où commencer, ou voulez simplement convetir un fichier, exécutez simplement le  programme en ligne de commande :</p>
+<code class="command">atomsk</code>
+<p>et suivez les instructions. Une autre façon d'utiliser le programme pour convertir un fichier est d'utiliser le <a href="./mode_normal.html">mode normal</a>, qui permet de convertir un fichier vers un format donné :</p>
+
+<p><code class="command">atomsk &#60;fichier&#62; &#60;format&#62;</code></p>
+
+<p>Des exemples simples sont illustrés <a href="./examples.html">sur cette page</a>.</p>
+
+
+<h4>Obtenir de l'aide en ligne de commandes</h4>
+
+<p>Pour afficher un bref rappel des options en ligne de commande, tapez :</p>
+<code class="command">atomsk --help</code>
+
+
+<h4>Utilisation avancée</h4>
+
+<p>Malgré cette volonté de simplicité, <code>atomsk</code> permet également de réaliser des choses plus élaborées, comme :</p>
+
+<ul>
+  <li>conversion simultanée vers plusieurs formats ;</li>
+  <li><a href="./mode_filelist.html">convertir une liste de fichiers</a> ;</li>
+  <li><a href="./mode_merge.html">joindre deux ou plusieurs systèmes</a> ;</li>
+  <li><a href="./mode_create.html">créer des systèmes simples à partir de rien</a> ;</li>
+  <li><a href="./mode_polycrystal.html">créer un polycrystal</a> ;</li>
+  <li><a href="./mode_difference.html">calculer les différences de positions atomiques entre deux systèmes</a> ;</li>
+  <li>appliquer <a href="./options.html">des transformations</a> sur les positions atomiques ;</li>
+  <li>des paramètres personnels peuvent être enregistrés dans un <a href="./progbe_configfile.html">fichier de configuration</a>.</li>
+</ul>
+
+<p>Pour une utilisation avancée, référez-vous aux sections de <a href="./index.html">l'aide en ligne</a>.</p>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

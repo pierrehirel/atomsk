@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option substitute - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : substitute</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-substitute &#60;espèce1&#62; &#60;espèce2&#62;</code></p>
+
+<p><code>-sub &#60;espèce1&#62; &#60;espèce2&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de substituer les atomes d'une &#60;espèce1&#62; par des atomes d'une &#60;espèce2&#62;.</p>
+
+<p>L'&#60;espèce1&#62; et l'&#60;espèce2&#62; peuvent être donnés par leur symbole chimique ou par leur numéro atomique.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront substitués.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucun atome n'est substitué.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk sto.cfg -substitute 38 56 bto.xsf</code>
+<p>Ceci va lire le fichier <code>sto.cfg</code>, remplacer tous les atomes de strontium (numéro atomique 38) par des atomes de barium (numéro atomique 56), et écrire le résultat final dans <code>bto.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -sub Fe W final.xyz</code>
+<p>Ceci va lire <code>initial.cfg</code>, substituter les atomes de fer (Fe) par du tungstène (W), et écrire le résultat dans <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.lmc -sub 1 Si -sub 2 C final.xyz</code>
+<p>Cette option peut aussi être utile lors de la conversion de fichiers employant des "types" d'atomes (1, 2, 3...) au lieu de numéros atomiques, comme les <a href="./format_lmc.html">fichiers de LAMMPS (lmc)</a>. La commande ci-dessus remplacera les atomes de type 1 par du silicium (Si), et ceux de type 2 par du carbone (C).</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,658 @@
+MODULE properties
+!
+!**********************************************************************************
+!*  PROPERTIES                                                                    *
+!**********************************************************************************
+!* This module reads some system properties from a file.                          *
+!* We distinguish between "per-atom properties" which are saved in the            *
+!* array AUX as auxiliary properties, and "system-wide properties" which are      *
+!* saved in different arrays or strings.                                          *
+!**********************************************************************************
+!* (C) March 2011 - Pierre Hirel                                                  *
+!*     Unité Matériaux Et Transformations (UMET),                                 *
+!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     pierre.hirel@univ-lille1.fr                                                *
+!* Last modification: P. Hirel - 05 June 2014                                     *
+!**********************************************************************************
+!* This program is free software: you can redistribute it and/or modify           *
+!* it under the terms of the GNU General Public License as published by           *
+!* the Free Software Foundation, either version 3 of the License, or              *
+!* (at your option) any later version.                                            *
+!*                                                                                *
+!* This program is distributed in the hope that it will be useful,                *
+!* but WITHOUT ANY WARRANTY; without even the implied warranty of                 *
+!* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                  *
+!* GNU General Public License for more details.                                   *
+!*                                                                                *
+!* You should have received a copy of the GNU General Public License              *
+!* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
+!**********************************************************************************
+!
+USE atoms
+USE comv
+USE constants
+USE messages
+USE files
+USE subroutines
+!
+!
+CONTAINS
+!
+!
+SUBROUTINE READ_PROPERTIES(propfile,H,P,ORIENT,C_tensor,AUXNAMES,AUX)
+!
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: propfile
+CHARACTER(LEN=2):: species
+CHARACTER(LEN=16):: miller  !Miller indices
+CHARACTER(LEN=128):: msg, msg2
+CHARACTER(LEN=128):: temp, temp2
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
+LOGICAL:: chargeshell !are the charges for shells defined?
+LOGICAL:: readprop    !was the property read?
+LOGICAL,DIMENSION(3):: areortho
+INTEGER:: auxcol, qcol, qscol  !index of columns in AUX
+INTEGER:: i, j
+INTEGER:: Nprop  !number of per-atom properties declared in the file
+INTEGER:: vx, vy, vz !columns in AUX where atom velocities are stored
+REAL(dp):: a, b, c, alpha, beta, gamma
+REAL(dp):: aniA, aniH !anisotropy factors
+REAL(dp):: tempreal, tempreal2, tempreal3
+REAL(dp),DIMENSION(9):: Voigt     !Elastic constants (Voigt notation)
+REAL(dp),DIMENSION(3,3):: rot_matrix  !rotation matrix
+REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3),INTENT(INOUT):: ORIENT  !crystalographic orientation
+REAL(dp),DIMENSION(6,6):: S_tensor  !compliance tensor (6x6 tensor for inversion)
+REAL(dp),DIMENSION(9,9),INTENT(INOUT):: C_tensor  !elastic tensor
+REAL(dp),DIMENSION(100,3):: tempprop  !temp. array for per-atom properties (max.100 species)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX             !auxiliary properties (temporary)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P  !atom positions
+!
+!Initialize variables
+areortho(:) = .TRUE.
+ chargeshell = .FALSE.
+auxcol=0
+qcol = 0
+qscol = 0
+!
+!
+WRITE(msg,*) 'Entering READ_PROPERTIES: '
+CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+!
+CALL ATOMSK_MSG(2073,(/TRIM(propfile)/),(/0.d0/))
+!
+!Check that file exists
+CALL CHECKFILE(propfile,'read')
+!
+!
+!
+100 CONTINUE
+!Read properties from the file
+OPEN(UNIT=35,FILE=propfile,FORM='FORMATTED',STATUS='OLD')
+REWIND(35)
+DO
+  !Initialize variables
+  IF(ALLOCATED(newAUXNAMES)) DEALLOCATE(newAUXNAMES)
+  IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+  Nprop=0
+  tempprop(:,:) = 0.d0
+  !
+  READ(35,'(a128)',END=200,ERR=200) temp
+  temp = ADJUSTL(temp)
+  CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(temp))/),(/0.d0/))
+  !
+  !! SYSTEM-WIDE PROPERTIES !!
+  IF(LEN_TRIM(temp).NE.0 .AND. temp(1:1).NE.'#') THEN
+    IF(temp(1:9)=='supercell') THEN
+      msg = 'supercell vectors'
+      READ(35,*,END=800,ERR=800) H(1,1), H(1,2), H(1,3)
+      READ(35,*,END=800,ERR=800) H(2,1), H(2,2), H(2,3)
+      READ(35,*,END=800,ERR=800) H(3,1), H(3,2), H(3,3)
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+    !
+    ELSEIF(temp(1:12)=='conventional') THEN
+      msg = 'conventional vectors'
+      READ(35,*,END=800,ERR=800) a, b, c
+      READ(35,*,END=800,ERR=800) alpha, beta, gamma
+      alpha = DEG2RAD(alpha)
+      beta = DEG2RAD(beta)
+      gamma = DEG2RAD(gamma)
+      CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+    !
+    ELSEIF(temp(1:11)=='orientation') THEN
+      msg = 'system orientation'
+      READ(35,*,END=800,ERR=800) miller
+      CALL INDEX_MILLER(miller,ORIENT(1,:),j)
+      IF(j>0) GOTO 800
+      READ(35,*,END=800,ERR=800) miller
+      CALL INDEX_MILLER(miller,ORIENT(2,:),j)
+      IF(j>0) GOTO 800
+      READ(35,*,END=800,ERR=800) miller
+      CALL INDEX_MILLER(miller,ORIENT(3,:),j)
+      IF(j>0) GOTO 800
+      !
+      IF(verbosity==4) THEN
+        !Debug messages
+        DO i=1,3
+          WRITE(temp2,'(3(f10.3,1X))') (ORIENT(i,j), j=1,3)
+          CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        ENDDO
+      ENDIF
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !
+      !If vectors are not orthonormal, display a warning
+      CALL CHECK_ORTHOVEC( ORIENT(1,:), ORIENT(2,:), areortho(1) )
+      CALL CHECK_ORTHOVEC( ORIENT(2,:), ORIENT(3,:), areortho(2) )
+      CALL CHECK_ORTHOVEC( ORIENT(3,:), ORIENT(1,:), areortho(3) )
+      IF( ANY(.NOT.areortho(:)) ) THEN
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(2739,(/""/),(/0.d0/))
+      ENDIF
+      !
+      !If the elastic tensor is defined, rotate it
+      IF( C_tensor(1,1).NE.0.d0 ) THEN
+        !Define rotation matrix
+        DO i=1,3
+          rot_matrix(i,:) = ORIENT(i,:)/VECLENGTH(ORIENT(i,:))
+        ENDDO
+        C_tensor = ROTELAST( C_tensor, rot_matrix )
+        CALL ATOMSK_MSG(2099,(/""/),(/0.d0/))
+      ENDIF
+    !
+    ELSEIF(temp(1:7)=='elastic') THEN
+      msg = 'elastic tensor'
+      C_tensor(:,:) = 0.d0
+      !Check if it is Voigt notation
+      temp2 = TRIM(ADJUSTL(temp(8:)))
+      IF( TRIM(temp2)=="Voigt" .OR. TRIM(temp2)=="voigt" ) THEN
+        READ(35,*,END=800,ERR=800) Voigt(1), Voigt(2), Voigt(3)  !C11, C22, C33
+        READ(35,*,END=800,ERR=800) Voigt(4), Voigt(5), Voigt(6)  !C23, C31, C12
+        READ(35,*,END=800,ERR=800) Voigt(7), Voigt(8), Voigt(9)  !C44, C55, C66
+        CALL ELAST2TENSOR(Voigt,C_tensor)
+      ELSE
+        !Read the 6x6 tensor
+        DO i=1,6
+          READ(35,*,END=800,ERR=800) (C_tensor(i,j), j=1,6)
+        ENDDO
+        !Completion of the 9x9 tensor
+        C_tensor(1:3,7:9) = C_tensor(1:3,4:6)
+        C_tensor(4:6,7:9) = C_tensor(4:6,4:6)
+        C_tensor(7:9,1:3) = C_tensor(4:6,1:3)
+        C_tensor(7:9,4:6) = C_tensor(4:6,4:6)
+        C_tensor(7:9,7:9) = C_tensor(4:6,4:6)
+      ENDIF
+      IF(verbosity==4) THEN
+        temp2 = "Elastic tensor (GPa):"
+        CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        DO i=1,9
+          WRITE(temp2,'(9(e10.3,2X))') (C_tensor(i,j), j=1,9)
+          CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        ENDDO
+      ENDIF
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !Print the anisotropy ratio (A) and anisotropy factor (H)
+      aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
+      aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
+      CALL ATOMSK_MSG(2100,(/""/),(/aniA,aniH/))
+    !
+    ELSEIF(temp(1:10)=='compliance') THEN
+      msg = 'compliance tensor'
+      !Read compliances, save them in "S_tensor", and invert it to get C_tensor
+      !NOTE: the compliance tensor is a 9x9 tensor, however as such it
+      !     is not inversible because all of its lines are not linearly independant
+      !     (e.g. S(1,7)=S(1,4), S(1,8)=S(1,5) and so on). In order to invert it,
+      !     it is reduced to a 6x6 matrix, which is inverted to get the 6x6 elastic
+      !     tensor. Then it is completed to get the 9x9 elastic tensor.
+      C_tensor(:,:) = 0.d0
+      S_tensor(:,:) = 0.d0
+      !Check if it is Voigt notation or 6x6 tensor
+      temp2 = TRIM(ADJUSTL(temp(11:)))
+      IF( TRIM(temp2)=="Voigt" .OR. TRIM(temp2)=="voigt" ) THEN
+        !Voigt notation
+        READ(35,*,END=800,ERR=800) Voigt(1), Voigt(2), Voigt(3)
+        READ(35,*,END=800,ERR=800) Voigt(4), Voigt(5), Voigt(6)
+        READ(35,*,END=800,ERR=800) Voigt(7), Voigt(8), Voigt(9)
+        CALL ELAST2TENSOR(Voigt,S_tensor)
+      ELSE
+        !User gives the 6x6 compliance matrix
+        DO i=1,6
+          READ(35,*,END=800,ERR=800) (S_tensor(i,j), j=1,6)
+        ENDDO
+      ENDIF
+      IF(verbosity==4) THEN
+        temp2 = "Compliance tensor (1/GPa):"
+        CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        DO i=1,6
+          WRITE(temp2,'(6(e10.3,2X))') (S_tensor(i,j), j=1,6)
+          CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        ENDDO
+      ENDIF
+      !Invert the compliance tensor to get the elastic tensor
+      CALL INVMAT(S_tensor,C_tensor(1:6,1:6),i)
+      !If i is non-zero then the inversion failed
+      IF(i.NE.0) THEN
+        nerr=nerr+1
+        GOTO 800
+      ENDIF
+      !Otherwise (i=0) the C_tensor(:,:) now contains the 6x6 elastic tensor
+      !Completion of the 9x9 elastic tensor
+      C_tensor(1:3,7:9) = C_tensor(1:3,4:6)
+      C_tensor(4:6,7:9) = C_tensor(4:6,4:6)
+      C_tensor(7:9,1:3) = C_tensor(4:6,1:3)
+      C_tensor(7:9,4:6) = C_tensor(4:6,4:6)
+      C_tensor(7:9,7:9) = C_tensor(4:6,4:6)
+      IF(verbosity==4) THEN
+        temp2 = "Elastic tensor (GPa):"
+        CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        DO i=1,9
+          WRITE(temp2,'(9(e10.3,2X))') (C_tensor(i,j), j=1,9)
+          CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+        ENDDO
+      ENDIF
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !Print the anisotropy ratio (A) and anisotropy factor (H)
+      aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
+      aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
+      CALL ATOMSK_MSG(2100,(/""/),(/aniA,aniH/))
+    !
+    ! -- add other system-wide properties here --
+    !
+    !
+    !! PER-ATOM PROPERTIES !!
+    ELSEIF(temp(1:6)=='charge') THEN
+      msg = 'atom charges'
+      !Read charges and store it in "tempprop"
+      DO
+        READ(35,'(a128)',END=136,ERR=135) temp2
+        READ(temp2,*,END=136,ERR=135) species, tempreal
+        IF(LEN_TRIM(species)==0) EXIT
+        !
+        WRITE(msg2,*) TRIM(species), tempreal
+        CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg2))/),(/0.d0/))
+        !
+        CALL ATOMNUMBER(species,tempreal2)
+        IF(tempreal2>1.d-9) THEN
+          Nprop=Nprop+1
+          tempprop(Nprop,1) = tempreal2
+          tempprop(Nprop,2) = tempreal
+        ELSE
+          GOTO 135
+        ENDIF
+        !
+        !Look if the charge of shell is also defined
+        tempreal2=0.d0
+        READ(temp2,*,END=131,ERR=131) species, tempreal, tempreal2
+        IF( tempreal2.NE.0.d0 ) THEN
+          chargeshell = .TRUE.
+          tempprop(Nprop,3) = tempreal2
+        ENDIF
+        !
+        131 CONTINUE
+      ENDDO
+      135 CONTINUE
+      !Last line did not contain charge => go back two lines
+      BACKSPACE(35)
+      !Last line was an error => go back one line
+      136 CONTINUE
+      BACKSPACE(35)
+      !The charges must be saved as an auxiliary property in the array "AUX"
+      IF(ALLOCATED(AUX)) THEN
+        !AUX is already defined,
+        !check if it contains q and qs already
+        qcol=0
+        DO i=1,SIZE(AUXNAMES(:))
+          IF( AUXNAMES(i)=="q" ) THEN
+            qcol=i
+            EXIT
+          ELSEIF( AUXNAMES(i)=="qs" ) THEN
+            qscol=i
+            EXIT
+          ENDIF
+        ENDDO
+        !If if doesn't contain q, expand the arrays
+        !Also expand it if we need to store the charges of shells
+        IF(qcol==0) THEN
+          qcol = SIZE(AUX,2)+1
+          IF(chargeshell) THEN
+            qscol = SIZE(AUX,2)+2
+            ALLOCATE( newAUX( SIZE(AUX,1), qscol ) )
+          ELSE
+            ALLOCATE( newAUX( SIZE(AUX,1), qcol ) )
+          ENDIF
+          DO i=1,SIZE(AUX,1)
+            DO j=1,SIZE(AUX,2)
+              newAUX(i,j) = AUX(i,j)
+            ENDDO
+          ENDDO
+          newAUX(:,qcol) = 0.d0
+          IF(chargeshell) THEN
+            newAUX(:,qscol) = 0.d0
+          ENDIF
+          DEALLOCATE(AUX)
+          ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) )
+          AUX(:,:) = newAUX(:,:)
+          DEALLOCATE(newAUX)
+          !Same with array AUXNAMES
+          IF(chargeshell) THEN
+            ALLOCATE(newAUXNAMES( qscol ))
+          ELSE
+            ALLOCATE(newAUXNAMES( qcol ))
+          ENDIF
+          DO i=1,SIZE(AUXNAMES(:))
+            newAUXNAMES(i) = AUXNAMES(i)
+          ENDDO
+          DEALLOCATE(AUXNAMES)
+          ALLOCATE(AUXNAMES( SIZE(newAUXNAMES(:)) ))
+          AUXNAMES(:) = newAUXNAMES(:)
+          DEALLOCATE(newAUXNAMES)
+        ENDIF
+        !
+      ELSE
+        !No auxiliary property exist => allocate AUX and store charges inside
+        IF(chargeshell) THEN
+          ALLOCATE( AUX(SIZE(P,1),2) )
+          ALLOCATE( AUXNAMES(2) )
+          qcol = 1
+          qscol = 2
+        ELSE
+          ALLOCATE( AUX(SIZE(P,1),1) )
+          ALLOCATE( AUXNAMES(1) )
+          qcol = 1
+        ENDIF
+        AUX(:,:) = 0.d0
+      ENDIF
+      !Set names of auxiliary properties
+      AUXNAMES(qcol) = 'q'
+      IF(chargeshell) THEN
+        AUXNAMES(qscol) = 'qs'
+      ENDIF
+      !Save charges in AUX
+      DO i=1,SIZE(P,1)
+        DO j=1,SIZE(tempprop,1)
+          IF( DABS( tempprop(j,1)-P(i,4) )<1.d-9 ) THEN
+            AUX(i,qcol) = tempprop(j,2)
+            IF(chargeshell) THEN
+              AUX(i,qscol) = tempprop(j,3)
+            ENDIF
+          ENDIF
+        ENDDO
+      ENDDO
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+    !
+    ELSEIF(temp(1:4)=='type') THEN
+      msg = 'atom types'
+      !Read pairs of (species,type) and store it in "tempprop"
+      DO
+        READ(35,*,END=141,ERR=140) species, tempreal
+        IF(LEN_TRIM(species)==0) EXIT
+        !
+        WRITE(temp2,*) TRIM(species), tempreal
+        CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(temp2))/),(/0.d0/))
+        !
+        CALL ATOMNUMBER(species,tempreal2)
+        IF(tempreal2>1.d-9) THEN
+          Nprop=Nprop+1
+          tempprop(Nprop,1) = tempreal2
+          tempprop(Nprop,2) = tempreal
+        ELSE
+          GOTO 140
+        ENDIF
+      ENDDO
+      140 CONTINUE
+      !Last line did not contain type => go back two lines
+      BACKSPACE(35)
+      141 CONTINUE
+      BACKSPACE(35)
+      !The types must be saved as an auxiliary property in the array "AUX"
+      IF(ALLOCATED(AUX)) THEN
+        !AUX is already defined,
+        !check if it contains type already
+        auxcol=0
+        DO i=1,SIZE(AUXNAMES(:))
+          IF( AUXNAMES(i)=="type" ) THEN
+            auxcol=i
+            EXIT
+          ENDIF
+        ENDDO
+        !If if doesn't contain type, expand the arrays
+        IF(auxcol==0) THEN
+          auxcol = SIZE(AUX,2)+1
+          ALLOCATE( newAUX( SIZE(AUX,1), auxcol ) )
+          DO i=1,SIZE(AUX,1)
+            DO j=1,SIZE(AUX,2)
+              newAUX(i,j) = AUX(i,j)
+            ENDDO
+          ENDDO
+          newAUX(:,auxcol) = 0.d0
+          DEALLOCATE(AUX)
+          ALLOCATE( AUX( SIZE(newAUX,1), auxcol ) )
+          AUX(:,:) = newAUX(:,:)
+          DEALLOCATE(newAUX)
+          !Same with array AUXNAMES
+          ALLOCATE(newAUXNAMES( auxcol ))
+          DO i=1,SIZE(AUXNAMES(:))
+            newAUXNAMES(i) = AUXNAMES(i)
+          ENDDO
+          DEALLOCATE(AUXNAMES)
+          ALLOCATE(AUXNAMES(auxcol))
+          AUXNAMES(:) = newAUXNAMES(:)
+          DEALLOCATE(newAUXNAMES)
+        ENDIF
+        !
+      ELSE
+        !No auxiliary property exist => allocate AUX and store types inside
+        ALLOCATE( AUX(SIZE(P,1),1) )
+        AUX(:,:) = 0.d0
+        ALLOCATE( AUXNAMES(1) )
+        auxcol = 1
+      ENDIF
+      !Set 'type' as name of auxiliary property
+      AUXNAMES(auxcol) = 'type'
+      !Save atom types in AUX
+      DO i=1,SIZE(P,1)
+        DO j=1,SIZE(tempprop,1)
+          IF( DABS( tempprop(j,1)-P(i,4) )<1.d-9 ) THEN
+            AUX(i,auxcol) = tempprop(j,2)
+          ENDIF
+        ENDDO
+      ENDDO
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+    !
+    ELSEIF(temp(1:8)=='velocity') THEN
+      msg = 'atom velocities'
+      temp2 = TRIM(ADJUSTL(temp(9:)))
+      msg2=""
+      READ(temp2,*,ERR=150,END=150) msg2
+      150 CONTINUE
+      !Read velocities and save them in the array "AUX"
+      IF(ALLOCATED(AUX)) THEN
+        !AUX is already defined,
+        !check if it contains vx, vy, vz already
+        vx=0
+        vy=0
+        vz=0
+        DO i=1,SIZE(AUXNAMES(:))
+          IF( TRIM(ADJUSTL(AUXNAMES(i))) == "vx" ) THEN
+            vx = i
+          ELSEIF( TRIM(ADJUSTL(AUXNAMES(i))) == "vy" ) THEN
+            vy = i
+          ELSEIF( TRIM(ADJUSTL(AUXNAMES(i))) == "vz" ) THEN
+            vz = i
+          ENDIF
+        ENDDO
+        !If if doesn't contain that property, expand the arrays
+        IF( vx==0 .OR. vy==0 .OR. vz==0 ) THEN
+          vx = SIZE(AUX,2)+1
+          vy = SIZE(AUX,2)+2
+          vz = SIZE(AUX,2)+3
+          ALLOCATE( newAUX( SIZE(AUX,1), vz ) )
+          DO i=1,SIZE(AUX,1)
+            DO j=1,SIZE(AUX,2)
+              newAUX(i,j) = AUX(i,j)
+            ENDDO
+          ENDDO
+          newAUX(:,auxcol) = 0.d0
+          DEALLOCATE(AUX)
+          ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) )
+          AUX(:,:) = newAUX(:,:)
+          DEALLOCATE(newAUX)
+          !Same with array AUXNAMES
+          ALLOCATE(newAUXNAMES( vz ))
+          DO i=1,SIZE(AUXNAMES(:))
+            newAUXNAMES(i) = AUXNAMES(i)
+          ENDDO
+          DEALLOCATE(AUXNAMES)
+          ALLOCATE(AUXNAMES(auxcol))
+          AUXNAMES(:) = newAUXNAMES(:)
+          DEALLOCATE(newAUXNAMES)
+        ENDIF
+        !
+      ELSE
+        !No auxiliary property exist at all => allocate AUX and store velocities inside
+        ALLOCATE( AUX(SIZE(P,1),3) )
+        AUX(:,:) = 0.d0
+        ALLOCATE( AUXNAMES(3) )
+        vx = 1
+        vy = 2
+        vz = 3
+      ENDIF
+      !Set the name of that auxiliary property
+      AUXNAMES(vx) = "vx"
+      AUXNAMES(vy) = "vy"
+      AUXNAMES(vz) = "vz"
+      !Read the velocity for each atom and save it
+      !Note: the values may not be given for all atoms
+      DO
+        readprop=.FALSE.
+        READ(35,'(a128)',END=153,ERR=153) msg2
+        READ(msg2,*,END=152,ERR=152) i, tempreal, tempreal2, tempreal3
+        IF( i>0 .AND. i<=SIZE(AUX,1) ) THEN
+          AUX(i,vx) = tempreal
+          AUX(i,vy) = tempreal2
+          AUX(i,vz) = tempreal3
+          readprop=.TRUE.
+        ENDIF
+        !
+        152 CONTINUE
+        IF(.NOT.readprop) THEN
+          CALL ATOMSK_MSG(2749,(/AUXNAMES(auxcol)/),(/DBLE(i)/))
+          nwarn=nwarn+1
+        ENDIF
+      ENDDO
+      153 CONTINUE
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !
+    ELSEIF(temp(1:9)=='auxiliary') THEN
+      !A list of values for atoms is defined
+      !Read the name of the auxiliary property
+      msg = TRIM(ADJUSTL(temp(10:)))
+      IF( LEN_TRIM(msg)==0 ) msg = "undefined"
+      !This auxiliary property must be saved in the array "AUX"
+      IF(ALLOCATED(AUX)) THEN
+        !AUX is already defined,
+        !check if it contains that property already
+        auxcol=0
+        DO i=1,SIZE(AUXNAMES(:))
+          IF( TRIM(ADJUSTL(AUXNAMES(i))) == TRIM(ADJUSTL(msg)) ) THEN
+            auxcol=i
+            EXIT
+          ENDIF
+        ENDDO
+        !If if doesn't contain that property, expand the arrays
+        IF(auxcol==0) THEN
+          auxcol = SIZE(AUX,2)+1
+          ALLOCATE( newAUX( SIZE(AUX,1), auxcol ) )
+          DO i=1,SIZE(AUX,1)
+            DO j=1,SIZE(AUX,2)
+              newAUX(i,j) = AUX(i,j)
+            ENDDO
+          ENDDO
+          newAUX(:,auxcol) = 0.d0
+          DEALLOCATE(AUX)
+          ALLOCATE( AUX( SIZE(newAUX,1), auxcol ) )
+          AUX(:,:) = newAUX(:,:)
+          DEALLOCATE(newAUX)
+          !Same with array AUXNAMES
+          ALLOCATE(newAUXNAMES( auxcol ))
+          DO i=1,SIZE(AUXNAMES(:))
+            newAUXNAMES(i) = AUXNAMES(i)
+          ENDDO
+          DEALLOCATE(AUXNAMES)
+          ALLOCATE(AUXNAMES(auxcol))
+          AUXNAMES(:) = newAUXNAMES(:)
+          DEALLOCATE(newAUXNAMES)
+        ENDIF
+        !
+      ELSE
+        !No auxiliary property exist => allocate AUX and store types inside
+        ALLOCATE( AUX(SIZE(P,1),1) )
+        AUX(:,:) = 0.d0
+        ALLOCATE( AUXNAMES(1) )
+        auxcol = 1
+      ENDIF
+      !Set the name of that auxiliary property
+      AUXNAMES(auxcol) = TRIM(msg)
+      !Read the property for each atom and save it
+      !Note: the values may not be given for all atoms
+      DO
+        readprop=.FALSE.
+        READ(35,'(a128)',END=163,ERR=163) msg2
+        IF( LEN_TRIM(msg2)>0 ) THEN
+          READ(msg2,*,END=162,ERR=162) i, tempreal
+          IF( i>0 .AND. i<=SIZE(AUX,1) ) THEN
+            AUX(i,auxcol) = tempreal
+            readprop=.TRUE.
+          ENDIF
+          !
+          162 CONTINUE
+          IF(.NOT.readprop) THEN
+            CALL ATOMSK_MSG(2749,(/AUXNAMES(auxcol)/),(/DBLE(i)/))
+            nwarn=nwarn+1
+          ENDIF
+        ELSE
+          EXIT
+        ENDIF
+      ENDDO
+      163 CONTINUE
+      CALL ATOMSK_MSG(2074,(/AUXNAMES(auxcol)/),(/0.d0/))
+    !
+    ! -- add other per-atom properties here --
+    !
+    ELSE
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(2732,(/TRIM(ADJUSTL(temp))/),(/0.d0/))
+      GOTO 190
+    ENDIF
+    !
+  ENDIF
+  !
+  190 CONTINUE
+ENDDO
+!
+!
+!
+200 CONTINUE
+CLOSE(35)
+CALL ATOMSK_MSG(2075,(/''/),(/0.d0/))
+GOTO 1000
+!
+!
+!
+800 CONTINUE
+CALL ATOMSK_MSG(2802,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+nerr = nerr+1
+GOTO 1000
+!
+!
+!
+1000 CONTINUE
+!
+!
+END SUBROUTINE READ_PROPERTIES
+!
+!
+!
+END MODULE properties

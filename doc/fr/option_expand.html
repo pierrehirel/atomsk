@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option expand - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : expand</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-expand &#60;ex&#62; &#60;ey&#62; &#60;ez&#62;</code></p>
+
+<p><code>-e &#60;ex&#62; &#60;ey&#62; &#60;ez&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet d'étendre, ou dupliquer, un système dans les trois directions de l'espace. Elle peut être utile par ex. pour construire une supercellule à partir d'une cellule élémentaire.</p>
+
+<p>Les vecteurs de translation utilisés pour répéter le système sont ceux lus depuis le fichier d'entrée, notés <code>Hx</code>, <code>Hy</code> et <code>Hz</code>. Les paramètres associés avec cette option sont :</p>
+
+<ul>
+  <li><strong>ex</strong> : nombre de répétitions du système suivant <code>Hx</code>;</li>
+  <li><strong>ey</strong> : nombre de répétitions du système suivant <code>Hy</code>;</li>
+  <li><strong>ez</strong> : nombre de répétitions du système suivant <code>Hz</code>.</li>
+</ul>
+
+<p>Si toutes les valeurs sont égales à 1 alors le système reste identique. Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système.</p>
+
+<p>Dans le fichier de sortie, les répliques du système original sont ajoutées à la suite des positions originelles. Pour modifier l'ordre dans lequel les atomes apparaissent il est possible d'employer l'<a href="./option_sort.html">option <code>-sort</code></a>.</p>
+
+<p>Si les atomes originels possèdent des propriétés auxiliaires, leurs répliques possèderont les mêmes valeurs de ces propriétés.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront dupliqués.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le système n'est pas étendu.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk cellule_elementaire.cfg -e 2 2 4 supercellule.xyz</code>
+<p>Ceci lira le fichier <code>cellule_elementaire.cfg</code>, l'étendra pour former une supercellule de taille 2x2x4, et écrira le système final dans <code>supercellule.xyz</code>.</p></li>
+
+<li><code class="command">atomsk supercell.xyz unitcell.cfg -e 2 2 4</code>
+<p>Identique à l'exemple précédent. Notez que l'enchaînement <code>-e 2 2 4</code> ne doit pas être cassé, en revanche les noms des fichiers d'entrée et de sortie peuvent apparaître dans n'importe quel ordre.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

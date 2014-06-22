@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option region - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: region</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-unitcell</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option finds the minimum cartesian unit cell for the system. This option requires the lattice constant and the crystallographic orientation of the system to work properly.</p>
+
+<p>Given the Miller indices <code>hkl</code> of each direction, the unit cell for a given crystallographic orientation is defined as:</p>
+
+http://fr.wikipedia.org/wiki/Distance_interr%C3%A9ticulaire
+
+<p><code>d<sub>hkl</sub> = a / sqrt(h<sup>2</sup>+k<sup>2</sup>+l<sup>2</sup>)</code></p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -orient 100 010 001 001 1-10 110 -unitcell unitcell.xyz</code>
+<p>This will read the file <code>initial.cfg</code>, <a href="./option_orient.html">orient it</a> and then find the unit cell for the new orientation, which will be output to <code>unitcell.xyz</code>.</p></li>
+
+<li><code class="command">atomsk --create fcc 3.8 Cu -orient 100 010 001 001 1-10 110 -unitcell unitcell.xyz</code>
+<p>This will <a href="./mode_create.html">create</a> a unit cell of copper, <a href="./option_orient.html">orient it</a> and then find the unit cell for the new orientation, which will be output to <code>unitcell.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -properties sys.txt -unitcell final.xyz</code>
+<p>This will use the <a href="./mode_properties.html">properties</a> (crystal orientation...) from the file <code>sys.txt</code> and use it to find the unit cell.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

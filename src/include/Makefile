@@ -1,0 +1,32 @@
+# Makefile for compiling common modules of atomsk
+
+# List of source files (order is very important here)
+# Localization (l10n) modules: additional languages can be added here
+L10N=messages_FR.f90
+
+SGE=comv.f90              \
+    constants.f90         \
+    atoms.f90             \
+    functions.f90         \
+    subroutines.f90       \
+    neighbors.f90         \
+    display_messages.f90  \
+    messages_EN.f90       \
+    $(L10N)               \
+    messages.f90          \
+    files.f90             \
+    guess_format.f90      \
+    read_cla.f90          \
+    determine_H.f90       \
+    readconf.f90          \
+    qepw_ibrav.f90
+
+# Object files
+OGE=$(SGE:.f90=.o)
+
+VPATH=..$(SEP)$(OBJ)
+#Default rule to make targets
+%.o : %.f90
+	$(FORTRAN) $(FFLAGS) -o ..$(SEP)$(OBJ)$(SEP)$@  -c $< 
+
+general: $(OGE)

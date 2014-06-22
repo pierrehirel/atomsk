@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode moments dipolaires - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : moments dipolaires électriques</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --edm &#60;fichier&#62; &#60;Pespèce&#62; &#60;NNN&#62; [options]</code></p>
+
+<h4>Description</h4>
+
+<p>Ce mode calcule les moments dipolaires individuels de polyèdres donnés, un polyèdre étant ici défini par un ion central entouré d'ions d'un autre type. Pour chaque polyèdre le <strong>moment dipolaire électrique</strong> est défini comme la différence des centres de charges positives et négatives :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>p</strong>(<strong>r</strong><sub>cm</sub>) =  <strong>&sum;</strong> q<sub>i</sub>(<strong>r</strong><sub>i</sub>-<strong>r</strong><sub>cm</sub>)</code></p>
+
+<p>où <strong>r</strong><sub>cm</sub> est la position du <em>centre de masse</em> du polyèdre, et la somme court sur tous les ions formant le polyèdre.</p>
+
+<p>Les paramètres associés avec le mode <code>edm</code> sont :</p>
+<ul>
+  <li><strong>fichier</strong>: fichier contenant les positions atomiques ; doit être dans l'un des <a href="./formats.html">formats supportés par <code>atomsk</code></a>;</li>
+  <li><strong>Pespèce</strong>: espèce chimique des atomes situés aux coins du polyèdre (voir ci-dessous) ;</li>
+  <li><strong>NNN</strong>: nombre de premiers voisins, ou rayon de coupure pour la recherche des voisins (voir ci-dessous).</li>
+</ul>
+
+<p>Ce mode ne calculera rien si les <strong>charges des ions</strong> ne sont pas définies. Les charges peuvent être lues depuis le &#60;fichier&#62; (voir <a href="./formats.html">cette page</a> pour la liste des formats supportant les charges <code>q</code>), ou en utilisant l'<a href="./option_properties.html">option <code>-properties</code></a>. Par exemple, soit un système fictif constitué d'ions A<sup>3+</sup>, B<sup>2+</sup> et C<sup>2-</sup>, alors ces charges peuvent être écrites dans un fichier texte au format suivant et lu avec l'option <code>-properties</code>:</p>
+
+<div class="txtfile"><h5>charges.txt</h5>
+<p><code>charge<br/>
+A 3<br/>
+B 2<br/>
+C -2<br/>
+</code></p></div>
+
+<p>Si un modèle c&oelig;ur-coquille est utilisé, alors les charges du c&oelig;ur et de la coquille doivent être entrées comme spécifié dans l'<a href="./option_properties.html">option <code>-properties</code></a>. Dans ce cas <code><strong>r</strong><sub>i</sub></code> sera la position du noyau, et <code>q<sub>i</sub></code> sera la charge totale de l'ion (c&oelig;ur + coquille).</p>
+
+<p>La <strong>Pespèce</strong> est l'espèce chimique située aux coins du polyèdre. En reprenant l'exemple ci-dessus, si les ions C sont aux coins des polyèdres, alors les polyèdres A-C (c-à-d. avec un ion A au centre et des ions C aux coins) et B-C seront inclus dans le calcul.</p>
+
+<p><strong>Une valeur positive de NNN</strong> doit être un entier indiquant le nombre de voisins formant le polyèdre, peu importe leur distance. Par exemple si les atomes A sont censés se trouver dans des sites tétraédriques formés par des atomes C (configuration AC<sub>4</sub>) alors utilisez NNN=4, et les quatre premiers voisins de chaque atome A seront utilisés. S'il s'agit de sites octahédriques utilisez NNN=6, etc. Ce type de valeur est recommandé si les atomes A et B occupent le même type de site dans la structure (par ex. seulement des sites octahédriques).</p>
+
+<p><strong>Une valeur négative de NNN</strong> peut être un nombre réel. Sa valeur absolue sera utilisée comme rayon de coupure pour la recherche de voisins, autrement dit tous les atomes C situés dans ce rayon seront utilisés dans le calcul. Ceci est recommandé si les atomes A et B occupent des sites différents.</p>
+
+<p>Si <strong>NNN=0</strong> alors <code>atomsk</code> tentera de trouver les premiers voisins de chaque atome. Notez que si les polyèdres sont très déformés cette recherche peut échouer ou fournir un nombre incorrect de voisins, et les moments calculés seront incorrects.</p>
+
+<p>La recherche de voisins prend en compte les images périodiques (en utilisant les vecteurs de boîte contenus dans le &#60;fichier&#62;). Notez que cette recherche peut être lente, surtout pour les gros systèmes. Ce temps peut être diminué en <a href="./option_cut.html">coupant le système</a> pour ne conserver que la partie intéressante. Si le nombre de voisins dépasse 100 pour un atome, un message d'avertissement le signalera, il est donc recommandé de ne pas utiliser NNN&#62;100 ni un rayon de coupure qui engloberait plus de cent atomes. Par ailleurs, il peut être nécessaire d'<a href="./option_wrap.html">emballer les atomes</a> pour que la recherche de voisins donne de bons résultats.</p>
+
+<p>Par défaut les moments dipolaires sont censés être en e.&Aring;, c-à-d. environ 1.602 10<sup>-29</sup> C.m ou 4.803 Debye. Toutefois cela dépend des unités des positions atomiques contenues dans le &#60;fichier&#62;, et de l'unité des charges lues avec l'option <code>-properties</code>.</p>
+
+<p>La <strong>polarisation totale</strong> de la boîte est également définie comme la somme sur tous les ions du système :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>P</strong> = V<sup>-1</sup> <strong>&sum;</strong> q<sub>i</sub> <strong>r</strong><sub>i</sub></code></p>
+
+<p>où V est le volume de la boîte. Par défaut la polarisation totale est censée être en e/&Aring;<sup>2</sup>, mais là encore cela dépend des unités utilisées dans les fichiers d'entrée. Notez que si le système a une charge totale nulle alors le vecteur de polarisation est indépendant du point d'observation (qui est arbitrairement défini en (0,0,0) ici).</p>
+
+<p>À la fin du calcul les fichiers suivants sont produits (où &#60;A&#62; et &#60;C&#62; sont remplacés par les symboles atomiques) :</p>
+
+<ul>
+  <li><strong>*_edm_&#60;A&#62;&#60;C&#62;.xsf</strong>: fichiers au format XSF format contenant les positions des atomes &#60;A&#62; et le moment dipolaire associé à leur polyèdre ; xCrySDen peut lire de tels fichiers et afficher les vecteurs, cependant il els interprète comme des forces (et non comme des vecteurs de polarisation), il peut donc être difficile de visualiser ces vecteurs à la bonne échelle.</li>
+  <li><strong>*_edm_&#60;A&#62;&#60;C&#62;.norm</strong>: norme des moments dipolaires pour chaque atome &#60;A&#62;.</li>
+  <li><strong>*_edm_all.xsf</strong>: fichier au format XSF contenant les positions de tous les atomes et les moments dipolaires associés à leurs polyèdres ; peut être visualisé avec xCrySDen, les mêmes restrictions que ci-dessus s'appliquent.</li>
+  <li><strong>*_edm_all.dat</strong>: fichier contenant les positions de tous les atomes et les moments dipolaires associés à leurs polyèdres ; un tel fichier peut être visualisé par ex. avec gnuplot.</li>
+  <li><strong>*_edm_all.cfg</strong>: fichier au format CFG contenant les positions de tous les atomes, et les composantes (X,Y,Z) et normes des moments dipolaires associés avec leurs polyèdres.</li>
+  <li><strong>*_edm_stat.txt</strong>: statistiques sur les moments dipolaires (valeurs min/max, écart type...).</li>
+  <li><strong>*_Ptot.txt</strong>: vecteur de polarisation totale de la boîte.</li>
+</ul>
+
+<p>Si ce mode est utilisé avec des <a href="./options.html">options</a> alors elles seront appliquées <em>avant</em> le calcul des moments dipolaires.</p>
+
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --edm NaCl.xsf Cl 6</code>
+<p>Ceci ne calculera rien car les charges des ions ne sont pas définies.</p></li>
+
+<li>
+<div class="txtfile"><h5>nacl.txt</h5>
+<p><code>charge<br/>
+Na 1<br/>
+Cl -1<br/>
+</code></p></div>
+<code class="command">atomsk --edm NaCl.xsf Cl 6 -properties nacl.txt</code>
+<p><code>atomsk</code> va lire les positions des atomes depuis <code>NaCl.xsf</code> et les charges des ions depuis <code>nacl.txt</code>. Puis les moments dipolaires électriques seront calculés pour les octahèdre NaCl<sub>6</sub> (parce que Pespèce=Cl et NNN=6).</p></li>
+
+<li><div class="txtfile"><h5>sto.txt</h5>
+<p><code>charge<br/>
+Sr 2<br/>
+Ti 4<br/>
+O  -2<br/>
+</code></p></div>
+<code class="command">atomsk --edm SrTiO.xsf O -3.1 -prop sto.txt</code>
+<p>Ceci calculera les moments dipolaires pour <code>sto.xsf</code>. Dans ce cas NNN est négatif, donc les polyèdres sont définis par un cation central (en principe Sr ou Ti), autour desquels les anions d'oxygène dans un rayon de 3.1 &Aring; sont considérés comme faisant partie du polyèdre.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

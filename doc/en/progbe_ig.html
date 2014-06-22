@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Program behaviour ignore - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Program behaviour: ignore</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-ignore</code></p>
+<p><code>-ig</code></p>
+
+
+<h4>Description</h4>
+
+<p>This will make <code>atomsk</code> automatically ignore files that already exist. Most of the time it means it will not overwrite (nor prompt about) files that were already converted before.</p>
+
+<p>If both <a href="./progbe_ow.html"><code>-overw</code></a> and <code>-ignore</code> are used, then the existing files are not overwritten but are ignored.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default files that already exist are <em>not</em> ignored; instead the user is prompted whether to overwrite them or choose another name.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -ig</code>
+<p>This will read <code>initial.gin</code> and convert it to CFG; but if <code>initial.cfg</code> already exists, the conversion will not be performed.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

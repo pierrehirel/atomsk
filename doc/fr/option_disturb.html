@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option disturb - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : disturb</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-disturb &#60;d<sub>max</sub>&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option applique un vecteur de translation aléatoire à chaque atome, le déplacement maximal suivant un axe cartésien étant &#60;d<sub>max</sub>&#62;.</p>
+
+<p>Les déplacements appliqués suivent une loi normale de distribution. Ils sont ajustés de sorte qu'il n'y a pas de translation globale du système.</p>
+
+<p>Notez que cette option tente de générer des déplacements aléatoires suivant les axes cartésiens X, Y et Z, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et en appliquant cette option il est très probable d'obtenir des résultats différents.</p>
+
+<p>Après avoir appliqué cette option certains atomes peuvent se retrouver en dehors de la boîte de simulation, ce qui peut être corrigé grâce à l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors cette perturbation ne sera appliquée qu'aux atomes sélectionnés.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les positions des atomes ne sont pas altérées.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk relax.xsf -disturb 1.0 perturbe.cfg</code>
+<p>Cette commande va lire le fichier <code>relax.xsf</code> et appliquera une translation aléatoire des atomes, d'un maximum de 1 &Aring; suivant chaque axe. Les nouvelles positions seront écrites dans le fichier <code>perturbe.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -disturb 250.0 -wrap amorphe.cfg</code>
+<p>Ceci va lire le fichier <code>initial.xsf</code> et déplacera les atomes d'un maximum de 250 &Aring;. Puis les atomes ayant quitté la boîte seront replacés dans la boîte. Les positions finales seront écrites dans le fichier <code>amorphe.cfg</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

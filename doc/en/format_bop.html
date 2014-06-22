@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>BOP format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: bop</h2>
+
+<p><strong>Name:</strong> Bond-Order Potential file</p>
+
+<p><strong>Extension:</strong> unspecified (<code>atomsk</code> uses .bop)</p>
+
+<p><strong>Specification:</strong> N/A</p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+
+<p>When reading files in the BOP format, <code>atomsk</code> will store the state of each atom (free or fixed) as auxiliary properties (fixed atoms will be fixed along the X, Y and Z axes). Beware that this information is transferable to some file formats only (see the <a href="./formats.html">list of formats</a>).</p>
+
+<p>When writing to the BOP format <code>atomsk</code> will use the following format:</p>
+
+<code class="txtfile"><h5>example.bop</h5>
+<p>A<br/>
+&#60;H(1,1)&#62; &#60;H(1,2)&#62; &#60;H(1,3)&#62; <br/>
+&#60;H(2,1)&#62; &#60;H(2,2)&#62; &#60;H(2,3)&#62; <br/>
+&#60;H(3,1)&#62; &#60;H(3,2)&#62; &#60;H(3,3)&#62; <br/>
+LEN<br/>
+1.0 1.0 1.0<br/>
+LATPAR<br/>
+1.000<br/>
+ND<br/>
+&#60;Nfree&#62;<br/>
+D<br/>
+&#60;x1&#62; &#60;y1&#62; &#60;z1&#62;  &#60;species1&#62; 0.000<br/>
+&#60;x2&#62; &#60;y2&#62; &#60;z2&#62;  &#60;species2&#62; 0.000<br/>
+...<br/>
+&#60;xND&#62; &#60;yND&#62; &#60;zND&#62;  &#60;speciesND&#62; 0.000<br/>
+NINERT
+&#60;Nfixed&#62;<br/>
+DINERT<br/>
+&#60;x1&#62; &#60;y1&#62; &#60;z1&#62;  &#60;species1&#62; 0.000<br/>
+&#60;x2&#62; &#60;y2&#62; &#60;z2&#62;  &#60;species2&#62; 0.000<br/>
+...<br/>
+&#60;xNINERT&#62; &#60;yNINERT&#62; &#60;zNINERT&#62;  &#60;speciesNINERT&#62; 0.000<br/>
+</p></code>
+
+<p>The scaling vectors (following the keyword LEN) will all be equal to 1, as is the lattice parameter (following LATPAR). Atoms that are fixed (as defined in the input file or with the <a href="./option_fix.html">option <code>-fix</code></a>) in one or more directions will appear in the DINERT section.</p>
+
+
+
+<h4>Examples</h4>
+<ul>
+<li><code class="command">atomsk my_system.cfg bop</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.bop</code>.</p></li>
+
+<li><code class="command">atomsk unitcell.xsf -e 20 20 1 -disloc 0.5*BOX 0.5*BOX screw z y 4.2 0.33 -select out box 10 10 -INF BOX-10 BOX-10 INF -fix all above -100 x my_system.bop</code>
+<p>This will read the file <code>unitcell.xsf</code>, <a href="./option_expand.html">expand it</a> to form a 20x20x1 supercell, then <a href="./option_disloc.html">insert a screw dislocation</a> in the middle of the box and along the Z direction, <a href="./option_select.html">select atoms</a> that are within 10 &Aring; to the box edges, <a href="./option_fix.html">fix these atoms</a>, and write the final configuration to <code>my_system.bop</code>.</p></li>
+
+<li><code class="command">atomsk relaxed.bop cfg</code>
+<p>This will read the file <code>relaxed.bop</code>, and convert it to <code>relaxed.cfg</code> for visualization with Atomeye.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

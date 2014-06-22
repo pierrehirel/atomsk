@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>XYZ format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: XYZ</h2>
+
+<p><strong>Name:</strong> XYZ atomic coordinates file</p>
+
+<p><strong>Extension:</strong> xyz</p>
+
+<p><strong>Specification:</strong> unformal</p>
+
+<p><strong>Visualization programs:</strong> <a href="http://www.projectaten.com/">Aten</a>, <a href="http://phjoan5.technion.ac.il/~aviz/">AViz</a>, <a href="http://gdis.sourceforge.net/">gdis</a>, <a href="http://jmol.sourceforge.net/">Jmol</a>, <a href="http://ovito.org">OVITO</a>, <a href="http://jp-minerals.org/vesta/">VESTA</a>, <a href="http://www.ks.uiuc.edu/Research/vmd/">VMD</a>, <a href="http://www.hpc.unm.edu/~chem/xmol/xmol.html">XMol</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p>The XYZ format, although it is broadly used by many programs, has never been formally defined or published. Basically it consists in nothing else than a text file containing the number of atoms, a comment line, and '<code>atom x y z</code>' lines:</p>
+
+<div class="txtfile"><h5>example.xyz</h5>
+<p><code>&#60;NP&#62;<br/>
+         comment<br/>
+         &#60;atom1&#62; &#60;x1&#62; &#60;y1&#62; &#60;z1&#62;<br/>
+         &#60;atom2&#62; &#60;x2&#62; &#60;y2&#62; &#60;z2&#62;<br/>
+         ...   ...  ...<br/>
+         &#60;atomN&#62; &#60;xN&#62; &#60;yN&#62; &#60;zN&#62;<br/>
+</code></p></div>
+
+<p>Since no standard specification exist, some programs use the atomic number in the first column, while some other programs use the atomic symbol; and the coordinates x, y and z can be either cartesian or fractional coordinates, depending on the periodicity of the system (cartesian coordinates are usually used for single molecules, while fractional coordinates are used for periodic crystals). Also, the system (or supercell) dimensions are not written in a default XYZ file, contrary to other formats like CFG or XSF.</p>
+ 
+<p><code>atomsk</code> automatically detects if the species or the atomic number is used in the first column, and it also detects if fractional or cartesian coordinates are used. Since no supercell parameters are contained in the default XYZ format, <code>atomsk</code> automatically creates a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>) for compatibility with other output formats that require a supercell. Alternatively one can use the <a href="./option_properties.html">option <code>-properties</code></a> to set up the supercell parameters.</p>
+
+<p>When writing an output file to the "default" XYZ format, <code>atomsk</code> uses the specification described in the <a href="http://openbabel.org/wiki/XYZ_%28format%29">OpenBabel Wiki</a>, i.e. it uses the atomic species as a first column and cartesian coordinates.</p>
+
+<p><code>atomsk</code> can also read and write the <strong>extended XYZ format</strong>, described for instance <a href="http://www.jrkermode.co.uk/quippy/extended_xyz.html">here</a> or <a href="https://camtools.cam.ac.uk/access/wiki/site/5b59f819-0806-4a4d-0046-bcad6b9ac70f/extendedxyz.html">here</a>. This format is fully compatible with the default XYZ format, the comment line being replaced by a set of keywords and values, for instance:</p>
+
+<div class="txtfile"><h5>example.xyz</h5>
+<p><code>&#60;NP&#62;<br/>
+         Lattice="H11 H21 H31 H12 H22 H32 H13 H23 H33" Properties=species:S:1:pos:R:3:aux1:R:1:aux2:R:2...auxM:R:2 Time=0.0
+<br/>
+         &#60;atom1&#62; &#60;x1&#62; &#60;y1&#62; &#60;z1&#62; &#60;aux11&#62; &#60;aux12&#62; ... &#60;aux1M&#62;<br/>
+         &#60;atom2&#62; &#60;x2&#62; &#60;y2&#62; &#60;z2&#62; &#60;aux21&#62; &#60;aux22&#62; ... &#60;aux2M&#62;<br/>
+         ...   ...  ...<br/>
+         &#60;atomN&#62; &#60;xN&#62; &#60;yN&#62; &#60;zN&#62; &#60;auxN1&#62;  &#60;auxN2&#62; ... &#60;auxNM&#62;<br/>
+</code></p></div>
+
+<p>where the keyword "<code>Properties</code>" defines the format of each line by three values: the name of the property, its format (S=string, I=integer, R=real), and the number of columns for that property. For instance "<code>species:S:1:pos:R:3</code>" tells that atomic species is a string using 1 column, and atom positions are real numbers using 3 columns.</p>
+
+<p>When reading an extended XYZ file <code>atomsk</code> only reads the supercell parameters that follow the keyword <code>Lattice</code>, and the properties (following the keyword <code>Properties</code>). Any other keyword (like the "<code>Time</code>" keyword in the example above) is ignored.</p>
+
+<p>When writing extended XYZ files the second line always contains lattice parameters (after the keyword "<code>Lattice</code>") and auxiliary properties (following the keyword "<code>Properties</code>"). Each auxiliary property takes real values in a single column, so the format looks like "<code>Properties=species:S:1:pos:R:3:aux1:R:1:aux2:R:1...</code>". To write extended XYZ files, use <code>exyz</code> as a command-line option, for instance:</p>
+
+<p><code class="command">atomsk initial.cfg final.xyz exyz</code></p>
+
+<p>Finally, <code>atomsk</code> can deal with yet another specification called here the <strong>special XYZ format</strong>. It consists of the default XYZ format with (if necessary) auxiliary properties. Also, additional informations are written at the end of the file: a scaling factor (after the keyword "alat"), the supercell parameters (after "supercell" or "conventional"), the atom masses (one line per atom type), a keyword specifying if cartesian or reduced coordinates are used, and the name of auxiliary properties (if any):</p>
+
+<div class="txtfile"><h5>example.xyz</h5>
+<p><code>&#60;NP&#62;<br/>
+         comment<br/>
+         &#60;atom1&#62; &#60;x1&#62; &#60;y1&#62; &#60;z1&#62; &#60;aux11&#62; &#60;aux12&#62; ... &#60;aux1M&#62;<br/>
+         &#60;atom2&#62; &#60;x2&#62; &#60;y2&#62; &#60;z2&#62; &#60;aux21&#62; &#60;aux22&#62; ... &#60;aux2M&#62;<br/>
+         ...   ...  ...<br/>
+         &#60;atomN&#62; &#60;xN&#62; &#60;yN&#62; &#60;zN&#62; &#60;auxN1&#62; &#60;auxN2&#62; ... &#60;auxNM&#62;<br/>
+         alat<br/>
+         &#60;a0&#62; <br/>
+         supercell <br/>
+         &#60;H(1,1)&#62; &#60;H(1,2)&#62; &#60;H(1,3)&#62; <br/>
+         &#60;H(2,1)&#62; &#60;H(2,2)&#62; &#60;H(2,3)&#62; <br/>
+         &#60;H(3,1)&#62; &#60;H(3,2)&#62; &#60;H(3,3)&#62; <br/>
+         mass &#60;species1&#62; &#60;mass1&#62; <br/>
+         mass &#60;species2&#62; &#60;mass2&#62; <br/>
+         ... <br/>
+         mass &#60;speciesN&#62; &#60;massN&#62; <br/>
+         property 1 &#60;name1&#62;<br/>
+         property 2 &#60;name2&#62;<br/>
+         ... <br/>
+         property M &#60;nameM&#62;<br/>
+         &#60;cartesian/reduced&#62; coordinates <br/>
+</code></p></div>
+
+<p>Concerning the supercell parameters, if the keyword "supercell" is used (as in the example above) then the three next lines must contain the supercell vectors; if the keyword "conventional" is used then the two next lines must contain the vectors in conventional notation: "<code>a b c</code>" and "<code>&alpha; &beta; &gamma;</code>" respectively. If auxiliary properties are present, they must appear on each line (as integer or real numbers), and each of them must have a line "<code>property &#60;i&#62; &#60;name&#62;</code>" at the end of the file, &#60;i&#62; being the property number and &#60;name&#62; its name. The line "<code>cartesian coordinates</code>" (or "<code>reduced coordinates</code>") specifies that the coordinates in the file must be interpreted in a cartesian basis (or as reduced coordinates, respectively).</p>
+
+<p>To write coordinates to this special XYZ format, use <code>sxyz</code> as a command-line option, e.g.:</p>
+
+<p><code class="command">atomsk initial.cfg final.xyz sxyz</code></p>
+
+<p>By default <code>atomsk</code> always writes the coordinates in cartesian basis in all the XYZ formats described above, but this can be changed with the <a href="./option_fractional.html">option <code>-fractional</code></a>.</p>
+
+<p>Note that since all these formats use the same extension (.xyz), it is not possible to write to two of these formats at the same time. When specifying both xyz, exyz and/or sxyz as output formats, then only one file with the extended XYZ (exyz) format will be written.</p>
+
+<p>Files in the XYZ (or extended XYZ) format that contain several configurations can be read through the <a href="./mode_oneinall.html">mode one-in-all</a>, or created with the <a href="./mode_allinone.html">mode all-in-one</a>. Such files can also be read and animated with the visualization program <a href="http://gdis.sourceforge.net/">gdis</a>.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk system.xsf xyz</code>
+<p>This will read the XSF file <code>system.xsf</code>, and convert it to the file <code>system.xyz</code> in normal XYZ format.</p></li>
+
+<li><code class="command">atomsk system.xsf exyz</code>
+<p>This will read the XSF file <code>system.xsf</code>, and convert it to the file <code>system.xyz</code> in extended XYZ format.</p></li>
+
+<li><code class="command">atomsk system.xsf sxyz</code>
+<p>This will read the XSF file <code>system.xsf</code>, and convert it to the file <code>system.xyz</code> in special XYZ format.</p></li>
+
+<li><code class="command">atomsk initial.xsf -frac final.xyz exyz</code>
+<p>This will read the XSF file <code>initial.xsf</code>, convert atom positions to <a href="./option_fractional.html">fractional coordinates</a>, and write the final result to <code>final.xyz</code> in extended XYZ format.</p></li>
+
+<li><code class="command">atomsk --all-in-one myfiles.lst animation.xyz</code>
+<p>This will read all the files specified in the list <code>myfiles.lst</code>, and output all snapshots in the XYZ file <code>animation.xyz</code>.</p></li>
+
+<li><code class="command">atomsk --one-in-all animation.xyz cfg</code>
+<p>This will read the XYZ file <code>animation.xyz</code>, and output each snapshot in a separate file with the CFG format: <code>animation_1.cfg</code>, <code>animation_2.cfg</code>, etc.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

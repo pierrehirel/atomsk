@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>COORAT format - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: COORAT</h2>
+
+<p><strong>Name:</strong> atomic coordinates for the Mixed-Basis Pseudopotential (MBPP) code</p>
+
+<p><strong>Extension:</strong> none (the file must be named COORAT for use with MBPP)</p>
+
+<p><strong>Specification:</strong> N/A</p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+<h4>Restrictions</h4>
+
+<p>The supercell parameters are not specified in a COORAT file, but in the MBPP input file (INP). So, when reading a COORAT file, <code>atomsk</code> will search for a file named INP in the current directory, and if it exists read the supercell parameters from it. Each supercell parameter may contain one special character (o, e, h...) and/or a star (*) indicating multiplication with a number (e.g. "<code>0.5*h</code>"); the slash sign (/) is not recognized. If no INP file is found then <code>atomsk</code> automatically creates a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>) for compatibility with other output formats that require a supercell.</p>
+
+<p>When writing to the COORAT format, <code>atomsk</code> will attempt to write supercell parameters to the file called INP in the current directory. If this file already exists the user will be prompted whether to overwrite it or choose another name. Beware that this INP file is incomplete and is <em>not</em> fully set for a simulation.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.xsf COORAT</code>
+<p>This will read the file <code>my_system.xsf</code>, and convert it to the file <code>COORAT</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

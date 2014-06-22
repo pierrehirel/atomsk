@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option cut - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : cut</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-cut &#60;above|below&#62; &#60;d&#62; &#60;normale&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de "couper" un système, c-à-d. de supprimer les atomes situés au-dessus ou en-dessous d'un certain plan.</p>
+
+<p>Les paramètres associés à cette option sont :</p>
+<ul>
+  <li><strong>above|below</strong> : ce mot-clé décide si ce sont les atomes au-dessus (above) ou en-dessous (below) du plan qui seront supprimés.</li>
+  <li><strong>d</strong> : distance entre le plan de coupure et l'origine, en angstr&ouml;ms (&Aring;).</li>
+  <li><strong>normale</strong> : direction perpendiculaire au plan de coupure, peut être x, y, z, ou une direction cristallographique (voir ci-dessous).</li>
+</ul>
+
+<p>La distance &#60;d&#62; est généralement donnée en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</p>
+
+<p>La direction &#60;normale&#62; au plan peut être 'x', 'y', 'z' (axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation crystallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001].</p>
+
+<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), seules les positions des c&oelig;ur sont utilisées par cette option. Lorsqu'un c&oelig;ur est supprimé, sa coquille est également supprimée.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront supprimés.</p>
+
+<p>Notez que cette option ne modifie pas les vecteurs de boîte, et peut donc laisser une zone de vide en lieu et place des atomes supprimés.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut le système n'est pas coupé.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk system.gin -cut above 0.5*BOX z xsf</code>
+<p>Ceci va lire le fichier <code>system.gin</code>, et supprimer tous les atomes situés au-dessus du centre de boîte suivant Z. Le résultat sera écrit dans <code>system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.gin -cut below 2.4 x -cut above 40 x final.xyz</code>
+<p>Ceci lira le fichier <code>initial.gin</code>, supprimera les atomes ayant une coordonnée inférieure à 2.4 &Aring; ou supérieure à 40 &Aring; suivant X. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk final.xyz -cut below 2.4 x initial.gin -cut above 40 x</code>
+<p>Identique à l'exemple précédent. Notez que chaque option doit être suivie de ses paramètres dans l'ordre, mais les noms des fichiers d'entrée et de sortie peuvent être placés n'importe où dans la ligne de commande.</p></li>
+
+<li><code class="command">atomsk final.xyz -cut below 14 [011] initial.gin -cut above 40 [1-10]</code>
+<p>Ceci lira le fichier <code>initial.gin</code>, supprimera les atomes étant plus près que 14 &Aring; suivant la direction [011], et ceux étant plus loin que 40 &Aring; suivant [1<span class="over">1</span>0].</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

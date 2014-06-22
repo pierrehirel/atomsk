@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode create - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: create</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --create &#60;lattice&#62; &#60;a0&#62; [&#60;c0&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+
+<p><code>atomsk -C &#60;lattice&#62; &#60;a0&#62; [&#60;c0&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] [options] [&#60;formats&#62;] &#60;outputfile&#62;</code></p>
+
+<p>Special syntax for nanotubes:</p>
+<p><code>atomsk -C nanotube &#60;a0&#62; &#60;m&#62; &#60;n&#62; &#60;sp1&#62; [&#60;sp2&#62;] [options] [&#60;formats&#62;] &#60;outputfile&#62;</code></p>
+
+<h4>Description</h4>
+
+<p>This mode allows to create an atomic structure from scratch. For now, only a small number of very basic lattices can be created (see table below). By default the base vectors of the cubic systems created are X=[100], Y=[010] and Z=[001], but that can be changed (see below). For non-cubic systems, other orientations are not implemented yet.</p>
+
+<p>The parameters associated with the <code>create</code> mode are:</p>
+<ul>
+  <li><strong>lattice</strong>: type of lattice (see table below);</li>
+  <li><strong>a0</strong>: lattice parameter (in &Aring;);</li>
+  <li><strong>c0</strong>: lattice parameter (in &Aring;, only needed for some structures);</li>
+  <li><strong>sp1, sp2...</strong>: atomic species constituting the material (one- or two-characters symbol); the number of species that must be specified depends on the lattice, see table below.</li>
+  <li><strong>orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub></strong>: crystallographic orientation of the created lattice (cubic lattices only).</li>
+</ul>
+
+<p>The table below shows the acceptable entries for <strong>&#60;lattice&#62;</strong>, and the corresponding number of <strong>lattice constants</strong> and <strong>atom species</strong> that must be specified. For bcc lattice, entering two atom species will produce an interpenetrating simple cubic (aka "caesium chloride") lattice. For fcc lattice, entering two atom species will create an alloy of the two elements. For diamond lattice, entering two species will create a zincblende lattice; for zincblende, entering only one species will create a diamond lattice.</p>
+
+<table border="1">
+  <tr> <th></th> <th><strong>lattice</strong></th>  <th><strong>Lattice constants</strong></th> <th><strong>Atom species</strong></th> </tr>
+  <tr> <th align="left">Simple cubic</th>         <td align="right">sc</td>    <td align="right">1</td> <td align="right">1</td> </tr>
+  <tr> <th align="left">Body-centered cubic</th>  <td align="right">bcc</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Face-centered cubic</th>  <td align="right">fcc</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Diamond/zincblende</th>   <td align="right">diamond, dia<br/>zincblende, zb</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Cubic rock-salt</th>     <td align="right">rocksalt</td>   <td align="right">1</td> <td align="right">2</td> </tr>
+  <tr> <th align="left">Cubic perovskite</th>     <td align="right">perovskite, per</td>   <td align="right">1</td> <td align="right">3</td> </tr>
+  <tr> <th align="left">Hexagonal close-packed</th>  <td align="right">hcp</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Graphite</th>             <td align="right">graphite</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Nanotube</th>             <td align="right">nanotube, NT</td>   <td align="right">1 + m,n</td> <td align="right">1 or 2</td> </tr>
+</table>
+
+<p>Unit cells of cubic systems can be created with a given <strong>crystallographic orientation</strong>, if the keyword "<code>orient</code>" is appened after the atom species and is followed by the Miller indices <em>hkl</em> of the lattice in each cartesian direction X, Y and Z (see <a href="./options.html">how to specify Miller indices</a>). Note that the keyword "<code>orient</code>" must always appear immediately after the atom species, and should not be mistaken with the <a href="./option_orient.html">option <code>-orient</code></a>.</p>
+
+<p>For <strong>creating a nanotube</strong> one has to specify one lattice parameter (that corresponds to the first neighbours distance), followed by the chiral indices <em>m</em> and <em>n</em> which must be integers. The unit cell of a nanotube is defined unambiguously only along the nanotube, which is along the Z axis here. In the other directions, <code>atomsk</code> defines the lattice so that periodic replica form an hexagonal pattern as it is observed experimentally. You can tune the distance between periodic replica by changing the cell parameters. Note that the center of the nanotube is at (0,0) so it is easy to create multiwall nanotubes (create several nanotubes and <a href="mode_merge.html">merge them</a>).</p>
+
+<p>The name of the &#60;outputfile&#62; can be specified either before or after the mode. If no output file is specified but only output format(s) then the output file(s) will be named after the atom species.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then they will apply to the created system.</p>
+
+<p>Beware that the system you create with this mode is <em>not</em> relaxed nor optimized.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --create fcc 4.02 Al al_system.cfg</code>
+<p>This will create a unit cell of fcc aluminium (lattice parameter=4.02 &Aring;), and write atom positions in the file <code>al_system.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --create fcc 4.02 Al orient [0-11] [100] [011] -expand 40 30 30 al_supercell.cfg lmp</code>
+<p>This example shows how to create an oriented unit cell. This will create a unit cell of fcc aluminium with the crystallographic orientation X=[0<span class="over">1</span>1], Y=[100], Z=[011], <a href="./option_expand.html">expand it</a> to form a 40x30x30 supercell, and write the final result into the file <code>al_supercell.cfg</code> and <code>al_supercell.lmp</code>.</p></li>
+
+
+<li><code class="command">atomsk --create fcc 3.6 Cu Ni cuni_alloy.xsf</code>
+<p>This will create a unit cell of fcc copper-nickel alloy and write it in the file <code>cuni_alloy.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --create bcc 2.85 Fe orient [121] [-101] [1-11] xsf cfg</code>
+<p>This command will generate a unit cell of bcc iron with the crystallographic orientation X=[121], Y=[<span class="over">1</span>01], Z=[1<span class="over">1</span>1], and write the result to <code>Fe.xsf</code> and <code>Fe.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --create rocksalt 4.213 Mg O cfg xsf</code>
+<p>This will create a unit cell magnesium oxide (rocksalt lattice), and write it in the files <code>MgO.cfg</code> and <code>MgO.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --create diamond 3.567 C diamond.cfg xsf</code>
+<p>This will create a unit cell diamond, and write it in the files <code>diamond.cfg</code> and <code>diamond.xsf</code>.</p></li>
+
+<li><code class="command">atomsk -C zb 5.65 Ga As gaas.cfg</code>
+<p>This will create a unit cell of gallium arsenide (zincblende lattice), and write it in the file <code>gaas.cfg</code>.</p></li>
+
+<li><code class="command">atomsk xsf gin --create perovskite 3.86 Sr Ti O</code>
+<p>This will create a unit cell of cubic strontium titanate (lattice parameter=3.86 &Aring;), and write it in the files <code>SrTiO.xsf</code> and <code>SrTiO.gin</code>.</p></li>
+
+<li><code class="command">atomsk -C per 3.86 Sr Ti O orient [001] [110] [1-10] -expand 30 20 1 sto.xsf</code>
+<p>This example uses the <a href="./option_expand.html">expand option</a>. It will create a unit cell of cubic strontium titanate oriented X=[001], Y=[110], Z=[1<span class="over">1</span>0], and then expand it to form a 30x20x1 supercell. The final result will be output in the file <code>sto.xsf</code>.</p></li>
+
+<li><code class="command">atomsk bn.xsf -C graphite 2.5 3.6 B N</code>
+<p>This example will create a unit cell of hexagonal boron nitride (which has the same lattice as graphite), with a=2.5 &Aring; and c=3.6 &Aring;. The final result will be output in the file <code>bn.xsf</code>.</p></li>
+
+<li><code class="command">atomsk -C nanotube 2.5 8 8 C nanotube.xsf cfg</code>
+<p>This will create a carbon nanotube of armchair type with chiral indices (8,8). The final result will be output in the files <code>nanotube.xsf</code> and <code>nanotube.cfg</code>.</p></li>
+
+<li><code class="command">atomsk -C nanotube 2.8 10 0 B N xsf</code>
+<p>This will create a boron nitride nanotube of zigzag type with chiral indices (10,0). The final result will be output in the file <code>BN.xsf</code>.</p></li>
+
+<li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Al_supercell</code>" contains a bash script showing how to create an aluminum system with two surface steps. The folder "<code>Si_supercell</code>" shows how to generate a crystal of aluminum with a particular orientation and a surface step.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

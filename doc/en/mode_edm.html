@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode dipole moments - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: electric dipole moments</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --edm &#60;file&#62; &#60;Pspecies&#62; &#60;NNN&#62; [options]</code></p>
+
+<h4>Description</h4>
+
+<p>This mode computes individual electric dipole moments for a given polyhedron configuration, a polyhedron being defined by one ion surrounded by ions of another type. For each polyhedron the <strong>electric dipole moment</strong> is defined as the difference between the centers of positive and negative charges:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>p</strong>(<strong>r</strong><sub>cm</sub>) =  <strong>&sum;</strong> q<sub>i</sub>(<strong>r</strong><sub>i</sub>-<strong>r</strong><sub>cm</sub>)</code></p>
+
+<p>where <strong>r</strong><sub>cm</sub> is the position of the <em>center of mass</em> of the polyhedron, and the sum runs over all ions forming the polyhedron.</p>
+
+<p>The parameters associated with the mode <code>edm</code> are:</p>
+<ul>
+  <li><strong>file</strong>: file containing atomic positions; must be one of the <a href="./formats.html">supported input formats</a>;</li>
+  <li><strong>Pspecies</strong>: atom species at the corners of the polyhedra (see below);</li>
+  <li><strong>NNN</strong>: number of nearest neighbours or cutoff for neighbours search (see below).</li>
+</ul>
+
+<p>This mode will not compute anything if the <strong>charges of the ions</strong> are not set. Charges are set either when reading the &#60;file&#62; (see <a href="./formats.html">this page</a> for a list of formats supporting atom charges <code>q</code>), or by using the <a href="./option_properties.html">option <code>-properties</code></a>. For instance consider a fictitious system made of ions A<sup>3+</sup>, B<sup>2+</sup> and C<sup>2-</sup>, then the charges can be written in a file with the following format and read with the option <code>-properties</code>:</p>
+
+<div class="txtfile"><h5>charges.txt</h5>
+<p><code>charge<br/>
+A 3<br/>
+B 2<br/>
+C -2<br/>
+</code></p></div>
+
+<p>If an ionic core-shell model is used, then the charges of both core and shell should be specified as stated in the <a href="./option_properties.html">option <code>-properties</code></a>. Then <code><strong>r</strong><sub>i</sub></code> will be the position of the ion core, and <code>q<sub>i</sub></code> the total charge of the ion (core+shell).</p>
+
+<p>The <strong>Pspecies</strong> indicate which atom species is at the corners of the polyhedra. Continuing with the above example, if C ions are at the corners of the polyhedra, then A-C polyhedra (i.e. with A ions inside each polyhedron, and C ions at the corners) and B-C polyhedra will be considered for the calculation.</p>
+
+<p><strong>A positive value of NNN</strong> must be integer indicating the number of neighbours forming the polyhedra, regardless of their distance. For instance if atoms A are expected to be in tetrahedral sites formed by C (AC<sub>4</sub> configuration) then set NNN=4, and the 4 nearest neighbours will always be searched for and included in the calculation. For octahedral sites one would have NNN=6, etc. This is recommended if all atoms A and B occupy the same kind of site in the structure (e.g. only octahedral sites).</p>
+
+<p><strong>A negative value of NNN</strong> can be a real number. Its absolute value will be used as a cut-off distance for neighbour search, i.e. all C ions within this distance will be considered as part of the polyhedra no matter how many they are. This can be useful when the atoms A and B occupy different kinds of sites (e.g. octahedral and tetrahedral sites).</p>
+
+<p>If <strong>NNN=0</strong> is provided then the program will search each atom for its nearest neighbours, i.e. will try to automatically determine NNN. Beware that if the polyhedra are strongly distorted the first nearest neighbours may not be counted correctly and the calculated moments will be wrong.</p>
+
+<p>The neighbour search takes periodic images into account (using the supercell vectors read from the input file). Note that this search is usually very slow especially for big systems. You may reduce the running time by <a href="./option_cut.html">cutting the system</a> and keep only the interesting part. If the number of neighbours exceeds 100 for a given atom, a warning message will be displayed, so don't use NNN&#62;100 or a cutoff radius that would enclose more than 100 atoms. Also, it may be necessary to <a href="./option_wrap.html">wrap atoms</a> for the neighbour search to give proper results.</p>
+
+<p>By default the dipole moments are assumed to be in units of e.&Aring;, i.e. about 1.602 10<sup>-29</sup> C.m or 4.803 Debye. However it depends on the unit of distance used in the &#60;file&#62;, and the unit of charges that is read with the option <code>-properties</code>.</p>
+
+<p>The <strong>total polarization</strong> of the cell is also calculated as the sum over all ions in the system:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>P</strong> = V<sup>-1</sup> <strong>&sum;</strong> q<sub>i</sub> <strong>r</strong><sub>i</sub></code></p>
+
+<p>where V is the volume of the supercell. By default the total polarization is assumed to be in units of e/&Aring;<sup>2</sup>, but again that depends on the units used in the related files. Note that if the system has a total charge equal to zero then the polarization vector is independant from the point of observation (which is arbitrarily taken as (0,0,0) here).</p>
+
+<p>Output consists of the following files (where the &#60;A&#62; and &#60;C&#62; are replaced by the atomic symbols):</p>
+
+<ul>
+  <li><strong>*_edm_&#60;A&#62;&#60;C&#62;.xsf</strong>: files in the XSF format containing the positions of &#60;A&#62; atoms and their associated dipole moments; xCrySDen can read this file and display vectors; beware that xCrySDen understands these vectors as FORCES (not as polarization vectors), so it may be tricky to set these vectors to the correct scale.</li>
+  <li><strong>*_edm_&#60;A&#62;&#60;C&#62;.norm</strong>: norm of the dipole moments for each &#60;A&#62; atom.</li>
+  <li><strong>*_edm_all.xsf</strong>: file in the XSF format containing the positions of all atoms and their associated dipole moments; as mentionned above it can be displayed with xCrySDen;</li>
+  <li><strong>*_edm_all.dat</strong>: file containing the positions of all atoms and their associated dipole moments; such a file can be visualized e.g. with gnuplot;</li>
+  <li><strong>*_edm_all.cfg</strong>: file in the CFG format containing the positions of all atoms, the components (X, Y, Z) and the norm of the electric dipole moment as auxiliary properties for each atom;</li>
+  <li><strong>*_edm_stat.txt</strong>: statistics about the dipole moments of all atoms (min/max values, standard deviation...);</li>
+  <li><strong>*_Ptot.txt</strong>: total polarization vector of the supercell.</li>
+</ul>
+
+<p>If this mode is used with one or several <a href="./options.html">options</a> they will be applied to the system <em>before</em> computing the electric dipole moments.</p>
+
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --edm NaCl.xsf Cl 6</code>
+<p>This will not compute anything because the atom charges are not set.</p></li>
+
+<li>
+<div class="txtfile"><h5>nacl.txt</h5>
+<p><code>charge<br/>
+Na 1<br/>
+Cl -1<br/>
+</code></p></div>
+<code class="command">atomsk --edm NaCl.xsf Cl 6 -properties nacl.txt</code>
+<p>This will read the atom positions from <code>NaCl.xsf</code> and ionic charges from <code>nacl.txt</code>. Then the electric dipole moments will be computed for NaCl<sub>6</sub> octahedra (because Pspecies=Cl and NNN=6).</p></li>
+
+<li><div class="txtfile"><h5>sto.txt</h5>
+<p><code>charge<br/>
+Sr 2<br/>
+Ti 4<br/>
+O  -2<br/>
+</code></p></div>
+<code class="command">atomsk --edm SrTiO.xsf O -3.1 -prop sto.txt</code>
+<p>This will compute electric dipole moments for <code>sto.xsf</code>. In that case NNN is negative, so the polyhedra are defined by a central cation (supposedly Sr or Ti), around which all oxygen anions in a radius of 3.1 &Aring; are assumed to form the corners of the polyhedra.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option velocity - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: velocity</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-velocity &#60;T&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option assigns a random velocity vector to each atom, so as to comply to a Maxwell-Boltzmann distribution of velocities, and so that the sum of velocities is zero (no global drift of the system). The target temperature &#60;T&#62; must be given in Kelvin.</p>
+
+<p>After applying this option, the distribution of velocities is computed and written to the file <code>velocity_dist.dat</code>.</p>
+
+<p>Note that this option attempts to generate random velocities along the cartesian X, Y and Z axis for each atom, therefore it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
+
+<p>If velocities were defined previously, they will be replaced by those set with this option. If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the distribution of velocities will be applied only to selected atoms; non-selected atoms will keep their velocities if they were defined, or else will be assigned a zero velocity.</p>
+
+<p>By default velocities are defined in &Aring;/ps, units can be changed thanks to the <a href="./option_unit.html">option <code>-unit</code></a>. In order to specify atom velocities manually, one can use the <a href="./option_properties.html">option <code>-properties</code></a>. To remove all velocities one can use the <a href="./option_rmprop.html">option <code>-remove-property</code></a> to remove the properties <code>vx</code>, <code>vy</code> and <code>vz</code>.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default the velocity of atoms is undefined or unchanged.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk relaxed.cfg -velocity 300 MD.cfg lmp</code>
+<p>This will read the file <code>relaxed.cfg</code> and assign velocities of atoms corresponding to a Maxwell-Boltzmann distribution at 300 K. The atom positions and velocities will be written to <code>MD.cfg</code> and <code>MD.lmp</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -select below 20 x -velocity 300 -select above box-20 x -velocity 1000 MD.cfg lmp</code>
+<p>This will read the file <code>initial.xsf</code>, gives atoms on the left side of the box (x&#60;20 &Aring;) a distribution of velocities correponding to 300 K, and give atoms on the right side velocities corresponding to 1000 K.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

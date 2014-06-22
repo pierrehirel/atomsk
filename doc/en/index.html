@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Index - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<object type="img/svg+xml" data="../img/atomsk_logo.svg" style="height:60px; float: left;"><img src="../img/atomsk_logo.png" alt="" /></object><h1>ATOMSK</h1>
+
+<p><strong><em>Atom</em>/<em>M</em>olecule/<em>M</em>aterial <em>S</em>oftware <em>K</em>it</strong></p>
+
+<p>&copy; P. Hirel 2010 - Version Beta 0.8-2014.06.17</p>
+
+
+
+<h2>Contents:</h2>
+
+<ol>
+  <li><a href="./license.html">License - Read first!</a></li>
+
+  <li><a href="./overview.html">Overview - Quick start</a></li>
+
+  <li><a href="./examples.html">Examples</a></li>
+
+  <li><a href="./install.html">Compilation and installation</a></li>
+
+  <li><a href="./formats.html">Supported formats</a></li>
+
+  <li><a href="./options.html">Options</a>
+  <ul>
+    <li><a href="./option_addatom.html">add-atom</a> - Insert one or more new atoms</li>
+    <li><a href="./option_addshells.html">add-shells</a> - Create shells for some or all atoms</li>
+    <li><a href="./option_alignx.html">alignx</a> - Align the first cell vector with the X axis</li>
+    <li><a href="./option_bindshells.html">bind-shells</a> - Re-associate shells with their core</li>
+    <li><a href="./option_center.html">center</a> - Shift the system at the center of the box</li>
+    <li><a href="./option_crack.html">crack</a> - Insert a crack in the system</li>
+    <li><a href="./option_cut.html">cut</a> - Wipe out part of the system</li>
+    <li><a href="./option_deform.html">deform</a> - Apply unidirectional stress or strain to the system</li>
+    <li><a href="./option_disloc.html">dislocation</a> - Insert a dislocation in the system</li>
+    <li><a href="./option_disturb.html">disturb</a> - Randomly move atoms out of their positions</li>
+    <li><a href="./option_expand.html">expand</a> - Make a bigger system, construct supercells</li>
+    <li><a href="./option_fix.html">fix</a> - Fix the coordinates of some atoms</li>
+    <li><a href="./option_fractional.html">fractional</a> - Convert to reduced coordinates</li>
+    <li><a href="./option_mirror.html">mirror</a> - Apply a mirror transformation</li>
+    <li><a href="./option_options.html">options</a> - Apply options read from a file</li>
+    <li><a href="./option_orient.html">orient</a> - Change the crystallographic orientation of the system</li>
+    <li><a href="./option_properties.html">properties</a> - Set properties of the system</li>
+    <li><a href="./option_rebox.html">rebox</a> - Try to guess supercell parameters</li>
+    <li><a href="./option_rmatom.html">remove-atom</a> - Remove one or several atoms</li>
+    <li><a href="./option_rmd.html">remove-doubles</a> - Remove duplicate atoms</li>
+    <li><a href="./option_rmprop.html">remove-property</a> - Remove one or all auxiliary properties</li>
+    <li><a href="./option_rmshells.html">remove-shells</a> - Remove shells on some or all atoms</li>
+    <li><a href="./option_rotate.html">rotate</a> - Rotate the system around an axis</li>
+    <li><a href="./option_select.html">select</a> - Select atoms according to a criterion</li>
+    <li><a href="./option_shear.html">shear</a> - Shear the system</li>
+    <li><a href="./option_shift.html">shift</a> - Shift part of the system</li>
+    <li><a href="./option_sort.html">sort</a> - Change the order in which atoms are written</li>
+    <li><a href="./option_substitute.html">substitute</a> - Replace atoms by other atoms</li>
+    <li><a href="./option_unit.html">unit</a> - Change the unit of coordinates</li>
+    <li><a href="./option_unskew.html">unskew</a> - Reduce the skew of the box</li>
+    <li><a href="./option_velocity.html">velocity</a> - Create a Maxwell-Boltzmann distribution of velocities</li>
+    <li><a href="./option_wrap.html">wrap</a> - Wrap atoms back into the box</li>
+  </ul></li>
+
+  <li><a href="./modes.html">Modes (click for more)</a>
+  <ul>
+    <li><a href="./mode_allinone.html">All-in-one</a> - Convert several files to one file containing all snapshots</li>
+    <li><a href="./mode_average.html">Average</a> - Average atom positions over several configurations</li>
+    <li><a href="./mode_create.html">Create</a> - Create a system from scratch</li>
+    <li><a href="./mode_ddplot.html">ddplot</a> - Create a file for visualization with the ddplot program</li>
+    <li><a href="./mode_filelist.html">File list</a> - Convert all files in a list</li>
+    <li><a href="./mode_help.html">Help</a> - Displays help</li>
+    <li><a href="./mode_interactive.html">Interactive</a> - If you like to chat with the program</li>
+    <li><a href="./mode_interpolate.html">Interpolate</a> - Interpolates atom positions between two configurations</li>
+    <li><a href="./mode_merge.html">Merge</a> - Merge two or more systems into one</li>
+    <li><a href="./mode_normal.html">Normal</a> - Convert a file to one or many formats</li>
+    <li><a href="./mode_oneinall.html">One-in-all</a> - Convert one file containing several snapshots to several files</li>
+    <li><a href="./mode_polycrystal.html">Polycrystal</a> - Create a polycrystal using Voronoi method</li>
+    <li><a href="./mode_unwrap.html">Unwrap</a> - Unwrap atom coordinates</li>
+  </ul></li>
+
+  <li><a href="./program_behaviour.html">Program behaviour</a>
+  <ul>
+    <li><a href="./progbe_ig.html">ignore</a> - Always ignore existing files</li>
+    <li><a href="./progbe_lang.html">language</a> - Set language of messages</li>
+    <li><a href="./progbe_log.html">logfile</a> - Set up log file name</li>
+    <li><a href="./progbe_ow.html">overwrite</a> - Always overwrite existing files</li>
+    <li><a href="./progbe_verb.html">verbosity</a> - Set verbosity level</li>
+  </ul></li>
+
+  <li><a href="./tools.html">Companion tools</a></li>
+
+  <li><a href="./acknowledgements.html">Acknowledgements</a></li>
+
+  <li><a href="./faq.html">FAQ</a></li>
+
+  <li><a href="./developers.html">Information for developers</a></li>
+
+  <li><a href="./contact.html">Contact</a></li>
+
+  <li><a href="./othercodes.html">Other useful codes</a></li>
+</ol>
+
+</body>
+
+</html>

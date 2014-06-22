@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode normal - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : normal</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk &#60;fichier1&#62; &#60;fichier2&#62; [options]</code></p>
+
+<p><code>atomsk &#60;fichier&#62; &#60;formats&#62; [options]</code></p>
+
+<p><code>atomsk &#60;fichier&#62; &#60;préfixe&#62; &#60;formats&#62; [options]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ce mode lit un fichier &#60;fichier1&#62; et le convertit vers le fichier &#60;fichier2&#62;. Si le &#60;fichier2&#62; a un nom ou une extension reconnaissable (par ex. .xyz ou .cfg) alors <code>atomsk</code> écrira le &#60;fichier2&#62; dans le format correspondant.</p>
+
+<p>Au lieu ou en plus de spécifier un nom de fichier de sortie, il est possible de spécifier un ou plusieurs &#60;formats&#62; de sortie, parmi <a href="./formats.html">ceux supportés par <code>atomsk</code></a>. Le programme utilisera alors l'extension de ces formats avec le nom du fichier.</p>
+
+<p>Si un &#60;préfixe&#62; (c'est-à-dire un nom de fichier sans extension) est spécifié alors il sera utilisé comme base pour les noms de fichiers de sortie.</p>
+
+<p>Pour convertir tous les fichiers dans un dossier donné, il ne faut <em>pas</em> utiliser d'étoile (par ex. <code>atomsk * cfg</code>). À la place il est recommandé de créer une liste de noms de fichiers (par ex. avec <code>ls * &#62;liste.lst</code>), et ensuite d'utiliser <code>atomsk</code> en <a href="./mode_filelist.html">mode File list</a>.</p>
+
+<p>En plus de la conversion il est possible de transformer le système grâce aux <a href="./options.html">options</a>.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk monsysteme.gin exemple.cfg</code>
+<p>Ceci convertira le fichier <code>monsysteme.gin</code> vers <code>exemple.cfg</code>.</p></li>
+
+<li><code class="command">atomsk exemple.cfg monsysteme.gin</code>
+<p>Identique à l'exemple précédent, en supposant que le fichier <code>monsysteme.gin</code> existe et pas le fichier <code>exemple.cfg</code>. Le programme reconnaît quel fichier existe et l'utilise comme fichier d'entrée. Si les deux fichiers existent, le programme demande à l'utilisateur quel fichier doit être utilisé en entrée.</p></li>
+
+<li><code class="command">atomsk monsysteme.gin cfg</code>
+<p>Ceci convertira <code>monsysteme.gin</code> vers <code>monsysteme.cfg</code>.</p></li>
+
+<li><code class="command">atomsk monsysteme.gin nouveau_systeme cfg xsf</code>
+<p>Cet exemple utilise un préfixe (<code>nouveau_systeme</code>) et plusieurs formats de sortie. Le fichier <code>monsysteme.gin</code> sera converti vers <code>nouveau_systeme.cfg</code> et <code>nouveau_systeme.xsf</code>.</p></li>
+
+<li><code class="command">atomsk xsf nouveau_systeme cfg monsysteme.gin</code>
+<p>Identique à l'exemple précédent. Notez que les paramètres et noms de fichiers peuvent apparaître dans n'importe quel ordre dans la commande.</p></li>
+
+<li><code class="command">atomsk cellule.xyz -e 2 2 6 -shift above 6.5 z 0.2 0.6 0.0 defaut_empilement.xsf</code>
+<p>Cet exemple utilise plusieurs options. Le fichier <code>cellule.xyz</code> sera lu, ensuite le système sera <a href="./option_expand.html">étendu</a> pour former une super-cellule de dimensions 2x2x6, puis une partie du système sera <a href="./option_shift.html">translatée</a>, et le système final sera écrit dans le fichier <code>defaut_empilement.xsf</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option remove doubles - Code atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : remove-doubles</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-remove-doubles &#60;distance&#62;</code></p>
+
+<p><code>-rmd &#60;distance&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option supprime les atomes en double.</p>
+
+<p>Seul le premier atome ayant une position donnée est conservé. Si d'autres atomes partagent cette position ou sont situés à une distance inférieure à la &#60;distance&#62; donnée, ils sont supprimés. Il peut être nécessaire d'employer l'<a href="./option_wrap.html">option <code>wrap</code></a> avant d'invoquer la présente option pour que la recherche de voisins donne de bons résultats.</p>
+
+<p>Si &#60;distance&#62;=0 alors seuls les atomes situés exactement à la même position qu'un autre atome sont supprimés.</p>
+
+<p>Notez que la comparaison des distances n'est effectuée que sur les noyaux atomiques. Si des nuages électroniques sont présents (dans le cadre d'un modèle ionique core-shell), lorsqu'un noyau est supprimé son nuage électronique est aussi supprimé.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la recherche de voisins ne sera effectuée que pour les atomes sélectionnés, et seuls des atomes sélectionnés seront supprimés.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les atomes en double ne sont pas supprimés.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -remove-doubles 0.2 final.xyz</code>
+<p>Ceci supprimera les atomes situés à moins de 0.2 &Aring; d'un autre atome.</p></li>
+
+<li><code class="command">atomsk --merge 2 system1.xyz system2.xyz final.xsf -rmd 0.3</code>
+<p>Cette option peut être pratique lors plusieurs systèmes sont <a href="./mode_merge.html">joints</a>. Dans ce cas, si des atomes de deux systèmes sont trop proches, ce sont les atomes du second système qui sont supprimés.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>
