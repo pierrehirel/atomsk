@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>Cette option permet de pivoter le système autour d'un axe cartésien.</p>
+<p>Cette option permet de pivoter le système (i.e. la boîte et les atomes) autour d'un axe cartésien.</p>
 
 <p>Il est nécessaire de fournir l'axe de rotation (x, y ou z), et l'angle de rotation &theta; (en degrés).</p>
 
@@ -32,7 +32,7 @@
 
 <p>Cette option affectera certaines propriétés du système (par ex. le tenseur élastique) si elles avaient été précédemment définies par l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
 
-<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la rotation ne sera appliquée qu'aux atomes sélectionnés.</p>
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la rotation ne sera appliquée qu'aux atomes sélectionnés, et la boîte <em>ne sera pas</em> modifiée. Certains atomes peuvent alors se retrouver hors de la boîte, ce qui peut être corrigé grâce à l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
 
 

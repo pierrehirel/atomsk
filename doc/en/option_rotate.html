@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>This option allows to rotate the system around a cartesian axis.</p>
+<p>This option allows to rotate the system (i.e. both the box and atoms) around a cartesian axis.</p>
 
 <p>The user has to provide the axis of rotation (has to be x, y or z -referring to cartesian axes), and the angle of rotation &theta; (in degrees).</p>
 
@@ -32,7 +32,7 @@
 
 <p>This option will affect some properties of the system (e.g. the elastic tensor) if they were read with the <a href="./option_properties.html">option <code>-properties</code></a> before the present option.</p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rotation will be applied only to selected atoms.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rotation will be applied only to selected atoms, and the box <em>will not</em> be rotated. This can result in some atoms being out of the box, which can be fixed thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
 
 
