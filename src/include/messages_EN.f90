@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 June 2014                                     *
+!* Last modification: P. Hirel - 24 June 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -722,14 +722,13 @@ CASE(2057)
   !reals(1) = NPcut, number of deleted atoms
   !reals(2) = number of atoms left
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 atom was wiped out."
+    msg = "..> 1 atom was wiped out"
   ELSE
     WRITE(msg,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(msg))//" atoms were wiped out."
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atoms were wiped out"
   ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(msg,*) NINT(reals(2))
-  msg = "..> There are "//TRIM(ADJUSTL(msg))//" atoms left."
+  WRITE(temp,*) NINT(reals(2))
+  msg = TRIM(ADJUSTL(msg))//", "//TRIM(ADJUSTL(temp))//" atoms left."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2058)
   !reals(1) = deformation

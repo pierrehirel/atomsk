@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 June 2014                                     *
+!* Last modification: P. Hirel - 24 June 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -720,14 +720,13 @@ CASE(2057)
   !reals(1) = NPcut, number of deleted atoms
   !reals(2) = number of atoms left
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 atome a été supprimé."
+    msg = "..> 1 atome a été supprimé"
   ELSE
     WRITE(msg,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été supprimés."
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été supprimés"
   ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(msg,*) NINT(reals(2))
-  msg = "..> Il reste "//TRIM(ADJUSTL(msg))//" atomes."
+  WRITE(temp,*) NINT(reals(2))
+  msg = TRIM(ADJUSTL(msg))//", "//TRIM(ADJUSTL(temp))//" atomes restants."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2058)
   !reals(1) = deformation in %
@@ -848,7 +847,6 @@ CASE(2073)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2074)
   !strings(1) = property that was read
-  msg = "La propriété '"//TRIM(ADJUSTL(strings(1)))//"' a bien été lue."
   IF(strings(1)=="supercell vectors" .OR. strings(1)=="conventional vectors") THEN
     msg = "Les vecteurs de boîte ont bien été lus."
   ELSEIF(strings(1)=="elastic tensor") THEN
@@ -861,6 +859,8 @@ CASE(2074)
     msg = "Les types des atomes ont bien été lues."
   ELSEIF(strings(1)=="system orientation") THEN
     msg = "L'orientation du système a bien été lue."
+  ELSE
+    msg = "La propriété '"//TRIM(ADJUSTL(strings(1)))//"' a bien été lue."
   ENDIF
   msg = "..> "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
