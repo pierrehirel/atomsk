@@ -1,0 +1,25 @@
+These tools are provided with atomsk.
+They perform simple operations on atomic files.
+They are provided as-is and without any warranty,
+check what they do before running them!
+
+cfg_setA.sh
+Modifies the value of factor A in Atomeye CFG files.
+
+dat_mulvec.sh
+Multiplies the columns 4-6 of a data file (*.dat) by a factor.
+
+dat_rm0.sh
+Removes lines from a data file (*.dat) if their columns 4-6 are zero.
+
+lmp_atom2charge.sh
+Converts LAMMPS data files (*.lmp) for "atom_style charge".
+
+lmp_charge2atom.sh
+Converts LAMMPS data files (*.lmp) for "atom_style atomic".
+
+lmp_ortho2tri.sh
+Converts LAMMPS data files (*.lmp) into triclinic boxes.
+
+qepw_bohr.sh
+Converts Quantum Espresso Pwscf files (*.pw) in units of Bohr.
