@@ -9,10 +9,12 @@ rm -f MgO_*
 atomsk --create rs 4.5 Mg O MgO_unitcell.xsf
 
 # 2: write the parameters for the 2-D Voronoi construction
-#    of the polycrystal into a file. Here we want a cubic supercell
-#    of size 200x200x4.5 A^3, i.e. thin along Z, and 8 grains with random
-#    positions and random crystallographic orientations
-echo "box 200 200 4.5" > MgO_voronoi.txt
+#    of the polycrystal into a file. We ask for a cubic supercell
+#    of size 200x200x1 A^3, and 8 grains with random
+#    positions and random crystallographic orientations.
+#    Since the box is smaller than the unit cell along Z,
+#    atomsk will automatically set it to the unit cell dimension.
+echo "box 200 200 1" > MgO_voronoi.txt
 echo "random 8" >> MgO_voronoi.txt
 
 # 3: generate the polycrystal

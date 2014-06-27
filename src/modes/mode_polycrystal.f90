@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 April 2014                                    *
+!* Last modification: P. Hirel - 27 June 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -42,6 +42,7 @@ USE files
 USE subroutines
 USE readin
 USE options
+USE center
 USE orient
 USE writeout
 !
@@ -87,10 +88,11 @@ REAL(dp):: distance, distance2    !distance between two points
 REAL(dp):: maxdnodes   !maximum distance between 2 nodes
 REAL(dp):: P1, P2, P3  !temporary position
 REAL(dp):: Volume, Vmin, Vmax, Vstep  !min, max. volume occupied by a grain, step for grain size distribution
+REAL(dp),DIMENSION(3):: GrainCenter !position of center of grain (different from node position)
 REAL(dp),DIMENSION(3):: vector    !vector between an atom and a node
 REAL(dp),DIMENSION(3):: vnormal   !vector normal to grain boundary
 REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell
-REAL(dp),DIMENSION(3,3):: Huc_orient !Oriented base vectors of the unit cell
+REAL(dp),DIMENSION(3,3):: Ht        !Base vectors of the oriented unit cell
 REAL(dp),DIMENSION(3,3):: Hunity    !unit matrix
 REAL(dp),DIMENSION(3,3):: H         !Base vectors of the final supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
@@ -98,7 +100,7 @@ REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray   !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc, Suc  !positions of atoms, shells in unit cell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc_orient, Suc_orient  !positions of atoms, shells in unit cell
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pt, St    !positions of atoms, shells in template supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S      !positions of atoms, shells in final supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T      !positions of atoms, shells in a grain
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newQ, newS !positions of atoms, shells (temporary)
@@ -146,13 +148,6 @@ ELSE
   doaux = .FALSE.
 ENDIF
 !
-!Allocate arrays for oriented seed
-ALLOCATE(Puc_orient(SIZE(Puc,1),4))
-Puc_orient(:,:) = 0.d0
-IF(doshells) THEN
-  ALLOCATE(Suc_orient(SIZE(Puc,1),4))
-  Suc_orient(:,:) = 0.d0
-ENDIF
 !
 !
 !
@@ -201,12 +196,15 @@ DO
       !then consider that it is a 2-D system and use 2-D Voronoi construction
       IF( .NOT.ANY( H(:,:)>20.d0) .OR. SIZE(Puc,1)<100 ) THEN
         !It is a small unit cell
-        IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) .OR. H(1,1)<1.1d0*VECLENGTH(Huc(2,:)) .OR. H(1,1)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
+        IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) ) THEN
           twodim = 1
-        ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(1,:)) .OR. H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) .OR. H(2,2)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
+          H(1,1) = Huc(1,1)
+        ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) ) THEN
           twodim = 2
-        ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(1,:)) .OR. H(3,3)<1.1d0*VECLENGTH(Huc(2,:)) .OR. H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
+          H(2,2) = Huc(2,2)
+        ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
           twodim = 3
+          H(3,3) = Huc(3,3)
         ENDIF
       ENDIF
       WRITE(msg,*) "twodim = ", twodim
@@ -497,6 +495,47 @@ ENDIF
 ALLOCATE( NPgrains(Nnodes) )
 NPgrains(:) = 0
 !
+!Construct template supercell Pt(:,:)
+!This template grain will be cut later to construct each grain
+DO i=1,3
+  expandmatrix(i) = CEILING( H(i,i)/Huc(i,i) )
+ENDDO
+!If the box is almost cubic then the values of expandmatrix(:) will be close
+!However if the box H(:,:) is not cubic, the template will be thinner in some
+!directions, which can cause problems when it is rotated and cut to form the grains.
+!So, increase the values of expandmatrix(:) if they are too different
+DO i=1,3
+  IF( DBLE(expandmatrix(i))/DBLE(MAXVAL(expandmatrix(:))) < 1.5d0 ) THEN
+    expandmatrix(i) = MAXVAL(expandmatrix(:))
+  ENDIF
+ENDDO
+!If the system is 2-D, do not expand along the shortest axis
+IF( twodim>0 ) THEN
+  expandmatrix(twodim) = 1
+ENDIF
+ALLOCATE( Pt( PRODUCT(expandmatrix(:))*SIZE(Puc,1) , 4 ) )
+qi=0
+DO o = 1 , expandmatrix(3)
+  DO n = 1 , expandmatrix(2)
+    DO m = 1 , expandmatrix(1)
+      DO i=1,SIZE(Puc,1)
+        qi=qi+1
+        !Compute (cartesian) position of the replica of this atom
+        Pt(qi,1) = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
+        Pt(qi,2) = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
+        Pt(qi,3) = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
+        Pt(qi,4) = Puc(i,4)
+        IF(doshells) THEN
+        
+        ENDIF
+        IF(doaux) THEN
+        
+        ENDIF
+      ENDDO
+    ENDDO
+  ENDDO
+ENDDO
+!
 !Construct grains using Voronoi tesselation
 NP=0
 DO inode=1,Nnodes
@@ -629,140 +668,66 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
-  !Copy original unit cell to oriented unit cell
-  Huc_orient(:,:) = Huc(:,:)
-  Puc_orient(:,:) = Puc(:,:)
-  IF(doshells) Suc_orient(:,:) = Suc(:,:)
-  !
-  !Rotated unit cell to obtain the desired crystallographic orientation
-  CALL ORIENT_XYZ(Huc_orient,Puc_orient,Suc_orient,Hunity,vorient(inode,:,:),SELECT,C_tensor)
-  IF(nerr>0) GOTO 1000
-  !
-  !Shift oriented unit cell so that 1st atom is at the position of the node
-  DO i=1,3
-    Puc_orient(:,i) = Puc_orient(:,i) + vnodes(inode,i)
-  ENDDO
-  IF(doshells) THEN
-    DO i=1,3
-      Suc_orient(:,i) = Suc_orient(:,i) + vnodes(inode,i)
-    ENDDO
-  ENDIF
-  !
-  !Estimate by how much the initial unit cell must be expanded
-  !(estimate based on maxdnodes = the largest distance between two nodes)
-  !Note: the same factor will be used in the 3 directions of space, because we have no
-  !     way to know how the seed will be rotated inside the grain. This should not be a problem
-  !     for geometries close to cubic, but may become slow if the seed is very elongated
-  !     along one or more directions
-  IF( maxdnodes<VECLENGTH(Huc(1,:)) .AND. maxdnodes<VECLENGTH(Huc(2,:)) .AND. maxdnodes<VECLENGTH(Huc(3,:)) ) THEN
-    !Seed is bigger than the max. distance between two nodes => no need to expand
-    expandmatrix(:) = 0
-  ELSE
-    expandmatrix(:) = CEILING( 0.5d0*maxdnodes / MIN( VECLENGTH(Huc(1,:)) , VECLENGTH(Huc(2,:)) , VECLENGTH(Huc(3,:)) ) )
-    !In each direction Huc_orient(:,:), determine how much the seed must be expanded
-!     DO i=1,3
-!       DO j=1, maxvertex
-!         !Find the closest vertex in that direction
-!         distance = VECLENGTH( vvertex(j,:) - vnodes(inode,:) )
-!       ENDDO
-!     ENDDO
-  ENDIF
-  !
-  IF( twodim>0 ) THEN
-    !2-D system => don't expand along the short dimension
-    expandmatrix(twodim) = 0
-  ENDIF
-  msg = "Initial seed will be expanded NxNxN with N="//TRIM(ADJUSTL(msg))
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  !
-  !Expand the seed inside its Voronoi polyhedron,
-  !and save positions of atoms of current grain into array Q
-  IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  !Estimate max. number of atoms in this grain
-  !Note: the initial seed will be expanded bewteen -expandmatrix and +expandmatrix
-  !     in each direction of space, hence the factor 8
-  qi = SIZE(Puc_orient,1)*8*MAX(expandmatrix(1),1)*MAX(expandmatrix(2),1)*MAX(expandmatrix(3),1)
-  ALLOCATE( Q( qi , 4 ) )
+  !Copy template supercell Pt(:,:) into Q(:,:)
+  Ht(:,:) = H(:,:)
+  ALLOCATE( Q( SIZE(Pt,1) , 4 ) )
   Q(:,:) = 0.d0
+  Q(:,:) = Pt(:,:)
   IF(doshells) THEN
-    IF(ALLOCATED(T)) DEALLOCATE(T)
-    ALLOCATE( T( qi , 4 ) )
+    !Copy shells from template into T(:,:)
+    ALLOCATE( T( SIZE(Pt,1) , 4 ) )
     T(:,:) = 0.d0
+    T(:,:) = St(:,:)
   ENDIF
   IF(doaux) THEN
+    !Copy auxiliary properties from template into AUX_Q
     IF(ALLOCATED(AUX_Q)) DEALLOCATE(AUX_Q)
-    ALLOCATE( AUX_Q( qi , SIZE(AUXuc,2) ) )
+    ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2) ) )
     AUX_Q(:,:) = 0.d0
   ENDIF
   !
-  qi=0
-  DO o = -expandmatrix(3) , expandmatrix(3)
-    DO n = -expandmatrix(2) , expandmatrix(2)
-      DO m = -expandmatrix(1) , expandmatrix(1)
-        DO i=1,SIZE(Puc_orient,1)
-          !
-          !Compute (cartesian) position of the replica of this atom
-          P1 = Puc_orient(i,1) + DBLE(m)*Huc_orient(1,1) + DBLE(n)*Huc_orient(2,1) + DBLE(o)*Huc_orient(3,1)
-          P2 = Puc_orient(i,2) + DBLE(m)*Huc_orient(1,2) + DBLE(n)*Huc_orient(2,2) + DBLE(o)*Huc_orient(3,2)
-          P3 = Puc_orient(i,3) + DBLE(m)*Huc_orient(1,3) + DBLE(n)*Huc_orient(2,3) + DBLE(o)*Huc_orient(3,3)
-          !
-          !Determine if this position is inside of the polyhedron
-          isinpolyhedron = .TRUE.
-          DO jnode = 1 , MIN( SIZE(vvertex,1) , maxvertex )
-            !Compute vector between the vertex and current node
-            !By definition this vector is normal to the grain boundary
-            vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
-            !Compute vector between atom replica and current node
-            vector(:) = (/P1,P2,P3/) - vnodes(inode,:)
-            IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= -0.1d0 ) THEN
-              !Atom is above this plane of cut, hence out of the polyhedron
-              isinpolyhedron = .FALSE.
-            ENDIF
-          ENDDO
-          !
-          IF( isinpolyhedron ) THEN
-            !This atom is inside of the polyhedron => save it in array Q
-            qi = qi+1
-            IF( qi>SIZE(Q,1) ) THEN
-              !number of atom replica exceeds size of allocated array Q
-              !if this ever happens it means that the estimation of qi above is wrong
-              !(i.e. programmer is stupid) and should be fixed
-              !Meanwhile just exit smoothly to avoid a segfault
-              !nerr = nerr+1
-              !CALL ATOMSK_MSG(4821,(/""/),(/0.d0/))
-              !GOTO 1000
-              !Increase size of Q for 1000 more atoms
-              IF(ALLOCATED(newQ)) DEALLOCATE(newQ)
-              ALLOCATE( newQ( SIZE(Q,1)+1000 , 4 ) )
-              DO j=1,SIZE(Q,1)
-                newQ(j,:) = Q(j,:)
-              ENDDO
-              DEALLOCATE(Q)
-              ALLOCATE(Q(SIZE(newQ,1),4))
-              Q(:,:) = newQ(:,:)
-              DEALLOCATE(newQ)
-            ENDIF
-            Q(qi,1) = P1
-            Q(qi,2) = P2
-            Q(qi,3) = P3
-            Q(qi,4) = Puc_orient(i,4)
-            !Also duplicate shells if any
-            IF( doshells ) THEN
-              T(qi,1) = Suc_orient(i,1) + DBLE(m)*Huc_orient(1,1) + DBLE(n)*Huc_orient(2,1) + DBLE(o)*Huc_orient(3,1)
-              T(qi,2) = Suc_orient(i,2) + DBLE(m)*Huc_orient(1,2) + DBLE(n)*Huc_orient(2,2) + DBLE(o)*Huc_orient(3,2)
-              T(qi,3) = Suc_orient(i,3) + DBLE(m)*Huc_orient(1,3) + DBLE(n)*Huc_orient(2,3) + DBLE(o)*Huc_orient(3,3)
-              T(qi,4) = Suc_orient(i,4)
-            ENDIF
-            !Duplicated particles will have same auxiliary properties as the originals
-            IF(doaux) THEN
-              AUX_Q(qi,:) = AUXuc(i,:)
-            ENDIF
-            !
-          ENDIF
-          !
-        ENDDO
-      ENDDO
+  !Rotate this cell to obtain the desired crystallographic orientation
+  CALL ORIENT_XYZ(Ht,Pt,St,Ht,vorient(inode,:,:),SELECT,C_tensor)
+  IF(nerr>0) GOTO 1000
+  !
+  !Shift oriented supercell so that its center of mass is at the center of the box
+  CALL CENTER_XYZ(H,Pt,St,0,SELECT)
+  !Get center of grain = center of the 4 closest vertices
+  !Note that this is different from the position of the node itself
+  GrainCenter(:) = 0.d0
+  DO jnode = 1 , MIN( SIZE(vvertex,1) , 6 )
+    GrainCenter(:) = GrainCenter(:) + vvertex(jnode,:)
+  ENDDO
+  GrainCenter(:) = GrainCenter(:) / DBLE( MIN( SIZE(vvertex,1) , 6 ) )
+  !
+  qi=0 !so far, zero atom in the grain
+  DO i=1,SIZE(Q,1)
+    !Shift oriented supercell so that its center of mass is at the position of the node
+    Q(i,1:3) = Q(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)
+    !Determine if this position is inside of the polyhedron
+    isinpolyhedron = .TRUE.
+    DO jnode = 1 , MIN( SIZE(vvertex,1) , maxvertex )
+      !Compute vector between the vertex and current node
+      !By definition this vector is normal to the grain boundary
+      vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
+      !Compute vector between atom and current node
+      vector(:) = Q(i,1:3) - vnodes(inode,:)
+      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= -0.1d0 ) THEN
+        !Atom is above this plane of cut, hence out of the polyhedron
+        !=> exit the loop on jnode
+        isinpolyhedron = .FALSE.
+        EXIT
+      ENDIF
     ENDDO
+    !
+    IF( isinpolyhedron ) THEN
+      !Atom is inside the polyhedron
+      qi = qi+1
+    ELSE
+      !Atom is outside of the polyhedron -> mark it for termination
+      Q(i,4) = -1.d0
+    ENDIF
+    !
   ENDDO
   !
   CALL ATOMSK_MSG(4056,(/''/),(/DBLE(qi)/))
@@ -793,6 +758,7 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
+  IF(ALLOCATED(P)) NP = SIZE(P,1)
   IF( qi>0 ) THEN
     WRITE(msg,*) "Old, new NP: ", NP, NP+qi
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -806,36 +772,16 @@ DO inode=1,Nnodes
         newP(i,:) = P(i,:)
       ENDDO
     ENDIF
-    DO i=1,qi
-      newP(NP+i,:) = Q(i,:)
-    ENDDO
-    IF(ALLOCATED(P)) DEALLOCATE(P)
-    ALLOCATE( P(SIZE(newP,1),4) )
-    P(:,:) = newP(:,:)
-    DEALLOCATE(newP)
-    DEALLOCATE(Q)
-    !
-    !Same with shells if any
     IF(doshells) THEN
       IF(ALLOCATED(newS)) DEALLOCATE(newS)
       ALLOCATE(newS(NP+qi,4))
       newS(:,:) = 0.d0
-      IF( ALLOCATED(S) ) THEN
-        DO i=1,SIZE(S,1)
+      IF( ALLOCATED(P) ) THEN
+        DO i=1,SIZE(P,1)
           newS(i,:) = S(i,:)
         ENDDO
       ENDIF
-      DO i=1,qi
-        newS(NP+i,:) = T(i,:)
-      ENDDO
-      IF(ALLOCATED(S)) DEALLOCATE(S)
-      ALLOCATE( S(SIZE(newS,1),4) )
-      S(:,:) = newS(:,:)
-      DEALLOCATE(newS)
-      DEALLOCATE(T)
     ENDIF
-    !
-    !Also copy auxiliary properties if any
     IF(doaux) THEN
       IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
       ALLOCATE(newAUX(NP+qi,SIZE(AUXuc,2)))
@@ -845,9 +791,40 @@ DO inode=1,Nnodes
           newAUX(i,:) = AUX(i,:)
         ENDDO
       ENDIF
-      DO i=1,qi
-        newAUX(NP+i,:) = AUX_Q(i,:)
-      ENDDO
+    ENDIF
+    !
+    n=0
+    DO i=1,SIZE(Q,1)
+      IF( NINT(Q(i,4))>0 ) THEN
+        n=n+1
+        newP(NP+n,:) = Q(i,:)
+        IF(doshells) THEN
+          newS(NP+n,:) = T(i,:)
+        ENDIF
+        IF(doaux) THEN
+          newAUX(NP+i,:) = AUX_Q(i,:)
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+    !Save atom positions of all grains into P
+    IF(ALLOCATED(P)) DEALLOCATE(P)
+    ALLOCATE( P(SIZE(newP,1),4) )
+    P(:,:) = newP(:,:)
+    DEALLOCATE(newP)
+    DEALLOCATE(Q)
+    !
+    IF(doshells) THEN
+      !Save all shell positions into S
+      IF(ALLOCATED(S)) DEALLOCATE(S)
+      ALLOCATE( S(SIZE(newS,1),4) )
+      S(:,:) = newS(:,:)
+      DEALLOCATE(newS)
+      DEALLOCATE(T)
+    ENDIF
+    !
+    IF(doaux) THEN
+      !Save all auxiliary properties into AUX
       IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
       ALLOCATE( AUX( SIZE(newAUX,1) , SIZE(AUXuc,2) ) )
       AUX(:,:) = newAUX(:,:)
@@ -857,19 +834,22 @@ DO inode=1,Nnodes
     !
     NP = NP+qi
     !
-  ELSE  !i.e. qi=0
+  ELSE  !i.e. zero atoms in this grain, which is strange
     !Display a warning message
     nwarn=nwarn+1
     CALL ATOMSK_MSG(4708,(/""/),(/0.d0/))
   ENDIF
   !
   IF(ALLOCATED(vvertex)) DEALLOCATE(vvertex)
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
   !
 ENDDO
 !
 !
 !
 500 CONTINUE
+IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
+IF(ALLOCATED(St)) DEALLOCATE(St)
 !P now contains positions of all atoms in all the grains
 !Apply options to the final system
 CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)

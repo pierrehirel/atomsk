@@ -37,7 +37,7 @@
 
 <p>Les grains sont construits en utilisant une méthode de tessellation de type Voronoï <strong>en 3-D</strong> : le &#60;germe&#62; est placé à la position d'un n&oelig;ud, et multiplié dans les trois directions de l'espace à l'intérieur de son polyèdre de Voronoï.</p>
 
-<p>Si une dimension de la boîte est égale à la longueur d'un vecteur de cellule unité, alors une tessellation de Voronoï <strong>en 2-D</strong> sera automatiquement utilisée. Si les grains doivent avoir une orientation aléatoire alors le réseau cristallin ne sera tourné qu'autour de cet axe, i.e. tous les grains auront la même orientation cristallographique suivant cet axe. Notez qu'il est ensuite possible d'utiliser l'<a href="./option_expand.html">option <code>-expand</code></a> pour générer une structure colonnaire.</p>
+<p>Si une dimension de la boîte est plus petite que la dimension du &#60;germe&#62; fourni, alors une tessellation de Voronoï <strong>en 2-D</strong> sera automatiquement utilisée. La dimension de la boîte finale sera automatiquement égale à la dimension correspondante du &#60;germe&#62;. Si les grains doivent avoir une orientation aléatoire alors le réseau cristallin ne sera tourné qu'autour de cet axe, i.e. tous les grains auront la même orientation cristallographique suivant cet axe. Notez qu'il est ensuite possible d'utiliser l'<a href="./option_expand.html">option <code>-expand</code></a> pour générer une structure colonnaire.</p>
 
 <p>Si le &#60;germe&#62; initial contient des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) celles-ci sont dupliquées en même temps que les atomes (ou c&oelig;urs). Si des propriétés auxiliaires sont définies pour chaque atome dans le &#60;germe&#62; initial, alors les répliques des atomes possèderont les mêmes propriétés que les atomes originaux.</p>
 
@@ -110,11 +110,11 @@ node 0.6*box 1 0.8*box [001] [100] [010]<br/>
 <li>
 <div class="txtfile"><h5>bcc_polycrystal.txt</h5>
 <p><code>&#35; Paramètres pour construire un polycristal colonnaire avec atomsk<br/>
-box 300 300 2.9<br/>
+box 300 300 1<br/>
 random 12<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal bcc_unitcell.xsf bcc_polycrystal.txt bcc_polycrystal.xsf -wrap -e 1 1 16</code>
-<p>Supposons que le fichier <code>bcc_unitcell.xsf</code> contienne une cellule unité d'un métal bcc de paramètre de maille 2.9 &Aring;. Le fichier <code>bcc_polycrystal.txt</code> indique de construire un système de taille 300x300x2.9 &Aring;<sup>3</sup>, avec 12 grains générés aléatoirement. Puisque le système a une dimension égale au paramètre de maille suivant Z (2.9 &Aring;), un polycristal en 2-D sera généré (i.e. les grains auront tous la même orientation crystallographique suivant Z). L'<a href="./option_wrap.html">option <code>-wrap</code></a> va ensuite remettre tous les atomes dans la boîte. L'<a href="./option_expand.html">option <code>-expand</code></a> va répéter le système 16 fois suivant Z, créant ainsi un système colonnaire.</p></li>
+<p>Supposons que le fichier <code>bcc_unitcell.xsf</code> contienne une cellule unité d'un métal bcc de paramètre de maille 2.9 &Aring;. Le fichier <code>bcc_polycrystal.txt</code> indique de construire un système de taille 300x300x1 &Aring;<sup>3</sup>, avec 12 grains générés aléatoirement. Puisque la taille du système suivant Z (1 &Aring;) est plus petite que le paramètre de maille, il sera automatiquement modifié pour être égal au paramètre de maille (2.9 &Aring;), et un polycristal en 2-D sera généré (i.e. les grains auront tous la même orientation crystallographique suivant Z). L'<a href="./option_wrap.html">option <code>-wrap</code></a> va ensuite remettre tous les atomes dans la boîte. L'<a href="./option_expand.html">option <code>-expand</code></a> va répéter le système 16 fois suivant Z, créant ainsi un système colonnaire.</p></li>
 
 <li><p>D'autres exemples sont fournis dans le dossier "examples" fourni avec le programme. Le dossier "<code>Al_polycrystal</code>" contient un script bash construisant un polycristal d'aluminium cfc. Le dossier "<code>MgO_2Dpolycrystal</code>" contient un script bash qui construit un polycristal en 2-D d'oxyde de magnésium (MgO).</p></li>
 </ul>

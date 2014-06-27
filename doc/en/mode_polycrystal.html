@@ -38,7 +38,7 @@ matrix. Each line starting with the keyword <strong>node</strong> defines one gr
 
 <p>By default the grains are constructed thanks to a <strong>3-D</strong> Voronoi tesselation of space: the &#60;seed&#62; is placed at the position of each node, and expanded into the Voronoi polyhedron. Periodic bounday conditions are used in the three dimensions of space.</p>
 
-<p>If one dimension of the box is as short as a unit cell vector, then a <strong>2-D</strong> Voronoi tesselation will be automatically used. If a random orientation of the grains is asked for, the lattice will only be rotated around the small axis, i.e. all grains will have the same crystallographic orientation along that axis. Note that afterwards, one can use the <a href="./option_expand.html">option <code>-expand</code></a> along that direction to generate a columnar structure.</p>
+<p>If one dimension of the box is shorter or equal to the provided &#60;seed&#62;, then a <strong>2-D</strong> Voronoi tesselation will be automatically used. The dimension of the final box along that direction will automatically be set to the dimension of the &#60;seed&#62;. If a random orientation of the grains is asked for, the lattice will only be rotated around the small axis, i.e. all grains will have the same crystallographic orientation along that axis. Note that afterwards, one can use the <a href="./option_expand.html">option <code>-expand</code></a> along that direction to generate a columnar structure.</p>
 
 <p>If the initial &#60;seed&#62; contains shells (in the sense of an ionic core-shell model) they are duplicated along with the atoms (or cores). If auxiliary properties are defined for each atom in the initial &#60;seed&#62;, then the atom replica will be assigned the same auxiliary properties.</p>
 
@@ -110,11 +110,11 @@ node 0.6*box 1 0.8*box random<br/>
 <li>
 <div class="txtfile"><h5>bcc_polycrystal.txt</h5>
 <p><code>&#35; Parameters for constructing a columnar Voronoi polycrystal with atomsk<br/>
-box 300 300 2.9<br/>
+box 300 300 1<br/>
 random 12<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal bcc_unitcell.xsf bcc_polycrystal.txt bcc_polycrystal.xsf -wrap -e 1 1 16</code>
-<p>Assume that the file <code>bcc_unitcell.xsf</code> contains a unit cell of a bcc metal with lattice parameter 2.9 &Aring;. The file <code>bcc_polycrystal.txt</code> indicates to build a system that is 300x300x2.9 &Aring;<sup>3</sup>, with twelve grains generated randomly. Because the system's dimension along the Z direction is equal to the lattice parameter (2.9 &Aring;) it will be a 2-D Voronoi crystal, i.e. all grains will have the same crystallographic orientation along Z. The <a href="./option_wrap.html">option <code>-wrap</code></a> will wrap all atoms inside the simulation box. The <a href="./option_expand.html">option <code>-expand</code></a> will repeat the system 16 times along Z, creating a columnar system.</p></li>
+<p>Assume that the file <code>bcc_unitcell.xsf</code> contains a unit cell of a bcc metal with lattice parameter 2.9 &Aring;. The file <code>bcc_polycrystal.txt</code> indicates to build a system that is 300x300x1 &Aring;<sup>3</sup>, with twelve grains generated randomly. Because the system's dimension along the Z direction (1 &Aring;) is smaller than the unit cell, it will be changed to be equal to the lattice parameter (2.9 &Aring;) and a 2-D Voronoi crystal will be constructed, i.e. all grains will have the same crystallographic orientation along Z. The <a href="./option_wrap.html">option <code>-wrap</code></a> will wrap all atoms inside the simulation box. The <a href="./option_expand.html">option <code>-expand</code></a> will repeat the system 16 times along Z, creating a columnar system.</p></li>
 
 <li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Al_polycrystal</code>" contains a bash script that builds a polycrystal of f.c.c. aluminium. The folder "<code>MgO_2Dpolycrystal</code>" contains a bash script that builds a 2-D polycrystal of rocksalt magnesium oxide (MgO).</p></li>
 
