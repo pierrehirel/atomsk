@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 June 2014                                     *
+!* Last modification: P. Hirel - 24 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -414,12 +414,6 @@ INTEGER,INTENT(IN):: imsg  !index of message to display
 REAL(dp):: tempreal
 REAL(dp),DIMENSION(:),INTENT(IN):: reals  !real numbers that may be part of the message
 !
-!
-!Strings: reduce the length if it is too long
-!(this will mainly apply to file names)
-DO i=1,SIZE(strings)
-  strings(i) = CHARLONG2SHRT(strings(i))
-ENDDO
 !
 SELECT CASE(imsg)
 !
@@ -2165,6 +2159,9 @@ CASE(4821)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4822)
   msg = "X!X ERROR: no file to be treated, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4823)
+  msg = "X!X ERROR: keywords 'node' and 'random' are mutually exclusive, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

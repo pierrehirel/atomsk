@@ -22,7 +22,7 @@
 
 <p>Ce mode génère un polycristal à partir d'une cellule élémentaire, en utilisant la méthode de Voronoi et les paramètres fournis dans le fichier &#60;fichier_param&#62;. Les positions et orientations cristallographiques des grains peuvent être explicitement données, ou bien générées aléatoirement.</p>
 
-<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau avec l'orientation cristallographique X=[100], Y=[010], Z=[001] (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être n'importe quel système que vous fournirez.</p>
+<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau avec l'orientation cristallographique X=[100], Y=[010], Z=[001] (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule (qui peut être plus grande ou plus petite que la boîte finale), un polycrystal, ou bien n'importe quel autre système atomique.</p>
 
 <p>Le &#60;fichier_param&#62; doit contenir des mots-clés suivis des valeurs appropriées. Les lignes vides et celles commençant par un croisillon (&#35;) sont ignorées.</p>
 

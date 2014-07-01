@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 June 2014                                     *
+!* Last modification: P. Hirel - 01 July 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -70,6 +70,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: doshells, doaux !are there shells, auxiliary properties in initial seed?
 LOGICAL:: isinpolyhedron  !is atom inside the polyhedron?
 LOGICAL:: miller          !are Miller indices given? (if no then angles are given)
+LOGICAL:: paramnode, paramrand !are the keywords "node" or "random" used in parameter file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER:: i, j
@@ -158,18 +159,30 @@ CALL CHECKFILE(vfile,'read')
 OPEN(UNIT=31,FILE=vfile)
 !Parse the file a first time to count number of nodes
 Nnodes = 0
+paramnode = .FALSE.
+paramrand = .FALSE.
 DO
   READ(31,'(a)',END=210,ERR=210) line
   line = TRIM(ADJUSTL(line))
   IF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
     Nnodes = Nnodes+1
+    paramnode = .TRUE.
   ELSEIF( line(1:6)=="random" ) THEN
     !Read total number of grains
     READ(line(7:),*,END=800,ERR=800) Nnodes
+    paramrand = .TRUE.
   ENDIF
 ENDDO
 !
 210 CONTINUE
+!If both keywords "node" and "random" were given
+!in parameter file, we are in trouble
+IF( paramnode .AND. paramrand ) THEN
+  CALL ATOMSK_MSG(4823,(/""/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ENDIF
+!
 !Store final positions of nodes in array vnodes(:,:)
 ALLOCATE(vnodes(Nnodes,3))
 vnodes(:,:) = 0.d0
@@ -450,26 +463,26 @@ IF(verbosity==4) THEN
   msg = "Positions of nodes:"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO i=1,SIZE(vnodes,1)
-    WRITE(msg,*) i, vnodes(i,:)
+    WRITE(msg,'(i4,3f9.3)') i, vnodes(i,:)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDDO
   msg = "Orientation of nodes:"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO i=1,SIZE(vnodes,1)
-    WRITE(msg,*) i, (NINT(vorient(i,1,j)),j=1,3)
+    WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,1,j),j=1,3), ']'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    WRITE(msg,*) i, (NINT(vorient(i,2,j)),j=1,3)
+    WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,2,j),j=1,3), ']'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    WRITE(msg,*) i, (NINT(vorient(i,3,j)),j=1,3)
+    WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,3,j),j=1,3), ']'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDDO
 ENDIF
 !
 !Check that the user provided enough information
-IF( .NOT. ANY( NINT(H)>0 ) ) THEN
+IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
   !User did not provide box, or a box with negative or zero size
   nerr=nerr+1
-  !**error message*
+  CALL ATOMSK_MSG(4820,(/""/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
@@ -496,10 +509,33 @@ ALLOCATE( NPgrains(Nnodes) )
 NPgrains(:) = 0
 !
 !Construct template supercell Pt(:,:)
+!By default the template grain fills the whole box
 !This template grain will be cut later to construct each grain
-DO i=1,3
-  expandmatrix(i) = CEILING( H(i,i)/Huc(i,i) )
-ENDDO
+IF( VECLENGTH(Huc(1,:)) < VECLENGTH(H(1,:)) .OR.  &
+  & VECLENGTH(Huc(1,:)) < VECLENGTH(H(2,:)) .OR.  &
+  & VECLENGTH(Huc(1,:)) < VECLENGTH(H(3,:)) .OR.  &
+  & VECLENGTH(Huc(2,:)) < VECLENGTH(H(1,:)) .OR.  &
+  & VECLENGTH(Huc(2,:)) < VECLENGTH(H(2,:)) .OR.  &
+  & VECLENGTH(Huc(2,:)) < VECLENGTH(H(3,:)) .OR.  &
+  & VECLENGTH(Huc(3,:)) < VECLENGTH(H(1,:)) .OR.  &
+  & VECLENGTH(Huc(3,:)) < VECLENGTH(H(2,:)) .OR.  &
+  & VECLENGTH(Huc(3,:)) < VECLENGTH(H(3,:))       ) THEN
+  !
+  DO i=1,3
+    expandmatrix(i) = CEILING( 1.1d0*H(i,i)/Huc(i,i) )
+  ENDDO
+  !If the number of grains is small, the template grain may not be large enough
+  IF( Nnodes<=6 ) THEN
+    DO i=1,3
+      expandmatrix(i) = NINT( 1.5d0*DBLE(expandmatrix(i)) )
+    ENDDO
+  ENDIF
+  !
+ELSE
+  !All dimensions of the seed provided by the user are larger
+  !than any dimension of the box => don't expand it
+  expandmatrix(:) = 1
+ENDIF
 !If the box is almost cubic then the values of expandmatrix(:) will be close
 !However if the box H(:,:) is not cubic, the template will be thinner in some
 !directions, which can cause problems when it is rotated and cut to form the grains.
@@ -514,6 +550,13 @@ IF( twodim>0 ) THEN
   expandmatrix(twodim) = 1
 ENDIF
 ALLOCATE( Pt( PRODUCT(expandmatrix(:))*SIZE(Puc,1) , 4 ) )
+Pt(:,:) = 0.d0
+IF( doshells ) THEN
+  ALLOCATE( St( PRODUCT(expandmatrix(:))*SIZE(Puc,1) , 4 ) )
+  St(:,:) = 0.d0
+ENDIF
+WRITE(msg,'(a47,3i3)') "Creating template grain, expand:", expandmatrix(:)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 qi=0
 DO o = 1 , expandmatrix(3)
   DO n = 1 , expandmatrix(2)
@@ -526,10 +569,13 @@ DO o = 1 , expandmatrix(3)
         Pt(qi,3) = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
         Pt(qi,4) = Puc(i,4)
         IF(doshells) THEN
-        
+          !Compute (cartesian) position of the replica of this shell
+          St(qi,1) = Suc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
+          St(qi,2) = Suc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
+          St(qi,3) = Suc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
+          St(qi,4) = Puc(i,4)
         ENDIF
         IF(doaux) THEN
-        
         ENDIF
       ENDDO
     ENDDO
@@ -541,6 +587,9 @@ NP=0
 DO inode=1,Nnodes
   !This is grain # inode
   CALL ATOMSK_MSG(4055,(/''/),(/DBLE(inode)/))
+  !
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
+  IF(ALLOCATED(T)) DEALLOCATE(T)
   !
   !Compute number of vertices surrounding current node
   Nvertices = 0
@@ -670,7 +719,7 @@ DO inode=1,Nnodes
   !
   !Copy template supercell Pt(:,:) into Q(:,:)
   Ht(:,:) = H(:,:)
-  ALLOCATE( Q( SIZE(Pt,1) , 4 ) )
+  ALLOCATE( Q( SIZE(Pt,1) , SIZE(Pt,2) ) )
   Q(:,:) = 0.d0
   Q(:,:) = Pt(:,:)
   IF(doshells) THEN
@@ -687,18 +736,26 @@ DO inode=1,Nnodes
   ENDIF
   !
   !Rotate this cell to obtain the desired crystallographic orientation
-  CALL ORIENT_XYZ(Ht,Pt,St,Ht,vorient(inode,:,:),SELECT,C_tensor)
+  CALL ORIENT_XYZ(Ht,Q,T,Ht,vorient(inode,:,:),SELECT,C_tensor)
   IF(nerr>0) GOTO 1000
   !
   !Shift oriented supercell so that its center of mass is at the center of the box
-  CALL CENTER_XYZ(H,Pt,St,0,SELECT)
-  !Get center of grain = center of the 4 closest vertices
-  !Note that this is different from the position of the node itself
+  CALL CENTER_XYZ(H,Q,T,0,SELECT)
+  !Get center of grain = barycenter of the closest vertices
+  !The actual node itself is given a "weight" in this calculation, but
+  !the center of the grain will be different from the position of the node itself
   GrainCenter(:) = 0.d0
-  DO jnode = 1 , MIN( SIZE(vvertex,1) , 6 )
+  n=MIN( SIZE(vvertex,1) , 6 )
+  DO jnode=1,n
     GrainCenter(:) = GrainCenter(:) + vvertex(jnode,:)
   ENDDO
-  GrainCenter(:) = GrainCenter(:) / DBLE( MIN( SIZE(vvertex,1) , 6 ) )
+  GrainCenter(:) = ( 2.d0*vnodes(inode,1:3) + GrainCenter(:) ) / DBLE(n+2)
+  IF( verbosity==4 ) THEN
+    WRITE(msg,'(a15,3f9.3)') 'Node position: ', vnodes(inode,1:3)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(msg,'(a15,3f9.3)') 'Grain center:  ', GrainCenter(:)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
   !
   qi=0 !so far, zero atom in the grain
   DO i=1,SIZE(Q,1)

@@ -9,7 +9,7 @@ MODULE messages
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Oct. 2013                                     *
+!* Last modification: P. Hirel - 01 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -98,9 +98,18 @@ END SUBROUTINE DISPLAY_HELP
 SUBROUTINE ATOMSK_MSG(imsg,strings,reals)
 !
 IMPLICIT NONE
-CHARACTER(LEN=*),DIMENSION(:),INTENT(IN):: strings !Character strings that may be part of the message
+CHARACTER(LEN=*),DIMENSION(:):: strings !Character strings that may be part of the message
 INTEGER,INTENT(IN):: imsg  !index of message to display
+INTEGER:: i
 REAL(dp),DIMENSION(:),INTENT(IN):: reals  !real numbers that may be part of the message
+!
+!Strings: reduce the length if it is too long
+!(this will mainly apply to file names)
+DO i=1,SIZE(strings)
+  IF( SCAN(strings(i),"/") > 0 ) THEN
+    strings(i) = CHARLONG2SHRT(strings(i))
+  ENDIF
+ENDDO
 !
 SELECT CASE(lang)
 !

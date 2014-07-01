@@ -22,7 +22,7 @@
 
 <p>This mode generates a polycrystal from a given &#60;seed&#62;, using the Voronoi tesselation method and the parameters provided in the file &#60;param_file&#62;. The positions and crystallographic orientations of the grains can be given explicitely, or generated randomly.</p>
 
-<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually it is a unit cell of material with the crystallographic orientation X=[100], Y=[010], Z=[001] (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be any system that you provide.</p>
+<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually the seed is a unit cell of material with the crystallographic orientation X=[100], Y=[010], Z=[001] (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be a supercell (smaller or larger than the final system), a polycrystal, or any arbitrary atomic system.</p>
 
 <p>The &#60;param_file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored.</p>
 
