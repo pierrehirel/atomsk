@@ -161,7 +161,7 @@ DO
       CALL SYSTEM(system_ls)
       !
     CASE("exit","quit","bye")
-      IF( .NOT. WrittenToFile ) THEN
+      IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
         !User may have forgotten to write file => Display a warning
         CALL ATOMSK_MSG(4713,(/''/),(/0.d0/))
         READ(*,*) answer
