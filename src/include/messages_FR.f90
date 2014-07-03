@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 July 2014                                     *
+!* Last modification: P. Hirel - 03 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2108,6 +2108,11 @@ CASE(4712)
   msg = "/!\ ALERTE : certains atomes peuvent se trouver hors de la boîte, ce qui peut fausser les résultats."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Voulez-vous les remettre dans la boîte maintenant ?"//langyes//"/"//langno//")"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4713)
+  msg = "/!\ ALERTE : apparemment vous n'avez pas enregistré votre système dans un fichier."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Êtes-vous sûr de vouloir quitter? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES

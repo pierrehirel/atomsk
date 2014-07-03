@@ -8,20 +8,21 @@ atomsk - Atom/Molecule/Material Software Kit
 
 .B atomsk <inputfile> <outputfile>
 
-.B atomsk <inputfile> <format>
+.B atomsk <inputfile> <formats>
 
-.B atomsk <inputfile> <format> <options...>
+.B atomsk <inputfile> <formats> <options>
 
-.B atomsk [--mode] <inputfile> <outputfile> [-options] [formats]
+.B atomsk --mode <parameters> [-options] [formats]
 
 .SH AVAILABILITY
-Atomsk is intended to run in UNIX/Linux and Microsoft(R) Windows(R) environments.
+Atomsk is designed to run in UNIX/Linux and Microsoft(R) Windows(R) environments.
 
 .SH DESCRIPTION
-Atomsk is a command-line program intended to read many types of atomic position files, and convert them to many other formats. A list of supported formats is given below. Additionnaly, atomsk can also perform some simple transformations of atomic positions (thanks to the so-called options).
+Atomsk is a command-line program that aims at creating, manipulating, and converting atomic systems. It supports many file formats, among which LAMMPS, VASP, Quantum Espresso, Atomeye CFG format, and xCrySDen XSF format (see the list of supported formats below), which makes it easy to convert files for ab initio calculations, classical potential simulations, or visualization. Additionnaly atomsk can also perform some simple transformations of atomic positions (thanks to the many options described below), like creating supercells, cutting crystal planes, applying stress, or inserting dislocations.
+
 
 .SH SUPPORTED FILE FORMATS
-.SH Input:
+.SS Input:
 .TP
 .B atsk
 Specific atomsk binary format.
@@ -78,7 +79,7 @@ SIESTA XV file.
 XYZ general purpose format.
 
 
-.SH Output:
+.SS Output:
 .TP
 .B atsk
 Specific atomsk binary format.
@@ -135,7 +136,7 @@ XYZ general purpose format.
 
 
 .SH MODES
-Modes decide how the files will be treated. Only one mode can be used at a time. If the program is called without any argument then the mode will be "interactive", i.e. the user will be prompted for an input file name and an output format. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
+Modes decide how the files will be treated. Only one mode can be used at a time. Running atomsk without any argument will trigger the interactive mode, which offers a command-line interpreter. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
 .TP
 .B --all-in-one, -AI1
 Converts several files to one file containing all snapshots.
@@ -201,13 +202,16 @@ Aligns the first supercell vector with the X axis, and the second supercell vect
 .B -bind-shells, -bs
 Re-associates shells (in the sense of a shell model) with their core.
 .TP
+.B -center <index>
+Shift the whole system so the atom with the given index is at the center of the box. If index<=0 then the center of mass of the system is centered.
+.TP
 .B -crack <crackmode> <cracktype> <K> <pos1> <pos2> <crackline> <crackplane> <μ> <ν>
 Introduces a crack in the system.
 .TP
 .B -cut <above|below> <d> <normal>
 Removes all atoms that are above or below the plane defined by its <normal>.
 .TP
-.B -deform <direction> <strain> <poisson>
+.B -deform <direction> <ε> <ν>
 Applies normal strain.
 .TP
 .B -dislocation <pos1> <pos2> <disloctype> <dislocline> <dislocplane> <b> <ν>
@@ -240,7 +244,7 @@ Reads some properties of the system from <file>.
 .B -rebox
 Attempts to determine the supercell parameters.
 .TP
-.B -remove-atom <index/species>, -rmatom <index/species>
+.B -remove-atom <index|species>, -rmatom <index|species>
 Removes an atom given its index, or all atoms of a given species.
 .TP
 .B -remove-doubles <distance>, -rmd <distance>
@@ -269,7 +273,7 @@ Rotates the system around a cartesian <axis>.
 .TP
 .B -select <N> <species> neighbor <index>
 .TP
-.B -select <in/out> <geometry> <x1> <y1> [<z1>] <x2> [<y2> <z2>]
+.B -select <in|out> <geometry> <x1> <y1> [<z1>] <x2> [<y2> <z2>]
 Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
 .TP
 .B -shear <surface normal> <shear amp> <shear direction>
@@ -301,7 +305,7 @@ Wraps atoms back into the supercell.
 .SH EXAMPLES
 .TP
 .B atomsk
-The program will ask you which file you want to convert, and to which format to convert it.
+The program will offer a command-line prompt where commands can be run in real time.
 .TP
 .B atomsk oldfile.xsf newfile.cfg
 The program will convert "oldfile.xsf" to "newfile.cfg".
@@ -312,8 +316,14 @@ The program will convert "file.xsf" to "file.cfg".
 .B atomsk initial.xsf final cfg xyz lmp
 The program will convert "initial.xsf" to "final.cfg", "final.xyz" and "final.lmp".
 .TP
-.B atomsk unitcell.xsf -e 4 4 6 -shift above BOX/2 z 0.2*BOX 0 0 -wrap final.xsf
-The program will read "unitcell.xsf", expand it to form a 2x2x4 supercell, shift atoms of the upper half of the supercell by 0.2 times the box length along X, wrap atoms so that they are all in the simulation box, and write the final result to "final.xsf".
+.B atomsk unitcell.xsf -e 4 4 6 supercell.xsf
+The program will read "unitcell.xsf", expand it to form a 2x2x4 supercell, and the final result will be output into "supercell.xsf".
+.TP
+.B atomsk --create fcc 4.02 Al aluminium.xsf
+This will create a unit cell of fcc aluminium and output the result in "aluminium.xsf".
+.TP
+.B atomsk --difference initial.cfg final.xsf
+This will compute the displacement vectors between the atomic systems described in "initial.cfg" and "final.xsf".
 
 
 .SH SEE ALSO
@@ -323,6 +333,13 @@ http://pierrehirel.info/codes/atomsk/
 
 
 .SH AUTHOR
+.P
 Dr. Pierre Hirel (pierre.hirel@univ-lille1.fr)
+.P
+UMET, Bat. C6, Université de Lille 1 (France)
 
-UMET, Université de Lille 1 (France)
+
+
+.SH BUGS
+.P
+This program is in Beta version and may still contain bugs. If you encounter any bug running this program you can report them to the author. If you choose to do so, please provide the version number of atomsk that you run, the full command that you used, and the input file you tried to convert.

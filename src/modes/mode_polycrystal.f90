@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 July 2014                                     *
+!* Last modification: P. Hirel - 02 July 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -54,7 +54,7 @@ SUBROUTINE POLYCRYS(ucfile,vfile,options_array,prefix,outfileformats)
 !
 IMPLICIT NONE
 !Input parameters
-CHARACTER(LEN=*),INTENT(IN):: ucfile  !name of file containing unit cell
+CHARACTER(LEN=*),INTENT(IN):: ucfile  !name of file containing seed (usually a unit cell, but can be anything)
 CHARACTER(LEN=*),INTENT(IN):: vfile   !name of file containing parameters for Voronoi construction
 CHARACTER(LEN=*),INTENT(IN):: prefix  !name or prefix for output file (polycrystal)
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(IN):: outfileformats !list of formats to output
@@ -92,7 +92,7 @@ REAL(dp):: Volume, Vmin, Vmax, Vstep  !min, max. volume occupied by a grain, ste
 REAL(dp),DIMENSION(3):: GrainCenter !position of center of grain (different from node position)
 REAL(dp),DIMENSION(3):: vector    !vector between an atom and a node
 REAL(dp),DIMENSION(3):: vnormal   !vector normal to grain boundary
-REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell
+REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell (seed)
 REAL(dp),DIMENSION(3,3):: Ht        !Base vectors of the oriented unit cell
 REAL(dp),DIMENSION(3,3):: Hunity    !unit matrix
 REAL(dp),DIMENSION(3,3):: H         !Base vectors of the final supercell
@@ -100,12 +100,12 @@ REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
 REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray   !random numbers
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc, Suc  !positions of atoms, shells in unit cell
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc, Suc  !positions of atoms, shells in unit cell (seed)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pt, St    !positions of atoms, shells in template supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S      !positions of atoms, shells in final supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T      !positions of atoms, shells in a grain
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newQ, newS !positions of atoms, shells (temporary)
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXuc     !auxiliary properties of atoms in the unit cell
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXuc     !auxiliary properties of atoms in the unit cell (seed)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX_Q     !auxiliary properties of atoms in a grain
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX       !auxiliary properties of atoms in the final supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX    !auxiliary properties of atoms (temporary)
@@ -134,7 +134,12 @@ CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !
 !
 100 CONTINUE
-!Read initial seed from file (usually, a unit cell)
+!Read initial seed from file
+!NOTE: usually when constructing a polycrystal the seed is a unit cell,
+!     e.g. a unit cell of fcc or bcc crystal. Here, no such assumption is made,
+!     and the seed can be anything: a unit cell, a supercell, a system containing
+!     defects, dislocations or whatsoever. Also, the seed may be smaller or larger
+!     than the final polycrystal, i.e. Huc(:,:) may be larger than H(:,:).
 CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
 !
 !Check if seed contains shells (in the sense of core-shell model) and/or auxiliary properties
@@ -522,7 +527,8 @@ IF( VECLENGTH(Huc(1,:)) < VECLENGTH(H(1,:)) .OR.  &
   & VECLENGTH(Huc(3,:)) < VECLENGTH(H(3,:))       ) THEN
   !
   DO i=1,3
-    expandmatrix(i) = CEILING( 1.1d0*H(i,i)/Huc(i,i) )
+    expandmatrix(i) = CEILING( 1.1d0*MAX( VECLENGTH(H(1,:))/Huc(i,i) , &
+                    & VECLENGTH(H(2,:))/Huc(i,i) , VECLENGTH(H(3,:))/Huc(i,i) ) )
   ENDDO
   !If the number of grains is small, the template grain may not be large enough
   IF( Nnodes<=6 ) THEN
@@ -536,24 +542,28 @@ ELSE
   !than any dimension of the box => don't expand it
   expandmatrix(:) = 1
 ENDIF
-!If the box is almost cubic then the values of expandmatrix(:) will be close
-!However if the box H(:,:) is not cubic, the template will be thinner in some
-!directions, which can cause problems when it is rotated and cut to form the grains.
-!So, increase the values of expandmatrix(:) if they are too different
-DO i=1,3
-  IF( DBLE(expandmatrix(i))/DBLE(MAXVAL(expandmatrix(:))) < 1.5d0 ) THEN
-    expandmatrix(i) = MAXVAL(expandmatrix(:))
-  ENDIF
-ENDDO
 !If the system is 2-D, do not expand along the shortest axis
 IF( twodim>0 ) THEN
   expandmatrix(twodim) = 1
 ENDIF
+!Evaluate how many particles the template will contain
+m = PRODUCT(expandmatrix(:))*SIZE(Puc,1)
+WRITE(msg,'(a25,i18)') "Expected NP for template:", m
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!If m is too large, reduce some value in expandmatrix(:)
+!
+WRITE(msg,'(a32,3i4)') "Creating template grain, expand:", expandmatrix(:)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
 ALLOCATE( Pt( PRODUCT(expandmatrix(:))*SIZE(Puc,1) , 4 ) )
 Pt(:,:) = 0.d0
 IF( doshells ) THEN
-  ALLOCATE( St( PRODUCT(expandmatrix(:))*SIZE(Puc,1) , 4 ) )
+  ALLOCATE( St( SIZE(Pt,1) , 4 ) )
   St(:,:) = 0.d0
+ENDIF
+IF( doaux ) THEN
+  ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2) ) )
+  AUX_Q(:,:) = 0.d0
 ENDIF
 WRITE(msg,'(a47,3i3)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -576,6 +586,7 @@ DO o = 1 , expandmatrix(3)
           St(qi,4) = Puc(i,4)
         ENDIF
         IF(doaux) THEN
+          AUX_Q(qi,:) = AUXuc(i,:)
         ENDIF
       ENDDO
     ENDDO
@@ -728,12 +739,7 @@ DO inode=1,Nnodes
     T(:,:) = 0.d0
     T(:,:) = St(:,:)
   ENDIF
-  IF(doaux) THEN
-    !Copy auxiliary properties from template into AUX_Q
-    IF(ALLOCATED(AUX_Q)) DEALLOCATE(AUX_Q)
-    ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2) ) )
-    AUX_Q(:,:) = 0.d0
-  ENDIF
+  !Auxiliary properties: the array AUX_Q(:,:) will be used
   !
   !Rotate this cell to obtain the desired crystallographic orientation
   CALL ORIENT_XYZ(Ht,Q,T,Ht,vorient(inode,:,:),SELECT,C_tensor)
@@ -833,7 +839,7 @@ DO inode=1,Nnodes
       IF(ALLOCATED(newS)) DEALLOCATE(newS)
       ALLOCATE(newS(NP+qi,4))
       newS(:,:) = 0.d0
-      IF( ALLOCATED(P) ) THEN
+      IF( ALLOCATED(S) ) THEN
         DO i=1,SIZE(P,1)
           newS(i,:) = S(i,:)
         ENDDO
@@ -841,7 +847,7 @@ DO inode=1,Nnodes
     ENDIF
     IF(doaux) THEN
       IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
-      ALLOCATE(newAUX(NP+qi,SIZE(AUXuc,2)))
+      ALLOCATE(newAUX(NP+qi,SIZE(AUX_Q,2)))
       newAUX(:,:) = 0.d0
       IF( ALLOCATED(AUX) ) THEN
         DO i=1,SIZE(AUX,1)
@@ -859,7 +865,7 @@ DO inode=1,Nnodes
           newS(NP+n,:) = T(i,:)
         ENDIF
         IF(doaux) THEN
-          newAUX(NP+i,:) = AUX_Q(i,:)
+          newAUX(NP+n,:) = AUX_Q(i,:)
         ENDIF
       ENDIF
     ENDDO
@@ -883,10 +889,9 @@ DO inode=1,Nnodes
     IF(doaux) THEN
       !Save all auxiliary properties into AUX
       IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-      ALLOCATE( AUX( SIZE(newAUX,1) , SIZE(AUXuc,2) ) )
+      ALLOCATE( AUX( SIZE(newAUX,1) , SIZE(AUX_Q,2) ) )
       AUX(:,:) = newAUX(:,:)
       DEALLOCATE(newAUX)
-      DEALLOCATE(AUX_Q)
     ENDIF
     !
     NP = NP+qi

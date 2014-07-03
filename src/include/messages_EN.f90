@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 July 2014                                     *
+!* Last modification: P. Hirel - 03 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2059,6 +2059,11 @@ CASE(4712)
   msg = "/!\ WARNING: some atoms may be out of the box, which may lead to wrong results."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Do you wish to wrap them now? ("//langyes//"/"//langno//")"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4713)
+  msg = "/!\ WARNING: apparently you did not save the system into a file."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Are you sure you want to quit? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES

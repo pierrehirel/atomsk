@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 June 2014                                     *
+!* Last modification: P. Hirel - 03 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,6 +44,7 @@ SUBROUTINE INTERACT()
 !
 !
 IMPLICIT NONE
+CHARACTER(LEN=1):: answer
 CHARACTER(LEN=2),DIMENSION(20):: create_species !chemical species of atoms (mode create)
 CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
@@ -65,8 +66,9 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(3)=filefirst
                                           !pfiles(4)=filesecond
                                           !pfiles(5)=listfile
-INTEGER:: i
+INTEGER:: i, j
 INTEGER,DIMENSION(2):: NT_mn
+LOGICAL:: WrittenToFile  !was the system written to a file?
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
@@ -76,6 +78,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
 
 !
 !Initialize variables
+WrittenToFile = .FALSE.
 IF(ALLOCATED(comment)) DEALLOCATE(comment)
 IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(S)) DEALLOCATE(S)
@@ -145,6 +148,7 @@ DO
       !Wipe out everything from memory
       H(:,:) = 0.d0
       ORIENT(:,:) = 0.d0
+      WrittenToFile = .FALSE.
       IF(ALLOCATED(comment)) DEALLOCATE(comment)
       IF(ALLOCATED(P)) DEALLOCATE(P)
       IF(ALLOCATED(S)) DEALLOCATE(S)
@@ -157,7 +161,16 @@ DO
       CALL SYSTEM(system_ls)
       !
     CASE("exit","quit","bye")
-      GOTO 500
+      IF( .NOT. WrittenToFile ) THEN
+        !User may have forgotten to write file => Display a warning
+        CALL ATOMSK_MSG(4713,(/''/),(/0.d0/))
+        READ(*,*) answer
+        IF( answer==langyes .OR. answer==langBigYes ) THEN
+          GOTO 500
+        ENDIF
+      ELSE
+        GOTO 500
+      ENDIF
       !
     CASE("help")
       helpsection = TRIM(ADJUSTL(instruction(6:)))
@@ -182,7 +195,11 @@ DO
       ENDIF
       IF( ALLOCATED(AUX) ) THEN
         i=i+1
-        WRITE(*,*) " Auxiliary properties: ", AUXNAMES(:)
+        msg = AUXNAMES(1)
+        DO j=2,SIZE(AUXNAMES)
+          msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(AUXNAMES(j)))
+        ENDDO
+        WRITE(*,*) " Auxiliary properties: ", msg
       ENDIF
       IF(i==0) THEN
         WRITE(*,*) " Nothing in memory"
@@ -201,6 +218,7 @@ DO
       !Write system to a file
       prefix = TRIM(ADJUSTL(instruction(7:)))
       CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
+      WrittenToFile = .TRUE.
       !
     !Command for creating an atomic system
     CASE("create")

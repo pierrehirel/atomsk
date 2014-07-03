@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 June 2014                                     *
+!* Last modification: P. Hirel - 03 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -672,42 +672,7 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
     READ(temp,*,END=120,ERR=120) tempreal
-    IF(temp2=="screw") THEN
-      !only one component is given, the one along dislocline
-      SELECT CASE(TRIM(temp3))
-      CASE("x","X")
-        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)//" 0 0 "
-      CASE("y","Y")
-        options_array(ioptions) = TRIM(options_array(ioptions))//" 0 "//TRIM(temp)//" 0 "
-      CASE("z","Z")
-        options_array(ioptions) = TRIM(options_array(ioptions))//" 0 0 "//TRIM(temp)
-      END SELECT
-    ELSEIF(temp2(1:4)=="edge") THEN
-      !only one component is given, normal to dislocline and plane of cut
-      SELECT CASE(TRIM(temp3))
-      CASE("x","X")
-        SELECT CASE(TRIM(temp4))
-        CASE('z','Z')
-          options_array(ioptions) = TRIM(options_array(ioptions))//" 0 "//TRIM(temp)//" 0 "
-        CASE('y','Y')
-          options_array(ioptions) = TRIM(options_array(ioptions))//" 0 0 "//TRIM(temp)
-        END SELECT
-      CASE("y","Y")
-        SELECT CASE(TRIM(temp4))
-        CASE('x','X')
-          options_array(ioptions) = TRIM(options_array(ioptions))//" 0 0 "//TRIM(temp)
-        CASE('z','Z')
-          options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)//" 0 0 "
-        END SELECT
-      CASE("z","Z")
-        SELECT CASE(TRIM(temp4))
-        CASE('x','X')
-          options_array(ioptions) = TRIM(options_array(ioptions))//" 0 "//TRIM(temp)//" 0 "
-        CASE('y','Y')
-          options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)//" 0 0 "
-        END SELECT
-      END SELECT
-    ELSE
+    IF(temp2=="mixed") THEN
       !three components are given: the first one was b(1)
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
       !Read b(2)
@@ -719,6 +684,9 @@ DO WHILE(i<SIZE(cla))
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       READ(temp,*,END=120,ERR=120) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+    ELSE
+      !Only one component is given
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
     ENDIF
     !read Poisson's ratio

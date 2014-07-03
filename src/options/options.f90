@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 June 2014                                     *
+!* Last modification: P. Hirel - 03 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -112,11 +112,12 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary prope
 INTEGER:: i, ioptions, j
 INTEGER:: status
 INTEGER:: strlength
+REAL(dp):: tempreal !temporary real number
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
-REAL(dp), DIMENSION(3,3):: HS  !Copy of H for shells
+REAL(dp),DIMENSION(3,3):: HS  !Copy of H for shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P  !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S  !shell positions (is any)
-REAL(dp), DIMENSION(:,:),ALLOCATABLE:: AUX, AUXdummy !auxiliary properties of atoms/shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUXdummy !auxiliary properties of atoms/shells
 !
 !Variables relative to Option: add-atom
 CHARACTER(LEN=2):: addatom_species !species of atom(s) to add
@@ -404,7 +405,52 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-disloc', '-dislocation')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & treal(9), treal(10), disloctype, dislocline, dislocplane, b(1), b(2), b(3), nu
+        & treal(9), treal(10), disloctype
+    IF( disloctype=="mixed" ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+          & treal(9), treal(10), disloctype, dislocline, dislocplane, b(1), b(2), b(3), nu
+    ELSE
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+          & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal, nu
+      !Determine the complete Burgers vector b(:)
+      b(:) = 0.d0
+      IF(disloctype=="screw") THEN
+        !only one component is given, the one along dislocline
+        SELECT CASE(dislocline)
+        CASE("x","X")
+          b(1) = tempreal
+        CASE("y","Y")
+          b(2) = tempreal
+        CASE("z","Z")
+          b(3) = tempreal
+        END SELECT
+      ELSEIF(disloctype=="edge") THEN
+        !only one component is given, normal to dislocline and plane of cut
+        SELECT CASE(dislocline)
+        CASE("x","X")
+          SELECT CASE(dislocplane)
+          CASE('z','Z')
+            b(2) = tempreal
+          CASE('y','Y')
+            b(3) = tempreal
+          END SELECT
+        CASE("y","Y")
+          SELECT CASE(dislocplane)
+          CASE('x','X')
+            b(3) = tempreal
+          CASE('z','Z')
+            b(1) = tempreal
+          END SELECT
+        CASE("z","Z")
+          SELECT CASE(dislocplane)
+          CASE('x','X')
+            b(2) = tempreal
+          CASE('y','Y')
+            b(1) = tempreal
+          END SELECT
+        END SELECT
+      ENDIF
+    ENDIF
     !Check if numbers contain a keyword like "BOX" or "INF"
     SELECT CASE(dislocplane)
     CASE('x','X')
