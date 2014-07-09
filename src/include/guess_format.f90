@@ -19,7 +19,7 @@ MODULE guess_form
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 June 2014                                     *
+!* Last modification: P. Hirel - 09 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -386,6 +386,7 @@ IF(fileexists) THEN
       isposcar = isposcar+0.4d0
     ELSEIF(test(1:9)=='Cartesian') THEN
       isposcar = isposcar+0.3d0
+      isdlp = isdlp-0.3d0
     !
     !Search for patterns corresponding to Quantum Espresso PW format
     ELSEIF(test(1:8)=='&CONTROL' .OR. test(1:8)=='&control') THEN

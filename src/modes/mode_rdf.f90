@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 May 2014                                      *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,6 +67,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their p
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL:: fileexists !does the file exist?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: atompair
 INTEGER:: i, j, k, l, m
 INTEGER:: u, umin, umax, v, vmin, vmax, w, wmin, wmax
@@ -102,6 +103,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 CALL ATOMSK_MSG(4051,(/""/),(/rdf_dr/))
 !
 !Initialize variables
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 atompair=0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(rdf_func)) DEALLOCATE(rdf_func)
@@ -142,7 +144,7 @@ DO
       IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
       !
       !Apply options to the system
-      CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+      CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
       IF(nerr>0) GOTO 1000
       !
       !Compute total volume of the system

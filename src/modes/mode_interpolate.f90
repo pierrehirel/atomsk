@@ -10,7 +10,7 @@ MODULE mode_interpolate
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMESimg          !names of aux
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, comment1, comment2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 LOGICAL:: doshells !also take shells into account?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k
 INTEGER,INTENT(IN):: Nimages  !number of configurations to interpolate (that excludes initial & final images)
 REAL(dp),DIMENSION(3,3):: H1, H2   !Base vectors of the supercells of initial, final images
@@ -68,6 +69,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXimg     !auxiliary properties of an ima
 !
 !Initialize variables
 doshells = .FALSE.
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 ORIENT(:,:) = 0.d0
 !
 !
@@ -136,7 +138,7 @@ DO i=1,Nimages
   ENDIF
   !
   !Apply options to current image
-  CALL OPTIONS_AFF(options_array,Himg,Pimg,Simg,AUXNAMESimg,AUXimg,ORIENT)
+  CALL OPTIONS_AFF(options_array,Himg,Pimg,Simg,AUXNAMESimg,AUXimg,ORIENT,SELECT)
   !
   !Write current image to file(s)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)

@@ -15,7 +15,7 @@ MODULE mode_unwrap
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Oct. 2013                                     *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,6 +59,7 @@ CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES      !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: commentfirst, commentsecond !comments
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k
 INTEGER:: Nunwrap !number of atoms unwrapped
 REAL(dp):: distance
@@ -78,6 +79,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 CALL ATOMSK_MSG(4046,(/TRIM(msg)/),(/0.d0/))
 !
 !Initialize variables
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 Nunwrap=0
 distance=0.d0
 !
@@ -90,13 +92,13 @@ CALL CHECKFILE(filesecond,'read')
 !Read first file
 CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
 IF(nerr>=1) GOTO 1000
-CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>=1) GOTO 1000
 !
 !Read second file
 CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
 IF(nerr>=1) GOTO 1000
-CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>=1) GOTO 1000
 !
 !!Determine if the cell vectors were found or not

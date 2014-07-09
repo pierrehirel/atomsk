@@ -21,7 +21,7 @@ MODULE oia_qeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 June 2014                                     *
+!* Last modification: P. Hirel - 08 June 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -65,6 +65,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their p
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: atoms, isreduced
 LOGICAL:: cell_defined
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: ibrav  !index of Bravais lattice
 INTEGER:: i, j, NP, Nsnap, snap, strlength, strlength2
 INTEGER:: Nsys  !number of systems converted
@@ -85,6 +86,7 @@ Nsys = 0
 snap = 0
 alat = 0.d0
 ORIENT(:,:) = 0.d0
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
@@ -354,7 +356,7 @@ DO  !loop on all snapshots
   Htemp = H
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,Htemp,P,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,Htemp,P,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !Output snapshot to one or several format(s)
   outfileformat=''

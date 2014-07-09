@@ -10,7 +10,7 @@ MODULE mode_average
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,6 +58,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, commenttemp
 LOGICAL:: auxok
 LOGICAL:: fileexists !does the file exist?
 LOGICAL:: first      !is this the first file?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j
 INTEGER:: Nfiles   !number of files
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
@@ -76,6 +77,7 @@ CALL ATOMSK_MSG(4064,(/listfile/),(/0.d0/))
 !Initialize variables
 H(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 !
 !
 !
@@ -256,7 +258,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
 ENDIF
 !
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>0) GOTO 1000
 !
 !

@@ -25,6 +25,7 @@ beta 0.8 (in development)
 - new algorithm for constructing neighbor list.
 - mode interactive now offers a command-line interpreter, much more flexible than the former "interactive questions". The cli allows to read and write files, supports options and the mode "create", and can take scripts as standard input (e.g. "atomsk < script.at").
 - mode "--rdf" now constructs a neighbor list before computing the radial distribution functions (RDFs). Also, the maximum radius Rmax for the RDF must be provided, and Rmax can be larger than the system.
+- modes "--edm" and "--rdf" now prompt the user if the option "-wrap" is absent in the command-line.
 - option "-deform" now interprets real numbers as the value of the deformation. The symbol "%" must be used to specify a deformation in percent, e.g. "-deform x 1.5% 0.0".
 - option "-properties" allows to read atom velocities from a file.
 - option "-remove-doubles" now only removes selected atoms if a selection is defined.

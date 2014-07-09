@@ -13,7 +13,7 @@ MODULE mode_nye
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     philippe.carrez@univ-lille1.fr                                             *
-!* Last modification: P. Hirel - 28 May 2014                                      *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -62,6 +62,7 @@ CHARACTER(LEN=4096):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE :: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE :: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, m, iat
 INTEGER:: nb_neigh, eps
 INTEGER:: Nneighbors
@@ -90,6 +91,7 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: G, Delta_G, Delta_G_matrix, Delta_G_tmp
 
 
 !Initialize variables and arrays
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 NeighFactor = 1.1d0 !distance to 1st neighbor times 1.1 ensures to exclude second neighbor sphere in bcc metals
                     !1.1 is expected to be robust for simple lattices (fcc, bcc) but fails for complex
                     !or distorted systems
@@ -109,7 +111,7 @@ IF (ALLOCATED(comment)) DEALLOCATE(comment)
 IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
 !Apply options to system 1
-CALL OPTIONS_AFF(options_array,Hfirst,Pfirst,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,Hfirst,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Read atomic positions from filesecond and store them into Psecond(:,:)
 CALL READ_AFF(filesecond,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
@@ -118,7 +120,7 @@ IF (ALLOCATED(comment)) DEALLOCATE(comment)
 IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
 !Apply options to system 2
-CALL OPTIONS_AFF(options_array,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !
 !Check that systems 1 and 2 have the same number of atoms

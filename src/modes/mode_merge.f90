@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 April 2014                                    *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, tempcomment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array
 LOGICAL:: auxexists  !does current auxiliary property already exist in AUX?
 LOGICAL:: cat  !must the files be concatenated?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1   !direction along which the files must be concatenated
 INTEGER:: auxcol
 INTEGER:: i, j, k
@@ -69,6 +70,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, currAUX, tempAUX  !auxiliary properti
 !Initialize variables
 a1 = 0
 Nfiles = 0
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
@@ -297,7 +299,7 @@ ENDDO
 CALL ATOMSK_MSG(4031,(/''/),(/DBLE(Nfiles)/))
 !
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,H,Q,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,Q,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Write final system into file(s)
 CALL WRITE_AFF(outputfile,outfileformats,H,Q,S,comment,AUXNAMES,AUX)

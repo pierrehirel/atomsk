@@ -21,7 +21,7 @@ MODULE aio
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,6 +66,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: fileexists
 LOGICAL:: output_xyz, output_exyz,output_xsf
 LOGICAL:: xsf_forces  !write forces in XSF format?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: fx, fy, fz
 INTEGER:: i, j, k
 INTEGER:: snap, totsnap  !current/total snapshot
@@ -89,6 +90,7 @@ totsnap = 0
 ORIENT(:,:) = 0.d0
 ALLOCATE(comment(1))
  comment(1)=''
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 !
 !
 msg = 'entering MODE ALL-IN-ONE'
@@ -183,7 +185,7 @@ DO i=1,totsnap
       IF(nerr>0) GOTO 300
       !
       !Apply options if any
-      CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+      CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
       IF(nerr>0) GOTO 300
       !
       !

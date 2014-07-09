@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 July 2014                                     *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -914,7 +914,7 @@ IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
 IF(ALLOCATED(St)) DEALLOCATE(St)
 !P now contains positions of all atoms in all the grains
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Write final system to file(s)
 CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)

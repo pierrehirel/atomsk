@@ -32,7 +32,7 @@ MODULE mode_normal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Oct. 2013                                     *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -82,6 +82,7 @@ CHARACTER(LEN=4096):: inputfile, outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, tempcomment
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: strlength
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: HS  !Copy of H for shells if necessary
@@ -95,6 +96,7 @@ msg = 'ENTERING CONVERT_AFF...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Initialize variables
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 H(:,:) = 0.d0
 HS(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
@@ -171,7 +173,7 @@ HS = H
 msg = 'APPLYING OPTIONS TO THE SYSTEM:'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 450 CONTINUE
 IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 820

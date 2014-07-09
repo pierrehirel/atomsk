@@ -17,7 +17,7 @@ MODULE oia_xyz
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 June 2014                                     *
+!* Last modification: P. Hirel - 08 June 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,6 +59,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary prope
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: isreduced, Hset
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, NP, strlength
 INTEGER:: Nsys  !number of systems converted
 INTEGER:: snap  !snapshot number
@@ -76,6 +77,7 @@ outputfile=''
 Nsys = 0
 snap = 0
 ORIENT(:,:) = 0.d0
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 ALLOCATE(comment(1))
  comment(1)=''
 !
@@ -187,7 +189,7 @@ DO
   !
   400 CONTINUE
   !Apply options
-  CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !Output snapshot to one or several format(s)
   outfileformat=''

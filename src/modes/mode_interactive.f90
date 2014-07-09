@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 July 2014                                     *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,6 +45,7 @@ SUBROUTINE INTERACT()
 !
 IMPLICIT NONE
 CHARACTER(LEN=1):: answer
+CHARACTER(LEN=2):: species !atom species
 CHARACTER(LEN=2),DIMENSION(20):: create_species !chemical species of atoms (mode create)
 CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
@@ -69,9 +70,11 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
 INTEGER:: i, j
 INTEGER,DIMENSION(2):: NT_mn
 LOGICAL:: WrittenToFile  !was the system written to a file?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, N atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P     !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S     !shell positions (is any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
@@ -84,6 +87,7 @@ IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(S)) DEALLOCATE(S)
 IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
 IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 H(:,:) = 0.d0
@@ -146,14 +150,15 @@ DO
     !Some speciel commands
     CASE("clear")
       !Wipe out everything from memory
+      WrittenToFile = .FALSE.
       H(:,:) = 0.d0
       ORIENT(:,:) = 0.d0
-      WrittenToFile = .FALSE.
       IF(ALLOCATED(comment)) DEALLOCATE(comment)
       IF(ALLOCATED(P)) DEALLOCATE(P)
       IF(ALLOCATED(S)) DEALLOCATE(S)
       IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
       IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+      IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
       IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
       IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
       !
@@ -186,11 +191,24 @@ DO
       IF( ALLOCATED(P) ) THEN
         i=i+1
         IF( ALLOCATED(S) ) THEN
-          WRITE(*,*) " N ionic cores:      ", SIZE(P,1)
-          WRITE(*,*) " N ionic shells:     ", SIZE(S,1)
-          WRITE(*,*) " N particles:        ", SIZE(P,1)+SIZE(S,1)
+          WRITE(*,'(a17, i9)') " N ionic cores:  ", SIZE(P,1)
+          WRITE(*,'(a17, i9)') " N ionic shells: ", SIZE(S,1)
+          j = SIZE(P,1)+SIZE(S,1)
         ELSE
-          WRITE(*,*) " N particles:        ", SIZE(P,1)
+          j = SIZE(P,1)
+        ENDIF
+        WRITE(*,'(a17, i9)') " N particles:    ", j
+        !Write atoms species and their number
+        CALL FIND_NSP(P(:,4),aentries)
+        IF( SIZE(aentries,1)>0 ) THEN
+          msg = "Species:"
+          DO j=1,SIZE(aentries,1)
+            CALL ATOMSPECIES(aentries(j,1) , species)
+            msg = TRIM(msg)//" "//species
+            WRITE(test,*) NINT(aentries(j,2))
+            msg = TRIM(msg)//"("//TRIM(ADJUSTL(test))//")"
+          ENDDO
+          WRITE(*,*) TRIM(msg)
         ENDIF
       ENDIF
       IF( ALLOCATED(AUX) ) THEN
@@ -279,7 +297,7 @@ DO
           IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
           ALLOCATE(options_array(1))
           options_array(1) = "-"//TRIM(ADJUSTL(instruction))
-          CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+          CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
           DEALLOCATE(options_array)
         ELSE
           !The user wants to apply an option, but no system in memory

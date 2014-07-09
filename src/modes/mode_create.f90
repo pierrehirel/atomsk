@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 June 2014                                     *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,6 +61,7 @@ LOGICAL:: cubic     !is the system cubic?
 LOGICAL:: new
 LOGICAL,INTENT(IN):: wof !write output file?
 LOGICAL,DIMENSION(3):: orthovec  !are vectors orthogonal?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, l, m
 INTEGER:: lminmax  !min and max values for loops when orienting cubic systems
 INTEGER:: NP
@@ -79,6 +80,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !Initialize variables
  cubic = .FALSE.
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 nspecies = 0
 H(:,:) = 0.d0
 ips(:,:) = 0.d0
@@ -767,7 +769,7 @@ CALL ATOMSK_MSG(4029,(/''/),(/0.d0/))
 !
 400 CONTINUE
 !Apply options to the created system
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT)
+CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>0) GOTO 1000
 !
 !

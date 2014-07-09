@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 July 2014                                     *
+!* Last modification: P. Hirel - 04 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1730,7 +1730,7 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "help              Display this help"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "ls                List files in current directory"
+  msg = system_ls//"               List files in current directory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "memory            Summary of what is in memory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

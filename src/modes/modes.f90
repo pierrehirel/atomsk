@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 June 2014                                     *
+!* Last modification: P. Hirel - 08 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -98,8 +98,10 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: commentfirst, commentsecond !used 
 CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: merge_files  !files for merge mode
 CHARACTER(LEN=2),DIMENSION(20):: create_species
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_temp  !options and their parameters (temporary)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, ioptions, j, k, m
 INTEGER:: Nimages   !number of images (mode --interpolate)
 INTEGER:: strlength
@@ -129,6 +131,7 @@ IF(mode=='list') THEN
   file1=listfile
 ENDIF
 IF(ALLOCATED(S)) DEALLOCATE(S)
+IF(ALLOCATED(options_temp)) DEALLOCATE(options_temp)
 !
 !
 IF(verbosity==4) THEN
@@ -255,10 +258,10 @@ CASE('ddplot')
   !Read the two input files and apply options if any
   CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !!Determine if the cell vectors were found or not
   IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
@@ -673,11 +676,11 @@ CASE('diff')
   !Read first file
   CALL READ_AFF(file1,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   !Read second file
   CALL READ_AFF(file2,H,Psecond,S,commentsecond,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !!Determine if the cell vectors were found or not
   IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
@@ -749,9 +752,21 @@ CASE('edm')
       CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
       READ(*,*) answer
       IF( answer==langyes .OR. answer==langBigYes ) THEN
-        !Run option "-wrap"
-        test="-wrap"
-        !CALL OPTIONS_AFF((/test/),H,P,S,AUXNAMES,AUX,ORIENT)
+        !Add option "-wrap" to options_array (at the beginning)
+        IF( ALLOCATED(options_array) ) THEN
+          ALLOCATE( options_temp(SIZE(options_array)+1) )
+          options_temp(:) = ""
+          DO i=1,SIZE(options_array)
+            options_temp(i+1) = options_array(i)
+          ENDDO
+          DEALLOCATE(options_array)
+          ALLOCATE(options_array(SIZE(options_temp)))
+          options_array(:) = options_temp(:)
+          DEALLOCATE(options_temp)
+        ELSE
+          ALLOCATE(options_array(1))
+        ENDIF
+        options_array(1) = "-wrap"
       ENDIF
     ENDIF
   ENDIF
@@ -765,7 +780,7 @@ CASE('edm')
   ENDIF
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   IF(nerr>0) GOTO 10000
   !
   !Compute polarization
@@ -817,7 +832,7 @@ CASE('PE')
   ENDIF
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT)
+  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   IF(nerr>0) GOTO 10000
   !
   !Compute polarization
@@ -837,6 +852,33 @@ CASE('rdf')
   !
   READ(mode_param(1),*,END=7000,ERR=7000) rdf_maxR !max. radius R
   READ(mode_param(2),*,END=7000,ERR=7000) rdf_dr   !skin radius dR
+  !
+  !Check if user asked for wrapping of atoms
+  IF( ALLOCATED(options_array) ) THEN
+    IF( .NOT.ANY(options_array(:)=="-wrap") ) THEN
+      !User did not ask to wrap atoms => warn and ask
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
+      READ(*,*) answer
+      IF( answer==langyes .OR. answer==langBigYes ) THEN
+        !Add option "-wrap" to options_array (at the beginning)
+        IF( ALLOCATED(options_array) ) THEN
+          ALLOCATE( options_temp(SIZE(options_array)+1) )
+          options_temp(:) = ""
+          DO i=1,SIZE(options_array)
+            options_temp(i+1) = options_array(i)
+          ENDDO
+          DEALLOCATE(options_array)
+          ALLOCATE(options_array(SIZE(options_temp)))
+          options_array(:) = options_temp(:)
+          DEALLOCATE(options_temp)
+        ELSE
+          ALLOCATE(options_array(1))
+        ENDIF
+        options_array(1) = "-wrap"
+      ENDIF
+    ENDIF
+  ENDIF
   !
   !Compute polarization
   CALL RDF_XYZ(listfile,rdf_maxR,rdf_dr,options_array)
