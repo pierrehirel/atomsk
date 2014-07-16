@@ -27,17 +27,47 @@
 <ul>
   <li><strong>help</strong> Affiche une liste des commandes disponibles</li>
   <li><strong>ls</strong> Affiche une liste des fichiers du dossier courant</li>
+  <li><strong>create</strong> Créer un système atomique</li>
   <li><strong>read &#60;fichier&#62;</strong> Lit le &#60;fichier&#62; et le charge en mémoire</li>
   <li><strong>memory</strong> Affiche un résumé de l'utilisation mémoire courante</li>
-  <li><strong>quit</strong> Sort de ce mode et ferme <code>atomsk</code></li>
   <li><strong>write &#60;fichier&#62;</strong> Ecrit le système courant dans le &#60;fichier&#62;</li>
+  <li><strong>clear</strong> Efface la mémoire, détruisant le système atomique courant</li>
+  <li><strong>quit</strong> Sort de ce mode et ferme <code>atomsk</code></li>
 </ul>
 
-<p>Les <a href="./options.html">options</a> d'<code>atomsk</code> sont également disponibles. Elles doivent être appelées sans le signe moins (-) et avec tous leurs paramètres.</p>
+<p>La commande <strong>create</strong> peut être appelée avec les mêmes arguments que le <a href="./mode_create.html">mode <code>--create</code></a>. Si aucun argument n'est fourni alors ils seront demandés de façon interactive.</p>
 
-<p>Notez que les instructions (ou options) doivent être entrées les unes après les autres.</p>
+<p>Les <a href="./options.html">options</a> d'<code>atomsk</code> sont également disponibles. Elles doivent être appelées <em>sans</em> le tiret (-) et avec tous leurs paramètres.</p>
+
+<p>Pour l'instant il n'est pas possible d'appeler les autres <a href="./modes.html">modes</a> depuis le mode interactif.</p>
+
+<p>Notez que les commandes (ou options) doivent être entrées les unes après les autres.</p>
+
+<p>En mode interactif les commandes sont lues depuis l'entrée standard, par défaut le clavier. Dans les environnements GNU/Linux il est possible d'utiliser la redirection standard (&#60;) pour lire les commandes depuis un fichier au lieu du clavier. Cela signifie qu'il est possible d'enregistrer les commandes dans un fichier texte et de l'utiliser comme script, en utilisant la redirection standard (voir les exemples ci-dessous).</p>
 
 <p>Lorsque le programme est exécuté en <a href="./mode_interactive.html">mode interactif</a> le niveau de verbosité est automatiquement égal à 1.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk</code>
+<p>Tapez juste "<code>atomsk</code>" et suivez les instructions.</p></li>
+
+<li>
+<div class="txtfile">
+<h5>script.ats</h5>
+<p><code>#!/usr/local/bin/atomsk<br/>
+create fcc 4.02 Al<br/>
+expand 20 20 1<br/>
+deform x 0.3% 0.33<br/>
+wrap<br/>
+write deformed_al.xsf<br/>
+</code></p></div>
+<code class="command">atomsk &#60; script.ats</code>
+<p>Des commandes ont été écrites dans le fichier texte "script.ats". Puis, <code>atomsk</code> est exécuté en mode interactif (puisqu'il n'y a aucun argument dans la ligne de commande) et exécutera les commandes reçues dans l'entrée standard, c'est-à-dire  depuis le fichier script "script.ats". Notez qu'en mode interactif les options doivent être appelées <em>sans</em> le tiret, par exemple entrez "wrap" au lieu de "-wrap".</p></li>
+</ul>
 
 
 <p><a href="./index.html">Retour au menu principal</a></p>

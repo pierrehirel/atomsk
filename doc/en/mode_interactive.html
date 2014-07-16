@@ -25,20 +25,49 @@
 <p>In this mode the user can enter commands, and they are executed in real-time. The available commands are:</p>
 
 <ul>
-  <li><strong>help</strong> Displays a summary of commands</li>
-  <li><strong>ls</strong> Displays a list of files in the current directory</li>
+  <li><strong>help</strong> Display a summary of commands</li>
+  <li><strong>ls</strong> Display a list of files in the current directory</li>
+  <li><strong>create</strong> Create a system from scratch</li>
   <li><strong>read &#60;file&#62;</strong> Read the &#60;file&#62; and load its content in memory</li>
-  <li><strong>memory</strong> Displays a summary of the memory used</li>
-  <li><strong>quit</strong> Exit this mode and close <code>atomsk</code></li>
+  <li><strong>memory</strong> Display a summary of the memory used</li>
   <li><strong>write &#60;file&#62;</strong> Write the current system into &#60;file&#62;</li>
-  <li><strong>memory</strong> Displays a summary of the memory used</li>
+  <li><strong>clear</strong> Clear the memory, destroying the current atomic system</li>
+  <li><strong>quit</strong> Exit this mode and close <code>atomsk</code></li>
 </ul>
 
-<p>The <a href="./options.html">options</a> of <code>atomsk</code> are also available. They must be called without the leading minus sign (-), and with all their parameters.</p>
+<p>The command <strong>create</strong> can be called with the same arguments as the <a href="./mode_create.html">mode <code>--create</code></a>. If no argument is provided then the user will be prompted.</p>
 
-<p>Note that only one command (or option) can be issued at a time.</p>
+<p>The <a href="./options.html">options</a> of <code>atomsk</code> are also available. They must be called <em>without</em> the leading dash sign (-), and with all their parameters.</p>
+
+<p>For now the other <a href="./modes.html">modes</a> of <code>atomsk</code> cannot be called from the interactive mode.</p>
+
+<p>Note that only one command (or option) can be issued at a time, and it will take effect immediately.</p>
+
+<p>This mode reads commands from the standard input, which by default is the keyboard. In GNU/Linux environments it is possible to use the standard redirection (&#60;) to use a file as standard input (instead of the keyboard). That means that commands can be saved in a text file and be used as a script, using the standard redirection (see examples below).</p>
 
 <p>When running in interactive mode the <a href="./progbe_verb.html">verbosity level</a> is automatically reset to 1 if it is set to 0 or 2.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk</code>
+<p>Just enter "<code>atomsk</code>" and follow the instructions.</p></li>
+
+<li>
+<div class="txtfile">
+<h5>script.ats</h5>
+<p><code>#!/usr/local/bin/atomsk<br/>
+create fcc 4.02 Al<br/>
+expand 20 20 1<br/>
+deform x 0.3% 0.33<br/>
+wrap<br/>
+write deformed_al.xsf<br/>
+</code></p></div>
+<code class="command">atomsk &#60; script.ats</code>
+<p>Some commands were written in the text file "script.ats". Then, atomsk is run in interactive mode (because no commandl-line argument is present) and will execute commands from the standard input, i.e. the file "script.ats". Note that in interactive mode, the options must <em>not</em> have their leading dash sign, e.g. write "wrap" and not "-wrap".</p></li>
+</ul>
 
 
 <p><a href="./index.html">Back to main menu</a></p>

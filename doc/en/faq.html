@@ -33,6 +33,14 @@
 
 <div id="genname-show" class="more"><p>This program was formerly known as <code>pikashu</code>. Although I don't really care about the name of the code, the former name did not sound very serious. <code>Atomsk</code> is a far more simple name, and the presence of the sound "atom" suggests that this code deals with atomic systems.</p></div>
 
+
+<li><a href="#" id="genpurp" class="showLink" onclick="showHide('genpurp');return false;"><strong>Why create such a program?</strong></a></li>
+
+<div id="genpurp-show" class="more"><p>After some time writing various small programs to design atomic systems, one quickly realizes that the same basic operations must be re-coded over and over again: building supercells, wrapping atoms into the box, deform the box, and so on. Therefore you end up copy/pasting the same routines (or worse, re-write them from scratch) for every different system (fcc, bcc, diamond lattices...). In addition, if you want to use another simulation or visualization software, you may have to re-write your codes to comply with the file formats of the target software.</p>
+
+<p>I thought it would be more efficient to write a general-purpose program that could perform these operations in any system, no matter the atom species or the lattice, and no matter what the input and output formats are. Such is the purpose of <code>atomsk</code>.</p></div>
+
+
 <li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Where can I download <code>atomsk</code>?</strong></a></li>
 
 <div id="gendl-show" class="more"><p>It is recommended to visit <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">this page</a> and download the executable binary for your platform. You can also download the source code if you wish to compile the code yourself or have a look at it.</p></div>
@@ -105,6 +113,29 @@
 <li><a href="#" id="usecalc" class="showLink" onclick="showHide('usecalc');return false;"><strong>I created an input file with <code>atomsk</code>, but then my <em>ab initio</em> or molecular dynamics code does not run.</strong></a></li>
 
 <div id="usecalc-show" class="more"><p>While it is true that one of the purposes of <code>atomsk</code> is to help to prepare files for simulations, it is not meant to prepare all the files nor set all the parameters for your simulation. Most of the time, <code>atomsk</code> will only prepare a draft that you will have to edit before running a simulation. Editing such an input file means that you must know what you want to do and how to do it with the simulation code(s) that you are using. If it is not the case, then don't expect <code>atomsk</code> to help you: refer to the documentation of the code you are using.</p></div>
+
+
+<li><a href="#" id="usescript" class="showLink" onclick="showHide('usescript');return false;"><strong>Is it possible to write scripts for <code>atomsk</code>?</strong></a></li>
+
+<div id="usescript-show" class="more"><p>Yes, there are actually 3 ways to work with "script files" with <code>atomsk</code>.</p>
+
+<p>The first and natural way is to use bash scripts (or batch in Windows). Any variable defined in the bash script can be used in the command-line with atomsk, since these variables are automatically interpreted by the shell before running the command. All the examples provided with the code in the "examples" folder use this capability.</p>
+
+<p>Second, it is also possible to write some options in a file, for instance:</p>
+
+<div class="txtfile">
+<h5>my_options.txt</h5>
+<p><code># options for atomsk<br/>
+expand 40 30 1<br/>
+deform x 3% 0.33<br/>
+</code></p></div>
+
+<p>and then run the program with the <a href="./option_options.html">option <code>-options</code></a>, e.g.:</p>
+
+<p><code class="command">atomsk unitcell.xsf -options my_options.txt final.xsf</code></p>
+
+<p>And, last but not least, it is also possible to write "atomsk scripts" and feed the program with it. This capability is detailed in the <a href="./mode_interactive.html">mode interactive</a>.</p>
+</div>
 
 
 <li><a href="#" id="useverb" class="showLink" onclick="showHide('useverb');return false;"><strong>I do not like the way <code>atomsk</code> always prints information on my screen, how do I change that?</strong></a></li>

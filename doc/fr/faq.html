@@ -33,6 +33,16 @@
 
 <div id="genname-show" class="more"><p>Auparavant ce programme s'appelait <code>pikashu</code>, et bien que je n'accorde pas beaucoup d'importance au nom de ce code j'ai décidé que ce n'était pas assez sérieux. <code>Atomsk</code> est un nom plus simple, et la présence du mot "atome" dans le nom suggère que ce programme sert à manipuler des systèmes atomiques.</p></div>
 
+
+
+<li><a href="#" id="genpurp" class="showLink" onclick="showHide('genpurp');return false;"><strong>Pourquoi avoir écrit un tel programme ?</strong></a></li>
+
+<div id="genpurp-show" class="more"><p>Après avoir passé quelque temps à écrire des bouts de code pour construire des systèmes atomiques, on réalise très vite que l'on doit re-programmer les mêmes opérations : construire des super-cellules, remettre les atomes dans la boîte, déformer la boîte, etc. On se retrouve ainsi à copier-coller (ou pire, ré-écrire en partant de rien) les mêmes routines pour différents systèmes (cfc, bcc, diamant...). Par ailleurs, si l'on souhaite utiliser un code de simulation ou de visualisation différent, il est aussi nécessaire de ré-écrire ses programmes pour produire des fichiers respectant le bon format.</p>
+
+<p>J'ai pensé qu'il serait plus efficace d'écrire un code assez général pour réaliser ces opérations basiques dans n'importe quel système, peu importe les espèces chimiques ou le type de réseau, et peu importe les formats des fichiers d'entrée et de sortie. Tel est le but d'<code>atomsk</code>.</p></div>
+
+
+
 <li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Où peut-on obtenir <code>atomsk</code>?</strong></a></li>
 
 <div id="gendl-show" class="more"><p>Il est recommandé de visiter <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">cette page</a> et de télécharger la version exécutable pour votre plate-forme. Vous pouvez aussi télécharger le code source si vous désirez compiler le programme vous-même ou y jeter un &oelig;il.</p></div>
@@ -42,7 +52,7 @@
 
 
 
-<h3>Usage</h3>
+<h3>Utilisation</h3>
 
 <ul>
 
@@ -69,11 +79,6 @@
 <li><a href="#" id="gennclo" class="showLink" onclick="showHide('gennclo');return false;"><strong>Combien d'options puis-je utiliser dans une même ligne de commandes ?</strong></a></li>
 
 <div id="gennclo-show" class="more"><p>Il n'y a virtuellement aucune limitation, autre que celle de votre environnement. Sous UNIX/Linux vous pouvez taper "<code>getconf ARG_MAX</code>" pour connaître la longueur maximale de ligne de commande que votre shell supporte.</p></div>
-
-
-<li><a href="#" id="usecalc" class="showLink" onclick="showHide('usecalc');return false;"><strong>J'ai créé un fichier d'entrée avec <code>atomsk</code>, mais mon code de calcul <em>ab initio</em> ou de dynamique moléculaire ne se lance pas.</strong></a></li>
-
-<div id="usecalc-show" class="more"><p>Bien que l'un des buts de <code>atomsk</code> soit effectivement d'aider à la préparation de fichiers à des fins de simulations, il n'est pas conçu pour préparer tous les fichiers ni tous les paramètres de votre simulation. La plupart du temps <code>atomsk</code> préparera seulement un brouillon que vous devrez éditer avant de lancer une simulation. Éditer un tel fichier signifie que vous devez savoir ce que vous voulez faire et comment le faire avec le code de simulation que vous utilisez. Si ce n'est pas le cas, alors <code>atomsk</code> ne peut pas vous aider : référez-vous à la documentation du code que vous voulez utiliser.</p></div>
 
 
 <li><a href="#" id="useuc" class="showLink" onclick="showHide('useuc');return false;"><strong>Comment puis-je créer une cellule élémentaire ?</strong></a></li>
@@ -106,6 +111,34 @@
 <p>Plusieurs formats de fichiers peuvent être spécifiés en sortie, par exemple la commande suivante produira les fichiers aux formats CFG (Atomeye) et LAMMPS :</p>
 
 <p><code class="command">atomsk file.xsf cfg lmp</code></p>
+</div>
+
+
+<li><a href="#" id="usecalc" class="showLink" onclick="showHide('usecalc');return false;"><strong>J'ai créé un fichier d'entrée avec <code>atomsk</code>, mais mon code de calcul <em>ab initio</em> ou de dynamique moléculaire n'accepte pas ce fichier ou plante.</strong></a></li>
+
+<div id="usecalc-show" class="more"><p>Bien que l'un des buts de <code>atomsk</code> soit effectivement d'aider à la préparation de fichiers à des fins de simulations, il n'est pas conçu pour préparer tous les fichiers ni tous les paramètres de votre simulation. La plupart du temps <code>atomsk</code> préparera seulement un brouillon que vous devrez éditer avant de lancer une simulation. Éditer un tel fichier signifie que vous devez savoir ce que vous voulez faire et comment le faire avec le code de simulation que vous utilisez. Si ce n'est pas le cas, alors <code>atomsk</code> ne peut pas vous aider : référez-vous à la documentation du code que vous voulez utiliser.</p></div>
+
+
+<li><a href="#" id="usescript" class="showLink" onclick="showHide('usescript');return false;"><strong>Est-il possible d'écrire des scripts pour <code>atomsk</code> ?</strong></a></li>
+
+<div id="usescript-show" class="more"><p>Oui, il y a trois façons de travailler avec des scripts avec <code>atomsk</code>.</p>
+
+<p>La première et la plus naturelle est d'utiliser des scripts bash (ou batch sous Windows). Les variables définies dans le script bash peuvent être utilisées dans les arguments d'<code>atomsk</code>, puisqu'ils sont interprétés par le shell avant l'exécution du programme. Tous les exemples fournis avec le code dans le dossier "examples" utilisent des scripts bash.</p>
+
+<p>Deuxièmement, il est aussi possible d'écrire des options dans un fichier texte, par exemple :</p>
+
+<div class="txtfile">
+<h5>mes_options.txt</h5>
+<p><code># options pour atomsk<br/>
+expand 40 30 1<br/>
+deform x 3% 0.33<br/>
+</code></p></div>
+
+<p>puis d'exécuter le programme avec l'<a href="./option_options.html">option <code>-options</code></a>, par exemple :</p>
+
+<p><code class="command">atomsk unitcell.xsf -options mes_options.txt final.xsf</code></p>
+
+<p>Enfin, il est aussi possible d'écrire des "scripts atomsk" et de les faire interpréter par le programme. Cette possibilité est détaillée dans le <a href="./mode_interactive.html">mode interactif</a>.</p>
 </div>
 
 
