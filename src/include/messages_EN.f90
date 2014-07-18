@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 18 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1210,13 +1210,17 @@ CASE(2101)
       & " = "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2102)
-  !strings(1) = empty or atom species to remove
+  !strings(1) = empty or atom species to remove or "SEL"
   !reals(1) = 0 or atom index to remove
-  IF( NINT(reals(1)).NE.0 ) THEN
-    WRITE(msg,*) NINT(reals(1))
-    msg = ">>> Removing atom #"//TRIM(ADJUSTL(msg))//"."
+  IF( strings(1)=="SEL" ) THEN
+    msg = ">>> Removing all selected atoms from the system."
   ELSE
-    msg = ">>> Removing all "//TRIM(strings(1))//" atoms from the system."
+    IF( NINT(reals(1)).NE.0 ) THEN
+      WRITE(msg,*) NINT(reals(1))
+      msg = ">>> Removing atom #"//TRIM(ADJUSTL(msg))//"."
+    ELSE
+      msg = ">>> Removing all "//TRIM(strings(1))//" atoms from the system."
+    ENDIF
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2103)
@@ -1445,7 +1449,7 @@ CASE(2741)
   msg = "/!\ WARNING: Poisson ratio is out of range [-1 , 0.5]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2742)
-  msg = "/!\ WARNING: index is greater than the number of atoms, skipping."
+  msg = "/!\ WARNING: atom index is out of bounds, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2743)
   msg = "/!\ WARNING: skew parameters are zero, skipping."
@@ -1483,6 +1487,10 @@ CASE(2750)
 CASE(2751)
   msg = "/!\ WARNING: target temperature is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2752)
+  msg = "/!\ WARNING: no selection is defined, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  !
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option

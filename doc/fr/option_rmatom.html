@@ -21,6 +21,8 @@
 
 <p><code>-rmatom &#60;espèce&#62;</code></p>
 
+<p><code>-rmatom select</code></p>
+
 
 <h4>Description</h4>
 
@@ -29,6 +31,8 @@
 <p>Si le ou les atomes supprimés ont une coquille (dans le cadre d'un modèle c&oelig;ur-coquille) et/ou des propriétés auxiliaires, ils sont également supprimés. Par ailleurs, les atomes restant dans le système peuvent avoir un indice différent après l'application de cette option.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront supprimés.</p>
+
+<p>L'option <code>-rmatom select</code> supprimera tous les atomes sélectionnés, peu importent leur indice et leur espèce chimique. Elle est prévue pour être utilisée après l'<a href="./option_select.html">option <code>-select</code></a>, et ne supprimera aucun atome si aucune sélection n'est définie.</p>
 
 
 
@@ -49,6 +53,9 @@
 
 <li><code class="command">atomsk initial.cfg -select in sphere 0.5*box 0.5*box 0.5*box 30 -rmatom Si final.xyz</code>
 <p>Ceci va <a href="./option_select.html">sélectionner les atomes dans une sphère</a>, et supprimera les atomes de silicium qui font partie de cette sélection.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select in sphere 0.5*box 0.5*box 0.5*box 30 -rmatom select final.xyz</code>
+<p>Ceci va <a href="./option_select.html">sélectionner les atomes dans une sphère</a>, et supprimera tous les atomes qui font partie de cette sélection.</p></li>
 </ul>
 
 

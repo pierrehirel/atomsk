@@ -28,6 +28,7 @@ beta 0.8 (in development)
 - modes "--edm" and "--rdf" now prompt the user if the option "-wrap" is absent in the command-line.
 - option "-deform" now interprets real numbers as the value of the deformation. The symbol "%" must be used to specify a deformation in percent, e.g. "-deform x 1.5% 0.0".
 - option "-properties" allows to read atom velocities from a file.
+- option "-remove-atoms" can now remove all selected atoms with "-remove-atoms select".
 - option "-remove-doubles" now only removes selected atoms if a selection is defined.
 - option "-remove-properties" does not remove the auxiliary property anymore if a selection is defined, instead the property is set to zero for selected atoms. If no selection is defined the property is still completely removed.
 - option "-rotate" now also rotates atom velocity and force vectors if they are defined.

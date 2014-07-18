@@ -4,13 +4,13 @@ MODULE rmatom
 !*  RMATOM                                                                        *
 !**********************************************************************************
 !* This module removes either one atom given its index, or all atoms of           *
-!* a given species.                                                               *
+!* a given species, or all selected atoms.                                        *
 !**********************************************************************************
 !* (C) Dec 2011 - Pierre Hirel                                                    *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 May 2014                                      *
+!* Last modification: P. Hirel - 18 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,6 +46,7 @@ CHARACTER(LEN=32),INTENT(IN):: rmatom_prop
 CHARACTER(LEN=128):: msg
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: atomindex !index of atom that must be removed
+INTEGER:: method    !1=selected atoms; 2=atom species; 3=atom index; 0=error
 INTEGER:: NP !number of particles
 INTEGER:: i
 INTEGER:: rmatoms !number of atoms removed
@@ -58,6 +59,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties 
 species = ''
 atomindex = 0
 i = 0
+method=0
 NP = 0
 rmatoms = 0
 snumber = 0.d0
@@ -71,75 +73,81 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
 100 CONTINUE
-!Check if rmatom_prop contains an atom species
-IF( LEN_TRIM(rmatom_prop)<=2 ) THEN
-  species = TRIM(ADJUSTL(rmatom_prop))
-  CALL ATOMNUMBER(species,snumber)
-ENDIF
-!
-IF( NINT(snumber)==0 ) THEN
-  species = ''
-  !rmatom_prop does not contain an atom spcies
-  !=> it should be an atom index, check for that
-  READ(rmatom_prop,*,END=120,ERR=120) atomindex
-ENDIF
-!
-120 CONTINUE
-CALL ATOMSK_MSG(2102,(/species/),(/DBLE(atomindex)/))
-!
-!Check if both are zero or both are non-zero => error
-IF( (NINT(snumber)==0   .AND. atomindex==0   ) .OR.          &
-  & (NINT(snumber).NE.0 .AND. atomindex.NE.0 )      ) THEN
-  CALL ATOMSK_MSG(2812,(/''/),(/0.d0/))
-  GOTO 1000
+!Read "rmatom_prop" to know what to remove
+IF( rmatom_prop(1:3)=="sel" .OR. rmatom_prop(1:3)=="SEL" ) THEN
+  method=1
+  CALL ATOMSK_MSG(2102,(/"SEL"/),(/0.d0/))
+ELSE
+  !Check if rmatom_prop contains an atom species
+  IF( LEN_TRIM(rmatom_prop)<=2 ) THEN
+    species = TRIM(ADJUSTL(rmatom_prop))
+    CALL ATOMNUMBER(species,snumber)
+  ENDIF
+  !
+  IF( NINT(snumber)>0 ) THEN
+    method=2
+  ELSE
+    species = ''
+    !rmatom_prop does not contain an atom spcies
+    !=> it should be an atom index, check for that
+    READ(rmatom_prop,*,END=120,ERR=120) atomindex
+    method=3
+  ENDIF
+  !
+  120 CONTINUE
+  CALL ATOMSK_MSG(2102,(/species/),(/DBLE(atomindex)/))
 ENDIF
 !
 !
 !
 200 CONTINUE
-IF( atomindex.NE.0 ) THEN
-  !Remove atom with the given index
-  !Check that this index is smaller than P
-  IF( atomindex>SIZE(P,1) ) THEN
-    CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
-    GOTO 300
-  ENDIF
-  !
-  !Allocate arrays
-  ALLOCATE( newP( SIZE(P,1)-1, 4 ) )
-  newP(:,:) = 0.d0
-  IF(ALLOCATED(S)) THEN
-    ALLOCATE( newS( SIZE(S,1)-1, 4 ) )
-    newS(:,:) = 0.d0
-  ENDIF
-  IF(ALLOCATED(AUX)) THEN
-    ALLOCATE( newAUX( SIZE(AUX,1)-1, SIZE(AUX,2) ) )
-  ENDIF
-  !
-  !Remove only atom with that index (but only if it is selected)
-  IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(atomindex) ) THEN
-    !Atom that must be removed is in the selection => proceed
-    DO i=1,SIZE(P,1)
-      IF(i==atomindex) THEN
-        !This atom dies
-        rmatoms=rmatoms+1
-        CALL ATOMSPECIES(P(i,4),species)
-      ELSE
-        !This atom lives
-        NP=NP+1
-        newP(NP,:) = P(i,:)
-        IF(ALLOCATED(S)) THEN
-          newS(NP,:) = S(i,:)
-        ENDIF
-        IF(ALLOCATED(AUX)) THEN
-          newAUX(NP,:) = AUX(i,:)
-        ENDIF
-      ENDIF
+IF( method==1 ) THEN
+  !Remove all selected atoms
+  NP=0
+  IF( ALLOCATED(SELECT) ) THEN
+    DO i=1,SIZE(SELECT)
+      IF( .NOT.SELECT(i) ) NP=NP+1
     ENDDO
+    !
+    IF(NP>0) THEN
+      ALLOCATE( newP(NP,4) )
+      newP(:,:) = 0.d0
+      IF( ALLOCATED(S) ) THEN
+        ALLOCATE( newS(NP,4) )
+        newS(:,:) = 0.d0
+      ENDIF
+      IF( ALLOCATED(AUX) ) THEN
+        ALLOCATE( newAUX(NP,SIZE(AUX,2)) )
+        newAUX(:,:) = 0.d0
+      ENDIF
+      !
+      NP = 0
+      DO i=1,SIZE(P,1)
+        IF( .NOT.SELECT(i) ) THEN
+          !This atom is not selected => it lives
+          NP=NP+1
+          newP(NP,:) = P(i,:)
+          IF( ALLOCATED(S) ) newS(NP,:) = S(i,:)
+          IF( ALLOCATED(AUX) ) newAUX(NP,:) = AUX(i,:)
+        ELSE
+          !This atom is selected => it will be removed
+          rmatoms = rmatoms+1
+        ENDIF
+      ENDDO
+      !
+    ELSE
+      !All atoms must be removed
+      rmatoms = SIZE(P,1)
+    ENDIF
+    !
+  ELSE
+    !No selection is defined => do not remove any atom
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2752,(/species/),(/DBLE(atomindex)/))
   ENDIF
   !
   !
-ELSEIF( NINT(snumber).NE.0 ) THEN
+ELSEIF( method==2 ) THEN
   !Remove all atoms of the given species
   CALL ATOMSPECIES(snumber,species)
   !
@@ -154,6 +162,7 @@ ELSEIF( NINT(snumber).NE.0 ) THEN
   ENDIF
   IF(ALLOCATED(AUX)) THEN
     ALLOCATE( newAUX( SIZE(AUX,1), SIZE(AUX,2) ) )
+    newAUX(:,:) = 0.d0
   ENDIF
   !
   !Remove all atoms that belong to that species *and* are selected
@@ -176,23 +185,82 @@ ELSEIF( NINT(snumber).NE.0 ) THEN
     !
   ENDDO
   !
+  !
+ELSEIF( method==3 ) THEN
+  !Remove atom with the given index
+  IF( atomindex>SIZE(P,1) .OR. atomindex<=0 ) THEN
+    !Atom index is out-of-bounds => warn and skip
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
+    !
+  ELSE
+    !Allocate arrays
+    ALLOCATE( newP( SIZE(P,1)-1, 4 ) )
+    newP(:,:) = 0.d0
+    IF(ALLOCATED(S)) THEN
+      ALLOCATE( newS( SIZE(S,1)-1, 4 ) )
+      newS(:,:) = 0.d0
+    ENDIF
+    IF(ALLOCATED(AUX)) THEN
+      ALLOCATE( newAUX( SIZE(AUX,1)-1, SIZE(AUX,2) ) )
+    ENDIF
+    !
+    !Remove only atom with that index (but only if it is selected)
+    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(atomindex) ) THEN
+      !Atom that must be removed is in the selection => proceed
+      DO i=1,SIZE(P,1)
+        IF(i==atomindex) THEN
+          !This atom dies
+          rmatoms=rmatoms+1
+          CALL ATOMSPECIES(P(i,4),species)
+        ELSE
+          !This atom lives
+          NP=NP+1
+          newP(NP,:) = P(i,:)
+          IF(ALLOCATED(S)) THEN
+            newS(NP,:) = S(i,:)
+          ENDIF
+          IF(ALLOCATED(AUX)) THEN
+            newAUX(NP,:) = AUX(i,:)
+          ENDIF
+        ENDIF
+      ENDDO
+    ENDIF
+    !
+  ENDIF
+  !
+  !
+ELSE
+  CALL ATOMSK_MSG(2812,(/''/),(/0.d0/))
+  GOTO 1000
 ENDIF
 !
+!
+!
+300 CONTINUE
 !Replace old P by newP; same with S and AUX if necessary
-IF( rmatoms>0 ) THEN
+IF( rmatoms>=SIZE(P,1) ) THEN
+  !All atoms were removed! Just de-allocate arrays
   DEALLOCATE(P)
+  IF(ALLOCATED(S)) DEALLOCATE(S)
+  IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  !
+ELSEIF( rmatoms>0 ) THEN
+  DEALLOCATE(P)
+  IF(ALLOCATED(S)) DEALLOCATE(S)
+  IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  !
   ALLOCATE(P(NP,4))
   P(:,:) = 0.d0
-  IF(ALLOCATED(S)) THEN
-    DEALLOCATE(S)
+  IF(ALLOCATED(newS)) THEN
     ALLOCATE(S(NP,4))
     S(:,:) = 0.d0
   ENDIF
-  IF(ALLOCATED(AUX)) THEN
-    DEALLOCATE(AUX)
+  IF(ALLOCATED(newAUX)) THEN
     ALLOCATE( AUX( NP,SIZE(newAUX,2) ) )
     AUX(:,:) = 0.d0
   ENDIF
+  !
   DO i=1,NP
     P(i,:) = newP(i,:)
     IF(ALLOCATED(S)) S(i,:) = newS(i,:)
@@ -204,8 +272,6 @@ IF(ALLOCATED(newS)) DEALLOCATE(newS)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
 !
-!
-300 CONTINUE
 CALL ATOMSK_MSG(2080,(/species/),(/DBLE(rmatoms),DBLE(SIZE(P,1))/))
 GOTO 1000
 !

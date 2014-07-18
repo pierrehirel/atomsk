@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 18 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1265,13 +1265,17 @@ CASE(2101)
       & " = "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2102)
-  !strings(1) = empty or atom species to remove
+  !strings(1) = empty or atom species to remove or "SEL"
   !reals(1) = 0 or atom index to remove
-  IF( NINT(reals(1)).NE.0 ) THEN
-    WRITE(msg,*) NINT(reals(1))
-    msg = ">>> Suppression de l'atome #"//TRIM(ADJUSTL(msg))//"."
+  IF( strings(1)=="SEL" ) THEN
+    msg = ">>> Suppression de tous les atomes sélectionnés."
   ELSE
-    msg = ">>> Suppression de tous les atomes de "//TRIM(strings(1))//"."
+    IF( NINT(reals(1)).NE.0 ) THEN
+      WRITE(msg,*) NINT(reals(1))
+      msg = ">>> Suppression de l'atome #"//TRIM(ADJUSTL(msg))//"."
+    ELSE
+      msg = ">>> Suppression de tous les atomes de "//TRIM(strings(1))//"."
+    ENDIF
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2103)
@@ -1499,7 +1503,7 @@ CASE(2741)
   msg = "/!\ ALERTE : le coefficient de Poisson est en dehors des limites [-1 , 0.5]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2742)
-  msg = "/!\ ALERTE : l'indice est plus grand que le nombre d'atomes, abandon."
+  msg = "/!\ ALERTE : l'indice donné est plus grand que le nombre d'atomes, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2743)
   msg = "/!\ ALERTE : les vecteurs de boîte ne sont pas inclinés, abandon."
@@ -1534,6 +1538,13 @@ CASE(2749)
 CASE(2750)
   msg = "/!\ ALERTE : une sélection a été définie mais ne contient plus aucun atome, sélection réinitialisée."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2751)
+  msg = "/!\ ALERTE : la temperature cible est nulle, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2752)
+  msg = "/!\ ALERTE : aucune sélection n'est définie, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  !
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option

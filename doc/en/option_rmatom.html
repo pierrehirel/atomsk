@@ -21,6 +21,8 @@
 
 <p><code>-rmatom &#60;species&#62;</code></p>
 
+<p><code>-rmatom select</code></p>
+
 
 <h4>Description</h4>
 
@@ -29,6 +31,8 @@
 <p>Note that if this atom has a shell (in the sense of a core-shell model) and/or auxiliary properties, they are also deleted. In addition, some of the remaining atoms may have a different index after this option is applied.</p>
 
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms will be removed.</p>
+
+<p>The option <code>-rmatom select</code> will remove all selected atoms, no matter their index or their species. It is meant to be used after the <a href="./option_select.html">option <code>-select</code></a>, and will not do anything if no selection is defined.</p>
 
 
 
@@ -48,7 +52,10 @@
 <p>This will remove all iron atoms in the system.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select in sphere 0.5*box 0.5*box 0.5*box 30 -rmatom Si final.xyz</code>
-<p>This will <a href="./option_select.html">select atoms in a sphere</a>, and delete all silicium atoms that are selected.</p></li>
+<p>This will <a href="./option_select.html">select atoms in a sphere</a>, and delete all silicium atoms that are part of this selection.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select in sphere 0.5*box 0.5*box 0.5*box 30 -rmatom select final.xyz</code>
+<p>This will <a href="./option_select.html">select atoms in a sphere</a>, and delete all atoms that are selected.</p></li>
 </ul>
 
 

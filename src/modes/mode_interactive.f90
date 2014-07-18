@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 10 July 2014                                     *
+!* Last modification: P. Hirel - 18 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,8 +34,7 @@ USE files
 USE subroutines
 USE guess_form
 USE read_cla
-USE mode_create
-USE mode_normal
+USE modes
 !
 CONTAINS
 !
@@ -295,9 +294,9 @@ DO
           READ(test,*,END=250,ERR=250) create_species(3)
         ENDIF
         250 CONTINUE
-        PRINT*, create_species(:)
         !Run the mode
-        CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
+        CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
+        !CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
         IF(ALLOCATED(cla)) DEALLOCATE(cla)
         !
       !Misc. commands
