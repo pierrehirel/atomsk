@@ -10,7 +10,7 @@ MODULE in_atsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 22 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -38,17 +38,18 @@ IMPLICIT NONE
 !
 CONTAINS
 !
-SUBROUTINE READ_ATSK(inputfile,H,P,comment,AUXNAMES,AUX)
+SUBROUTINE READ_ATSK(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=128):: msg
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
+CHARACTER(LEN=32):: atsktxt
+CHARACTER(LEN=4096):: msg
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 INTEGER:: atskversion  !version of atomsk this binary file was written by
 INTEGER:: Ncomment, NP, NS, Naux, Nauxnames
-REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
+REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P, S
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX !auxiliary properties
 !
 !
 !Initialize variables
@@ -67,8 +68,8 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 100 CONTINUE
 OPEN(UNIT=30,FILE=inputfile,STATUS='UNKNOWN',FORM="UNFORMATTED",ERR=800)
 !
-READ(30,ERR=800) msg
-READ(msg,*,ERR=120) atskversion
+READ(30,ERR=800) atsktxt
+READ(atsktxt,*,ERR=120) atskversion
 !
 120 CONTINUE
 !Read the length of each array

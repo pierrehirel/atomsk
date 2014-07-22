@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 22 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,9 +61,9 @@ INTEGER:: i, j, k
 INTEGER:: Nfiles  !number of files merged
 REAL(dp),DIMENSION(3,3):: H, Htemp      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT        !Crystallographic orientation of the system
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !Coordinates read from the files (atoms/shells)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !Coordinates read from one file (atoms/shells)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T !Final coordinates of atoms/shells
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: R, U !Temporary arrays storing coordinates
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: R, U !Temporary arrays storing coordinates of atoms/shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, currAUX, tempAUX  !auxiliary properties of atoms
 !
 !
@@ -129,10 +129,10 @@ DO i=1,SIZE(merge_files)
   !
   IF(i==1) THEN
     !First file: allocate arrays and fill them
-    ALLOCATE( Q( SIZE(P(:,1)), SIZE(P(1,:)) ) )
+    ALLOCATE( Q( SIZE(P,1), SIZE(P,2) ) )
     Q = P
     IF(ALLOCATED(S)) THEN
-      ALLOCATE( T( SIZE(S(:,1)), SIZE(S(1,:)) ) )
+      ALLOCATE( T( SIZE(S,1), SIZE(S,2) ) )
       T = S
     ENDIF
     H = Htemp
@@ -152,20 +152,20 @@ DO i=1,SIZE(merge_files)
     !Next files: merge them with the previous system H, Q
     !Create array R to store arrays Q and P
     IF(ALLOCATED(R)) DEALLOCATE(R)
-    ALLOCATE( R( SIZE(Q(:,1))+SIZE(P(:,1)), SIZE(Q(1,:)) ) )
+    ALLOCATE( R( SIZE(Q,1)+SIZE(P,1), SIZE(Q,2) ) )
     IF(ALLOCATED(S)) THEN
       IF(ALLOCATED(U)) DEALLOCATE(U)
-      ALLOCATE( U( SIZE(T(:,1))+SIZE(S(:,1)), SIZE(S(1,:)) ) )
+      ALLOCATE( U( SIZE(T,1)+SIZE(S,1), SIZE(S,2) ) )
     ENDIF
     !
     IF(cat) THEN
       !Concatenate the files
       !The coordinates of P and S must be shifted by H(a1,:)
-      DO j=1,SIZE(P(:,1))
+      DO j=1,SIZE(P,1)
         P(j,:) = P(j,:) + H(a1,:)
       ENDDO
       IF(ALLOCATED(S)) THEN
-        DO j=1,SIZE(S(:,1))
+        DO j=1,SIZE(S,1)
           S(j,:) = S(j,:) + H(a1,:)
         ENDDO
       ENDIF
@@ -175,30 +175,30 @@ DO i=1,SIZE(merge_files)
     ENDIF
     !
     !Copy atom coordinates in R
-    DO j=1,SIZE(Q(:,1))
+    DO j=1,SIZE(Q,1)
       R(j,:) = Q(j,:)
     ENDDO
-    DO j=1,SIZE(P(:,1))
-      R(SIZE(Q(:,1))+j,:) = P(j,:)
+    DO j=1,SIZE(P,1)
+      R(SIZE(Q,1)+j,:) = P(j,:)
     ENDDO
     !Copy shells in U
     IF(ALLOCATED(S)) THEN
-      DO j=1,SIZE(T(:,1))
+      DO j=1,SIZE(T,1)
         U(j,:) = T(j,:)
       ENDDO
-      DO j=1,SIZE(S(:,1))
-        U(SIZE(T(:,1))+j,:) = S(j,:)
+      DO j=1,SIZE(S,1)
+        U(SIZE(T,1)+j,:) = S(j,:)
       ENDDO
     ENDIF
     !
     !Replace old Q with new R
     DEALLOCATE(Q)
-    ALLOCATE( Q( SIZE(R(:,1)), SIZE(R(1,:)) ) )
+    ALLOCATE( Q( SIZE(R,1), SIZE(R,2) ) )
     Q = R
     !Shells: replace old T with new U
     IF(ALLOCATED(S)) THEN
       DEALLOCATE(T)
-      ALLOCATE( T( SIZE(U(:,1)), SIZE(U(1,:)) ) )
+      ALLOCATE( T( SIZE(U,1), SIZE(U,2) ) )
       T = U
       DEALLOCATE(U)
       DEALLOCATE(S)
@@ -299,10 +299,10 @@ ENDDO
 CALL ATOMSK_MSG(4031,(/''/),(/DBLE(Nfiles)/))
 !
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,H,Q,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,H,Q,T,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Write final system into file(s)
-CALL WRITE_AFF(outputfile,outfileformats,H,Q,S,comment,AUXNAMES,AUX)
+CALL WRITE_AFF(outputfile,outfileformats,H,Q,T,comment,AUXNAMES,AUX)
 GOTO 1000
 !
 !

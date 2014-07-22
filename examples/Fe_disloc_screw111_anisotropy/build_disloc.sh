@@ -12,7 +12,7 @@ rm -f Fe_dislo*
 ### Lattice constant (A)
 alat=2.87
 ### Dimensions of unit cell along X and Y
-### (this should match the crystal orientation below)
+### This is for crystal orientation X=[121], Y=[-101], Z=[1-11]
 uX=$(echo "$alat*sqrt(6.0)" | bc -l)
 uY=$(echo "$alat*sqrt(2.0)" | bc -l)
 ### Length of Burgers vector 1/2 [1-11]
@@ -29,9 +29,9 @@ posY=$(echo "$uY*(0.5*$eY+0.666666666)"|bc)
 radius=50.0
 
 ### Run atomsk!
-### Summary of the command:
-### Create the oriented unit cell (mode --create)
-### Expand it to make a supercell (option -e)
+### Summary of the command-line parameters:
+### Create the unit cell (mode --create) oriented X=[121], Y=[-101], Z=[1-11]
+### Expand it to make a supercell (option -expand)
 ### Read material properties from "Fe_prop.txt" (option -prop)
 ###     (elastic tensor + system orientation)
 ### Build 1/2 <111> screw dislocation, line along Z (option -disloc)
@@ -40,7 +40,7 @@ radius=50.0
 ### Fix atoms at the boundaries (options select and fix)
 ### Output to XSF, CFG and BOP formats
 
-atomsk --create bcc $alat Fe orient [121] [-101] [1-11] -e $eX $eY $eZ -prop Fe_prop.txt -disloc $posX $posY screw z y $b 0.0 -select out cylinder z $posX $posY $radius -fix all above -100.0 x Fe_dislo.xsf cfg bop
+atomsk --create bcc $alat Fe orient [121] [-101] [1-11] -expand $eX $eY $eZ -prop Fe_prop.txt -disloc $posX $posY screw z y $b 0.0 -select out cylinder z $posX $posY $radius -fix all above -100.0 x Fe_dislo.xsf cfg bop
 
 ### Note: dislocation stresses and fixed atoms can be visualized
 ###       with Atomeye: see auxiliary properties in "Fe_dislo.cfg"

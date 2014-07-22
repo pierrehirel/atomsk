@@ -137,7 +137,8 @@ Nshells=0
 DO WHILE( Natoms+Nshells < megatm )
   Natoms = Natoms+1
   CALL ATOMSPECIES(P(Natoms,4),species)
-  WRITE(40,'(a2,3X,i8)') species, Natoms+Nshells
+  WRITE(temp,'(a2,3X,i8)') species, Natoms+Nshells
+  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
   WRITE(40,'(3f20.8)') (P(Natoms,j), j=1,3)
   IF(levcfg>=1) THEN
     WRITE(40,'(3f20.8)') AUX(Natoms,vx), AUX(Natoms,vy), AUX(Natoms,vz)
@@ -150,7 +151,8 @@ DO WHILE( Natoms+Nshells < megatm )
   IF( ALLOCATED(S) ) THEN
     IF( DABS(S(Natoms,4))>0.1d0 ) THEN
       !This shell corresponds to that atom: write its position
-      WRITE(40,'(a2,a2,3X,i8)') TRIM(species), "_s ", Natoms+Nshells+1
+      WRITE(temp,'(a2,a2,3X,i8)') TRIM(species), "_s ", Natoms+Nshells+1
+      WRITE(40,'(a)') TRIM(ADJUSTL(temp))
       WRITE(40,'(3f20.8)') (S(Natoms,j), j=1,3)
       !If levcfg>0, just write zeros for velocities and forces
       IF(levcfg>=1) THEN

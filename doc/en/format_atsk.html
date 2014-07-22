@@ -23,9 +23,11 @@
 
 <h4>Restrictions</h4>
 
-<p>This file format is specific to <code>atomsk</code>. Because it is a binary format it usually uses less disk space than ASCII (text) files, hence it is faster to read and write ATSK files, however it also means that such files cannot be read in a text editor. This format can be useful to read and write intermediate files when invoking <code>atomsk</code> several times to design a system, especially if the system is large (several 100,000 atoms).</p>
+<p>This file format is specific to <code>atomsk</code>. It stores the cell vectors, atom positions, ionic shell positions if any (in the sense of an ionic core-shell model), and all auxiliary properties of atoms.</p>
 
-<p>This file format is intended for use with <code>atomsk</code> only. It is unlikely to ever be transferable to any other program, and may even not be readable by <code>atomsk</code> on another computer. Its use should be restricted to temporary or intermediate files. Saving or archiving files in this format is strongly discouraged.</p>
+<p>Because it is a binary format it usually uses less disk space than ASCII (text) files, hence it is faster to read and write ATSK files. However it also means that such files cannot be read in a text editor. This format can be useful to read and write intermediate files when invoking <code>atomsk</code> several times to design a system, especially if the system is large (several 100,000 atoms).</p>
+
+<p><strong>IMPORTANT NOTE:</strong> This file format is intended for use with <code>atomsk</code> only. It is unlikely to ever be transferrable to any other program, and may even not be readable by <code>atomsk</code> on another computer, nor by a different version of <code>atomsk</code>. Its use should be restricted to temporary or intermediate files. Saving or archiving files in this format is strongly discouraged.</p>
 
 
 

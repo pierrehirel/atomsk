@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 22 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -156,7 +156,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 ! by calling the module corresponding to the input format
 SELECT CASE(infileformat)
 CASE('atsk')
-  CALL READ_ATSK(inputfile,H,P,comment,AUXNAMES,AUX)
+  CALL READ_ATSK(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('bop')
   CALL READ_BOP(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('cfg')

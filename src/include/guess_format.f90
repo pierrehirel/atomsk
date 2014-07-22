@@ -19,7 +19,7 @@ MODULE guess_form
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 July 2014                                     *
+!* Last modification: P. Hirel - 22 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -452,13 +452,18 @@ IF(fileexists) THEN
     ! => it can be XYZ, MOLDY, XV...
     ELSE
       IF( i==1 ) THEN
-        !Try to read an integer
-        !If successful, it can be XYZ or MOLDY format
-        READ(test,*,ERR=220,END=220) NP
-        isxyz = isxyz+0.3d0
-        ismoldy = ismoldy+0.3d0
-        isdlp = isdlp-0.3d0
-        isposcar = isposcar-0.3d0
+        !Try to read the string "Atomsk binary file"
+        IF( INDEX(test,'Atomsk binary file')>0 ) THEN
+          isatsk = isatsk+1.d0
+        ELSE
+          !Try to read an integer
+          !If successful, it can be XYZ or MOLDY format
+          READ(test,*,ERR=220,END=220) NP
+          isxyz = isxyz+0.3d0
+          ismoldy = ismoldy+0.3d0
+          isdlp = isdlp-0.3d0
+          isposcar = isposcar-0.3d0
+        ENDIF
         !
       ELSEIF( i==2 ) THEN
         !Try to read the keywords "Lattice" and "Properties" from 2nd line

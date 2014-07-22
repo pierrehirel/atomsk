@@ -39,6 +39,8 @@ beta 0.8 (in development)
 - when reading LAMMPS custom file (*.lmc), the atom "type" is not required anymore. Furthermore if the "element" appears it is read.
 - support for longer filenames (up to 4096 characters).
 - fixed a bug where some file formats would not be detected correctly if the file name was given through a path.
+- fixed a bug where ionic shells would be lost in mode "--merge".
+- fixed a bug where ionic shells would not be read from Atomsk binary files (*.atsk).
 - fixed a bug where atom electric charges would not be read from LAMMPS data files (*.lmp).
 - fixed a bug where the compliance tensor would not be properly inverted to give the stiffness tensor in option "-properties".
 - when no comment exists, the auto-generated comment that appears in the output file now contains the user name, and the date is now written with the ISO format (yyyy-mm-dd).

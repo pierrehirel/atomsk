@@ -12,7 +12,7 @@ MODULE out_atsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 22 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,6 +43,7 @@ CONTAINS
 SUBROUTINE WRITE_ATSK(H,P,comment,AUXNAMES,AUX,outputfile,S_in)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
+CHARACTER(LEN=32):: atsktxt
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
@@ -73,8 +74,9 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',FORM="UNFORMATTED",ERR=500)
 !
 !Write a header to indicate what the file is
-WRITE(msg,'(a)') '0.7 Atomsk binary file'
-WRITE(40) msg
+WRITE(atsktxt,'(a32)') '0.8 Atomsk binary file'
+atsktxt = ADJUSTL(atsktxt)
+WRITE(40) atsktxt
 !
 !Write the length of each array
 IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
