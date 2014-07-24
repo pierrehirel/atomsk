@@ -31,7 +31,7 @@
 
 <p><code>-select &#60;in|out&#62; sphere &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62;</code></p>
 
-<p><code>-select &#60;in|out&#62; cylinder &#60;dir&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
+<p><code>-select &#60;in|out&#62; cylinder &#60;axis&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
 
 <p><code>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</code></p>
 
@@ -58,23 +58,23 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 
 <ul>
   <li><strong>in|out</strong>: decides if it is the inside or the outside of the region that is selected.</li>
-  <li><strong>x, y, z</strong>: for the box, coordinates of the first corner; for the sphere, coordinates of the center of the sphere; for the cylinder (only two values must be provided), the position of the center of the cylinder in the plane normal to the direction &#60;dir&#62; (see below).</li>
+  <li><strong>x, y, z</strong>: for the box, coordinates of the first corner; for the sphere, coordinates of the center of the sphere; for the cylinder (only two values must be provided), the position of the center of the cylinder in the plane normal to the direction &#60;axis&#62; (see below).</li>
   <li><strong>x', y', z'</strong>: for the box only, coordinates of the last corner.</li>
   <li><strong>R</strong>: for the sphere and cylinder only, the radius.</li>
-  <li><strong>dir</strong>: for the cylinder only, the main axis direction, must be "X", "Y" or "Z".</li>
+  <li><strong>axis</strong>: for the cylinder only, the main axis direction, must be "X", "Y" or "Z".</li>
 </ul>
 
 <p>The <strong>box</strong> is a parallelepipedic box defined by two points of coordinates (x,y,z) and (x',y',z').</p>
 
 <p>The <strong>sphere</strong> is defined by its center (x,y,z) and its radius R.</p>
 
-<p>The <strong>cylinder</strong> is defined by its center (x<sub>1</sub>,x<sub>2</sub>) in the plane normal to the direction &#60;dir&#62;, and its radius R. The directions x<sub>1</sub> and x<sub>2</sub> are decided after the direction &#60;dir&#62; by permutation X, Y, Z (e.g. if &#60;dir&#62;=Y then x<sub>1</sub> will be the position along the cartesian Z direction, and x<sub>2</sub> the position along X).</p>
+<p>The <strong>cylinder</strong> is defined by its center (x<sub>1</sub>,x<sub>2</sub>) in the plane normal to the direction &#60;axis&#62;, and its radius R. The directions x<sub>1</sub> and x<sub>2</sub> are decided after the direction &#60;axis&#62; by permutation X, Y, Z (e.g. if &#60;axis&#62;=Y then x<sub>1</sub> will be the position along the cartesian Z direction, and x<sub>2</sub> the position along X).</p>
 
 <p>The positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). Note that these keywords can only be used for positions: the radius &#60;R&#62; of sphere or cylinder must always be given in &Aring;.</p>
 
-<p>When using <strong>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</strong>, the neighbors of the atom of the given &#60;index&#62; are selected. If &#60;NNN&#62; is a positive integer then the &#60;NNN&#62; closest neighbors are selected, regardless of their distance (&#60;NNN&#62; must then be smaller than 100). If &#60;NNN&#62; is a negative real number then all neighbors within a radius of |&#60;NNN&#62;| are selected, regardless of their number. If &#60;NNN&#62; is zero, then the first nearest neighbors are selected. Note that if some atoms are out of the box then the neighbor search can give wrong results (the <a href="./option_wrap.html">option <code>-wrap</code></a> can be used to wrapp all atoms into the box). If &#60;species&#62; is the chemical symbol of a species then only atoms of that species are selected. If &#60;species&#62; is set to "all" or "any" then atoms are selected regardless of their species.</p>
+<p>When using <strong>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</strong>, the neighbors of the atom of the given &#60;index&#62; are selected. If &#60;NNN&#62; is a positive integer then the &#60;NNN&#62; closest neighbors are selected, regardless of their distance (&#60;NNN&#62; must then be smaller than 100). If &#60;NNN&#62; is a negative real number then all neighbors within a radius of |&#60;NNN&#62;| are selected, regardless of their number. If &#60;NNN&#62; is zero, then the first nearest neighbors are selected. Note that if some atoms are out of the box then the neighbor search can give wrong results (the <a href="./option_wrap.html">option <code>-wrap</code></a> can be used to wrap all atoms into the box). If &#60;species&#62; is the chemical symbol of a species then only atoms of that species are selected. If &#60;species&#62; is set to "all" or "any" then atoms are selected regardless of their species.</p>
 
-<p>The options called after the option <code>-select</code> will be applied only to the atoms that are selected by the present option. Beware that some options can result in strange (i.e. non-physical) results when applied to some atoms only.</p>
+<p>The options called after the option <code>-select</code> will be applied only to the atoms that are selected by the present option, refer to their documentation to know how each option treats selected atoms. Beware that some options can result in strange (i.e. non-physical) results when applied to some atoms only.</p>
 
 <p>Each time this option is called, a new set of atoms will be selected, causing any previous selection to be lost.</p>
 
@@ -123,7 +123,7 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 <li><code class="command">atomsk initial.cfg -select 6 any neighbors 9578 final.xyz</code>
 <p>This will select the 6 nearest neighbors of atom &#35;9578 (no matter the species of these neighbors).</p></li>
 
-<li><code class="command">atomsk initial.cfg -select 12 Si neighbors 1245 -rmatom Si final.xyz</code>
+<li><code class="command">atomsk initial.cfg -select 12 Si neighbors 1245 -rmatom select final.xyz</code>
 <p>This will select the 12 nearest silicon neighbors of atom &#35;1245, and then <a href="./option_rmatom.html">remove these atoms</code></a>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select -8.5 any neighbors 566 final.xyz</code>

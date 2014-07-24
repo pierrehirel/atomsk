@@ -34,8 +34,10 @@
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk mon_systeme.cfg atsk</code>
-<p>Ceci va lire le fichier <code>mon_systeme.cfg</code>, et le convertira en <code>mon_systeme.atsk</code>.</p></li>
+<li><code class="command">atomsk system1.cfg -expand 10 10 10 temp1.atsk<br/>
+atomsk system2.xsf -expand 12 10 16 temp2.atsk<br/>
+atomsk --merge y 2 temp1.atsk temp2.atsk final.xsf</code>
+<p>Le format binaire d'<code>atomsk</code> peut être utile pour manipuler de larges systèmes atomiques. Notez qu'il n'est utilisé que pour les fichiers temporaires intermédiaires (<code>temp1.atsk</code> et <code>temp2.atsk</code>), et pas pour le fichier final (<code>final.xsf</code>).</p></li>
 </ul>
 
 

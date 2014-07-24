@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 23 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -334,12 +334,17 @@ DO WHILE(i<NP .OR. j<NS)
   !If it is a comment then skip the whole thing and read next line
   IF(temp(1:1).NE.'#' .AND. LEN_TRIM(temp).NE.0) THEN
     READ(temp,*,END=800,ERR=800) test
+    test = ADJUSTL(test)
+    !Remove trailing comment if any
+    strlength = SCAN(test,'#')
+    IF( strlength>0 ) THEN
+      test(strlength:) = ' '
+    ENDIF
     !
     !Read atom species
     !Sometimes in GULP files there are strange "atom names"
     !like "O1", "O2" etc. => Try to determine actual species
     !from the first (or first two) characters
-    test=ADJUSTL(test)
     species=test(1:2)
     CALL ATOMNUMBER(species,snumber)
     IF( snumber==0.d0 ) THEN

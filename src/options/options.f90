@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 July 2014                                     *
+!* Last modification: P. Hirel - 24 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -795,7 +795,7 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-sort')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sortcol, sortorder
-    CALL SORT_XYZ(P,S,AUXNAMES,AUX,sortcol,sortorder)
+    CALL SORT_XYZ(P,S,AUXNAMES,AUX,SELECT,sortcol,sortorder)
   !
   CASE('-substitute', '-sub')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sp1, sp2

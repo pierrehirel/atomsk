@@ -42,6 +42,22 @@
 <p>J'ai pensé qu'il serait plus efficace d'écrire un code assez général pour réaliser ces opérations basiques dans n'importe quel système, peu importe les espèces chimiques ou le type de réseau, et peu importe les formats des fichiers d'entrée et de sortie. Tel est le but d'<code>atomsk</code>.</p></div>
 
 
+<li><a href="#" id="genprinc" class="showLink" onclick="showHide('genprinc');return false;"><strong>Quels sont les principes suivis par <code>atomsk</code>?</strong></a></li>
+
+<div id="genprinc-show" class="more"><p><code>Atomsk</code> suit deux principes. Le premier stipule que lorsque vous voulez effectuer une tâche simple, elle devrait être simple à effectuer. Un exemple de tâche "simple" est la conversion de fichiers : personne n'a envie de lire une documentation pendant des heures pour comprendre comment convertir un fichier d'un format à un autre. C'est pourquoi dans <code>atomsk</code> il n'y a que les deux informations essentielles à entrer : le nom du fichier à convertir, et le format de fichier de sortie, par exemple :</p>
+
+<p><code class="command">atomsk fichier.xsf cfg</code></p>
+
+<p>Un corollaire à ce principe est que si vous voulez faire quelque chose de plus élaboré (construire un système complexe, calculer une certaine propriété...) alors ça ne sera sans doute pas simple à faire. Certains programmes permettent de réaliser des tâches compliquées simplement, mais souvent ce sont des programmes très spécialisés -alors qu'<code>atomsk</code> a pour vocation d'être général et applicable à de nombreux types de systèmes atomiques.</p>
+
+<p>Le second principe est que lorsqu'on lit une commande d'<code>atomsk</code>, ce qu'elle fait devrait être évident et non-ambigu. Par exemple la commande suivante :</p>
+
+<p><code class="command">atomsk --create fcc 4.02 Al -expand 10 10 4 supercell.xsf</code></p>
+
+<p>va manifestement construire une super-cellule de taille 10x10x4 d'aluminium cfc, et écrira le résultat dans <code>supercell.xsf</code>. Ce principe garantit que si vous écrivez de telles commandes dans des fichiers de script (bash par exemple) et les re-lisez des mois ou des années plus tard, alors vous serez capable de comprendre rapidement ce que vous aviez fait.</p>
+</div>
+
+
 
 <li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Où peut-on obtenir <code>atomsk</code>?</strong></a></li>
 

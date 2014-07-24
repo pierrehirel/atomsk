@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 May 2014                                      *
+!* Last modification: P. Hirel - 24 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -193,8 +193,8 @@ IF(i==1) THEN
   IF( ALLOCATED(comment) .AND. SIZE(comment)<=0 ) DEALLOCATE(comment)
   IF(.NOT.ALLOCATED(comment)) ALLOCATE(comment(1))
   CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
-  WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
-       &  VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6)
+  WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
+       &  VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
   comment(1) = '# File generated with atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
 ENDIF
 !

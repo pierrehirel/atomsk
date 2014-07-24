@@ -42,8 +42,9 @@ beta 0.8 (in development)
 - fixed a bug where ionic shells would be lost in mode "--merge".
 - fixed a bug where ionic shells would not be read from Atomsk binary files (*.atsk).
 - fixed a bug where atom electric charges would not be read from LAMMPS data files (*.lmp).
+- fixed a bug where the option "-sort" would not sort the selection mask along with atoms.
 - fixed a bug where the compliance tensor would not be properly inverted to give the stiffness tensor in option "-properties".
-- when no comment exists, the auto-generated comment that appears in the output file now contains the user name, and the date is now written with the ISO format (yyyy-mm-dd).
+- when no comment exists, the auto-generated comment that appears in the output file now contains the user name, and the date is now written with the ISO format (yyyy-mm-dd hh:mm:ss).
 
 
 

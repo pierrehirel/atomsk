@@ -3,7 +3,9 @@ MODULE comv
 !**********************************************************************************
 !*  COMV                                                                          *
 !**********************************************************************************
-!* This module contains the global variables used by ATOMSK.                     *
+!* This module contains the global variables used by atomsk.                      *
+!* Global variables should be limited to the strict minimum, and never            *
+!* include variables or arrays about atomic systems (atom positions etc.).        *
 !**********************************************************************************
 !* (C) March 2010 - Pierre Hirel                                                  *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
@@ -25,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.8-2014.07.22' !Version of the program
+CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.8-2014.07.24' !Version of the program
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !

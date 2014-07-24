@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 July 2014                                     *
+!* Last modification: P. Hirel - 24 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1824,13 +1824,13 @@ CASE(4034)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF(reals(1)<0.d0) THEN
     WRITE(msg,"(f16.2)") DABS(reals(1))
-    msg = "..> Using neighbours in a radius of "//TRIM(ADJUSTL(msg))// &
+    msg = "..> Using neighbors in a radius of "//TRIM(ADJUSTL(msg))// &
         & " A around "//TRIM(strings(1))//" ions."
   ELSEIF(reals(1)==0.d0) THEN
-    msg = "..> Trying to find nearest neighbours automatically."
+    msg = "..> Trying to find nearest neighbors automatically."
   ELSE
     WRITE(msg,*) INT(reals(1))
-    msg = "..> Using the "//TRIM(ADJUSTL(msg))//" neighbours of "// &
+    msg = "..> Using the "//TRIM(ADJUSTL(msg))//" neighbors of "// &
         & TRIM(strings(1))//" ions."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2026,17 +2026,17 @@ CASE(4703)
   msg = "/!\ WARNING: species has zero charge, skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4705)
-  !reals(1) = index of atom that has too many neighbours
+  !reals(1) = index of atom that has too many neighbors
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: number of neighbours exceeds 100 for atom #" &
+  msg = "/!\ WARNING: number of neighbors exceeds 100 for atom #" &
       & //TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4706)
-  !strings(1) = atomic species of absent neighbours
+  !strings(1) = atomic species of absent neighbors
   !reals(1) = index of atom that has no neighbour
   WRITE(msg,*) NINT(reals(1))
   msg = "/!\ WARNING: I did not find any "//TRIM(strings(1))// &
-      &       " neighbour for atom #"//TRIM(ADJUSTL(msg))
+      &       " neighbor for atom #"//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4707)
   !reals(1) = index of atom that has a shell with zero charge

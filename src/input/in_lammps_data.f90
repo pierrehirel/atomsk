@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 May 2014                                      *
+!* Last modification: P. Hirel - 23 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -171,10 +171,16 @@ WRITE(msg,*) 'Reading atom coordinates...'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 i=0
 DO i=1,NP
+  READ(30,'(a128)') temp
+  temp = ADJUSTL(temp)
+  !Remove trailing comment if any
+  strlength = SCAN(temp,'#')
+  IF( strlength>0 ) THEN
+    temp(strlength:) = ' '
+  ENDIF
+  !
   IF(i==1) THEN
     !The number of columns is unknown, determine it
-    !Read the line of the first atom
-    READ(30,'(a128)') temp
     !Try to read numbers until there is an error
     DO j=1,20
       READ(temp,*,END=210,ERR=210) (column(k), k=1,j)
@@ -216,7 +222,7 @@ DO i=1,NP
     !The number of columns Ncol is known => read coordinates
     !"atomtype" is the second column for styles "atomic", "charge"
     !which are the only ones we consider here
-    READ(30,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+    READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
   ENDIF
   !
   !Check that the particle id is within the bounds

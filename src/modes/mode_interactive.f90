@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 July 2014                                     *
+!* Last modification: P. Hirel - 23 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,7 +66,7 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(3)=filefirst
                                           !pfiles(4)=filesecond
                                           !pfiles(5)=listfile
-INTEGER:: i, j
+INTEGER:: i, j, k
 INTEGER,DIMENSION(2):: NT_mn
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
@@ -227,6 +227,14 @@ DO
           ENDDO
           WRITE(*,*) " Auxiliary properties: ", msg
         ENDIF
+        IF( ALLOCATED(SELECT) ) THEN
+          i=i+1
+          j=0
+          DO k=1,SIZE(SELECT)
+            IF( SELECT(k) ) j=j+1
+          ENDDO
+          WRITE(*,*) " Atoms selected: ", j
+        ENDIF
         IF(i==0) THEN
           WRITE(*,*) " Nothing in memory"
         ENDIF
@@ -246,7 +254,11 @@ DO
         CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
         WrittenToFile = .TRUE.
         !
-      !Command for creating an atomic system
+      !
+      !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!         COMMANDS FOR MODES
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("create")
         200 CONTINUE
         create_struc = ""
@@ -299,6 +311,9 @@ DO
         !CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
         IF(ALLOCATED(cla)) DEALLOCATE(cla)
         !
+      CASE("polycrystal")
+        !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !Misc. commands
       CASE("Hello","hello","Hi","hi","bonjour","Bonjour")
         command(1:1) = StrUpCase(command(1:1))

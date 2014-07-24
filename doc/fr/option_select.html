@@ -25,7 +25,7 @@
 
 <p><code>-select random &#60;N&#62; &#60;espèce&#62;</code></p>
 
-<p><code>-select &#60;above|below&#62; &#60;d&#62; &#60;axe&#62;</code></p>
+<p><code>-select &#60;above|below&#62; &#60;d&#62; &#60;dir&#62;</code></p>
 
 <p><code>-select &#60;in|out&#62; box &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;x'&#62; &#60;y'&#62; &#60;z'&#62;</code></p>
 
@@ -50,7 +50,7 @@
 
 <p>En utilisant <strong>-select random</strong>, N atomes de l'&#60;espèce&#62; donnée sont sélectionnés au hasard (où N est un nombre entier). Si N est un nombre réel suivi du symbole "%" alors ce pourcentage d'atomes sera sélectionné. Si &#60;espèce&#62; vaut "any" ou "all" alors N atomes sont sélectionnés au hasard quelle que soit leur espèce chimique. Notez que cette option tente de définir des indices au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et en appliquant cette option il est très probable d'obtenir des résultats différents.</p>
 
-<p>En utilisant <strong>-select above</strong> (respectivement, <strong>-select below</strong>), tous les atomes situés à une distance supérieure (respectivement inférieure) à la distance &#60;d&#62; par rapport à l'origine cartésienne (0,0,0) le long de l'&#60;axe&#62; donné sont sélectionnés. L'&#60;axe&#62; peut être "X", "Y", "Z" (indiquant les axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation cristallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les 
+<p>En utilisant <strong>-select above</strong> (respectivement, <strong>-select below</strong>), tous les atomes situés à une distance supérieure (respectivement inférieure) à la distance &#60;d&#62; par rapport à l'origine cartésienne (0,0,0) le long de la direction &#60;dir&#62; donné sont sélectionnés. La direction &#60;dir&#62; peut être "X", "Y", "Z" (indiquant les axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation cristallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les 
 indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001].</p>
 
 <p>Lorsque la sélection implique une région géométrique, les paramètres dépendent de la géométrie de la région :</p>
@@ -74,7 +74,7 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 <p>En utilisant <strong>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</strong>, les voisins de l'atome ayant l'&#60;indice&#62; donné sont sélectionnés. Si &#60;NNN&#62; est un entier positif alors les &#60;NNN&#62; voisins les plus proches sont sélectionnés, peu importe leur distance (&#60;NNN&#62; doit alors être inférieur à 100). Si &#60;NNN&#62; est un nombre réel négatif alors tous les voisins dans un rayon |&#60;NNN&#62;| sont sélectionnés, peu importe leur nombre. Si &#60;NNN&#62; est égal à zero, alors les premiers voisins sont sélectionnés. Notez que si certains atomes se trouvent hors de la boîte, la recherche de voisins peut donner des résultats erronés (l'<a href="./option_wrap.html">option <code>-wrap</code></a> peut être utilisée pour replacer les atomes dans la boîte). Si &#60;espèce&#62; est le symbole chimique d'une espèce alors seuls les atomes de cette espèce sont sélectionnés. Si &#60;espèce&#62; est "all" ou "any" alors les atomes sont sélectionnés sans tenir compte 
 de leur espèce chimique.</p>
 
-<p>Les options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
+<p>Les options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
 
 <p>À chaque fois que cette option est invoquée, elle oublie toute sélection précédente et en définit une nouvelle.</p>
 
@@ -123,7 +123,7 @@ de leur espèce chimique.</p>
 <li><code class="command">atomsk initial.cfg -select 6 any neighbors 9578 final.xyz</code>
 <p>Ceci va sélectionner les 6 voisins les plus proches de l'atome &#35;9578.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select 12 Si neighbors 1245 -rmatom Si final.xyz</code>
+<li><code class="command">atomsk initial.cfg -select 12 Si neighbors 1245 -rmatom select final.xyz</code>
 <p>Ceci va sélectionner les 12 atomes de silicium les plus proches de l'atome &#35;1245, et va ensuite <a href="./option_rmatom.html">supprimer ces atomes</code></a>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select -8.5 any neighbors 566 final.xyz</code>

@@ -41,6 +41,22 @@
 <p>I thought it would be more efficient to write a general-purpose program that could perform these operations in any system, no matter the atom species or the lattice, and no matter what the input and output formats are. Such is the purpose of <code>atomsk</code>.</p></div>
 
 
+<li><a href="#" id="genprinc" class="showLink" onclick="showHide('genprinc');return false;"><strong>What are the principles behind <code>atomsk</code>?</strong></a></li>
+
+<div id="genprinc-show" class="more"><p><code>Atomsk</code> follows two principles. The first one states that when you want to do something simple, then it should be simple to do it. An example of something "simple" is to convert a file: we don't want to spend hours reading documentation just to figure out how to convert one file. That is why in <code>atomsk</code> you have to enter only the two informations: the name of the file you want to convert, and the final file format, e.g.:</p>
+
+<p><code class="command">atomsk file.xsf cfg</code></p>
+
+<p>A corollary of this principle is that when you want to do something complicated (build complex systems, compute some property...), then it may not be so simple to do it. Some programs allow to perform very complex tasks simply, but they are very specialized software -while <code>atomsk</code> tries to be quite general and applicable to many systems.</p>
+
+<p>The second principle is that when one reads a command-line of <code>atomsk</code>, what it does should be obvious and non-ambiguous. For example the following command:</p>
+
+<p><code class="command">atomsk --create fcc 4.02 Al -expand 10 10 4 supercell.xsf</code></p>
+
+<p>will obviously create a 10x10x4 supercell of fcc aluminum, and write it to the file <code>supercell.xsf</code>. This principle ensures that if you write such commands in scripts (e.g. bash scripts) and read them again months or years later, you will still be able to understand quickly what you did.</p>
+</div>
+
+
 <li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Where can I download <code>atomsk</code>?</strong></a></li>
 
 <div id="gendl-show" class="more"><p>It is recommended to visit <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">this page</a> and download the executable binary for your platform. You can also download the source code if you wish to compile the code yourself or have a look at it.</p></div>
