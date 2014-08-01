@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 July 2014                                     *
+!* Last modification: P. Hirel - 31 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,7 @@ CHARACTER(LEN=5),DIMENSION(100):: tempout !temporary list of formats to write
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: outfileformats !list of formats to write
 CHARACTER(LEN=12),INTENT(OUT):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere"
-CHARACTER(LEN=4096):: clarg
+CHARACTER(LEN=4096):: clarg      !one command-line argument
 CHARACTER(LEN=4096):: msg, temp, temp2, temp3, temp4
 CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(2)=file2
@@ -52,7 +52,7 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(5)=listfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
-CHARACTER(LEN=4096),DIMENSION(:),INTENT(IN):: cla  !command-line arguments
+CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE,INTENT(IN):: cla  !command-line arguments
 INTEGER:: i, ioptions, j, m
 INTEGER:: Nout !number of output formats
 REAL(dp):: smass, tempreal
@@ -71,6 +71,10 @@ IF(verbosity==4) THEN
                             & i, TRIM(ADJUSTL(cla(i)))
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDDO
+ENDIF
+!
+IF( .NOT.ALLOCATED(cla) .OR. SIZE(cla)<=0 ) THEN
+  GOTO 1000
 ENDIF
 !
 i=0
@@ -149,26 +153,36 @@ DO WHILE(i<SIZE(cla))
       READ(cla(i),*,END=130,ERR=130) mode_param(m)
     ENDIF
     !Get the atomic species for the structure
-    DO j=1,20
+    DO
       i=i+1
-      READ(cla(i),*,END=130,ERR=130) temp
-      IF(LEN_TRIM(temp)<=2 .AND. temp(1:1).NE.'-' ) THEN
-        m=m+1
-        READ(temp,*,ERR=130,END=130) species
-        CALL ATOMNUMBER(species,smass)
-        IF(smass==0.d0) THEN
-          i=i-1
-          GOTO 110
+      temp = ADJUSTL(cla(i))
+      IF( LEN_TRIM(temp)>0 ) THEN
+        IF(LEN_TRIM(temp)<=2 .AND. temp(1:1).NE.'-' ) THEN
+          !it may be an atom species => try it
+          m=m+1
+          READ(temp,*,ERR=130,END=130) species
+          CALL ATOMNUMBER(species,smass)
+          IF(smass==0.d0) THEN
+            !nope, not an atom species
+            i=i-1
+            GOTO 110
+          ELSE
+            !save this atom species and try the next argument
+            WRITE(mode_param(m),*) species
+          ENDIF
         ELSE
-          WRITE(mode_param(m),*) species
+          !It is not an atom species => go back and exit the loop
+          i=i-1
+          EXIT
         ENDIF
       ELSE
-        i=i-1
+        !Empty entry => exit
+        EXIT
       ENDIF
     ENDDO
     !Look for crystallographic orientation (if any)
     i=i+1
-    READ(cla(i),*,END=130,ERR=130) temp
+    temp = ADJUSTL(cla(i))
     IF( temp=="orient" ) THEN
       m=m+1
       mode_param(m) = "orient"
@@ -1205,15 +1219,15 @@ DO WHILE(i<SIZE(cla))
   !If it is none of the above, we assume it is some file name
   ELSEIF( LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 ) THEN
     IF(pfiles(1)=='') THEN
-      IF(mode=='') mode='normal'
+      mode='normal'
       WRITE(pfiles(1),*) TRIM(clarg)
     ELSEIF(pfiles(2)=='') THEN
-      IF(mode=='') mode='normal'
+      mode='normal'
       WRITE(pfiles(2),*) TRIM(clarg)
     ENDIF
   !
   !
-  !And the rest we do not understand => print a warning
+  !And the rest we do not understand => display a warning
   ELSE
     nwarn = nwarn+1
     CALL ATOMSK_MSG(703,(/TRIM(clarg)/),(/0.d0/))

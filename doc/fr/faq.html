@@ -73,28 +73,35 @@
 <ul>
 
 
-<li><a href="#" id="genprec" class="showLink" onclick="showHide('genprec');return false;"><strong>Quelle est la précision sur les positions atomiques ?</strong></a></li>
+<li><a href="#" id="usetype" class="showLink" onclick="showHide('usetype');return false;"><strong>Quels types de systèmes puis-je construire avec <code>atomsk</code> ?</strong></a></li>
 
-<div id="genprec-show" class="more"><p>En interne tous les nombres réels sont enregistrés avec une précision de 64 bits. Dans les fichiers de sortie les coordonnées des atomes sont écrites avec une précision de 8 digits. Ceci devrait être suffisant pour la plupart des applications.</p></div>
+<div id="usetype-show" class="more"><p><code>Atomsk</code> a été conçu pour construire et manipuler des systèmes atomiques pour la physique des matériaux. Il propose des outils pour créer des super-cellules, insérer des défauts (lacunes, interstitiels, dislocations, fracture...), et pour lire et écrire des formats de fichiers utilisés couramment dans ce domaine.</p>
+
+<p>Bien qu'<code>atomsk</code> supporte des formats de fichiers utilisés couramment dans les domaines de la chimie et de la biologie (DL_POLY, PDB, XYZ...), il n'a pas été conçu pour construire des systèmes moléculaires. <code>Atomsk</code> ne comprend pas les concepts de molécule, de liaison chimique, et il lui manque des outils élémentaires pour construire de tels systèmes (par ex. la solvation).</p></div>
 
 
-<li><a href="#" id="gennp" class="showLink" onclick="showHide('gennp');return false;"><strong>Quel est le nombre maximum d'atomes que <code>atomsk</code> peut manipuler ?</strong></a></li>
+<li><a href="#" id="useprec" class="showLink" onclick="showHide('useprec');return false;"><strong>Quelle est la précision sur les positions atomiques ?</strong></a></li>
 
-<div id="gennp-show" class="more"><p>En principe la limite est celle des entiers codés sur 32 bits (4 octets), soit environ 2 milliards (2<sup>32</sup>/2), mais dans la pratique il est fort probable que la quantité de mémoire virtuelle disponible sur la machine sera le facteur limitant. Chaque atome est caractérisé par sa position x, y, z, et son numéro atomique, ce qui fait un total de quatre nombres qui sont enregistrés comme des réels 64 bits : au final chaque atome utilise 256 bits, soit 32 octets, de mémoire. Les atomes sont stockés dans un tableau de taille Nx4, où N est le nombre d'atomes. Un système composé d'un million d'atomes occupera donc environ 32 Mo (ou 30,5 Mio) de mémoire, un de 10 millions d'atomes environ 320 Mo, et ainsi de suite.</p>
+<div id="useprec-show" class="more"><p>En interne tous les nombres réels sont enregistrés avec une précision de 64 bits. Dans les fichiers de sortie les coordonnées des atomes sont écrites avec une précision de 8 digits. Ceci devrait être suffisant pour la plupart des applications.</p></div>
+
+
+<li><a href="#" id="usenp" class="showLink" onclick="showHide('usenp');return false;"><strong>Quel est le nombre maximum d'atomes que <code>atomsk</code> peut manipuler ?</strong></a></li>
+
+<div id="usenp-show" class="more"><p>En principe la limite est celle des entiers codés sur 32 bits (4 octets), soit environ 2 milliards (2<sup>32</sup>/2), mais dans la pratique il est fort probable que la quantité de mémoire virtuelle disponible sur la machine sera le facteur limitant. Chaque atome est caractérisé par sa position x, y, z, et son numéro atomique, ce qui fait un total de quatre nombres qui sont enregistrés comme des réels 64 bits : au final chaque atome utilise 256 bits, soit 32 octets, de mémoire. Les atomes sont stockés dans un tableau de taille Nx4, où N est le nombre d'atomes. Un système composé d'un million d'atomes occupera donc environ 32 Mo (ou 30,5 Mio) de mémoire, un de 10 millions d'atomes environ 320 Mo, et ainsi de suite.</p>
 
 <p>De plus, si le système inclut des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), celles-ci nécessitent un second tableau de réels de taille Nx4. Enfin si les atomes ont des propriétés auxiliaires (comme les forces, vitesses...), ces propriétés sont aussi enregistrées dans un tableau de réels 64 bits de taille NxM où M est le nombre de propriétés associées à chaque atome.</p></div>
 
 
-<li><a href="#" id="genunit" class="showLink" onclick="showHide('genunit');return false;"><strong>Quelles unités sont utilisées ?</strong></a></li>
+<li><a href="#" id="useunit" class="showLink" onclick="showHide('useunit');return false;"><strong>Quelles unités sont utilisées ?</strong></a></li>
 
-<div id="genunit-show" class="more"><p>Par défaut des angstr&ouml;ms, bien que dans la pratique <code>atomsk</code> transfère les nombres d'un fichier à l'autre sans se soucier du système d'unités.
+<div id="useunit-show" class="more"><p>Par défaut des angstr&ouml;ms, bien que dans la pratique <code>atomsk</code> transfère les nombres d'un fichier à l'autre sans se soucier du système d'unités.
 
 <p>Notez que <code>atomsk</code> n'opère absolument aucune transformation implicite des unités. Par exemple, si vous lisez un fichier contenant des positions atomiques en Bohrs, alors dans le fichier de sortie elles apparaîtront également en Bohrs. Pour changer explicitement les unités il est possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
 
 
-<li><a href="#" id="gennclo" class="showLink" onclick="showHide('gennclo');return false;"><strong>Combien d'options puis-je utiliser dans une même ligne de commandes ?</strong></a></li>
+<li><a href="#" id="usenclo" class="showLink" onclick="showHide('usenclo');return false;"><strong>Combien d'options puis-je utiliser dans une même ligne de commandes ?</strong></a></li>
 
-<div id="gennclo-show" class="more"><p>Il n'y a virtuellement aucune limitation, autre que celle de votre environnement. Sous UNIX/Linux vous pouvez taper "<code>getconf ARG_MAX</code>" pour connaître la longueur maximale de ligne de commande que votre shell supporte.</p></div>
+<div id="usenclo-show" class="more"><p>Il n'y a virtuellement aucune limitation, autre que celle de votre environnement. Sous UNIX/Linux vous pouvez taper "<code>getconf ARG_MAX</code>" pour connaître la longueur maximale de ligne de commande que votre shell supporte.</p></div>
 
 
 <li><a href="#" id="useuc" class="showLink" onclick="showHide('useuc');return false;"><strong>Comment puis-je créer une cellule élémentaire ?</strong></a></li>

@@ -16,7 +16,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 June 2014                                     *
+!* Last modification: P. Hirel - 31 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -106,12 +106,7 @@ langyes = "y"
 langno = "n"
 logfile='atomsk.log'
 helpsection = 'general'
-i = IARGC()
-IF(i==0) THEN
-  mode='interactive'
-ELSE
-  mode='normal'
-ENDIF
+mode='interactive' !run in interactive mode, unless some parameters are given in command-line
 overw=.FALSE.  !By default, don't overwrite files
 ignore=.FALSE. !By default, don't ignore files already converted
 !Define the default level of verbosity:
@@ -185,175 +180,167 @@ ENDIF
 !
 !
 100 CONTINUE
-IF(IARGC()==0) THEN
-  !If no command-line argument is specified at all then enter interactive mode
-  mode = 'interactive'
-  !In interactive mode verbosity cannot be 0 or 2
-  !If it is the case, reset it to 1
-  IF(verbosity==0 .OR. verbosity==2) verbosity=1
+!Read command-line arguments
+!Array cla(:) will contain all command-line arguments
+ALLOCATE( cla(IARGC()) )
+cla(:) = ''
+!Copy command-line arguments to the array cla(:) and
+!find the size of the options_array(:) from the command-line options
+ioptions=0
+i=0
+j=0
+DO WHILE ( i<IARGC() )
+  i=i+1 !index of actual command-line argument
+  j=j+1 !index in cla(:)
+  CALL GETARG(i,clarg)
+  cla(j) = clarg
   !
-  CALL INTERACT()
-!
-!
-ELSE
-  !Otherwise read command-line arguments
-  !Array cla(:) will contain all command-line arguments
-  ALLOCATE( cla(IARGC()) )
-  cla(:) = ''
-  !Copy command-line arguments to the array cla(:) and
-  !find the size of the options_array(:) from the command-line options
-  ioptions=0
-  i=0
-  j=0
-  DO WHILE ( i<IARGC() )
-    i=i+1 !index of actual command-line argument
-    j=j+1 !index in cla(:)
+  ! 'version', 'help', 'license' are special:
+  !they print something and then exit the program
+  IF(clarg=='--version' .OR. clarg=='-V') THEN
+    CALL DISPLAY_COPYRIGHT()
+    GOTO 1100
+  ELSEIF(clarg=='--help' .OR. clarg=='help') THEN
+    m=i+1
+    CALL GETARG(m,clarg)
+    READ(clarg,*,END=110,ERR=110) helpsection
+    IF( helpsection.NE.'general' .AND. helpsection.NE.'modes' .AND.   &
+      & helpsection.NE.'options' .AND. helpsection.NE.'formats'     ) &
+      & helpsection='general'
+    110 CONTINUE
+    CALL DISPLAY_HELP(helpsection)
+    GOTO 1100
+  ELSEIF(clarg=='--license' .OR. clarg=='--licence') THEN
+    CALL DISPLAY_LICENSE()
+    GOTO 1100
+  !
+  !Deal with the behavior of the program
+  ELSEIF(clarg=='-ignore' .OR. clarg=='-ig') THEN
+    ignore = .TRUE.
+  ELSEIF(clarg=='-overwrite' .OR. clarg=='-ow') THEN
+    overw = .TRUE.
+  ELSEIF(clarg=='-verbosity' .OR. clarg=='-v') THEN
+    m=i+1
+    CALL GETARG(m,clarg)
+    READ(clarg,*,END=120,ERR=120) verbosity
+  ELSEIF(clarg=='-log') THEN
+    m=i+1
+    CALL GETARG(m,clarg)
+    logfile = TRIM(ADJUSTL(clarg))
+    IF(logfile=='') logfile='atomsk.log'
+  ELSEIF(clarg=='-lang' .OR. clarg=='-language') THEN
+    m=i+1
+    CALL GETARG(m,clarg)
+    READ(clarg,*,END=120,ERR=120) lang
+  !
+  ELSEIF(clarg=="-options" .OR. clarg=="-option" .OR. clarg=="-opt") THEN
+    mode=""
+    !Read options from a file
+    i=i+1
     CALL GETARG(i,clarg)
-    cla(j) = clarg
-    !
-    ! 'version', 'help', 'license' are special:
-    !they print something and then exit the program
-    IF(clarg=='--version' .OR. clarg=='-V') THEN
-      CALL DISPLAY_COPYRIGHT()
-      GOTO 1100
-    ELSEIF(clarg=='--help' .OR. clarg=='help') THEN
-      m=i+1
-      CALL GETARG(m,clarg)
-      READ(clarg,*,END=110,ERR=110) helpsection
-      IF( helpsection.NE.'general' .AND. helpsection.NE.'modes' .AND.   &
-        & helpsection.NE.'options' .AND. helpsection.NE.'formats'     ) &
-        & helpsection='general'
-      110 CONTINUE
-      CALL DISPLAY_HELP(helpsection)
-      GOTO 1100
-    ELSEIF(clarg=='--license' .OR. clarg=='--licence') THEN
-      CALL DISPLAY_LICENSE()
-      GOTO 1100
-    !
-    !Deal with the behavior of the program
-    ELSEIF(clarg=='-ignore' .OR. clarg=='-ig') THEN
-      ignore = .TRUE.
-    ELSEIF(clarg=='-overwrite' .OR. clarg=='-ow') THEN
-      overw = .TRUE.
-    ELSEIF(clarg=='-verbosity' .OR. clarg=='-v') THEN
-      m=i+1
-      CALL GETARG(m,clarg)
-      READ(clarg,*,END=120,ERR=120) verbosity
-    ELSEIF(clarg=='-log') THEN
-      m=i+1
-      CALL GETARG(m,clarg)
-      logfile = TRIM(ADJUSTL(clarg))
-      IF(logfile=='') logfile='atomsk.log'
-    ELSEIF(clarg=='-lang' .OR. clarg=='-language') THEN
-      m=i+1
-      CALL GETARG(m,clarg)
-      READ(clarg,*,END=120,ERR=120) lang
-    !
-    ELSEIF(clarg=="-options" .OR. clarg=="-option" .OR. clarg=="-opt") THEN
-      !Read options from a file
-      i=i+1
-      CALL GETARG(i,clarg)
-      CALL CHECKFILE( clarg, "read" )
-      j=j-1  !the command-line argument "-options <file>" will be replaced by options/arguments read from the file
-      OPEN(UNIT=31,FILE=clarg,FORM="FORMATTED",STATUS="OLD")
-      DO
-        opt_file(:) = ''
-        READ(31,'(a128)',ERR=115,END=115) temp
-        temp = ADJUSTL(temp)
-        !Ignore empty lines and lines starting with dash sign
-        !Also ignore lines that use the keyword "options" (no redundancy here)
-        IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" .AND. temp(1:7).NE."options" .AND. temp(1:7).NE."-options" ) THEN
-          n=0
-          !Read option name and parameters
-          DO WHILE (LEN_TRIM(temp).NE.0)
-            n=n+1
-            strlength = SCAN( temp , " " )
-            opt_file(n) = temp(1:strlength)
-            temp = ADJUSTL( temp(LEN_TRIM(opt_file(n))+1:) )
-          ENDDO
-          !
-          !The option and its arguments are now in opt_file(:)
-          !=> store them in cla(:)
-          IF(ALLOCATED(cla_new)) DEALLOCATE(cla_new)
-          IF( j+2==i ) THEN
-            !Current option is the first one read from file
-            !=> the two arguments "-option <file>" must be removed from cla(:)
-            ALLOCATE(cla_new(SIZE(cla)+n-2))
-          ELSE
-            !Current option is not the first one => it comes after previous option
-            ALLOCATE(cla_new(SIZE(cla)+n))
-          ENDIF
-          cla_new(:) = ""
-          !Store command-line arguments preceeding "-options" at the beginning of cla_new(:)
-          DO m=1,j
-            cla_new(m) = cla(m)
-          ENDDO
-          !Store option read from the file in cla_new(:)
-          ioptions=ioptions+1
-          n=1
-          DO WHILE (LEN_TRIM(opt_file(n)).NE.0)
-            j=j+1
-            cla_new(j) = opt_file(n)
-            n=n+1
-          ENDDO
-          DEALLOCATE(cla)
-          ALLOCATE(cla(SIZE(cla_new)))
-          cla(:) = cla_new(:)
-          DEALLOCATE(cla_new)
+    CALL CHECKFILE( clarg, "read" )
+    j=j-1  !the command-line argument "-options <file>" will be replaced by options/arguments read from the file
+    OPEN(UNIT=31,FILE=clarg,FORM="FORMATTED",STATUS="OLD")
+    DO
+      opt_file(:) = ''
+      READ(31,'(a128)',ERR=115,END=115) temp
+      temp = ADJUSTL(temp)
+      !Ignore empty lines and lines starting with dash sign
+      !Also ignore lines that use the keyword "options" (no redundancy here)
+      IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" .AND. temp(1:7).NE."options" .AND. temp(1:7).NE."-options" ) THEN
+        n=0
+        !Read option name and parameters
+        DO WHILE (LEN_TRIM(temp).NE.0)
+          n=n+1
+          strlength = SCAN( temp , " " )
+          opt_file(n) = temp(1:strlength)
+          temp = ADJUSTL( temp(LEN_TRIM(opt_file(n))+1:) )
+        ENDDO
+        !
+        !The option and its arguments are now in opt_file(:)
+        !=> store them in cla(:)
+        IF(ALLOCATED(cla_new)) DEALLOCATE(cla_new)
+        IF( j+2==i ) THEN
+          !Current option is the first one read from file
+          !=> the two arguments "-option <file>" must be removed from cla(:)
+          ALLOCATE(cla_new(SIZE(cla)+n-2))
+        ELSE
+          !Current option is not the first one => it comes after previous option
+          ALLOCATE(cla_new(SIZE(cla)+n))
         ENDIF
-      ENDDO
-      115 CONTINUE
-      CLOSE(31)
-    !
-    !If it was none of the above but starts with a (-)
-    !then it is most probably an option
-    ELSEIF(clarg(1:1)=='-' .AND. clarg(1:2).NE.'--') THEN
-      ioptions=ioptions+1
-    !
-    ENDIF
-    120 CONTINUE
-  ENDDO
+        cla_new(:) = ""
+        !Store command-line arguments preceeding "-options" at the beginning of cla_new(:)
+        DO m=1,j
+          cla_new(m) = cla(m)
+        ENDDO
+        !Store option read from the file in cla_new(:)
+        ioptions=ioptions+1
+        n=1
+        DO WHILE (LEN_TRIM(opt_file(n)).NE.0)
+          j=j+1
+          cla_new(j) = opt_file(n)
+          n=n+1
+        ENDDO
+        DEALLOCATE(cla)
+        ALLOCATE(cla(SIZE(cla_new)))
+        cla(:) = cla_new(:)
+        DEALLOCATE(cla_new)
+      ENDIF
+    ENDDO
+    115 CONTINUE
+    CLOSE(31)
   !
-  !If the user specified an alternate logfile, change the level of verbosity to 3
-  IF( logfile.NE.'atomsk.log' .AND. (verbosity==0 .OR. verbosity==1) ) THEN
-    verbosity = 3
+  !If it was none of the above but starts with a (-)
+  !then it is most probably an option
+  ELSEIF(clarg(1:1)=='-' .AND. clarg(1:2).NE.'--') THEN
+    ioptions=ioptions+1
+  !
   ENDIF
-  !
-  IF(verbosity<2) THEN
-    !Low verbosity: no logfile is written, unit 20 is used as a virtual logfile
-    OPEN(UNIT=20,STATUS='SCRATCH',FORM='FORMATTED')
-  ELSE
-    !High verbosity: logfile is written (and replaced if one already exists)
-    OPEN(UNIT=20,FILE=logfile,STATUS='REPLACE',FORM='FORMATTED')
-  ENDIF
-  !
-  !Allocate array for the options; this array will be
-  !filled by the routine "GET_CLA" below
-  ALLOCATE(options_array(ioptions))
-  options_array(:) = ''
-  !
-  !
-  !Print a nice message
-  CALL DISPLAY_HEADER()
-  CALL DATE_MSG()
-  !
-  !
-  !!Read command-line options and try to understand them
-  CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
-  IF(ALLOCATED(cla)) DEALLOCATE(cla)
-  IF(nerr>0) GOTO 500
-  !
-  !
-  !
-  200 CONTINUE
-  !Deal with options that are not compatible
-  !Cannot both ignore and overwrite existing files: set overwrite to false
-  IF(overw.AND.ignore) overw=.FALSE.
-  !
-  !Then deal with the different modes
+  120 CONTINUE
+ENDDO
+!
+!If the user specified an alternate logfile, change the level of verbosity to 3
+IF( logfile.NE.'atomsk.log' .AND. (verbosity==0 .OR. verbosity==1) ) THEN
+  verbosity = 3
+ENDIF
+!
+IF(verbosity<2) THEN
+  !Low verbosity: no logfile is written, unit 20 is used as a virtual logfile
+  OPEN(UNIT=20,STATUS='SCRATCH',FORM='FORMATTED')
+ELSE
+  !High verbosity: logfile is written (and replaced if one already exists)
+  OPEN(UNIT=20,FILE=logfile,STATUS='REPLACE',FORM='FORMATTED')
+ENDIF
+!
+!Allocate array for the options; this array will be
+!filled by the routine "GET_CLA" below
+ALLOCATE(options_array(ioptions))
+options_array(:) = ''
+!
+!
+!Print a nice message
+CALL DISPLAY_HEADER()
+CALL DATE_MSG()
+!
+!
+!!Read command-line options and try to understand them
+CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
+IF(ALLOCATED(cla)) DEALLOCATE(cla)
+IF(nerr>0) GOTO 500
+!
+!
+!
+200 CONTINUE
+!Deal with options that are not compatible
+!Cannot both ignore and overwrite existing files: set overwrite to false
+IF(overw.AND.ignore) overw=.FALSE.
+!
+!Then deal with the different modes
+IF( mode=="interactive" ) THEN
+  CALL INTERACT()
+ELSE
   CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
-  !
-ENDIF  !endif IARGC()==0
+ENDIF
 !
 !
 !

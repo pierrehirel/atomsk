@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 July 2014                                     *
+!* Last modification: P. Hirel - 31 July 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,6 +79,11 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S     !shell positions (is any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
 
 !
+!Initialize global variables
+!In interactive mode verbosity cannot be 0 or 2
+!If it is the case, reset it to 1
+IF(verbosity==0 .OR. verbosity==2) verbosity=1
+!
 !Initialize variables
 WrittenToFile = .FALSE.
 IF(ALLOCATED(comment)) DEALLOCATE(comment)
@@ -116,11 +121,8 @@ CALL GET_ENVIRONMENT_VARIABLE('USER',username)
 msg = 'Entering INTERACT'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-!
-!Print a nice message
-CALL DISPLAY_HEADER()
+!Information message
 CALL ATOMSK_MSG(4021,(/''/),(/0.d0/))
-CALL DATE_MSG()
 !
 !
 !
@@ -260,20 +262,20 @@ DO
       !!!         COMMANDS FOR MODES
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("create")
-        200 CONTINUE
         create_struc = ""
         create_species(:) = ""
         create_a0(:) = 0.d0
         NT_mn(:) = 0
         IF( LEN_TRIM(instruction(7:)) > 0 ) THEN
           !Read parameters, store them into array cla(:)
+          IF(ALLOCATED(cla)) DEALLOCATE(cla)
           ALLOCATE(cla(10))
           cla(:) = ""
-          cla(1) = "--create"
-          DO i=2,10
-            READ(instruction(7:),*,ERR=205,END=205) (cla(j), j=2,i)
+          DO i=1,10
+            READ(instruction(7:),*,ERR=205,END=205) (cla(j+1), j=1,i)
           ENDDO
           205 CONTINUE
+          cla(1) = "--create"
           !Call command-line parameters interpreter
           CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
         ELSE
@@ -306,10 +308,26 @@ DO
           READ(test,*,END=250,ERR=250) create_species(3)
         ENDIF
         250 CONTINUE
+        mode = "create"
         !Run the mode
         CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
         !CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
         IF(ALLOCATED(cla)) DEALLOCATE(cla)
+        !
+      CASE("list")
+        mode = "--list"
+        pfiles(1) = TRIM(ADJUSTL(instruction(5:)))
+        CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
+        !
+      CASE("diff","difference")
+        mode = "--difference"
+        IF( command(1:5)=="diff" ) THEN
+          test = ADJUSTL(command(6:))
+        ELSE
+          test = ADJUSTL(command(11:))
+        ENDIF
+        READ(test,*) pfiles(1), pfiles(2)
+        CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
         !
       CASE("polycrystal")
         !
@@ -321,19 +339,12 @@ DO
         !
       CASE DEFAULT
         IF( ANY( command == optnames(:) ) ) THEN
-          !This is an option: check if an atomic system exists in memory
-          IF( ALLOCATED(P) .AND. SIZE(P)>0 ) THEN
-            !Apply the option
-            IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
-            ALLOCATE(options_array(1))
-            options_array(1) = "-"//TRIM(ADJUSTL(instruction))
-            CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
-            DEALLOCATE(options_array)
-          ELSE
-            !The user wants to apply an option, but no system in memory
-            CALL ATOMSK_MSG(2814,(/''/),(/0.d0/))
-          ENDIF
-          !
+          !Apply the option
+          IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
+          ALLOCATE(options_array(1))
+          options_array(1) = "-"//TRIM(ADJUSTL(instruction))
+          CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+          DEALLOCATE(options_array)
         ELSE
           WRITE(*,*) "Unknown command: "//TRIM(ADJUSTL(command))
         ENDIF

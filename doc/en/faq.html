@@ -69,28 +69,35 @@
 <ul>
 
 
-<li><a href="#" id="genprec" class="showLink" onclick="showHide('genprec');return false;"><strong>What is the precision on atomic positions?</strong></a></li>
+<li><a href="#" id="usetype" class="showLink" onclick="showHide('usetype');return false;"><strong>What type of systems can I construct with <code>atomsk</code>?</strong></a></li>
 
-<div id="genprec-show" class="more"><p>Internally all real numbers are stored with 64-bits precision. When writing output files, supercell parameters and atom coordinates are written with 8 decimal digits. This is assumed to be sufficient for most applications.</p></div>
+<div id="usetype-show" class="more"><p><code>Atomsk</code> was primarily designed to construct and manipulate atomic systems for materials physics. It has facilities to construct supercells, insert defects (vacancies, interstitials, dislocations, cracks...), and to read and write file formats commonly used in that field.</p>
+
+<p>Although <code>atomsk</code> can read and write some file formats commonly used in chemistry or biology (DL_POLY, PDB, XYZ...), you may find it not so suitable for constructing molecular systems. <code>Atomsk</code> does not understand molecules, bonds, and lacks the common tools used to construct such systems (e.g. solvating).</p></div>
 
 
-<li><a href="#" id="gennp" class="showLink" onclick="showHide('gennp');return false;"><strong>What is the maximum number of atoms that <code>atomsk</code> can handle?</strong></a></li>
+<li><a href="#" id="useprec" class="showLink" onclick="showHide('useprec');return false;"><strong>What is the precision on atomic positions?</strong></a></li>
 
-<div id="gennp-show" class="more"><p>In principle the limit is that of 32-bits (4-bytes) integers, i.e. about 2 billions (2<sup>32</sup>/2), but in reality there are good chances that the amount of virtual memory available on the machine will be the limiting factor. Each atom is characterized by its position x, y, z, and its atomic number, which makes a total of four numbers that are saved as 64-bits real numbers: as a result each atom requires 256 bits or 32 bytes of memory. Storing all atoms requires an array of size Nx4, where N is the number of atoms. So, a system of one million atoms will use about 32 MB (or 30.5 MiB), 10 millions atoms will use 320 MB, and so on.</p>
+<div id="useprec-show" class="more"><p>Internally all real numbers are stored with 64-bits precision. When writing output files, supercell parameters and atom coordinates are written with 8 decimal digits. This is assumed to be sufficient for most applications.</p></div>
+
+
+<li><a href="#" id="usenp" class="showLink" onclick="showHide('usenp');return false;"><strong>What is the maximum number of atoms that <code>atomsk</code> can handle?</strong></a></li>
+
+<div id="usenp-show" class="more"><p>In principle the limit is that of 32-bits (4-bytes) integers, i.e. about 2 billions (2<sup>32</sup>/2), but in reality there are good chances that the amount of virtual memory available on the machine will be the limiting factor. Each atom is characterized by its position x, y, z, and its atomic number, which makes a total of four numbers that are saved as 64-bits real numbers: as a result each atom requires 256 bits or 32 bytes of memory. Storing all atoms requires an array of size Nx4, where N is the number of atoms. So, a system of one million atoms will use about 32 MB (or 30.5 MiB), 10 millions atoms will use 320 MB, and so on.</p>
 
 <p>In addition if your system includes shells (in the sense of an ionic core-shell model), it will require a second array of size Nx4. Finally if atoms have auxiliary properties (like forces, velocity...), these properties are also saved in a 64-bits real array of size NxM where M is the number of properties associated with each atom.</p></div>
 
 
-<li><a href="#" id="genunits" class="showLink" onclick="showHide('genunits');return false;"><strong>What units are used?</strong></a></li>
+<li><a href="#" id="useunits" class="showLink" onclick="showHide('useunits');return false;"><strong>What units are used?</strong></a></li>
 
-<div id="genunits-show" class="more"><p>By default angstr&ouml;ms are assumed, although <code>atomsk</code> just passes the numbers from one file format to another without caring about the units.</p>
+<div id="useunits-show" class="more"><p>By default angstr&ouml;ms are assumed, although <code>atomsk</code> just passes the numbers from one file format to another without caring about the units.</p>
 
 <p>Note that <code>atomsk</code> makes absolutely no implicit transformation of the units. For instance, if you read a file containing atom positions in Bohrs, then in the output file they will also appear in Bohrs. In order to explicitely convert the units of the atom coordinates and cell parameters you can use the <a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
 
 
-<li><a href="#" id="gennclo" class="showLink" onclick="showHide('gennclo');return false;"><strong>How many options can I call in a single command-line?</strong></a></li>
+<li><a href="#" id="usenclo" class="showLink" onclick="showHide('usenclo');return false;"><strong>How many options can I call in a single command-line?</strong></a></li>
 
-<div id="gennclo-show" class="more"><p>There is virtually no limitation, apart from those of your shell itself. Try "<code>getconf ARG_MAX</code>" to know the maximum command line length that your shell supports.</p></div>
+<div id="usenclo-show" class="more"><p>There is virtually no limitation, apart from those of your shell itself. Try "<code>getconf ARG_MAX</code>" to know the maximum command line length that your shell supports.</p></div>
 
 
 <li><a href="#" id="useuc" class="showLink" onclick="showHide('useuc');return false;"><strong>How can I create a unit cell?</strong></a></li>

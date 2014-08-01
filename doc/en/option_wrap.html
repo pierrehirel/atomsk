@@ -22,9 +22,9 @@
 
 <p>This option wraps atoms back into the bounding box. In other words, all atoms that are not in the simulation box (defined by the simulation box vectors <code>H</code>) are translated by one or several box vectors until they end up inside of the simulation box.</p>
 
-<p>If some atoms have shells (in the sense of an ionic core-shell model) then the shells will be wrapped independantly of cores, i.e. so that all cores and shells are inside of the box. So, if a core is inside of the box but its shell is not, then the core will remain at the same position but the shell will be wrapped and will be very far from the core. In order to fix that one can use the <a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+<p>If some atoms have shells (in the sense of an ionic core-shell model) then the shells will be translated by the same vector as their associated core, so that the vector between core and shell remains the same. That means that even if all the cores are replaced inside the box, some shells may end up outside of the box.</p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atomswill be wrapped.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms will be wrapped.</p>
 
 
 
