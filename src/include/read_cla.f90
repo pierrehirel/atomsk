@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2014                                     *
+!* Last modification: P. Hirel - 28 Aug. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,9 +66,11 @@ IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 !
 IF(verbosity==4) THEN
   !Debug messages
+  msg = "Entering GET_CLA"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   DO i=1,SIZE(cla)
-    WRITE(msg,'(a18,i3,3X,a)') 'Command-line arg #',        &
-                            & i, TRIM(ADJUSTL(cla(i)))
+    WRITE(msg,'(a18,i3,3X,a2,a)') 'Command-line arg #',        &
+                            & i, ': ', TRIM(ADJUSTL(cla(i)))
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDDO
 ENDIF
@@ -92,26 +94,9 @@ DO WHILE(i<SIZE(cla))
   clarg = TRIM(ADJUSTL( cla(i) ))
   IF(LEN_TRIM(clarg)==0) EXIT
   !
-  !Deal with the behavior of the program
-  IF(clarg=='-log' .OR. clarg=='-verbosity' .OR. clarg=='-v') THEN
-    i=i+1
-    CONTINUE
-  ELSEIF(clarg=='-overw' .OR. clarg=='-ow') THEN
-    overw=.TRUE.
-  ELSEIF(clarg=='-ignore' .OR. clarg=='-ig') THEN
-    ignore=.TRUE.
-  ELSEIF(clarg=='-lang' .OR. clarg=='-language') THEN
-    i=i+1
-    clarg = TRIM(ADJUSTL( cla(i) ))
-    READ(clarg,*,END=130,ERR=130) lang
-  ELSEIF(clarg=='-verbosity' .OR. clarg=='-v') THEN
-    i=i+1
-    clarg = TRIM(ADJUSTL( cla(i) ))
-    READ(clarg,*,END=130,ERR=130) verbosity
   !
-  !
-  !Deal with special modes
-  ELSEIF(clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
+  !Deal with modes
+  IF(clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
     mode = 'ai1'
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1)
@@ -1219,10 +1204,8 @@ DO WHILE(i<SIZE(cla))
   !If it is none of the above, we assume it is some file name
   ELSEIF( LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 ) THEN
     IF(pfiles(1)=='') THEN
-      mode='normal'
       WRITE(pfiles(1),*) TRIM(clarg)
     ELSEIF(pfiles(2)=='') THEN
-      mode='normal'
       WRITE(pfiles(2),*) TRIM(clarg)
     ENDIF
   !
