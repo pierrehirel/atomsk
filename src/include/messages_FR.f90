@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 July 2014                                     *
+!* Last modification: P. Hirel - 02 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2052,7 +2052,7 @@ CASE(4200)
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "
 CASE(4201)
   !strings(1) = name of lattice parameter (a, b, c, a0...)
-  WRITE(*,'(a29)',ADVANCE='NO') " Paramètre de maille "//TRIM(ADJUSTL(strings(1)))//" (Å) : "
+  WRITE(*,'(a30)',ADVANCE='NO') " Paramètre de maille "//TRIM(ADJUSTL(strings(1)))//" (Å) : "
 CASE(4202)
   WRITE(*,'(a21)',ADVANCE='NO') " Espèces chimiques : "
   
@@ -2149,7 +2149,20 @@ CASE(4803)
   msg = "          Théorie : "//TRIM(ADJUSTL(msg))//"; Trouvés : "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4804)
-  msg = "X!X ERREUR : le nombre d'espèces atomiques ne correspond pas à cette structure."
+  !reals(1) = number of species required
+  !reals(2) = alternative number of species required (optional)
+  !reals(3) = alternative number of species required (optional)
+  WRITE(temp,*) NINT(reals(1))
+  IF(SIZE(reals)>1) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    IF(SIZE(reals)>2) THEN
+      WRITE(temp3,*) NINT(reals(3))
+      temp = TRIM(ADJUSTL(temp))//", "//TRIM(ADJUSTL(temp2))//" ou "//TRIM(ADJUSTL(temp3))
+    ELSE
+      temp = TRIM(ADJUSTL(temp))//" ou "//TRIM(ADJUSTL(temp2))
+    ENDIF
+  ENDIF
+  msg = "X!X ERREUR : cette structure requiert "//TRIM(ADJUSTL(temp))//" espèces chimiques."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4805)
   !strings(1) = structure type

@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2014                                     *
+!* Last modification: P. Hirel - 02 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,7 @@ CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=4096):: instruction, command   !instruction given by the user
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats
-CHARACTER(LEN=16),DIMENSION(45):: optnames !names of options
+CHARACTER(LEN=16),DIMENSION(48):: optnames !names of options
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -100,14 +100,14 @@ optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "ad
             &    "alignx          ", "bind-shells     ", "bs              ", "center          ", &
             &    "crack           ", "cut             ", "deform          ", "def             ", &
             &    "dislocation     ", "disloc          ", "disturb         ", "expand          ", &
-            &    "e               ", "fix             ", "fractional      ", "frac            ", &
-            &    "mirror          ", "orient          ", "properties      ", "prop            ", &
-            &    "rebox           ", "remove-atom     ", "rmatom          ", "remove-doubles  ", &
-            &    "rmd             ", "remove-property ", "rmprop          ", "remove-shells   ", &
-            &    "rmshells        ", "rotate          ", "rot             ", "select          ", &
-            &    "shear           ", "shift           ", "sort            ", "substitute      ", &
-            &    "sub             ", "unit            ", "unskew          ", "velocity        ", &
-            &    "wrap            "                                                              &
+            &    "e               ", "duplicate       ", "dup             ", "fix             ", &
+            &    "freeze          ", "fractional      ", "frac            ", "mirror          ", &
+            &    "orient          ", "properties      ", "prop            ", "rebox           ", &
+            &    "remove-atom     ", "rmatom          ", "remove-doubles  ", "rmd             ", &
+            &    "remove-property ", "rmprop          ", "remove-shells   ", "rmshells        ", &
+            &    "rotate          ", "rot             ", "select          ", "shear           ", &
+            &    "shift           ", "sort            ", "substitute      ", "sub             ", &
+            &    "unit            ", "unskew          ", "velocity        ", "wrap            "  &
             &/)
 !
 !Get user name: this is environment-dependent
@@ -280,38 +280,66 @@ DO
           CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
         ELSE
           !user just typed "create" with no parameter => ask for the parameters
+          IF(ALLOCATED(cla)) DEALLOCATE(cla)
+          ALLOCATE(cla(10))
+          cla(:) = ""
+          cla(1) = "--create"
           CALL ATOMSK_MSG(4200,(/''/),(/0.d0/))
           READ(*,*,END=400,ERR=400) create_struc
           IF(create_struc=="q") GOTO 400
+          cla(2) = create_struc
           CALL ATOMSK_MSG(4201,(/'a0'/),(/0.d0/))
           READ(*,'(a128)',END=400,ERR=400) test
           IF(test=="q") GOTO 400
           READ(test,*,END=400,ERR=400) create_a0(1)
+          WRITE(cla(3),*) create_a0(1)
           create_a0(2) = create_a0(1)
           create_a0(3) = create_a0(1)
+          k=3
           IF( create_struc=="nt" .OR. create_struc=="nanotube" ) THEN
             CALL ATOMSK_MSG(4203,(/'a0'/),(/0.d0/))
             READ(*,'(a128)',END=400,ERR=400) test
             IF(test=="q") GOTO 400
             READ(test,*,END=400,ERR=400) NT_mn(1), NT_mn(2)
-          ELSEIF( create_struc=="hcp" .OR. create_struc=="graphite" ) THEN
-            CALL ATOMSK_MSG(4201,(/'c0'/),(/0.d0/))
-            READ(*,*,END=400,ERR=400) create_a0(3)
+            WRITE(cla(4),*) NT_mn(1)
+            WRITE(cla(5),*) NT_mn(2)
+            k=5
+          ELSE
+            IF( create_struc=="hcp" .OR. create_struc=="graphite" ) THEN
+              CALL ATOMSK_MSG(4201,(/'c0'/),(/0.d0/))
+              READ(*,*,END=400,ERR=400) create_a0(3)
+              WRITE(cla(4),*) create_a0(2)
+              WRITE(cla(5),*) create_a0(3)
+              k=5
+            ENDIF
           ENDIF
           CALL ATOMSK_MSG(4202,(/''/),(/0.d0/))
-          READ(*,'(a128)',END=400,ERR=400) test
+          READ(*,'(a128)',END=230,ERR=230) test
           IF(test=="q") GOTO 400
-          READ(test,*,END=400,ERR=400) create_species(1)
+          READ(test,*,END=230,ERR=230) create_species(1)
+          k=k+1
+          WRITE(cla(k),*) create_species(1)
           test = ADJUSTL(test(3:))
-          READ(test,*,END=250,ERR=250) create_species(2)
-          test = ADJUSTL(test(3:))
-          READ(test,*,END=250,ERR=250) create_species(3)
+          IF(LEN_TRIM(test)>0) THEN
+            READ(test,*,END=230,ERR=230) create_species(2)
+            k=k+1
+            WRITE(cla(k),*) create_species(2)
+            test = ADJUSTL(test(3:))
+            IF(LEN_TRIM(test)>0) THEN
+              READ(test,*,END=230,ERR=230) create_species(3)
+              k=k+1
+              WRITE(cla(k),*) create_species(3)
+            ENDIF
+          ENDIF
+          230 CONTINUE
+          !Call command-line parameters interpreter
+          CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
         ENDIF
         250 CONTINUE
         mode = "create"
-        !Run the mode
-        CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
-        !CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
+        !Run the mode create
+        !CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
+        CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
         IF(ALLOCATED(cla)) DEALLOCATE(cla)
         !
       CASE("list")

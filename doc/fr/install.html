@@ -25,20 +25,23 @@
 
 <h2>Version exécutable</h2>
 
-<p>Le plus simple pour commencer à utiliser <code>atomsk</code> est de télécharger la version exécutable pour votre plate-forme depuis <a href="http://pierrehirel.info/codes_atomsk.php?lang=fr">cette page</a>. Cette version est prête à l'emploi et devrait s'exécuter sur votre machine sans aucune autre manipulation.</p>
+<p>Le plus simple pour commencer à utiliser <code>atomsk</code> est de télécharger la version exécutable pour votre plate-forme depuis <a href="http://pierrehirel.info/codes_atomsk.php?lang=fr">cette page</a>. Cette version binaire statique est prête à l'emploi et devrait s'exécuter sur votre machine sans aucune autre manipulation.</p>
 
-<p>Les versions GNU/Linux de <code>atomsk</code> sont fournies avec un script d'installation nommé "install.sh". Ce script doit être exécuté en tant que super-utilisateur (ou avec sudo), et il installe le programme dans le dossier <em>/usr/local/bin/</em> par défaut.</p>
+<p>Les versions GNU/Linux de <code>atomsk</code> sont fournies avec un script d'installation nommé "install.sh". Si vous choisissez d'utiliser ce script, il doit être exécuté en tant que super-utilisateur (ou avec sudo). Le programme sera installé dans le dossier <em>/usr/local/bin/</em> par défaut.</p>
 
 
 <h2>Compilation depuis le code source</h2>
 
-<p>Si vous ne souhaitez pas utiliser la version pré-compilée, vous pouvez télécharger le code source et le compiler vous-même. La compilation requiert que la bibliothèque LAPACK soit installée sur votre système.</p>
+<p>Si vous ne souhaitez pas utiliser la version binaire statique d'<code>atomsk</code>, vous pouvez télécharger le code source et le compiler vous-même. La compilation requiert que la bibliothèque LAPACK soit installée sur votre système.</p>
 
 <p>Le code source du programme est accompagné d'un Makefile. Pour un résumé des cibles possibles, entrez le répertoire <code>src</code> et tapez "<code>make</code>" ou "<code>make help</code>". Pour compiler le programme, tapez :</p>
 
 <p><code class="command">make atomsk</code></p>
 
-<p>Si votre machine possède plusieurs processeurs ou un processeur multi-cœur alors il est possible d'accélérer la procédure en activant la compilation parallèle grâce à l'option <code>-j</code>. Pour <code>atomsk</code> la solution optimale est d'utiliser trois processus, c'est-à-dire "<code>make -j3 atomsk</code>".</p>
+<p>Si votre machine possède plusieurs processeurs ou un processeur multi-c&oelig;urs alors il est possible d'accélérer la procédure en activant la <strong>compilation en parallèle</strong> grâce à l'option <code>--jobs</code> (ou <code>-j</code>). Par exemple pour utiliser cinq processus de compilation :</p>
+
+<p><code class="command">make -j5 atomsk</code></p>
+<p>Notez que si le nombre de processus est supérieur au nombre de c&oelig;urs disponibles sur votre machine alors la compilation ne sera pas plus rapide.</p>
 
 <p>Si la commande ci-dessus ne fonctionne pas alors vérifiez les points suivants. Premièrement le programme <strong>GNU Make</strong> doit être installé sur votre ordinateur. Deuxièmement, par défaut le Makefile fait appel au <strong>compilateur GNU Fortran</strong> (<code>gfortran</code>), il est donc recommandé qu'il soit installé.</p>
 

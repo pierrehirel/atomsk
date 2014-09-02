@@ -27,22 +27,22 @@
 
 <h2>Executable version</h2>
 
-<p>The easiest way to start with <code>atomsk</code> is to download the executable version for your platform from <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">this page</a>. The binary should run out-of-the-box, without any additional requirement.</p>
+<p>The easiest way to start with <code>atomsk</code> is to download the executable version for your platform from <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">this page</a>. This static binary version should run out-of-the-box, without any additional requirement.</p>
 
-<p>The GNU/Linux versions of <code>atomsk</code> come with an install script called "install.sh". This script must be run as root (or with sudo), and it installs the program in <em>/usr/local/bin/</em> by default.</p>
+<p>The GNU/Linux versions of <code>atomsk</code> come with an install script called "install.sh". If you choose to run this script, run it as root (or with sudo). The program will be installed in <em>/usr/local/bin/</em> by default.</p>
 
 
 
 <h2>Compilation from source</h2>
 
-<p>If you do not wish to use the compiled binary version of <code>atomsk</code>, you can download the source code and compile it. The compilation requires the LAPACK library to be present on your system.</p>
+<p>If you do not wish to use the static binary version of <code>atomsk</code>, you can download the source code and compile it yourself. The compilation requires the LAPACK library to be present on your system.</p>
 
 <p>The source code of the program comes with a Makefile. For a summary of available targets, enter the <code>src</code> directory and type "<code>make</code>" or "<code>make help</code>". To compile the program, type:</p>
 
 <p><code class="command">make atomsk</code></p>
 
-<p>If your machine has multiple CPUs or a multi-core CPU then it is possible to speed up the process with <strong>parallel compilation</strong> thanks to the <code>--jobs</code> (or <code>-j</code>) trigger. For instance, to compile the program using 6 threads: 
-<p><code class="command">make -j6 atomsk</code></p>
+<p>If your machine has multiple CPUs or a multi-core CPU then it is possible to speed up the process with <strong>parallel compilation</strong> thanks to the <code>--jobs</code> (or <code>-j</code>) trigger. For instance, to compile the program using five threads: 
+<p><code class="command">make -j5 atomsk</code></p>
 <p>Note that if the number of threads is higher than the actual number of CPUs on your machine then the compilation will not be faster.</p>
 
 <p>If the command above does not work straightforwardly check the following points. First you need the <strong>GNU Make</strong> program installed on your computer. Second, by default the Makefile uses the <strong>GNU Fortran Compiler</strong> (<code>gfortran</code>), so it is recommended that you have it installed.</p>

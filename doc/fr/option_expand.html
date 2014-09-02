@@ -15,9 +15,9 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-expand &#60;ex&#62; &#60;ey&#62; &#60;ez&#62;</code></p>
+<p><code>-expand &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
-<p><code>-e &#60;ex&#62; &#60;ey&#62; &#60;ez&#62;</code></p>
+<p><code>-e &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -27,9 +27,9 @@
 <p>Les vecteurs de translation utilisés pour répéter le système sont ceux lus depuis le fichier d'entrée, notés <code>Hx</code>, <code>Hy</code> et <code>Hz</code>. Les paramètres associés avec cette option sont :</p>
 
 <ul>
-  <li><strong>ex</strong> : nombre de répétitions du système suivant <code>Hx</code>;</li>
-  <li><strong>ey</strong> : nombre de répétitions du système suivant <code>Hy</code>;</li>
-  <li><strong>ez</strong> : nombre de répétitions du système suivant <code>Hz</code>.</li>
+  <li><strong>Nx</strong> : nombre de répétitions du système suivant <code>Hx</code>;</li>
+  <li><strong>Ny</strong> : nombre de répétitions du système suivant <code>Hy</code>;</li>
+  <li><strong>Nz</strong> : nombre de répétitions du système suivant <code>Hz</code>.</li>
 </ul>
 
 <p>Si toutes les valeurs sont égales à 1 alors le système reste identique. Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système.</p>
@@ -55,6 +55,9 @@
 
 <li><code class="command">atomsk supercell.xyz unitcell.cfg -e 2 2 4</code>
 <p>Identique à l'exemple précédent. Notez que l'enchaînement <code>-e 2 2 4</code> ne doit pas être cassé, en revanche les noms des fichiers d'entrée et de sortie peuvent apparaître dans n'importe quel ordre.</p></li>
+
+<li><code class="command">atomsk initial.xyz -e 6 4 0 final.cfg</code>
+<p>Ceci va dupliquer le système six fois suivant X, quatre fois suivant Y, et une fois suivant Z. Notez que le "0" suivant la direction Z a la même signification que "1", c'est-à-dire que le système n'est pas dupliqué mais apparait quand même une fois suivant cette direction.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

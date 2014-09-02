@@ -15,9 +15,9 @@
 
 <h4>Syntax</h4>
 
-<p><code>-expand &#60;ex&#62; &#60;ey&#62; &#60;ez&#62;</code></p>
+<p><code>-expand &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
-<p><code>-e &#60;ex&#62; &#60;ey&#62; &#60;ez&#62;</code></p>
+<p><code>-e &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -27,9 +27,9 @@
 <p>The translational vectors used to repeat the system are the base vectors of the original cell, noted <code>Hx</code>, <code>Hy</code> and <code>Hz</code>. The command-line parameters must be integers and, if they need any explanation at all:</p>
 
 <ul>
-  <li><strong>ex</strong>: number of times the system is repeated along <code>Hx</code>;</li>
-  <li><strong>ey</strong>: number of times the system is repeated along <code>Hy</code>;</li>
-  <li><strong>ez</strong>: number of times the system is repeated along <code>Hz</code>.</li>
+  <li><strong>Nx</strong>: number of times the system is repeated along <code>Hx</code>;</li>
+  <li><strong>Ny</strong>: number of times the system is repeated along <code>Hy</code>;</li>
+  <li><strong>Nz</strong>: number of times the system is repeated along <code>Hz</code>.</li>
 </ul>
 
 <p>If all values are equal to 1 then the system will remain the same. Any value equal to 0 is automatically replaced by 1, as a zero dimension would wipe out the whole system.</p>
@@ -55,6 +55,9 @@
 
 <li><code class="command">atomsk supercell.xyz unitcell.cfg -e 2 2 4</code>
 <p>Same as previous example. Note that the <code>-e 2 2 4</code> statement cannot be broken, but intput and output file names can be specified before or after it.</p></li>
+
+<li><code class="command">atomsk initial.xyz -e 6 4 0 final.cfg</code>
+<p>This will duplicate the system six times along X, four times along Y, and one time along Z. Note that the "0" along the Z direction has the same meaning as "1", i.e. the system is not duplicated but still appears once along that direction.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

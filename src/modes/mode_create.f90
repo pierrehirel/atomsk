@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 02 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -124,7 +124,8 @@ WRITE(msg,*) "cubic:", cubic
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Determine the number of species
-DO i=1,20
+nspecies=0
+DO i=1,SIZE(create_species)
   IF(create_species(i).NE.'') nspecies=nspecies+1
 ENDDO
 !
@@ -135,7 +136,10 @@ ENDDO
 SELECT CASE(create_struc)
 !
 CASE('sc')
-  IF(nspecies.NE.1) GOTO 810
+  IF(nspecies.NE.1) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(1,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -150,7 +154,10 @@ CASE('sc')
 !
 !
 CASE('bcc')
-  IF(nspecies>2) GOTO 810
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(2,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -181,7 +188,10 @@ CASE('bcc')
 !
 !
 CASE('fcc')
-  IF(nspecies>2) GOTO 810
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(4,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -220,7 +230,10 @@ CASE('fcc')
 !
 !
 CASE('hcp')
-  IF(nspecies>2) GOTO 810
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(2,4))
   !Set up the unit cell
   H(1,1) = create_a0(1)
@@ -253,7 +266,10 @@ CASE('hcp')
 !
 !
 CASE('dia','diamond','zincblende','zc')
-  IF(nspecies>2) GOTO 810
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(8,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -308,7 +324,10 @@ CASE('dia','diamond','zincblende','zc')
 !
 !
 CASE('rocksalt','rs')
-  IF(nspecies.NE.2) GOTO 810
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 2.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(8,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -343,7 +362,10 @@ CASE('rocksalt','rs')
 !
 !
 CASE('per','perovskite')
-  IF(nspecies.NE.3) GOTO 810
+  IF(nspecies.NE.3) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(5,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -377,7 +399,10 @@ CASE('per','perovskite')
 !
 !
 CASE('graphite')
-  IF(nspecies>2) GOTO 810
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
   ALLOCATE(P(4,4))
   !Set up atom positions
   P(:,:) = 0.d0
@@ -410,25 +435,32 @@ CASE('graphite')
 !
 !
 CASE('nanotube','NT','nt')
-  IF(nspecies>2) GOTO 810
-  IF(NT_mn(1)==0 .AND. NT_mn(2)==0) THEN
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  IF(NT_mn(1)<=0 .AND. NT_mn(2)<=0) THEN
     nerr = nerr+1
     CALL ATOMSK_MSG(4802,(/''/),(/0.d0/))
     GOTO 1000
-  ELSEIF(NT_mn(1)>NT_mn(2)) THEN
+  ENDIF
+  !Make sure the first index is the smallest
+  IF(NT_mn(1)>NT_mn(2)) THEN
     r = NT_mn(2)
     NT_mn(2) = NT_mn(1)
     NT_mn(1) = r
-    NT_type = 'zigzag '//TRIM(NT_type)
-  ELSEIF(NT_mn(1)==NT_mn(2)) THEN
-    NT_type = 'armchair '//TRIM(NT_type)
-  ELSE
-    NT_type = 'chiral '//TRIM(NT_type)
   ENDIF
-  !
+  !Set type of nanotube
   WRITE(NT_type,*) NT_mn(1)
   WRITE(temp,*) NT_mn(2)
   NT_type = '('//TRIM(ADJUSTL(NT_type))//','//TRIM(ADJUSTL(temp))//')'
+  IF(NT_mn(1)==NT_mn(2)) THEN
+    NT_type = 'armchair '//TRIM(NT_type)
+  ELSEIF( NT_mn(1)==0 .OR. NT_mn(2)==0 ) THEN
+    NT_type = 'zigzag '//TRIM(NT_type)
+  ELSE
+    NT_type = 'chiral '//TRIM(NT_type)
+  ENDIF
   !
   ! Definition of lattice vectors for the graphene-like sheet
   H(1,1) = DSQRT(3.d0)*create_a0(1)/2.d0
@@ -789,7 +821,6 @@ GOTO 900
 !
 810 CONTINUE
 nerr = nerr+1
-CALL ATOMSK_MSG(4804,(/''/),(/DBLE(SIZE(P,1)), DBLE(NT_NP) /))
 GOTO 1000
 !
 820 CONTINUE

@@ -90,8 +90,8 @@ de leur espèce chimique.</p>
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -select Si -shift above 0 x 0.1 0.1 0.1 -select invert -shift above 0 x -0.1 -0.1 -0.1 final.xyz</code>
-<p>Ceci lira le fichier <code>initial.cfg</code>, sélectionnera tous les atomes de silicium et les déplacera d'un vecteur (0.1,0.1,0.1), puis inversera la sélection et déplacera tous les autres atomes d'un vecteur (-0.1,-0.1,-0.1). Le résultat final sera écrit dans <code>final.xyz</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -select Si -rmatom select final.xyz</code>
+<p>Ceci lira le fichier <code>initial.cfg</code>, sélectionnera tous les atomes de silicium et <a href="./option_rmatom.html">les supprimera</a>. Le résultat final sera écrit dans <code>final.xyz</code>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select above 40 y -rot z 45 final.xyz</code>
 <p>Ceci sélectionnera tous les atomes ayant une coordonnée Y supérieure à 40 &Aring;. Puis l'<a href="./option_rotate.html">option <code>-rotate</code></a> sera appliquée seulement aux atomes sélectionnés.</p></li>

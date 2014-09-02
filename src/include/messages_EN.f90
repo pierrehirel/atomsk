@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 July 2014                                     *
+!* Last modification: P. Hirel - 02 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2097,7 +2097,20 @@ CASE(4803)
   msg = "          Theory: "//TRIM(ADJUSTL(msg))//"; Found: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4804)
-  msg = "X!X ERROR: number of species does not match this structure."
+  !reals(1) = number of species required
+  !reals(2) = alternative number of species required (optional)
+  !reals(3) = alternative number of species required (optional)
+  WRITE(temp,*) NINT(reals(1))
+  IF(SIZE(reals)>1) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    IF(SIZE(reals)>2) THEN
+      WRITE(temp3,*) NINT(reals(3))
+      temp = TRIM(ADJUSTL(temp))//", "//TRIM(ADJUSTL(temp2))//" or "//TRIM(ADJUSTL(temp3))
+    ELSE
+      temp = TRIM(ADJUSTL(temp))//" or "//TRIM(ADJUSTL(temp2))
+    ENDIF
+  ENDIF
+  msg = "X!X ERROR: this structure requires "//TRIM(ADJUSTL(temp))//" atom species."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4805)
   !strings(1) = structure type

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Aug. 2014                                     *
+!* Last modification: P. Hirel - 02 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -708,7 +708,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-expand' .OR. clarg=='-e' .OR. clarg=='-replicate') THEN
+  ELSEIF(clarg=='-expand' .OR. clarg=='-e' .OR. clarg=='-duplicate' .OR. clarg=='-dup') THEN
     ioptions = ioptions+1
     options_array(ioptions) = '-expand'
     DO m=1,3
@@ -718,7 +718,7 @@ DO WHILE(i<SIZE(cla))
       READ(temp,*,END=120,ERR=120) tempreal
     ENDDO
   !
-  ELSEIF(clarg=='-fix') THEN
+  ELSEIF(clarg=='-fix' .OR. clarg=='-freeze') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read fixaxis: must be x, y, z, or all

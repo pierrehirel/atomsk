@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2014                                     *
+!* Last modification: P. Hirel - 02 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -510,7 +510,7 @@ DO ioptions=1,SIZE(options_array)
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dxmax
     CALL DISTURB_XYZ(dist_dxmax,P,SELECT)
   !
-  CASE('-e', '-expand')
+  CASE('-e', '-expand', '-duplicate', '-dup')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
         & expandmatrix(1), expandmatrix(2), expandmatrix(3)
     !If expansion is zero along a direction, correct it
@@ -519,7 +519,7 @@ DO ioptions=1,SIZE(options_array)
     ENDDO
     CALL EXPANDCELL(H,P,S,expandmatrix,SELECT,AUX)
   !
-  CASE('-fix')
+  CASE('-fix', '-freeze')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
         & fixaxis, fix_dir, treal(1), fixdir
     !Check if numbers contain a keyword like "BOX" or "INF"

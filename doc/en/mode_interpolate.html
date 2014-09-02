@@ -15,12 +15,12 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --interpolate &#60;firstfile&#62; &#60;secondfile&#62; &#60;N&#62; [&#60;outputfile&#62;] [formats] [options]</code></p>
+<p><code>atomsk --interpolate &#60;file1&#62; &#60;file2&#62; &#60;N&#62; [&#60;outputfile&#62;] [formats] [options]</code></p>
 
 
 <h4>Description</h4>
 
-<p>This mode constructs a chain of &#60;N&#62; configurations by interpolating linearly the positions of atoms between the configurations given by the &#60;firstfile&#62; and the &#60;secondfile&#62;. The vectors of the simulation box are also interpolated.</p>
+<p>This mode constructs a chain of &#60;N&#62; configurations by interpolating linearly the positions of atoms between the configurations given by the &#60;file1&#62; and the &#60;file2&#62;. The vectors of the simulation box are also interpolated.</p>
 
 <p>The two given files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the interpolation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
 

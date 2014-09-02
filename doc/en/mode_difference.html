@@ -15,18 +15,18 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --difference &#60;firstfile&#62; &#60;secondfile&#62; [options]</code></p>
-<p><code>atomsk --diff &#60;firstfile&#62; &#60;secondfile&#62; [options]</code></p>
-<p><code>atomsk -D &#60;firstfile&#62; &#60;secondfile&#62; [options]</code></p>
+<p><code>atomsk --difference &#60;file1&#62; &#60;file2&#62; [options]</code></p>
+<p><code>atomsk --diff &#60;file1&#62; &#60;file2&#62; [options]</code></p>
+<p><code>atomsk -D &#60;file1&#62; &#60;file2&#62; [options]</code></p>
 
 
 <h4>Description</h4>
 
 <p>This mode computes the difference in atomic positions between two configurations.</p>
 
-<p>The displacement vectors are defined by the subtraction of the positions of the &#60;firstfile&#62; from those of the &#60;secondfile&#62; (in other words disp=&#60;secondfile&#62;-&#60;firstfile&#62; ). Both files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
+<p>The displacement vectors are defined by the subtraction of the positions of the &#60;file1&#62; from those of the &#60;file2&#62; (in other words disp=&#60;file2&#62;-&#60;file1&#62; ). Both files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
 
-<p>The results are written in six separate files which names are prefixed with the name of the &#60;secondfile&#62;:</p>
+<p>The results are written in six separate files which names are prefixed with the name of the &#60;file2&#62;:</p>
 
 <ul>
  <li><strong>*_diff.xyz</strong>: contains atomic positions from the first file, and the displacement vectors between the two files (in cartesian coordinates); this file is compatible with the XYZ format.</li>
