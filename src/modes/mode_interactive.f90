@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Sept. 2014                                    *
+!* Last modification: P. Hirel - 03 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,7 +50,7 @@ CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
-CHARACTER(LEN=128):: msg, test
+CHARACTER(LEN=128):: msg, test, temp
 CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=4096):: instruction, command   !instruction given by the user
@@ -68,8 +68,10 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(5)=listfile
 INTEGER:: i, j, k
 INTEGER,DIMENSION(2):: NT_mn
+LOGICAL:: cubic !is the lattice cubic?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
+REAL(dp):: smass  !atomic mass
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
@@ -175,10 +177,18 @@ DO
       CASE("ls","dir")
         CALL SYSTEM(system_ls)
         !
+      CASE("language","lang")
+        READ(instruction,*) command, temp
+        IF(temp=="fr") THEN
+          lang = "fr"
+        ELSE
+          lang = "en"
+        ENDIF
+        !
       CASE("exit","quit","bye")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
           !User may have forgotten to write file => Display a warning
-          CALL ATOMSK_MSG(4713,(/''/),(/0.d0/))
+          CALL ATOMSK_MSG(4713,(/'quit'/),(/0.d0/))
           READ(*,*) answer
           IF( answer==langyes .OR. answer==langBigYes ) THEN
             GOTO 500
@@ -262,6 +272,26 @@ DO
       !!!         COMMANDS FOR MODES
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("create")
+        IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
+          !User may have forgotten to write file => Display a warning
+          CALL ATOMSK_MSG(4713,(/'continue'/),(/0.d0/))
+          READ(*,*) answer
+          IF( answer==langyes .OR. answer==langBigYes ) THEN
+            WrittenToFile = .FALSE.
+            H(:,:) = 0.d0
+            ORIENT(:,:) = 0.d0
+            IF(ALLOCATED(comment)) DEALLOCATE(comment)
+            IF(ALLOCATED(P)) DEALLOCATE(P)
+            IF(ALLOCATED(S)) DEALLOCATE(S)
+            IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+            IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+            IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+            IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
+            IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
+          ELSE
+            GOTO 400
+          ENDIF
+        ENDIF
         create_struc = ""
         create_species(:) = ""
         create_a0(:) = 0.d0
@@ -271,28 +301,94 @@ DO
           IF(ALLOCATED(cla)) DEALLOCATE(cla)
           ALLOCATE(cla(10))
           cla(:) = ""
+          cla(1) = "--create"
           DO i=1,10
             READ(instruction(7:),*,ERR=205,END=205) (cla(j+1), j=1,i)
           ENDDO
+          !
           205 CONTINUE
-          cla(1) = "--create"
+          !
           !Call command-line parameters interpreter
           CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
+          !
+          !Get parameters from mode_param
+          READ(mode_param(1),*,END=400,ERR=400) create_struc
+          !Get the lattice constant(s)
+          READ(mode_param(2),*,END=400,ERR=400) create_a0(1)
+          create_a0(2) = create_a0(1)
+          create_a0(3) = create_a0(1)
+          i=2
+          IF(create_struc=='graphite' .OR. create_struc=='hcp') THEN
+            i=i+1
+            READ(mode_param(i),*,END=400,ERR=400) create_a0(3)
+          ELSEIF(create_struc=='nanotube' .OR. create_struc=='NT' .OR. create_struc=='nt') THEN
+            i=i+1
+            READ(mode_param(i),*,END=400,ERR=400) NT_mn(1)
+            i=i+1
+            READ(mode_param(i),*,END=400,ERR=400) NT_mn(2)
+          ENDIF
+          !Get the atomic species for the structure
+          !There must always be at least one species
+          i=i+1
+          READ(mode_param(i),*,END=400,ERR=400) create_species(1)
+          !Check that it is a correct atom type
+          CALL ATOMNUMBER(create_species(1),smass)
+          IF(smass==0.d0) THEN
+            CALL ATOMSK_MSG(801,(/TRIM(create_species(1))/),(/0.d0/))
+            GOTO 400
+          ENDIF
+          !Check if other atoms are specified
+          DO j=2,20
+            i=i+1
+            READ(mode_param(i),*,END=210,ERR=210) temp
+            IF(LEN_TRIM(temp)<=2 .AND. temp(1:1).NE.'-' ) THEN
+              READ(temp,*,END=210,ERR=210) species
+              CALL ATOMNUMBER(species,smass)
+              IF(smass==0.d0) THEN
+                i=i-1
+                GOTO 210
+              ELSE
+                create_species(j) = species
+              ENDIF
+            ELSE
+              i=i-1
+            ENDIF
+          ENDDO
+          210 CONTINUE
+          !Check if a crystallographic orientation was given
+          i=i+1
+          READ(mode_param(i),*,END=220,ERR=220) temp
+          IF(temp=="orient") THEN
+            DO j=1,3
+              i=i+1
+              READ(mode_param(i),*,END=220,ERR=220) temp
+              CALL INDEX_MILLER(temp,ORIENT(j,:),k)
+              IF(k>0) GOTO 400
+            ENDDO
+          ENDIF
+          220 CONTINUE
+          IF(ALLOCATED(mode_param)) DEALLOCATE(mode_param)
+          !
+          !
         ELSE
           !user just typed "create" with no parameter => ask for the parameters
-          IF(ALLOCATED(cla)) DEALLOCATE(cla)
-          ALLOCATE(cla(10))
-          cla(:) = ""
-          cla(1) = "--create"
+          !Ask for the lattice type
           CALL ATOMSK_MSG(4200,(/''/),(/0.d0/))
           READ(*,*,END=400,ERR=400) create_struc
           IF(create_struc=="q") GOTO 400
-          cla(2) = create_struc
+          !
+          SELECT CASE(create_struc)
+          CASE('sc','SC','fcc','FCC','bcc','BCC','diamond','dia','zincblende','zb','ZB','perovskite','per','rocksalt','rs','RS')
+            cubic = .TRUE.
+          CASE DEFAULT
+            cubic = .FALSE.
+          END SELECT
+          !
+          !Ask for lattice parameter(s)
           CALL ATOMSK_MSG(4201,(/'a0'/),(/0.d0/))
           READ(*,'(a128)',END=400,ERR=400) test
           IF(test=="q") GOTO 400
           READ(test,*,END=400,ERR=400) create_a0(1)
-          WRITE(cla(3),*) create_a0(1)
           create_a0(2) = create_a0(1)
           create_a0(3) = create_a0(1)
           k=3
@@ -301,15 +397,10 @@ DO
             READ(*,'(a128)',END=400,ERR=400) test
             IF(test=="q") GOTO 400
             READ(test,*,END=400,ERR=400) NT_mn(1), NT_mn(2)
-            WRITE(cla(4),*) NT_mn(1)
-            WRITE(cla(5),*) NT_mn(2)
-            k=5
           ELSE
             IF( create_struc=="hcp" .OR. create_struc=="graphite" ) THEN
               CALL ATOMSK_MSG(4201,(/'c0'/),(/0.d0/))
               READ(*,*,END=400,ERR=400) create_a0(3)
-              WRITE(cla(4),*) create_a0(2)
-              WRITE(cla(5),*) create_a0(3)
               k=5
             ENDIF
           ENDIF
@@ -317,47 +408,37 @@ DO
           READ(*,'(a128)',END=230,ERR=230) test
           IF(test=="q") GOTO 400
           READ(test,*,END=230,ERR=230) create_species(1)
-          k=k+1
-          WRITE(cla(k),*) create_species(1)
           test = ADJUSTL(test(3:))
           IF(LEN_TRIM(test)>0) THEN
             READ(test,*,END=230,ERR=230) create_species(2)
-            k=k+1
-            WRITE(cla(k),*) create_species(2)
             test = ADJUSTL(test(3:))
             IF(LEN_TRIM(test)>0) THEN
               READ(test,*,END=230,ERR=230) create_species(3)
-              k=k+1
-              WRITE(cla(k),*) create_species(3)
             ENDIF
           ENDIF
           230 CONTINUE
-          !Call command-line parameters interpreter
-          CALL GET_CLA(cla,mode,options_array,outfileformats,pfiles,mode_param)
+          !
+          !If the lattice is cubic, ask for the orientation
+          CALL ATOMSK_MSG(4204,(/''/),(/0.d0/))
+          IF(ALLOCATED(mode_param)) DEALLOCATE(mode_param)
+          ALLOCATE(mode_param(3))
+          mode_param(:) = ""
+          READ(*,*,END=400,ERR=400) mode_param(1), mode_param(2), mode_param(3)
+          i=0
+          DO j=1,3
+            i=i+1
+            READ(mode_param(i),*,END=400,ERR=400) test
+            CALL INDEX_MILLER(test,ORIENT(j,:),k)
+            IF(k>0) GOTO 400
+          ENDDO
+          !
         ENDIF
+        !
         250 CONTINUE
-        mode = "create"
-        !Run the mode create
-        !CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
+        !Run the mode create (but don't write any output file)
         CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
-        IF(ALLOCATED(cla)) DEALLOCATE(cla)
         !
-      CASE("list")
-        mode = "--list"
-        pfiles(1) = TRIM(ADJUSTL(instruction(5:)))
-        CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
         !
-      CASE("diff","difference")
-        mode = "--difference"
-        IF( command(1:5)=="diff" ) THEN
-          test = ADJUSTL(command(6:))
-        ELSE
-          test = ADJUSTL(command(11:))
-        ENDIF
-        READ(test,*) pfiles(1), pfiles(2)
-        CALL RUN_MODE(mode,options_array,outfileformats,pfiles,mode_param)
-        !
-      CASE("polycrystal")
         !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !Misc. commands

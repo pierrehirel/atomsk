@@ -15,16 +15,16 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --merge [&#60;merge_dir&#62;] &#60;Nfiles&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --merge [&#60;merge_dir&#62;] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
 
-<p><code>atomsk -M [&#60;merge_dir&#62;] &#60;Nfiles&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk -M [&#60;merge_dir&#62;] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
 
 <p>This mode merges several systems into one, either by gathering atoms from different systems into the same box or by juxtaposing several systems along an axis. The results are output in the specified &#60;outputfile&#62; and &#60;formats&#62;.</p>
 
-<p>The integer &#60;Nfiles&#62; indicates how many systems must be merged. It must be followed by the files names &#60;file1&#62; to &#60;fileN&#62;.</p>
+<p>The integer &#60;N&#62; indicates how many systems must be merged. It must be followed by the files names &#60;file1&#62; to &#60;fileN&#62;.</p>
 
 <p>&#60;merge_dir&#62; is an optional parameter. By default, when it is not used, the final supercell parameters are the ones read from the &#60;file1&#62;, and atom positions read from all files are assumed to be in that same supercell.</p>
 

@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 July 2014                                     *
+!* Last modification: P. Hirel - 03 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -384,11 +384,11 @@ CASE('create')
   510 CONTINUE
   !Check if a crystallographic orientation was given
   i=i+1
-  READ(mode_param(i),*,END=510,ERR=510) temp
+  READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     DO j=1,3
       i=i+1
-      READ(mode_param(i),*,END=510,ERR=510) temp
+      READ(mode_param(i),*,END=520,ERR=520) temp
       CALL INDEX_MILLER(temp,ORIENT(j,:),k)
       IF(k>0) GOTO 7000
     ENDDO

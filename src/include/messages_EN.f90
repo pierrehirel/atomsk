@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Sept. 2014                                    *
+!* Last modification: P. Hirel - 03 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2004,6 +2004,8 @@ CASE(4202)
   WRITE(*,'(a15)',ADVANCE='NO') " Atom species: "
 CASE(4203)
   WRITE(*,'(a22)',ADVANCE='NO') " Chiral indices (n,m): "
+CASE(4204)
+  WRITE(*,'(a21)',ADVANCE='NO') " Lattice orientation: "
 !
 !4700-4799: WARNING messages
 CASE(4700)
@@ -2069,9 +2071,13 @@ CASE(4712)
   msg = "            Do you wish to wrap them now? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4713)
+  !strings(1) = action to follow if user says "yes"
+  IF(LEN_TRIM(strings(1))<=0) THEN
+    strings(1) = "proceed"
+  ENDIF
   msg = "/!\ WARNING: apparently you did not save the system into a file."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Are you sure you want to quit? ("//langyes//"/"//langno//")"
+  msg = "            Are you sure you want to "//TRIM(ADJUSTL(strings(1)))//"? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES

@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Sept. 2014                                    *
+!* Last modification: P. Hirel - 03 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2055,6 +2055,10 @@ CASE(4201)
   WRITE(*,'(a30)',ADVANCE='NO') " Paramètre de maille "//TRIM(ADJUSTL(strings(1)))//" (Å) : "
 CASE(4202)
   WRITE(*,'(a21)',ADVANCE='NO') " Espèces chimiques : "
+CASE(4203)
+  WRITE(*,'(a24)',ADVANCE='NO') " Indices chiraux (n,m) : "
+CASE(4204)
+  WRITE(*,'(a32)',ADVANCE='NO') " Orientation cristallographique : "
   
 !
 !4700-4799: WARNING messages
@@ -2121,9 +2125,19 @@ CASE(4712)
   msg = "            Voulez-vous les remettre dans la boîte maintenant ?"//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4713)
+  !strings(1) = action to follow if user says "yes"
+  temp = strings(1)
+  IF(LEN_TRIM(strings(1))<=0) THEN
+    temp = "continuer"
+  ENDIF
+  IF(strings(1)=="quit") THEN
+    temp = "quitter"
+  ELSEIF(strings(1)=="continue") THEN
+    temp = "continuer"
+  ENDIF
   msg = "/!\ ALERTE : apparemment vous n'avez pas enregistré votre système dans un fichier."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Êtes-vous sûr de vouloir quitter? ("//langyes//"/"//langno//")"
+  msg = "            Êtes-vous sûr de vouloir "//TRIM(ADJUSTL(temp))//" ? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
