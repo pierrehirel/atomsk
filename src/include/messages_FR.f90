@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Sept. 2014                                    *
+!* Last modification: P. Hirel - 04 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2134,6 +2134,8 @@ CASE(4713)
     temp = "quitter"
   ELSEIF(strings(1)=="continue") THEN
     temp = "continuer"
+  ELSEIF(strings(1)=="erase it") THEN
+    temp = "l'effacer"
   ENDIF
   msg = "/!\ ALERTE : apparemment vous n'avez pas enregistré votre système dans un fichier."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2252,6 +2254,10 @@ CASE(4822)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4823)
   msg = "X!X ERREUR : les mots-clés 'node' et 'random' sont mutuellement exclusifs, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4824)
+  !strings(1) = name of unknown command
+  msg = "X!X ERREUR : commande inconnue : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

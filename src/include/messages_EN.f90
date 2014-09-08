@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Sept. 2014                                    *
+!* Last modification: P. Hirel - 04 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2194,6 +2194,10 @@ CASE(4822)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4823)
   msg = "X!X ERROR: keywords 'node' and 'random' are mutually exclusive, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4824)
+  !strings(1) = name of unknown command
+  msg = "X!X ERROR: unknown command: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

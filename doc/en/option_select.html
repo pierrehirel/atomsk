@@ -40,7 +40,7 @@
 
 <p>This option allows to select atoms according to given criteria. The selection can include atoms of a given species, atoms above or below a given plane, atoms inside or outside of a geometric region, or a random set of atoms.</p>
 
-<p>When using <strong>-select all</strong> the selection is cleared, i.e. all atoms are selected (and no other argument must be specified).</p>
+<p>When using <strong>-select all</strong> the selection is cleared. All atoms will then be treated equally by other options, so this is equivalent to selecting all atoms.</p>
 
 <p>When using <strong>-select invert</strong> the selection is inverted (i.e. any selected atom is un-selected, and unselected atoms are selected). If no selection was previously defined (i.e. all atoms are selected) then nothing is done since it does not make sense to select no atom.</p>
 
@@ -60,7 +60,7 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
   <li><strong>in|out</strong>: decides if it is the inside or the outside of the region that is selected.</li>
   <li><strong>x, y, z</strong>: for the box, coordinates of the first corner; for the sphere, coordinates of the center of the sphere; for the cylinder (only two values must be provided), the position of the center of the cylinder in the plane normal to the direction &#60;axis&#62; (see below).</li>
   <li><strong>x', y', z'</strong>: for the box only, coordinates of the last corner.</li>
-  <li><strong>R</strong>: for the sphere and cylinder only, the radius.</li>
+  <li><strong>R</strong>: for the sphere and cylinder only, the radius (in &Aring;).</li>
   <li><strong>axis</strong>: for the cylinder only, the main axis direction, must be "X", "Y" or "Z".</li>
 </ul>
 

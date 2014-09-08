@@ -40,7 +40,7 @@
 
 <p>Cette option permet de sélectionner des atomes en fonction des critères donnés. La sélection peut inclure tous les atomes d'une espèce donnée, les atomes au-dessus ou en-dessous d'un plan donné, ceux à l'intérieur ou à l'extérieur d'une région géométrique, ou un certain nombre d'atomes pris au hasard.</p>
 
-<p>Lorsque <strong>-select all</strong> est utilisé tous les atomes sont sélectionnés (et aucun autre argument ne doit suivre).</p>
+<p>Lorsque <strong>-select all</strong> est utilisé, toute sélection est détruite. Tous les atomes seront alors traités de la même façon, cela revient donc à sélectionner tous les atomes.</p>
 
 <p>Lorsque <strong>-select invert</strong> est utilisé la sélection est inversée (tout atome précédemment sélectionné est dé-sélectionné, et tout atome non sélectionné est sélectionné). Si aucune sélection n'était définie précédemment (donc tous les atomes étaient sélectionnés) alors rien n'est fait, car cela n'a pas de sens de ne sélectionner aucun atome.</p>
 
@@ -59,7 +59,7 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
   <li><strong>in|out</strong> : décide si ce sont les atomes à l'intérieur (in) ou à l'extérieur (out) de la région qui sont sélectionnés.</li>
   <li><strong>x, y, z</strong> : pour la boîte ("box"), les coordonnées du premier coin ; pour la sphère ("sphere"), coordonnées du centre de la sphère ; pour le cylindre ("cylinder") seules deux coordonnées doivent être fournies, indiquant la position du centre du cylindre dans le plan normal à son &#60;axe&#62; (voir ci-dessous).</li>
   <li><strong>x', y', z'</strong> : seulement pour la boîte ("box"), coordonnées du dernier coin.</li>
-  <li><strong>R</strong> : seulement pour la sphère et le cylindre, leur rayon.</li>
+  <li><strong>R</strong> : seulement pour la sphère et le cylindre, leur rayon (en &Aring;).</li>
   <li><strong>axe</strong> : seulement pour le cylindre, la direction de son axe principal, doit être "X", "Y" ou "Z".</li>
 </ul>
 

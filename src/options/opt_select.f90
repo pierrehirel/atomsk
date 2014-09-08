@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Feb. 2014                                     *
+!* Last modification: P. Hirel - 08 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -128,8 +128,8 @@ CALL ATOMSK_MSG(2077, (/ region_side//'    ',                 &
 !The content of region_side decides what must be done
 SELECT CASE(region_side)
 !
-CASE('all','any')
-  !All atoms must be selected
+CASE('all','any','none')
+  !The selection must be cleared (this is equivalent to selecting all atoms)
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
   Nselect = SIZE(P,1)
   !

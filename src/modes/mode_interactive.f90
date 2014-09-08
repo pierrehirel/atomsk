@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Sept. 2014                                    *
+!* Last modification: P. Hirel - 04 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -161,6 +161,14 @@ DO
       !
       !Some speciel commands
       CASE("clear")
+        IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
+          !User may have forgotten to write file => Display a warning
+          CALL ATOMSK_MSG(4713,(/'erase it'/),(/0.d0/))
+          READ(*,*) answer
+          IF( .NOT. (answer==langyes .OR. answer==langBigYes) ) THEN
+            GOTO 400
+          ENDIF
+        ENDIF
         !Wipe out everything from memory
         WrittenToFile = .FALSE.
         H(:,:) = 0.d0
@@ -454,8 +462,11 @@ DO
           options_array(1) = "-"//TRIM(ADJUSTL(instruction))
           CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
           DEALLOCATE(options_array)
+          !
         ELSE
-          WRITE(*,*) "Unknown command: "//TRIM(ADJUSTL(command))
+          !Unknown command
+          CALL ATOMSK_MSG(4824,(/command/),(/0.d0/))
+          !
         ENDIF
         !
       END SELECT
