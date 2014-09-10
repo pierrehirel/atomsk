@@ -30,10 +30,12 @@
 
 <p>Le mot-clé <strong>random &#60;N&#62;</strong> peut être utilisé pour générer une structure aléatoire constituée de &#60;N&#62; grains. Les positions et orientations cristallographiques seront générées aléatoirement par le programme. Notez que cette option tente de définir des nombres au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et du même &#60;fichier_param&#62; il est très probable d'obtenir des résultats différents.</p>
 
+<p>Avec le mot-clé <strong>lattice</strong>, suivi d'un type de réseau, les positions des grains seront similaires à celles du réseau donné. Les types de réseau supportés sont "bcc", "fcc", "diamond". Par exemple avec un réseau "fcc", les germes seront placés à chaque coin de la boîte ainsi qu'au centre de chaque face. Les orientations cristallographiques des grains seront définies de façon aléatoire par le programe.</p>
+
 <p>Le mot-clé <strong>node</strong> peut être utilisé pour définir la position (x,y,z) et l'orientation cristallographique d'un grain. Les coordonnées x, y, z sont habituellement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). L'orientation cristallographique peut être donnée par les indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>) ; notez que ceci suppose que l'orientation du système dans le &#60;germe&#62; donné est X=[100], Y=[
 010], Z=[001]. Alternativement l'orientation du grain peut aussi être définie par trois angles en degrés, donnés comme nombres réels avec le symbole degré (°). Le germe sera tourné du premier angle autour de l'axe X, puis du second angle autour de Y, et enfin du troisième angle autour de Z. Enfin, l'orientation d'un grain peut aussi être définie comme "random", auquel cas le programme appliquera une matrice de rotation aléatoire. Chaque ligne commençant avec le mot-clé <strong>node</strong> définit les propriétés d'un grain.</p>
 
-<p>Les mots-clés <strong>node</strong> et <strong>random</strong> sont mutuellement exclusifs et ne doivent pas être utilisés ensemble dans le même fichier.</p>
+<p>Les mots-clés <strong>random</strong>, <strong>lattice</strong> et <strong>node</strong> sont mutuellement exclusifs. Un seul de ces mots-clé peut être utilisé dans un fichier de paramètres.</p>
 
 <p>Les grains sont construits en utilisant une méthode de tessellation de type Voronoï <strong>en 3-D</strong> : le &#60;germe&#62; est placé à la position d'un n&oelig;ud, et multiplié dans les trois directions de l'espace à l'intérieur de son polyèdre de Voronoï.</p>
 
@@ -62,6 +64,15 @@ random 12<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_random.txt fcc_polycristal.cfg lmp</code>
 <p>Voici la façon la plus simple de construire un polycristal avec <code>atomsk</code>. Dans le fichier <code>voronoi_random.txt</code> on demande à construire un système de taille 250x250x200 &Aring;<sup>3</sup>, comprenant douze grains dont les positions et orientations cristallographiques seront aléatoires. Le germe est contenu dans le fichier <code>fcc_unitcell.xsf</code>. Le résultat final sera écrit dans les fichiers <code>fcc_polycristal.cfg</code> et <code>fcc_polycristal.lmp</code>.</p></li>
+
+<li>
+<div class="txtfile"><h5>voronoi_lattice.txt</h5>
+<p><code>&#35; Polycrystal de Voronoi avec un arrangement cfc<br/>
+box 200 200 200<br/>
+lattice fcc<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
+<p>Ceci créera un système de taille 200x200x200 &Aring;<sup>3</sup>, où les grains seront arrangés de façon similaire à un réseau cfc.</p></li>
 
 
 <li>

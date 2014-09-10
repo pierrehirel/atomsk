@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 10 Sept. 2014                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -64,13 +64,14 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: distfile   !name of file containing grain size distribution
 CHARACTER(LEN=128):: line
 CHARACTER(LEN=128):: or1, or2, or3
+CHARACTER(LEN=128):: lattice  !if grains are organized according to a lattice
 CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES   !names of auxiliary properties of atoms
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: doshells, doaux !are there shells, auxiliary properties in initial seed?
 LOGICAL:: isinpolyhedron  !is atom inside the polyhedron?
 LOGICAL:: miller          !are Miller indices given? (if no then angles are given)
-LOGICAL:: paramnode, paramrand !are the keywords "node" or "random" used in parameter file?
+LOGICAL:: paramnode, paramrand, paramlatt !are the keywords "node", "random", "lattice" used in parameter file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER:: i, j
@@ -137,7 +138,7 @@ CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !Read initial seed from file
 !NOTE: usually when constructing a polycrystal the seed is a unit cell,
 !     e.g. a unit cell of fcc or bcc crystal. Here, no such assumption is made,
-!     and the seed can be anything: a unit cell, a supercell, a system containing
+!     and the seed can be anything: a unit cell, a supercell, a large system containing
 !     defects, dislocations or whatsoever. Also, the seed may be smaller or larger
 !     than the final polycrystal, i.e. Huc(:,:) may be larger than H(:,:).
 CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
@@ -166,12 +167,27 @@ OPEN(UNIT=31,FILE=vfile)
 Nnodes = 0
 paramnode = .FALSE.
 paramrand = .FALSE.
+paramlatt = .FALSE.
 DO
   READ(31,'(a)',END=210,ERR=210) line
   line = TRIM(ADJUSTL(line))
   IF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
     Nnodes = Nnodes+1
     paramnode = .TRUE.
+  ELSEIF( line(1:7)=="lattice" ) THEN
+    paramlatt = .TRUE.
+    lattice = TRIM(ADJUSTL(line(8:)))
+    IF( lattice=="fcc" ) THEN
+      Nnodes = 4
+    ELSEIF( lattice=="bcc" ) THEN
+      Nnodes = 2
+    ELSEIF( lattice=="diamond" ) THEN
+      Nnodes = 8
+    ELSE
+      !Unrecognized lattice type => abort
+      nerr=nerr+1
+      GOTO 1000
+    ENDIF
   ELSEIF( line(1:6)=="random" ) THEN
     !Read total number of grains
     READ(line(7:),*,END=800,ERR=800) Nnodes
@@ -183,12 +199,21 @@ ENDDO
 !If both keywords "node" and "random" were given
 !in parameter file, we are in trouble
 IF( paramnode .AND. paramrand ) THEN
-  CALL ATOMSK_MSG(4823,(/""/),(/0.d0/))
+  CALL ATOMSK_MSG(4823,(/"node   ","random "/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ELSEIF( paramnode .AND. paramlatt ) THEN
+  CALL ATOMSK_MSG(4823,(/"node   ","lattice"/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ELSEIF( paramrand .AND. paramlatt ) THEN
+  CALL ATOMSK_MSG(4823,(/"random ","lattice"/),(/0.d0/))
   nerr=nerr+1
   GOTO 1000
 ENDIF
 !
-!Store final positions of nodes in array vnodes(:,:)
+!Final positions of nodes will be stored in array vnodes(:,:)
+!Final crystal orientations of grains will be stored in array vorient(:,:)
 ALLOCATE(vnodes(Nnodes,3))
 vnodes(:,:) = 0.d0
 ALLOCATE(vorient(Nnodes,3,3))
@@ -201,6 +226,7 @@ DO
   line = TRIM(ADJUSTL(line))
   !Ignore empty lines and lines starting with #
   IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
+    !
     IF( line(1:3)=="box" ) THEN
       !Read size of the final box
       READ(line(4:),*,END=800,ERR=800) P1, P2, P3
@@ -227,6 +253,104 @@ DO
       ENDIF
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !
+      !
+    ELSEIF( line(1:7)=="lattice" ) THEN
+      !Nodes will be placed according to a pattern
+      !Patterns are defined by "lattice", can be fcc, bcc, etc.
+      !The crystallographic orientation of the grains will be random
+      !
+      !Check that the box was defined
+      IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+        GOTO 820
+      ENDIF
+      !
+      lattice = TRIM(ADJUSTL(line(8:)))
+      IF( lattice=="bcc" ) THEN
+        Nnodes = 2
+        vnodes(1,:) = 0.d0          !(0,0,0)
+        vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,1/2)
+        vnodes(2,2) = 0.5d0*H(2,2)
+        vnodes(2,3) = 0.5d0*H(3,3)
+      ELSEIF( lattice=="fcc" ) THEN
+        Nnodes = 4
+        vnodes(1,:) = 0.d0          !(0,0,0)
+        vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
+        vnodes(2,2) = 0.5d0*H(2,2)
+        vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
+        vnodes(3,3) = 0.5d0*H(3,3)
+        vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
+        vnodes(4,3) = 0.5d0*H(3,3)
+      ELSEIF( lattice=="diamond" .OR. lattice=="dia" ) THEN
+        Nnodes = 8
+        vnodes(:,:) = 0.d0
+        vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
+        vnodes(2,2) = 0.5d0*H(2,2)
+        vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
+        vnodes(3,3) = 0.5d0*H(3,3)
+        vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
+        vnodes(4,3) = 0.5d0*H(3,3)
+        vnodes(5,1) = 0.25d0*H(1,1) !0.25,0.25,0.25)
+        vnodes(5,2) = 0.25d0*H(2,2)
+        vnodes(5,3) = 0.25d0*H(3,3)
+        vnodes(6,1) = 0.75d0*H(1,1) !0.75,0.75,0.25)
+        vnodes(6,2) = 0.75d0*H(2,2)
+        vnodes(6,3) = 0.25d0*H(3,3)
+        vnodes(7,1) = 0.75d0*H(1,1) !0.75,0.25,0.75)
+        vnodes(7,2) = 0.25d0*H(2,2)
+        vnodes(7,3) = 0.75d0*H(3,3)
+        vnodes(8,1) = 0.25d0*H(1,1) !0.25,0.75,0.75)
+        vnodes(8,2) = 0.75d0*H(2,2)
+        vnodes(8,3) = 0.75d0*H(3,3)
+      ELSE
+        !unrecognized lattice type (already dealt with before)
+      ENDIF
+      !Generate a list of 3*Nnodes random numbers
+      CALL GEN_NRANDNUMBERS( 3*Nnodes , randarray )
+      !randarray now contains 3*Nnodes real numbers between 0 and 1
+      !They are used to generate rotation matrices
+      !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
+      randarray(:) = randarray(:)*2.d0*pi - pi
+      DO i=1,Nnodes
+        P1 = randarray(3*(i-1)+1)
+        P2 = randarray(3*(i-1)+3)
+        P3 = randarray(3*(i-1)+3)
+        !
+        vorient(i,:,:) = Hunity(:,:)
+        IF( twodim==0 .OR. twodim==1 ) THEN
+          !Construct the rotation matrix around X
+          rotmat(:,:) = 0.d0
+          rotmat(1,1) = 1.d0
+          rotmat(2,2) = DCOS(P1)
+          rotmat(2,3) = -1.d0*DSIN(P1)
+          rotmat(3,2) = DSIN(P1)
+          rotmat(3,3) = DCOS(P1)
+          vorient(i,:,:) = rotmat(:,:)
+        ENDIF
+        IF( twodim==0 .OR. twodim==2 ) THEN
+          !Construct the rotation matrix around Y
+          rotmat(:,:) = 0.d0
+          rotmat(2,2) = 1.d0
+          rotmat(3,3) = DCOS(P2)
+          rotmat(3,1) = -1.d0*DSIN(P2)
+          rotmat(1,3) = DSIN(P2)
+          rotmat(1,1) = DCOS(P2)
+          vorient(i,:,:) = MATMUL( rotmat(:,:) , vorient(i,:,:) )
+        ENDIF
+        IF( twodim==0 .OR. twodim==3 ) THEN
+          !Construct the rotation matrix around Z
+          rotmat(:,:) = 0.d0
+          rotmat(3,3) = 1.d0
+          rotmat(1,1) = DCOS(P3)
+          rotmat(1,2) = -1.d0*DSIN(P3)
+          rotmat(2,1) = DSIN(P3)
+          rotmat(2,2) = DCOS(P3)
+          vorient(i,:,:) = MATMUL( rotmat(:,:) , vorient(i,:,:) )
+        ENDIF
+      ENDDO
+      !
+      GOTO 250
+      !
       !
     ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
       !Check that the box was defined
@@ -374,6 +498,7 @@ DO
         ENDIF
       ENDIF
       !
+      !
     ELSEIF( line(1:6)=="random" ) THEN
       !Position and orientations of grains are random
       !Check that the box was defined
@@ -433,6 +558,9 @@ DO
           vorient(i,:,:) = MATMUL( rotmat(:,:) , vorient(i,:,:) )
         ENDIF
       ENDDO
+      !
+      GOTO 250
+      !
       !
     ENDIF
   ENDIF

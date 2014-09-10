@@ -30,11 +30,13 @@
 
 <p>The keyword <strong>random &#60;N&#62;</strong> can be used to generate a random structure containing &#60;N&#62; grains. The positions and crystallographic orientations of the grains will be decided randomly by the program. Note that this method attempts to generate random numbers, therefore it is largely non-reproducible, i.e. starting from the exact same &#60;param_file&#62; and constructing a polycrystal with the present mode will most likely lead to different results.</p>
 
+<p>With the keyword <strong>lattice</strong>, followed by a lattice type, the positions of the grains will be set according to the given lattice type. The lattice types are "bcc", "fcc", "diamond". For instance with an fcc lattice seeds will be placed at each corner of the box and at the center of each face. The crystallographic orientation of the grains will be randomly decided by the program.</p>
+
 <p>The keyword <strong>node</strong> can be used to define the position (x,y,z) and orientation of a grain. The cartesian coordinates x, y, z, are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). The crystallographic orientation can be specified as Miller indices (see <a href="./options.html">how to specify Miller indices</a>); note that this assumes that the orientation of the &#60;seed&#62; is X=[100], Y=[010], Z=[001]. Alternatively the angles of rotation of the seed can also be given explicitely in degrees, as real numbers with the degree 
 symbol (°). The seed will be rotated by the first angle around the cartesian X axis, then by the second angle around Y, and finally by the third angle around Z. Finally, the crystal orientation of a grain can also be set to "random", in which case the program will apply a random rotation 
 matrix. Each line starting with the keyword <strong>node</strong> defines one grain.</p>
 
-<p>The keywords <strong>node</strong> and <strong>random</strong> are mutually exclusive and cannot be used in the same file.</p>
+<p>The keywords <strong>random</strong>, <strong>lattice</strong>, and <strong>node</strong> are mutually exclusive. Only one of them must be used in a parameter file.</p>
 
 <p>By default the grains are constructed thanks to a <strong>3-D</strong> Voronoi tesselation of space: the &#60;seed&#62; is placed at the position of each node, and expanded into the Voronoi polyhedron. Periodic bounday conditions are used in the three dimensions of space.</p>
 
@@ -63,6 +65,15 @@ random 12<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_random.txt fcc_polycrystal.cfg lmp</code>
 <p>This is the most simple way to construct a polycrystal with <code>atomsk</code>. In the file <code>voronoi_random.txt</code> we ask for a system that is 250x250x200 &Aring;<sup>3</sup>, made of twelve grains with random positions and orientations. The atom positions of the seed are in <code>fcc_unitcell.xsf</code>. The final polycrystal will be written into the files <code>fcc_polycrystal.cfg</code> and <code>fcc_polycrystal.lmp</code>.</p></li>
+
+<li>
+<div class="txtfile"><h5>voronoi_lattice.txt</h5>
+<p><code>&#35; Voronoi polycrystal with a fcc arrangement<br/>
+box 200 200 200<br/>
+lattice fcc<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
+<p>This will create a system of size 200x200x200 &Aring;<sup>3</sup>, where grains are arranged like an fcc lattice.</p></li>
 
 <li>
 <div class="txtfile"><h5>my_polycrystal.txt</h5>
