@@ -9,7 +9,7 @@ MODULE mode_list
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Sept. 2014                                    *
+!* Last modification: P. Hirel - 11 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,8 +50,8 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of output file 
 CHARACTER(LEN=128):: temp
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: filearray !list of files to convert
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
+CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: filearray !list of files to convert
 LOGICAL:: fileexists  !does the file already exist?
 LOGICAL:: ignorefile  !should this file be ignored?
 INTEGER:: i, j

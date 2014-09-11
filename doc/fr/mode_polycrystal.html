@@ -22,7 +22,7 @@
 
 <p>Ce mode génère un polycristal à partir d'une cellule élémentaire, en utilisant la méthode de Voronoi et les paramètres fournis dans le fichier &#60;fichier_param&#62;. Les positions et orientations cristallographiques des grains peuvent être explicitement données, ou bien générées aléatoirement.</p>
 
-<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau avec l'orientation cristallographique X=[100], Y=[010], Z=[001] (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule (qui peut être plus grande ou plus petite que la boîte finale), un polycristal, ou bien n'importe quel autre système atomique.</p>
+<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule (qui peut être plus grande ou plus petite que la boîte finale), un système complexe contenant des défauts, un polycristal, ou bien n'importe quel autre système atomique.</p>
 
 <p>Le &#60;fichier_param&#62; doit contenir des mots-clés suivis des valeurs appropriées. Les lignes vides et celles commençant par un croisillon (&#35;) sont ignorées.</p>
 
@@ -62,8 +62,8 @@
 box 250 250 200<br/>
 random 12<br/>
 </code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_random.txt fcc_polycristal.cfg lmp</code>
-<p>Voici la façon la plus simple de construire un polycristal avec <code>atomsk</code>. Dans le fichier <code>voronoi_random.txt</code> on demande à construire un système de taille 250x250x200 &Aring;<sup>3</sup>, comprenant douze grains dont les positions et orientations cristallographiques seront aléatoires. Le germe est contenu dans le fichier <code>fcc_unitcell.xsf</code>. Le résultat final sera écrit dans les fichiers <code>fcc_polycristal.cfg</code> et <code>fcc_polycristal.lmp</code>.</p></li>
+<code class="command">atomsk --polycrystal fcc_cellule.xsf voronoi_random.txt fcc_polycristal.cfg lmp</code>
+<p>Voici la façon la plus simple de construire un polycristal avec <code>atomsk</code>. Dans le fichier <code>voronoi_random.txt</code> on demande à construire un système de taille 250x250x200 &Aring;<sup>3</sup>, comprenant douze grains dont les positions et orientations cristallographiques seront aléatoires. Le germe est contenu dans le fichier <code>fcc_cellule.xsf</code>. Le résultat final sera écrit dans les fichiers <code>fcc_polycristal.cfg</code> et <code>fcc_polycristal.lmp</code>.</p></li>
 
 <li>
 <div class="txtfile"><h5>voronoi_lattice.txt</h5>
@@ -71,7 +71,7 @@ random 12<br/>
 box 200 200 200<br/>
 lattice fcc<br/>
 </code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
+<code class="command">atomsk --polycrystal cellule.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
 <p>Ceci créera un système de taille 200x200x200 &Aring;<sup>3</sup>, où les grains seront arrangés de façon similaire à un réseau cfc.</p></li>
 
 
@@ -80,28 +80,14 @@ lattice fcc<br/>
 <p><code>&#35; Paramètres pour construire un polycristal avec atomsk<br/>
 box 100 100 100<br/>
 node 0 0 0 [100] [010] [001]<br/>
-node 0.4*box 0.8*box 0.6*box [001] [110] [1-10]<br/>
-node 0.8*box 0.6*box 0.9*box [11-1] [112] [1-10]<br/>
-node 0.5*box 5 0.6*box [110] [1-10] [001]<br/>
-node 0.75*box 0.75*box 1 [112] [1-10] [11-1]<br/>
-node 0.6*box 1 0.8*box [001] [100] [010]<br/>
+node 40 80 60 [001] [110] [1-10]<br/>
+node 80 60 90 [11-1] [112] [1-10]<br/>
+node 50 5 60 [110] [1-10] [001]<br/>
+node 75 75 100 [112] [1-10] [11-1]<br/>
+node 60 100 80 [001] [100] [010]<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_cellule.xsf mon_polycristal.txt fcc_polycristal.cfg lmp</code>
-<p>Le fichier <code>mon_polycristal.txt</code> indique de construire un système de taille 100x100x100 &Aring;<sup>3</sup>, contenant six grains possédant les orientations cristallographiques données. <code>Atomsk</code> utilisera ces paramètres, et la cellule élémentaire définie dans <code>fcc_cellule.xsf</code>, pour construire un tel polycristal. Le résultat final sera écrit dans les fichiers <code>fcc_polycristal.cfg</code> et <code>fcc_polycristal.lmp</code>.</p></li>
-
-<li>
-<div class="txtfile"><h5>mon_polycristal.txt</h5>
-<p><code>&#35; Paramètres pour construire un polycristal avec atomsk<br/>
-box 250 250 250<br/>
-node 0 0 0 [100] [010] [001]<br/>
-node 0.4*box 0.8*box 0.6*box random<br/>
-node 0.8*box 0.6*box 0.9*box random<br/>
-node 0.5*box  5  0.6*box random<br/>
-node 0.75*box  0.75*box  1 random<br/>
-node 0.6*box 1 0.8*box random<br/>
-</code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf mon_polycristal.txt fcc_polycristal.cfg lmp -wrap</code>
-<p>Le fichier <code>mon_polycristal.txt</code> indique de construire un système de taille 250x250x250 &Aring;<sup>3</sup>, contenant six grains situés aux positions données. Le premier grain possèdera l'orientation cristallographique X=[100], Y=[010], Z=[001], et les autres grains auront des orientations aléatoires. L'<a href="./option_wrap.html">option <code>-wrap</code></a> assure que les atomes seront bien tous à l'intérieur de la boîte.</p></li>
+<p>Le fichier <code>mon_polycristal.txt</code> indique de construire un système de taille 100x100x100 &Aring;<sup>3</sup>, contenant six grains. La position et l'orientation cristallographique de chaque grain sont données explicitement. <code>Atomsk</code> utilisera ces paramètres, et la cellule élémentaire définie dans <code>fcc_cellule.xsf</code>, pour construire un tel polycristal. Le résultat final sera écrit dans les fichiers <code>fcc_polycristal.cfg</code> et <code>fcc_polycristal.lmp</code>.</p></li>
 
 
 <li>
@@ -109,13 +95,14 @@ node 0.6*box 1 0.8*box random<br/>
 <p><code>&#35; Paramètres pour construire un polycristal avec atomsk<br/>
 box 100 100 100<br/>
 node 0 0 0 [100] [010] [001]<br/>
-node 0.4*box 0.8*box 0.6*box 56° -83° 45°<br/>
-node 0.8*box 0.6*box 0.9*box [11-1] [112] [1-10]<br/>
-node 0.75*box 0.75*box 1 -31.4° 28.7° 90.0°<br/>
-node 0.6*box 1 0.8*box [001] [100] [010]<br/>
+node 40 80 60 56° -83° 45°<br/>
+node 80 60 90 [11-1] [112] [1-10]<br/>
+node 50 5 60 [110] [1-10] [001]<br/>
+node 0.75*box 0.75*box 0.95*box -31.4° 28.7° 90.0°<br/>
+node 60 100 80 random<br/>
 </code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf mon_polycristal.txt fcc_polycrystal.cfg lmp</code>
-<p>Similaire à l'exemple précédent, sauf que pour certains grains l'orientation est donnée par des angles. Par exemple dans le second grain le germe sera tourné de 56° autour de l'axe cartésien X, puis de -83° autour de Y, et enfin de 45° autour de Z.</p></li>
+<code class="command">atomsk --polycrystal fcc_cellule.xsf mon_polycristal.txt fcc_polycristal.cfg lmp</code>
+<p>Similaire à l'exemple précédent, sauf que pour certains grains l'orientation est donnée par des angles. Par exemple dans le second grain le germe sera tourné de 56° autour de l'axe cartésien X, puis de -83° autour de Y, et enfin de 45° autour de Z. Pour le dernier grain, le programme générera une orientation cristallographique aléatoire.</p></li>
 
 
 <li>
@@ -124,8 +111,8 @@ node 0.6*box 1 0.8*box [001] [100] [010]<br/>
 box 300 300 0<br/>
 random 12<br/>
 </code></p></div>
-<code class="command">atomsk --polycrystal bcc_unitcell.xsf bcc_polycrystal.txt bcc_polycrystal.xsf -wrap -e 1 1 16</code>
-<p>Supposons que le fichier <code>bcc_unitcell.xsf</code> contienne une cellule unité d'un métal bcc de paramètre de maille 2.9 &Aring;. Le fichier <code>bcc_polycrystal.txt</code> indique de construire un système de taille 300x300x0 &Aring;<sup>3</sup>, avec 12 grains générés aléatoirement. Puisque la taille du système suivant Z (0 &Aring;) est plus petite que le paramètre de maille, il sera automatiquement modifié pour être égal au paramètre de maille (2.9 &Aring;), et un polycristal en 2-D sera généré (i.e. les grains auront tous la même orientation crystallographique suivant Z). Après que le polycristal aura été généré, l'<a href="./option_wrap.html">option <code>-wrap</code></a> va remettre tous les atomes dans la boîte. Pour terminer, l'<a href="./option_expand.html">option <code>-expand</code></a> va répéter le système 16 fois suivant Z, créant ainsi un système colonnaire.</p></li>
+<code class="command">atomsk --polycrystal bcc_cellule.xsf bcc_polycrystal.txt bcc_polycrystal.xsf -wrap -e 1 1 16</code>
+<p>Supposons que le fichier <code>bcc_cellule.xsf</code> contienne une cellule unité d'un métal bcc de paramètre de maille 2.9 &Aring;. Le fichier <code>bcc_polycrystal.txt</code> indique de construire un système de taille 300x300x0 &Aring;<sup>3</sup>, avec 12 grains générés aléatoirement. Puisque la taille du système suivant Z (0 &Aring;) est plus petite que le paramètre de maille, il sera automatiquement modifié pour être égal au paramètre de maille (2.9 &Aring;), et un polycristal en 2-D sera généré (i.e. les grains auront tous la même orientation crystallographique suivant Z). Après que le polycristal aura été généré, l'<a href="./option_wrap.html">option <code>-wrap</code></a> va remettre tous les atomes dans la boîte. Pour terminer, l'<a href="./option_expand.html">option <code>-expand</code></a> va répéter le système 16 fois suivant Z, créant ainsi un système colonnaire.</p></li>
 
 <li><p>D'autres exemples sont fournis dans le dossier "examples" fourni avec le programme. Le dossier "<code>Al_polycrystal</code>" contient un script bash construisant un polycristal d'aluminium cfc. Le dossier "<code>MgO_2Dpolycrystal</code>" contient un script bash qui construit un polycristal en 2-D d'oxyde de magnésium (MgO).</p></li>
 </ul>

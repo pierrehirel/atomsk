@@ -22,7 +22,7 @@
 
 <p>This mode generates a polycrystal from a given &#60;seed&#62;, using the Voronoi tesselation method and the parameters provided in the file &#60;param_file&#62;. The positions and crystallographic orientations of the grains can be given explicitely, or generated randomly.</p>
 
-<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually the seed is a unit cell of material with the crystallographic orientation X=[100], Y=[010], Z=[001] (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be a supercell (smaller or larger than the final system), a polycrystal, or any arbitrary atomic system.</p>
+<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually the seed is a unit cell of a material (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be a supercell (smaller or larger than the final system), a large system containing defects, a polycrystal, or any arbitrary atomic system.</p>
 
 <p>The &#60;param_file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored.</p>
 
@@ -72,7 +72,7 @@ random 12<br/>
 box 200 200 200<br/>
 lattice fcc<br/>
 </code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
+<code class="command">atomsk --polycrystal unitcell.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
 <p>This will create a system of size 200x200x200 &Aring;<sup>3</sup>, where grains are arranged like an fcc lattice.</p></li>
 
 <li>
@@ -80,14 +80,14 @@ lattice fcc<br/>
 <p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
 box 100 100 100<br/>
 node 0 0 0 [100] [010] [001]<br/>
-node 0.4*box 0.8*box 0.6*box [001] [110] [1-10]<br/>
-node 0.8*box 0.6*box 0.9*box [11-1] [112] [1-10]<br/>
-node 0.5*box 5 0.6*box [110] [1-10] [001]<br/>
-node 0.75*box 0.75*box 1 [112] [1-10] [11-1]<br/>
-node 0.6*box 1 0.8*box [001] [100] [010]<br/>
+node 40 80 60 [001] [110] [1-10]<br/>
+node 80 60 90 [11-1] [112] [1-10]<br/>
+node 50 5 60 [110] [1-10] [001]<br/>
+node 75 75 100 [112] [1-10] [11-1]<br/>
+node 60 100 80 [001] [100] [010]<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp</code>
-<p>The file <code>my_polycrystal.txt</code> indicates to build a cubic system with a size 100x100x100 &Aring;<sup>3</sup>, with six grains having the given orientations. <code>Atomsk</code> will use these parameters, and the unit cell defined in the file <code>fcc_unitcell.xsf</code>, to generate such a polycrystal, and write the final result to the files <code>fcc_polycrystal.cfg</code> and <code>fcc_polycrystal.lmp</code>.</p></li>
+<p>The file <code>my_polycrystal.txt</code> indicates to build a cubic system with a size 100x100x100 &Aring;<sup>3</sup>, with six grains. The position and crystallographic orientation of each grain is given explicitely. <code>Atomsk</code> will use these parameters, and the unit cell defined in the file <code>fcc_unitcell.xsf</code>, to generate such a polycrystal, and write the final result to the files <code>fcc_polycrystal.cfg</code> and <code>fcc_polycrystal.lmp</code>.</p></li>
 
 
 <li>
@@ -95,28 +95,14 @@ node 0.6*box 1 0.8*box [001] [100] [010]<br/>
 <p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
 box 100 100 100<br/>
 node 0 0 0 [100] [010] [001]<br/>
-node 0.4*box 0.8*box 0.6*box 56° -83° 45°<br/>
-node 0.8*box 0.6*box 0.9*box [11-1] [112] [1-10]<br/>
-node 0.75*box 0.75*box 1 -31.4° 28.7° 90.0°<br/>
-node 0.6*box 1 0.8*box [001] [100] [010]<br/>
+node 40 80 60 56° -83° 45°<br/>
+node 80 60 90 [11-1] [112] [1-10]<br/>
+node 50 5 60 [110] [1-10] [001]<br/>
+node 0.75*box 0.75*box 0.95*box -31.4° 28.7° 90.0°<br/>
+node 60 100 80 random<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp</code>
-<p>Similar to the previous example, except that for some grains the rotation angles are given. For instance, in the second grain the seed will be rotated by 56° around the cartesian X axis, then by -83° around the Y axis, and then 45° around Z.</p></li>
-
-
-<li>
-<div class="txtfile"><h5>my_polycrystal.txt</h5>
-<p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
-box 250 250 250<br/>
-node 0 0 0 [100] [010] [001]<br/>
-node 0.4*box 0.8*box 0.6*box random<br/>
-node 0.8*box 0.6*box 0.9*box random<br/>
-node 0.5*box  5  0.6*box random<br/>
-node 0.75*box  0.75*box  1 random<br/>
-node 0.6*box 1 0.8*box random<br/>
-</code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp -wrap</code>
-<p>The file <code>my_polycrystal.txt</code> indicates to build a cubic system that is 250x250x250 &Aring;<sup>3</sup>, with six grains located at the given position. The first grain will have the crystallographic orientation X=[100], Y=[010], Z=[001], and the other grains will have random crystallographic orientations. The <a href="./option_wrap.html">option <code>-wrap</code></a> ensures that all atoms are inside the simulation box.</p></li>
+<p>Similar to the previous example, except that for some grains the rotation angles are given. For instance, in the second grain the seed will be rotated by 56° around the cartesian X axis, then by -83° around the Y axis, and then 45° around Z. For the last grain, the program will generate a random crystal orientation.</p></li>
 
 <li>
 <div class="txtfile"><h5>bcc_polycrystal.txt</h5>
