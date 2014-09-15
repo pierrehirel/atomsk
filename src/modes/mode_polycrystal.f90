@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 10 Sept. 2014                                    *
+!* Last modification: P. Hirel - 15 Sept. 2014                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -586,7 +586,7 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 20
 ELSE
-  maxvertex = 60
+  maxvertex = 65
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -629,12 +629,14 @@ boxmax = 1.05d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
 CALL NEIGHBOR_LIST(H,vnodes,boxmax,vnodesNeighList)
 IF(verbosity==4) THEN
   !Debug messages
-  msg = "Neighbor list for nodes:"
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  DO i=1,SIZE(vnodesNeighList,1)
-    WRITE(msg,'(32i4)') i, (vnodesNeighList(i,j),j=1,MIN(SIZE(vnodesNeighList,2),20))
+  IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
+    msg = "Neighbor list for nodes:"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  ENDDO
+    DO i=1,SIZE(vnodesNeighList,1)
+      WRITE(msg,'(32i4)') i, (vnodesNeighList(i,j),j=1,MIN(SIZE(vnodesNeighList,2),20))
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
+  ENDIF
 ENDIF
 !
 !Allocate array containing number of atoms in each grain
@@ -678,7 +680,16 @@ ENDIF
 m = PRODUCT(expandmatrix(:))*SIZE(Puc,1)
 WRITE(msg,'(a25,i18)') "Expected NP for template:", m
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!If m is too large, reduce some value in expandmatrix(:)
+!If m is very large, reduce some value in expandmatrix(:)
+IF( m > 1.d8 ) THEN
+  IF( Nnodes>8 ) THEN
+    !Many nodes in the box => reduce drastically the size of template grain
+    expandmatrix(:) = 0.8d0 * expandmatrix(:)
+  ELSE
+    !There are not many grains => do not reduce too much
+    expandmatrix(:) = 0.8d0 * expandmatrix(:)
+  ENDIF
+ENDIF
 !
 WRITE(msg,'(a32,3i4)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -760,29 +771,31 @@ DO inode=1,Nnodes
     ENDDO
   ENDDO
   !Then search neighbor list
-  DO i=1,SIZE(vnodesNeighList,2)  !loop on neighboring nodes
-    IF( vnodesNeighList(inode,i).NE.0 ) THEN
-      !This node is neighbor of node #inode
-      !Check which periodic image(s) are actually neighbor
-      DO o=-expandmatrix(3),expandmatrix(3)
-        DO n=-expandmatrix(2),expandmatrix(2)
-          DO m=-expandmatrix(1),expandmatrix(1)
-            !Position of the periodic image of the i-th neighboring node of node #inode
-            P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-            P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-            P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-            vector = (/ P1 , P2 , P3 /)
-            !This image is a neighbor if distance is smaller than max. box size
-            distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-            IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
-              Nvertices = Nvertices+1
-              IF( distance > maxdnodes ) maxdnodes = distance
-            ENDIF
+  IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
+    DO i=1,SIZE(vnodesNeighList,2)  !loop on neighboring nodes
+      IF( vnodesNeighList(inode,i).NE.0 ) THEN
+        !This node is neighbor of node #inode
+        !Check which periodic image(s) are actually neighbor
+        DO o=-expandmatrix(3),expandmatrix(3)
+          DO n=-expandmatrix(2),expandmatrix(2)
+            DO m=-expandmatrix(1),expandmatrix(1)
+              !Position of the periodic image of the i-th neighboring node of node #inode
+              P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+              P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+              P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+              vector = (/ P1 , P2 , P3 /)
+              !This image is a neighbor if distance is smaller than max. box size
+              distance = VECLENGTH( vector(:) - vnodes(inode,:) )
+              IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
+                Nvertices = Nvertices+1
+                IF( distance > maxdnodes ) maxdnodes = distance
+              ENDIF
+            ENDDO
           ENDDO
         ENDDO
-      ENDDO
-    ENDIF
-  ENDDO
+      ENDIF
+    ENDDO
+  ENDIF
   !Allocate memory for vertices
   ALLOCATE( vvertex(Nvertices,4) )
   vvertex(:,:) = 0.d0
@@ -809,30 +822,35 @@ DO inode=1,Nnodes
       ENDDO
     ENDDO
   ENDDO
-  DO i=1,SIZE( vnodesNeighList,2 )
-    IF( vnodesNeighList(inode,i).NE.0 ) THEN
-      !This node is neighbor of node #inode
-      !Check which periodic image(s) are actually neighbor
-      DO o=-expandmatrix(3),expandmatrix(3)
-        DO n=-expandmatrix(2),expandmatrix(2)
-          DO m=-expandmatrix(1),expandmatrix(1)
-            !Position of the periodic image of the i-th neighboring node of node #inode
-            P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-            P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-            P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-            vector = (/ P1 , P2 , P3 /)
-            !This image is a neighbor if distance is smaller than max. box size
-            distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-            IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
-              Nvertices = Nvertices+1
-              vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-              vvertex(Nvertices,4) = distance
-            ENDIF
+  IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
+    DO i=1,SIZE( vnodesNeighList,2 )
+      IF( vnodesNeighList(inode,i).NE.0 ) THEN
+        !This node is neighbor of node #inode
+        !Check which periodic image(s) are actually neighbor
+        DO o=-expandmatrix(3),expandmatrix(3)
+          DO n=-expandmatrix(2),expandmatrix(2)
+            DO m=-expandmatrix(1),expandmatrix(1)
+              !Position of the periodic image of the i-th neighboring node of node #inode
+              P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+              P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+              P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+              vector = (/ P1 , P2 , P3 /)
+              !This image is a neighbor if distance is smaller than max. box size
+              distance = VECLENGTH( vector(:) - vnodes(inode,:) )
+              IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
+                Nvertices = Nvertices+1
+                vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                vvertex(Nvertices,4) = distance
+              ENDIF
+            ENDDO
           ENDDO
         ENDDO
-      ENDDO
-    ENDIF
-  ENDDO
+      ENDIF
+    ENDDO
+  ENDIF
+  !
+  WRITE(msg,'(a,i6)') "N neighbors for this grain:", Nvertices
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Sort vertices by increasing distance
   CALL BUBBLESORT(vvertex,4,"up  ")

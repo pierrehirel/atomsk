@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 June 2014                                     *
+!* Last modification: P. Hirel - 12 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -669,7 +669,7 @@ END SUBROUTINE CHECK_ORTHOVEC
 !********************************************************
 ! INVMAT
 ! This subroutine inverts a NxN matrix M
-! and output results into the matrix G.
+! and outputs the result into the matrix G.
 !********************************************************
 SUBROUTINE INVMAT(M,G,status)
 !
@@ -881,15 +881,17 @@ END SUBROUTINE FRAC2CART
 !  INDEX_MILLER
 !  This subroutine finds the Miller indices
 !  from a string. The string can contain signed integers
-!  attached together, e.g. "1-10", or integers separated
-!  by underscores and between brackets, e.g. "[1_-1_0]".
-!  Note that the former notation only allows to use
-!  one-digit signed integers (like "1-10"; something
-!  like "12-1514" cannot be recognized), while the
-!  latter notation allows to use greater integers
-!  (e.g. "[12_-15_14]").
-!  The string is converted to a real array, e.g.
-!  (1.d0  -1.d0  0.d0).
+!  attached together, or separated by underscores,
+!  with or without brackets, e.g.:
+!         1-10       [1-10]
+!        1_-1_0     [1_-1_0]
+!  The notation without underscore only allows to use
+!  one-digit signed integers (like "1-10"), while the
+!  notation allows to use greater integers,
+!  like "[12_-15_14]".
+!  The "planestring" is converted to a real array
+!  containing the Miller indices, e.g. "1-10" will be
+!  converted into (1.d0  -1.d0  0.d0).
 !********************************************************
 !
 SUBROUTINE INDEX_MILLER(planestring,planeindices,ifail)

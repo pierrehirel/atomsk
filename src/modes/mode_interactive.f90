@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Sept. 2014                                    *
+!* Last modification: P. Hirel - 12 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -159,7 +159,20 @@ DO
       !Interpret the command
       SELECT CASE(command)
       !
-      !Some speciel commands
+      !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!         COMMANDS FOR INFO
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      CASE("license","licence")
+        CALL DISPLAY_LICENSE()
+        !
+      CASE("version","ver")
+        CALL DISPLAY_COPYRIGHT()
+      !
+      !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!         SPECIAL COMMANDS
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("clear")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
           !User may have forgotten to write file => Display a warning
@@ -258,9 +271,6 @@ DO
         IF(i==0) THEN
           WRITE(*,*) " Nothing in memory"
         ENDIF
-        !
-      CASE("version")
-        CALL DISPLAY_COPYRIGHT()
         !
       !Commands to read and write files
       CASE("read")
