@@ -10,7 +10,7 @@ MODULE remdoubles
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 Feb. 2014                                     *
+!* Last modification: P. Hirel - 15 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,34 +79,31 @@ Nremoved = 0
 DO i=1,SIZE(P,1)-1  !Loop on all atoms
   IF( P(i,4)>0.1d0 ) THEN  !Ignore atoms that were already eliminated
     !
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN  !only perform the search for selected atoms
-      !Create a temporary array containing all atoms of index greater than i
-      !Note: this makes the neighbour search faster
-      ALLOCATE( Q(SIZE(P,1)-i,4) )
-      Q(:,:) = 0.d0
-      DO j=1,SIZE(Q,1)
-        Q(j,:) = P(i+j,:)
-      ENDDO
-      !
-      !Find all neighbours of P(i,:) that are closer than rmd_radius
-      CALL FIND_NNRdR(H,Q,P(i,:),-0.1d0,rmd_radius,V_NN,Nlist,exceeds100)
-      !
-      !If atoms were found, mark them for elimination
-      IF( SIZE(Nlist)>0 ) THEN
-        DO j=1,SIZE(Nlist)
-          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(Nlist(j)+i) ) THEN  !remove only selected atoms
-            !Only consider atoms that were not removed before
-            IF( P(Nlist(j)+i,4) > 0.1d0 ) THEN
-              Nremoved = Nremoved+1
-              P(Nlist(j)+i,4) = 0.d0
-            ENDIF
+    !Create a temporary array containing all atoms of index greater than i
+    !Note: this makes the neighbour search faster
+    ALLOCATE( Q(SIZE(P,1)-i,4) )
+    Q(:,:) = 0.d0
+    DO j=1,SIZE(Q,1)
+      Q(j,:) = P(i+j,:)
+    ENDDO
+    !
+    !Find all neighbours of P(i,:) that are closer than rmd_radius
+    CALL FIND_NNRdR(H,Q,P(i,:),-0.1d0,rmd_radius,V_NN,Nlist,exceeds100)
+    !
+    !If atoms were found, mark them for elimination
+    IF( SIZE(Nlist)>0 ) THEN
+      DO j=1,SIZE(Nlist)
+        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(Nlist(j)+i) ) THEN  !remove only selected atoms
+          !Only consider atoms that were not removed before
+          IF( P(Nlist(j)+i,4) > 0.1d0 ) THEN
+            Nremoved = Nremoved+1
+            P(Nlist(j)+i,4) = 0.d0
           ENDIF
-        ENDDO
-      ENDIF
-      !
-      DEALLOCATE(Q)
-      !
+        ENDIF
+      ENDDO
     ENDIF
+    !
+    DEALLOCATE(Q)
     !
   ENDIF
 ENDDO

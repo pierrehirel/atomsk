@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Sept. 2014                                    *
+!* Last modification: P. Hirel - 15 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -850,6 +850,14 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp2
     temp = TRIM(ADJUSTL(temp))
     temp2 = TRIM(ADJUSTL(temp2))
+    j=SCAN(temp,"°")
+    IF(j>0) THEN
+      temp(j:j) = " "
+    ENDIF
+    j=SCAN(temp2,"°")
+    IF(j>0) THEN
+      temp2(j:j) = " "
+    ENDIF
     !User may have entered "-rotate axis angle" or "-rotate angle axis"
     !detect which is which and save "-rotate axis angle" in options_array
     IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &

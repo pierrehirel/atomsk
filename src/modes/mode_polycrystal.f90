@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Sept. 2014                                    *
+!* Last modification: P. Hirel - 16 Sept. 2014                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -69,6 +69,7 @@ CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES   !names of auxiliary properties of atoms
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: doshells, doaux !are there shells, auxiliary properties in initial seed?
+LOGICAL:: Hset            !are the box vectors H(:,:) defined?
 LOGICAL:: isinpolyhedron  !is atom inside the polyhedron?
 LOGICAL:: miller          !are Miller indices given? (if no then angles are given)
 LOGICAL:: paramnode, paramrand, paramlatt !are the keywords "node", "random", "lattice" used in parameter file?
@@ -165,39 +166,102 @@ CALL CHECKFILE(vfile,'read')
 OPEN(UNIT=31,FILE=vfile)
 !Parse the file a first time to count number of nodes
 Nnodes = 0
+Hset=.FALSE.
 paramnode = .FALSE.
 paramrand = .FALSE.
 paramlatt = .FALSE.
 DO
   READ(31,'(a)',END=210,ERR=210) line
   line = TRIM(ADJUSTL(line))
-  IF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
-    Nnodes = Nnodes+1
-    paramnode = .TRUE.
-  ELSEIF( line(1:7)=="lattice" ) THEN
-    paramlatt = .TRUE.
-    lattice = TRIM(ADJUSTL(line(8:)))
-    IF( lattice=="fcc" ) THEN
-      Nnodes = 4
-    ELSEIF( lattice=="bcc" ) THEN
-      Nnodes = 2
-    ELSEIF( lattice=="diamond" ) THEN
-      Nnodes = 8
+  !
+  !Ignore empty lines and lines starting with #
+  IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
+    IF( line(1:3)=="box" ) THEN
+      !Read size of the final box
+      READ(line(4:),*,END=800,ERR=800) P1, P2, P3
+      !Set box vectors
+      H(:,:) = 0.d0
+      H(1,1) = P1
+      H(2,2) = P2
+      H(3,3) = P3
+      !If the user provided a unit cell (and not a supercell), and
+      !if the final box is smaller than 2 times the unit cell along one dimension,
+      !then consider that it is a 2-D system and use 2-D Voronoi construction
+      IF( .NOT.ANY( H(:,:)>20.d0) .OR. SIZE(Puc,1)<100 ) THEN
+        !It is a small unit cell
+        IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) ) THEN
+          twodim = 1
+          H(1,1) = Huc(1,1)
+        ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) ) THEN
+          twodim = 2
+          H(2,2) = Huc(2,2)
+        ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
+          twodim = 3
+          H(3,3) = Huc(3,3)
+        ENDIF
+      ENDIF
+      WRITE(msg,*) "twodim = ", twodim
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      Hset=.TRUE.
+      !
+    ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
+      !Check that the box was defined
+      IF( .NOT.Hset ) THEN
+        GOTO 820
+      ENDIF
+      Nnodes = Nnodes+1
+      paramnode = .TRUE.
+      !
+    ELSEIF( line(1:7)=="lattice" ) THEN
+      !Check that the box was defined
+      IF( .NOT.Hset ) THEN
+        GOTO 820
+      ENDIF
+      paramlatt = .TRUE.
+      lattice = TRIM(ADJUSTL(line(8:)))
+      !Set the number of nodes according to the lattice type
+      !Beware of pseudo-2D systems
+      IF( lattice=="bcc" ) THEN
+        Nnodes = 2
+      ELSEIF( lattice=="fcc" ) THEN
+        IF(twodim>0) THEN
+          Nnodes = 2
+        ELSE
+          Nnodes = 4
+        ENDIF
+      ELSEIF( lattice=="diamond" ) THEN
+        IF(twodim>0) THEN
+          Nnodes = 6
+        ELSE
+          Nnodes = 8
+        ENDIF
+      ELSE
+        !Unrecognized lattice type => abort
+        nerr=nerr+1
+        GOTO 1000
+      ENDIF
+      !
+    ELSEIF( line(1:6)=="random" ) THEN
+      !Check that the box was defined
+      IF( .NOT.Hset ) THEN
+        GOTO 820
+      ENDIF
+      !Read total number of grains
+      READ(line(7:),*,END=800,ERR=800) Nnodes
+      paramrand = .TRUE.
     ELSE
-      !Unrecognized lattice type => abort
-      nerr=nerr+1
-      GOTO 1000
+      !Unknown command => display warning
+      nwarn=nwarn+1
+      temp(1:64) = CHARLONG2SHRT(vfile)
+      CALL ATOMSK_MSG(1702,(/line,temp/),(/0.d0/))
     ENDIF
-  ELSEIF( line(1:6)=="random" ) THEN
-    !Read total number of grains
-    READ(line(7:),*,END=800,ERR=800) Nnodes
-    paramrand = .TRUE.
+    !
   ENDIF
 ENDDO
 !
 210 CONTINUE
-!If both keywords "node" and "random" were given
-!in parameter file, we are in trouble
+!Keywords "lattice", "node" and "random" are mutually exclusive
+!If two of them appear in the param file, display an error message and exit
 IF( paramnode .AND. paramrand ) THEN
   CALL ATOMSK_MSG(4823,(/"node   ","random "/),(/0.d0/))
   nerr=nerr+1
@@ -228,31 +292,7 @@ DO
   IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
     !
     IF( line(1:3)=="box" ) THEN
-      !Read size of the final box
-      READ(line(4:),*,END=800,ERR=800) P1, P2, P3
-      !Set box vectors
-      H(:,:) = 0.d0
-      H(1,1) = P1
-      H(2,2) = P2
-      H(3,3) = P3
-      !If the user provided a unit cell (and not a supercell), and
-      !if the final box is smaller than 2 times the unit cell along one dimension,
-      !then consider that it is a 2-D system and use 2-D Voronoi construction
-      IF( .NOT.ANY( H(:,:)>20.d0) .OR. SIZE(Puc,1)<100 ) THEN
-        !It is a small unit cell
-        IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) ) THEN
-          twodim = 1
-          H(1,1) = Huc(1,1)
-        ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) ) THEN
-          twodim = 2
-          H(2,2) = Huc(2,2)
-        ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
-          twodim = 3
-          H(3,3) = Huc(3,3)
-        ENDIF
-      ENDIF
-      WRITE(msg,*) "twodim = ", twodim
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !This part was already dealt with before
       !
       !
     ELSEIF( line(1:7)=="lattice" ) THEN
@@ -261,7 +301,7 @@ DO
       !The crystallographic orientation of the grains will be random
       !
       !Check that the box was defined
-      IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+      IF( .NOT.Hset ) THEN
         GOTO 820
       ENDIF
       !
@@ -272,39 +312,90 @@ DO
         vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,1/2)
         vnodes(2,2) = 0.5d0*H(2,2)
         vnodes(2,3) = 0.5d0*H(3,3)
+        IF(twodim>0) THEN
+          vnodes(2,twodim) = 0.d0
+        ENDIF
       ELSEIF( lattice=="fcc" ) THEN
-        Nnodes = 4
-        vnodes(1,:) = 0.d0          !(0,0,0)
-        vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
-        vnodes(2,2) = 0.5d0*H(2,2)
-        vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
-        vnodes(3,3) = 0.5d0*H(3,3)
-        vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
-        vnodes(4,3) = 0.5d0*H(3,3)
+        IF(twodim>0) THEN
+          !System is 2-D => define only 2 nodes
+          Nnodes = 2
+          vnodes(1,:) = 0.d0          !(0,0)
+          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2)
+          vnodes(2,2) = 0.5d0*H(2,2)
+          vnodes(2,3) = 0.5d0*H(3,3)
+          vnodes(2,twodim) = 0.d0
+        ELSE
+          !System is 3-D => define fcc lattice
+          Nnodes = 4
+          vnodes(1,:) = 0.d0          !(0,0,0)
+          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
+          vnodes(2,2) = 0.5d0*H(2,2)
+          vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
+          vnodes(3,3) = 0.5d0*H(3,3)
+          vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
+          vnodes(4,3) = 0.5d0*H(3,3)
+        ENDIF
       ELSEIF( lattice=="diamond" .OR. lattice=="dia" ) THEN
-        Nnodes = 8
-        vnodes(:,:) = 0.d0
-        vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
-        vnodes(2,2) = 0.5d0*H(2,2)
-        vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
-        vnodes(3,3) = 0.5d0*H(3,3)
-        vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
-        vnodes(4,3) = 0.5d0*H(3,3)
-        vnodes(5,1) = 0.25d0*H(1,1) !0.25,0.25,0.25)
-        vnodes(5,2) = 0.25d0*H(2,2)
-        vnodes(5,3) = 0.25d0*H(3,3)
-        vnodes(6,1) = 0.75d0*H(1,1) !0.75,0.75,0.25)
-        vnodes(6,2) = 0.75d0*H(2,2)
-        vnodes(6,3) = 0.25d0*H(3,3)
-        vnodes(7,1) = 0.75d0*H(1,1) !0.75,0.25,0.75)
-        vnodes(7,2) = 0.25d0*H(2,2)
-        vnodes(7,3) = 0.75d0*H(3,3)
-        vnodes(8,1) = 0.25d0*H(1,1) !0.25,0.75,0.75)
-        vnodes(8,2) = 0.75d0*H(2,2)
-        vnodes(8,3) = 0.75d0*H(3,3)
+        IF(twodim>0) THEN
+          !System is 2-D => define only 6 nodes
+          Nnodes = 6
+          vnodes(:,:) = 0.d0
+          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2)
+          vnodes(2,2) = 0.5d0*H(2,2)
+          vnodes(2,3) = 0.5d0*H(3,3)
+          vnodes(2,twodim) = 0.d0
+          vnodes(3,1) = 0.25d0*H(1,1) !(1/4,1/4)
+          vnodes(3,2) = 0.25d0*H(2,2)
+          vnodes(3,3) = 0.25d0*H(3,3)
+          vnodes(3,twodim) = 0.d0
+          vnodes(4,1) = 0.75d0*H(1,1) !(3/4,3/4)
+          vnodes(4,2) = 0.75d0*H(2,2)
+          vnodes(4,3) = 0.75d0*H(3,3)
+          vnodes(4,twodim) = 0.d0
+          IF(twodim==1) THEN
+            vnodes(5,2) = 0.25d0*H(2,2)  !(1/4,3/4)
+            vnodes(5,3) = 0.75d0*H(3,3)
+            vnodes(6,2) = 0.75d0*H(2,2)  !(1/4,3/4)
+            vnodes(6,3) = 0.25d0*H(3,3)
+          ELSEIF(twodim==2) THEN
+            vnodes(5,1) = 0.25d0*H(1,1)  !(1/4,3/4)
+            vnodes(5,3) = 0.75d0*H(3,3)
+            vnodes(6,1) = 0.75d0*H(1,1)  !(1/4,3/4)
+            vnodes(6,3) = 0.25d0*H(3,3)
+          ELSE   !i.e. twodim==3
+            vnodes(5,1) = 0.25d0*H(1,1)  !(1/4,3/4)
+            vnodes(5,2) = 0.75d0*H(2,2)
+            vnodes(6,1) = 0.75d0*H(1,1)  !(1/4,3/4)
+            vnodes(6,2) = 0.25d0*H(2,2)
+          ENDIF
+        ELSE
+          !System is 3-D => define diamond lattice
+          Nnodes = 8
+          vnodes(:,:) = 0.d0
+          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
+          vnodes(2,2) = 0.5d0*H(2,2)
+          vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
+          vnodes(3,3) = 0.5d0*H(3,3)
+          vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
+          vnodes(4,3) = 0.5d0*H(3,3)
+          vnodes(5,1) = 0.25d0*H(1,1) !(1/4,1/4,1/4)
+          vnodes(5,2) = 0.25d0*H(2,2)
+          vnodes(5,3) = 0.25d0*H(3,3)
+          vnodes(6,1) = 0.75d0*H(1,1) !(3/4,3/4,1/4)
+          vnodes(6,2) = 0.75d0*H(2,2)
+          vnodes(6,3) = 0.25d0*H(3,3)
+          vnodes(7,1) = 0.75d0*H(1,1) !(3/4,1/4,3/4)
+          vnodes(7,2) = 0.25d0*H(2,2)
+          vnodes(7,3) = 0.75d0*H(3,3)
+          vnodes(8,1) = 0.25d0*H(1,1) !(1/4,3/4,3/4)
+          vnodes(8,2) = 0.75d0*H(2,2)
+          vnodes(8,3) = 0.75d0*H(3,3)
+        ENDIF
       ELSE
         !unrecognized lattice type (already dealt with before)
       ENDIF
+      !
+      !Orientation of each grain will be random
       !Generate a list of 3*Nnodes random numbers
       CALL GEN_NRANDNUMBERS( 3*Nnodes , randarray )
       !randarray now contains 3*Nnodes real numbers between 0 and 1
@@ -354,7 +445,7 @@ DO
       !
     ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
       !Check that the box was defined
-      IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+      IF( .NOT.Hset ) THEN
         GOTO 820
       ENDIF
       Nnodes = Nnodes+1
@@ -502,7 +593,7 @@ DO
     ELSEIF( line(1:6)=="random" ) THEN
       !Position and orientations of grains are random
       !Check that the box was defined
-      IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+      IF( .NOT.Hset ) THEN
         GOTO 820
       ENDIF
       !Read total number of grains
@@ -627,6 +718,7 @@ boxmax = 1.05d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
 300 CONTINUE
 !Construct a neighbor list of nodes
 CALL NEIGHBOR_LIST(H,vnodes,boxmax,vnodesNeighList)
+!WARNING: if user asks for only one grain, then vnodesNeighList is NOT ALLOCATED!
 IF(verbosity==4) THEN
   !Debug messages
   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
