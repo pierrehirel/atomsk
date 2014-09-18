@@ -32,8 +32,15 @@
 
 <p>Avec le mot-clé <strong>lattice</strong>, suivi d'un type de réseau, les positions des grains seront similaires à celles du réseau donné. Les types de réseau supportés sont "bcc", "fcc", "diamond". Par exemple avec un réseau "fcc", les germes seront placés à chaque coin de la boîte ainsi qu'au centre de chaque face. Les orientations cristallographiques des grains seront définies de façon aléatoire par le programe.</p>
 
-<p>Le mot-clé <strong>node</strong> peut être utilisé pour définir la position (x,y,z) et l'orientation cristallographique d'un grain. Les coordonnées x, y, z sont habituellement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). L'orientation cristallographique peut être donnée par les indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>) ; notez que ceci suppose que l'orientation du système dans le &#60;germe&#62; donné est X=[100], Y=[
-010], Z=[001]. Alternativement l'orientation du grain peut aussi être définie par trois angles en degrés, donnés comme nombres réels avec le symbole degré (°). Le germe sera tourné du premier angle autour de l'axe X, puis du second angle autour de Y, et enfin du troisième angle autour de Z. Enfin, l'orientation d'un grain peut aussi être définie comme "random", auquel cas le programme appliquera une matrice de rotation aléatoire. Chaque ligne commençant avec le mot-clé <strong>node</strong> définit les propriétés d'un grain.</p>
+<p>Le mot-clé <strong>node</strong> peut être utilisé pour définir explicitement la position (x,y,z) et l'orientation cristallographique d'un grain. Les coordonnées x, y, z sont habituellement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). Pour chaque grain, l'orientation cristallographique peut être donnée de l'une des façons suivantes :</p>
+
+<ul>
+  <li> par les indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Notez que ceci suppose que l'orientation du système dans le &#60;germe&#62; donné est X=[100], Y=[010], Z=[001].</li>
+  <li> par trois angles en degrés, entrés comme nombres réels avec le symbole degré (°). Le germe sera tourné du premier angle autour de l'axe X, puis du second angle autour de Y, et enfin du troisième angle autour de Z.</li>
+  <li> "random", auquel cas le programme appliquera une matrice de rotation aléatoire.</li>
+</ul>
+
+<p>Chaque ligne commençant avec le mot-clé <strong>node</strong> définit les propriétés d'un grain.</p>
 
 <p>Les mots-clés <strong>random</strong>, <strong>lattice</strong> et <strong>node</strong> sont mutuellement exclusifs. Un seul de ces mots-clé peut être utilisé dans un fichier de paramètres.</p>
 
@@ -78,22 +85,7 @@ lattice fcc<br/>
 <li>
 <div class="txtfile"><h5>mon_polycristal.txt</h5>
 <p><code>&#35; Paramètres pour construire un polycristal avec atomsk<br/>
-box 100 100 100<br/>
-node 0 0 0 [100] [010] [001]<br/>
-node 40 80 60 [001] [110] [1-10]<br/>
-node 80 60 90 [11-1] [112] [1-10]<br/>
-node 50 5 60 [110] [1-10] [001]<br/>
-node 75 75 100 [112] [1-10] [11-1]<br/>
-node 60 100 80 [001] [100] [010]<br/>
-</code></p></div>
-<code class="command">atomsk --polycrystal fcc_cellule.xsf mon_polycristal.txt fcc_polycristal.cfg lmp</code>
-<p>Le fichier <code>mon_polycristal.txt</code> indique de construire un système de taille 100x100x100 &Aring;<sup>3</sup>, contenant six grains. La position et l'orientation cristallographique de chaque grain sont données explicitement. <code>Atomsk</code> utilisera ces paramètres, et la cellule élémentaire définie dans <code>fcc_cellule.xsf</code>, pour construire un tel polycristal. Le résultat final sera écrit dans les fichiers <code>fcc_polycristal.cfg</code> et <code>fcc_polycristal.lmp</code>.</p></li>
-
-
-<li>
-<div class="txtfile"><h5>mon_polycristal.txt</h5>
-<p><code>&#35; Paramètres pour construire un polycristal avec atomsk<br/>
-box 100 100 100<br/>
+box 300 300 300<br/>
 node 0 0 0 [100] [010] [001]<br/>
 node 40 80 60 56° -83° 45°<br/>
 node 80 60 90 [11-1] [112] [1-10]<br/>
@@ -102,7 +94,7 @@ node 0.75*box 0.75*box 0.95*box -31.4° 28.7° 90.0°<br/>
 node 60 100 80 random<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_cellule.xsf mon_polycristal.txt fcc_polycristal.cfg lmp</code>
-<p>Similaire à l'exemple précédent, sauf que pour certains grains l'orientation est donnée par des angles. Par exemple dans le second grain le germe sera tourné de 56° autour de l'axe cartésien X, puis de -83° autour de Y, et enfin de 45° autour de Z. Pour le dernier grain, le programme générera une orientation cristallographique aléatoire.</p></li>
+<p>Ceci construira un polycristal dans une boîte de taille 300x300x300 &Aring;<sup>3</sup>. Les positions des grains sont définies explicitement. Pour certains grains l'orientation est donnée par des indices de Miller, pour d'autres par des angles. Enfin pour le dernier grain, le programme générera une orientation cristallographique aléatoire.</p></li>
 
 
 <li>

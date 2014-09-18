@@ -269,6 +269,8 @@ Rotates the system around a cartesian <axis>.
 .TP
 .B -select random <N> <species>
 .TP
+.B -select prop <property> <values>
+.TP
 .B -select <above|below> <x1> <dir>
 .TP
 .B -select <N> <species> neighbor <index>

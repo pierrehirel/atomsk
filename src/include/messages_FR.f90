@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 10 Sept. 2014                                    *
+!* Last modification: P. Hirel - 18 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -287,8 +287,16 @@ IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") 
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-select") THEN
-  WRITE(*,*) "..> Selectionner les atomes à l'intérieur ou à l'extérieur d'une région :"
-  WRITE(*,*) "          -select <all|in|out|invert> [<box|sphere|cylinder> [<x|y|z>] <x1> <y1> <z1> <x2> [<y2> <z2>]]"
+  WRITE(*,*) "..> Selectionner les atomes selon un critère :"
+  WRITE(*,*) "          -select all"
+  WRITE(*,*) "          -select invert"
+  WRITE(*,*) "          -select <species>"
+  WRITE(*,*) "          -select <index>"
+  WRITE(*,*) "          -select <above|below> <d> <normal>"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder> <x1> <y1> <z1> <x2> [<y2> <z2>]]"
+  WRITE(*,*) "          -select prop <prop> <value>"
+  WRITE(*,*) "          -select random <N> <species>"
+  WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-shear") THEN
@@ -965,6 +973,16 @@ CASE(2077)
       msg = TRIM(msg)//" ; Rayon : "//TRIM(ADJUSTL(temp))//" A."
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
+  ELSEIF( strings(1)=="prop" ) THEN
+    msg = ">>> Sélection des atomes avec "//TRIM(strings(2))
+    WRITE(temp,"(f16.3)") reals(1)
+    IF( reals(4)>2.d0 ) THEN
+      WRITE(temp2,"(f16.3)") reals(2)
+      msg = TRIM(ADJUSTL(msg))//" compris entre "//TRIM(ADJUSTL(temp))//" et "//TRIM(ADJUSTL(temp2))//"."
+    ELSE
+      msg = TRIM(ADJUSTL(msg))//" égal à "//TRIM(ADJUSTL(temp))//"."
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random" .OR. strings(1)=="rand" ) THEN
     WRITE(temp,*) NINT(reals(1))
     msg = ">>> Sélection aléatoire de "//TRIM(ADJUSTL(temp))//" atomes"

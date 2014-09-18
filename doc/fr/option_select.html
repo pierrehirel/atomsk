@@ -33,6 +33,8 @@
 
 <p><code>-select &#60;in|out&#62; cylinder &#60;axe&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
 
+<p><code>-select prop &#60;propriété&#62; &#60;valeur1[:valeur2]&#62;</code></p>
+
 <p><code>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</code></p>
 
 
@@ -70,6 +72,8 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 <p>Le <strong>cylindre</strong> est défini par son centre (x<sub>1</sub>,x<sub>2</sub>) dans le plan normal à son &#60;axe&#62;, et par son rayon R. Les directions x<sub>1</sub> and y<sub>2</sub> sont définies d'après la direction de l'&#60;axe&#62; par permutation X, Y, Z (par ex. si &#60;axe&#62;=Y alors x<sub>1</sub> sera la position selon l'axe cartésien Z, et x<sub>2</sub> la position suivant X).</p>
 
 <p>Les positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; sont généralement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). Notez que ces mots-clé ne peuvent être employés que pour les positions : le rayon &#60;R&#62; de la sphère ou du cylindre doit toujours être donné en &Aring;.</p>
+
+<p>L'option <strong>-select prop</strong> permet de sélectionner les atomes si leur &#60;propriété&#62; a la valeur donnée. Si une seule valeur est donnée, alors seuls les atomes dont la &#60;propriété&#62; a exactement cette valeur sont sélectionnés. Si deux valeurs sont données, séparées par un double point (:), alors tous les atomes dont la &#60;propriété&#62; a une valeur dans cette fourchette sont sélectionnés.</p>
 
 <p>En utilisant <strong>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</strong>, les voisins de l'atome ayant l'&#60;indice&#62; donné sont sélectionnés. Si &#60;NNN&#62; est un entier positif alors les &#60;NNN&#62; voisins les plus proches sont sélectionnés, peu importe leur distance (&#60;NNN&#62; doit alors être inférieur à 100). Si &#60;NNN&#62; est un nombre réel négatif alors tous les voisins dans un rayon |&#60;NNN&#62;| sont sélectionnés, peu importe leur nombre. Si &#60;NNN&#62; est égal à zero, alors les premiers voisins sont sélectionnés. Notez que si certains atomes se trouvent hors de la boîte, la recherche de voisins peut donner des résultats erronés (l'<a href="./option_wrap.html">option <code>-wrap</code></a> peut être utilisée pour replacer les atomes dans la boîte). Si &#60;espèce&#62; est le symbole chimique d'une espèce alors seuls les atomes de cette espèce sont sélectionnés. Si &#60;espèce&#62; est "all" ou "any" alors les atomes sont sélectionnés sans tenir compte 
 de leur espèce chimique.</p>
@@ -128,6 +132,9 @@ de leur espèce chimique.</p>
 
 <li><code class="command">atomsk initial.cfg -select -8.5 any neighbors 566 final.xyz</code>
 <p>Ceci va sélectionner tous les atomes se trouvant dans un rayon de 8.5 &Aring; autour de l'atome &#35;566.</p></li>
+
+<li><code class="command">atomsk initial.cfg -select prop vx 1e5:1e6 final.xyz</code>
+<p>Ceci va sélectionner les atomes dont la vitesse suivant X (vx) est comprise entre 1e5 et 1e6 (selon l'unité de vitesse employée dans le fichier d'entrée).</p></li>
 </ul>
 
 

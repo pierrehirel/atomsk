@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Sept. 2014                                    *
+!* Last modification: P. Hirel - 18 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -234,6 +234,8 @@ REAL(dp):: vel_T  !target temperature for Maxwell-Boltzmann distribution
 ! -- add other options variables in alphabetical order --
 !
 j=0
+region_1(:) = 0.d0
+region_2(:) = 0.d0
 !
 !
 msg = 'ENTERING OPTIONS'
@@ -715,6 +717,30 @@ DO ioptions=1,SIZE(options_array)
         region_2(2) = 0.d0
         region_2(3) = 0.d0
       ENDIF
+    ELSEIF( region_side=="prop" ) THEN
+      !store property name in "region_geom"
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom, temp
+      !store value(s) of the property into 
+      temp = ADJUSTL(temp)
+      strlength = SCAN(temp,":")
+      IF( strlength>0 ) THEN
+        !user gives a range => read min and max values (can be -INF or +INF)
+        treal(1) = temp(1:strlength-1)
+        CALL BOX2DBLE( H(:,1) , treal(1) , region_1(1) , status )
+        treal(2) = temp(strlength+1:)
+        CALL BOX2DBLE( H(:,1) , treal(2) , region_1(2) , status )
+        region_2(1) = 10.d0
+        !make sure region_1(1) is smaller than region_1(2)
+        IF( region_1(1) > region_1(2) ) THEN
+          tempreal = region_1(2)
+          region_1(2) = region_1(1)
+          region_1(1) = tempreal
+        ENDIF
+      ELSE
+        !user gives only one value => save it to region_1(1)
+        READ(temp,*,END=800,ERR=800) region_1(1)
+        region_2(1) = 0.d0
+      ENDIF
     ELSEIF( region_side=="random" ) THEN
       !store number of atoms N to region_1(1) and species to region_geom
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
@@ -745,7 +771,7 @@ DO ioptions=1,SIZE(options_array)
           & region_side, region_1(1), region_geom, region_1(2)
     ENDIF
     IF(nerr.NE.0) GOTO 1000
-    CALL SELECT_XYZ(H,P,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
+    CALL SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
   !
   CASE('-shear')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &

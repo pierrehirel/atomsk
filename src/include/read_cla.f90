@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Sept. 2014                                    *
+!* Last modification: P. Hirel - 18 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -890,18 +890,6 @@ DO WHILE(i<SIZE(cla))
     IF( temp=='all' .OR. temp=='any' .OR. temp=='invert' .OR. temp=='none' ) THEN
       !No other parameter to read
       CONTINUE
-    ELSEIF( temp=='random' .OR. temp=='rand' ) THEN
-      !A number N of atoms of given species must be selected at random
-      !read number of atoms N
-      !read the atom species or index that will be removed
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      !read atom species; can be "all" or "any"
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      IF(LEN_TRIM(temp)>3) GOTO 120
     ELSEIF( temp=='above' .OR. temp=='below' ) THEN
       !read distance normal to plane of selection
       i=i+1
@@ -1028,6 +1016,30 @@ DO WHILE(i<SIZE(cla))
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         READ(temp,*,END=120,ERR=120) tempreal
       ENDIF
+      !
+    ELSEIF( temp=='random' .OR. temp=='rand' ) THEN
+      !A number N of atoms of given species must be selected at random
+      !read number of atoms N
+      !read the atom species or index that will be removed
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !read atom species; can be "all" or "any"
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF(LEN_TRIM(temp)>3) GOTO 120
+      !
+    ELSEIF( temp=='prop' ) THEN
+      !Atoms must be selected according to a property
+      !Read name of the property
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !Read criterion (will be interpreted later)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !
     ELSEIF( i+2<=SIZE(cla) .AND.                                                           &
           &  ( cla(i+2)=="neighbors" .OR. cla(i+2)=="neighbours" .OR. cla(i+2)=="neigh" )  &

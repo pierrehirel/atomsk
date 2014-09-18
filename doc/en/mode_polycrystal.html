@@ -32,9 +32,15 @@
 
 <p>With the keyword <strong>lattice</strong>, followed by a lattice type, the positions of the grains will be set according to the given lattice type. The lattice types are "bcc", "fcc", "diamond". For instance with an fcc lattice seeds will be placed at each corner of the box and at the center of each face. The crystallographic orientation of the grains will be randomly decided by the program.</p>
 
-<p>The keyword <strong>node</strong> can be used to define the position (x,y,z) and orientation of a grain. The cartesian coordinates x, y, z, are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). The crystallographic orientation can be specified as Miller indices (see <a href="./options.html">how to specify Miller indices</a>); note that this assumes that the orientation of the &#60;seed&#62; is X=[100], Y=[010], Z=[001]. Alternatively the angles of rotation of the seed can also be given explicitely in degrees, as real numbers with the degree 
-symbol (°). The seed will be rotated by the first angle around the cartesian X axis, then by the second angle around Y, and finally by the third angle around Z. Finally, the crystal orientation of a grain can also be set to "random", in which case the program will apply a random rotation 
-matrix. Each line starting with the keyword <strong>node</strong> defines one grain.</p>
+<p>The keyword <strong>node</strong> can be used to define explicitely the position (x,y,z) and orientation of a grain. The cartesian coordinates x, y, z, are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). For each grain, the crystallographic orientation can be specified in one of the following ways:</p>
+
+<ul>
+  <li> as Miller indices (see <a href="./options.html">how to specify Miller indices</a>). Note that this assumes that the orientation of the &#60;seed&#62; is X=[100], Y=[010], Z=[001].</li>
+  <li> as rotation angles, by entering three real numbers with the degree symbol (°). The seed will be rotated by the first angle around the cartesian X axis, then by the second angle around Y, and finally by the third angle around Z.</li>
+  <li> "random", in which case the program will apply a random rotation matrix.</li>
+</ul>
+
+<p>Each line starting with the keyword <strong>node</strong> defines one grain.</p>
 
 <p>The keywords <strong>random</strong>, <strong>lattice</strong>, and <strong>node</strong> are mutually exclusive. Only one of them must be used in a parameter file.</p>
 
@@ -75,25 +81,11 @@ lattice fcc<br/>
 <code class="command">atomsk --polycrystal unitcell.xsf voronoi_lattice.txt polycrystal.cfg lmp</code>
 <p>This will create a system of size 200x200x200 &Aring;<sup>3</sup>, where grains are arranged like an fcc lattice.</p></li>
 
-<li>
-<div class="txtfile"><h5>my_polycrystal.txt</h5>
-<p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
-box 100 100 100<br/>
-node 0 0 0 [100] [010] [001]<br/>
-node 40 80 60 [001] [110] [1-10]<br/>
-node 80 60 90 [11-1] [112] [1-10]<br/>
-node 50 5 60 [110] [1-10] [001]<br/>
-node 75 75 100 [112] [1-10] [11-1]<br/>
-node 60 100 80 [001] [100] [010]<br/>
-</code></p></div>
-<code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp</code>
-<p>The file <code>my_polycrystal.txt</code> indicates to build a cubic system with a size 100x100x100 &Aring;<sup>3</sup>, with six grains. The position and crystallographic orientation of each grain is given explicitely. <code>Atomsk</code> will use these parameters, and the unit cell defined in the file <code>fcc_unitcell.xsf</code>, to generate such a polycrystal, and write the final result to the files <code>fcc_polycrystal.cfg</code> and <code>fcc_polycrystal.lmp</code>.</p></li>
-
 
 <li>
 <div class="txtfile"><h5>my_polycrystal.txt</h5>
 <p><code>&#35; Parameters for constructing a Voronoi polycrystal with atomsk<br/>
-box 100 100 100<br/>
+box 300 300 300<br/>
 node 0 0 0 [100] [010] [001]<br/>
 node 40 80 60 56° -83° 45°<br/>
 node 80 60 90 [11-1] [112] [1-10]<br/>
@@ -102,7 +94,7 @@ node 0.75*box 0.75*box 0.95*box -31.4° 28.7° 90.0°<br/>
 node 60 100 80 random<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal fcc_unitcell.xsf my_polycrystal.txt fcc_polycrystal.cfg lmp</code>
-<p>Similar to the previous example, except that for some grains the rotation angles are given. For instance, in the second grain the seed will be rotated by 56° around the cartesian X axis, then by -83° around the Y axis, and then 45° around Z. For the last grain, the program will generate a random crystal orientation.</p></li>
+<p>This will build a polycrystal in a box of size 300x300x300 &Aring;<sup>3</sup>. The position of each grain is given explicitely. The crystallographic orientation of some grains is given by Miller indices, for some others by the rotation angles. For the last grain, the program will generate a random crystal orientation.</p></li>
 
 <li>
 <div class="txtfile"><h5>bcc_polycrystal.txt</h5>

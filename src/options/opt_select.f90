@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Sept. 2014                                    *
+!* Last modification: P. Hirel - 18 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,7 +39,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE SELECT_XYZ(H,P,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
+SUBROUTINE SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
 !
 !
 IMPLICIT NONE
@@ -50,6 +50,7 @@ CHARACTER(LEN=8):: region_geom  !geometry of the region: "box" or "sphere". If "
                                 !neighbors of an atom must be searched
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL:: exceeds100 !are there more than 100 neighboring atoms?
 LOGICAL:: keep  !keep atom?
 LOGICAL:: toselect !atomindices(:) contains atoms to select? (if FALSE, atoms to un-select)
@@ -77,6 +78,7 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientatio
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries   !species, Natoms of this species
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX        !auxiliary properties of atoms/shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q     !positions of atoms of a given species
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN  !final positions of 1st nearest neighbors
@@ -406,6 +408,55 @@ CASE('in','out')
     ENDDO
     !
   END SELECT
+  !
+  !
+CASE('prop')
+  !Select atoms according to the given property
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  IF( .NOT. ALLOCATED(AUXNAMES) .OR. .NOT.ALLOCATED(AUX) ) THEN
+    !No auxiliary property defined => abort
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2729,(/""/),(/0.d0/))
+    !
+  ELSE
+    !Search the index j for the given property
+    i=0
+    j=0
+    DO WHILE(j==0)
+      i=i+1
+      IF( TRIM(ADJUSTL(AUXNAMES(i))) == TRIM(ADJUSTL(region_geom)) ) THEN
+        j=i
+      ENDIF
+    ENDDO
+    !
+    IF( j<=0 ) THEN
+      !No such property is defined => abort
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(2730,(/region_geom/),(/0.d0/))
+    ELSE
+      !The given property does exist
+      ALLOCATE( SELECT( SIZE(P,1) ) )
+      SELECT(:) = .FALSE.
+      !If user gave only one value, region_2(1)==0
+      !If user gave a range, then region_2(1)==10
+      IF( region_2(1)>2.d0 ) THEN
+        !Select atoms whose property is in the given range
+        DO i=1,SIZE(AUX,1)
+          IF( AUX(i,j)>=region_1(1) .AND. AUX(i,j)<=region_1(2) ) THEN
+            SELECT(i) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDDO
+      ELSE
+        DO i=1,SIZE(AUX,1)
+          IF( DABS(AUX(i,j)-region_1(1)) < 1.d-12 ) THEN
+            SELECT(i) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDDO
+      ENDIF
+    ENDIF
+  ENDIF
   !
   !
 CASE('random','rand','random%','rand%')
