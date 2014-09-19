@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Sept. 2014                                    *
+!* Last modification: P. Hirel - 19 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1554,7 +1554,9 @@ CASE(2749)
       & " à l'atome #"//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2750)
-  msg = "/!\ ALERTE : une sélection a été définie mais ne contient plus aucun atome, sélection réinitialisée."
+  msg = "/!\ ALERTE : une sélection était définie mais elle ne contient plus aucun atome."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "             La sélection a été annulée, tous les atomes sont désormais sélectionnés."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2751)
   msg = "/!\ ALERTE : la temperature cible est nulle, abandon."

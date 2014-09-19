@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Sept. 2014                                    *
+!* Last modification: P. Hirel - 19 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1500,7 +1500,9 @@ CASE(2749)
       & "' to atom #"//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2750)
-  msg = "/!\ WARNING: a selection was defined but now contains zero atoms, clearing selection."
+  msg = "/!\ WARNING: a selection was defined but it does not contain any atom anymore."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "             Selection was cleared, all atoms are now selected."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2751)
   msg = "/!\ WARNING: target temperature is zero, skipping."

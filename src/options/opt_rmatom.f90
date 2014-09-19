@@ -10,7 +10,7 @@ MODULE rmatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 July 2014                                     *
+!* Last modification: P. Hirel - 19 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,7 +44,8 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32),INTENT(IN):: rmatom_prop
 CHARACTER(LEN=128):: msg
-LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT   !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT              !mask for atom list (temporary)
 INTEGER:: atomindex !index of atom that must be removed
 INTEGER:: method    !1=selected atoms; 2=atom species; 3=atom index; 0=error
 INTEGER:: NP !number of particles
@@ -112,6 +113,8 @@ IF( method==1 ) THEN
     IF(NP>0) THEN
       ALLOCATE( newP(NP,4) )
       newP(:,:) = 0.d0
+      ALLOCATE( newSELECT(NP) )
+      newSELECT(:) = .FALSE.
       IF( ALLOCATED(S) ) THEN
         ALLOCATE( newS(NP,4) )
         newS(:,:) = 0.d0
@@ -123,6 +126,7 @@ IF( method==1 ) THEN
       !
       NP = 0
       DO i=1,SIZE(P,1)
+        newSELECT(NP) = SELECT(i)
         IF( .NOT.SELECT(i) ) THEN
           !This atom is not selected => it lives
           NP=NP+1
@@ -164,6 +168,10 @@ ELSEIF( method==2 ) THEN
     ALLOCATE( newAUX( SIZE(AUX,1), SIZE(AUX,2) ) )
     newAUX(:,:) = 0.d0
   ENDIF
+  IF(ALLOCATED(SELECT)) THEN
+    ALLOCATE( newSELECT( SIZE(P,1) ) )
+    newSELECT(:) = .FALSE.
+  ENDIF
   !
   !Remove all atoms that belong to that species *and* are selected
   DO i=1,SIZE(P,1)
@@ -180,6 +188,9 @@ ELSEIF( method==2 ) THEN
       ENDIF
       IF(ALLOCATED(AUX)) THEN
         newAUX(NP,:) = AUX(i,:)
+      ENDIF
+      IF(ALLOCATED(SELECT)) THEN
+        newSELECT(NP) = SELECT(i)
       ENDIF
     ENDIF
     !
@@ -204,6 +215,10 @@ ELSEIF( method==3 ) THEN
     IF(ALLOCATED(AUX)) THEN
       ALLOCATE( newAUX( SIZE(AUX,1)-1, SIZE(AUX,2) ) )
     ENDIF
+    IF(ALLOCATED(SELECT)) THEN
+      ALLOCATE( newSELECT( SIZE(newP,1) ) )
+      newSELECT(:) = .FALSE.
+    ENDIF
     !
     !Remove only atom with that index (but only if it is selected)
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(atomindex) ) THEN
@@ -223,6 +238,9 @@ ELSEIF( method==3 ) THEN
           IF(ALLOCATED(AUX)) THEN
             newAUX(NP,:) = AUX(i,:)
           ENDIF
+          IF(ALLOCATED(SELECT)) THEN
+            newSELECT(NP) = SELECT(i)
+          ENDIF
         ENDIF
       ENDDO
     ENDIF
@@ -238,7 +256,7 @@ ENDIF
 !
 !
 300 CONTINUE
-!Replace old P by newP; same with S and AUX if necessary
+!Replace old P by newP; same with S, AUX and SELECT if necessary
 IF( rmatoms>=SIZE(P,1) ) THEN
   !All atoms were removed! Just de-allocate arrays
   DEALLOCATE(P)
@@ -249,6 +267,7 @@ ELSEIF( rmatoms>0 ) THEN
   DEALLOCATE(P)
   IF(ALLOCATED(S)) DEALLOCATE(S)
   IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
   !
   ALLOCATE(P(NP,4))
   P(:,:) = 0.d0
@@ -260,11 +279,16 @@ ELSEIF( rmatoms>0 ) THEN
     ALLOCATE( AUX( NP,SIZE(newAUX,2) ) )
     AUX(:,:) = 0.d0
   ENDIF
+  IF(ALLOCATED(newSELECT)) THEN
+    ALLOCATE( SELECT(NP) )
+    SELECT(:) = .FALSE.
+  ENDIF
   !
   DO i=1,NP
     P(i,:) = newP(i,:)
     IF(ALLOCATED(S)) S(i,:) = newS(i,:)
     IF(ALLOCATED(AUX)) AUX(i,:) = newAUX(i,:)
+    IF(ALLOCATED(SELECT)) SELECT(i) = newSELECT(i)
   ENDDO
 ENDIF
 IF(ALLOCATED(newP)) DEALLOCATE(newP)
