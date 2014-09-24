@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 Sept. 2014                                    *
+!* Last modification: P. Hirel - 24 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -889,7 +889,12 @@ CASE(2077)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="index" ) THEN
     WRITE(temp,*) NINT(reals(1))
-    msg = ">>> Selection de l'atome #"//TRIM(ADJUSTL(temp))//"."
+    IF( reals(2)>0.d0 ) THEN
+      WRITE(temp2,*) NINT(reals(2))
+      msg = ">>> Selection des atomes #"//TRIM(ADJUSTL(temp))//" à "//TRIM(ADJUSTL(temp2))//"."
+    ELSE
+      msg = ">>> Selection de l'atome #"//TRIM(ADJUSTL(temp))//"."
+    ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="invert" ) THEN
     msg = ">>> Inversion de la sélection..."

@@ -21,7 +21,7 @@
 
 <p><code>-select &#60;species&#62;</code></p>
 
-<p><code>-select &#60;index&#62;</code></p>
+<p><code>-select &#60;index&#62;[:&#60;index2&#62;]</code></p>
 
 <p><code>-select random &#60;N&#62; &#60;species&#62;</code></p>
 
@@ -48,7 +48,7 @@
 
 <p>When using <strong>-select &#60;species&#62;</strong>, all atoms of the given species are selected. The chemical symbol must be used (e.g. Al, Si, C, Cu...).</p>
 
-<p>When using <strong>-select &#60;index&#62;</strong> (where &#60;index&#62; in an integer), only the atom of the given index is selected.</p>
+<p>When using <strong>-select &#60;index&#62;</strong> (where &#60;index&#62; in an integer), only the atom of the given index is selected. When using <strong>-select &#60;index1&#62;:&#60;index2&#62;</strong>, all atoms with indices in the given range are selected.</p>
 
 <p>When using <strong>-select random</strong>, N atoms of the given &#60;species&#62; are selected randomly (where N in an integer). If N is a real number followed by the symbol "%", then the given percentage of atoms will be selected. If &#60;species&#62; is set to "any" or "all" then N atoms will be randomly selected regardless of their species. Note that this option attempts to generate random indices of the atoms to be selected, therefore it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
 
@@ -87,7 +87,7 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 
 <h4>Default</h4>
 
-<p>By default no selection is defined, hence all atoms are selected.</p>
+<p>By default no selection is defined, hence all atoms are selected. If a selection is defined and all selected atoms are removed (i.e. if the selection does not contain any atom anymore), then the selection is cleared, in other words the selected atoms are all selected.</p>
 
 
 

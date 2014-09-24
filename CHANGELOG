@@ -32,7 +32,7 @@ beta 0.8 (in development)
 - option "-remove-doubles" now only removes selected atoms if a selection is defined.
 - option "-remove-properties" does not remove the auxiliary property anymore if a selection is defined, instead the property is set to zero for selected atoms. If no selection is defined the property is still completely removed.
 - option "-rotate" now also rotates atom velocity and force vectors if they are defined.
-- option "-select" now allows to select the neighbors of an atom. The selection can be on the N nearest neighbors, or neighbors within a radius, or the first nearest neighbors. This option also allows to select a given percentage of the atoms, or a percentage of atoms of a given species. This option also allows to select atoms who have an auxiliary property within a given range of values.
+- option "-select" now allows to select atoms within a range of indices. This option also allows to select the neighbors of an atom. The selection can be on the N nearest neighbors, or neighbors within a radius, or the first nearest neighbors. This option also allows to select a given percentage of the atoms, or a percentage of atoms of a given species. This option also allows to select atoms who have an auxiliary property within a given range of values.
 - option "-unit" allows to convert atom velocities.
 - option "-wrap" now only wraps selected atoms if a selection is defined.
 - the positions of shells (in the sense of an ionic core-shell potential) are now written in LAMMPS data files.

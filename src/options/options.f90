@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Sept. 2014                                    *
+!* Last modification: P. Hirel - 22 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -201,7 +201,7 @@ REAL(dp):: rot_angle              !in degrees
 !
 !Variables relative to Option: select
 CHARACTER(LEN=16):: region_dir   !x, y, z
-CHARACTER(LEN=8):: region_side   !'in' or 'out' or 'all'
+CHARACTER(LEN=8):: region_side   !'in' or 'out' or 'all' or 'property'
 CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere"
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
@@ -717,7 +717,7 @@ DO ioptions=1,SIZE(options_array)
         region_2(2) = 0.d0
         region_2(3) = 0.d0
       ENDIF
-    ELSEIF( region_side=="prop" ) THEN
+    ELSEIF( region_side=="prop" .OR. region_side=="property" ) THEN
       !store property name in "region_geom"
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom, temp
       !store value(s) of the property into 

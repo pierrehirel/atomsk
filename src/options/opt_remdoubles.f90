@@ -10,7 +10,7 @@ MODULE remdoubles
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Sept. 2014                                    *
+!* Last modification: P. Hirel - 23 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,6 +41,7 @@ SUBROUTINE REMDOUBLES_XYZ(H,P,S,AUX,rmd_radius,SELECT)
 !
 !
 IMPLICIT NONE
+CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
@@ -97,6 +98,7 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
           !Only consider atoms that were not removed before
           IF( P(Nlist(j)+i,4) > 0.1d0 ) THEN
             Nremoved = Nremoved+1
+            CALL ATOMSPECIES(P(i,4),species)
             P(Nlist(j)+i,4) = 0.d0
           ENDIF
         ENDIF
@@ -171,7 +173,11 @@ ENDIF
 !
 !
 300 CONTINUE
-CALL ATOMSK_MSG(2080,(/''/),(/DBLE(Nremoved),DBLE(SIZE(P,1))/))
+IF( Nremoved==1 ) THEN
+  CALL ATOMSK_MSG(2080,(/species/),(/DBLE(Nremoved),DBLE(SIZE(P,1))/))
+ELSE
+  CALL ATOMSK_MSG(2080,(/''/),(/DBLE(Nremoved),DBLE(SIZE(P,1))/))
+ENDIF
 GOTO 1000
 !
 !

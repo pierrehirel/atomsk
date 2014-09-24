@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Sept. 2014                                    *
+!* Last modification: P. Hirel - 24 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -56,7 +56,7 @@ LOGICAL:: keep  !keep atom?
 LOGICAL:: toselect !atomindices(:) contains atoms to select? (if FALSE, atoms to un-select)
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
 INTEGER:: a1, a2, a3
-INTEGER:: atomrank  !rank of atom to be selected
+INTEGER:: atomrank, atomrank2  !rank of atom to be selected
 INTEGER:: clock
 INTEGER:: i, j, k
 INTEGER:: Nselect !number of atoms selected
@@ -88,6 +88,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN  !final positions of 1st nearest neig
 a1 = 1
 a2 = 1
 a3 = 1
+atomrank=-1
+atomrank2=-1
 i = 0
 Nselect = 0
 snumber = 0.d0
@@ -98,12 +100,58 @@ msg = 'Entering SELECT_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
-!Check if region_side contains an atom index: try to read an integer
-READ(region_side,*,ERR=10,END=10) atomrank
-!It does contain an integer => modify region_side
-region_side = "index"
-!Also modify region_1(1) for the message
-region_1(1) = DBLE(atomrank)
+!Check if region_side contains atom index (indices)
+j=SCAN(region_side,":")
+IF( j>0 ) THEN
+  !region_side contains a range of atom indices => select them
+  IF( LEN_TRIM(region_side(1:j-1)) <=0 ) THEN
+    atomrank = 1
+  ELSE
+    READ(region_side(1:j-1),*,ERR=10,END=10) atomrank
+  ENDIF
+  IF( LEN_TRIM(region_side(j+1:)) <=0 ) THEN
+    atomrank2 = 1
+  ELSE
+    READ(region_side(j+1:),*,ERR=10,END=10) atomrank2
+  ENDIF
+  IF( atomrank>SIZE(P,1) .OR. atomrank<=0 ) THEN
+    !index provided by user is out-of-bound
+    nerr = nerr+1
+    CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomrank)/))
+    Nselect = 0
+    GOTO 1000
+  ENDIF
+  IF( atomrank2>SIZE(P,1) .OR. atomrank2<=0 ) THEN
+    !index provided by user is out-of-bound
+    nerr = nerr+1
+    CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomrank2)/))
+    Nselect = 0
+    GOTO 1000
+  ENDIF
+  IF( atomrank > atomrank2 ) THEN
+    j = atomrank
+    atomrank = atomrank2
+    atomrank2 = j
+  ENDIF
+  region_side = "index"
+  !Save indices into region_1(:) for the message
+  region_1(1) = DBLE(atomrank)
+  region_1(2) = DBLE(atomrank2)
+ELSE
+  !try to read an integer
+  READ(region_side,*,ERR=10,END=10) atomrank
+  !It does contain an integer => modify region_side
+  region_side = "index"
+  !Save index into region_1(:) for the message
+  region_1(1) = DBLE(atomrank)
+  IF( atomrank>SIZE(P,1) .OR. atomrank<=0 ) THEN
+    !index provided by user is out-of-bound
+    nerr = nerr+1
+    CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomrank)/))
+    Nselect = 0
+    GOTO 1000
+  ENDIF
+ENDIF
 !
 10 CONTINUE
 WRITE(msg,*) "region_side = ", TRIM(region_side)
@@ -139,14 +187,16 @@ CASE('all','any','none')
 CASE('index')
   !All atoms must be un-selected, but one
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-  IF( atomrank>SIZE(P,1) .OR. atomrank<=0 ) THEN
-    !index provided by user is out-of-bound
-    nerr = nerr+1
-    CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomrank)/))
-    Nselect = 0
+  ALLOCATE( SELECT(SIZE(P,1)) )
+  SELECT(:) = .FALSE.
+  IF( atomrank2>0 ) THEN
+    !Select all atoms between atomrank and atomrank2
+    DO i=atomrank,atomrank2
+      SELECT(i) = .TRUE.
+      Nselect = Nselect+1
+    ENDDO
   ELSE
-    ALLOCATE( SELECT(SIZE(P,1)) )
-    SELECT(:) = .FALSE.
+    !Select only atom #atomrank
     SELECT(atomrank) = .TRUE.
     Nselect = 1
   ENDIF
@@ -410,7 +460,7 @@ CASE('in','out')
   END SELECT
   !
   !
-CASE('prop')
+CASE('prop','property')
   !Select atoms according to the given property
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
   IF( .NOT. ALLOCATED(AUXNAMES) .OR. .NOT.ALLOCATED(AUX) ) THEN

@@ -21,7 +21,7 @@
 
 <p><code>-select &#60;espèce&#62;</code></p>
 
-<p><code>-select &#60;indice&#62;</code></p>
+<p><code>-select &#60;indice&#62;[:&#60;indice2&#62;]</code></p>
 
 <p><code>-select random &#60;N&#62; &#60;espèce&#62;</code></p>
 
@@ -48,7 +48,7 @@
 
 <p>Lorsque <strong>-select &#60;espèce&#62;</strong> est utilisé tous les atomes de l'espèce donnée sont sélectionnés. L'espèce chimique doit être désignée par son symbole chimique (e.g. Al, Si, C, Cu...).</p>
 
-<p>Lorsque <strong>-select &#60;indice&#62;</strong> est utilisé (où &#60;indice&#62; est un entier), seul l'atome ayant l'indice correspondant est sélectionné.</p>
+<p>Lorsque <strong>-select &#60;indice&#62;</strong> est utilisé (où &#60;indice&#62; est un entier), seul l'atome ayant l'indice correspondant est sélectionné. Lorsque <strong>-select &#60;indice1&#62;:&#60;indice2&#62;</strong>, tous les atomes dont les indices sont compris entre les deux indices donnés sont sélectionnés.</p>
 
 <p>En utilisant <strong>-select random</strong>, N atomes de l'&#60;espèce&#62; donnée sont sélectionnés au hasard (où N est un nombre entier). Si N est un nombre réel suivi du symbole "%" alors ce pourcentage d'atomes sera sélectionné. Si &#60;espèce&#62; vaut "any" ou "all" alors N atomes sont sélectionnés au hasard quelle que soit leur espèce chimique. Notez que cette option tente de définir des indices au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et en appliquant cette option il est très probable d'obtenir des résultats différents.</p>
 
@@ -87,7 +87,7 @@ de leur espèce chimique.</p>
 
 <h4>Défaut</h4>
 
-<p>Par défaut aucune sélection n'est définie, donc tous les atomes sont sélectionnés.</p>
+<p>Par défaut aucune sélection n'est définie, donc tous les atomes sont sélectionnés. Si une sélection est définie et que tous les atomes de la sélection sont supprimés (autrement dit, si la sélection ne contient plus aucun atome), alors la sélection est réinitialisée, autrement dit tous les atomes restants sont sélectionnés.</p>
 
 
 
