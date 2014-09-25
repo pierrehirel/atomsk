@@ -11,7 +11,7 @@
 
 <p><a href="./index.html">Back to main menu</a></p>
 
-<h2>Mode: file list</h2>
+<h2>Mode: list</h2>
 
 <h4>Syntax</h4>
 
@@ -24,68 +24,44 @@
 
 <p>In this mode, <code>atomsk</code> will convert a list of files. This is of course convenient when one has a lot of files to convert, typically snapshots of a molecular dynamics run.</p>
 
-<p>The file &#60;listfile&#62; should contain a list of files to convert. The &#60;listfile&#62; is a text file that must comply to the following format:</p>
+<p>The file &#60;listfile&#62; should contain a list of files to convert. A quick and simple way to build such a file is to list files in a directory and use the redirection symbol "&#62;". For instance:
+
+<p><code>ls * &#62; list.lst</code></p>
+
+<p>In addition the &#60;listfile&#62; has the following specifications:</p>
 
 <ul>
-  <li>empty lines (and lines containing only spaces) are ignored;</li>
-  <li>lines starting with &#35; are also ignored (this can be used to insert comments);</li>
-  <li>a line containing the statement <code>all &#60;format&#62;</code> , makes this &#60;format&#62; the default one for the conversion of all lines below;</li>
-  <li>a line containing a file name will trigger the conversion of that file in all formats that are active; if an input file listed in the <code>&#60;listfile&#62;</code> is not found, then the program outputs a warning and goes on with the following files;</li>
-  <li>if a format is specified after a file name, the file will be converted to that format; this only applies to that peculiar files, not the following files.</li>
+  <li>empty lines, and lines starting with &#35; are ignored (this can be used to insert comments).</li>
+  <li>a line containing a file name will trigger the conversion of that file in all formats that are active. If the file is not found, a warning is displayed and <code>atomsk</code> goes on with the following files.</li>
+  <li>a line containing the statement <code>all &#60;format&#62;</code> activates this &#60;format&#62;.</li>
+  <li>if a format is specified after a file name, the file will be converted to that format. This applies only to that file, not the following files.</li>
 </ul>
 
 <p>As a result, the minimal <code>&#60;listfile&#62;</code> contains only one file name. A recommended, but not mandatory, extension for the <code>&#60;listfile&#62;</code>, is <code>.lst</code>.</p>
 
-<p>The output format(s) can be specified in several ways (also check the list of <a href="./formats.html">supported formats</a>):</p>
+<p>The output format(s) can be activated in several ways (also check the list of <a href="./formats.html">supported formats</a>):</p>
 
 <ul>
-  <li>in the command-line, several output formats can be specified;</li>
-  <li>in the <code>&#60;listfile&#62;</code> with the <code>all &#60;format&#62;</code> statement; that will convert all the files to the specified &#60;format&#62; ;</li>
+  <li>in the command-line, several output formats can be specified.</li>
+  <li>in the <code>&#60;listfile&#62;</code> with the statement <code>all &#60;format&#62;</code>.</li>
   <li>in the <code>&#60;listfile&#62;</code>, after the name of each file, one &#60;format&#62; can be specified.</li>
 </ul>
 
 <p>The output file names are automatically decided after the input file names and the active file format(s).</p>
 
-<p>Here is an example of a list file:</p>
-
-<div class="txtfile"><h5>filelist.lst</h5>
-<p><code>
-&#35; This is a comment<br/>
-<br/>
-&#35; The following will activate output to CFG for all following files<br/>
-all cfg<br/>
-<br/>
-&#35; A list of files to convert<br/>
-&#35; Note that input files can have various formats<br/>
-firstfile.gin<br/>
-secondfile.xsf<br/>
-thirdfile.xyz<br/>
-<br/>
-&#35; In addition to CFG, the following file will be converted to XSF<br/>
-fourthfile.grs  xsf<br/>
-</code></p></div>
-
-<p>A quick and simple way to build such a file is to list files in a directory and use the redirection symbol "&#62;". For instance:
-
-<p><code>ls * &#62; list.lst</code></p>
-
-<p>will store all the file names of the current directory into the file <code>list.lst</code> (on Microsoft&reg; Windows&reg; systems replace "ls" by "dir"). Another example: "<code>ls *xyz &#62;list.lst</code>" will produce a list of all the XYZ files in the current directory. Your imagination is the only limit.</p>
-
-<p>Note that you can use the List mode in combination with one or several <a href="./options.html">options</a>. These options will then be applied to all the files converted.</p>
+<p>Note that you can use the mode <code>--list</code> in combination with one or several <a href="./options.html">options</a>. These options will then be applied to all the files converted.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk --list filelist.lst</code>
-<p>This will convert all the files which names are specified in <code>filelist.lst</code>. The output format is assumed to be specified in the<code>filelist.lst</code> (by the <code>all &#60;format&#62;</code> statement, or with a format after each file name).</p></li>
+<li><code class="command">atomsk --list filelist.lst cfg</code>
+<p>This will convert all the files which names are specified in <code>filelist.lst</code> into the CFG format.</p></li>
 
-<li><code class="command">atomsk --list filelist.lst xyz cfg</code>
-<p>This will convert all the files which names are specified in <code>filelist.lst</code>, into XYZ and CFG formats.</p></li>
+<li><code class="command">atomsk --list filelist.lst xyz cfg xsf</code>
+<p>This will convert all the files which names are specified in <code>filelist.lst</code>, into XYZ, CFG and XSF formats.</p></li>
 
-<li><code class="command">atomsk cfg -L filelist.lst xyz</code>
-<p>Same as previous example. Note that the "<code>-L filelist.lst</code>" statement cannot be broken; however output file formats can be specified before or after it.</p></li>
 
 <li><code class="command">ls *lmc >list.lst &amp;&amp; atomsk -L list.lst xyz cfg</code>
 <p>This will list all LAMMPS custom files (LMC) in the current directory, and convert them to XYZ and CFG formats.</p></li>

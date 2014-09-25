@@ -11,7 +11,7 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Mode : file list</h2>
+<h2>Mode : liste</h2>
 
 <h4>Syntaxe</h4>
 
@@ -24,14 +24,17 @@
 
 <p>Dans ce mode <code>atomsk</code> convertit une liste de fichiers. Ceci est pratique pour convertir un grand nombre de fichiers, par ex. les images d'une simulation en dynamique moléculaire.</p>
 
-<p>Le fichier &#60;fichierliste&#62; est un fichier texte devant contenir le nom des fichiers à convertir. Son format est le suivant :</p>
+<p>Le fichier &#60;fichierliste&#62; est un fichier texte devant contenir le nom des fichiers à convertir. Une façon simple et rapide de créer un tel fichier liste est d'utiliser la commande "<code>ls</code>" pour lister le contenu d'un dossier, et d'en rediriger la sortie vers un fichier liste avec le symbole "&#62;". Par exemple :
+
+<p><code>ls * &#62; liste.lst</code></p>
+
+<p>Le fichier &#60;fichierliste&#62; doit répondre aux spécifications suivantes :</p>
 
 <ul>
-  <li>les lignes vides (et les lignes ne contenant que des espaces) sont ignorées ;</li>
-  <li>les lignes commençant par le symbole &#35; sont également ignorées (ceci peut être utilisé pour écrire des commentaires) ;</li>
-  <li>une ligne du type <code>all &#60;format&#62;</code> active le format de sortie &#60;format&#62; correspondant pour tous les fichiers suivants ;</li>
-  <li>une ligne contenant un nom de fichier activera la conversion de ce fichier vers tous les formats de sortie actifs ; si aucun fichier d'entrée portant ce nom n'est trouvé, alors le programme affiche une alerte et continue avec le nom de fichier suivant ;</li>
-  <li>si un format est spécifié après un nom de fichier, alors ce fichier sera converti dans ce format (en plus des autres formats actifs) ; ceci ne s'applique qu'à ce fichier.</li>
+  <li>les lignes vides, et celles commençant par le symbole &#35; sont ignorées (ceci peut être utilisé pour écrire des commentaires).</li>
+  <li>une ligne du type <code>all &#60;format&#62;</code> active le format de sortie &#60;format&#62; pour tous les fichiers suivants.</li>
+  <li>une ligne contenant un nom de fichier activera la conversion de ce fichier vers tous les formats de sortie actifs. Si le fichier d'entrée n'est pas trouvé, alors le programme affiche une alerte et continue avec le nom de fichier suivant.</li>
+  <li>si un format est spécifié après un nom de fichier, alors ce fichier sera converti dans ce format (en plus des autres formats actifs). Ceci ne s'applique qu'à ce fichier.</li>
 </ul>
 
 <p>Par conséquent, le <code>&#60;fichierliste&#62;</code> minimal ne contient qu'un seul nom de fichier. L'extension recommandée (mais pas obligatoire) pour les fichiers liste est <code>.lst</code>.</p>
@@ -39,37 +42,12 @@
 <p>Le(s) format(s) de sortie peut (peuvent) être spécifié(s) de différentes manières (voir aussi la liste des <a href="./formats.html">formats supportés</a>):</p>
 
 <ul>
-  <li>dans la ligne de coommande, un ou plusieurs formats de sortie peuvent être spécifiés ;</li>
-  <li>dans le <code>&#60;fichierliste&#62;</code> avec le mot-clé <code>all &#60;format&#62;</code> ;</li>
+  <li>dans la ligne de coommande, un ou plusieurs formats de sortie peuvent être spécifiés.</li>
+  <li>dans le <code>&#60;fichierliste&#62;</code> avec le mot-clé <code>all &#60;format&#62;</code>.</li>
   <li>dans le <code>&#60;fichierliste&#62;</code>, après le nom de chaque fichier, un &#60;format&#62; peut être spécifié.</li>
 </ul>
 
 <p>Les noms des fichiers de sortie seront construits d'après les noms des fichiers d'entrée, en leur associant l'extension du (des) format(s) de sortie actif(s).</p>
-
-<p>Voici un exemple de fichier liste:</p>
-
-<div class="txtfile"><h5>exemple.lst</h5>
-<p><code>
-&#35; Ceci est un commentaire<br/>
-<br/>
-&#35; La ligne suivante active la conversion au format CFG pour tous les fichiers suivants<br/>
-all cfg<br/>
-<br/>
-&#35; La liste des fichies à convertir<br/>
-&#35; Notez que les fichiers d'entrée peuvent avoir différents formats<br/>
-fichier1.gin<br/>
-fichier2.xsf<br/>
-fichier3.xyz<br/>
-<br/>
-&#35; En plus du CFG, le fichier suivant sera converti au format XSF<br/>
-fichier4.grs  xsf<br/>
-</code></p></div>
-
-<p>Une façon simple et rapide de créer un tel fichier liste est d'utiliser la commande "<code>ls</code>" pour lister le contenu d'un dossier, et d'en rediriger la sortie vers un fichier liste avec le symbole "&#62;". Par exemple :
-
-<p><code>ls * &#62; liste.lst</code></p>
-
-<p>enregistrera tous les noms de fichier du dossier courant dans le fichier <code>liste.lst</code> (sur les systèmes Microsoft&reg; Windows&reg; remplacez "ls" par "dir"). Autre exemple : "<code>ls *xyz &#62;liste.lst</code>" produira un fichier liste contenant tous les noms des fichiers XYZ du dossier courant. Votre imagination est la seule limite.</p>
 
 <p>Si vous utilisez ce mode avec une ou plusieurs <a href="./options.html">options</a>, alors elles seront appliquées à chacun des fichiers convertis.</p>
 
@@ -78,14 +56,11 @@ fichier4.grs  xsf<br/>
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk --list maliste.lst</code>
-<p>Ceci convertira tous les fichiers dont les noms apparaissent dans <code>maliste.lst</code>. Le ou les formats de sortie doivent être spécifiés dans le <code>fichierliste.lst</code> (avec la mention <code>all &#60;format&#62;</code>, ou avec un format de sortie spécifié après chaque nom de fichier).</p></li>
+<li><code class="command">atomsk --list maliste.lst cfg</code>
+<p>Ceci convertira tous les fichiers dont les noms apparaissent dans <code>maliste.lst</code> vers le format CFG.</p></li>
 
-<li><code class="command">atomsk --list maliste.lst xyz cfg</code>
-<p>Ceci convertira tous les fichiers dont les noms apparaissent dans <code>fichierliste.lst</code> vers les formats XYZ et CFG.</p></li>
-
-<li><code class="command">atomsk cfg -L maliste.lst xyz</code>
-<p>Identique à l'exemple précédent. Notez que la syntaxe du mode "<code>-L maliste.lst</code>" ne peut pas être brisée; en revanche les formats de sortie peuvent apparaitre avant ou après dans la commande.</p></li>
+<li><code class="command">atomsk --list maliste.lst xyz cfg xsf</code>
+<p>Ceci convertira tous les fichiers dont les noms apparaissent dans <code>fichierliste.lst</code> vers les formats XYZ, CFG et XSF.</p></li>
 
 <li><code class="command">ls *lmc >liste.lst &amp;&amp; atomsk -L liste.lst xyz cfg</code>
 <p>Ceci listera tous les fichiers au format personnalisé de LAMMPS (LMC) du dossier courant, et les convertira aux formats XYZ et CFG.</p></li>

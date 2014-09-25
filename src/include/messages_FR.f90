@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 Sept. 2014                                    *
+!* Last modification: P. Hirel - 25 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1804,12 +1804,14 @@ CASE(4020)
   msg = ">>> Décomposition de "//TRIM(strings(1))//" en plusieurs fichiers..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4021)
-  msg = ">>> Ceci est un logiciel libre, pour plus d'informations tapez 'atomsk --license'."
+  msg = ">>> Atomsk est un logiciel libre et Open Source, pour plus d'informations tapez 'atomsk --license'."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4022)
   msg = ">>> Interpréteur de ligne de commande d'atomsk :"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = '..> Tapez "help" pour connaître les commandes disponibles.'
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
   msg = "Commandes disponibles :"
@@ -1960,12 +1962,21 @@ CASE(4045)
   !reals(1) = number of files converted
   WRITE(msg,*) NINT(reals(1))
   IF( NINT(reals(1))==0 ) THEN
-    msg = ">>> Aucun fichier n'a été converti."
+    msg = ">>> Aucun fichier n'a été converti"
   ELSEIF( NINT(reals(1))==1 ) THEN
-    msg = ">>> 1 fichier a été converti."
+    msg = ">>> 1 fichier a été converti"
   ELSE
-    msg = ">>> "//TRIM(ADJUSTL(msg))//" fichiers ont été convertis."
+    msg = ">>> "//TRIM(ADJUSTL(msg))//" fichiers ont été convertis"
   ENDIF
+  IF( SIZE(reals)>1 .AND. NINT(reals(2))>0 ) THEN
+    WRITE(temp,*) NINT(reals(2))
+    IF( NINT(reals(2))==1 ) THEN
+      msg = TRIM(ADJUSTL(msg))//", 1 fichier a été ignoré"
+    ELSE
+      msg = TRIM(ADJUSTL(msg))//", "//TRIM(ADJUSTL(temp))//" fichiers ont été ignorés"
+    ENDIF
+  ENDIF
+  msg = TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4046)
   msg = ">>> Déballage des atomes..."

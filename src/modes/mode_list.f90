@@ -9,7 +9,7 @@ MODULE mode_list
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Sept. 2014                                    *
+!* Last modification: P. Hirel - 25 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,12 +55,13 @@ CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: filearray !list of files to conve
 LOGICAL:: fileexists  !does the file already exist?
 LOGICAL:: ignorefile  !should this file be ignored?
 INTEGER:: i, j
-INTEGER:: Nfiles
+INTEGER:: Nfiles, Nignored !number of files converted, ignored
 INTEGER:: strlength
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 !
 !Initialize
 Nfiles = 0
+Nignored = 0
 list_outfileformat = ""
 !
 !
@@ -171,6 +172,7 @@ IF( ignore ) THEN
         IF(ignorefile) THEN
           !Remove this input file from the list
           filearray(i) = ""
+          Nignored = Nignored+1
         ENDIF
         !
         !The format "curr_outfileformat" was only for the current file => disable it
@@ -251,7 +253,7 @@ DO i=1,SIZE(filearray)
 ENDDO
 335 CONTINUE
 !
-CALL ATOMSK_MSG(4045,(/''/),(/DBLE(Nfiles)/))
+CALL ATOMSK_MSG(4045,(/''/),(/DBLE(Nfiles),DBLE(Nignored)/))
 !
 !
 !

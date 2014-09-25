@@ -458,11 +458,22 @@ DO
         !
         !
         !
+        !
+      !
+      !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      !Misc. commands
+      !!!         MISC.  COMMANDS
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("Hello","hello","Hi","hi","bonjour","Bonjour")
         command(1:1) = StrUpCase(command(1:1))
         WRITE(*,*) TRIM(ADJUSTL(command))//", "//TRIM(ADJUSTL(username))//"."
+        !
+      CASE("atomsk","Atomsk","ATOMSK")
+        CALL DISPLAY_HEADER()
+        !
+      CASE("1337")
+        WRITE(*,*) "U R 1337 :-)"
+        !
         !
       CASE DEFAULT
         IF( ANY( command == optnames(:) ) ) THEN
