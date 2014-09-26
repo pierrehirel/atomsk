@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Sept. 2014                                    *
+!* Last modification: P. Hirel - 26 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -201,8 +201,8 @@ REAL(dp):: rot_angle              !in degrees
 !
 !Variables relative to Option: select
 CHARACTER(LEN=16):: region_dir   !x, y, z
-CHARACTER(LEN=8):: region_side   !'in' or 'out' or 'all' or 'property'
 CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere"
+CHARACTER(LEN=128):: region_side   !'in' or 'out' or 'all' or 'property'
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
@@ -608,12 +608,14 @@ DO ioptions=1,SIZE(options_array)
     CALL RMSHELLS_XYZ(P,S,rmshells_prop,SELECT)
   !
   CASE('-rot', '-rotate')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & rot_axis, rot_angle
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
     CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT,C_tensor)
   !
   CASE('-select')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side
+    !READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side
+    region_side = ADJUSTL( options_array(ioptions)(8:) )
+    i=SCAN(region_side," ")
+    region_side = region_side(:i+1)
     IF( region_side=="above" .OR. region_side=="below" ) THEN
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, treal(1), region_dir
       i=1

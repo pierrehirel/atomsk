@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Sept. 2014                                    *
+!* Last modification: P. Hirel - 26 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -873,11 +873,14 @@ CASE(2077)
     msg = ">>> Selecting all atoms."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="index" ) THEN
-    WRITE(temp,*) NINT(reals(1))
-    IF( reals(2)>0.d0 ) THEN
+    IF( strings(2)=="list " ) THEN
+      msg = ">>> Selecting a list of atoms."
+    ELSEIF( strings(2)=="range" ) THEN
+      WRITE(temp,*) NINT(reals(1))
       WRITE(temp2,*) NINT(reals(2))
       msg = ">>> Selecting atoms #"//TRIM(ADJUSTL(temp))//" to "//TRIM(ADJUSTL(temp2))//"."
     ELSE
+      WRITE(temp,*) NINT(reals(1))
       msg = ">>> Selecting atom #"//TRIM(ADJUSTL(temp))//"."
     ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Sept. 2014                                    *
+!* Last modification: P. Hirel - 26 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -883,8 +883,7 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(clarg)
     !read first keyword
     i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
+    temp = ADJUSTL(cla(i))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !
     IF( temp=='all' .OR. temp=='any' .OR. temp=='invert' .OR. temp=='none' ) THEN
@@ -1065,9 +1064,10 @@ DO WHILE(i<SIZE(cla))
       !It should be an atom species: try to recognize it
       CALL ATOMNUMBER(temp(1:2),tempreal)
       IF( NINT(tempreal)==0 ) THEN
-        !it is not an atom species, then it should be an integer
-        !If it is not an integer, there is a problem
-        READ(temp,*,ERR=120,END=120) m
+        !it is not an atom species, then it can be an integer,
+        !or a range of integer, or a list of integers separated by a comma
+        !This will be dealt with inside the option (see "opt_select.f90")
+        !READ(temp,*,ERR=120,END=120) m
       ENDIF
       !
     ENDIF
