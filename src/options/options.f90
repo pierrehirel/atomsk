@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Sept. 2014                                    *
+!* Last modification: P. Hirel - 29 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -615,7 +615,7 @@ DO ioptions=1,SIZE(options_array)
     !READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side
     region_side = ADJUSTL( options_array(ioptions)(8:) )
     i=SCAN(region_side," ")
-    region_side = region_side(:i+1)
+    region_side = region_side(:i)
     IF( region_side=="above" .OR. region_side=="below" ) THEN
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, treal(1), region_dir
       i=1

@@ -45,7 +45,7 @@ SUBROUTINE SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
-CHARACTER(LEN=8):: region_geom  !geometry of the region: "box" or "sphere". If "neighbors" then
+CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere". If "neighbors" then
                                 !neighbors of an atom must be searched
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg, temp
@@ -101,128 +101,137 @@ msg = 'Entering SELECT_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
-!Check if region_side contains atom index (indices)
-j=SCAN(region_side,":")
-k=SCAN(region_side,",")
-IF( j>0 .OR. k>0 ) THEN
-  !region_side contains several indices, or a range of atom indices
-  IF( k>0 ) THEN
-    region_geom = "list "
-  ELSE
-    !j>0, i.e. there are only two integers separated by a colon
-    region_geom = "range"
-  ENDIF
-  !Replace all commas by blanck spaces
-  DO WHILE(k>0)
-    region_side(k:k) = " "
-    k=SCAN(region_side,",")
-  ENDDO
+SELECT CASE(region_side)
+!
+CASE('all','any','none','above','below','invert','inv','in','out','prop','property','random','rand','random%','rand%')
+  CONTINUE
   !
-  IF(verbosity==4) THEN
-    msg = 'List: '//TRIM(region_side)
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  ENDIF
-  !Determine how many atoms must be selected
-  Nselect=0
-  msg = ADJUSTL(region_side)
-  DO WHILE( LEN_TRIM(msg)>0 )
-    READ(msg,*) temp
-    j=SCAN(temp,":")
-    IF( j>0 ) THEN
-      !Read range of numbers:
-      !First number
-      IF( LEN_TRIM(temp(1:j-1)) <=0 ) THEN
-        !Nothing before the colon: consider it is atom #1
-        atomrank = 1
-      ELSE
-        READ(temp(1:j-1),*,ERR=800,END=800) atomrank
-      ENDIF
-      region_1(1) = atomrank
-      !Second number
-      IF( LEN_TRIM(temp(j+1:)) <=0 ) THEN
-        !Nothing before the colon: consider it is last atom
-        atomrank2 = SIZE(P,1)
-      ELSE
-        READ(temp(j+1:),*,ERR=800,END=800) atomrank2
-      ENDIF
-      !Check that atomrank2 > atomrank
-      IF( atomrank2<atomrank ) THEN
-        k = atomrank
-        atomrank = atomrank2
-        atomrank2 = k
-      ENDIF
-      region_1(2) = atomrank2
-      !All atoms between atomrank and atomrank2 will have to be selected
-      Nselect = Nselect + (atomrank2-atomrank+1)
+CASE DEFAULT
+  !Check if region_side contains atom index (indices)
+  j=SCAN(region_side,":")
+  k=SCAN(region_side,",")
+  IF( j>0 .OR. k>0 ) THEN
+    !region_side contains several indices, or a range of atom indices
+    IF( k>0 ) THEN
+      region_geom = "list "
     ELSE
-      !Read number
-      READ(temp,*) atomrank
-      Nselect = Nselect+1
+      !j>0, i.e. there are only two integers separated by a colon
+      region_geom = "range"
     ENDIF
-    j=SCAN(msg," ")
-    msg = ADJUSTL(msg(j:))
-  ENDDO
-  !
-  !Indices of atoms that must be selected will be saved in atomindices
-  ALLOCATE(atomindices(Nselect))
-  atomindices(:) = 0
-  !
-  !Store each number and range into atomindices(:)
-  Nselect=0
-  msg = ADJUSTL(region_side)
-  DO WHILE( LEN_TRIM(msg)>0 )
-    READ(msg,*) temp
-    j=SCAN(temp,":")
-    IF( j>0 ) THEN
-      !Read range of numbers:
-      !First number
-      IF( LEN_TRIM(temp(1:j-1)) <=0 ) THEN
-        !Nothing before the colon: consider it is atom #1
-        atomrank = 1
+    !Replace all commas by blanck spaces
+    DO WHILE(k>0)
+      region_side(k:k) = " "
+      k=SCAN(region_side,",")
+    ENDDO
+    !
+    IF(verbosity==4) THEN
+      msg = 'List: '//TRIM(region_side)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDIF
+    !Determine how many atoms must be selected
+    Nselect=0
+    msg = ADJUSTL(region_side)
+    DO WHILE( LEN_TRIM(msg)>0 )
+      READ(msg,*) temp
+      j=SCAN(temp,":")
+      IF( j>0 ) THEN
+        !Read range of numbers:
+        !First number
+        IF( LEN_TRIM(temp(1:j-1)) <=0 ) THEN
+          !Nothing before the colon: consider it is atom #1
+          atomrank = 1
+        ELSE
+          READ(temp(1:j-1),*,ERR=800,END=800) atomrank
+        ENDIF
+        region_1(1) = atomrank
+        !Second number
+        IF( LEN_TRIM(temp(j+1:)) <=0 ) THEN
+          !Nothing before the colon: consider it is last atom
+          atomrank2 = SIZE(P,1)
+        ELSE
+          READ(temp(j+1:),*,ERR=800,END=800) atomrank2
+        ENDIF
+        !Check that atomrank2 > atomrank
+        IF( atomrank2<atomrank ) THEN
+          k = atomrank
+          atomrank = atomrank2
+          atomrank2 = k
+        ENDIF
+        region_1(2) = atomrank2
+        !All atoms between atomrank and atomrank2 will have to be selected
+        Nselect = Nselect + (atomrank2-atomrank+1)
       ELSE
-        READ(temp(1:j-1),*,ERR=800,END=800) atomrank
-      ENDIF
-      !Second number
-      IF( LEN_TRIM(temp(j+1:)) <=0 ) THEN
-        !Nothing before the colon: consider it is last atom
-        atomrank2 = SIZE(P,1)
-      ELSE
-        READ(temp(j+1:),*,ERR=800,END=800) atomrank2
-      ENDIF
-      !Check that atomrank2 > atomrank
-      IF( atomrank2<atomrank ) THEN
-        k = atomrank
-        atomrank = atomrank2
-        atomrank2 = k
-      ENDIF
-      DO i=atomrank,atomrank2
+        !Read number
+        READ(temp,*) atomrank
         Nselect = Nselect+1
-        atomindices(Nselect) = i
-      ENDDO
-    ELSE
-      !Read number
-      READ(temp,*) atomrank
-      Nselect = Nselect+1
-      atomindices(Nselect) = atomrank
-    ENDIF
-    j=SCAN(msg," ")
-    msg = ADJUSTL(msg(j:))
-  ENDDO
-  
-  !Set region_side to "index" for later
-  region_side = "index"
+      ENDIF
+      j=SCAN(msg," ")
+      msg = ADJUSTL(msg(j:))
+    ENDDO
+    !
+    !Indices of atoms that must be selected will be saved in atomindices
+    ALLOCATE(atomindices(Nselect))
+    atomindices(:) = 0
+    !
+    !Store each number and range into atomindices(:)
+    Nselect=0
+    msg = ADJUSTL(region_side)
+    DO WHILE( LEN_TRIM(msg)>0 )
+      READ(msg,*) temp
+      j=SCAN(temp,":")
+      IF( j>0 ) THEN
+        !Read range of numbers:
+        !First number
+        IF( LEN_TRIM(temp(1:j-1)) <=0 ) THEN
+          !Nothing before the colon: consider it is atom #1
+          atomrank = 1
+        ELSE
+          READ(temp(1:j-1),*,ERR=800,END=800) atomrank
+        ENDIF
+        !Second number
+        IF( LEN_TRIM(temp(j+1:)) <=0 ) THEN
+          !Nothing before the colon: consider it is last atom
+          atomrank2 = SIZE(P,1)
+        ELSE
+          READ(temp(j+1:),*,ERR=800,END=800) atomrank2
+        ENDIF
+        !Check that atomrank2 > atomrank
+        IF( atomrank2<atomrank ) THEN
+          k = atomrank
+          atomrank = atomrank2
+          atomrank2 = k
+        ENDIF
+        DO i=atomrank,atomrank2
+          Nselect = Nselect+1
+          atomindices(Nselect) = i
+        ENDDO
+      ELSE
+        !Read number
+        READ(temp,*) atomrank
+        Nselect = Nselect+1
+        atomindices(Nselect) = atomrank
+      ENDIF
+      j=SCAN(msg," ")
+      msg = ADJUSTL(msg(j:))
+    ENDDO
+    
+    !Set region_side to "index" for later
+    region_side = "index"
+    !
+  ELSE
+    !try to read an integer
+    READ(region_side,*,ERR=10,END=10) atomrank
+    !It does contain an integer => save it to atomindices(1)
+    ALLOCATE(atomindices(1))
+    atomindices(:) = atomrank
+    !modify region_side
+    region_side = "index"
+    !Save index into region_1(:) for the message
+    region_1(1) = DBLE(atomrank)
+  ENDIF
   !
-ELSE
-  !try to read an integer
-  READ(region_side,*,ERR=10,END=10) atomrank
-  !It does contain an integer => save it to atomindices(1)
-  ALLOCATE(atomindices(1))
-  atomindices(:) = atomrank
-  !modify region_side
-  region_side = "index"
-  !Save index into region_1(:) for the message
-  region_1(1) = DBLE(atomrank)
-ENDIF
+END SELECT
+!
 !
 10 CONTINUE
 WRITE(msg,*) "region_side = ", TRIM(region_side)
