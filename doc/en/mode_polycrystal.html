@@ -22,9 +22,9 @@
 
 <p>This mode generates a polycrystal from a given &#60;seed&#62;, using the Voronoi tesselation method and the parameters provided in the file &#60;param_file&#62;. The positions and crystallographic orientations of the grains can be given explicitely, or generated randomly.</p>
 
-<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually the seed is a unit cell of a material (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be a supercell (smaller or larger than the final system), a large system containing defects, a polycrystal, or any arbitrary atomic system.</p>
+<p>The file &#60;seed&#62; must contain an atomic system in one of the <a href="./formats.html">supported formats</a>. Usually the seed is a unit cell of a material (such simple systems can be created thanks to the <a href="./mode_create.html">mode <code>--create</code></a>). However the &#60;seed&#62; can also be a supercell, a large system containing defects, a polycrystal, or any arbitrary atomic system.</p>
 
-<p>The &#60;param_file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored.</p>
+<p>The &#60;param_file&#62; is a text file that must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored.</p>
 
 <p>The keyword <strong>box</strong> is mandatory and must appear before any other keyword. It must be followed by three real numbers defining the size of the final box (in &Aring;). The final box can only be a parallelepiped.</p>
 
@@ -50,7 +50,9 @@
 
 <p>If the initial &#60;seed&#62; contains shells (in the sense of an ionic core-shell model) they are duplicated along with the atoms (or cores). If auxiliary properties are defined for each atom in the initial &#60;seed&#62;, then the atom replica will be assigned the same auxiliary properties.</p>
 
-<p>Once the polycrystal is generated, the grain size distribution is computed and written to a data file (*.dat), named after the output file.</p>
+<p>The mode <code>--polycrystal</code> will assign a new auxiliary property to each atom: its grainID, i.e. the index of the grain the atom belongs to. This allows to easily select grains with the <a href="./option_select.html">option <code>-select</code></a>. Note that auxiliary properties can be written only to some file formats, e.g. <a href="./format_cfg.html">Atomeye CFG format</a>.</p>
+
+<p>Once the polycrystal is generated, the <strong>grain size distribution</strong> is computed and written to a data file (*.dat), named after the output file.</p>
 
 <p>If you use this mode with one or several <a href="./options.html">options</a>, then they will apply to the created system.</p>
 

@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Sept. 2014                                    *
+!* Last modification: P. Hirel - 29 Sept. 2014                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -66,7 +66,8 @@ CHARACTER(LEN=128):: line
 CHARACTER(LEN=128):: or1, or2, or3
 CHARACTER(LEN=128):: lattice  !if grains are organized according to a lattice
 CHARACTER(LEN=128):: msg, temp
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES   !names of auxiliary properties of atoms
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES    !names of auxiliary properties of atoms
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary properties of atoms (temporary)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: doshells, doaux !are there shells, auxiliary properties in initial seed?
 LOGICAL:: Hset            !are the box vectors H(:,:) defined?
@@ -75,6 +76,7 @@ LOGICAL:: miller          !are Miller indices given? (if no then angles are give
 LOGICAL:: paramnode, paramrand, paramlatt !are the keywords "node", "random", "lattice" used in parameter file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
+INTEGER:: grainID       !position of the auxiliary property "grainID" in AUX
 INTEGER:: i, j
 INTEGER:: m, n, o
 INTEGER:: maxvertex   !max. number of vertices to look for
@@ -152,9 +154,21 @@ ELSE
 ENDIF
 IF( ALLOCATED(AUXuc) .AND. SIZE(AUXuc,1)>0 ) THEN
   doaux = .TRUE.
+  grainID = SIZE(AUXNAMES)+1
+  ALLOCATE( newAUXNAMES(grainID) )
+  DO i=1,SIZE(AUXNAMES)
+    newAUXNAMES(i) = AUXNAMES(i)
+  ENDDO
+  DEALLOCATE(AUXNAMES)
+  ALLOCATE( AUXNAMES(grainID) )
+  AUXNAMES(:) = newAUXNAMES(:)
+  DEALLOCATE(newAUXNAMES)
 ELSE
   doaux = .FALSE.
+  grainID = 1
+  ALLOCATE(AUXNAMES(1))
 ENDIF
+AUXNAMES(grainID) = "grainID"
 !
 !
 !
@@ -793,9 +807,11 @@ IF( doshells ) THEN
   St(:,:) = 0.d0
 ENDIF
 IF( doaux ) THEN
-  ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2) ) )
-  AUX_Q(:,:) = 0.d0
+  ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2)+1 ) )
+ELSE
+  ALLOCATE( AUX_Q( SIZE(Pt,1) , 1 ) )
 ENDIF
+AUX_Q(:,:) = 0.d0
 WRITE(msg,'(a47,3i3)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 qi=0
@@ -978,6 +994,7 @@ DO inode=1,Nnodes
     T(:,:) = St(:,:)
   ENDIF
   !Auxiliary properties: the array AUX_Q(:,:) will be used
+  AUX_Q(:,grainID) = DBLE(inode)
   !
   !Rotate this cell to obtain the desired crystallographic orientation
   CALL ORIENT_XYZ(Ht,Q,T,Ht,vorient(inode,:,:),SELECT,C_tensor)
@@ -1083,15 +1100,14 @@ DO inode=1,Nnodes
         ENDDO
       ENDIF
     ENDIF
-    IF(doaux) THEN
-      IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
-      ALLOCATE(newAUX(NP+qi,SIZE(AUX_Q,2)))
-      newAUX(:,:) = 0.d0
-      IF( ALLOCATED(AUX) ) THEN
-        DO i=1,SIZE(AUX,1)
-          newAUX(i,:) = AUX(i,:)
-        ENDDO
-      ENDIF
+    !
+    IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+    ALLOCATE(newAUX(NP+qi,SIZE(AUX_Q,2)))
+    newAUX(:,:) = 0.d0
+    IF( ALLOCATED(AUX) ) THEN
+      DO i=1,SIZE(AUX,1)
+        newAUX(i,:) = AUX(i,:)
+      ENDDO
     ENDIF
     !
     n=0
@@ -1102,9 +1118,7 @@ DO inode=1,Nnodes
         IF(doshells) THEN
           newS(NP+n,:) = T(i,:)
         ENDIF
-        IF(doaux) THEN
-          newAUX(NP+n,:) = AUX_Q(i,:)
-        ENDIF
+        newAUX(NP+n,:) = AUX_Q(i,:)
       ENDIF
     ENDDO
     !
@@ -1124,13 +1138,11 @@ DO inode=1,Nnodes
       DEALLOCATE(T)
     ENDIF
     !
-    IF(doaux) THEN
-      !Save all auxiliary properties into AUX
-      IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-      ALLOCATE( AUX( SIZE(newAUX,1) , SIZE(AUX_Q,2) ) )
-      AUX(:,:) = newAUX(:,:)
-      DEALLOCATE(newAUX)
-    ENDIF
+    !Save all auxiliary properties into AUX
+    IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+    ALLOCATE( AUX( SIZE(newAUX,1) , SIZE(AUX_Q,2) ) )
+    AUX(:,:) = newAUX(:,:)
+    DEALLOCATE(newAUX)
     !
     NP = NP+qi
     !

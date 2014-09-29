@@ -22,9 +22,9 @@
 
 <p>Ce mode génère un polycristal à partir d'une cellule élémentaire, en utilisant la méthode de Voronoi et les paramètres fournis dans le fichier &#60;fichier_param&#62;. Les positions et orientations cristallographiques des grains peuvent être explicitement données, ou bien générées aléatoirement.</p>
 
-<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule (qui peut être plus grande ou plus petite que la boîte finale), un système complexe contenant des défauts, un polycristal, ou bien n'importe quel autre système atomique.</p>
+<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule, un système complexe contenant des défauts, un polycristal, ou bien n'importe quel autre système atomique.</p>
 
-<p>Le &#60;fichier_param&#62; doit contenir des mots-clés suivis des valeurs appropriées. Les lignes vides et celles commençant par un croisillon (&#35;) sont ignorées.</p>
+<p>Le &#60;fichier_param&#62; est un fichier texte qui doit contenir des mots-clés suivis des valeurs appropriées. Les lignes vides et celles commençant par un croisillon (&#35;) sont ignorées.</p>
 
 <p>Le mot-clé <strong>box</strong> est obligatoire et doit apparaître avant tout autre mot-clé. Il doit être suivi (sur la même ligne) de trois nombres réels indiquant les dimensions de la boîte finale (en &Aring;). La boîte finale ne peut être qu'un parallélépipède.</p>
 
@@ -50,7 +50,9 @@
 
 <p>Si le &#60;germe&#62; initial contient des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) celles-ci sont dupliquées en même temps que les atomes (ou c&oelig;urs). Si des propriétés auxiliaires sont définies pour chaque atome dans le &#60;germe&#62; initial, alors les répliques des atomes possèderont les mêmes propriétés que les atomes originaux.</p>
 
-<p>Une fois le polycristal généré, la distribution de tailles de grains est calculée et écrite dans un fichier de données (*.dat), nommé d'après le nom du fichier de sortie.</p>
+<p>Le mode <code>--polycrystal</code> créera une nouvelle propriété auxiliaire pour chaque atome : le "grainID", c'est-à-dire le numéro du grain auquel l'atome appartient. Ceci permet de facilement sélectionner les grains, par exemple avec l'<a href="./option_select.html">option <code>-select</code></a>. Notez que les propriétés auxiliaires ne peuvent être écrites que dans certains formats de fichiers, par exemple le <a href="./format_cfg.html">format CFG d'Atomeye</a>.</p>
+
+<p>Une fois le polycristal généré, la <strong>distribution de tailles de grains</strong> est calculée et écrite dans un fichier de données (*.dat), nommé d'après le nom du fichier de sortie.</p>
 
 <p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a>, celles-ci seront appliquées au polycristal.</p>
 

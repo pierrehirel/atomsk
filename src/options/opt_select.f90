@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Sept. 2014                                    *
+!* Last modification: P. Hirel - 29 Sept. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,9 +117,14 @@ IF( j>0 .OR. k>0 ) THEN
     region_side(k:k) = " "
     k=SCAN(region_side,",")
   ENDDO
+  !
+  IF(verbosity==4) THEN
+    msg = 'List: '//TRIM(region_side)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
   !Determine how many atoms must be selected
   Nselect=0
-  msg = region_side
+  msg = ADJUSTL(region_side)
   DO WHILE( LEN_TRIM(msg)>0 )
     READ(msg,*) temp
     j=SCAN(temp,":")
@@ -136,9 +141,9 @@ IF( j>0 .OR. k>0 ) THEN
       !Second number
       IF( LEN_TRIM(temp(j+1:)) <=0 ) THEN
         !Nothing before the colon: consider it is last atom
-        atomrank = SIZE(P,1)
+        atomrank2 = SIZE(P,1)
       ELSE
-        READ(temp(j+1:),*,ERR=10,END=10) atomrank2
+        READ(temp(j+1:),*,ERR=800,END=800) atomrank2
       ENDIF
       !Check that atomrank2 > atomrank
       IF( atomrank2<atomrank ) THEN
@@ -164,7 +169,7 @@ IF( j>0 .OR. k>0 ) THEN
   !
   !Store each number and range into atomindices(:)
   Nselect=0
-  msg = region_side
+  msg = ADJUSTL(region_side)
   DO WHILE( LEN_TRIM(msg)>0 )
     READ(msg,*) temp
     j=SCAN(temp,":")
@@ -180,9 +185,9 @@ IF( j>0 .OR. k>0 ) THEN
       !Second number
       IF( LEN_TRIM(temp(j+1:)) <=0 ) THEN
         !Nothing before the colon: consider it is last atom
-        atomrank = SIZE(P,1)
+        atomrank2 = SIZE(P,1)
       ELSE
-        READ(temp(j+1:),*,ERR=10,END=10) atomrank2
+        READ(temp(j+1:),*,ERR=800,END=800) atomrank2
       ENDIF
       !Check that atomrank2 > atomrank
       IF( atomrank2<atomrank ) THEN
@@ -253,12 +258,12 @@ CASE('all','any','none')
 CASE('index')
   !All atoms must be un-selected, but one
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-  ALLOCATE( SELECT(SIZE(P,1)) )
-  SELECT(:) = .FALSE.
   Nselect=0
   IF( ALLOCATED(atomindices) ) THEN
+    ALLOCATE( SELECT(SIZE(P,1)) )
+    SELECT(:) = .FALSE.
     DO i=1,SIZE(atomindices)
-      IF( atomindices(i)>0 .AND. atomindices(i)<SIZE(P,1) ) THEN
+      IF( atomindices(i)>0 .AND. atomindices(i)<=SIZE(P,1) ) THEN
         SELECT(atomindices(i)) = .TRUE.
         Nselect = Nselect+1
       ELSE
@@ -1059,6 +1064,9 @@ nerr = nerr+1
 IF(ALLOCATED(atomindices)) DEALLOCATE(atomindices)
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 IF( Nselect<=0 ) THEN
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+ENDIF
+IF( Nselect==SIZE(P,1) ) THEN
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 ENDIF
 !
