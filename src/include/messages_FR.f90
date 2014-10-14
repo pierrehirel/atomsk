@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Sept. 2014                                    *
+!* Last modification: P. Hirel - 14 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1444,6 +1444,23 @@ CASE(2123)
   ELSE
     msg = "..> "//TRIM(ADJUSTL(temp))//" coquilles ont été supprimées."
   ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2124)
+  !strings(1) = stress component or name of file
+  !reals(1) = value of stress
+  WRITE(temp,'(f16.3)') reals(1)
+  SELECT CASE(strings(1))
+  CASE('x','X','xx','XX','y','Y','yy','YY','z','Z','zz','ZZ','xy','XY','yx','YX','zx','ZX','xz','XZ','zy','ZY','yz','YZ')
+    temp2 = ADJUSTL(strings(1))
+    IF( LEN_TRIM(temp2)<=1 ) THEN
+      temp2 = TRIM(ADJUSTL(temp2))//TRIM(ADJUSTL(temp2))
+    ENDIF
+    msg = ">>> Application d'une contrainte σ_"//TRIM(ADJUSTL(temp2))//" = "//TRIM(ADJUSTL(temp))//" GPa."
+  CASE('p','P')
+    msg = ">>> Application d'une pression hydrostatique de "//TRIM(ADJUSTL(temp))//" GPa."
+  CASE DEFAULT
+    msg = ">>> Application de l'état de contrainte défini dans "//TRIM(ADJUSTL(temp))//"."
+  END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES

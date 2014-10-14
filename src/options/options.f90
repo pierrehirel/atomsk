@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 Sept. 2014                                    *
+!* Last modification: P. Hirel - 14 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,6 +88,7 @@ USE select
 USE shear
 USE shift
 USE sort
+USE stress
 USE substitute
 USE unit
 USE unskew
@@ -221,6 +222,10 @@ REAL(dp):: shift_tau1, shift_tau2, shift_tau3  !shift vector
 !Variables relative to Option: sort
 CHARACTER(LEN=4):: sortorder
 CHARACTER(LEN=16):: sortcol
+!
+!Variables relative to Option: stress
+CHARACTER(LEN=4096):: stress_in  !Voigt stress component, or name of file
+REAL(dp):: stress                !value of applied stress (GPa)
 !
 !Variables relative to Option: substitute
 CHARACTER(LEN=3):: sp1, sp2
@@ -832,6 +837,17 @@ DO ioptions=1,SIZE(options_array)
   CASE('-sort')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sortcol, sortorder
     CALL SORT_XYZ(P,S,AUXNAMES,AUX,SELECT,sortcol,sortorder)
+  !
+  CASE('-stress')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, stress_in
+    stress_in = ADJUSTL(stress_in)
+    SELECT CASE(stress_in)
+    CASE('x','X','xx','XX','y','Y','yy','YY','z','Z','zz','ZZ','xy','XY','yx','YX','zx','ZX','xz','XZ','zy','ZY','yz','YZ','p','P')
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, stress_in, stress
+    CASE DEFAULT
+      !stress_in contains the name of a file => file will be read within the option
+    END SELECT
+    CALL STRESS_XYZ(H,P,S,stress_in,stress,C_tensor)
   !
   CASE('-substitute', '-sub')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sp1, sp2

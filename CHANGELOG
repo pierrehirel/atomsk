@@ -21,6 +21,7 @@ beta 0.8 (in development)
 - new option "-disturb" allows to apply random displacements to atoms.
 - new option "-mirror" allows to apply a mirror plane normal to a cartesian axis or a crystallographic direction.
 - new option "-options" allows to read a list of options from a file.
+- new option "-stress" allows to apply stress to the system.
 - new option "-velocity" allows to generate a Maxwell-Boltzmann distribution of velocities.
 - new algorithm for constructing neighbor list.
 - mode interactive now offers a command-line interpreter, much more flexible than the former "interactive questions". The cli allows to read and write files, supports options and the mode "create", and can take scripts as standard input (e.g. "atomsk < script.at").
