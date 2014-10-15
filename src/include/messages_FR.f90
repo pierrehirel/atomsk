@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Oct. 2014                                     *
+!* Last modification: P. Hirel - 15 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -312,6 +312,12 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-sort") THEN
   WRITE(*,*) "..> Ranger les atomes :"
   WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-stress") THEN
+  WRITE(*,*) "..> Appliquer une contrainte :"
+  WRITE(*,*) "          -stress <xx|yy|zz|xy|xz|yz|P> <valeur(GPa)>"
+  WRITE(*,*) "          -stress <file>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-sub") THEN
@@ -1659,7 +1665,14 @@ CASE(2813)
   msg = "X!X ERREUR : impossible de convertir ces caractères en nombre : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2814)
-  msg = "X!X ERROR: il n'existe aucun système auquel appliquer cette option."
+  msg = "X!X ERREUR : il n'existe aucun système auquel appliquer cette option."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2815)
+  !strings(1) = name of matrix to invert
+  msg = "X!X ERREUR : impossible d'inverser la matrice "//strings(1)//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2816)
+  msg = "X!X ERREUR : le tenseur élastique n'est pas défini, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -2115,6 +2128,39 @@ CASE(4203)
   WRITE(*,'(a24)',ADVANCE='NO') " Indices chiraux (n,m) : "
 CASE(4204)
   WRITE(*,'(a32)',ADVANCE='NO') " Orientation cristallographique : "
+CASE(4300)
+  !reals(1) = number of max tries
+  msg = "   ***   ATOMSK QUIZZ   ***"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = " Répondez à la question suivante, vous avez "//TRIM(ADJUSTL(temp))//" essais."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4301)
+  !strings(1)
+  !reals(1) = 
+  !reals(2) = 
+  IF( NINT(reals(2))>0 ) THEN
+    msg = " FAUX !"
+  ELSE
+    msg = ""
+  ENDIF
+  IF( NINT(reals(1))==1 ) THEN
+    msg = TRIM(msg)//" Quel est le numéro atomique de l'atome : "//TRIM(ADJUSTL(strings(1)))//" ?"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    msg = TRIM(msg)//" Quel atome a pour numéro atomique "//TRIM(ADJUSTL(strings(1)))//" ?"
+  ELSEIF( NINT(reals(1))==3 ) THEN
+    msg = TRIM(msg)//" Quel atome vient après "//TRIM(ADJUSTL(strings(1)))//" dans le tableau périodique ?"
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4302)
+  !reals(1) = try/maxtry
+  IF( reals(1)>=1.d0 ) THEN
+    msg = " VOUS AVEZ PERDU !"
+  ELSE
+    msg = " CORRECT !"
+  ENDIF
+  msg = TRIM(msg)//" La réponse était "//TRIM(ADJUSTL(strings(1)))//"."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
   
 !
 !4700-4799: WARNING messages

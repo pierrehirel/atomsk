@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Sept. 2014                                    *
+!* Last modification: P. Hirel - 15 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,13 +44,14 @@ SUBROUTINE INTERACT()
 !
 IMPLICIT NONE
 CHARACTER(LEN=1):: answer
-CHARACTER(LEN=2):: species !atom species
+CHARACTER(LEN=2):: species, species2 !atom species
 CHARACTER(LEN=2),DIMENSION(20):: create_species !chemical species of atoms (mode create)
 CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
 CHARACTER(LEN=128):: msg, test, temp
+CHARACTER(LEN=128):: question, solution
 CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=4096):: instruction, command   !instruction given by the user
@@ -67,14 +68,16 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(4)=filesecond
                                           !pfiles(5)=listfile
 INTEGER:: i, j, k
+INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
 LOGICAL:: cubic !is the lattice cubic?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
-REAL(dp):: smass  !atomic mass
+REAL(dp):: smass, snumber  !atomic mass, atomic number
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, N atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P     !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S     !shell positions (is any)
@@ -96,6 +99,7 @@ IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
 IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
+maxtries=5
 H(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
@@ -473,6 +477,59 @@ DO
         !
       CASE("1337")
         WRITE(*,*) "U R 1337 :-)"
+        !
+      CASE("quizz","quiz")
+        !The user wants to play: ask a question about a random atom
+        CALL ATOMSK_MSG(4300,(/""/),(/DBLE(maxtries)/))
+        try=0
+        CALL GEN_NRANDNUMBERS(2,randarray)
+        !randarray contains 2 random numbers between 0 and 1
+        !First number decides the form of the question
+        IF( randarray(1)<=0.33 ) THEN
+          !Use second random number to pick up an atom species
+          snumber = DBLE( NINT( randarray(2)*100.d0 ) )
+          CALL ATOMSPECIES(snumber,species)
+          question = species
+          WRITE(solution,*) NINT(snumber)
+          solution = ADJUSTL(solution)
+          temp=""
+          DO WHILE( temp.NE.solution .AND. try<maxtries )
+            !Ask for the atomic number of that atom
+            CALL ATOMSK_MSG(4301,(/question/),(/1.d0,DBLE(try)/))
+            READ(*,*) temp
+            IF(temp.NE.solution) try=try+1
+          ENDDO
+        ELSEIF( randarray(1)<=0.66 ) THEN
+          !Use second random number to pick up an atom species
+          snumber = DBLE( NINT( randarray(2)*100.d0 ) )
+          CALL ATOMSPECIES(snumber,species)
+          WRITE(question,*) NINT(snumber)
+          question = ADJUSTL(question)
+          solution = species
+          temp=""
+          DO WHILE( temp.NE.solution .AND. try<maxtries )
+            !Ask for the species of that atom
+            CALL ATOMSK_MSG(4301,(/question/),(/2.d0,DBLE(try)/))
+            READ(*,*) temp
+            IF(temp.NE.solution) try=try+1
+          ENDDO
+        ELSE
+          !Use second random number to pick up an atom species
+          snumber = DBLE( NINT( randarray(2)*100.d0 ) )
+          CALL ATOMSPECIES(snumber,species)
+          CALL ATOMSPECIES(snumber+1.d0,species2)
+          question = species
+          solution = species2
+          temp=""
+          DO WHILE( temp.NE.solution .AND. try<maxtries )
+            !Ask for the next atom in the periodic table
+            CALL ATOMSK_MSG(4301,(/question/),(/3.d0,DBLE(try)/))
+            READ(*,*) temp
+            IF(temp.NE.solution) try=try+1
+          ENDDO
+        ENDIF
+        !
+        CALL ATOMSK_MSG(4302,(/solution/),(/DBLE(try)/DBLE(maxtries)/))
         !
         !
       CASE DEFAULT

@@ -12,7 +12,7 @@ MODULE properties
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 June 2014                                     *
+!* Last modification: P. Hirel - 15 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -235,6 +235,7 @@ DO
       !If i is non-zero then the inversion failed
       IF(i.NE.0) THEN
         nerr=nerr+1
+        CALL ATOMSK_MSG(2815,(/"C_tensor"/),(/0.d0/))
         GOTO 800
       ENDIF
       !Otherwise (i=0) the C_tensor(:,:) now contains the 6x6 elastic tensor

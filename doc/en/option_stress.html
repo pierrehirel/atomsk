@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option stress - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: stress</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-stress &#60;component&#62; &#60;&sigma;&#62;</code></p>
+
+<p><code>-stress &#60;file&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to apply stress to a system. The <strong>elastic tensor</strong> of the system must be defined <em>before</em> calling this option, e.g. with the <a href="./option_properties.html">option <code>-properties</code></a>.</p>
+
+<p>The user has to provide the following information:</p>
+
+<ul>
+  <li><strong>component</strong>: stress component that will be affected, must be 'xx', 'yy', 'zz', 'yx', 'zx', 'zy', or 'p'.</li>
+  <li><strong>&sigma;</strong>: value of the applied stress, in GPa.</li>
+</ul>
+
+<p>If the stress component is "p" then an isostatic pressure will be applied, i.e. &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&sigma;, and all deviatoric stresses will be zero.</p>
+
+<p>Alternatively the stress components can be read from a &#60;file&#62;. The &#60;file&#62; must be a text file containing the keyword "Voigt" (without quotation marks) followed on the next line by the three first Voigt components of stress &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, and on yet another line the last three components &sigma;<sub>yx</sub>, &sigma;<sub>zx</sub>, &sigma;<sub>zy</sub>. Alternatively the &#60;file&#62; can contain the keyword "stress" (without quotation marks) followed by the full 3x3 stress tensor (on three separate lines, three components per line).</p>
+
+<p>From the given stress tensor, the system will be deformed according to Hooke's law: <strong>&epsilon;</strong><sub>i</sub> = C<sub>ij</sub> <strong>&sigma;</strong><sub>j</sub> .</p>
+
+<p>In order to apply a deformation one can use the <a href="./option_deform.html">option <code>-deform</code></a> or the <a href="./option_shear.html">option <code>-shear</code></a>.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default no stress is applied to the system.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -stress xx 0.5 final.xyz</code>
+<p>This will result in an error because the elastic tensor is not defined.</p></li>
+
+<li><code class="command">atomsk initial.cfg -prop Ctensor.txt -stress xx 0.5 final.xyz</code>
+<p>This will read the elastic tensor from the file "Ctensor.txt", and apply a stress &sigma;<sub>xx</sub> = 0.5 GPa.</p></li>
+
+<li><code class="command">atomsk initial.cfg -prop Ctensor.txt -stress p 1.2 final.xyz</code>
+<p>This will read the elastic tensor from the file "Ctensor.txt", and apply an isostatic pressure P = 1.2 GPa.</p></li>
+
+<li><code class="command">atomsk initial.cfg -prop Ctensor.txt -stress mystress.txt final.xyz</code>
+<p>This will read the elastic tensor from the file "Ctensor.txt", and apply the stress tensor defined in "mystress.txt".</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

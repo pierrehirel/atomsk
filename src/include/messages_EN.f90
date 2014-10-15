@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Oct. 2014                                     *
+!* Last modification: P. Hirel - 15 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -311,6 +311,12 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-sort") THEN
   WRITE(*,*) "..> Sort atoms:"
   WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-stress") THEN
+  WRITE(*,*) "..> Apply stress:"
+  WRITE(*,*) "          -stress <xx|yy|zz|xy|xz|yz|P> <value(GPa)>"
+  WRITE(*,*) "          -stress <file>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-sub") THEN
@@ -1607,6 +1613,13 @@ CASE(2813)
 CASE(2814)
   msg = "X!X ERROR: there is no atomic system to apply this option to."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2815)
+  !strings(1) = name of matrix to invert
+  msg = "X!X ERROR: unable to invert the matrix "//strings(1)//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2816)
+  msg = "X!X ERROR: the elastic tensor is not defined, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
 !
@@ -2063,6 +2076,39 @@ CASE(4203)
   WRITE(*,'(a22)',ADVANCE='NO') " Chiral indices (n,m): "
 CASE(4204)
   WRITE(*,'(a21)',ADVANCE='NO') " Lattice orientation: "
+CASE(4300)
+  !reals(1) = number of max tries
+  msg = "   ***   ATOMSK QUIZZ   ***"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = " Answer the following question, you have "//TRIM(ADJUSTL(temp))//" tries."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4301)
+  !strings(1)
+  !reals(1) = 
+  !reals(2) = 
+  IF( NINT(reals(2))>0 ) THEN
+    msg = " WRONG!"
+  ELSE
+    msg = ""
+  ENDIF
+  IF( NINT(reals(1))==1 ) THEN
+    msg = TRIM(msg)//" What is the atomic number of the atom: "//TRIM(ADJUSTL(strings(1)))//"?"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    msg = TRIM(msg)//" Which atom has the atomic number "//TRIM(ADJUSTL(strings(1)))//"?"
+  ELSE
+    msg = TRIM(msg)//" Which atom comes after "//TRIM(ADJUSTL(strings(1)))//" in the periodic table?"
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4302)
+  !reals(1) = try/maxtry
+  IF( reals(1)>=1.d0 ) THEN
+    msg = " GAME OVER!"
+  ELSE
+    msg = " CORRECT!"
+  ENDIF
+  msg = TRIM(msg)//" The answer was "//TRIM(ADJUSTL(strings(1)))//"."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !4700-4799: WARNING messages
 CASE(4700)

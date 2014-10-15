@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option stress - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : stress</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-stress &#60;composante&#62; &#60;&sigma;&#62;</code></p>
+
+<p><code>-stress &#60;fichier&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet d'appliquer un état de contrainte au système. Le <strong>tenseur élastique</strong> du système doit être défini <em>avant</em> d'appeler cette option, par ex. avec l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
+
+<p>Les information suivantes doivent être fournies :</p>
+
+<ul>
+  <li><strong>composante</strong> : composante de contrainte qui sera affectée, doit être 'xx', 'yy', 'zz', 'yx', 'zx', 'zy', ou 'p'.</li>
+  <li><strong>&sigma;</strong> : valeur de la contrainte appliquée, en GPa.</li>
+</ul>
+
+<p>Si la composante de contrainte est "p" alors une contrainte isostatique sera appliquée, autrement dit &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&sigma;, et toutes les contraintes déviatoriques seront nulles.</p>
+
+<p>Il est aussi possible de lire l'état de contrainte depuis un &#60;fichier&#62;. Le &#60;fichier&#62; doit être un fichier texte contenant le mot-clé "Voigt" (sans guillemet) suivi sur la ligne suivante par les trois premières composantes de Voigt &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, puis sur la ligne suivante des trois dernières composantes &sigma;<sub>yx</sub>, &sigma;<sub>zx</sub>, &sigma;<sub>zy</sub>. Alternativement le &#60;fichier&#62; peut aussi contenir le mot-clé "stress" (sans guillemet) suivi du tenseur de contrainte 3x3 (sur trois lignes séparées, trois composantes par ligne).</p>
+
+<p>Le tenseur de contrainte étant donné, le système sera déformé en suivant le loi de Hooke : <strong>&epsilon;</strong><sub>i</sub> = C<sub>ij</sub> <strong>&sigma;</strong><sub>j</sub> .</p>
+
+<p>Afin d'appliquer une déformation il est préférable d'utiliser l'<a href="./option_deform.html">option <code>-deform</code></a> ou l'<a href="./option_shear.html">option <code>-shear</code></a>.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucune contrainte n'est appliquée au système.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -stress xx 0.5 final.xyz</code>
+<p>Cette commande retournera une erreur car le tenseur élastique n'est pas défini.</p></li>
+
+<li><code class="command">atomsk initial.cfg -prop Ctensor.txt -stress xx 0.5 final.xyz</code>
+<p>Ceci va lire le tenseur élastique depuis le fichier "Ctensor.txt", puis appliquer une contrainte &sigma;<sub>xx</sub> = 0.5 GPa.</p></li>
+
+<li><code class="command">atomsk initial.cfg -prop Ctensor.txt -stress p 1.2 final.xyz</code>
+<p>Ceci va lire le tenseur élastique depuis le fichier "Ctensor.txt", puis appliquer une pression isostatique P = 1.2 GPa.</p></li>
+
+<li><code class="command">atomsk initial.cfg -prop Ctensor.txt -stress mystress.txt final.xyz</code>
+<p>Ceci va lire le tenseur élastique depuis le fichier "Ctensor.txt", puis appliquer l'état de contrainte défini dans le fichier "mystress.txt".</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

@@ -10,7 +10,7 @@ MODULE stress
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Oct. 2014                                     *
+!* Last modification: P. Hirel - 15 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,6 @@ IMPLICIT NONE
 CHARACTER(LEN=4096),INTENT(IN):: stress_in  !Voigt stress component, or name of file
 REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor !elastic tensor
 CHARACTER(LEN=2):: stress_dir  !Voigt stress component: x, y, z, xy, zx, zy
-CHARACTER(LEN=16):: method
 CHARACTER(LEN=128):: msg
 LOGICAL:: fileexists
 INTEGER:: i, j
@@ -74,7 +73,7 @@ CALL ATOMSK_MSG(2124,(/stress_in/),(/stress/))
 !Check that the elastic tensor C_tensor is defined (i.e. non-zero)
 IF( .NOT. ANY( C_tensor(1:3,1:3) > 1.d-12 ) ) THEN
   nerr = nerr+1
-  PRINT*, "ERROR: elastic tensor not defined"
+  CALL ATOMSK_MSG(2816,(/""/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
@@ -102,20 +101,16 @@ CASE('p','P')
   vstress(3) = -1.d0*stress
 CASE DEFAULT
   !It has to be some file name
-  method = "file"
   !Check that file exists
-  INQUIRE(FILE=stress_in,EXIST=fileexists)
-  IF( .NOT. fileexists ) THEN
-    !error
-  ENDIF
+  CALL CHECKFILE(stress_in,'read')
   !Read stress tensor from file
   OPEN(31,FILE=stress_in,FORM='FORMATTED')
   READ(31,*) msg
-  IF(msg=='Voigt') THEN
-    !Read the three Voigt components
+  IF(msg=='Voigt' .OR. msg=="voigt") THEN
+    !Read the six Voigt components
     READ(31,*) vstress(1), vstress(2), vstress(3)
     READ(31,*) vstress(4), vstress(5), vstress(6)
-  ELSE
+  ELSEIF(msg=="stress" .OR. msg=="Stress") THEN
     !Read full stress tensor
     DO i=1,3
       READ(31,*) mstress(i,1), mstress(i,2), mstress(i,3)
@@ -127,6 +122,12 @@ CASE DEFAULT
     vstress(4) = mstress(1,2)
     vstress(5) = mstress(1,3)
     vstress(6) = mstress(2,3)
+  ELSE
+    !unable to read file
+    CLOSE(31)
+    nerr=nerr+1
+    CALL ATOMSK_MSG(800,(/""/),(/0.d0/))
+    GOTO 1000
   ENDIF
   CLOSE(31)
 END SELECT
@@ -140,6 +141,7 @@ CALL INVMAT(C_tensor(1:6,1:6),S_tensor,i)
 !If i is non-zero then the inversion failed
 IF(i.NE.0) THEN
   nerr=nerr+1
+  CALL ATOMSK_MSG(2815,(/"C_tensor"/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
@@ -153,16 +155,16 @@ DO i=1,6
 ENDDO
 !
 !Translate that into the full deformation tensor
+!NOTE: we make the deformation tensor a lower triangular matrix,
+!     e.g. instead of having meps(1,2) = meps(2,1) = veps(4)/2
+!     we use meps(2,1) = veps(4) and meps(1,2)=0.
 meps(:,:) = 0.d0
 meps(1,1) = 1.d0 + veps(1)
 meps(2,2) = 1.d0 + veps(2)
 meps(3,3) = 1.d0 + veps(3)
-meps(1,2) = 0.5d0*veps(4)
-meps(2,1) = meps(1,2)
-meps(1,3) = 0.5d0*veps(5)
-meps(3,1) = meps(1,3)
-meps(2,3) = 0.5d0*veps(6)
-meps(3,2) = meps(2,3)
+meps(2,1) = veps(4)
+meps(3,1) = veps(5)
+meps(3,2) = veps(6)
 !
 IF(verbosity==4) THEN
   msg = 'Deformation tensor:'

@@ -10,7 +10,7 @@ MODULE files
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 13 June 2014                                     *
+!* Last modification: P. Hirel - 15 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,7 +59,7 @@ SUBROUTINE CHECKFILE(filename,fstatus)
 IMPLICIT NONE
 CHARACTER(LEN=*):: filename
 CHARACTER(LEN=1):: test
-CHARACTER(LEN=4):: fstatus   !file status; 'read' or 'writ'
+CHARACTER(LEN=*):: fstatus   !file status; 'read' or 'write'
 CHARACTER(LEN=4096):: temp
 LOGICAL:: fileexists
 !

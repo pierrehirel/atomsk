@@ -287,6 +287,9 @@ Shifts some atoms.
 .B -sort <property> <order>
 Sorts the atoms according to one <property>. <order> can be "up", "down", or "pack".
 .TP
+.B -stress <xx|yy|zz|xy|xz|yz|P> <value>
+Applies stress to the system. The elastic tensor must be defined with the option "-properties".
+.TP
 .B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
 Substitutes atoms of a given species by another.
 .TP
