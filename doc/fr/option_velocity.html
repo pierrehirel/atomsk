@@ -15,12 +15,12 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-velocity &#60;T&#62;</code></p>
+<p><code>-velocity &#60;<em>T</em>&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option attribue des vitesses aléatoires aux atomes, de façon à obtenir une distribution de vitesses de Maxwell-Boltzmann, et de sorte que la somme des vitesses soit nulle (pas de translation globale du système). La température cible désirée &#60;T&#62; doit être donnée en Kelvin.</p>
+<p>Cette option attribue des vitesses aléatoires aux atomes, de façon à obtenir une distribution de vitesses de Maxwell-Boltzmann, et de sorte que la somme des vitesses soit nulle (pas de translation globale du système). La température cible désirée &#60;<em>T</em>&#62; doit être donnée en Kelvin.</p>
 
 <p>Après l'application de cette option, la distribution de vitesses est calculée et écrite dans le fichier <code>velocity_dist.dat</code>.</p>
 
@@ -44,10 +44,10 @@
 
 <ul>
 <li><code class="command">atomsk relax.cfg -velocity 300 MD.cfg lmp</code>
-<p>Cette commande va lire le fichier <code>relax.cfg</code> et attribuer des vitesses aux atomes correspondant à une distribution de Maxwell-Boltzmann à 300 K. Les positions et vitesses des atomes seront écrites dans les fichiers <code>MD.cfg</code> et <code>MD.lmp</code>.</p></li>
+<p>Cette commande va lire le fichier <code>relax.cfg</code> et attribuer des vitesses aux atomes correspondant à une distribution de Maxwell-Boltzmann à la température <em>T</em>=300 K. Les positions et vitesses des atomes seront écrites dans les fichiers <code>MD.cfg</code> et <code>MD.lmp</code>.</p></li>
 
 <li><code class="command">atomsk initial.xsf -select below 20 x -velocity 300 -select above box-20 x -velocity 1000 MD.cfg lmp</code>
-<p>Ceci va lire le fichier <code>initial.xsf</code>, attribuer aux atomes à gauche de la boîte (x&#60;20 &Aring;) une distribution de vitesses correspondant à 300 K, et aux atomes à droite de la boîte des vitesses correspondant à 1000 K.</p></li>
+<p>Ceci va lire le fichier <code>initial.xsf</code>, attribuer aux atomes à gauche de la boîte (x&#60;20 &Aring;) une distribution de vitesses correspondant à la température <em>T</em>=300 K, et aux atomes à droite de la boîte des vitesses correspondant à <em>T</em>=1000 K.</p></li>
 
 </ul>
 

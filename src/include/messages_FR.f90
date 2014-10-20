@@ -226,7 +226,7 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> <screw|edge|edge2|mixed> <x|y|z> <x|y|z> <b> <ν>"
 ENDIF
 !
-IF(helpsection=="options" .OR. helpsection=="-expand" .OR. helpsection=="-e") THEN
+IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
   WRITE(*,*) "..> Dupliquer le système dans les 3 directions de l'espace :"
   WRITE(*,*) "          -duplicate <Nx> <Ny> <Nz>"
 ENDIF
@@ -817,7 +817,7 @@ CASE(2066)
   WRITE(temp,*) NINT( reals(1) )
   WRITE(temp2,*) NINT( reals(2) )
   WRITE(msg,*) NINT( reals(3) )
-  msg = ">>> Agrandissement du système : "//TRIM(ADJUSTL(temp))//" x "// &
+  msg = ">>> Duplication du système : "//TRIM(ADJUSTL(temp))//" x "// &
     & TRIM(ADJUSTL(temp2))//" x "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2067)
@@ -826,7 +826,7 @@ CASE(2067)
   msg = "..> Nouveau nombre de particules : "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2068)
-  msg = "..> Le système a bien été agrandi."
+  msg = "..> Le système a bien été dupliqué."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2069)
   !strings(1) = "all" or property to be removed

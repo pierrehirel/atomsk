@@ -486,6 +486,7 @@ DO WHILE(i<SIZE(cla))
   ELSEIF( clarg=='-add-shells' .OR. clarg=='-addshells' .OR. clarg=='-as' .OR. &
         & clarg=='-create-shells' .OR. clarg=='-cs') THEN
     IF( clarg=='-create-shells' .OR. clarg=='-cs') THEN
+      nwarn=nwarn+1
       CALL ATOMSK_MSG(2799,(/'-create-shells','-add-shells   '/),(/0.d0/))
     ENDIF
     ioptions = ioptions+1
@@ -710,6 +711,7 @@ DO WHILE(i<SIZE(cla))
   !
   ELSEIF(clarg=='-duplicate' .OR. clarg=='-dup' .OR. clarg=='-expand' .OR. clarg=='-e') THEN
     IF( clarg=='-expand' .OR. clarg=='-e') THEN
+      nwarn=nwarn+1
       CALL ATOMSK_MSG(2799,(/'-expand   ','-duplicate'/),(/0.d0/))
     ENDIF
     ioptions = ioptions+1

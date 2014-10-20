@@ -818,7 +818,7 @@ CASE(2066)
   WRITE(temp,*) NINT( reals(1) )
   WRITE(temp2,*) NINT( reals(2) )
   WRITE(msg,*) NINT( reals(3) )
-  msg = ">>> Expanding the system: "//TRIM(ADJUSTL(temp))//" x "// &
+  msg = ">>> Duplicating the system: "//TRIM(ADJUSTL(temp))//" x "// &
     & TRIM(ADJUSTL(temp2))//" x "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2067)
@@ -827,7 +827,7 @@ CASE(2067)
   msg = "..> New number of particles: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2068)
-  msg = "..> System was successfully expanded."
+  msg = "..> System was successfully duplicated."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2069)
   !strings(1) = "all" or property to be removed

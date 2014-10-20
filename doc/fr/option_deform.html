@@ -38,7 +38,7 @@
 
 <p>Pour appliquer une <strong>déformation anisotrope</strong> il est possible d'utiliser cette option suivant chaque axe en utilisant &nu;=0 et des valeurs différentes de &epsilon; (voir l'exemple 3 ci-dessous).</p>
 
-<p>Pour appliquer la même déformation dans toutes les directions il faut utiliser un coefficient de Poisson égal à -1. Ceci peut être utile par ex. pour déformer un matériau d'après son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;T.</p>
+<p>Pour appliquer la même déformation dans toutes les directions il faut utiliser un coefficient de Poisson égal à -1. Ceci peut être utile par ex. pour déformer un matériau d'après son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;<em>T</em>, où <em>T</em> est la température cible.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls la déformation ne s'appliquera qu'aux atomes sélectionnés, et la boîte ne sera pas déformée.</p>
 
@@ -64,7 +64,7 @@
 <p>Cet exemple utilise l'option "-deform" trois fois pour appliquer des déformations différentes suivant chaque axe cartésien (le coefficient de Poisson vaut toujours zéro). Ceci est équivalent à une déformation anisotropique.</p></li>
 
 <li><code class="command">atomsk initial.cfg -def x 0.003 -1 final.xyz</code>
-<p>Ceci appliquera une tension de 0.3&#37; dans toutes les directions, mimant l'effet d'un coefficient d'expansion thermique &alpha;=10<sup>-5</sup> K<sup>-1</sup> à une température de 300 K.</p></li>
+<p>Ceci appliquera une tension de 0.3&#37; dans toutes les directions, mimant l'effet d'un coefficient d'expansion thermique &alpha;=10<sup>-5</sup> K<sup>-1</sup> à une température <em>T</em>=300 K.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

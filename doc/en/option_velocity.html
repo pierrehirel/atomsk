@@ -15,12 +15,12 @@
 
 <h4>Syntax</h4>
 
-<p><code>-velocity &#60;T&#62;</code></p>
+<p><code>-velocity &#60;<em>T</em>&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option assigns a random velocity vector to each atom, so as to comply to a Maxwell-Boltzmann distribution of velocities, and so that the sum of velocities is zero (no global drift of the system). The target temperature &#60;T&#62; must be given in Kelvin.</p>
+<p>This option assigns a random velocity vector to each atom, so as to comply to a Maxwell-Boltzmann distribution of velocities, and so that the sum of velocities is zero (no global drift of the system). The target temperature &#60;<em>T</em>&#62; must be given in Kelvin.</p>
 
 <p>After applying this option, the distribution of velocities is computed and written to the file <code>velocity_dist.dat</code>.</p>
 
@@ -44,10 +44,10 @@
 
 <ul>
 <li><code class="command">atomsk relaxed.cfg -velocity 300 MD.cfg lmp</code>
-<p>This will read the file <code>relaxed.cfg</code> and assign velocities of atoms corresponding to a Maxwell-Boltzmann distribution at 300 K. The atom positions and velocities will be written to <code>MD.cfg</code> and <code>MD.lmp</code>.</p></li>
+<p>This will read the file <code>relaxed.cfg</code> and assign velocities of atoms corresponding to a Maxwell-Boltzmann distribution at the temperature <em>T</em>=300 K. The atom positions and velocities will be written to <code>MD.cfg</code> and <code>MD.lmp</code>.</p></li>
 
 <li><code class="command">atomsk initial.xsf -select below 20 x -velocity 300 -select above box-20 x -velocity 1000 MD.cfg lmp</code>
-<p>This will read the file <code>initial.xsf</code>, give atoms on the left side of the box (x&#60;20 &Aring;) a distribution of velocities correponding to 300 K, and give atoms on the right side velocities corresponding to 1000 K.</p></li>
+<p>This will read the file <code>initial.xsf</code>, give atoms on the left side of the box (x&#60;20 &Aring;) a distribution of velocities correponding to the temperature <em>T</em>=300 K, and give atoms on the right side velocities corresponding to <em>T</em>=1000 K.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>
