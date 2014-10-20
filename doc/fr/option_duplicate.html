@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" >
 <head>
-    <title>Option expand - Atomsk - Pierre Hirel</title>
+    <title>Option duplicate - Atomsk - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,24 +11,24 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Option : expand</h2>
+<h2>Option : duplicate</h2>
 
 <h4>Syntaxe</h4>
 
-<p><code>-expand &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
+<p><code>-duplicate &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
-<p><code>-e &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
+<p><code>-dup &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet d'étendre, ou dupliquer, un système dans les trois directions de l'espace. Elle peut être utile par ex. pour construire une supercellule à partir d'une cellule élémentaire.</p>
+<p>Cette option permet de dupliquer un système dans les trois directions de l'espace. Elle peut être utile par ex. pour construire une supercellule à partir d'une cellule élémentaire.</p>
 
 <p>Les vecteurs de translation utilisés pour répéter le système sont ceux lus depuis le fichier d'entrée, notés <code>Hx</code>, <code>Hy</code> et <code>Hz</code>. Les paramètres associés avec cette option sont :</p>
 
 <ul>
-  <li><strong>Nx</strong> : nombre de répétitions du système suivant <code>Hx</code>;</li>
-  <li><strong>Ny</strong> : nombre de répétitions du système suivant <code>Hy</code>;</li>
+  <li><strong>Nx</strong> : nombre de répétitions du système suivant <code>Hx</code>.</li>
+  <li><strong>Ny</strong> : nombre de répétitions du système suivant <code>Hy</code>.</li>
   <li><strong>Nz</strong> : nombre de répétitions du système suivant <code>Hz</code>.</li>
 </ul>
 
@@ -43,20 +43,20 @@
 
 <h4>Défaut</h4>
 
-<p>Par défaut le système n'est pas étendu.</p>
+<p>Par défaut le système n'est pas dupliqué.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk cellule_elementaire.cfg -e 2 2 4 supercellule.xyz</code>
+<li><code class="command">atomsk cellule_elementaire.cfg -duplicate 2 2 4 supercellule.xyz</code>
 <p>Ceci lira le fichier <code>cellule_elementaire.cfg</code>, l'étendra pour former une supercellule de taille 2x2x4, et écrira le système final dans <code>supercellule.xyz</code>.</p></li>
 
-<li><code class="command">atomsk supercell.xyz unitcell.cfg -e 2 2 4</code>
-<p>Identique à l'exemple précédent. Notez que l'enchaînement <code>-e 2 2 4</code> ne doit pas être cassé, en revanche les noms des fichiers d'entrée et de sortie peuvent apparaître dans n'importe quel ordre.</p></li>
+<li><code class="command">atomsk supercell.xyz unitcell.cfg -dup 2 2 4</code>
+<p>Identique à l'exemple précédent. Notez que l'enchaînement <code>-dup 2 2 4</code> ne doit pas être cassé, en revanche les noms des fichiers d'entrée et de sortie peuvent apparaître dans n'importe quel ordre.</p></li>
 
-<li><code class="command">atomsk initial.xyz -e 6 4 0 final.cfg</code>
+<li><code class="command">atomsk initial.xyz -dup 6 4 0 final.cfg</code>
 <p>Ceci va dupliquer le système six fois suivant X, quatre fois suivant Y, et une fois suivant Z. Notez que le "0" suivant la direction Z a la même signification que "1", c'est-à-dire que le système n'est pas dupliqué mais apparait quand même une fois suivant cette direction.</p></li>
 </ul>
 

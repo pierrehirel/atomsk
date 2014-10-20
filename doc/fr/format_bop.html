@@ -60,8 +60,8 @@ DINERT<br/>
 <li><code class="command">atomsk mon_systeme.cfg bop</code>
 <p>Ceci va lire le fichier <code>mon_systeme.cfg</code> et va le convertir en <code>mon_systeme.bop</code>.</p></li>
 
-<li><code class="command">atomsk unitcell.xsf -e 20 20 1 -disloc 0.5*BOX 0.5*BOX screw z y 4.2 0.33 -select out box 10 10 -INF BOX-10 BOX-10 INF -fix all above -100 x mon_systeme.bop</code>
-<p>Ceci va lire <code>unitcell.xsf</code>, va <a href="./option_expand.html">l'étendre</a> pour former une super-cellule 20x20x1, puis va <a href="./option_disloc.html">insérer une dislocation vis</a> au milieu de la boîte et suivant la direction Z, puis va <a href="./option_select.html">sélectionner les atomes</a> qui sont proches de moins de 10 &Aring; des bords de la boîte, va <a href="./option_fix.html">fixer les positions de ces atomes</a>, et enfin écrira la configuration finale dans <code>mon_systeme.bop</code>.</p></li>
+<li><code class="command">atomsk unitcell.xsf -duplicate 20 20 1 -disloc 0.5*BOX 0.5*BOX screw z y 4.2 0.33 -select out box 10 10 -INF BOX-10 BOX-10 INF -fix all above -100 x mon_systeme.bop</code>
+<p>Ceci va lire <code>unitcell.xsf</code>, va <a href="./option_duplicate.html">l'étendre</a> pour former une super-cellule 20x20x1, puis va <a href="./option_disloc.html">insérer une dislocation vis</a> au milieu de la boîte et suivant la direction Z, puis va <a href="./option_select.html">sélectionner les atomes</a> qui sont proches de moins de 10 &Aring; des bords de la boîte, va <a href="./option_fix.html">fixer les positions de ces atomes</a>, et enfin écrira la configuration finale dans <code>mon_systeme.bop</code>.</p></li>
 
 <li><code class="command">atomsk relax.bop cfg</code>
 <p>Ceci va lire le fichier <code>relax.bop</code> et le convertire en <code>relax.cfg</code>, pour être visualisé avec Atomeye.</p></li>

@@ -51,8 +51,8 @@
 <p>Please read the section about <a href="./options.html">options</a>. Several options can be used in a single command-line like in the example below.</p>
 
 <ul>
-<li><code class="command">atomsk unitcell.xyz -expand 20 10 1 -deform x 2 0.33 final.xsf lmp</code>
-<p>This will read <code>unitcell.xyz</code> (XYZ format), <a href="./option_expand.html">expand it</a> to form a 20x10x1 supercell, then <a href="./option_deform.html">deform it</a> by 2&#37; along the X direction (using a Poisson ratio of 0.33), and then write the final system to <code>final.xsf</code> (XSF format) and <code>final.lmp</code> (LAMMPS data).</p></li>
+<li><code class="command">atomsk unitcell.xyz -duplicate 20 10 1 -deform x 2 0.33 final.xsf lmp</code>
+<p>This will read <code>unitcell.xyz</code> (XYZ format), <a href="./option_duplicate.html">duplicate it</a> to form a 20x10x1 supercell, then <a href="./option_deform.html">deform it</a> by 2&#37; along the X direction (using a Poisson ratio of 0.33), and then write the final system to <code>final.xsf</code> (XSF format) and <code>final.lmp</code> (LAMMPS data).</p></li>
 </ul>
 
 

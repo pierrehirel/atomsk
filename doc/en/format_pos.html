@@ -32,8 +32,8 @@
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk unitcell.xsf -e 1 1 4 -sort species pack POSCAR</code>
-<p>This will read the file <code>unitcell.xsf</code>, <a href="./option_expand.html">expand it</a> to form a 1x1x4 supercell, then <a href="./option_sort.html">sort atoms</a> according to their species, and write the final result to the VASP file <code>POSCAR</code>.</p></li>
+<li><code class="command">atomsk unitcell.xsf -duplicate 1 1 4 -sort species pack POSCAR</code>
+<p>This will read the file <code>unitcell.xsf</code>, <a href="./option_duplicate.html">duplicate it</a> to form a 1x1x4 supercell, then <a href="./option_sort.html">sort atoms</a> according to their species, and write the final result to the VASP file <code>POSCAR</code>.</p></li>
 
 <li><code class="command">atomsk CONTCAR -sub 1 Fe -sub 2 C final.xsf</code>
 <p>This will read the VASP restart file <code>CONTCAR</code>, <a href="./option_substitute.html">substitute</a> atoms of type 1 with iron and those of type 2 with carbon, and write the final result to <code>final.xsf</code>.</p></li>

@@ -51,7 +51,7 @@
 
 <p>The second principle is that when one reads a command-line of <code>atomsk</code>, what it does should be obvious and non-ambiguous. For example the following command:</p>
 
-<p><code class="command">atomsk --create fcc 4.02 Al -expand 10 10 4 supercell.xsf</code></p>
+<p><code class="command">atomsk --create fcc 4.02 Al -duplicate 10 10 4 supercell.xsf</code></p>
 
 <p>will obviously create a 10x10x4 supercell of fcc aluminum, and write it to the file <code>supercell.xsf</code>. This principle ensures that if you write such commands in scripts (e.g. bash scripts) and read them again months or years later, you will still be able to understand quickly what you did.</p>
 </div>
@@ -113,9 +113,9 @@
 
 <li><a href="#" id="usesc" class="showLink" onclick="showHide('usesc');return false;"><strong>I have a unit cell, how do I generate a supercell?</strong></a></li>
 
-<div id="usesc-show" class="more"><p>This can be done with the <a href="./option_expand.html">option <code>-expand</code></a>. If your unit cell is in the file <code>unitcell.xsf</code>, and you want to create a 4x4x2 supercell, the command would be:</p>
+<div id="usesc-show" class="more"><p>This can be done with the <a href="./option_duplicate.html">option <code>-duplicate</code></a>. If your unit cell is in the file <code>unitcell.xsf</code>, and you want to create a 4x4x2 supercell, the command would be:</p>
 
-<p><code class="command">atomsk unitcell.xsf -expand 4 4 2 supercell.xsf</code></p>
+<p><code class="command">atomsk unitcell.xsf -duplicate 4 4 2 supercell.xsf</code></p>
 
 <p>and the supercell will be written in the file <code>supercell.xsf</code>.</p>
 </div>
@@ -149,7 +149,7 @@
 <div class="txtfile">
 <h5>my_options.txt</h5>
 <p><code># options for atomsk<br/>
-expand 40 30 1<br/>
+duplicate 40 30 1<br/>
 deform x 3% 0.33<br/>
 </code></p></div>
 

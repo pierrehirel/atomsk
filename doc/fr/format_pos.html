@@ -32,8 +32,8 @@
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk unitcell.xsf -e 1 1 4 -sort species pack POSCAR</code>
-<p>Ceci va lire le fichier <code>unitcell.xsf</code>, va <a href="./option_expand.html">l'étendre</a> pour former une super-cellule 1x1x4, puis <a href="./option_sort.html">triera les atomes</a> selon leur espèce chimique, et écrira le résultat final dans le fichier VASP <code>POSCAR</code>.</p></li>
+<li><code class="command">atomsk unitcell.xsf -duplicate 1 1 4 -sort species pack POSCAR</code>
+<p>Ceci va lire le fichier <code>unitcell.xsf</code>, va <a href="./option_duplicate.html">le dupliquer</a> pour former une super-cellule 1x1x4, puis <a href="./option_sort.html">triera les atomes</a> selon leur espèce chimique, et écrira le résultat final dans le fichier VASP <code>POSCAR</code>.</p></li>
 
 <li><code class="command">atomsk CONTCAR -sub 1 Fe -sub 2 C final.xsf</code>
 <p>Ceci va lire le fichier VASP <code>CONTCAR</code>, <a href="./option_substitute.html">substituera</a> les atomes de type 1 par des atomes de fer et ceux de type 2 par du carbone, et écrira le résultat final dans <code>final.xsf</code>.</p></li>

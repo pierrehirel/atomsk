@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-    <title>Option expand - Atomsk - Pierre Hirel</title>
+    <title>Option duplicate - Atomsk - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,24 +11,24 @@
 
 <p><a href="./index.html">Back to main menu</a></p>
 
-<h2>Option: expand</h2>
+<h2>Option: duplicate</h2>
 
 <h4>Syntax</h4>
 
-<p><code>-expand &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
+<p><code>-duplicate &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
-<p><code>-e &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
+<p><code>-dup &#60;Nx&#62; &#60;Ny&#62; &#60;Nz&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to expand, or duplicate, a system in the three directions of space. It can be useful for (but not restricted to) building a supercell from a unit cell.</p>
+<p>This option allows to duplicate a system in the three directions of space. It can be useful for (but not restricted to) building a supercell from a unit cell.</p>
 
 <p>The translational vectors used to repeat the system are the base vectors of the original cell, noted <code>Hx</code>, <code>Hy</code> and <code>Hz</code>. The command-line parameters must be integers and, if they need any explanation at all:</p>
 
 <ul>
-  <li><strong>Nx</strong>: number of times the system is repeated along <code>Hx</code>;</li>
-  <li><strong>Ny</strong>: number of times the system is repeated along <code>Hy</code>;</li>
+  <li><strong>Nx</strong>: number of times the system is repeated along <code>Hx</code>.</li>
+  <li><strong>Ny</strong>: number of times the system is repeated along <code>Hy</code>.</li>
   <li><strong>Nz</strong>: number of times the system is repeated along <code>Hz</code>.</li>
 </ul>
 
@@ -43,20 +43,20 @@
 
 <h4>Default</h4>
 
-<p>By default the system is not expanded.</p>
+<p>By default the system is not duplicated.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk unitcell.cfg -e 2 2 4 supercell.xyz</code>
+<li><code class="command">atomsk unitcell.cfg -duplicate 2 2 4 supercell.xyz</code>
 <p>This will create a 2x2x4 supercell from <code>unitcell.cfg</code>, and output it to <code>supercell.xyz</code>.</p></li>
 
-<li><code class="command">atomsk supercell.xyz unitcell.cfg -e 2 2 4</code>
-<p>Same as previous example. Note that the <code>-e 2 2 4</code> statement cannot be broken, but intput and output file names can be specified before or after it.</p></li>
+<li><code class="command">atomsk supercell.xyz unitcell.cfg -dup 2 2 4</code>
+<p>Same as previous example. Note that the <code>-dup 2 2 4</code> statement cannot be broken, but intput and output file names can be specified before or after it.</p></li>
 
-<li><code class="command">atomsk initial.xyz -e 6 4 0 final.cfg</code>
+<li><code class="command">atomsk initial.xyz -dup 6 4 0 final.cfg</code>
 <p>This will duplicate the system six times along X, four times along Y, and one time along Z. Note that the "0" along the Z direction has the same meaning as "1", i.e. the system is not duplicated but still appears once along that direction.</p></li>
 </ul>
 

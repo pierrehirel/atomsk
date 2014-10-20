@@ -52,7 +52,7 @@
 
 <p>Le second principe est que lorsqu'on lit une commande d'<code>atomsk</code>, ce qu'elle fait devrait être évident et non-ambigu. Par exemple la commande suivante :</p>
 
-<p><code class="command">atomsk --create fcc 4.02 Al -expand 10 10 4 supercell.xsf</code></p>
+<p><code class="command">atomsk --create fcc 4.02 Al -duplicate 10 10 4 supercell.xsf</code></p>
 
 <p>va manifestement construire une super-cellule de taille 10x10x4 d'aluminium cfc, et écrira le résultat dans <code>supercell.xsf</code>. Ce principe garantit que si vous écrivez de telles commandes dans des fichiers de script (bash par exemple) et les re-lisez des mois ou des années plus tard, alors vous serez capable de comprendre rapidement ce que vous aviez fait.</p>
 </div>
@@ -117,9 +117,9 @@
 
 <li><a href="#" id="usesc" class="showLink" onclick="showHide('usesc');return false;"><strong>J'ai une cellule unité, comment puis-je générer une super-cellule ?</strong></a></li>
 
-<div id="usesc-show" class="more"><p>Ceci peut être fait grâce à l'option <a href="./option_expand.html">option <code>-expand</code></a>. Si votre cellule unité est dans le fichier <code>cellule.xsf</code>, et que vous voulez créer une super-cellule de taille 4x4x2, alors la commande serait :</p>
+<div id="usesc-show" class="more"><p>Ceci peut être fait grâce à l'option <a href="./option_duplicate.html">option <code>-duplicate</code></a>. Si votre cellule unité est dans le fichier <code>cellule.xsf</code>, et que vous voulez créer une super-cellule de taille 4x4x2, alors la commande serait :</p>
 
-<p><code class="command">atomsk cellule.xsf -expand 4 4 2 supercellule.xsf</code></p>
+<p><code class="command">atomsk cellule.xsf -duplicate 4 4 2 supercellule.xsf</code></p>
 
 <p>et la supercellule sera écrite dans le fichier <code>supercellule.xsf</code>.</p>
 </div>
@@ -153,7 +153,7 @@
 <div class="txtfile">
 <h5>mes_options.txt</h5>
 <p><code># options pour atomsk<br/>
-expand 40 30 1<br/>
+duplicate 40 30 1<br/>
 deform x 3% 0.33<br/>
 </code></p></div>
 

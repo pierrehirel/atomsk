@@ -28,10 +28,10 @@
 
 <ul>
   <li><strong>composante</strong> : composante de contrainte qui sera affectée, doit être 'xx', 'yy', 'zz', 'yx', 'zx', 'zy', ou 'p'.</li>
-  <li><strong>&sigma;</strong> : valeur de la contrainte appliquée, en GPa.</li>
+  <li><strong>&sigma;</strong> : valeur de la contrainte appliquée, en GPa. Une valeur positive provoquera une tension, une valeur négative une compression.</li>
 </ul>
 
-<p>Si la composante de contrainte est "p" alors une contrainte isostatique sera appliquée, autrement dit &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&sigma;, et toutes les contraintes déviatoriques seront nulles.</p>
+<p>Si la composante de contrainte est "p" alors une contrainte isostatique sera appliquée, et &#60;&sigma;&#62; sera en réalité la valeur de pression. Autrement dit la contrainte appliquée sera &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> =  &sigma;<sub>zz</sub> = -&#60;&sigma;&#62;, et toutes les contraintes déviatoriques seront nulles.</p>
 
 <p>Il est aussi possible de lire l'état de contrainte depuis un &#60;fichier&#62;. Le &#60;fichier&#62; doit être un fichier texte contenant le mot-clé "Voigt" (sans guillemet) suivi sur la ligne suivante par les trois premières composantes de Voigt &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, puis sur la ligne suivante des trois dernières composantes &sigma;<sub>yx</sub>, &sigma;<sub>zx</sub>, &sigma;<sub>zy</sub>. Alternativement le &#60;fichier&#62; peut aussi contenir le mot-clé "stress" (sans guillemet) suivi du tenseur de contrainte 3x3 (sur trois lignes séparées, trois composantes par ligne).</p>
 

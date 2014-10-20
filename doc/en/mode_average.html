@@ -38,8 +38,8 @@
 <li><code class="command">atomsk --average filelist.lst averaged.cfg</code>
 <p>This will read all the files which names are specified in <code>filelist.lst</code>, and make an average of each atom position. The final result will be output into <code>averaged.cfg</code>.</p></li>
 
-<li><code class="command">ls *.xsf > list.lst &amp;&amp; atomsk --average list.lst -e 2 2 2 average.cfg xsf</code>
-<p>This will list all files with the extension .xsf and save the list in <code>list.lst</code>. Then it will run <code>atomsk</code> to make an average of atom positions of all these systems. The averaged system will be duplicated twice in each direction (thanks to the <a href="./option_expand.html">option <code>-expand</code></a>), and the final result will be written to <code>average.cfg</code> and <code>average.xsf</code>.</p></li>
+<li><code class="command">ls *.xsf > list.lst &amp;&amp; atomsk --average list.lst -duplicate 2 2 2 average.cfg xsf</code>
+<p>This will list all files with the extension .xsf and save the list in <code>list.lst</code>. Then it will run <code>atomsk</code> to make an average of atom positions of all these systems. The averaged system will be duplicated twice in each direction (thanks to the <a href="./option_duplicate.html">option <code>-duplicate</code></a>), and the final result will be written to <code>average.cfg</code> and <code>average.xsf</code>.</p></li>
 </ul>
 
 

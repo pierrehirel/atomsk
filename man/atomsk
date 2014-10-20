@@ -220,8 +220,8 @@ Introduces a straight edge or screw dislocation line in the system.
 .B -disturb <dx>
 Apply a random displacement (maximum dx) to all atoms.
 .TP
-.B -expand <ex> <ey> <ez>, -e <ex> <ey> <ez>
-Expands the system.
+.B -duplicate <Nx> <Ny> <Nz>, -dup <Nx> <Ny> <Nz>
+Duplicates the system.
 .TP
 .B -fix
 Fixes atoms in one or all directions of space.

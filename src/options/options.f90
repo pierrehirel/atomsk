@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Oct. 2014                                     *
+!* Last modification: P. Hirel - 20 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -74,7 +74,7 @@ USE cut_cell
 USE deform
 USE dislocation
 USE disturb
-USE expand
+USE duplicate
 USE fix
 USE mirror
 USE orient
@@ -161,9 +161,9 @@ REAL(dp),DIMENSION(3):: b !Burgers vector
 !Variables relative to Option: disturb
 REAL(dp):: dist_dxmax  !maximum translation vector
 !
-!Variables relative to Option: expand
-INTEGER, DIMENSION(3):: expandmatrix  !number of times the system must be
-                                      !repeated in each direction of space
+!Variables relative to Option: duplicate
+INTEGER, DIMENSION(3):: dupmatrix  !number of times the system must be
+                                   !repeated in each direction of space
 !
 !Variables relative to Option: fix
 CHARACTER(LEN=5):: fix_dir, fixaxis
@@ -517,14 +517,14 @@ DO ioptions=1,SIZE(options_array)
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dxmax
     CALL DISTURB_XYZ(dist_dxmax,P,SELECT)
   !
-  CASE('-e', '-expand', '-duplicate', '-dup')
+  CASE('-duplicate', '-dup', '-e', '-expand')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & expandmatrix(1), expandmatrix(2), expandmatrix(3)
+        & dupmatrix(1), dupmatrix(2), dupmatrix(3)
     !If expansion is zero along a direction, correct it
     DO i=1,3
-      IF(expandmatrix(i)<=0) expandmatrix(i)=1
+      IF(dupmatrix(i)<=0) dupmatrix(i)=1
     ENDDO
-    CALL EXPANDCELL(H,P,S,expandmatrix,SELECT,AUX)
+    CALL DUPLICATECELL(H,P,S,dupmatrix,SELECT,AUX)
   !
   CASE('-fix', '-freeze')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &

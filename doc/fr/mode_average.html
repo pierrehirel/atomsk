@@ -38,8 +38,8 @@
 <li><code class="command">atomsk --average liste.lst moyenne.cfg</code>
 <p>Ceci va lire tous les fichiers dont les noms sont donnés dans <code>liste.lst</code>, et produira une moyenne des positions atomiques de tous ces systèmes. Le résultat final sera écrit dans <code>moyenne.cfg</code>.</p></li>
 
-<li><code class="command">ls *.xsf > liste.lst &amp;&amp; atomsk --average liste.lst -e 2 2 2 moyenne.cfg xsf</code>
-<p>Ceci va lister tous les fichiers portant l'extension .xsf et enregistrera la liste dans <code>liste.lst</code>, puis exécutera <code>atomsk</code> pour produire une moyenne des positions atomiques de tous ces systèmes. Le système moyenné sera dupliqué deux fois dans chaque dimension (grâce à l'<a href="./option_expand.html">option <code>-expand</code></a>), et enfin le résultat final sera écrit dans <code>moyenne.cfg</code> et <code>moyenne.xsf</code>.</p></li>
+<li><code class="command">ls *.xsf > liste.lst &amp;&amp; atomsk --average liste.lst -duplicate 2 2 2 moyenne.cfg xsf</code>
+<p>Ceci va lister tous les fichiers portant l'extension .xsf et enregistrera la liste dans <code>liste.lst</code>, puis exécutera <code>atomsk</code> pour produire une moyenne des positions atomiques de tous ces systèmes. Le système moyenné sera dupliqué deux fois dans chaque dimension (grâce à l'<a href="./option_duplicate.html">option <code>-duplicate</code></a>), et enfin le résultat final sera écrit dans <code>moyenne.cfg</code> et <code>moyenne.xsf</code>.</p></li>
 </ul>
 
 

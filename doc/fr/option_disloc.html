@@ -30,7 +30,7 @@
   <li><strong>p<sub>1</sub>, p<sub>2</sub></strong> : coordonnées de la dislocation dans le plan normal à la ligne de dislocation (voir <code>lignedisloc</code>), dans l'ordre de permutation X, Y, Z (par ex. si <code>lignedisloc=Y</code> alors p<sub>1</sub> sera la position suivant Z et p<sub>2</sub> celle suivant X).</li>
   <li><strong>typedisloc</strong> : type de dislocation, doit être "screw" pour une dislocation vis, "edge" ou "edge2" pour une dislocation coin ; lorsque l'élasticité anisotrope est utilisée, une dislocation mixte peut être construite en utilisant "mixed" (voir ci-dessous).</li>
   <li><strong>lignedisloc</strong> : direction de la ligne de dislocation, doit être x, y ou z.</li>
-  <li><strong>plandisloc</strong> : direction normale au plan de coupure, doit être x, y ou z, et doit être différent de <code>lignedisloc</code>;</li>
+  <li><strong>plandisloc</strong> : direction normale au plan de coupure, doit être x, y ou z, et doit être différent de <code>lignedisloc</code>.</li>
   <li><strong>b1, b2, b3</strong> : composantes du vecteur de Burgers (en &Aring;) ; pour les dislocations de type coin ("edge" ou "edge2") ou vis ("screw") une seule valeur doit être donnée ; pour celles de type mixte ("mixed") les trois composantes doivent être données.</li>
   <li><strong>&nu;</strong> : coefficient de Poisson du matériau ; sa valeur est utilisée pour construire les dislocations coin ("edge" ou "edge2"), mais est ignorée dans le cas des dislocations vis ("screw") ou si l'élasticité anisotrope est utilisée.</li>
 </ul>
@@ -88,10 +88,10 @@ appliqués :</p>
 <li><code class="command">atomsk initial.cfg -disloc 0.25*BOX 0.5*BOX screw z y 3.2 0.0 -disloc 0.75*BOX 0.5*BOX screw z y -3.2 0.0 final.xyz</code>
 <p>Ceci insèrera deux dislocations vis de vecteurs de Burgers opposés, la première en (0.25;0.5) et la seconde en (0.75;0.5) fois la taille de boîte.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -expand 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.xsf</code>
-<p>Ceci lira <code>unitcell.xyz</code>, <a href="./option_expand.html">étendra le système</a> pour former une supercellule de 30x2x20, puis construira une dislocation coin en insérant un nouveau plan d'atomes. La ligne de dislocation sera suivant Y, le vecteur de Burgers aura une amplitude de 2.8 &Aring;, le coefficient de Poisson vaut 0.28, et le centre de la dislocation sera placé à Z=30 &Aring; et X=40.2 &Aring;. Le résultat sera écrit dans <code>dislocation.xsf</code>.</p></li>
+<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.xsf</code>
+<p>Ceci lira <code>unitcell.xyz</code>, <a href="./option_duplicate.html">dupliquera le système</a> pour former une supercellule de 30x2x20, puis construira une dislocation coin en insérant un nouveau plan d'atomes. La ligne de dislocation sera suivant Y, le vecteur de Burgers aura une amplitude de 2.8 &Aring;, le coefficient de Poisson vaut 0.28, et le centre de la dislocation sera placé à Z=30 &Aring; et X=40.2 &Aring;. Le résultat sera écrit dans <code>dislocation.xsf</code>.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -expand 30 2 20 -disloc 30 40.2 edge2 y x 2.8 0.28 dislocation.cfg</code>
+<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge2 y x 2.8 0.28 dislocation.cfg</code>
 <p>Similaire à l'exemple précédent, sauf que la dislocation coin sera introduite sans ajouter d'atome au système.</p></li>
 
 <li><div class="txtfile">

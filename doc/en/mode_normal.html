@@ -55,8 +55,8 @@
 <li><code class="command">atomsk xsf new_system cfg mysystem.gin</code>
 <p>Same as previous example. Note that command-line parameters can be specified in any order.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -e 2 2 6 -shift above 6.5 z 0.2 0.6 0.0 stackingfault.xsf</code>
-<p>This example uses several options. The file <code>unitcell.xyz</code> will be read, then the system will be <a href="./option_expand.html">expanded</a> to a 2x2x6 supercell, then part of the system will be <a href="./option_shift.html">shifted</a>, and the resulting system will be written to <code>stackingfault.xsf</code>.</p></li>
+<li><code class="command">atomsk unitcell.xyz -duplicate 2 2 6 -shift above 6.5 z 0.2 0.6 0.0 stackingfault.xsf</code>
+<p>This example uses several options. The file <code>unitcell.xyz</code> will be read, then the system will be <a href="./option_duplicate.html">duplicated</a> to a 2x2x6 supercell, then part of the system will be <a href="./option_shift.html">shifted</a>, and the resulting system will be written to <code>stackingfault.xsf</code>.</p></li>
 
 </ul>
 

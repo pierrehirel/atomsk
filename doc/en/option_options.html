@@ -51,8 +51,8 @@
 <p>This will read the LAMMPS output file <code>SiC_relaxed.lmc</code>, apply the options that are described in the file <code>my_options.txt</code>, and write the final result to <code>SiC_relaxed.xsf</code>.</p></li>
 
 
-<li><code class="command">atomsk initial.cfg -e 3 3 2 -options my_options.txt -alignx -wrap final.xsf</code>
-<p>This will read the file <code>initial.cfg</code>, <a href="./option_expand.html">expand the system</a> 3x3x2, then will apply the options described in <code>my_options.txt</code>, then will apply the options <a href="./option_alignx.html"><code>-alignx</code></a> and <a href="./option_wrap.html"><code>-wrap</code></a>, and finally will write the result in <code>final.xsf</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -duplicate 3 3 2 -options my_options.txt -alignx -wrap final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, <a href="./option_duplicate.html">duplicate the system</a> 3x3x2, then will apply the options described in <code>my_options.txt</code>, then will apply the options <a href="./option_alignx.html"><code>-alignx</code></a> and <a href="./option_wrap.html"><code>-wrap</code></a>, and finally will write the result in <code>final.xsf</code>.</p></li>
 
 
 </ul>

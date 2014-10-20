@@ -28,10 +28,10 @@
 
 <ul>
   <li><strong>component</strong>: stress component that will be affected, must be 'xx', 'yy', 'zz', 'yx', 'zx', 'zy', or 'p'.</li>
-  <li><strong>&sigma;</strong>: value of the applied stress, in GPa.</li>
+  <li><strong>&sigma;</strong>: value of the applied stress, in GPa. Use a positive value for tension, or a negative value for compression</li>
 </ul>
 
-<p>If the stress component is "p" then an isostatic pressure will be applied, i.e. &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&sigma;, and all deviatoric stresses will be zero.</p>
+<p>If the stress component is "p" then an isostatic pressure will be applied, and &#60;&sigma;&#62; will actually be the value of the pressure. In other words the applied stress will be &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&#60;&sigma;&#62;, with all deviatoric stresses being zero.</p>
 
 <p>Alternatively the stress components can be read from a &#60;file&#62;. The &#60;file&#62; must be a text file containing the keyword "Voigt" (without quotation marks) followed on the next line by the three first Voigt components of stress &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, and on yet another line the last three components &sigma;<sub>yx</sub>, &sigma;<sub>zx</sub>, &sigma;<sub>zy</sub>. Alternatively the &#60;file&#62; can contain the keyword "stress" (without quotation marks) followed by the full 3x3 stress tensor (on three separate lines, three components per line).</p>
 

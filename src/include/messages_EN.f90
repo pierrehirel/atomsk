@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Oct. 2014                                     *
+!* Last modification: P. Hirel - 20 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -225,9 +225,9 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> <screw|edge|edge2> <x|y|z> <x|y|z> <b> <ν>"
 ENDIF
 !
-IF(helpsection=="options" .OR. helpsection=="-expand" .OR. helpsection=="-e") THEN
-  WRITE(*,*) "..> Expand the system in the 3 directions of space:"
-  WRITE(*,*) "          -e <ex> <ey> <ez>"
+IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
+  WRITE(*,*) "..> Duplicate the system in the 3 directions of space:"
+  WRITE(*,*) "          -duplicate <Nx> <Ny> <Nz>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-fix") THEN

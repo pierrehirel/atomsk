@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Oct. 2014                                     *
+!* Last modification: P. Hirel - 20 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -708,9 +708,12 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-expand' .OR. clarg=='-e' .OR. clarg=='-duplicate' .OR. clarg=='-dup') THEN
+  ELSEIF(clarg=='-duplicate' .OR. clarg=='-dup' .OR. clarg=='-expand' .OR. clarg=='-e') THEN
+    IF( clarg=='-expand' .OR. clarg=='-e') THEN
+      CALL ATOMSK_MSG(2799,(/'-expand   ','-duplicate'/),(/0.d0/))
+    ENDIF
     ioptions = ioptions+1
-    options_array(ioptions) = '-expand'
+    options_array(ioptions) = '-duplicate'
     DO m=1,3
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp

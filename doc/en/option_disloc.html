@@ -28,10 +28,10 @@
 
 <ul>
   <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordinates of the dislocation in the plane normal to the dislocation line (see <code>dislocline</code>), by order of permutation X, Y, Z (e.g. if <code>dislocline=Y</code> then p<sub>1</sub> will be the position along Z and p<sub>2</sub> the position along X).</li>
-  <li><strong>disloctype</strong>: type of dislocation, must be "screw", "edge", or "edge2"; when using anisotropic elasticity, can be "mixed" (see below);</li>
-  <li><strong>dislocline</strong>: direction of dislocation line, must be x, y or z;</li>
-  <li><strong>dislocplane</strong>: direction normal to the plane of cut, must be x, y or z, and must be different from <code>dislocline</code>;</li>
-  <li><strong>b1, b2, b3</strong>: components of the Burgers vector (in &Aring;); for dislocations of type "edge", "edge2" and "screw" only one value must be given; for type "mixed" the 3 components must be provided;</li>
+  <li><strong>disloctype</strong>: type of dislocation, must be "screw", "edge", or "edge2"; when using anisotropic elasticity, can be "mixed" (see below).</li>
+  <li><strong>dislocline</strong>: direction of dislocation line, must be x, y or z.</li>
+  <li><strong>dislocplane</strong>: direction normal to the plane of cut, must be x, y or z, and must be different from <code>dislocline</code>.</li>
+  <li><strong>b1, b2, b3</strong>: components of the Burgers vector (in &Aring;); for dislocations of type "edge", "edge2" and "screw" only one value must be given; for type "mixed" the 3 components must be provided.</li>
   <li><strong>&nu;</strong>: Poisson ratio of the material; it is very important to specify a correct value if you build an edge dislocation (for screw dislocations it is not used and can be set to any arbitrary value).</li>
 </ul>
 
@@ -87,10 +87,10 @@ step at one edge of the supercell, possibly messing up the boundary conditions.<
 <li><code class="command">atomsk initial.cfg -disloc 0.25*BOX 0.5*BOX screw z y 3.2 0.0 -disloc 0.75*BOX 0.5*BOX screw z y -3.2 0.0 final.xyz</code>
 <p>This will read <code>initial.cfg</code> and insert two screw dislocations of opposite Burgers vectors, the first one at (0.25;0.5) and the second one at (0.75;0.5). The result will be output to <code>final.xyz</code>.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -expand 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.xsf</code>
-<p>This will read <code>unitcell.xyz</code>, <a href="./option_expand.html">expand it</a> to form a 30x2x20 supercell, and then construct an edge dislocation by inserting a row of new atoms. The dislocation line will lie along Y, with a Burgers vector of 2.8 &Aring;, using a Poisson ratio of 0.28, and the center of the dislocation will be placed at 30 &Aring; along Z and 40.2 &Aring; along X. The result will be output to <code>dislocation.xsf</code>.</p></li>
+<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.xsf</code>
+<p>This will read <code>unitcell.xyz</code>, <a href="./option_duplicate.html">duplicate it</a> to form a 30x2x20 supercell, and then construct an edge dislocation by inserting a row of new atoms. The dislocation line will lie along Y, with a Burgers vector of 2.8 &Aring;, using a Poisson ratio of 0.28, and the center of the dislocation will be placed at 30 &Aring; along Z and 40.2 &Aring; along X. The result will be output to <code>dislocation.xsf</code>.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -expand 30 2 20 -disloc 30 40.2 edge2 y x 2.8 0.28 dislocation.cfg</code>
+<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge2 y x 2.8 0.28 dislocation.cfg</code>
 <p>Similar to the previous example, except that the edge dislocation will be constructued by adding a surface step  (i.e. without inserting new atoms).</p></li>
 
 <li><div class="txtfile">
