@@ -11,7 +11,7 @@ MODULE center
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 April 2014                                    *
+!* Last modification: P. Hirel - 20 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -106,7 +106,7 @@ IF( ALLOCATED(S) ) THEN
   ENDDO
 ENDIF
 !
-CALL ATOMSK_MSG(2119,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(2119,(/''/),(/Vshift(1),Vshift(2),Vshift(3)/))
 !
 !
 !

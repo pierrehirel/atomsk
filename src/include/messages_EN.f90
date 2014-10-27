@@ -1374,7 +1374,14 @@ CASE(2118)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2119)
-  msg = "..> System was re-centered."
+  !reals(1) = X component of shift vector
+  !reals(2) = Y component of shift vector
+  !reals(3) = Z component of shift vector
+  WRITE(temp,'(f16.3)') reals(1)
+  WRITE(temp2,'(f16.3)') reals(2)
+  WRITE(temp3,'(f16.3)') reals(3)
+  msg = "..> System was re-centered, shift vector: ("//TRIM(ADJUSTL(temp))// &
+      & ","//TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2120)
   !strings(1) = direction normal to mirror plane

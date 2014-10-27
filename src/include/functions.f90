@@ -10,7 +10,7 @@ MODULE functions
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 13 June 2014                                     *
+!* Last modification: P. Hirel - 23 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -165,7 +165,7 @@ END FUNCTION Day_of_week
 ! used to display long file names, e.g.:
 ! /a/very/very/ridiculously/loooong/path/to/my/file
 ! would be replaced by something like:
-! /a/very/.../my/file
+! /a/very/.../to/my/file
 !********************************************************
 FUNCTION CHARLONG2SHRT(longname) RESULT (shortname)
 !
@@ -174,7 +174,7 @@ CHARACTER(*):: longname
 CHARACTER(LEN=64):: shortname
 CHARACTER(LEN=64):: part1, part2
 CHARACTER(LEN=LEN(longname)):: temp
-INTEGER:: i
+INTEGER:: i, j
 !
 IF( LEN_TRIM(longname)>64 ) THEN
   !Look for the last path separator
@@ -185,9 +185,17 @@ IF( LEN_TRIM(longname)>64 ) THEN
     !Look for the separator before that
     temp = longname(1:i-1)
     i = SCAN(temp,pathsep,BACK=.TRUE.)
-    IF( i>0 ) THEN
-      !part2 will contain the last folder name + file name
-      part2 = longname(i:)
+    IF( i>0 .AND. i<=36 ) THEN
+      !Look for the separator before that
+      temp = longname(1:i-1)
+      j = SCAN(temp,pathsep,BACK=.TRUE.)
+      IF( j>0 .AND. j<=36 ) THEN
+        !part2 will contain the two last folder names + file name
+        part2 = longname(j:)
+      ELSE
+        !part2 will contain the last folder name + file name
+        part2 = longname(i:)
+      ENDIF
     ENDIF
     !part1: look for a path separator before the 32-nd character
     part1 = longname(1:32)
@@ -200,7 +208,7 @@ IF( LEN_TRIM(longname)>64 ) THEN
       part1 = longname(1:28)
     ENDIF
   ELSE
-    !no path separator at all
+    !no path separator at all, it must be a veeeery long file name...
     !=> part1 will contain the first 28 characters
     !   part2 will contain the last 28 characters
     part1 = longname(1:28)
