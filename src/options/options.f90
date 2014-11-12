@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 Oct. 2014                                     *
+!* Last modification: P. Hirel - 12 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,7 +117,7 @@ REAL(dp):: tempreal !temporary real number
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: HS  !Copy of H for shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P  !atomic positions
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S  !shell positions (is any)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S  !shell positions (if any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUXdummy !auxiliary properties of atoms/shells
 !
 !Variables relative to Option: add-atom
@@ -589,7 +589,7 @@ DO ioptions=1,SIZE(options_array)
     READ(options_array(ioptions),'(a128)',END=800,ERR=800) temp
     READ(temp(6:),'(a128)') propfile
     propfile = TRIM(ADJUSTL(propfile))
-    CALL READ_PROPERTIES(propfile,H,P,ORIENT,C_tensor,AUXNAMES,AUX)
+    CALL READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX)
   !
   CASE('-rebox')
     CALL DETERMINE_H(H,P)

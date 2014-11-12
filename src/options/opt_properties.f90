@@ -12,7 +12,7 @@ MODULE properties
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Oct. 2014                                     *
+!* Last modification: P. Hirel - 12 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,7 +39,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE READ_PROPERTIES(propfile,H,P,ORIENT,C_tensor,AUXNAMES,AUX)
+SUBROUTINE READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX)
 !
 !
 IMPLICIT NONE
@@ -69,6 +69,7 @@ REAL(dp),DIMENSION(100,3):: tempprop  !temp. array for per-atom properties (max.
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX             !auxiliary properties (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P  !atom positions
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: S  !shell positions (if any)
 !
 !Initialize variables
 areortho(:) = .TRUE.
@@ -263,6 +264,38 @@ DO
     !
     !
     !! PER-ATOM PROPERTIES !!
+    ELSEIF(temp(1:12)=='displacement' .OR. temp(1:4)=='disp') THEN
+      msg = 'atom displacements'
+      !Displacement vectors of atoms (and shells) follow
+      !Read the displacement for each atom and apply it immediately
+      !Note: the values may not be given for all atoms
+      DO
+        READ(35,'(a128)',END=173,ERR=173) msg2
+        IF( LEN_TRIM(msg2)>0 ) THEN
+          READ(msg2,*,END=173,ERR=173) i, a, b, c
+          READ(msg2,*,END=172,ERR=172) i, a, b, c, tempreal, tempreal2, tempreal3
+          172 CONTINUE
+          IF( i>0 .AND. i<=SIZE(P,1) ) THEN
+            P(i,1) = P(i,1) + a
+            P(i,2) = P(i,2) + b
+            P(i,3) = P(i,3) + c
+            IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+              S(i,1) = S(i,1) + tempreal
+              S(i,2) = S(i,2) + tempreal2
+              S(i,3) = S(i,3) + tempreal3
+            ENDIF
+          ELSE
+            !given index is out-of-bounds
+            nwarn=nwarn+1
+            CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
+          ENDIF
+        ELSE
+          EXIT
+        ENDIF
+      ENDDO
+      173 CONTINUE
+      CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !
     ELSEIF(temp(1:6)=='charge') THEN
       msg = 'atom charges'
       !Read charges and store it in "tempprop"
@@ -535,6 +568,10 @@ DO
           AUX(i,vy) = tempreal2
           AUX(i,vz) = tempreal3
           readprop=.TRUE.
+        ELSE
+          !given index is out-of-bounds
+          nwarn=nwarn+1
+          CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
         ENDIF
         !
         152 CONTINUE
@@ -606,6 +643,10 @@ DO
           IF( i>0 .AND. i<=SIZE(AUX,1) ) THEN
             AUX(i,auxcol) = tempreal
             readprop=.TRUE.
+          ELSE
+            !given index is out-of-bounds
+            nwarn=nwarn+1
+            CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
           ENDIF
           !
           162 CONTINUE

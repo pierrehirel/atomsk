@@ -26,11 +26,19 @@
 
 <p>The &#60;file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored. If a property is specified several times, then only the last one is used.</p>
 
-<p><em>Per-atom properties</em> (also called <em>auxiliary</em> properties) are defined for each atom, e.g. the atom velocities; they are written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
+<p><em>Per-atom properties</em> are defined for each atom, e.g. the atom displacements or velocities. If they are auxiliary properties (e.g. velocities, electric charge...), they will be written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
 
-<p>Below is the list of valid <strong>per-atom properties</strong>, which are saved as auxiliary properties of the atoms:</p>
+<p>Below is the list of valid <strong>per-atom properties</strong>, which apply to atoms:</p>
 
 <ul>
+  
+  <li><strong>Displacement vectors</strong> can be defined using the keyword "displacement", followed by lines containing the atom index and its displacement vector <code>u</code> (in &Aring;). Optionally, the displacement vector <code>s</code> for the shell (in the sense of an ionic core-shell model) can also be given:<br/>
+      <p><code>displacement<br/>
+            &#60;id1&#62; &#60;ux1&#62; &#60;uy1&#62; &#60;uz1&#62; [&#60;sx1&#62; &#60;sy1&#62; &#60;sz1&#62;]<br/>
+            &#60;id2&#62; &#60;ux2&#62; &#60;uy2&#62; &#60;uz2&#62; [&#60;sx2&#62; &#60;sy2&#62; &#60;sz2&#62;]<br/>
+            ...</code></p>
+  <p>The displacements can be given for all atoms, or only some of them. The displacement vectors will be immediately applied to the atom positions.</p></li>
+  
   <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but <code>atomsk</code> will work with whatever number is given). In case of an ionic core-shell model two charges can be specified, corresponding to the core and shell respectively:<br/>
       <p><code>charge<br/>
             &#60;species1&#62; &#60;charge1&#62; [&#60;shell1&#62;]<br/>
@@ -52,7 +60,7 @@
             &#60;id1&#62; &#60;vx1&#62; &#60;vy1&#62; &#60;vz1&#62;<br/>
             &#60;id2&#62; &#60;vx2&#62; &#60;vy2&#62; &#60;vz2&#62;<br/>
             ...</code></p>
-  <p>The velocities can be given for all atoms, or only some of them. Atoms which velocity is not defined will be assigned a zero velocity. In order to generate random velocities with a Maxwell-Boltzmann distribution one can use the <a href="./option_velocity.html">option <code>-velocity</code></a>.</p></li>
+  <p>The velocities can be given for all atoms, or only some of them. Atoms which velocity is not given will keep their velocities if they were previously defined, or else be assigned a zero velocity. In order to generate random velocities with a Maxwell-Boltzmann distribution one can use the <a href="./option_velocity.html">option <code>-velocity</code></a>.</p></li>
   
   <li>Any arbitrary property can be defined for each atom using the keyword "auxiliary" followed by the name of the property, each following line containing an atom index and the value of the property for that atom:<br/>
       <p><code>auxiliary &#60;property&#62;<br/>
@@ -71,7 +79,7 @@
             H(1,1) H(1,2) H(1,3)<br/>
             H(2,1) H(2,2) H(2,3)<br/>
             H(3,1) H(3,2) H(3,3)<br/></code></p>
-      <p>Alternatively the conventional notation can be used by using the keyword "conventional" (angles in degrees):</p>
+      <p>Alternatively the conventional notation can be used with the keyword "conventional" (angles in degrees):</p>
       <p><code>conventional<br/>
             a b c<br/>
             &alpha; &beta; &gamma;</code></p>
@@ -100,7 +108,7 @@
       
       <p>Similarly, if a rotation option (such as <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> or <a href="./option_orient.html"><code>-orient</code></a>) is used <em>before</em> the elastic tensor is defined with the present option, then the elastic tensor is assumed to correspond to the rotated system. If a rotation option is called <em>after</em> the present option, then the elastic tensor will be transformed accordingly.</p>
       
-      <p>These elastic constants affect the <a href="./option_disloc.html">option <code>-dislocation</code></a> by triggering the use of anisotropic elasticity for building dislocations.</p></li>
+      <p>These elastic constants are used in the <a href="./option_stress.html">option <code>-stress</code></a>, and in the <a href="./option_disloc.html">option <code>-dislocation</code></a> by triggering the use of anisotropic elasticity for building dislocations.</p></li>
   
   <li><p>Similarly the <strong>compliance tensor</strong> can be specified using the keyword "compliance" followed by the values (6x6 array) of the compliances in GPa<sup>-1</sup>:</p>
       <p><code>compliance<br/>

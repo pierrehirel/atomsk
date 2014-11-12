@@ -26,11 +26,19 @@
 
 <p>Le &#60;fichier&#62; doit contenir des mots-clés suivis de valeurs correspondantes. Les lignes vides, et les lignes commençant avec un croisillon (&#35;), sont ignorées. Si une propriété est définie plusieurs fois, la dernière occurence écrase les précédentes.</p>
 
-<p><em>Les propriétés individuelles des atomes</em> (aussi appelées propriétés <em>auxiliaires</em>) sont définies pour chaque atome, c'est le cas par ex. des vitesses des atomes ; elles sont écrites dans certains formats de fichiers, voir <a href="./formats.html">cette page</a>. <em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
+<p><em>Les propriétés individuelles des atomes</em> sont définies pour chaque atome, c'est le cas par ex. des déplacements ou des vitesses des atomes. S'il s'agit de propriétés auxiliaires (par ex. les vitesses, charges électriques...), elles sont écrites dans certains formats de fichiers, voir <a href="./formats.html">cette page</a>. <em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
 
 <p>Voici la liste des <strong>propriétés atomiques individuelles</strong>, qui sont enregistrées comme propriétés auxiliaires pour chaque atome :</p>
 
 <ul>
+  
+  <li><strong>Des vecteurs de déplacement</strong> peuvent être définis grâce au mot-clé "displacement", suivi de lignes contenant l'indice d'un atome et son vecteur de déplacement <code>u</code> (in &Aring;). Au besoin, le vecteur de déplacement <code>s</code> des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) peut aussi être donné:<br/>
+      <p><code>displacement<br/>
+            &#60;id1&#62; &#60;ux1&#62; &#60;uy1&#62; &#60;uz1&#62; [&#60;sx1&#62; &#60;sy1&#62; &#60;sz1&#62;]<br/>
+            &#60;id2&#62; &#60;ux2&#62; &#60;uy2&#62; &#60;uz2&#62; [&#60;sx2&#62; &#60;sy2&#62; &#60;sz2&#62;]<br/>
+            ...</code></p>
+  <p>Les déplacements peuvent être donnés pour tous les atomes, ou seulement certains d'entre eux. Ces déplacements seront immédiatement appliqués aux positions des atomes.</p></li>
+  
   <li><strong>Les charges des ions</strong> peuvent être définies grâce au mot-clé "charge", suivi de lignes contenant le symbole chimique de l'ion et sa charge (généralement en unités de charges élémentaires <em>e</em>, bien que <code>atomsk</code> travaillera quel que soit le nombre donné). Dans le cas d'un modèle ionique c&oelig;ur-coquille deux charges peuvent être données, correspondant à la charge du c&oelig;ur et à celle de la coquille :<br/>
       <p><code>charge<br/>
             &#60;espèce1&#62; &#60;charge1&#62; [&#60;coquille1&#62;]<br/>
@@ -46,6 +54,13 @@
   <p>Cette option va assigner un &#60;type&#62; à chaque &#60;espèce&#62;. Notez que le &#60;type&#62; est enregistré comme propriété auxiliaire pour chaque atome, et est utilisé lors de l'écriture de certains formats de fichiers (par ex. les <a href="./format_lmp.html">fichiers de données de LAMMPS</a> ou <a href="./format_imd.html">les fichiers IMD</a>).</p>
   
   <p>Pour l'opération inverse (c-à-d. remplacer les types d'atomes par des espèces chimiques) il est possible d'utiliser l'<a href="./option_substitute.html">option <code>-substitute</code></a>.</p></li>
+  
+  <li><strong>Les vitesses des atomes</strong> peuvent être définis grâce au mot-clé "velocity":<br/>
+      <p><code>velocity<br/>
+            &#60;id1&#62; &#60;vx1&#62; &#60;vy1&#62; &#60;vz1&#62;<br/>
+            &#60;id2&#62; &#60;vx2&#62; &#60;vy2&#62; &#60;vz2&#62;<br/>
+            ...</code></p>
+  <p>Les vitesses peuvent être données pour tous les atomes, ou seulement certains d'entre eux. Les atomes dont la vitesse n'est pas donnée conserveront leur vitesse si elle était précédemment définie, ou le cas échéant se verront attribuer une vitesse nulle. Afin de générer des vitesses avec une distribution de Maxwell-Boltzmann, il est possible d'utiliser l'<a href="./option_velocity.html">option <code>-velocity</code></a>.</p></li>
   
   <li>N'importe quelle propriété auxiliaire peut être définie grâce au mot-clé "auxiliary" suivi du nom de la propriété, les lignes suivantes contenant chacune l'indice d'un atome et la valeur de la propriété pour cet atome :<br/>
       <p><code>auxiliary &#60;propriété&#62;<br/>
@@ -93,7 +108,7 @@
       
       <p>De façon similaire, si une option de rotation (telle que <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> ou <a href="./option_orient.html"><code>-orient</code></a>) est utilisée <em>avant</em> que le tenseur élastique ne soit lu, alors le tenseur élastique fourni doit correspondre au système déjà pivoté. Si une option de rotation est appelée <em>après</em> avoir lu le tenseur élastique, alors celui-ci sera pivoté en conséquence.</p>
       
-      <p>Ces constantes élastiques affectent l'<a href="./option_disloc.html">option <code>-dislocation</code></a> en activant l'utilisation de l'élasticité anisotrope pour construire des dislocations.</p></li>
+      <p>Ces constantes élastiques sont utilisées dans l'<a href="./option_stress.html">option <code>-stress</code></a>, et affectent l'<a href="./option_disloc.html">option <code>-dislocation</code></a> en activant l'utilisation de l'élasticité anisotrope pour construire des dislocations.</p></li>
   
   <li><p>De façon similaire le <strong>tenseur de complaisance</strong> peut être donné grâce au mot-clé "compliance" (valeurs en GPa<sup>-1</sup>) :</p>
       <p><code>compliance<br/>
