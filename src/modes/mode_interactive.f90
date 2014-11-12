@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Oct. 2014                                     *
+!* Last modification: P. Hirel - 31 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -175,6 +175,29 @@ DO
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!         COMMANDS FOR PROGRAM BEHAVIOR
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      CASE("ignore","ig")
+        ignore = .TRUE.
+      !
+      CASE("overwrite","ow")
+        overw = .TRUE.
+        !
+      CASE("language","lang")
+        READ(instruction,*) command, temp
+        IF(temp=="fr") THEN
+          lang = "fr"
+        ELSE
+          lang = "en"
+        ENDIF
+      !
+      CASE("verbosity","v")
+        READ(instruction,*,ERR=400,END=400) command, temp
+        READ(temp,*,ERR=400,END=400) i
+        verbosity=i
+      !
+      !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!         SPECIAL COMMANDS
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("clear")
@@ -202,14 +225,6 @@ DO
       CASE("ls","dir")
         CALL SYSTEM(system_ls)
         !
-      CASE("language","lang")
-        READ(instruction,*) command, temp
-        IF(temp=="fr") THEN
-          lang = "fr"
-        ELSE
-          lang = "en"
-        ENDIF
-        !
       CASE("exit","quit","bye")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
           !User may have forgotten to write file => Display a warning
@@ -236,17 +251,17 @@ DO
         IF( ALLOCATED(P) ) THEN
           i=i+1
           IF( ALLOCATED(S) ) THEN
-            WRITE(*,'(a17, i9)') " N ionic cores:  ", SIZE(P,1)
-            WRITE(*,'(a17, i9)') " N ionic shells: ", SIZE(S,1)
+            WRITE(*,'(a18, i9)') "  N ionic cores:  ", SIZE(P,1)
+            WRITE(*,'(a18, i9)') "  N ionic shells: ", SIZE(S,1)
             j = SIZE(P,1)+SIZE(S,1)
           ELSE
             j = SIZE(P,1)
           ENDIF
-          WRITE(*,'(a17, i9)') " N particles:    ", j
+          WRITE(*,'(a18, i9)') "  N particles:    ", j
           !Write atoms species and their number
           CALL FIND_NSP(P(:,4),aentries)
           IF( SIZE(aentries,1)>0 ) THEN
-            msg = "Species:"
+            msg = " Species:"
             DO j=1,SIZE(aentries,1)
               CALL ATOMSPECIES(aentries(j,1) , species)
               msg = TRIM(msg)//" "//species
@@ -262,7 +277,7 @@ DO
           DO j=2,SIZE(AUXNAMES)
             msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(AUXNAMES(j)))
           ENDDO
-          WRITE(*,*) " Auxiliary properties: ", msg
+          WRITE(*,*) " Auxiliary properties: "//TRIM(ADJUSTL(msg))
         ENDIF
         IF( ALLOCATED(SELECT) ) THEN
           i=i+1
@@ -478,7 +493,11 @@ DO
       CASE("1337")
         WRITE(*,*) "U R 1337 :-)"
         !
-      CASE("quizz","quiz")
+      CASE("motd")
+        !Message of the day
+        CALL DATE_MSG()
+        !
+      CASE("quizz","quiz","play","game")
         !The user wants to play: ask a question about a random atom
         CALL ATOMSK_MSG(4300,(/""/),(/DBLE(maxtries)/))
         try=0

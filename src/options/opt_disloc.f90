@@ -22,7 +22,7 @@ MODULE dislocation
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 June 2014                                     *
+!* Last modification: P. Hirel - 12 Nov. 2014                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* DISLOC_XYZ          main subroutine - introduces a dislocation                 *
@@ -84,6 +84,7 @@ INTEGER:: sig1, sig2, sig3, sig4, sig5, sig6 !for indexing stresses
 REAL(dp):: bsign !sign of Burgers vector (+1.d0 or -1.d0)
 REAL(dp):: pos1, pos2 !Coordinates of dislocation in the plane
 REAL(dp):: tempreal
+REAL(dp),DIMENSION(3):: disp     !elastic displacement applied to an atom
 REAL(dp),DIMENSION(3):: Kfactor  !energy factor (anisotropic elasticity)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: rot_matrix !rotation matrix
@@ -283,11 +284,12 @@ IF(disloctype=='screw') THEN
     !Anisotropic elasticity
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        CALL ANISO_DISP(i,P(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
         !
         !Same if shells exist
         IF( doshells ) THEN
-          CALL ANISO_DISP(i,S(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+          S(i,1:3) = S(i,1:3) + disp(:)
         ENDIF
       ENDIF
     ENDDO
@@ -295,11 +297,12 @@ IF(disloctype=='screw') THEN
     !Isotropic elasticity
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        CALL DISPSCREW(i,P(i,:),a1,a2,a3,b(a3),pos1,pos2)
+        disp = DISPSCREW(i,P(i,:),a1,a2,a3,b(a3),pos1,pos2)
+        P(i,1:3) = P(i,1:3) + disp(:)
         !
         !Same if shells exist
         IF( doshells ) THEN
-          CALL DISPSCREW(i,S(i,:),a1,a2,a3,b(a3),pos1,pos2)
+          S(i,1:3) = S(i,1:3) + disp(:)
         ENDIF
       ENDIF
     ENDDO
@@ -367,10 +370,19 @@ ELSEIF(disloctype=='edge') THEN
           k=k+1
           n = SIZE(P(:,1))+k
           Q(n,:) = P(i,:)
-          !Apply edge displacements along a2
-          CALL ANISO_DISP(n,Q(n,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+          !Apply edge displacements
+          disp = ANISO_DISP(n,Q(n,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+          Q(n,1:3) = Q(n,1:3) + disp(:)
           !Along a1, positions are those of P shifted by 3/4 Burgers vector
           Q(n,a1) = P(i,a1) -DABS(b(a1))*0.75d0
+          !
+          !Apply displacements to shell
+          IF( doshells ) THEN
+            T(n,:) = S(i,:)
+            T(n,1:3) = T(n,1:3) + disp(:)
+            T(n,a1) = S(i,a1) -DABS(b(a1))*0.75d0
+          ENDIF
+          !
           !Copy auxiliary properties for inserted atoms
           IF(ALLOCATED(AUX)) THEN
             newAUX(n,:) = AUX(i,:)
@@ -386,44 +398,21 @@ ELSEIF(disloctype=='edge') THEN
     DO i=1,SIZE(P,1)
       Q(i,:) = P(i,:)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-         IF( P(i,a1)>=pos1 .AND. (P(i,a2)-pos2)*b(a1)/DABS(b(a1))>=0.d0 ) THEN
-           Q(i,a1) = P(i,a1)+DABS(b(a1))
-         ENDIF
-        CALL ANISO_DISP(i,Q(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        IF( P(i,a1)>=pos1 .AND. (P(i,a2)-pos2)*b(a1)/DABS(b(a1))>=0.d0 ) THEN
+          Q(i,a1) = P(i,a1)+DABS(b(a1))
+          IF( doshells ) THEN
+            T(i,a1) = S(i,a1)+DABS(b(a1))
+          ENDIF
+        ENDIF
+        disp = ANISO_DISP(i,Q(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        Q(i,1:3) = Q(i,1:3) + disp(:)
+        !Apply displacements to shell
+        IF( doshells ) THEN
+          T(i,1:3) = T(i,1:3) + disp(:)
+        ENDIF
       ENDIF
     ENDDO
     !
-    !Same for shells
-    IF( doshells ) THEN
-      k = 0
-      DO i=1,SIZE(S,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( S(i,a1)>=pos1+DABS(b(a1))            .AND.                  &
-            & S(i,a1)<pos1+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
-            & (S(i,a2)-pos2)*b(a1)/DABS(b(a1))>=0.d0            ) THEN
-            k=k+1
-            n = SIZE(S(:,1))+k
-            T(n,:) = S(i,:)
-            !Apply edge displacements along a2
-            CALL ANISO_DISP(n,T(n,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
-            !Along a1, positions are those of P shifted by 3/4 Burgers vector
-            T(n,a1) = S(i,a1) -DABS(b(a1))*0.75d0
-          ENDIF
-        ENDIF
-      ENDDO
-      !
-      !Then we apply atomic displacements to all shells
-      !(except the ones we just inserted) and store them into T
-      DO i=1,SIZE(S,1)
-        T(i,:) = S(i,:)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( S(i,a1)>=pos1 .AND. (S(i,a2)-pos2)*b(a1)/DABS(b(a1))>=0.d0 ) THEN
-            T(i,a1) = S(i,a1)+DABS(b(a1))
-          ENDIF
-          CALL ANISO_DISP(i,T(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
-        ENDIF
-      ENDDO
-    ENDIF
     !
   ELSE
     !Isotropic elasticity
@@ -438,9 +427,17 @@ ELSEIF(disloctype=='edge') THEN
           n = SIZE(P,1)+k
           Q(n,:) = P(i,:)
           !Apply edge displacements along a2
-          CALL DISPEDGE(n,Q(n,:),a1,a2,b(a1),nu,pos1,pos2)
+          disp = DISPEDGE(n,Q(n,:),a1,a2,b(a1),nu,pos1,pos2)
+          Q(n,1:3) = Q(n,1:3) + disp(:)
           !Along a1, positions are those of P shifted by 5/4 Burgers vector
           Q(n,a1) = P(i,a1) -DABS(b(a1))*1.25d0
+          !Apply displacements to shells if relevant
+          IF( doshells ) THEN
+            T(n,:) = S(i,:)
+            T(n,1:3) = T(n,1:3) + disp
+            !Along a1, positions are those of P shifted by 5/4 Burgers vector
+            T(n,a1) = S(i,a1) -DABS(b(a1))*1.25d0
+          ENDIF
           !Copy auxiliary properties for inserted atoms
           IF(ALLOCATED(AUX)) THEN
             newAUX(n,:) = AUX(i,:)
@@ -460,40 +457,13 @@ ELSEIF(disloctype=='edge') THEN
           Q(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
         ENDIF
       ENDIF
-      CALL DISPEDGE(i,Q(i,:),a1,a2,b(a1),nu,pos1,pos2)
+      disp = DISPEDGE(i,Q(i,:),a1,a2,b(a1),nu,pos1,pos2)
+      Q(i,1:3) = Q(i,1:3) + disp(:)
+      !Apply displacements to shell
+      IF( doshells ) THEN
+        T(i,1:3) = T(i,1:3) + disp(:)
+      ENDIF
     ENDDO
-    !
-    !Same for shells
-    IF( doshells ) THEN
-      k = 0
-      DO i=1,SIZE(S(:,1))
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( S(i,a1)>=pos1+DABS(b(a1))            .AND.                  &
-            & S(i,a1)<pos1+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
-            & (S(i,a2)-pos2)*b(a1)/DABS(b(a1))>=0.d0            ) THEN
-            k=k+1
-            n = SIZE(S,1)+k
-            T(n,:) = S(i,:)
-            !Apply edge displacements along a2
-            CALL DISPEDGE(n,T(n,:),a1,a2,b(a1),nu,pos1,pos2)
-            !Along a1, positions are those of P shifted by 5/4 Burgers vector
-            T(n,a1) = S(i,a1) -DABS(b(a1))*1.25d0
-          ENDIF
-        ENDIF
-      ENDDO
-      !
-      !Then we apply atomic displacements to all shells
-      !(except the ones we just inserted) and store them into T
-      DO i=1,SIZE(S,1)
-        T(i,:) = S(i,:)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( S(i,a1)>=pos1 ) THEN
-            T(i,a1) = S(i,a1)+DABS(b(a1))/2.d0
-          ENDIF
-        ENDIF
-        CALL DISPEDGE(i,T(i,:),a1,a2,b(a1),nu,pos1,pos2)
-      ENDDO
-    ENDIF
     !
   ENDIF  !Endif aniso
   !
@@ -533,11 +503,12 @@ ELSEIF(disloctype=='edge2') THEN
     !Anisotropic elasticity
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        CALL ANISO_DISP(i,P(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
         !
         !Same if shells exist
         IF( doshells ) THEN
-          CALL ANISO_DISP(i,S(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+          S(i,1:3) = S(i,1:3) + disp(:)
         ENDIF
       ENDIF
     ENDDO
@@ -548,24 +519,27 @@ ELSEIF(disloctype=='edge2') THEN
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
         IF( P(i,a1)>pos1 .AND. P(i,a2)*bsign<pos2*bsign ) THEN
           P(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
-        ENDIF
-        CALL DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos1,pos2)
-        IF( P(i,a1)>pos1 .AND. P(i,a2)*bsign>=pos2*bsign ) THEN
-          P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
-        ENDIF
-        !
-        !Same if shells exist
-        IF( doshells ) THEN
-          IF( S(i,a1)>pos1 .AND. S(i,a2)*bsign<pos2*bsign ) THEN
+          IF( doshells ) THEN
             S(i,a1) = S(i,a1)+DABS(b(a1))/2.d0
           ENDIF
-          CALL DISPEDGE(i,S(i,:),a1,a2,b(a1),nu,pos1,pos2)
-          IF( S(i,a1)>pos1 .AND. S(i,a2)*bsign>=pos2*bsign ) THEN
+        ENDIF
+        !
+        disp = DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos1,pos2)
+        P(i,1:3) = P(i,1:3) + disp(:)
+        IF( doshells ) THEN
+          S(i,1:3) = S(i,1:3) + disp(:)
+        ENDIF
+        !
+        IF( P(i,a1)>pos1 .AND. P(i,a2)*bsign>=pos2*bsign ) THEN
+          P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
+          IF( doshells ) THEN
             S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
           ENDIF
         ENDIF
+        !
       ENDIF
     ENDDO
+    !
   ENDIF
 !
 !
@@ -576,11 +550,10 @@ ELSE
     !Anisotropic elasticity
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        CALL ANISO_DISP(i,P(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
-        !
-        !Same if shells exist
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
         IF( doshells ) THEN
-          CALL ANISO_DISP(i,S(i,:),a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+          S(i,1:3) = S(i,1:3) + disp(:)
         ENDIF
       ENDIF
     ENDDO
@@ -807,7 +780,7 @@ END SUBROUTINE DISLOC_XYZ
 !
 !********************************************************
 ! DISPSCREW
-! This subroutine calculates the displacements due to
+! This function calculates the displacements due to
 ! a screw dislocation in an isotropic medium.
 ! Formulae can be found for instance in
 ! J.P. Hirth, J. Lothe, 'Theory of dislocations',
@@ -816,118 +789,111 @@ END SUBROUTINE DISLOC_XYZ
 ! 4th Ed.(2001),p.66.
 !********************************************************
 !
-SUBROUTINE DISPSCREW(i,P,a1,a2,a3,b,pos1,pos2)
+FUNCTION DISPSCREW(i,P,a1,a2,a3,b,pos1,pos2) RESULT(disp)
 !
 IMPLICIT NONE
 INTEGER,INTENT(IN):: a1, a2, a3
-INTEGER:: i
+INTEGER,INTENT(IN):: i            !index of atom to be displaced
 REAL(dp),INTENT(IN):: b           !norm of Burgers vector
 REAL(dp),INTENT(IN):: pos1, pos2  !Position of the dislocation in the plane
-                                !orthogonal to the dislocation line
-REAL(dp):: prev
-REAL(dp),DIMENSION(3),INTENT(INOUT):: P  !Atom position
+                                  !orthogonal to the dislocation line
+REAL(dp),DIMENSION(3),INTENT(IN):: P      !Atom position
+REAL(dp),DIMENSION(3):: disp  !displacement of the atom
 !
-prev = P(a3)
-P(a3) = P(a3) + b/(2.d0*pi)*DATAN2( P(a2)-pos2 , P(a1)-pos1 )
+disp(:)  = 0.d0
+disp(a3) = b/(2.d0*pi)*DATAN2( P(a2)-pos2 , P(a1)-pos1 )
 !Message if displacement was too large
-IF( DABS(prev-P(a3)) >= 2.d0*DABS(b) ) CALL ATOMSK_MSG(2727,(/''/),(/DBLE(i)/))
+IF( VECLENGTH(disp(:)) >= 2.d0*DABS(b) ) CALL ATOMSK_MSG(2727,(/''/),(/DBLE(i)/))
 !
-END SUBROUTINE DISPSCREW
+END FUNCTION DISPSCREW
 !
 !
 !********************************************************
 ! DISPEDGE
-! This subroutine calculates the displacements due to
+! This function calculates the displacements due to
 ! an edge dislocation in an isotropic medium.
 ! Formulae can be found for instance in
 ! J.P. Hirth, J. Lothe, 'Theory of dislocations',
 ! 1st ed. (1968), p.75
 !********************************************************
 !
-SUBROUTINE DISPEDGE(i,P,a1,a2,b,nu,pos1,pos2)
+FUNCTION DISPEDGE(i,P,a1,a2,b,nu,pos1,pos2) RESULT(disp)
 !
 IMPLICIT NONE
 INTEGER,INTENT(IN):: a1, a2
-INTEGER:: i
+INTEGER,INTENT(IN):: i           !index of atom to be displaced
 REAL(dp),INTENT(IN):: b          !norm of Burgers vector
-REAL(dp),INTENT(IN):: nu
+REAL(dp),INTENT(IN):: nu         !Poisson ratio
 REAL(dp),INTENT(IN):: pos1, pos2 !Position of the dislocation in the plane
-                               !orthogonal to the dislocation line
-REAL(dp):: prev1, prev2
-REAL(dp),DIMENSION(3),INTENT(INOUT):: P  !Atom position
+                                 !orthogonal to the dislocation line
+REAL(dp),DIMENSION(3),INTENT(IN):: P  !Atom position
+REAL(dp),DIMENSION(3):: disp !edge displacement of the atom
 !
-prev1 = P(a1)
-prev2 = P(a2)
-P(a1) = prev1 + b/(2.d0*pi)*                                &
-          &  (DATAN( (prev2-pos2)/(prev1-pos1) ) +          &
-          &   (prev1-pos1)*(prev2-pos2)/( 2.d0*(1.d0-nu)*   &
-          &   ( (prev1-pos1)**2+(prev2-pos2)**2) )          &
+disp(:) = 0.d0
+disp(a1) = b/(2.d0*pi)*                                     &
+          &  (DATAN( (P(a2)-pos2)/(P(a1)-pos1) ) +          &
+          &   (P(a1)-pos1)*(P(a2)-pos2)/( 2.d0*(1.d0-nu)*   &
+          &   ( (P(a1)-pos1)**2+(P(a2)-pos2)**2) )          &
           &  )
-P(a2) = prev2 - b/(2.d0*pi)*                                &
+disp(a2) = 0.d0 - b/(2.d0*pi)*                              &
           &  ( (1.d0-2.d0*nu)/(4.d0*(1.d0-nu))*             &
-          &   DLOG((prev1-pos1)**2+(prev2-pos2)**2) +       &
-          &   ( (prev1-pos1)**2-(prev2-pos2)**2 )/          &
+          &   DLOG((P(a1)-pos1)**2+(P(a2)-pos2)**2) +       &
+          &   ( (P(a1)-pos1)**2-(P(a2)-pos2)**2 )/          &
           &   ( 4.d0*(1.d0-nu)*                             &
-          &     ( (prev1-pos1)**2+(prev2-pos2)**2 )         &
+          &     ( (P(a1)-pos1)**2+(P(a2)-pos2)**2 )         &
           &   )                                             &
           &  )
 !Message if displacement was too large
-IF( DABS(prev1-P(a1)) >= 2.d0*DABS(b) .OR. DABS(prev2-P(a2)) >= 2.d0*DABS(b)) &
+IF( VECLENGTH(disp(:)) >= 2.d0*DABS(b) .OR. DABS(disp(a2)) >= 2.d0*DABS(b)) &
   & CALL ATOMSK_MSG(2727,(/''/),(/DBLE(i)/))
 !
-END SUBROUTINE DISPEDGE
+END FUNCTION DISPEDGE
 !
 !
 !********************************************************
 ! ANISO_DISP
-! This subroutine applies the displacements due to a
+! This function calculates the displacements due to a
 ! dislocation in an anisotropic medium:
 !   u(k) = Re{ [-1/(2*i*pi)]*[SUM(n=1,3) A_k(n)*D(n)
 !                                  *Ln(x1+P(n)*x2)] }
 ! The complex coefficients P(n), A_k(n), D(n) must
-! be provided as input.
+! be provided as input (see routine ANISO_COEFF below).
 ! Formulae can be found for instance in
 ! J.P. Hirth, J. Lothe, 'Theory of dislocations',
 ! 1st ed. (1968), p.426.
 !********************************************************
 !
-SUBROUTINE ANISO_DISP(i,P,a1,a2,a3,pos1,pos2,A_kn,Dn,Pn)
+FUNCTION ANISO_DISP(i,P,a1,a2,a3,pos1,pos2,A_kn,Dn,Pn) RESULT(disp)
 !
 IMPLICIT NONE
 INTEGER,INTENT(IN):: a1, a2, a3
-INTEGER:: i !index of atom
+INTEGER,INTENT(IN):: i            !index of atom to be displaced
 INTEGER:: k, n
 REAL(dp),DIMENSION(3):: disp
 REAL(dp),INTENT(IN):: pos1, pos2  !Position of the dislocation in the plane
-                                !orthogonal to the dislocation line
-REAL(dp):: P1, P2, P3
-REAL(dp),DIMENSION(3),INTENT(INOUT):: P  !Atom position
+                                  !orthogonal to the dislocation line
+REAL(dp),DIMENSION(3),INTENT(IN):: P  !Atom position
 COMPLEX(dp):: logterm, tempcmplx !the term that is in the neperian log
 COMPLEX(dp),PARAMETER:: frac2ipi = DCMPLX(0.d0,-1.d0/(2.d0*pi))  ! -1/(2*i*pi)
 COMPLEX(dp),DIMENSION(3),INTENT(IN):: Dn, Pn !anisotropy coefficients D(n), P(n)-
 COMPLEX(dp),DIMENSION(3,3),INTENT(IN):: A_kn !-and A_k(n)
 !
-P1 = P(a1)
-P2 = P(a2)
-P3 = P(a3)
+disp(:) = 0.d0
 !
 DO k=1,3
   tempcmplx = DCMPLX(0.d0,0.d0)
   !Compute the sum
   DO n=1,3
-    logterm = DCMPLX(P1-pos1,0.d0) + Pn(n)*DCMPLX(P2-pos2,0.d0)
+    logterm = DCMPLX(P(a1)-pos1,0.d0) + Pn(n)*DCMPLX(P(a2)-pos2,0.d0)
     tempcmplx = tempcmplx + frac2ipi*A_kn(k,n)*Dn(n)*LOG(logterm)
   ENDDO
   !We want only the real part
   disp(k) = DBLE(tempcmplx)
 ENDDO
-P(a1) = P1+disp(1)
-P(a2) = P2+disp(2)
-P(a3) = P3+disp(3)
 !Message if displacement was too large
 IF( VECLENGTH(disp(:))>=10.d0 ) CALL ATOMSK_MSG(2727,(/''/),(/DBLE(i)/))
 !
-END SUBROUTINE ANISO_DISP
+END FUNCTION ANISO_DISP
 !
 !
 !********************************************************

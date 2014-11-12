@@ -2,7 +2,7 @@
 
 # List of source files (order is very important here)
 # Localization (l10n) modules: additional languages can be added here
-L10N=messages_FR.f90
+L10N=messages_FR.f90 messages_DE.f90
 
 SGE=comv.f90              \
     constants.f90         \
@@ -27,6 +27,6 @@ OGE=$(SGE:.f90=.o)
 VPATH=..$(SEP)$(OBJ)
 #Default rule to make targets
 %.o : %.f90
-	$(FORTRAN) $(FFLAGS) -o ..$(SEP)$(OBJ)$(SEP)$@  -c $< 
+	$(FORTRAN) $(FFLAGS) -cpp -o ..$(SEP)$(OBJ)$(SEP)$@  -c $< 
 
 general: $(OGE)

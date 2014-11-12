@@ -41,6 +41,7 @@ beta 0.8 (in development)
 - the positions of shells (in the sense of an ionic core-shell potential) are now written in LAMMPS data files.
 - when reading LAMMPS custom file (*.lmc), the atom "type" is not required anymore. Furthermore if the "element" appears it is read.
 - support for longer filenames (up to 4096 characters).
+- fixed a bug in option "-dislocation" where the displacements of shells would be computed independantly from the displacements of their cores, leading to discontinuities and large distances between a core and its shell. Now the displacements are computed from the position of the core, and the same displacement is applied to the shell, so that the core-shell vector remains the same.
 - fixed a bug where some file formats would not be detected correctly if the file name was given through a path.
 - fixed a bug where ionic shells would be lost in mode "--merge".
 - fixed a bug where ionic shells would not be read from Atomsk binary files (*.atsk).

@@ -9,7 +9,7 @@ MODULE messages
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 July 2014                                     *
+!* Last modification: P. Hirel - 27 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,6 +39,7 @@ USE display_messages
 !Localization modules
 USE messages_en  !English (default)
 USE messages_fr  !French/francais
+USE messages_de  !German/Deutsch
 !--- add other language modules here ---
 !
 IMPLICIT NONE
@@ -56,6 +57,8 @@ SUBROUTINE DISPLAY_LICENSE()
 !
 SELECT CASE(lang)
 !
+CASE("de")
+  CALL DISPLAY_LICENSE_DE()
 CASE("fr")
   CALL DISPLAY_LICENSE_FR()
 CASE DEFAULT
@@ -79,6 +82,8 @@ SELECT CASE(lang)
 !
 CASE("fr")
   CALL DISPLAY_HELP_FR(helpsection)
+CASE("de")
+  CALL DISPLAY_HELP_DE(helpsection)
 CASE DEFAULT
   CALL DISPLAY_HELP_EN(helpsection)
 END SELECT
@@ -113,6 +118,11 @@ ENDDO
 !
 SELECT CASE(lang)
 !
+CASE("de")
+  langBigYes = "J"
+  langyes = "j"
+  langno = "n"
+  CALL ATOMSK_MSG_DE(imsg,strings,reals)
 CASE("fr")
   langBigYes = "O"
   langyes = "o"
@@ -137,6 +147,8 @@ SUBROUTINE DATE_MSG()
 !
 SELECT CASE(lang)
 !
+CASE("de")
+  CALL DATE_MSG_DE()
 CASE("fr")
   CALL DATE_MSG_FR()
 CASE DEFAULT
@@ -144,6 +156,31 @@ CASE DEFAULT
 END SELECT
 !
 END SUBROUTINE DATE_MSG
+!
+!
+!
+!********************************************************
+! CREATE_DATE
+! Write the username and.
+!********************************************************
+SUBROUTINE CREATE_DATE(VALUES,username,msg)
+!
+IMPLICIT NONE
+CHARACTER(LEN=128),INTENT(IN):: username
+INTEGER,DIMENSION(8),INTENT(IN):: VALUES
+CHARACTER(LEN=128),INTENT(OUT):: msg
+!
+SELECT CASE(lang)
+!
+CASE("de")
+  CALL ATOMSK_CREATE_DATE_DE(VALUES,username,msg)
+CASE("fr")
+  CALL ATOMSK_CREATE_DATE_FR(VALUES,username,msg)
+CASE DEFAULT
+  CALL ATOMSK_CREATE_DATE(VALUES,username,msg)
+END SELECT
+!
+END SUBROUTINE CREATE_DATE
 !
 !
 !

@@ -1,7 +1,7 @@
 MODULE duplicate
 !
 !**********************************************************************************
-!*  DUPLICATE                                                                        *
+!*  DUPLICATE                                                                     *
 !**********************************************************************************
 !* This module reads atomic coordinates from an array P, and                      *
 !* expands it along the directions of the cell vectors.                           *

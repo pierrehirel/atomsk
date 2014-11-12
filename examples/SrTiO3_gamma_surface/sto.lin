@@ -30,7 +30,7 @@ mass            3 15.999
 ### INTERATOMIC POTENTIAL PARAMETERS
 ##Thomas et al, Nucl.Instrum.Methods Phys.Res.B 228, p.288 (2005)
 ##Use Ewald sum method to compute Coulomb forces
-kspace_style    ewald 1.0e-9
+kspace_style    ewald/disp 1.0e-9
 pair_style      buck/long/coul/long cut long 8.0 8.0
 ##Buckingham:   i j     A       rho         C
 pair_coeff      * *     0.00  0.100000  0.000000
@@ -40,7 +40,8 @@ pair_coeff      3 3  6249.17  0.231472  0.000000
 
 ### OUTPUT FILES
 ##Write final atomic positions to file(s) every N steps
-dump            1 all custom 100 STO_Rel.lmc id type x y z
+dump            1 all custom 100 STO_Rel.lmc id type element x y z
+dump_modify     1 sort id element Sr Ti O
 
 ### RELAXATION PARAMETERS
 ##Allow relaxation only along Z: zero in-plane forces
@@ -50,5 +51,5 @@ fix             fixed all setforce 0 0 NULL
 ##Min_style: sd=Steepest Descent; cg=Conjugate Gradients
 min_style       cg
 ##Minimization: etol  ftol  maxiter maxeval
-minimize        1e-10 1e-12  10000   10000
+minimize        0.00 1e-12   10000   10000
 

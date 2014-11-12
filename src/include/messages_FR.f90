@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 Oct. 2014                                     *
+!* Last modification: P. Hirel - 31 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -380,6 +380,26 @@ WRITE(*,*) ""
 !
 !
 END SUBROUTINE DISPLAY_HELP_FR
+!
+!
+!
+!********************************************************
+! ATOMSK_CREATE_DATE
+! This routine 
+!********************************************************
+SUBROUTINE ATOMSK_CREATE_DATE_FR(VALUES,username,msg)
+!
+IMPLICIT NONE
+CHARACTER(LEN=128),INTENT(IN):: username
+INTEGER,DIMENSION(8),INTENT(IN):: VALUES
+CHARACTER(LEN=128),INTENT(OUT):: msg
+!
+WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)') &
+  & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
+!
+msg = '# Fichier généré avec atomsk par '//TRIM(ADJUSTL(username))//' le '//TRIM(ADJUSTL(msg))
+!
+END SUBROUTINE ATOMSK_CREATE_DATE_FR
 !
 !
 !
@@ -2436,6 +2456,7 @@ CHARACTER(LEN=8):: date
 CHARACTER(LEN=10):: time
 CHARACTER(LEN=128):: msg
 INTEGER,DIMENSION(8):: values
+REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 !
 !Get the current date
 CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
@@ -2501,20 +2522,69 @@ ELSEIF(values(2)==8 .AND. values(3)==8) THEN
 !
 !31 October: Halloween
 ELSEIF(values(2)==10 .AND. values(3)==31) THEN
-  msg = "               ,"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "           ,---'---,"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "          /  0   0  \"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "         |     A     |"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "          \ ^~~^~~^ /"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  CALL GEN_NRANDNUMBERS(1,randarray)
+  IF( randarray(1)<0.3333d0 ) THEN
+    msg = "                ,"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "           ,---'---,"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "          /  0   0  \"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "         |     A     |"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "          \ ^~~^~~^ /"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( randarray(1)<0.6666d0 ) THEN
+    msg = "               _/\_"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "               ((°>"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "          _    /^|"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "          =>--/__|m--"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "               ^^"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "_______________"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = " \ \/_|_\/ / /("
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "\ \/__|__\/ / )"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = " \/___|___\/  ("
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = " /    |    \  )"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "              (_"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "            _\(_)/_"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "             /(o)\"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
 !
 !Noël
 ELSEIF(values(2)==12 .AND. values(3)>=20 .AND. values(3)<=25) THEN
-  msg = "*** JOYEUX NOËL !"
+  msg = "                <>"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "                /\"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "               /  \"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "               / °\"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "              /°   \"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "             /   ° `\"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "             / `   ,\"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "            /___° ___\"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "                ||"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "   * * *   JOYEUX NOËL !   * * *"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !S'il se fait tard ou que c'est le week-end

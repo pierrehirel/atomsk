@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 Sept. 2014                                    *
+!* Last modification: P. Hirel - 28 Oct. 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -170,6 +170,8 @@ ELSE
 ENDIF
 AUXNAMES(grainID) = "grainID"
 !
+IF( ALLOCATED(comment) ) DEALLOCATE(comment)
+!
 !
 !
 !
@@ -289,6 +291,10 @@ ELSEIF( paramrand .AND. paramlatt ) THEN
   nerr=nerr+1
   GOTO 1000
 ENDIF
+!
+ALLOCATE(comment(1))
+WRITE(temp,*) Nnodes 
+ comment(1) = "# Voronoi polycrystal with "//TRIM(ADJUSTL(temp))//" grains"
 !
 !Final positions of nodes will be stored in array vnodes(:,:)
 !Final crystal orientations of grains will be stored in array vorient(:,:)

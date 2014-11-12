@@ -175,6 +175,7 @@ ENDDO
 !
 !
 200 CONTINUE
+PRINT*, Ncomment
 IF(Ncomment>0) THEN
   ALLOCATE(comment(Ncomment))
   comment(:)=''
@@ -370,6 +371,7 @@ GOTO 500
 !
 !
 500 CONTINUE
+PRINT*, comment(:)
 !
 END SUBROUTINE READ_CFG
 !

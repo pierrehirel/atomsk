@@ -16,7 +16,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Aug. 2014                                     *
+!* Last modification: P. Hirel - 27 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -125,20 +125,11 @@ verbosity = 1
 !otherwise UNIX/Linux setup will be assumed
 #if defined(WINDOWS)
   !COMPILATION FOR MICROSOFT WINDOWS
-  !Path separator is backslash
-  pathsep = '\'
-  !List command is "dir"
-  system_ls = 'dir'
   !Set path of personal config file (%HOMEPATH%\atomsk.ini)
   CALL GET_ENVIRONMENT_VARIABLE('HOMEPATH',homedir)
   homedir = TRIM(ADJUSTL(homedir))//'\atomsk.ini'
 #else
   !COMPILATION FOR UNIX OR Linux
-  !Path separator is forward slash
-  pathsep = '/'
-  !List command will be "ls"
-  system_ls = 'ls'
-  !
   !Look for a system-wide config file (/etc/atomsk.conf)
   homedir = "/etc/atomsk.conf"
   INQUIRE(FILE=homedir,EXIST=fileexists)
@@ -166,6 +157,8 @@ verbosity = 1
 !Check if it is a recognizable language, otherwise use English
 IF( INDEX(clarg,'fr').NE.0 .OR. INDEX(clarg,'FR').NE.0 ) THEN
   lang = 'fr'
+ELSEIF( INDEX(clarg,'de').NE.0 .OR. INDEX(clarg,'DE').NE.0 ) THEN
+  lang = 'de'
 ELSE
   lang = 'en'
 ENDIF

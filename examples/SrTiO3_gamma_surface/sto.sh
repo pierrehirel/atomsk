@@ -55,7 +55,7 @@ printf "#tauX \t Etot_NoRelax(J/m²) \t Etot_ionRelaxed(J/m²) \n" > $Gamma_001
 printf "#tauY \t Etot_NoRelax(J/m²) \t Etot_ionRelaxed(J/m²) \n" > $Gamma_110
 
 # Structural parameters
-alat=3.905     #lattice constant a0 of STO (A) (Thomas potential)
+alat=3.9051     #lattice constant a0 of STO (A) (Thomas potential)
 S=$(echo "2.0*$alat*$alat*sqrt(2.0)" | bc -l)  #surface of stacking faults
 supersize=4    #Number of times the cell is repeated along Z
 # Number of steps along X=[001] and Y=[110] directions
@@ -84,8 +84,8 @@ for ((i=0;i<=$stepX;i++)) do
     # Output each structure in LAMMPS data format (*.lmp)
     # Run in silent mode (-v 0)
     printf "Building system... "
-    atomsk --create perovskite $alat Sr Ti O orient [001] [110] [1-10] \
-            -e 1 1 $supersize                                           \
+    atomsk --create perovskite $alat Sr Ti O orient [001] [110] [1-10]  \
+            -dup 1 1 $supersize                                         \
             -shift above 0.501*BOX z $tauX $tauY 0.0                    \
             -wrap                                                       \
             STO_${i}_${j}.lmp                                           \

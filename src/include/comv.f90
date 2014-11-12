@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.8-2014.10.23' !Version of the program
+CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.8-2014.11.12' !Version of the program
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !
@@ -36,8 +36,13 @@ INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precisi
 !**********************************
 CHARACTER(LEN=3):: lang !language in which the program will run (should be 2 letters)
 CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" and "no", e.g. "y", "n"
-CHARACTER(LEN=1):: pathsep   !path separator: / for UNIX/Linux, \ for Windows
-CHARACTER(LEN=3):: system_ls !command to list current directory
+#if defined(WINDOWS)
+  CHARACTER(LEN=1),PARAMETER:: pathsep='\'     !path separator for Windows
+  CHARACTER(LEN=3),PARAMETER:: system_ls='dir' !command to list current directory
+#else
+  CHARACTER(LEN=1),PARAMETER:: pathsep='/'     !path separator for UNIX/Linux
+  CHARACTER(LEN=3),PARAMETER:: system_ls='ls ' !command to list current directory
+#endif
 !
 !**********************************
 !*  PROGRAM BEHAVIOR
@@ -54,7 +59,7 @@ INTEGER:: verbosity          !level of verbosity of the program
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
 CHARACTER(LEN=5),DIMENSION(18),PARAMETER:: listofformats =                             &
 & (/'atsk ','bop  ','cfg  ','cif  ','coo  ','dlp  ','gin  ','imd  ','lmp  ','mol  ',   &
-&   'pos  ','pw   ','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '                            &
+&   'pos  ','pw   ','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '                    &
 & /)
 !
 END MODULE comv

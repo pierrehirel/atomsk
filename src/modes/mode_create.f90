@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Sept. 2014                                    *
+!* Last modification: P. Hirel - 31 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -746,9 +746,9 @@ IF( cubic .AND. VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0
           tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
           tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
           tempP(4) = P(i,4)
-          IF( tempP(1)>=0.d0 .AND. tempP(1)<uv(1,1)-1.d-6 .AND.             &
-            & tempP(2)>=0.d0 .AND. tempP(2)<uv(2,2)-1.d-6 .AND.             &
-            & tempP(3)>=0.d0 .AND. tempP(3)<uv(3,3)-1.d-6       ) THEN
+          IF( tempP(1)>=0.d0 .AND. tempP(1)<uv(1,1)-1.d-16 .AND.             &
+            & tempP(2)>=0.d0 .AND. tempP(2)<uv(2,2)-1.d-16 .AND.             &
+            & tempP(3)>=0.d0 .AND. tempP(3)<uv(3,3)-1.d-16       ) THEN
             !This replica is inside the new cell => keep it
             NP = NP+1
             IF(NP>SIZE(Q,1)) THEN

@@ -1,16 +1,16 @@
-MODULE messages_EN
+MODULE messages_DE
 !
 !**********************************************************************************
-!*  MESSAGES_EN                                                                   *
+!*  MESSAGES_DE                                                                   *
 !**********************************************************************************
-!* This module contains the ENGLISH (default)                                     *
+!* This module contains the GERMAN                                                *
 !* version of the messages displayed by the atomsk program.                       *
 !**********************************************************************************
-!* (C) June 2011 - Pierre Hirel                                                   *
+!* (C) October 2014 - Pierre Hirel                                                *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 Oct. 2014                                     *
+!* Last modification: P. Hirel - 28 Oct. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,10 +26,10 @@ MODULE messages_EN
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
-!* DISPLAY_LICENSE_EN  displays the license of the program                        *
-!* DISPLAY_HELP_EN     displays the help of the program                           *
-!* ATOMSK_MSG_EN       all messages used by atomsk                                *
-!* DATE_MSG_EN         displays a nice message according to the date              *
+!* DISPLAY_LICENSE_DE  displays the license of the program                        *
+!* DISPLAY_HELP_DE     displays the help of the program                           *
+!* ATOMSK_MSG_DE       all messages used by atomsk                                *
+!* DATE_MSG_DE         displays a nice message according to the date              *
 !**********************************************************************************
 !
 !
@@ -51,48 +51,48 @@ CONTAINS
 ! This subroutine displays the license message
 ! of atomsk
 !********************************************************
-SUBROUTINE DISPLAY_LICENSE_EN()
+SUBROUTINE DISPLAY_LICENSE_DE()
 !
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 !
 msg = ""
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "Atomsk - A program for dealing with atomic systems."
+msg = "Atomsk - Ein Programm für den Umgang mit atomaren Systemen."
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 CALL DISPLAY_COPYRIGHT()
 !
 msg = ""
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "This program is free software: you can redistribute it and/or modify"
+msg = "Dieses Programm ist freie Software. Sie können es unter den Bedingungen"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "it under the terms of the GNU General Public License as published by"
+msg = "der GNU General Public License, wie von der Free Software Foundation veröffentlicht,"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "the Free Software Foundation, either version 3 of the License, or"
+msg = "weitergeben und/oder modifizieren, entweder gemäß Version 3 der Lizenz oder"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "(at your option) any later version."
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = ""
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "This program is distributed in the hope that it will be useful,"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "but WITHOUT ANY WARRANTY; without even the implied warranty of"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "GNU General Public License for more details."
+msg = "(nach Ihrer Option) jeder späteren Version."
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = ""
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "You should have received a copy of the GNU General Public License"
+msg = "Die Veröffentlichung dieses Programms erfolgt in der Hoffnung, daß es Ihnen"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+msg = "von Nutzen sein wird, aber OHNE IRGENDEINE GARANTIE, sogar ohne die implizite"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "Garantie der MARKTREIFE oder der VERWENDBARKEIT FÜR EINEN BESTIMMTEN ZWECK."
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "Details finden Sie in der GNU General Public License."
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = ""
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "Sie sollten ein Exemplar der GNU General Public License zusammen mit"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "diesem Programm erhalten haben. Falls nicht, siehe <http://www.gnu.org/licenses/>."
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = ""
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-END SUBROUTINE DISPLAY_LICENSE_EN
+END SUBROUTINE DISPLAY_LICENSE_DE
 !
 !
 !********************************************************
@@ -100,7 +100,7 @@ END SUBROUTINE DISPLAY_LICENSE_EN
 ! This subroutine displays all or part of
 ! the help for atomsk
 !********************************************************
-SUBROUTINE DISPLAY_HELP_EN(helpsection)
+SUBROUTINE DISPLAY_HELP_DE(helpsection)
 !
 IMPLICIT NONE
 CHARACTER(LEN=16):: helpsection
@@ -109,23 +109,23 @@ IF(TRIM(helpsection)=="") helpsection="general"
 !
 !
 IF(helpsection=="general" .OR. helpsection=="") THEN
-WRITE(*,*) ">>> USAGE:"
+WRITE(*,*) ">>> VERWENDUNG:"
 WRITE(*,*) "       atomsk [--<mode>] <inputfile> [<outputfile>] [<formats>] [options...]"
 WRITE(*,*) "    where [] are optional parameters, and <> must be replaced"
 WRITE(*,*) "    by specific values or strings."
 WRITE(*,*) ""
-WRITE(*,*) ">>> EXAMPLE:"
+WRITE(*,*) ">>> BEISPIEL:"
 WRITE(*,*) "..> Convert 'file.xsf' to CFG format:"
 WRITE(*,*) "       atomsk file.xsf cfg"
 WRITE(*,*) ""
-WRITE(*,*) ">>> FOR MORE HELP:"
-WRITE(*,*) "..> On modes:   atomsk --help modes"
-WRITE(*,*) "..> On options: atomsk --help options"
-WRITE(*,*) "..> On formats: atomsk --help formats"
+WRITE(*,*) ">>> FÜR WEITERE HILFE:"
+WRITE(*,*) "..> Über moden:    atomsk --help modes"
+WRITE(*,*) "..> Über optionen: atomsk --help options"
+WRITE(*,*) "..> Über formats:  atomsk --help formats"
 ENDIF
 !
 IF(helpsection=="modes") THEN
-  WRITE(*,*) ">>> MODES:"
+  WRITE(*,*) ">>> MODEN:"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="interactive") THEN
   WRITE(*,*) "..> Interactive mode:"
@@ -384,7 +384,7 @@ WRITE(*,*) "    or go to: http://pierrehirel.info/codes/atomsk/"
 WRITE(*,*) ""
 !
 !
-END SUBROUTINE DISPLAY_HELP_EN
+END SUBROUTINE DISPLAY_HELP_DE
 !
 !
 !
@@ -392,19 +392,19 @@ END SUBROUTINE DISPLAY_HELP_EN
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE(VALUES,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE_DE(VALUES,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
-WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
+WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)') &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = '# File generated with atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
+msg = '# Datei mit Atomsk von '//TRIM(ADJUSTL(username))//' am '//TRIM(ADJUSTL(msg))//" generiert."
 !
-END SUBROUTINE ATOMSK_CREATE_DATE
+END SUBROUTINE ATOMSK_CREATE_DATE_DE
 !
 !
 !
@@ -436,7 +436,7 @@ END SUBROUTINE ATOMSK_CREATE_DATE
 !      x800-x899: error messages
 !      x900-x999: debug messages
 !********************************************************
-SUBROUTINE ATOMSK_MSG_EN(imsg,strings,reals)
+SUBROUTINE ATOMSK_MSG_DE(imsg,strings,reals)
 !
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
@@ -456,13 +456,13 @@ SELECT CASE(imsg)
 CASE(1)
   !Message at program termination
   !nerr and nwarn are global variables
-  msg = "\o/ Program terminated successfully!"
+  msg = "\o/ Programm erfolgreich beendet!"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(temp,*) nwarn
   temp = ADJUSTL(temp)
   WRITE(temp2,*) nerr
   temp2 = ADJUSTL(temp2)
-  WRITE(msg,*) "   Warnings: "//TRIM(temp)//" ; Errors: "//TRIM(temp2)
+  WRITE(msg,*) "   Warnungen: "//TRIM(temp)//" ; Fehler: "//TRIM(temp2)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   !
 CASE(2)
@@ -471,41 +471,41 @@ CASE(2)
   !reals(2) = CPU time
   WRITE(temp,"(f30.3)") reals(1)
   WRITE(temp2,"(f30.3)") reals(2)
-  WRITE(msg,*) "   Total time: "//TRIM(ADJUSTL(temp))//         &
-           & " s.; CPU time: "//TRIM(ADJUSTL(temp2))//" s."
+  WRITE(msg,*) "   Gesamtzeit: "//TRIM(ADJUSTL(temp))//         &
+           & " s.; CPU zeit: "//TRIM(ADJUSTL(temp2))//" s."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3)
-  msg = "..> This may take some time..."
+  msg = "..> Dies kann einige Zeit in Anspruch nehmen..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4)
   !strings(1) = name of file that already exists
-  msg = "<?> This file already exists: "//TRIM(strings(1))
+  msg = "<?> Diese Datei ist bereits vorhanden: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Do you want to overwrite it ("//langyes//"/"//langno//") ("&
-      & //langBigYes//"=overwrite all)?"
+  msg = "    Möchten Sie sie überschreiben? ("//langyes//"/"//langno//") ("&
+      & //langBigYes//"=alles überschreiben)?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5)
   !strings(1) = name of file
-  msg = "..> OK, I will overwrite "//TRIM(strings(1))
+  msg = "..> OK, ich will "//TRIM(strings(1))//" überschreiben."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(6)
-  msg = "..> OK, I will overwrite all files from now on."
+  msg = "..> OK, zukünftig will ich alle Dateien überschreiben."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(7)
-  msg = "<?> Enter a name for the file to write:"
+  msg = "<?> Geben Sie einen Namen für die Datei zu schreiben:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(8)
   !strings(1) = name of file
   IF( LEN_TRIM(strings(1))>0 ) THEN
-    msg = "<?> This file does not exist: "//TRIM(strings(1))
+    msg = "<?> Diese Datei existiert nicht: "//TRIM(strings(1))
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
-  msg = "    Please provide the name of an existing file:"
+  msg = "    Bitte geben Sie den Namen einer vorhandenen Datei:"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    (type '"//TRIM(system_ls)//"' for a list of files of current directory)"
+  msg = "    (Geben Sie '"//TRIM(system_ls)//"' für eine Liste der Dateien im aktuellen Verzeichnis)"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(9)
-  msg = "<?> Enter the name of an existing file:"
+  msg = "<?> Geben Sie den Namen einer vorhandenen Datei:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(10)
   !strings(1) = message to be displayed
@@ -520,16 +520,16 @@ CASE(10)
     ENDIF
   ENDIF
 CASE(11)
-  msg = ">>> Constructing neighbor list..."
+  msg = ">>> Konstruieren Nachbarliste..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-! 700- 799: WARNING MESSAGES
+! 700- 799: WARNUNG MESSAGES
 CASE(700)
   !strings(1) = first file name
   !strings(2) = second file name
-  msg = "/!\ Both files exist: "//TRIM(strings(1))//" and "//TRIM(strings(2))
+  msg = "/!\ Beide Datei vorhanden: "//TRIM(strings(1))//" und "//TRIM(strings(2))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "<?> Please indicate which one you want to use as input file:"
+  msg = "<?> Bitte geben Sie an, welche Sie als Eingabedatei verwendet werden soll:"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = '    1- '//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -538,42 +538,42 @@ CASE(700)
 CASE(701)
   !strings(1) = first file name
   !strings(2) = second file name
-  msg = "/!\ None of these files exist: "//TRIM(strings(1))//" nor "//TRIM(strings(2))
+  msg = "/!\ Keine dieser Dateien vorhanden sind: "//TRIM(strings(1))//" noch "//TRIM(strings(2))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "<?> Please provide the name of an existing file:"
+  msg = "<?> Bitte geben Sie den Namen einer vorhandenen Datei:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(702)
-  msg = "/!\ No input file was specified."
+  msg = "/!\ Keine Eingabedatei angegeben wurde."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "<?> Please provide the name of an existing file:"
+  msg = "<?> Bitte geben Sie den Namen einer vorhandenen Datei:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(703)
   !strings(1) = name of command line argument
-  msg = "/!\ WARNING: Unrecognized command-line argument: "//TRIM(strings(1))
+  msg = "/!\ WARNUNG: Nicht erkannte Befehlszeilenargument: "//TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-! 800- 899: ERROR MESSAGES
+! 800- 899: FEHLER MESSAGES
 CASE(800)
-  msg = "X!X ERROR: unrecognized file format."
+  msg = "X!X FEHLER: Unbekanntes Dateiformat."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(801)
   !strings(1) = atom type
-  msg = "X!X ERROR: unrecognized atom species: "//TRIM(strings(1))
+  msg = "X!X FEHLER: Unerkannte Atom Spezies: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(802)
   !reals(1) = index of atom that caused the error
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X ERROR while trying to read atom #"//TRIM(ADJUSTL(msg))
+  msg = "X!X FEHLER Fehler beim Versuch, Atom #"//TRIM(ADJUSTL(msg))//" lesen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(803)
   !strings(1) = unit
-  msg = "X!X ERROR: unknown unit: "//TRIM(strings(1))
+  msg = "X!X FEHLER: unbekannte Einheit: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(804)
-  msg = "X!X ERROR: number of atoms is zero, aborting."
+  msg = "X!X FEHLER: Anzahl der Atome gleich Null ist, Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(806)
-  msg = "X!X ERROR: the systems do not have the same number of atoms!"
+  msg = "X!X FEHLER: die Systeme nicht die gleiche Anzahl von Atomen aufweisen!"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -588,10 +588,10 @@ CASE(999)
 ! 1000-1999: MESSAGES FOR INPUT
 CASE(1000)
   !strings(1) = file name
-  msg = ">>> Opening the input file: "//TRIM(ADJUSTL(strings(1)))
+  msg = ">>> Öffnen der Eingabedatei: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
-  msg = "..> Input file was read successfully."
+  msg = "..> Eingabedatei wurde erfolgreich gelesen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1002)
   msg = "..> Found INP file, reading supercell from it..."
@@ -600,47 +600,47 @@ CASE(1003)
   msg = "..> Found POTCAR file, reading atom species from it..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!1700-1799: WARNING MESSAGES
+!1700-1799: WARNUNG MESSAGES
 CASE(1700)
   !strings(1) = auxiliary property that cannot be loaded
-  msg = "/!\ WARNING: cannot load auxiliary property: "//TRIM(strings(1))
+  msg = "/!\ WARNUNG: cannot load auxiliary property: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1701)
   !strings(1) = input file format
-  msg = "/!\ WARNING: the most probable file format was found to be "//TRIM(strings(1))
+  msg = "/!\ WARNUNG: the most probable file format was found to be "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    However the format could not be determined with certainty."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1702)
   !strings(1) = name of parameter
   !strings(2) = name of custom config file
-  msg = "/!\ WARNING: unknown parameter '"//TRIM(strings(1))//&
+  msg = "/!\ WARNUNG: unknown parameter '"//TRIM(strings(1))//&
       & "' in "//TRIM(strings(2))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1703)
   !strings(1) = name of personal config file
-  msg = "/!\ WARNING: errors were encountered while reading configuration file "//TRIM(strings(1))
+  msg = "/!\ WARNUNG: errors were encountered while reading configuration file "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Some personal parameters may not have been properly set."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1704)
   !strings(1) = name of personal config file
-  msg = "/!\ WARNING: symmetry operations are not taken into account."
+  msg = "/!\ WARNUNG: symmetry operations are not taken into account."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1705)
-  msg = "/!\ WARNING: both celldm(:) and conventional notation were found."
+  msg = "/!\ WARNUNG: both celldm(:) and conventional notation were found."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            The celldm(:) will be used, and conventional notation ignored."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1706)
-  msg = "/!\ WARNING: cell dimensions are in Bohrs, while atom positions are in angströms."
+  msg = "/!\ WARNUNG: cell dimensions are in Bohrs, while atom positions are in angströms."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Cell dimensions will be converted to angströms for consistency."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
-!1800-1899: ERROR MESSAGES
+!1800-1899: FEHLER MESSAGES
 CASE(1800)
-  msg = "X!X ERROR: I could not guess the format of this input file!"
+  msg = "X!X FEHLER: I could not guess the format of this input file!"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Maybe it is a format unsupported by atomsk yet?"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -648,24 +648,24 @@ CASE(1800)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1801)
   !strings(1) = file name
-  msg = "X!X ERROR: there were errors while reading the file: " &
+  msg = "X!X FEHLER: there were errors while reading the file: " &
       & //TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1802)
   !strings(1) = bad array
-  msg = "X!X ERROR: inconsistent array size in "//TRIM(strings(1))//"."
+  msg = "X!X FEHLER: inconsistent array size in "//TRIM(strings(1))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1803)
-  msg = "X!X ERROR: size of auxiliary properties "// &
+  msg = "X!X FEHLER: size of auxiliary properties "// &
              & "is not consistent with number of atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1804)
-  msg = "X!X ERROR: unknown format."
+  msg = "X!X FEHLER: unknown format."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1805)
   !reals(1) = number of particles read
   !reals(2) = number of particles declared
-  msg = "X!X ERROR: number of atoms read differs from the number"
+  msg = "X!X FEHLER: number of atoms read differs from the number"
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(temp,*) NINT(reals(1))
   WRITE(msg,*) NINT(reals(2))
@@ -675,29 +675,29 @@ CASE(1805)
 CASE(1806)
   !reals(1) = index of atom
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERROR: denominator is zero in coordinate of atom #"//TRIM(ADJUSTL(msg))
+  msg = "X!X FEHLER: denominator is zero in coordinate of atom #"//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1807)
-  msg = "X!X ERROR: file is not in ASCII format, aborting."
+  msg = "X!X FEHLER: file is not in ASCII format, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1808)
-  msg = "X!X ERROR: levcfg cannot be greater than 2."
+  msg = "X!X FEHLER: levcfg cannot be greater than 2."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1809)
-  msg = "X!X ERROR: unable to read the supercell parameters."
+  msg = "X!X FEHLER: unable to read the supercell parameters."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1810)
-  msg = "X!X ERROR: unable to read the number of atoms."
+  msg = "X!X FEHLER: unable to read the number of atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1811)
   !reals(1) = index of atom
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERROR: atom index #"//TRIM(ADJUSTL(msg))//" is greater than the number of atoms."
+  msg = "X!X FEHLER: atom index #"//TRIM(ADJUSTL(msg))//" is greater than the number of atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1812)
   !reals(1) = index of atom
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERROR: unable to read properties of atom #"//TRIM(ADJUSTL(msg))
+  msg = "X!X FEHLER: unable to read properties of atom #"//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -1443,110 +1443,110 @@ CASE(2124)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!2700-2799: WARNING MESSAGES
+!2700-2799: WARNUNG MESSAGES
 CASE(2700)
   !strings(1) = option name
-  msg = "/!\ WARNING: could not understand this option: "//TRIM(strings(1))
+  msg = "/!\ WARNUNG: could not understand this option: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Try `atomsk -help options` for a summary of options."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2720)
-  msg = "/!\ WARNING: axis is already aligned, skipping."
+  msg = "/!\ WARNUNG: axis is already aligned, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2721)
-  msg = "/!\ WARNING: coordinates are already reduced, skipping."
+  msg = "/!\ WARNUNG: coordinates are already reduced, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2722)
   !strings(1) = atom species
-  msg = "/!\ WARNING: "//TRIM(strings(1))//" atoms already have shells."
+  msg = "/!\ WARNUNG: "//TRIM(strings(1))//" atoms already have shells."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2723)
   !strings(1) = atomic species
-  msg = "/!\ WARNING: there is no "//TRIM(strings(1))//" atom in the system, skipping."
+  msg = "/!\ WARNUNG: there is no "//TRIM(strings(1))//" atom in the system, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2724)
-  msg = "/!\ WARNING: deformation is zero, skipping."
+  msg = "/!\ WARNUNG: deformation is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2725)
-  msg = "/!\ WARNING: Burgers vector is zero, skipping."
+  msg = "/!\ WARNUNG: Burgers vector is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2726)
-  msg = "/!\ WARNING: supercell is very small in one direction normal to the"
+  msg = "/!\ WARNUNG: supercell is very small in one direction normal to the"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    dislocation line! Are you sure you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2727)
   !reals(1) = index of atom with large displacement
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: displacement for atom "//TRIM(ADJUSTL(msg))// " is large."
+  msg = "/!\ WARNUNG: displacement for atom "//TRIM(ADJUSTL(msg))// " is large."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2728)
-  msg = "/!\ WARNING: expansion factors are all equal to 1, skipping."
+  msg = "/!\ WARNUNG: expansion factors are all equal to 1, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2729)
-  msg = "/!\ WARNING: no auxiliary property is defined, skipping..."
+  msg = "/!\ WARNUNG: no auxiliary property is defined, skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2730)
   !string(1) = property
-  msg = "/!\ WARNING: No "//TRIM(ADJUSTL(strings(1)))//" found in auxiliary properties, skipping..."
+  msg = "/!\ WARNUNG: No "//TRIM(ADJUSTL(strings(1)))//" found in auxiliary properties, skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2731)
-  msg = "/!\ WARNING: Hstart = Hend, skipping."
+  msg = "/!\ WARNUNG: Hstart = Hend, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2732)
   !strings(1) = name of unknown property
-  msg = "/!\ WARNING: unknown property: "//TRIM(ADJUSTL(strings(1)))
+  msg = "/!\ WARNUNG: unknown property: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2733)
-  msg = "/!\ WARNING: specified radius is negative, no atom will be removed."
+  msg = "/!\ WARNUNG: specified radius is negative, no atom will be removed."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2734)
-  msg = "/!\ WARNING: rotation angle is modulo zero, skipping."
+  msg = "/!\ WARNUNG: rotation angle is modulo zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2735)
-  msg = "/!\ WARNING: shear is zero, skipping."
+  msg = "/!\ WARNUNG: shear is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2736)
-  msg = "/!\ WARNING: shift vector is naught, skipping."
+  msg = "/!\ WARNUNG: shift vector is naught, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2737)
-  msg = "/!\ WARNING: species are the same, skipping."
+  msg = "/!\ WARNUNG: species are the same, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2738)
-  msg = "/!\ WARNING: units are the same, skipping."
+  msg = "/!\ WARNUNG: units are the same, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2739)
-  msg = "/!\ WARNING: base vectors are not orthonormal."
+  msg = "/!\ WARNUNG: base vectors are not orthonormal."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2740)
-  msg = "/!\ WARNING: elastic tensor is not symmetric!"
+  msg = "/!\ WARNUNG: elastic tensor is not symmetric!"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2741)
-  msg = "/!\ WARNING: Poisson ratio is out of range [-1 , 0.5]."
+  msg = "/!\ WARNUNG: Poisson ratio is out of range [-1 , 0.5]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2742)
-  msg = "/!\ WARNING: atom index is out of bounds, skipping."
+  msg = "/!\ WARNUNG: atom index is out of bounds, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2743)
-  msg = "/!\ WARNING: skew parameters are zero, skipping."
+  msg = "/!\ WARNUNG: skew parameters are zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2744)
-  msg = "/!\ WARNING: there is no ionic shell in the system, skipping."
+  msg = "/!\ WARNUNG: there is no ionic shell in the system, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2745)
   !reals(1) = number of atoms that will actually be removed
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: cannot select so many atoms, only "// &
+  msg = "/!\ WARNUNG: cannot select so many atoms, only "// &
       & TRIM(ADJUSTL(msg))//" will be removed."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2746)
-  msg = "/!\ WARNING: nothing to be done, skipping."
+  msg = "/!\ WARNUNG: nothing to be done, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2747)
-  msg = "/!\ WARNING: stress intensity factor K is zero, skipping."
+  msg = "/!\ WARNUNG: stress intensity factor K is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2748)
-  msg = "/!\ WARNING: supercell is very small in one direction normal to the"
+  msg = "/!\ WARNUNG: supercell is very small in one direction normal to the"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    crack line! Are you sure you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -1554,62 +1554,62 @@ CASE(2749)
   !strings(1) = name of property
   !reals(1) = atom index
   WRITE(temp,*) NINT(reals(1))
-  msg = "/!\ WARNING: could not assign the value of the property '"//TRIM(ADJUSTL(strings(1)))// &
+  msg = "/!\ WARNUNG: could not assign the value of the property '"//TRIM(ADJUSTL(strings(1)))// &
       & "' to atom #"//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2750)
-  msg = "/!\ WARNING: a selection was defined but it does not contain any atom anymore."
+  msg = "/!\ WARNUNG: a selection was defined but it does not contain any atom anymore."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "             Selection was cleared, all atoms are now selected."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2751)
-  msg = "/!\ WARNING: target temperature is zero, skipping."
+  msg = "/!\ WARNUNG: target temperature is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2752)
-  msg = "/!\ WARNING: no selection is defined, skipping."
+  msg = "/!\ WARNUNG: no selection is defined, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option
-  msg = "/!\ WARNING: option "//TRIM(ADJUSTL(strings(1)))//" is obsolete and will be removed."
+  msg = "/!\ WARNUNG: option "//TRIM(ADJUSTL(strings(1)))//" is obsolete and will be removed."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Please use option "//TRIM(ADJUSTL(strings(2)))//" instead."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
-!2800-2899: ERROR MESSAGES
+!2800-2899: FEHLER MESSAGES
 CASE(2800)
   !string(1) = axis (if we are here it"s because it is different from x, y or z)
-  msg = "X!X ERROR: unknown axis: "//TRIM(strings(1))
+  msg = "X!X FEHLER: unknown axis: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2801)
-  WRITE(msg,*) "X!X ERROR: the base Hend is not a rotation of Hstart."
+  WRITE(msg,*) "X!X FEHLER: the base Hend is not a rotation of Hstart."
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(msg,*) "    Check that angles are equal in Hstart and Hend."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
   !strings(1) = property that was not read properly
-  msg = "X!X ERROR while reading "//TRIM(ADJUSTL(strings(1)))//"."
+  msg = "X!X FEHLER while reading "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2803)
-  msg = "X!X ERROR: there were errors while trying to determine supercell vectors."
+  msg = "X!X FEHLER: there were errors while trying to determine supercell vectors."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2804)
-  msg = "X!X ERROR: there were errors while applying options."
+  msg = "X!X FEHLER: there were errors while applying options."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2805)
   !strings(1) = name of unknown option
-  msg = "X!X ERROR: unknown option: "//TRIM(strings(1))
+  msg = "X!X FEHLER: unknown option: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2806)
   !strings(1) = name of option
-  msg = "X!X ERROR: non-conform statement in option: "//TRIM(strings(1))
+  msg = "X!X FEHLER: non-conform statement in option: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2807)
   !reals(1) = 1 if roots of Eq.(13-85) cannot be found
   !         = 2 if the A_k(n) cannot be calculated
   !         = 3 if the linear equations defining D(n) cannot be solved
-  msg = "X!X ERROR:"
+  msg = "X!X FEHLER:"
   IF(NINT(reals(1))==1) THEN
     msg = TRIM(msg)//" unable to determine the P(n), aborting."
   ELSEIF(NINT(reals(1))==2) THEN
@@ -1619,33 +1619,33 @@ CASE(2807)
   ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2808)
-  msg = "X!X ERROR: cannot build a mixed dislocation with isotropic elasticity."
+  msg = "X!X FEHLER: cannot build a mixed dislocation with isotropic elasticity."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2809)
-  msg = "X!X ERROR: the elastic tensor contains NaN values, aborting."
+  msg = "X!X FEHLER: the elastic tensor contains NaN values, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2810)
-  msg = "X!X ERROR: inconsistent array size for shells."
+  msg = "X!X FEHLER: inconsistent array size for shells."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2811)
-  msg = "X!X ERROR: dislocline and dislocplane must be normal to each other, aborting."
+  msg = "X!X FEHLER: dislocline and dislocplane must be normal to each other, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2812)
-  msg = "X!X ERROR: unable to determine what atom(s) to remove, aborting."
+  msg = "X!X FEHLER: unable to determine what atom(s) to remove, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2813)
   !strings(1) = string that could not be converted to a number
-  msg = "X!X ERROR: unable to convert this string into a number: "//TRIM(ADJUSTL(strings(1)))
+  msg = "X!X FEHLER: unable to convert this string into a number: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2814)
-  msg = "X!X ERROR: there is no atomic system to apply this option to."
+  msg = "X!X FEHLER: there is no atomic system to apply this option to."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2815)
   !strings(1) = name of matrix to invert
-  msg = "X!X ERROR: unable to invert the matrix "//strings(1)//"."
+  msg = "X!X FEHLER: unable to invert the matrix "//strings(1)//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2816)
-  msg = "X!X ERROR: the elastic tensor is not defined, aborting."
+  msg = "X!X FEHLER: the elastic tensor is not defined, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -1653,7 +1653,7 @@ CASE(2816)
 !**************************
 ! 3000-3999: MESSAGES FOR OUTPUT
 CASE(3000)
-  msg = ">>> Writing output file(s):"
+  msg = ">>> Schreiben Ausgabedatei(en):"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file
@@ -1663,7 +1663,7 @@ CASE(3001)
 CASE(3002)
   !strings(1) = type of file, e.g. "XSF" or "CFG"
   !strings(2) = name of file
-  msg = "..> Successfully wrote "//TRIM(strings(1))//" file: " &
+  msg = "..> Erfolgreich schrieb die "//TRIM(strings(1))//" Datei: " &
       & //TRIM(strings(2))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3003)
@@ -1690,13 +1690,13 @@ CASE(3006)
   msg = ">>> Building the ddplot file: "//TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!3700-3799: WARNING MESSAGES
+!3700-3799: WARNUNG MESSAGES
 CASE(3700)
-  msg = "/!\ WARNING: no output file name was specified, please provide one:"
+  msg = "/!\ WARNUNG: no output file name was specified, please provide one:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3701)
   !strings(1) = name of output file
-  msg = "/!\ WARNING: I could not guess the format for the output file: " &
+  msg = "/!\ WARNUNG: I could not guess the format for the output file: " &
       & //TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Please specify a format for the output file:"
@@ -1708,18 +1708,18 @@ CASE(3701)
   msg = TRIM(msg)//')'
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3702)
-  msg = "/!\ WARNING: ddplot format is available only when using DDPLOT mode."
+  msg = "/!\ WARNUNG: ddplot format is available only when using DDPLOT mode."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            No dd file will be output, please refer to the documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3703)
-  msg = "/!\ WARNING: atom species are not contiguous. Do you want to pack them? ("&
+  msg = "/!\ WARNUNG: atom species are not contiguous. Do you want to pack them? ("&
       & //langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    (this will affect only the POSCAR file)"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3704)
-  msg = "/!\ WARNING: supercell does not form a lower-triangular matrix, which is"
+  msg = "/!\ WARNUNG: supercell does not form a lower-triangular matrix, which is"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    required by LAMMPS. Do you want to re-align the system? (" &
       & //langyes//"/"//langno//")"
@@ -1728,7 +1728,7 @@ CASE(3704)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3705)
   !strings(1) = skew parameter
-  msg = "/!\ WARNING: triclinic box skew "//TRIM(strings(1))//" is too large."
+  msg = "/!\ WARNUNG: triclinic box skew "//TRIM(strings(1))//" is too large."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Running LAMMPS with such a supercell may result in the same"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -1739,51 +1739,51 @@ CASE(3705)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3706)
   !strings(1) = skew parameter
-  msg = "/!\ WARNING: unable to reduce box skew "//TRIM(strings(1))//", aborting..."
+  msg = "/!\ WARNUNG: unable to reduce box skew "//TRIM(strings(1))//", aborting..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3707)
   !reals(1) = number of atoms
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: number of particles if very large: "//TRIM(ADJUSTL(msg))
+  msg = "/!\ WARNUNG: number of particles if very large: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    If ddplot cannot display so many atoms, then use atomsk"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    with the -cut option to reduce the number of atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3708)
-  msg = "/!\ WARNING: only the first 32 auxiliary properties will be "// &
+  msg = "/!\ WARNUNG: only the first 32 auxiliary properties will be "// &
       & "written to the CFG file."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3709)
-  msg = "/!\ WARNING: some supercell parameters cannot be written and"
+  msg = "/!\ WARNUNG: some supercell parameters cannot be written and"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    this data file WILL BE WRONG!!!"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3710)
   !strings(1) = file format
-  msg = "/!\ WARNING: unknown format '"//TRIM(strings(1))//"', skipping..."
+  msg = "/!\ WARNUNG: unknown format '"//TRIM(strings(1))//"', skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
-!3800-3899: ERROR MESSAGES
+!3800-3899: FEHLER MESSAGES
 CASE(3800)
-  msg = "X!X ERROR: no atom position to write, aborting."
+  msg = "X!X FEHLER: no atom position to write, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3801)
   !strings(1) = name of file
-  msg = "X!X ERROR: there were errors while writing the file: "//TRIM(strings(1))
+  msg = "X!X FEHLER: there were errors while writing the file: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3802)
-  msg = "X!X ERROR: there were errors while writing files."
+  msg = "X!X FEHLER: there were errors while writing files."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3803)
   !reals(1) = index of atom that has a NaN coordinate
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERROR: atom #"//TRIM(ADJUSTL(msg))//" has NaN coordinate, aborting."
+  msg = "X!X FEHLER: atom #"//TRIM(ADJUSTL(msg))//" has NaN coordinate, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3804)
   !reals(1) = index of atom that has a NaN coordinate
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERROR: auxiliary property of atom #"//&
+  msg = "X!X FEHLER: auxiliary property of atom #"//&
       & TRIM(ADJUSTL(msg))//" is NaN, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
@@ -2137,10 +2137,10 @@ CASE(4302)
   msg = TRIM(msg)//" The answer was "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!4700-4799: WARNING messages
+!4700-4799: WARNUNG messages
 CASE(4700)
   !strings(1) = name of file that does not exist
-  msg = "/!\ WARNING: This file does not exist: "//TRIM(strings(1))
+  msg = "/!\ WARNUNG: This file does not exist: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2152,51 +2152,51 @@ CASE(4701)
   msg = "    I advise that you use the option -prop to setup the supercell vectors."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4702)
-  msg = "/!\ WARNING: cell is charged, total polarization may be wrong!"
+  msg = "/!\ WARNUNG: cell is charged, total polarization may be wrong!"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4703)
-  msg = "/!\ WARNING: species has zero charge, skipping..."
+  msg = "/!\ WARNUNG: species has zero charge, skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4705)
   !reals(1) = index of atom that has too many neighbors
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: number of neighbors exceeds 100 for atom #" &
+  msg = "/!\ WARNUNG: number of neighbors exceeds 100 for atom #" &
       & //TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4706)
   !strings(1) = atomic species of absent neighbors
   !reals(1) = index of atom that has no neighbour
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: I did not find any "//TRIM(strings(1))// &
+  msg = "/!\ WARNUNG: I did not find any "//TRIM(strings(1))// &
       &       " neighbor for atom #"//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4707)
   !reals(1) = index of atom that has a shell with zero charge
   WRITE(msg,*) NINT(reals(1))
-  msg = "/!\ WARNING: the shell of ion #"//TRIM(ADJUSTL(msg)) &
+  msg = "/!\ WARNUNG: the shell of ion #"//TRIM(ADJUSTL(msg)) &
       & //" has a zero charge."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4708)
-  msg = "/!\ WARNING: this grain contains zero atom."
+  msg = "/!\ WARNUNG: this grain contains zero atom."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4709)
   !reals(1) = index of atom
   !reals(2) = number of neighbors
   WRITE(temp,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
-  msg = "/!\ WARNING: insufficient number of neighbors ("//TRIM(ADJUSTL(temp2))// &
+  msg = "/!\ WARNUNG: insufficient number of neighbors ("//TRIM(ADJUSTL(temp2))// &
       &              ") for atom #"//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4710)
   !strings(1) = name of the matrix
-  msg = "/!\ WARNING: could not compute the matrix "//TRIM(ADJUSTL(strings(1)))
+  msg = "/!\ WARNUNG: could not compute the matrix "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4711)
   !strings(1) = name of the file
-  msg = "/!\ WARNING: this file has a different number of atoms and will not be treated: "//TRIM(ADJUSTL(strings(1)))
+  msg = "/!\ WARNUNG: this file has a different number of atoms and will not be treated: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4712)
-  msg = "/!\ WARNING: some atoms may be out of the box, which may lead to wrong results."
+  msg = "/!\ WARNUNG: some atoms may be out of the box, which may lead to wrong results."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Do you wish to wrap them now? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2205,28 +2205,28 @@ CASE(4713)
   IF(LEN_TRIM(strings(1))<=0) THEN
     strings(1) = "proceed"
   ENDIF
-  msg = "/!\ WARNING: apparently you did not save the system into a file."
+  msg = "/!\ WARNUNG: apparently you did not save the system into a file."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Are you sure you want to "//TRIM(ADJUSTL(strings(1)))//"? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
-!4800-4899: ERROR MESSAGES
+!4800-4899: FEHLER MESSAGES
 CASE(4800)
   !strings(1) = mode
-  msg = "X!X ERROR: non-conform statement in mode: "//TRIM(strings(1))
+  msg = "X!X FEHLER: non-conform statement in mode: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4801)
   !strings(1) = file format (e.g. "xyz", "cfg"...)
-  msg = "X!X ERROR: this file format is not yet supported in mode 1-in-all:" &
+  msg = "X!X FEHLER: this file format is not yet supported in mode 1-in-all:" &
       & //TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4802)
-  msg = "X!X ERROR: both chiral indices cannot be zero, aborting."
+  msg = "X!X FEHLER: both chiral indices cannot be zero, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4803)
   !reals(1) = theoretical number of atoms in nanotube
   !reals(2) = number found by atomsk
-  WRITE(msg,*) "X!X ERROR: inconsistent number of atoms in nanotube."
+  WRITE(msg,*) "X!X FEHLER: inconsistent number of atoms in nanotube."
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(msg,*) NINT(reals(1))
   WRITE(temp,*) NINT(reals(2))
@@ -2246,91 +2246,91 @@ CASE(4804)
       temp = TRIM(ADJUSTL(temp))//" or "//TRIM(ADJUSTL(temp2))
     ENDIF
   ENDIF
-  msg = "X!X ERROR: this structure requires "//TRIM(ADJUSTL(temp))//" atom species."
+  msg = "X!X FEHLER: this structure requires "//TRIM(ADJUSTL(temp))//" atom species."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4805)
   !strings(1) = structure type
-  msg = "X!X ERROR: unknown structure: "//TRIM(strings(1))
+  msg = "X!X FEHLER: unknown structure: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4806)
-  msg = "X!X ERROR: no file to merge, aborting"
+  msg = "X!X FEHLER: no file to merge, aborting"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4807)
-  msg = "X!X ERROR: all charges are zero, aborting."
+  msg = "X!X FEHLER: all charges are zero, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Charges must be specified with the option -properties."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4808)
   !strings(1) = atomic species that has zero charge
-  msg = "X!X ERROR: "//TRIM(strings(1))//" ions cannot have zero charge."
+  msg = "X!X FEHLER: "//TRIM(strings(1))//" ions cannot have zero charge."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4809)
   !strings(1) = atomic species
-  msg = "X!X ERROR: no "//TRIM(strings(1))//" ion in the system."
+  msg = "X!X FEHLER: no "//TRIM(strings(1))//" ion in the system."
   msg = TRIM(ADJUSTL(msg))
 CASE(4810)
   !reals(1) = number of particles in first system
   !reals(2) = number of particles in second system
   WRITE(temp,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
-  msg = "X!X ERROR: number of particles of the two systems differ: "// &
+  msg = "X!X FEHLER: number of particles of the two systems differ: "// &
       & TRIM(ADJUSTL(temp))//"/"//TRIM(ADJUSTL(temp2))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "           Program will EXIT."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4811)
-  msg = "X!X ERROR: the two systems do not have the same base vectors."
+  msg = "X!X FEHLER: the two systems do not have the same base vectors."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4812)
-  msg = "X!X ERROR: file does not appear to have animated XSF format, aborting."
+  msg = "X!X FEHLER: file does not appear to have animated XSF format, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4813)
   !strings(1) = name of unknown mode
-  msg = "X!X ERROR: unknown mode: "//TRIM(strings(1))
+  msg = "X!X FEHLER: unknown mode: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4814)
-  msg = "X!X ERROR: only one mode can be used at a time, aborting."
+  msg = "X!X FEHLER: only one mode can be used at a time, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4815)
-  msg = "X!X ERROR: file does not appear to have DL_POLY HISTORY format, aborting."
+  msg = "X!X FEHLER: file does not appear to have DL_POLY HISTORY format, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4816)
   !reals(1) = index for core charges
   !reals(2) = index for shell charges
   IF( reals(1)<reals(2) ) THEN
-    msg = "X!X ERROR: the charges of ionic cores are not defined, aborting."
+    msg = "X!X FEHLER: the charges of ionic cores are not defined, aborting."
   ELSE
-    msg = "X!X ERROR: the charges of ionic shells are not defined, aborting."
+    msg = "X!X FEHLER: the charges of ionic shells are not defined, aborting."
   ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4817)
-  msg = "X!X ERROR: there is no ionic shell in the system, aborting."
+  msg = "X!X FEHLER: there is no ionic shell in the system, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4818)
   !strings(1) = file format (e.g. "xyz", "cfg"...)
-  msg = "X!X ERROR: the file list in "//TRIM(strings(1))//" seems to be empty."
+  msg = "X!X FEHLER: the file list in "//TRIM(strings(1))//" seems to be empty."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4819)
-  msg = "X!X ERROR: base vectors are not orthogonal, aborting."
+  msg = "X!X FEHLER: base vectors are not orthogonal, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4820)
-  msg = "X!X ERROR: supercell dimensions were not defined, aborting."
+  msg = "X!X FEHLER: supercell dimensions were not defined, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4821)
-  msg = "X!X ERROR: number of atoms exceeds size of allocated array."
+  msg = "X!X FEHLER: number of atoms exceeds size of allocated array."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4822)
-  msg = "X!X ERROR: no file to be treated, aborting."
+  msg = "X!X FEHLER: no file to be treated, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4823)
   !strings(1) = keyword 1
   !strings(2) = keyword 2
-  msg = "X!X ERROR: keywords '"//TRIM(ADJUSTL(strings(1)))//"' and '" &
+  msg = "X!X FEHLER: keywords '"//TRIM(ADJUSTL(strings(1)))//"' and '" &
       &  //TRIM(ADJUSTL(strings(2)))//"' are mutually exclusive, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4824)
   !strings(1) = name of unknown command
-  msg = "X!X ERROR: unknown command: "//TRIM(ADJUSTL(strings(1)))
+  msg = "X!X FEHLER: unknown command: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -2370,7 +2370,7 @@ CASE(5005)
 !
 CASE(5700)
   !strings(1) = user's configuration file
-  msg = "/!\ WARNING: it is necessary to overwite the existing file " &
+  msg = "/!\ WARNUNG: it is necessary to overwite the existing file " &
       & //TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Are you sure you want to proceed? (yes/no)"
@@ -2388,7 +2388,7 @@ CASE DEFAULT
   !CALL ATOMSK_MSG_EN(imsg,strings,reals)
 END SELECT
 !
-END SUBROUTINE ATOMSK_MSG_EN
+END SUBROUTINE ATOMSK_MSG_DE
 !
 !
 !
@@ -2396,7 +2396,7 @@ END SUBROUTINE ATOMSK_MSG_EN
 ! DATE_MSG
 ! Displays a nice message on certain dates.
 !********************************************************
-SUBROUTINE DATE_MSG_EN()
+SUBROUTINE DATE_MSG_DE()
 !
 IMPLICIT NONE
 CHARACTER(LEN=5):: zone
@@ -2421,7 +2421,7 @@ CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
 IF(values(2)==1 .AND. values(3)<=10) THEN
   WRITE(msg,*) values(1)
   msg = TRIM(ADJUSTL(msg))
-  msg = "*** HAPPY NEW YEAR "//TRIM(msg)//"!"
+  msg = "*** GLÜCKLICHES NEUES JAHR "//TRIM(msg)//"!"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !14 March (3/14): Pi day
@@ -2532,17 +2532,17 @@ ELSEIF(values(2)==12 .AND. values(3)>=20 .AND. values(3)<=25) THEN
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "                ||"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = " * * *   MERRY CHRISTMAS!   * * *"
+  msg = " * * *  FROHES WEIHNACHTEN !  * * *"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !If it's late at night or in the week end
 ELSEIF( values(5)>=20 .OR. values(5)<=6 ) THEN
-  msg = "*** Working out of office hours? You should sleep sometimes. :-)"
+  msg = "*** Arbeiten außerhalb der Bürozeiten? Sie sollten mal schlafen. :-)"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !If it's lunch time
 ELSEIF(values(5)==12 .AND. values(6)>=30) THEN
-  msg = "*** I am hungry! :-p"
+  msg = "*** Ich habe Hunger! :-p"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !13:37, it's leet time :-)
@@ -2552,8 +2552,8 @@ ELSEIF(values(5)==13 .AND. values(6)==37) THEN
 !
 ENDIF
 !
-END SUBROUTINE DATE_MSG_EN
+END SUBROUTINE DATE_MSG_DE
 !
 !
 !
-END MODULE messages_en
+END MODULE messages_de
