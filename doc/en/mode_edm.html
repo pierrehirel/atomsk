@@ -23,12 +23,12 @@
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>p</strong>(<strong>r</strong><sub>cm</sub>) =  <strong>&sum;</strong> q<sub>i</sub>(<strong>r</strong><sub>i</sub>-<strong>r</strong><sub>cm</sub>)</code></p>
 
-<p>where <strong>r</strong><sub>cm</sub> is the position of the <em>center of mass</em> of the polyhedron, and the sum runs over all ions forming the polyhedron.</p>
+<p>where q<sub>i</sub> is the charge of an ion, <strong>r</strong><sub>i</sub> its position, <strong>r</strong><sub>cm</sub> is the position of the <em>center of mass</em> of the polyhedron, and the sum runs over all ions forming the polyhedron.</p>
 
 <p>The parameters associated with the mode <code>edm</code> are:</p>
 <ul>
-  <li><strong>file</strong>: file containing atomic positions; must be one of the <a href="./formats.html">supported input formats</a>;</li>
-  <li><strong>Pspecies</strong>: atom species at the corners of the polyhedra (see below);</li>
+  <li><strong>file</strong>: file containing atomic positions; must be one of the <a href="./formats.html">supported input formats</a>.</li>
+  <li><strong>Pspecies</strong>: atom species at the corners of the polyhedra (see below).</li>
   <li><strong>NNN</strong>: number of nearest neighbours or cutoff for neighbours search (see below).</li>
 </ul>
 
@@ -41,7 +41,7 @@ B 2<br/>
 C -2<br/>
 </code></p></div>
 
-<p>If an ionic core-shell model is used, then the charges of both core and shell should be specified as stated in the <a href="./option_properties.html">option <code>-properties</code></a>. Then <code><strong>r</strong><sub>i</sub></code> will be the position of the ion core, and <code>q<sub>i</sub></code> the total charge of the ion (core+shell).</p>
+<p>If an ionic core-shell model is used, then the charges of both core and shell should be specified as stated in the <a href="./option_properties.html">option <code>-properties</code></a>. Then <code><strong>r</strong><sub>i</sub></code> will be the position of the ion core, and <code>q<sub>i</sub></code> will be the sum of the charges of the core and shell.</p>
 
 <p>The <strong>Pspecies</strong> indicate which atom species is at the corners of the polyhedra. Continuing with the above example, if C ions are at the corners of the polyhedra, then A-C polyhedra (i.e. with A ions inside each polyhedron, and C ions at the corners) and B-C polyhedra will be considered for the calculation.</p>
 
@@ -66,10 +66,10 @@ C -2<br/>
 <ul>
   <li><strong>*_edm_&#60;A&#62;&#60;C&#62;.xsf</strong>: files in the XSF format containing the positions of &#60;A&#62; atoms and their associated dipole moments; xCrySDen can read this file and display vectors; beware that xCrySDen understands these vectors as FORCES (not as polarization vectors), so it may be tricky to set these vectors to the correct scale.</li>
   <li><strong>*_edm_&#60;A&#62;&#60;C&#62;.norm</strong>: norm of the dipole moments for each &#60;A&#62; atom.</li>
-  <li><strong>*_edm_all.xsf</strong>: file in the XSF format containing the positions of all atoms and their associated dipole moments; as mentionned above it can be displayed with xCrySDen;</li>
-  <li><strong>*_edm_all.dat</strong>: file containing the positions of all atoms and their associated dipole moments; such a file can be visualized e.g. with gnuplot;</li>
-  <li><strong>*_edm_all.cfg</strong>: file in the CFG format containing the positions of all atoms, the components (X, Y, Z) and the norm of the electric dipole moment as auxiliary properties for each atom;</li>
-  <li><strong>*_edm_stat.txt</strong>: statistics about the dipole moments of all atoms (min/max values, standard deviation...);</li>
+  <li><strong>*_edm_all.xsf</strong>: file in the XSF format containing the positions of all atoms and their associated dipole moments; as mentionned above it can be displayed with xCrySDen.</li>
+  <li><strong>*_edm_all.dat</strong>: file containing the positions of all atoms and their associated dipole moments; such a file can be visualized e.g. with gnuplot.</li>
+  <li><strong>*_edm_all.cfg</strong>: file in the CFG format containing the positions of all atoms, the components (X, Y, Z) and the norm of the electric dipole moment as auxiliary properties for each atom.</li>
+  <li><strong>*_edm_stat.txt</strong>: statistics about the dipole moments of all atoms (min/max values, standard deviation...).</li>
   <li><strong>*_Ptot.txt</strong>: total polarization vector of the supercell.</li>
 </ul>
 

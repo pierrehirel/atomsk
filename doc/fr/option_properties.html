@@ -24,11 +24,11 @@
 
 <p>Cette option permet de lire certaines propriétés du système depuis un fichier.</p>
 
-<p>Le &#60;fichier&#62; doit contenir des mots-clés suivis de valeurs correspondantes. Les lignes vides, et les lignes commençant avec un croisillon (&#35;), sont ignorées. Si une propriété est définie plusieurs fois, la dernière occurence écrase les précédentes.</p>
+<p>Le &#60;fichier&#62; est un fichier texte qui doit contenir des mots-clés, suivis des valeurs correspondantes. Les lignes vides, et les lignes commençant avec un croisillon (&#35;), sont ignorées. Si une propriété est définie plusieurs fois, la dernière occurence écrase les précédentes.</p>
 
-<p><em>Les propriétés individuelles des atomes</em> sont définies pour chaque atome, c'est le cas par ex. des déplacements ou des vitesses des atomes. S'il s'agit de propriétés auxiliaires (par ex. les vitesses, charges électriques...), elles sont écrites dans certains formats de fichiers, voir <a href="./formats.html">cette page</a>. <em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
+<p><em>Les propriétés individuelles des atomes</em> sont définies pour chaque atome, c'est le cas par ex. des déplacements ou des vitesses des atomes. S'il s'agit de propriétés auxiliaires (càd qui ne s'appliquent pas aux positions des atomes : les vitesses, charges électriques...), elles sont écrites dans certains formats de fichiers, voir <a href="./formats.html">cette page</a>. <em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
 
-<p>Voici la liste des <strong>propriétés atomiques individuelles</strong>, qui sont enregistrées comme propriétés auxiliaires pour chaque atome :</p>
+<p>Voici la liste des <strong>propriétés atomiques individuelles</strong> qui s'appliquent aux atomes :</p>
 
 <ul>
   
@@ -39,12 +39,12 @@
             ...</code></p>
   <p>Les déplacements peuvent être donnés pour tous les atomes, ou seulement certains d'entre eux. Ces déplacements seront immédiatement appliqués aux positions des atomes.</p></li>
   
-  <li><strong>Les charges des ions</strong> peuvent être définies grâce au mot-clé "charge", suivi de lignes contenant le symbole chimique de l'ion et sa charge (généralement en unités de charges élémentaires <em>e</em>, bien que <code>atomsk</code> travaillera quel que soit le nombre donné). Dans le cas d'un modèle ionique c&oelig;ur-coquille deux charges peuvent être données, correspondant à la charge du c&oelig;ur et à celle de la coquille :<br/>
+  <li><strong>Les charges des ions</strong> peuvent être définies grâce au mot-clé "charge", suivi de lignes contenant le symbole chimique de l'ion et sa charge (généralement en unités de charges élémentaires <em>e</em>, bien que <code>atomsk</code> travaillera quel que soit le nombre donné). Dans le cas d'un modèle ionique c&oelig;ur-coquille, la charge Q du c&oelig;ur et la charge q de la coquille peuvent être données :<br/>
       <p><code>charge<br/>
-            &#60;espèce1&#62; &#60;charge1&#62; [&#60;coquille1&#62;]<br/>
-            &#60;espèce2&#62; &#60;charge2&#62; [&#60;coquille2&#62;]<br/>
+            &#60;espèce1&#62; &#60;Q<sub>1</sub>&#62; [&#60;q<sub>1</sub>&#62;]<br/>
+            &#60;espèce2&#62; &#60;Q<sub>2</sub>&#62; [&#60;q<sub>2</sub>&#62;]<br/>
             ...</code></p>
-  <p>Si des charges avaient été définies auparavant, elles seront remplacées par celles-ci. Ces charges sont utilisées par exemple dans le <a href="./mode_edm.html">mode <code>--edm</code></a>, ou encore pour calculer la <a href="./mode_epola.html">polarisation électronique</a>.</p></li>
+  <p>Tous les atomes appartenant à l'&#60;espèce1&#62; se verront assigner la charge électrique Q<sub>1</sub> (et leurs coquilles la charge q<sub>1</sub> s'il y a lieu). Si des charges avaient été définies auparavant, elles seront remplacées par celles-ci. Ces charges sont utilisées par exemple dans le <a href="./mode_edm.html">mode <code>--edm</code></a>, ou encore pour calculer la <a href="./mode_epola.html">polarisation électronique</a>.</p></li>
   
   <li><strong>Les types d'atomes</strong> peuvent être définis grâce au mot-clé "type":<br/>
       <p><code>type<br/>

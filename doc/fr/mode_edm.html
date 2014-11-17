@@ -23,13 +23,13 @@
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code><strong>p</strong>(<strong>r</strong><sub>cm</sub>) =  <strong>&sum;</strong> q<sub>i</sub>(<strong>r</strong><sub>i</sub>-<strong>r</strong><sub>cm</sub>)</code></p>
 
-<p>où <strong>r</strong><sub>cm</sub> est la position du <em>centre de masse</em> du polyèdre, et la somme court sur tous les ions formant le polyèdre.</p>
+<p>où q<sub>i</sub> est la charge d'un ion, <strong>r</strong><sub>i</sub> sa position, <strong>r</strong><sub>cm</sub> est la position du <em>centre de masse</em> du polyèdre, et la somme court sur tous les ions formant le polyèdre.</p>
 
 <p>Les paramètres associés avec le mode <code>edm</code> sont :</p>
 <ul>
-  <li><strong>fichier</strong>: fichier contenant les positions atomiques ; doit être dans l'un des <a href="./formats.html">formats supportés par <code>atomsk</code></a>;</li>
-  <li><strong>Pespèce</strong>: espèce chimique des atomes situés aux coins du polyèdre (voir ci-dessous) ;</li>
-  <li><strong>NNN</strong>: nombre de premiers voisins, ou rayon de coupure pour la recherche des voisins (voir ci-dessous).</li>
+  <li><strong>fichier</strong> : fichier contenant les positions atomiques ; doit être dans l'un des <a href="./formats.html">formats supportés par <code>atomsk</code></a>.</li>
+  <li><strong>Pespèce</strong> : espèce chimique des atomes situés aux coins du polyèdre (voir ci-dessous).</li>
+  <li><strong>NNN</strong> : nombre de premiers voisins, ou rayon de coupure pour la recherche des voisins (voir ci-dessous).</li>
 </ul>
 
 <p>Ce mode ne calculera rien si les <strong>charges des ions</strong> ne sont pas définies. Les charges peuvent être lues depuis le &#60;fichier&#62; (voir <a href="./formats.html">cette page</a> pour la liste des formats supportant les charges <code>q</code>), ou en utilisant l'<a href="./option_properties.html">option <code>-properties</code></a>. Par exemple, soit un système fictif constitué d'ions A<sup>3+</sup>, B<sup>2+</sup> et C<sup>2-</sup>, alors ces charges peuvent être écrites dans un fichier texte au format suivant et lu avec l'option <code>-properties</code>:</p>
@@ -41,7 +41,7 @@ B 2<br/>
 C -2<br/>
 </code></p></div>
 
-<p>Si un modèle c&oelig;ur-coquille est utilisé, alors les charges du c&oelig;ur et de la coquille doivent être entrées comme spécifié dans l'<a href="./option_properties.html">option <code>-properties</code></a>. Dans ce cas <code><strong>r</strong><sub>i</sub></code> sera la position du noyau, et <code>q<sub>i</sub></code> sera la charge totale de l'ion (c&oelig;ur + coquille).</p>
+<p>Si un modèle c&oelig;ur-coquille est utilisé, alors les charges du c&oelig;ur et de la coquille doivent être entrées comme spécifié dans l'<a href="./option_properties.html">option <code>-properties</code></a>. Dans ce cas <code><strong>r</strong><sub>i</sub></code> sera la position du noyau, et <code>q<sub>i</sub></code> sera la somme des charges du c&oelig;ur et de la coquille.</p>
 
 <p>La <strong>Pespèce</strong> est l'espèce chimique située aux coins du polyèdre. En reprenant l'exemple ci-dessus, si les ions C sont aux coins des polyèdres, alors les polyèdres A-C (c-à-d. avec un ion A au centre et des ions C aux coins) et B-C seront inclus dans le calcul.</p>
 

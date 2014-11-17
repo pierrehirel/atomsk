@@ -22,9 +22,13 @@
 
 <h4>Description</h4>
 
-<p>This option re-associates the shells with their core (in the sense of an ionic core-shell model). Each ionic core gets associated with the closest shell, but only if the shell is less than 1.5 &Aring; away.</p>
+<p>This option re-associates the shells with their core (in the sense of an ionic core-shell model).<p>
 
-<p>Shells must exist in the system for this option to apply. Note that only the indices of shells are modified so that they match their cores, the positions of cores and shells are not modified. This option can be useful when reading files where the positions of cores and shells are written in different orders.</p>
+<p>First, it is assumed that the lists of cores and shells match. If a shell is very far away from the corresponding core, the periodic images of the shell are searched for. If a periodic image is close to the core then the position of the shell is replaced by the position of this image.</p>
+
+<p>Second, if no periodic image seems to be associated with the core, it is assumed that the shell does not belong to this core, and the rest of the shell list is parsed. If another shell is found closer than 1.5 &Aring; from the core, then it is associated with the core. Otherwise, if no shell is found close to a core, then it is assumed that this core has no shell.</p>
+
+<p>Shells must exist in the system for this option to apply. Note that the indices of shells may be modified, and their positions may be translated by one or more box vectors. The positions of cores is not modified by this option. This option can be useful when reading files where the positions of cores and shells are written in different orders, or when some shells, but not their cores, were translated because of periodic boundary conditions.</p>
 
 
 <h4>Default</h4>

@@ -25,12 +25,13 @@ beta 0.8 (in development)
 - new option "-velocity" allows to generate a Maxwell-Boltzmann distribution of velocities.
 - new algorithm for constructing neighbor list.
 - mode interactive now offers a command-line interpreter, much more flexible than the former "interactive questions". The cli allows to read and write files, supports options and the mode "create", and can take scripts as standard input (e.g. "atomsk < script.at").
-- mode "--list" works faster when the parameter "-ignore" is used. The list of files that must be ignored is build early on, which avoids reading the corresponding input files for nothing.
+- mode "--list" works faster when the parameter "-ignore" is used. The files that must be ignored are removed from the list early on, which avoids reading the corresponding input files for nothing.
 - mode "--rdf" now constructs a neighbor list before computing the radial distribution functions (RDFs). Also, the maximum radius Rmax for the RDF must be provided, and Rmax can be larger than the system.
 - modes "--edm" and "--rdf" now prompt the user if the option "-wrap" is absent in the command-line.
+- option "-bind-shells" now also considers the case where shells, but not their cores, were translated by box vectors because of periodic boundary conditions. The periodic images of the shells are searched for, and replace the initial shell position if they are found to be close to the core.
 - option "-deform" now interprets real numbers as the value of the deformation. The symbol "%" must be used to specify a deformation in percent, e.g. "-deform x 1.5% 0.0".
 - option "-expand" was renamed into "-duplicate" (or "-dup") for clarity and consistency with other codes.
-- option "-properties" allows to read atom velocities from a file.
+- option "-properties" allows to specify atom velocities, and atom displacements.
 - option "-remove-atoms" can now remove all selected atoms with "-remove-atoms select".
 - option "-remove-doubles" now only removes selected atoms if a selection is defined.
 - option "-remove-properties" does not remove the auxiliary property anymore if a selection is defined, instead the property is set to zero for selected atoms. If no selection is defined the property is still completely removed.

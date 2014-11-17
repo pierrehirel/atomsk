@@ -24,9 +24,9 @@
 
 <p>This option can be used to define explicitely some properties of the system.</p>
 
-<p>The &#60;file&#62; must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored. If a property is specified several times, then only the last one is used.</p>
+<p>The &#60;file&#62; is a text file that must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored. If a property is specified several times, then the last one will overwrite all previous ones.</p>
 
-<p><em>Per-atom properties</em> are defined for each atom, e.g. the atom displacements or velocities. If they are auxiliary properties (e.g. velocities, electric charge...), they will be written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
+<p><em>Per-atom properties</em> are defined for each atom, e.g. the atom displacements or velocities. If they are auxiliary properties (i.e. properties that do not apply to atom positions, like velocities, electric charges...), then they will be written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
 
 <p>Below is the list of valid <strong>per-atom properties</strong>, which apply to atoms:</p>
 
@@ -39,12 +39,12 @@
             ...</code></p>
   <p>The displacements can be given for all atoms, or only some of them. The displacement vectors will be immediately applied to the atom positions.</p></li>
   
-  <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but <code>atomsk</code> will work with whatever number is given). In case of an ionic core-shell model two charges can be specified, corresponding to the core and shell respectively:<br/>
+  <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but <code>atomsk</code> will work with whatever number is given). In case of an ionic core-shell model the charge Q of the core and the charge q of the shell can be given:<br/>
       <p><code>charge<br/>
-            &#60;species1&#62; &#60;charge1&#62; [&#60;shell1&#62;]<br/>
-            &#60;species2&#62; &#60;charge2&#62; [&#60;shell2&#62;]<br/>
+            &#60;species1&#62; &#60;Q<sub>1</sub>&#62; [&#60;q<sub>1</sub>&#62;]<br/>
+            &#60;species2&#62; &#60;Q<sub>2</sub>&#62; [&#60;q<sub>2</sub>&#62;]<br/>
             ...</code></p>
-  <p>If charges were defined before, they will be replaced by those read with this option. These charges are used for instance in the <a href="./mode_edm.html">mode <code>--edm</code></a>, or to compute the <a href="./mode_epola.html">electronic polarization</a>.</p></li>
+  <p>All atoms of the &#60;species1&#62; will be given the charge Q<sub>1</sub> (and their shells the charge q<sub>1</sub> if defined). If charges were defined before, they will be replaced by those read with this option. These charges are used for instance in the <a href="./mode_edm.html">mode <code>--edm</code></a>, or to compute the <a href="./mode_epola.html">electronic polarization</a>.</p></li>
   
   <li><strong>Atom types</strong> can be defined using the keyword "type":<br/>
       <p><code>type<br/>
