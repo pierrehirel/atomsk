@@ -24,11 +24,11 @@
 
 <p>This option re-associates the shells with their core (in the sense of an ionic core-shell model).<p>
 
-<p>First, it is assumed that the lists of cores and shells match. If a shell is very far away from the corresponding core, the periodic images of the shell are searched for. If a periodic image is close to the core then the position of the shell is replaced by the position of this image.</p>
+<p>First, it is assumed that the lists of cores and shells match. If a shell is close to its core (at a distance smaller than 1.5 &Aring;) then it is considered as already associated. But, if the shell is far away from the corresponding core, the periodic images of the shell are searched for. If one of the periodic images is close to the core, then the position of the shell is replaced by the position of that image. This can be useful if some shells, but not their cores, were translated because of periodic boundary conditions.</p>
 
-<p>Second, if no periodic image seems to be associated with the core, it is assumed that the shell does not belong to this core, and the rest of the shell list is parsed. If another shell is found closer than 1.5 &Aring; from the core, then it is associated with the core. Otherwise, if no shell is found close to a core, then it is assumed that this core has no shell.</p>
+<p>Second, if no periodic image seems to be associated with the core, it is assumed that the shell does not belong to this core, and the rest of the shell list is parsed. If another shell is found closer than 1.5 &Aring; from the core, then it is associated with the core. This can be useful when reading files where the positions of cores and shells are written in different orders. Finally, if no shell is found close to a core, then it is assumed that this core has no shell.</p>
 
-<p>Shells must exist in the system for this option to apply. Note that the indices of shells may be modified, and their positions may be translated by one or more box vectors. The positions of cores is not modified by this option. This option can be useful when reading files where the positions of cores and shells are written in different orders, or when some shells, but not their cores, were translated because of periodic boundary conditions.</p>
+<p>Shells must exist in the system for this option to apply. Note that the indices of shells may be modified, and their positions may be translated by one or more box vectors. The positions of cores is not modified by this option.</p>
 
 
 <h4>Default</h4>

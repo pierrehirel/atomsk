@@ -11,7 +11,7 @@ MODULE in_cfg
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 May 2014                                      *
+!* Last modification: P. Hirel - 19 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -175,7 +175,6 @@ ENDDO
 !
 !
 200 CONTINUE
-PRINT*, Ncomment
 IF(Ncomment>0) THEN
   ALLOCATE(comment(Ncomment))
   comment(:)=''
@@ -207,68 +206,71 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !starts with a number
 DO WHILE(snumber==0.d0)
   READ(30,'(a1024)',ERR=400,END=400) temp
-  IF( LEN_TRIM(temp)<=0 ) THEN
+  temp = ADJUSTL(temp)
+  IF( LEN_TRIM(temp)>0 ) THEN
     !Ignore empty lines
-  ELSEIF(temp(1:1)=='#') THEN
-    Ncomment=Ncomment+1
-    IF( Ncomment<SIZE(comment) ) THEN
-      comment(Ncomment) = temp(1:128)
-    ENDIF
-  ELSEIF(temp(1:13)=='.NO_VELOCITY.') THEN
-    novelocity = .TRUE.
-  ELSEIF(temp(1:11)=='entry_count') THEN
-    strlength = SCAN(temp,'=')
-    READ(temp(strlength+1:),*) auxiliary
-    IF(novelocity) THEN
-      auxiliary = auxiliary-3
-    ELSE
-      auxiliary = auxiliary-6
-    ENDIF
-    WRITE(msg,*) 'Number of auxiliary properties:', auxiliary
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    IF(auxiliary>0) THEN
-      ALLOCATE( AUXNAMES(auxiliary) )
-      AUXNAMES(:) = ''
-      ALLOCATE( AUX( SIZE(P(:,1)), auxiliary ) )
-      AUX(:,:) = 0.d0
-    ENDIF
-  ELSEIF( temp(1:9)=='auxiliary' ) THEN
-    IF(.NOT. ALLOCATED(AUX) ) THEN
-      !If auxiliary array was not allocated before we are in trouble
-      nwarn = nwarn+1
-      CALL ATOMSK_MSG(1700,(/TRIM(temp)/),(/0.d0/))
-    ELSE
-      !Read the name of the auxiliary property
-      strlength = SCAN(temp,'[')
-      strlength2 = SCAN(temp,']')
-      READ(temp(strlength+1:strlength2-1),*) auxiliary
+    IF(temp(1:1)=='#') THEN
+      Ncomment=Ncomment+1
+      IF( Ncomment<=SIZE(comment) ) THEN
+        comment(Ncomment) = temp(1:128)
+      ENDIF
+    ELSEIF(temp(1:13)=='.NO_VELOCITY.') THEN
+      novelocity = .TRUE.
+    ELSEIF(temp(1:11)=='entry_count') THEN
       strlength = SCAN(temp,'=')
-      READ(temp(strlength+1:),'(a128)') AUXNAMES(auxiliary+1)
-    ENDIF
-  !
-  ELSEIF( temp(1:9)=="Transform" .OR. temp(1:3)=="eta" ) THEN
-    !ignore that
+      READ(temp(strlength+1:),*,ERR=400,END=400) auxiliary
+      IF(novelocity) THEN
+        auxiliary = auxiliary-3
+      ELSE
+        auxiliary = auxiliary-6
+      ENDIF
+      WRITE(msg,*) 'Number of auxiliary properties:', auxiliary
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      IF(auxiliary>0) THEN
+        ALLOCATE( AUXNAMES(auxiliary) )
+        AUXNAMES(:) = ''
+        ALLOCATE( AUX( SIZE(P(:,1)), auxiliary ) )
+        AUX(:,:) = 0.d0
+      ENDIF
+    ELSEIF( temp(1:9)=='auxiliary' ) THEN
+      IF(.NOT. ALLOCATED(AUX) ) THEN
+        !If auxiliary array was not allocated before we are in trouble
+        nwarn = nwarn+1
+        CALL ATOMSK_MSG(1700,(/TRIM(temp)/),(/0.d0/))
+      ELSE
+        !Read the name of the auxiliary property
+        strlength = SCAN(temp,'[')
+        strlength2 = SCAN(temp,']')
+        READ(temp(strlength+1:strlength2-1),*) auxiliary
+        strlength = SCAN(temp,'=')
+        READ(temp(strlength+1:),'(a128)') AUXNAMES(auxiliary+1)
+      ENDIF
     !
-  ELSE
-    !try to read a real
-    READ(temp,*,ERR=201,END=201) testreal
-    !No error? Then the real was most probably an atom mass.
-    !To confirm that, let's try to read the atom species in the
-    !second position (standard CFG) or the next line (extended CFG).
-    !Note: ideally we should compare the atom mass and species
-    !and require that they match. However some atomistic simulation
-    !programs write the CFG format in a non-standard way, writing
-    !the atomic number or a dummy number instead of the atomic mass.
-    !So here we use only the atomic species
-    IF(cfgformat<0.d0) THEN
-      READ(temp,*,ERR=400,END=400) testreal, species
-      CALL ATOMNUMBER(species,snumber)
+    ELSEIF( temp(1:9)=="Transform" .OR. temp(1:3)=="eta" ) THEN
+      !ignore that
+      !
     ELSE
-      READ(30,*,ERR=400,END=400) species
-      CALL ATOMNUMBER(species,snumber)
+      !try to read a real
+      READ(temp,*,ERR=201,END=201) testreal
+      !No error? Then the real was most probably an atom mass.
+      !To confirm that, let's try to read the atom species in the
+      !second position (standard CFG) or the next line (extended CFG).
+      !Note: ideally we should compare the atom mass and species
+      !and require that they match. However some atomistic simulation
+      !programs write the CFG format in a non-standard way, writing
+      !the atomic number or a dummy number instead of the atomic mass.
+      !So here we use only the atomic species
+      IF(cfgformat<0.d0) THEN
+        READ(temp,*,ERR=400,END=400) testreal, species
+        CALL ATOMNUMBER(species,snumber)
+      ELSE
+        READ(30,*,ERR=400,END=400) species
+        CALL ATOMNUMBER(species,snumber)
+      ENDIF
+      !If species was not recognized
+      201 CONTINUE
     ENDIF
-    !If species was not recognized
-    201 CONTINUE
+    !
   ENDIF
 ENDDO
 !
@@ -371,7 +373,6 @@ GOTO 500
 !
 !
 500 CONTINUE
-PRINT*, comment(:)
 !
 END SUBROUTINE READ_CFG
 !

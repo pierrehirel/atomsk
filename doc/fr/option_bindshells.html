@@ -24,11 +24,11 @@
 
 <p>Cette option ré-associe les coquilles avec leurs c&oelig;urs (dans le cadre d'un modèle ionique c&oelig;ur-coquille).
 
-<p>D'abord, on considère que les listes des c&oelig;urs et coquilles se correspondent. Si une coquille se trouve loin de son c&oelig;ur, alors ses images périodiques de la coquille sont parcourues. Si une image périodique se trouve près du c&oelig;ur alors la position de la coquille est remplacée par celle de cette image.</p>
+<p>D'abord, on considère que les listes des c&oelig;urs et coquilles se correspondent. Si la coquille se trouve déjà près du c&oelig;ur (à moins de 1,5 &Aring;) alors elle est considérée comme déjà associée. En revanche si la coquille se trouve loin du c&oelig;ur, alors ses images périodiques sont parcourues. Si une image périodique se trouve près du c&oelig;ur alors la position de la coquille est remplacée par celle de cette image. Ceci peut être utile lorsque des coquilles, mais pas leurs c&oelig;urs, ont été translatées d'un ou plusieurs vecteurs de boîte à cause de conditions aux limites périodiques.</p>
 
-<p>Sinon, si aucune image périodique ne semble être associée avec ce c&oelig;ur, alors cette coquille n'appartient pas à ce c&oelig;ur, et le reste de la liste des coquilles est parcourue. Si une autre coquille se trouve près du c&oelig;ur alors elle est associée à ce c&oelig;ur. Sinon, si aucune coquille n'est trouvée près du c&oelig;ur alors ce c&oelig;ur n'a aucune coquille.</p>
+<p>Sinon, si aucune image périodique ne semble être associée avec ce c&oelig;ur, alors cette coquille n'appartient pas à ce c&oelig;ur, et le reste de la liste des coquilles est parcourue. Si une autre coquille se trouve près du c&oelig;ur alors elle est associée à ce c&oelig;ur. Ceci peut être utile après avoir lu un fichier dans lequel les positions des c&oelig;urs et des coquilles sont écrits dans des ordres différents. Enfin, si aucune coquille n'est trouvée près du c&oelig;ur alors ce c&oelig;ur n'a aucune coquille.</p>
 
-<p>Les coquilles doivent exister dans le système pour pouvoir appliquer cette option. Notez que les indices des coquilles, ainsi que leurs positions, peuvent être modifiés pour qu'elles correspondent à leurs c&oelig;urs. Les positions des c&oelig;urs ne sont pas changées par cette option. Cette option peut être utile après avoir lu un fichier dans lequel les positions des c&oelig;urs et des coquilles sont écrits dans des ordres différents, ou bien lorsque des coquilles, mais pas leurs c&oelig;urs, ont été translatées d'un ou plusieurs vecteurs de boîte à cause de conditions aux limites périodiques.</p>
+<p>Les coquilles doivent exister dans le système pour pouvoir appliquer cette option. Notez que les indices des coquilles, ainsi que leurs positions, peuvent être modifiés pour qu'elles correspondent à leurs c&oelig;urs. Les positions des c&oelig;urs ne sont pas changées par cette option.</p>
 
 
 <h4>Défaut</h4>

@@ -46,6 +46,7 @@ beta 0.8 (in development)
 - fixed a bug where some file formats would not be detected correctly if the file name was given through a path.
 - fixed a bug where ionic shells would be lost in mode "--merge".
 - fixed a bug where ionic shells would not be read from Atomsk binary files (*.atsk).
+- fixed a bug where all comments would not be read from Atomeye CFG files.
 - fixed a bug where atom electric charges would not be read from LAMMPS data files (*.lmp).
 - fixed a bug where the option "-sort" would not sort the selection mask along with atoms.
 - fixed a bug where the compliance tensor would not be properly inverted to give the stiffness tensor in option "-properties".

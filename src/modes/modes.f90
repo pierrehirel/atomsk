@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Sept. 2014                                    *
+!* Last modification: P. Hirel - 18 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -98,7 +98,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: commentfirst, commentsecond !used 
 CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: merge_files  !files for merge mode
 CHARACTER(LEN=2),DIMENSION(20):: create_species
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_temp  !options and their parameters (temporary)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
@@ -131,7 +130,6 @@ IF(mode=='list') THEN
   file1=listfile
 ENDIF
 IF(ALLOCATED(S)) DEALLOCATE(S)
-IF(ALLOCATED(options_temp)) DEALLOCATE(options_temp)
 !
 !
 IF(verbosity==4) THEN
@@ -745,31 +743,7 @@ CASE('edm')
   ENDIF
   !
   !Check if user asked for wrapping of atoms
-  IF( ALLOCATED(options_array) ) THEN
-    IF( .NOT.ANY(options_array(:)=="-wrap") ) THEN
-      !User did not ask to wrap atoms => warn and ask
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
-      READ(*,*) answer
-      IF( answer==langyes .OR. answer==langBigYes ) THEN
-        !Add option "-wrap" to options_array (at the beginning)
-        IF( ALLOCATED(options_array) ) THEN
-          ALLOCATE( options_temp(SIZE(options_array)+1) )
-          options_temp(:) = ""
-          DO i=1,SIZE(options_array)
-            options_temp(i+1) = options_array(i)
-          ENDDO
-          DEALLOCATE(options_array)
-          ALLOCATE(options_array(SIZE(options_temp)))
-          options_array(:) = options_temp(:)
-          DEALLOCATE(options_temp)
-        ELSE
-          ALLOCATE(options_array(1))
-        ENDIF
-        options_array(1) = "-wrap"
-      ENDIF
-    ENDIF
-  ENDIF
+  CALL CHECK_OPTION_WRAP(options_array)
   !
   !Set the name for output file
   strlength = SCAN(file1,'.',BACK=.TRUE.)
@@ -854,31 +828,7 @@ CASE('rdf')
   READ(mode_param(2),*,END=7000,ERR=7000) rdf_dr   !skin radius dR
   !
   !Check if user asked for wrapping of atoms
-  IF( ALLOCATED(options_array) ) THEN
-    IF( .NOT.ANY(options_array(:)=="-wrap") ) THEN
-      !User did not ask to wrap atoms => warn and ask
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
-      READ(*,*) answer
-      IF( answer==langyes .OR. answer==langBigYes ) THEN
-        !Add option "-wrap" to options_array (at the beginning)
-        IF( ALLOCATED(options_array) ) THEN
-          ALLOCATE( options_temp(SIZE(options_array)+1) )
-          options_temp(:) = ""
-          DO i=1,SIZE(options_array)
-            options_temp(i+1) = options_array(i)
-          ENDDO
-          DEALLOCATE(options_array)
-          ALLOCATE(options_array(SIZE(options_temp)))
-          options_array(:) = options_temp(:)
-          DEALLOCATE(options_temp)
-        ELSE
-          ALLOCATE(options_array(1))
-        ENDIF
-        options_array(1) = "-wrap"
-      ENDIF
-    ENDIF
-  ENDIF
+  CALL CHECK_OPTION_WRAP(options_array)
   !
   !Compute polarization
   CALL RDF_XYZ(listfile,rdf_maxR,rdf_dr,options_array)
@@ -890,6 +840,8 @@ CASE('rdf')
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('nye')
   !in this mode the code reads two files and computes the Nye tensor
+  CALL CHECK_OPTION_WRAP(options_array)
+  !
   CALL NYE_TENSOR(filefirst,filesecond,options_array,file1,outfileformats)
 !
 !
@@ -920,5 +872,44 @@ IF(ALLOCATED(Psecond)) DEALLOCATE(Psecond)
 !
 !
 END SUBROUTINE RUN_MODE
+!
+!
+!
+SUBROUTINE CHECK_OPTION_WRAP(options_array)
+!
+IMPLICIT NONE
+CHARACTER(LEN=1):: answer !"y" or "n"
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: options_array !options and their parameters
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_temp  !options and their parameters (temporary)
+INTEGER:: i
+!
+!Check if user asked for wrapping of atoms
+IF( .NOT.ALLOCATED(options_array) .OR. .NOT.ANY(options_array(:)=="-wrap") ) THEN
+  !User did not ask to wrap atoms => warn and ask
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
+  READ(*,*) answer
+  IF( answer==langyes .OR. answer==langBigYes ) THEN
+    !Add option "-wrap" to options_array (at the beginning)
+    IF( ALLOCATED(options_array) ) THEN
+      ALLOCATE( options_temp(SIZE(options_array)+1) )
+      options_temp(:) = ""
+      DO i=1,SIZE(options_array)
+        options_temp(i+1) = options_array(i)
+      ENDDO
+      DEALLOCATE(options_array)
+      ALLOCATE(options_array(SIZE(options_temp)))
+      options_array(:) = options_temp(:)
+      DEALLOCATE(options_temp)
+    ELSE
+      ALLOCATE(options_array(1))
+    ENDIF
+    options_array(1) = "-wrap"
+  ENDIF
+ENDIF
+!
+END SUBROUTINE CHECK_OPTION_WRAP
+!
+!
 !
 END MODULE modes
