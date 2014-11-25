@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Nov. 2014                                     *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -585,19 +585,22 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF(temp(1:5).NE.'above' .AND. temp(1:5).NE.'below') GOTO 120
-    !read cut distance
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
-      & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    !read cut direction
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    IF( temp(1:5)=='above' .OR. temp(1:5)=='below' ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !read cut distance
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !read cut direction
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    ELSE
+      i=i-1
+    ENDIF
   !
   ELSEIF(clarg=='-deform' .OR. clarg=='-def') THEN
     ioptions = ioptions+1
@@ -739,20 +742,23 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF(temp(1:5).NE.'above' .AND. temp(1:5).NE.'below') GOTO 120
-    !read fix distance
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
-      & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
-    !READ(temp,*,END=120,ERR=120) tempreal
-    !read fix direction (x, y or z)
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    IF(temp(1:5)=='above' .AND. temp(1:5)=='below') THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !read fix distance
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      !READ(temp,*,END=120,ERR=120) tempreal
+      !read fix direction (x, y or z)
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    ELSE
+      i=i-1
+    ENDIF
   !
   ELSEIF(clarg=='-frac' .OR. clarg=='-fractional') THEN
     ioptions = ioptions+1
@@ -813,7 +819,8 @@ DO WHILE(i<SIZE(cla))
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
-  ELSEIF(clarg=='-remove-atom' .OR. clarg=='-rmatom') THEN
+  ELSEIF(clarg=='-remove-atom'  .OR. clarg=='-rmatom'  .OR. &
+        &clarg=='-remove-atoms' .OR. clarg=='-rmatoms'      ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the atom species or index that will be removed
@@ -1119,21 +1126,24 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='-shift') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
-    !read part to shift ('above' or 'below')
+    !read part to shift ('above' or 'below', or a number)
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF(temp(1:5).NE.'above' .AND. temp(1:5).NE.'below') GOTO 120
-    !read distance of plane of shift
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    !read axis perpendicular to the plane of shift (x, y, z, or crystallographic direction)
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    IF( temp(1:5)=='above' .OR. temp(1:5)=='below' ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !read distance of plane of shift
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !read axis perpendicular to the plane of shift (x, y, z, or crystallographic direction)
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    ELSE
+      i=i-1
+    ENDIF
     !read tau1
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp

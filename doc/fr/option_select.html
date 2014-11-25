@@ -96,7 +96,7 @@ de leur espèce chimique.</p>
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -select Si -rmatom select final.xyz</code>
+<li><code class="command">atomsk initial.cfg -select Si -remove-atom select final.xyz</code>
 <p>Ceci lira le fichier <code>initial.cfg</code>, sélectionnera tous les atomes de silicium et <a href="./option_rmatom.html">les supprimera</a>. Le résultat final sera écrit dans <code>final.xyz</code>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select 340,432,126:190,809 -rmatom select final.xyz</code>
@@ -105,23 +105,23 @@ de leur espèce chimique.</p>
 <li><code class="command">atomsk initial.cfg -select above 40 y -rot z 45 final.xyz</code>
 <p>Ceci sélectionnera tous les atomes ayant une coordonnée Y supérieure à 40 &Aring;. Puis l'<a href="./option_rotate.html">option <code>-rotate</code></a> sera appliquée seulement aux atomes sélectionnés.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select above 40 [111] -cut above -INF x final.xyz</code>
-<p>Ceci sélectionnera les atomes qui sont situés, par rapport à l'origine cartésienne, à une distance supérieure à 40 &Aring; suivant la direction [111]. The following <a href="./option_cut.html">option <code>-cut</code></a> will remove the selected atoms.</p></li>
+<li><code class="command">atomsk initial.cfg -select above 40 [111] -cut above 30 x final.xyz</code>
+<p>Ceci sélectionnera les atomes qui sont situés, par rapport à l'origine cartésienne, à une distance supérieure à 40 &Aring; suivant la direction [111]. Ensuite, l'<a href="./option_cut.html">option <code>-cut</code></a> supprimera les atomes sélectionnés, mais seulement si leur coordonnée X est supérieure à 30 &Aring;.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select in box 0 0 0 20 10 3 -shift above 0 x -10 0 0 final.xyz</code>
-<p>Ceci sélectionnera les atomes situés dans la boîte rectangulaire définie par les points (0,0,0) et (20,10,3). Puis l'<a href="./option_shift.html">option <code>-shift</code></a> sera appliquée aux atomes situés dans cette région *et* ont une coordonnée X supérieure à 0 &Aring;.</p></li>
+<li><code class="command">atomsk initial.cfg -select in box 0 0 0 20 10 3 -shift -10 0 0 final.xyz</code>
+<p>Ceci sélectionnera les atomes situés dans la boîte rectangulaire définie par les points (0,0,0) et (20,10,3). Puis l'<a href="./option_shift.html">option <code>-shift</code></a> translatera tous ces atomes sélectionnés d'un vecteur (-10,0,0).</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out box 10 20 -INF BOX-10 BOX-20 INF -fix all above -100 x -10 0 0 final.xyz</code>
-<p>Ceci sélectionnera tous les atomes à l'extérieur de la boîte située entre 10 &Aring; et 10 &Aring; avant le bord de boîte suivant X ("BOX-10"), entre 20 &Aring; et 20 &Aring; avant le bord de boîte suivant Y ("BOX-20"), et entre -&infin; et +&infin; suivant Z. Puis l'<a href="./option_fix.html">option <code>-fix</code></a> sera appliquée aux atomes sélectionnés qui ont une coordonnée suivant X supérieure à -100 &Aring;.</p></li>
+<li><code class="command">atomsk initial.cfg -select out box 10 20 -INF BOX-10 BOX-20 INF -fix all final.xyz</code>
+<p>Ceci sélectionnera tous les atomes à l'extérieur de la boîte située entre 10 &Aring; et 10 &Aring; avant le bord de boîte suivant X ("BOX-10"), entre 20 &Aring; et 20 &Aring; avant le bord de boîte suivant Y ("BOX-20"), et entre -&infin; et +&infin; suivant Z. Puis l'<a href="./option_fix.html">option <code>-fix</code></a> sera appliquée aux atomes sélectionnés.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out sphere 0.5*BOX 0.5*BOX 0.5*BOX 10.0 -cut above 0 x final.xyz</code>
-<p>Ceci sélectionnera les atomes qui sont en-dehors de la sphère dont le centre est au milieu de la boîte et de rayon 10 &Aring;. Puis l'<a href="./option_cut.html">option <code>-cut</code></a> sera appliquée à ces atomes, de sorte qu'il ne reste que les atomes à l'intérieur de la sphère.</p></li>
+<li><code class="command">atomsk initial.cfg -select out sphere 0.5*BOX 0.5*BOX 0.5*BOX 10.0 -rmatom select final.xyz</code>
+<p>Ceci sélectionnera les atomes qui sont en-dehors de la sphère dont le centre est au milieu de la boîte et de rayon 10 &Aring;. Puis l'<a href="./option_rmatom.html">option <code>-rmatom</code></a> sera appliquée à ces atomes, de sorte qu'il ne reste que les atomes à l'intérieur de la sphère.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out cylinder y 40 30 20 -fix all above -1000 x final.xyz</code>
+<li><code class="command">atomsk initial.cfg -select out cylinder y 40 30 20 -fix all final.xyz</code>
 <p>Ceci sélectionnera les atomes qui sont à l'extérieur du cylindre dont l'axe principal est suivant Y, le centre est en Z=40 &Aring; et X=30 &Aring;, et de rayon 20 &Aring;. Puis ces atomes seront <a href="./option_fix.html">figés</a>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select random 20 Fe -cut above 0 x final.xyz</code>
-<p>Ceci va sélectionner 20 atomes de fer au hasard dans le système. Puis l'<a href="./option_cut.html">option <code>-cut</code></a> supprimera ces atomes.</p></li>
+<li><code class="command">atomsk initial.cfg -select random 20 Fe -rmatom select final.xyz</code>
+<p>Ceci va sélectionner 20 atomes de fer au hasard dans le système. Puis l'<a href="./option_rmatom.html">option <code>-rmatom</code></a> supprimera ces atomes.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select random 5% Si -substitute Si C final.xyz</code>
 <p>Ceci va sélectionner 5% des atomes de silicium au hasard dans le système. Puis les atomes de silicium sélectionnés seront <a href="./option_substitute.html">substitués</a> par des atomes de carbone.</p></li>

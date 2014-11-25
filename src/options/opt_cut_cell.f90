@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 Feb. 2013                                     *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,7 +39,7 @@ CONTAINS
 SUBROUTINE CUTCELL(P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
 !
 IMPLICIT NONE
-CHARACTER(LEN=5),INTENT(IN):: cut_dir   !above or below
+CHARACTER(LEN=5):: cut_dir   !above or below (or empty)
 CHARACTER(LEN=16),INTENT(IN):: cutdir   !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
@@ -67,6 +67,15 @@ IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 !
 !
+IF( cut_dir.NE.'above' .AND. cut_dir.NE.'below' ) THEN
+  IF( ALLOCATED(SELECT) ) THEN
+    cut_dir = "selec"
+  ELSE
+    !No selection is defined, and no plane is defined
+    !Does the user want to kill the system?!?
+    cut_dir = ""
+  ENDIF
+ENDIF
 CALL ATOMSK_MSG(2056,(/cut_dir//'           ',cutdir/),(/cutdistance/))
 !
 !
@@ -82,96 +91,45 @@ IF(ALLOCATED(AUX)) ALLOCATE( newAUX( SIZE(AUX,1), SIZE(AUX,2) ) )
 !
 NP=0
 !
-SELECT CASE(cutdir)
-CASE("x","X","y","Y","z","Z")
-  !cutdir is a cartesian direction
-  !Define the axes
-  IF(cutdir=='x' .OR. cutdir=='X') THEN
-    a1 = 1
-  ELSEIF(cutdir=='y' .OR. cutdir=='Y') THEN
-    a1 = 2
-  ELSEIF(cutdir=='z' .OR. cutdir=='Z') THEN
-    a1 = 3
-  ENDIF
-  WRITE(msg,*) 'a1 = ', a1
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-      IF( cut_dir=='above' .AND. P(i,a1)>cutdistance .OR.        &
-        & cut_dir=='below' .AND. P(i,a1)<cutdistance      ) THEN
-        !This atom must be removed
-        NPcut = NPcut+1
-      ELSE
-        !This atom does not match criteria for cut => it lives
-        NP=NP+1
-        Q(NP,:) = P(i,:)
-        !Save associated shell if any
-        IF(ALLOCATED(S)) THEN
-          T(NP,:) = S(i,:)
-        ENDIF
-        !Save associated auxiliary properties if any
-        IF(ALLOCATED(AUX)) THEN
-          newAUX(NP,:) = AUX(i,:)
-        ENDIF
-      ENDIF
-    ELSE
-      !This atom is not in the selected region => it lives
-      NP=NP+1
-      Q(NP,:) = P(i,:)
-      IF(ALLOCATED(SELECT)) THEN
-        !Save selection
-        newSELECT(NP) = SELECT(i)
-      ENDIF
-      !Save associated shell if any
-      IF(ALLOCATED(S)) THEN
-        T(NP,:) = S(i,:)
-      ENDIF
-      !Save associated auxiliary properties if any
-      IF(ALLOCATED(AUX)) THEN
-        newAUX(NP,:) = AUX(i,:)
-      ENDIF
+IF( cut_dir=='above' .OR. cut_dir=='below' ) THEN
+  SELECT CASE(cutdir)
+  CASE("x","X","y","Y","z","Z")
+    !cutdir is a cartesian direction
+    !Define the axes
+    IF(cutdir=='x' .OR. cutdir=='X') THEN
+      a1 = 1
+    ELSEIF(cutdir=='y' .OR. cutdir=='Y') THEN
+      a1 = 2
+    ELSEIF(cutdir=='z' .OR. cutdir=='Z') THEN
+      a1 = 3
     ENDIF
-  ENDDO
-  !
-CASE DEFAULT
-  !cutdir should contain a crystallographic direction
-  !convert it to a vector and save it in Vplane(1,:)
-  CALL INDEX_MILLER(cutdir,Vplane(1,:),j)
-  IF(j>0) GOTO 800
-  !
-  !If the system has a defined crystallographic orientation ORIENT,
-  !then Vplane(1,:) is defined in that basis
-  !=> rotate Vplane(1,:) to express it in cartesian basis
-  IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-    DO i=1,3
-      ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-    ENDDO
-    V1 = Vplane(1,1)
-    V2 = Vplane(1,2)
-    V3 = Vplane(1,3)
-    Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-    Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-    Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
-  ENDIF
-  !Normalize Vplane
-  Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
-  WRITE(msg,'(a8,3f12.3)') 'Vplane: ', Vplane(1,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  DO i=1,SIZE(P(:,1))
-    !determine if atom is above or below the plane
-    tempreal = VEC_PLANE( Vplane(1,:) , cutdistance , P(i,1:3) )
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-      IF( cut_dir=='above' .AND. tempreal>0.d0 .OR.        &
-        & cut_dir=='below' .AND. tempreal<0.d0       ) THEN
-        !This atom must be removed
-        NPcut = NPcut+1
+    WRITE(msg,*) 'a1 = ', a1
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( cut_dir=='above' .AND. P(i,a1)>cutdistance .OR.        &
+          & cut_dir=='below' .AND. P(i,a1)<cutdistance      ) THEN
+          !This atom must be removed
+          NPcut = NPcut+1
+        ELSE
+          !This atom does not match criteria for cut => it lives
+          NP=NP+1
+          Q(NP,:) = P(i,:)
+          !Save associated shell if any
+          IF(ALLOCATED(S)) THEN
+            T(NP,:) = S(i,:)
+          ENDIF
+          !Save associated auxiliary properties if any
+          IF(ALLOCATED(AUX)) THEN
+            newAUX(NP,:) = AUX(i,:)
+          ENDIF
+        ENDIF
       ELSE
-        !This atom does not match criteria for cut => it lives
+        !This atom is not in the selected region => it lives
         NP=NP+1
         Q(NP,:) = P(i,:)
-        IF( ALLOCATED(SELECT)) THEN
+        IF(ALLOCATED(SELECT)) THEN
           !Save selection
           newSELECT(NP) = SELECT(i)
         ENDIF
@@ -184,6 +142,82 @@ CASE DEFAULT
           newAUX(NP,:) = AUX(i,:)
         ENDIF
       ENDIF
+    ENDDO
+    !
+  CASE DEFAULT
+    !cutdir should contain a crystallographic direction
+    !convert it to a vector and save it in Vplane(1,:)
+    CALL INDEX_MILLER(cutdir,Vplane(1,:),j)
+    IF(j>0) GOTO 800
+    !
+    !If the system has a defined crystallographic orientation ORIENT,
+    !then Vplane(1,:) is defined in that basis
+    !=> rotate Vplane(1,:) to express it in cartesian basis
+    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+      DO i=1,3
+        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+      ENDDO
+      V1 = Vplane(1,1)
+      V2 = Vplane(1,2)
+      V3 = Vplane(1,3)
+      Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+      Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+      Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    ENDIF
+    !Normalize Vplane
+    Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
+    WRITE(msg,'(a8,3f12.3)') 'Vplane: ', Vplane(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    DO i=1,SIZE(P,1)
+      !determine if atom is above or below the plane
+      tempreal = VEC_PLANE( Vplane(1,:) , cutdistance , P(i,1:3) )
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( cut_dir=='above' .AND. tempreal>0.d0 .OR.        &
+          & cut_dir=='below' .AND. tempreal<0.d0       ) THEN
+          !This atom must be removed
+          NPcut = NPcut+1
+        ELSE
+          !This atom does not match criteria for cut => it lives
+          NP=NP+1
+          Q(NP,:) = P(i,:)
+          IF( ALLOCATED(SELECT)) THEN
+            !Save selection
+            newSELECT(NP) = SELECT(i)
+          ENDIF
+          !Save associated shell if any
+          IF(ALLOCATED(S)) THEN
+            T(NP,:) = S(i,:)
+          ENDIF
+          !Save associated auxiliary properties if any
+          IF(ALLOCATED(AUX)) THEN
+            newAUX(NP,:) = AUX(i,:)
+          ENDIF
+        ENDIF
+      ELSE
+        !This atom is not in the selected region => it lives
+        NP=NP+1
+        Q(NP,:) = P(i,:)
+        !Save associated shell if any
+        IF(ALLOCATED(S)) THEN
+          T(NP,:) = S(i,:)
+        ENDIF
+        !Save associated auxiliary properties if any
+        IF(ALLOCATED(AUX)) THEN
+          newAUX(NP,:) = AUX(i,:)
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+  END SELECT
+  !
+  !
+ELSE
+  !Just cut all selected atoms
+  DO i=1,SIZE(P,1)
+    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      !This atom must be removed
+      NPcut = NPcut+1
     ELSE
       !This atom is not in the selected region => it lives
       NP=NP+1
@@ -198,8 +232,7 @@ CASE DEFAULT
       ENDIF
     ENDIF
   ENDDO
-  !
-END SELECT
+ENDIF
 !
 WRITE(msg,*) 'NPcut, NP:', NPcut, NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))

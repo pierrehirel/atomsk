@@ -38,6 +38,8 @@
 
 <p>Cette option peut être utilisée plusieurs fois pour figer les atomes dans différentes directions, ou pour figer des atomes différents (voir l'exemple 2 ci-dessous).</p>
 
+<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), seules les positions des c&oelig;ur sont figées (mais pas les positions des coquilles).</p>
+
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront fixés.</p>
 
 
@@ -49,6 +51,9 @@
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.xsf -fix y final.gin</code>
+<p>Ceci lira le fichier <code>initial.xsf</code>, et figera la composante Y de tous les atomes. Le résultat sera écrit dans le fichier <code>final.gin</code>.</p></li>
+
 <li><code class="command">atomsk system.xsf -fix x above 5 z gin</code>
 <p>Ceci lira <code>system.xsf</code>, et figera la composante X de tous les atomes situés au-dessus de 5 &Aring; suivant Z. Le résultat sera écrit dans <code>system.gin</code>.</p></li>
 
@@ -58,7 +63,7 @@
 <li><code class="command">atomsk initial.xsf -fix all below 0.2*BOX z -fix all above 0.8*BOX z final.gin</code>
 <p>Ceci figera complètement les atomes situés en-dessous de 0.2 fois la hauteur de boîte suivant Z, ou au-dessus de 0.8 fois cette hauteur.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out box 10 10 0 60 60 100 -fix all above -1000 x final.bop</code>
+<li><code class="command">atomsk initial.cfg -select out box 10 10 0 60 60 100 -fix all final.bop</code>
 <p>Ceci va <a href="./option_select.html">sélectionner les atomes dans une région</a>, et figera ces atomes dans les trois directions de l'espace. Ceci peut être utile pour figer les atomes en bord de boîte.</p></li>
 </ul>
 

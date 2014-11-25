@@ -12,7 +12,7 @@ MODULE fix
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 Feb. 2014                                    *
+!* Last modification: P. Hirel - 25 Nov. 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,7 +42,7 @@ SUBROUTINE FIX_XYZ(P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELE
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=5),INTENT(IN):: fix_dir  !above or below
+CHARACTER(LEN=5):: fix_dir  !above or below
 CHARACTER(LEN=5),INTENT(IN):: fixaxis  !direction along which atoms are fixed (x,y,z,all)
 CHARACTER(LEN=16),INTENT(IN):: fixdir   !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
@@ -74,6 +74,13 @@ IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 WRITE(msg,*) 'Entering FIX_XYZ: '
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
+IF( fix_dir.NE.'above' .AND. fix_dir.NE.'below' ) THEN
+  IF( ALLOCATED(SELECT) ) THEN
+    fix_dir='selec'
+  ELSE
+    fix_dir=''
+  ENDIF
+ENDIF
 CALL ATOMSK_MSG(2097,(/fixaxis,fix_dir,fixdir//'    '/),(/fixdistance/))
 !
 !
@@ -139,94 +146,118 @@ AUXNAMES(fixz) = "fixz"
 !
 !
 200 CONTINUE
-SELECT CASE(fixdir)
-CASE("x","X","y","Y","z","Z")
-  !Define the axes
-  IF(fixdir=='x' .OR. fixdir=='X') THEN
-    a1 = 1
-  ELSEIF(fixdir=='y' .OR. fixdir=='Y') THEN
-    a1 = 2
-  ELSEIF(fixdir=='z' .OR. fixdir=='Z') THEN
-    a1 = 3
-  ELSE
-    nerr = nerr+1
-    CALL ATOMSK_MSG(2800,(/fixdir/),(/0.d0/))
-    GOTO 1000
-  ENDIF
-  !
-  !
-  !Fix atoms that are above/below <fixdistance> along <fixdir>
-  ! *or* atoms that are selected inside the region
-  DO i=1,SIZE(P(:,1))
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-      IF( fix_dir=='above' .AND. P(i,a1)>fixdistance .OR.        &
-        & fix_dir=='below' .AND. P(i,a1)<fixdistance      ) THEN
-        !If atom is in the region of interest, fix it
-        SELECT CASE(fixaxis)
-        CASE("x","X")
-          AUX(i,fixx) = 1.d0
-        CASE("y","Y")
-          AUX(i,fixy) = 1.d0
-        CASE("z","Z")
-          AUX(i,fixz) = 1.d0
-        CASE("all")
-          AUX(i,fixx) = 1.d0
-          AUX(i,fixy) = 1.d0
-          AUX(i,fixz) = 1.d0
-        END SELECT
-        NPfixed = NPfixed+1
-      ENDIF
+IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
+  SELECT CASE(fixdir)
+  CASE("x","X","y","Y","z","Z")
+    !Define the axes
+    IF(fixdir=='x' .OR. fixdir=='X') THEN
+      a1 = 1
+    ELSEIF(fixdir=='y' .OR. fixdir=='Y') THEN
+      a1 = 2
+    ELSEIF(fixdir=='z' .OR. fixdir=='Z') THEN
+      a1 = 3
+    ELSE
+      nerr = nerr+1
+      CALL ATOMSK_MSG(2800,(/fixdir/),(/0.d0/))
+      GOTO 1000
     ENDIF
-  ENDDO
-  !
-CASE DEFAULT
-  !cutdir should contain a crystallograhic direction
-  !convert it to a vector and save it in Vplane(1,:)
-  CALL INDEX_MILLER(fixdir,Vplane(1,:),j)
-  IF(j>0) GOTO 800
-  !
-  !If the system has a defined crystallographic orientation ORIENT,
-  !then Vplane(1,:) is defined in that basis
-  !=> rotate Vplane(1,:) to express it in cartesian basis
-  IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-    DO i=1,3
-      ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+    !
+    !
+    !Fix atoms that are above/below <fixdistance> along <fixdir>
+    ! *or* atoms that are selected inside the region
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( fix_dir=='above' .AND. P(i,a1)>fixdistance .OR.        &
+          & fix_dir=='below' .AND. P(i,a1)<fixdistance      ) THEN
+          !If atom is in the region of interest, fix it
+          SELECT CASE(fixaxis)
+          CASE("x","X")
+            AUX(i,fixx) = 1.d0
+          CASE("y","Y")
+            AUX(i,fixy) = 1.d0
+          CASE("z","Z")
+            AUX(i,fixz) = 1.d0
+          CASE("all")
+            AUX(i,fixx) = 1.d0
+            AUX(i,fixy) = 1.d0
+            AUX(i,fixz) = 1.d0
+          END SELECT
+          NPfixed = NPfixed+1
+        ENDIF
+      ENDIF
     ENDDO
-    V1 = Vplane(1,1)
-    V2 = Vplane(1,2)
-    V3 = Vplane(1,3)
-    Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-    Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-    Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
-  ENDIF
-  !Normalize Vplane
-  Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
-  !
-  DO i=1,SIZE(P(:,1))
-    !determine if atom is above or below the plane
-    tempreal = VEC_PLANE( Vplane(1,:) , fixdistance , P(i,1:3) )
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-      IF( fix_dir=='above' .AND. tempreal>0.d0 .OR.        &
-        & fix_dir=='below' .AND. tempreal<0.d0       ) THEN
-        !If atom is in the region of interest, fix it
-        SELECT CASE(fixaxis)
-        CASE("x","X")
-          AUX(i,fixx) = 1.d0
-        CASE("y","Y")
-          AUX(i,fixy) = 1.d0
-        CASE("z","Z")
-          AUX(i,fixz) = 1.d0
-        CASE("all")
-          AUX(i,fixx) = 1.d0
-          AUX(i,fixy) = 1.d0
-          AUX(i,fixz) = 1.d0
-        END SELECT
-        NPfixed = NPfixed+1
+    !
+  CASE DEFAULT
+    !cutdir should contain a crystallograhic direction
+    !convert it to a vector and save it in Vplane(1,:)
+    CALL INDEX_MILLER(fixdir,Vplane(1,:),j)
+    IF(j>0) GOTO 800
+    !
+    !If the system has a defined crystallographic orientation ORIENT,
+    !then Vplane(1,:) is defined in that basis
+    !=> rotate Vplane(1,:) to express it in cartesian basis
+    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+      DO i=1,3
+        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+      ENDDO
+      V1 = Vplane(1,1)
+      V2 = Vplane(1,2)
+      V3 = Vplane(1,3)
+      Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+      Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+      Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    ENDIF
+    !Normalize Vplane
+    Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
+    !
+    DO i=1,SIZE(P,1)
+      !determine if atom is above or below the plane
+      tempreal = VEC_PLANE( Vplane(1,:) , fixdistance , P(i,1:3) )
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( fix_dir=='above' .AND. tempreal>0.d0 .OR.        &
+          & fix_dir=='below' .AND. tempreal<0.d0       ) THEN
+          !If atom is in the region of interest, fix it
+          SELECT CASE(fixaxis)
+          CASE("x","X")
+            AUX(i,fixx) = 1.d0
+          CASE("y","Y")
+            AUX(i,fixy) = 1.d0
+          CASE("z","Z")
+            AUX(i,fixz) = 1.d0
+          CASE("all")
+            AUX(i,fixx) = 1.d0
+            AUX(i,fixy) = 1.d0
+            AUX(i,fixz) = 1.d0
+          END SELECT
+          NPfixed = NPfixed+1
+        ENDIF
       ENDIF
+    ENDDO
+    !
+  END SELECT
+  !
+  !
+ELSE
+  !Fix all atoms, or selected atom
+  DO i=1,SIZE(P,1)
+    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      !If atom is in the region of interest, fix it
+      SELECT CASE(fixaxis)
+      CASE("x","X")
+        AUX(i,fixx) = 1.d0
+      CASE("y","Y")
+        AUX(i,fixy) = 1.d0
+      CASE("z","Z")
+        AUX(i,fixz) = 1.d0
+      CASE("all")
+        AUX(i,fixx) = 1.d0
+        AUX(i,fixy) = 1.d0
+        AUX(i,fixz) = 1.d0
+      END SELECT
+      NPfixed = NPfixed+1
     ENDIF
   ENDDO
-  !
-END SELECT
+ENDIF
 !
 !
 !

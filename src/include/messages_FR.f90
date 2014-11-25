@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 Oct. 2014                                     *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -686,7 +686,11 @@ CASE(1810)
 CASE(1811)
   !reals(1) = index of atom
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERREUR : l'indice de l'atome #"//TRIM(ADJUSTL(msg))//" est plus grand que le nombre d'atomes."
+  IF( reals(1)<0.1d0 ) THEN
+    msg = "X!X ERREUR : l'indice de l'atome #"//TRIM(ADJUSTL(msg))//" est négatif."
+  ELSE
+    msg = "X!X ERREUR : l'indice de l'atome #"//TRIM(ADJUSTL(msg))//" est plus grand que le nombre d'atomes."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -730,20 +734,26 @@ CASE(2056)
   !string(1) = cut_dir, i.e. "above" or "below"
   !string(2) = cutdir, i.e. x, y or z
   !reals(1) = cutdistance in angstroms
-  IF( DABS(reals(1))<1.d12 ) THEN
-    WRITE(msg,"(3f16.3)") reals(1)
-  ELSEIF( reals(1)<-1.d12 ) THEN
-    WRITE(msg,"(a4)") "-INF"
-  ELSEIF( reals(1)>1.d12 ) THEN
-    WRITE(msg,"(a4)") "+INF"
-  ENDIF
-  IF(strings(1)=="above") THEN
-    temp = "au-dessus de "
+  IF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
+    IF( DABS(reals(1))<1.d12 ) THEN
+      WRITE(msg,"(3f16.3)") reals(1)
+    ELSEIF( reals(1)<-1.d12 ) THEN
+      WRITE(msg,"(a4)") "-INF"
+    ELSEIF( reals(1)>1.d12 ) THEN
+      WRITE(msg,"(a4)") "+INF"
+    ENDIF
+    IF(strings(1)=="above") THEN
+      temp = "au-dessus de "
+    ELSE
+      temp = "en-dessous de "
+    ENDIF
+    msg = ">>> Troncation du système "//TRIM(temp)//" "// &
+      & TRIM(ADJUSTL(msg))//" A suivant "//TRIM(strings(2))//"."
+  ELSEIF( strings(1)=="selec" ) THEN
+    msg = ">>> Troncation des atomes sélectionnés."
   ELSE
-    temp = "en-dessous de "
+    msg = ">>> Troncation de tous les atomes du système."
   ENDIF
-  msg = ">>> Troncation du système "//TRIM(temp)//" "// &
-    & TRIM(ADJUSTL(msg))//" A suivant "//TRIM(strings(2))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2057)
   !reals(1) = NPcut, number of deleted atoms
@@ -1145,14 +1155,22 @@ CASE(2085)
   WRITE(temp,"(f16.3)") reals(2)
   WRITE(temp2,"(f16.3)") reals(3)
   WRITE(temp3,"(f16.3)") reals(4)
-  IF(strings(1)=="above") THEN
-    msg = "au-dessus de "//TRIM(ADJUSTL(msg))
+  IF( strings(1)(1:5)=='above' .OR. strings(1)(1:5)=='below' ) THEN
+    IF(strings(1)=="above") THEN
+      msg = "au-dessus de "//TRIM(ADJUSTL(msg))
+    ELSE
+      msg = "en-dessous de "//TRIM(ADJUSTL(msg))
+    ENDIF
+    msg = ">>> Translation des atomes "//TRIM(ADJUSTL(msg))//"A suivant "  &
+          & //TRIM(strings(2))//" de ("//TRIM(ADJUSTL(temp))//","//        &
+          & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
+  ELSEIF( strings(1)=="select" ) THEN
+    msg = ">>> Translation des atomes sélectionnés de ("//TRIM(ADJUSTL(temp))//","//     &
+          & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   ELSE
-    msg = "en-dessous de "//TRIM(ADJUSTL(msg))
+    msg = ">>> Translation de tous les atomes de ("//TRIM(ADJUSTL(temp))//","//     &
+          & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   ENDIF
-  msg = ">>> Translation des atomes "//TRIM(ADJUSTL(msg))//"A suivant "  &
-        & //TRIM(strings(2))//" de ("//TRIM(ADJUSTL(temp))//","//        &
-        & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2086)
   !reals(1) = number of atoms that were shifted
@@ -1264,16 +1282,6 @@ CASE(2097)
   !strings(2) = "above" or "below"
   !strings(3) = axis 
   !reals(1) = fix distance in angstroms
-  IF(strings(1)=="all") THEN
-    temp = "des coordonnées"
-  ELSE
-    temp = "des coordonnées "//TRIM(strings(1))
-  ENDIF
-  IF(strings(2)=="above") THEN
-    temp2 = "au dessus de"
-  ELSE
-    temp2 = "en dessous de"
-  ENDIF
   IF( DABS(reals(1))<1.d12 ) THEN
     WRITE(msg,"(3f16.3)") reals(1)
   ELSEIF( reals(1)<-1.d12 ) THEN
@@ -1281,8 +1289,24 @@ CASE(2097)
   ELSEIF( reals(1)>1.d12 ) THEN
     WRITE(msg,"(a4)") "+INF"
   ENDIF
-  msg = ">>> Fixation "//TRIM(ADJUSTL(temp))//" des atomes "//&
-      & TRIM(ADJUSTL(temp2))//" "//TRIM(ADJUSTL(msg))//"A suivant "//TRIM(strings(3))
+  IF( strings(2)=='above' .OR. strings(2)=='below' ) THEN
+    IF(strings(1)=="all") THEN
+      temp = "des coordonnées"
+    ELSE
+      temp = "des coordonnées "//TRIM(strings(1))
+    ENDIF
+    IF(strings(2)=="above") THEN
+      temp2 = "au dessus de"
+    ELSE
+      temp2 = "en dessous de"
+    ENDIF
+    msg = ">>> Fixation "//TRIM(ADJUSTL(temp))//" des atomes "// &
+        & TRIM(ADJUSTL(temp2))//" "//TRIM(ADJUSTL(msg))//"A suivant "//TRIM(strings(3))//"."
+  ELSEIF( strings(2)=='selec' ) THEN
+    msg = ">>> Fixation "//TRIM(strings(1))//" des atomes sélectionnés."
+  ELSE
+    msg = ">>> Fixation "//TRIM(strings(1))//" de tous les atomes."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2098)
   !reals(1) = number of atoms that were fixed
@@ -1579,7 +1603,9 @@ CASE(2741)
   msg = "/!\ ALERTE : le coefficient de Poisson est en dehors des limites [-1 , 0.5]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2742)
-  msg = "/!\ ALERTE : l'indice donné est plus grand que le nombre d'atomes, abandon."
+  !reals(1) = atom index
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ ALERTE : l'indice donné #"//TRIM(ADJUSTL(temp))//" est en dehors des limites."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2743)
   msg = "/!\ ALERTE : les vecteurs de boîte ne sont pas inclinés, abandon."

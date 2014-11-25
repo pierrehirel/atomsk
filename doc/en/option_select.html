@@ -105,23 +105,23 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 <li><code class="command">atomsk initial.cfg -select above 40 y -rot z 45 final.xyz</code>
 <p>This will select atoms that have a Y coordinate greater than 40 &Aring;. The following <a href="./option_rotate.html">option <code>-rotate</code></a> will be applied only to atoms that are in this region.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select above 40 [111] -cut above -100 x final.xyz</code>
-<p>This will select atoms that are at a distance from the cartesian origin greater than 40 &Aring; along [111] direction. The following <a href="./option_cut.html">option <code>-cut</code></a> will remove the selected atoms.</p></li>
+<li><code class="command">atomsk initial.cfg -select above 40 [111] -cut above 30 x final.xyz</code>
+<p>This will select atoms that are at a distance from the cartesian origin greater than 40 &Aring; along [111] direction. The following <a href="./option_cut.html">option <code>-cut</code></a> will remove the selected atoms, but only if their X coordinate is greater than 30 &Aring;.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select in box 0 0 0 20 10 3 -shift above 0 x -10 0 0 final.xyz</code>
-<p>This will select atoms that are within the rectangular box defined by the coordinates (0,0,0) and (20,10,3). In other words all atoms which coordinates are within the ranges X=[0;20], Y=[0;10], Z=[0;3] will be selected. The following <a href="./option_shift.html">option <code>-shift</code></a> will be applied only to atoms that are in this region *and* are above 0 &Aring; along the X axis.</p></li>
+<li><code class="command">atomsk initial.cfg -select in box 0 0 0 20 10 3 -shift -10 0 0 final.xyz</code>
+<p>This will select atoms that are within the rectangular box defined by the coordinates (0,0,0) and (20,10,3). In other words all atoms which coordinates are within the ranges X=[0;20], Y=[0;10], Z=[0;3] will be selected. The following <a href="./option_shift.html">option <code>-shift</code></a> will translate all selected atoms by a vector (-10,0,0).</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out box 10 20 -INF BOX-10 BOX-20 INF -fix all above -100 x -10 0 0 final.xyz</code>
-<p>This will select atoms that are outside of the rectangular box with X coordinates between 10 &Aring; and 10 &Aring; before the box edge along X ("BOX-10"), the Y coordinates between 20 &Aring; and 20 &Aring; before the box edge along Y ("BOX-20"), and Z coordinates between -&infin; and +&infin;. The following <a href="./option_fix.html">option <code>-fix</code></a> will be applied only to atoms that are in this region *and* are above -100 &Aring; along the X axis.</p></li>
+<li><code class="command">atomsk initial.cfg -select out box 10 20 -INF BOX-10 BOX-20 INF -fix all final.xyz</code>
+<p>This will select atoms that are outside of the rectangular box with X coordinates between 10 &Aring; and 10 &Aring; before the box edge along X ("BOX-10"), the Y coordinates between 20 &Aring; and 20 &Aring; before the box edge along Y ("BOX-20"), and Z coordinates between -&infin; and +&infin;. The following <a href="./option_fix.html">option <code>-fix</code></a> will be applied to all selected atoms.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out sphere 0.5*BOX 0.5*BOX 0.5*BOX 10.0 -cut above 0 x final.xyz</code>
-<p>This will select atoms that are out of the sphere which center is at the center of the box, and with a radius of 10 &Aring;. The following <a href="./option_cut.html">option <code>-cut</code></a> will be applied only to atoms that are selected *and* are above 0 &Aring; along the X axis, so that eventually only the atoms inside of the sphere remain.</p></li>
+<li><code class="command">atomsk initial.cfg -select out sphere 0.5*BOX 0.5*BOX 0.5*BOX 10.0 -rmatom select final.xyz</code>
+<p>This will select atoms that are out of the sphere which center is at the center of the box, and with a radius of 10 &Aring;. The following <a href="./option_rmatom.html">option <code>-rmatom</code></a> will remove the selected atoms, so that eventually only the atoms inside of the sphere remain.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select out cylinder y 40 30 20 -fix all above -1000 x final.xyz</code>
+<li><code class="command">atomsk initial.cfg -select out cylinder y 40 30 20 -fix all final.xyz</code>
 <p>This will select atoms that are outside of the cylinder which axis is along Y, center is at 40 &Aring; along Z and 30 &Aring; along X, and which radius is 20 &Aring;. Then these selected atoms will be <a href="./option_fix.html">fixed</a>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -select random 20 Fe -cut above 0 x final.xyz</code>
-<p>This will select 20 iron atoms at random in the system. The following <a href="./option_cut.html">option <code>-cut</code></a> will remove atoms that are selected *and* are above 0 &Aring; along the X axis.</p></li>
+<li><code class="command">atomsk initial.cfg -select random 20 Fe -rmatom select final.xyz</code>
+<p>This will select 20 iron atoms at random in the system. The following <a href="./option_rmatom.html">option <code>-rmatom</code></a> will remove atoms that are selected.</p></li>
 
 <li><code class="command">atomsk initial.cfg -select random 5% Si -substitute Si C final.xyz</code>
 <p>This will select 5% of the silicon atoms at random. The following option will <a href="./option_substitute.html">substitute</a> the silicon atoms that are selected by carbon atoms.</p></li>

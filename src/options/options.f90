@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Nov. 2014                                     *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -380,22 +380,27 @@ DO ioptions=1,SIZE(options_array)
     CALL CRACK_XYZ(H,P,S,crackmode,cracktype,crackK,crackline,crackplane,mu,nu,pos1,pos2,SELECT,AUXNAMES,AUX)
   !
   CASE('-cut')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & cut_dir, treal(1), cutdir
-    !Check if numbers contain a keyword like "BOX" or "INF"
-    i=1
-    SELECT CASE(cutdir)
-    CASE('x','X')
+    cut_dir = TRIM(ADJUSTL(options_array(ioptions)(5:)))
+    IF( cut_dir(1:5)=='above' .OR. cut_dir(1:5)=='below' ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+          & cut_dir, treal(1), cutdir
+      !Check if numbers contain a keyword like "BOX" or "INF"
       i=1
-    CASE('y','Y')
-      i=2
-    CASE('z','Z')
-      i=3
-    END SELECT
-    CALL BOX2DBLE( H(:,i) , treal(1) , cutdistance , status )
-    IF(status>0) THEN
-      temp = treal(1)
-      GOTO 810
+      SELECT CASE(cutdir)
+      CASE('x','X')
+        i=1
+      CASE('y','Y')
+        i=2
+      CASE('z','Z')
+        i=3
+      END SELECT
+      CALL BOX2DBLE( H(:,i) , treal(1) , cutdistance , status )
+      IF(status>0) THEN
+        temp = treal(1)
+        GOTO 810
+      ENDIF
+    ELSE
+      cut_dir=""
     ENDIF
     CALL CUTCELL(P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
   !
@@ -527,21 +532,26 @@ DO ioptions=1,SIZE(options_array)
     CALL DUPLICATECELL(H,P,S,dupmatrix,SELECT,AUX)
   !
   CASE('-fix', '-freeze')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & fixaxis, fix_dir, treal(1), fixdir
-    !Check if numbers contain a keyword like "BOX" or "INF"
-    SELECT CASE(fixdir)
-    CASE('x','X')
-      i=1
-    CASE('y','Y')
-      i=2
-    CASE('z','Z')
-      i=3
-    END SELECT
-    CALL BOX2DBLE( H(:,i) , treal(1) , fixdistance , status )
-    IF(status>0) THEN
-      temp = treal(1)
-      GOTO 810
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis
+    fix_dir = TRIM(ADJUSTL(options_array(ioptions)(7:)))
+    IF( fix_dir(1:5)=='above' .OR. fix_dir(1:5)=='below' ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis, fix_dir, treal(1), fixdir
+      !Check if numbers contain a keyword like "BOX" or "INF"
+      SELECT CASE(fixdir)
+      CASE('x','X')
+        i=1
+      CASE('y','Y')
+        i=2
+      CASE('z','Z')
+        i=3
+      END SELECT
+      CALL BOX2DBLE( H(:,i) , treal(1) , fixdistance , status )
+      IF(status>0) THEN
+        temp = treal(1)
+        GOTO 810
+      ENDIF
+    ELSE
+      fix_dir = ""
     ENDIF
     CALL FIX_XYZ(P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELECT)
   !
@@ -800,22 +810,30 @@ DO ioptions=1,SIZE(options_array)
     CALL SHEAR_XYZ(H,P,S,shear_surf,shear_strain,shear_dir)
   !
   CASE('-shift')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & shift_dir, treal(4), shift_axis, treal(1), treal(2), treal(3)
-    !Check if numbers contain a keyword like "BOX" or "INF"
-    i=1
-    SELECT CASE(shift_axis)
-    CASE('x','X')
+    shift_dir = TRIM(ADJUSTL(options_array(ioptions)(7:)))
+    IF( shift_dir(1:5)=='above' .OR. shift_dir(1:5)=='below' ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+          & shift_dir, treal(4), shift_axis, treal(1), treal(2), treal(3)
+      !Check if numbers contain a keyword like "BOX" or "INF"
       i=1
-    CASE('y','Y')
-      i=2
-    CASE('z','Z')
-      i=3
-    END SELECT
-    CALL BOX2DBLE( H(:,i) , treal(4) , shift_dist , status )
-    IF(status>0) THEN
-      temp = treal(4)
-      GOTO 810
+      SELECT CASE(shift_axis)
+      CASE('x','X')
+        i=1
+      CASE('y','Y')
+        i=2
+      CASE('z','Z')
+        i=3
+      END SELECT
+      CALL BOX2DBLE( H(:,i) , treal(4) , shift_dist , status )
+      IF(status>0) THEN
+        temp = treal(4)
+        GOTO 810
+      ENDIF
+    ELSE
+      shift_dir = ''
+      shift_axis = ''
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+          & treal(1), treal(2), treal(3)
     ENDIF
     CALL BOX2DBLE( H(:,1) , treal(1) , shift_tau1 , status )
     IF(status>0) THEN

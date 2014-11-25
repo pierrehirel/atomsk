@@ -12,7 +12,7 @@ MODULE properties
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Nov. 2014                                     *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -287,7 +287,7 @@ DO
           ELSE
             !given index is out-of-bounds
             nwarn=nwarn+1
-            CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
+            CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
           ENDIF
         ELSE
           EXIT
@@ -571,7 +571,7 @@ DO
         ELSE
           !given index is out-of-bounds
           nwarn=nwarn+1
-          CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
+          CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
         ENDIF
         !
         152 CONTINUE
@@ -646,7 +646,7 @@ DO
           ELSE
             !given index is out-of-bounds
             nwarn=nwarn+1
-            CALL ATOMSK_MSG(2742,(/""/),(/0.d0/))
+            CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
           ENDIF
           !
           162 CONTINUE

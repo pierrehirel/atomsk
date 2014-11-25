@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 Oct. 2014                                     *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -232,6 +232,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-fix") THEN
   WRITE(*,*) "..> Fix some atoms:"
+  WRITE(*,*) "          -fix <x|y|z>"
   WRITE(*,*) "          -fix <x|y|z> <above|below> <distance> <x|y|z>"
 ENDIF
 !
@@ -305,6 +306,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-shift") THEN
   WRITE(*,*) "..> Shift part of the system:"
+  WRITE(*,*) "          -shift <tauX> <tauY> <tauZ>"
   WRITE(*,*) "          -shift <above|below> <distance> <x|y|z> <tauX> <tauY> <tauZ>"
 ENDIF
 !
@@ -692,7 +694,11 @@ CASE(1810)
 CASE(1811)
   !reals(1) = index of atom
   WRITE(msg,*) NINT(reals(1))
-  msg = "X!X ERROR: atom index #"//TRIM(ADJUSTL(msg))//" is greater than the number of atoms."
+  IF( reals(1)<0.1d0 ) THEN
+    msg = "X!X ERROR: atom index #"//TRIM(ADJUSTL(msg))//" is negative."
+  ELSE
+    msg = "X!X ERROR: atom index #"//TRIM(ADJUSTL(msg))//" is greater than the number of atoms."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1812)
   !reals(1) = index of atom
@@ -736,15 +742,21 @@ CASE(2056)
   !string(1) = cut_dir, i.e. "above" or "below"
   !string(2) = cutdir, i.e. x, y or z
   !reals(1) = cutdistance in angstroms
-  IF( DABS(reals(1))<1.d12 ) THEN
-    WRITE(msg,"(3f16.3)") reals(1)
-  ELSEIF( reals(1)<-1.d12 ) THEN
-    WRITE(msg,"(a4)") "-INF"
-  ELSEIF( reals(1)>1.d12 ) THEN
-    WRITE(msg,"(a4)") "+INF"
+  IF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
+    IF( DABS(reals(1))<1.d12 ) THEN
+      WRITE(msg,"(3f16.3)") reals(1)
+    ELSEIF( reals(1)<-1.d12 ) THEN
+      WRITE(msg,"(a4)") "-INF"
+    ELSEIF( reals(1)>1.d12 ) THEN
+      WRITE(msg,"(a4)") "+INF"
+    ENDIF
+    msg = ">>> Cutting the system "//TRIM(strings(1))//" "// &
+      & TRIM(ADJUSTL(msg))//" A along "//TRIM(strings(2))//"."
+  ELSEIF( strings(1)=="selec" ) THEN
+    msg = ">>> Cutting selected atoms from the system."
+  ELSE
+    msg = ">>> Cutting all atoms from the system."
   ENDIF
-  msg = ">>> Cutting the system "//TRIM(strings(1))//" "// &
-    & TRIM(ADJUSTL(msg))//" A along "//TRIM(strings(2))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2057)
   !reals(1) = NPcut, number of deleted atoms
@@ -1104,23 +1116,31 @@ CASE(2084)
   msg = "..> Applied shear strain = "//TRIM(ADJUSTL(msg))//" %."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2085)
-  !strings(1) = shift direction: above or below
+  !strings(1) = shift direction: above or below (or empty)
   !strings(2) = shift axis
   !reals(1) = distance above axis
   !reals(2), reals(3), reals(4) = shift vector
   WRITE(temp,"(f16.3)") reals(2)
   WRITE(temp2,"(f16.3)") reals(3)
   WRITE(temp3,"(f16.3)") reals(4)
-  IF( DABS(reals(1))<1.d12 ) THEN
-    WRITE(msg,"(3f16.3)") reals(1)
-  ELSEIF( reals(1)<-1.d12 ) THEN
-    WRITE(msg,"(a4)") "-INF"
-  ELSEIF( reals(1)>1.d12 ) THEN
-    WRITE(msg,"(a4)") "+INF"
+  IF( strings(1)(1:5)=='above' .OR. strings(1)(1:5)=='below' ) THEN
+    IF( DABS(reals(1))<1.d12 ) THEN
+      WRITE(msg,"(3f16.3)") reals(1)
+    ELSEIF( reals(1)<-1.d12 ) THEN
+      WRITE(msg,"(a4)") "-INF"
+    ELSEIF( reals(1)>1.d12 ) THEN
+      WRITE(msg,"(a4)") "+INF"
+    ENDIF
+    msg = ">>> Shifting atoms "//TRIM(strings(1))//" "//TRIM(ADJUSTL(msg))//  &
+          & "A along "//TRIM(strings(2))//" by ("//TRIM(ADJUSTL(temp))//","//     &
+          & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
+  ELSEIF( strings(1)=="select" ) THEN
+    msg = ">>> Shifting selected atoms by ("//TRIM(ADJUSTL(temp))//","//     &
+          & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
+  ELSE
+    msg = ">>> Shifting all atoms by ("//TRIM(ADJUSTL(temp))//","//     &
+          & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   ENDIF
-  msg = ">>> Shifting atoms "//TRIM(strings(1))//" "//TRIM(ADJUSTL(msg))//  &
-        & "A along "//TRIM(strings(2))//" by ("//TRIM(ADJUSTL(temp))//","//     &
-        & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2086)
   !reals(1) = number of atoms that were shifted
@@ -1216,7 +1236,7 @@ CASE(2096)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2097)
   !strings(1) = axis along which coordinate is fixed: x,y,z,all
-  !strings(2) = "above" or "below"
+  !strings(2) = "above" or "below" or "select" or nothing
   !strings(3) = axis 
   !reals(1) = fix distance in angstroms
   IF( DABS(reals(1))<1.d12 ) THEN
@@ -1226,8 +1246,14 @@ CASE(2097)
   ELSEIF( reals(1)>1.d12 ) THEN
     WRITE(msg,"(a4)") "+INF"
   ENDIF
-  msg = ">>> Fixing "//TRIM(strings(1))//" coordinate of atoms "//&
-      & TRIM(strings(2))//" "//TRIM(ADJUSTL(msg))//"A along "//TRIM(strings(3))
+  IF( strings(2)=='above' .OR. strings(2)=='below' ) THEN
+    msg = ">>> Fixing "//TRIM(strings(1))//" coordinate of atoms "//&
+        & TRIM(strings(2))//" "//TRIM(ADJUSTL(msg))//"A along "//TRIM(strings(3))//"."
+  ELSEIF( strings(2)=='selec' ) THEN
+    msg = ">>> Fixing "//TRIM(strings(1))//" coordinate of selected atoms."
+  ELSE
+    msg = ">>> Fixing "//TRIM(strings(1))//" coordinate of all atoms."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2098)
   !reals(1) = number of atoms that were fixed
@@ -1525,7 +1551,9 @@ CASE(2741)
   msg = "/!\ WARNING: Poisson ratio is out of range [-1 , 0.5]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2742)
-  msg = "/!\ WARNING: atom index is out of bounds, skipping."
+  !reals(1) = atom index
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNING: atom index #"//TRIM(ADJUSTL(temp))//" is out of bounds, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2743)
   msg = "/!\ WARNING: skew parameters are zero, skipping."

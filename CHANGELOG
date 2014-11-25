@@ -29,6 +29,7 @@ beta 0.8 (in development)
 - mode "--rdf" now constructs a neighbor list before computing the radial distribution functions (RDFs). Also, the maximum radius Rmax for the RDF must be provided, and Rmax can be larger than the system.
 - modes "--edm" and "--rdf" now prompt the user if the option "-wrap" is absent in the command-line.
 - option "-bind-shells" now also considers the case where shells, but not their cores, were translated by box vectors because of periodic boundary conditions. The periodic images of the shells are searched for, and replace the initial shell position if they are found to be close to the core.
+- options "-cut", "-fix", "-shift", no longer require an atomic plane to be defined.
 - option "-deform" now interprets real numbers as the value of the deformation. The symbol "%" must be used to specify a deformation in percent, e.g. "-deform x 1.5% 0.0".
 - option "-expand" was renamed into "-duplicate" (or "-dup") for clarity and consistency with other codes.
 - option "-properties" allows to specify atom velocities, and atom displacements.

@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 Sept. 2014                                    *
+!* Last modification: P. Hirel - 25 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -277,10 +277,8 @@ CASE('index')
         Nselect = Nselect+1
       ELSE
         !Atom index is out-of-bounds
-        nerr = nerr+1
-        CALL ATOMSK_MSG(1811,(/""/),(/DBLE(atomindices(i))/))
-        Nselect = 0
-        GOTO 1000
+        nwarn = nwarn+1
+        CALL ATOMSK_MSG(2742,(/""/),(/DBLE(atomindices(i))/))
       ENDIF
     ENDDO
   ENDIF

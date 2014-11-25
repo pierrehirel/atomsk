@@ -15,14 +15,18 @@
 
 <h4>Syntax</h4>
 
+<p><code>-shift &#60;&tau;<sub>X</sub>&#62; &#60;&tau;<sub>Y</sub>&#62; &#60;&tau;<sub>Z</sub>&#62;</code></p>
+
 <p><code>-shift &#60;above|below&#62; &#60;d&#62; &#60;normal&#62; &#60;&tau;<sub>X</sub>&#62; &#60;&tau;<sub>Y</sub>&#62; &#60;&tau;<sub>Z</sub>&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to shift a part of the system by a vector &tau;. It is for instance useful for building systems typically used to compute generalized stacking fault energies or so-called &gamma;-surfaces.</p>
+<p>This option allows to shift all or part of the system by a vector &tau;.</p>
 
-<p>All atoms that are above (or below) a certain plane along X, Y or Z axis will be shifted by the specified vector. The command-line parameters of importance are:</p>
+<p>If only the (cartesian) components of the shift vector &tau; are given, then all atoms are shifted (or selected atoms, see below).</p>
+
+<p>Otherwise, all atoms that are above (or below) the given plane will be shifted by the specified vector. The command-line parameters of importance are:</p>
 
 <ul>
   <li><strong>above|below</strong>: this keyword decides if it is the atoms above or below the plane that are removed.</li>
@@ -37,6 +41,8 @@
 
 <p>Note that after being shifted, some atoms may end up out of the box. If you want to wrap these atoms back into the simulation cell you may consider using the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
+<p>If some atoms have shells (in the sense of an ionic core-shell model), then both core and shells are shifted by the same vector.</p>
+
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the translation will be applied only to selected atoms.</p>
 
 
@@ -50,8 +56,11 @@
 <h4>Examples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.cfg -shift 1.5 2.0 0.6 final.xyz</code>
+<p>This will read the file <code>initial.cfg</code> and shift all atoms by 1.5 &Aring; along X, 2 &Aring; along Y, and 0.6 &Aring; along Z. The result will be output into <code>final.xyz</code>.</p></li>
+
 <li><code class="command">atomsk initial.cfg -shift above 12 z 0.2 0.6 0.0 final.xyz</code>
-<p>This will read the file <code>initial.cfg</code> and shift all atoms that are above 12 &Aring; along Z by 0.2 &Aring; along X and 0.6 &Aring; along Y (no displacement along Z). The result will be output into <code>final.xyz</code>.</p></li>
+<p>This will read the file <code>initial.cfg</code> and shift all atoms that are above 12 &Aring; along Z by (0.2,0.6,0). The result will be output into <code>final.xyz</code>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -shift above 0.5*BOX z 0.2*BOX 0.6*BOX 0.0 final.xyz</code>
 <p>This will read the file <code>initial.cfg</code> and shift all atoms that are above half the height along Z by 0.2 times the box length along X, and 0.6 times the box length along along Y (no displacement along Z). The result will be output into <code>final.xyz</code>.</p></li>

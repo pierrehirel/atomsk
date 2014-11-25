@@ -15,14 +15,18 @@
 
 <h4>Syntaxe</h4>
 
+<p><code>-shift &#60;&tau;<sub>X</sub>&#62; &#60;&tau;<sub>Y</sub>&#62; &#60;&tau;<sub>Z</sub>&#62;</code></p>
+
 <p><code>-shift &#60;above|below&#62; &#60;d&#62; &#60;normale&#62; &#60;&tau;<sub>X</sub>&#62; &#60;&tau;<sub>Y</sub>&#62; &#60;&tau;<sub>Z</sub>&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet de translater une partie d'un système d'un vecteur &tau;. Cela peut être utile pour (mais pas restreint à) la construction de systèmes employés pour le calcul d'énergies de défauts d'empilements généralisés, ou &gamma;-surfaces.</p>
+<p>Cette option permet de translater tout ou partie du système d'un vecteur &tau;.</p>
 
-<p>Tous les atomes situés au-dessus (ou en-dessous) d'un certain plan normal à X, Y ou Z seront translaté du vecteur spécifié. Les paramètres associés à cette commande sont :</p>
+<p>Si seules les composantes du vecteur &tau; sont données, alors tous les atomes sont translatés (ou les atomes sélectionnés, voir ci-dessous).</p>
+
+<p>Sinon, tous les atomes situés au-dessus (ou en-dessous) du plan donné seront translatés du vecteur spécifié. Les paramètres associés à cette commande sont :</p>
 
 <ul>
   <li><strong>above|below</strong> : ce mot-clé décide si ce sont les atomes au-dessus (above) ou en-dessous (below) du plan qui seront translatés.</li>
@@ -37,6 +41,8 @@
 
 <p>Notez qu'après avoir été translatés certains vecteurs peuvent se retrouver hors de la boîte. Pour les replacer dans la boîte il est possible d'utiliser l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
+<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), alors les c&oelig;urs et coquilles sont translatées du même vecteur.</p>
+
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront translatés.</p>
 
 
@@ -50,8 +56,11 @@
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.cfg -shift 1.5 2.0 0.6 final.xyz</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code> et translater tous les atomes de 1.5 &Aring; suivant X, 2 &Aring; suivant Y, et 0.6 &Aring; suivant Z. Le résultat final sera écrit dans <code>final.xyz</code>.</p></li>
+
 <li><code class="command">atomsk initial.cfg -shift above 12 z 0.2 0.6 0.0 final.xyz</code>
-<p>Ceci va lire le fichier <code>initial.cfg</code> et translater les atomes situés au-dessus de Z=12 &Aring; de &Aring; suivant X et de 0.6 &Aring; suivant Y (aucun déplacement suivant Z). Le résultat final sera écrit dans <code>final.xyz</code>.</p></li>
+<p>Ceci va lire le fichier <code>initial.cfg</code> et translater les atomes situés au-dessus de Z=12 &Aring; d'un vecteur (0.2,0.6,0). Le résultat final sera écrit dans <code>final.xyz</code>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -shift above 0.5*BOX z 0.2*BOX 0.6*BOX 0.0 final.xyz</code>
 <p>Ceci lira le fichier <code>initial.cfg</code> et translatera les atomes situés dans la moitié haute de la boîte suivant Z de 0.2 fois la longueur de la boîte suivant X, et de 0.6 fois la largeur de la boîte suivant Y (aucun déplacement suivant Z). Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
