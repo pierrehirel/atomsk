@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 26 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -190,25 +190,40 @@ IF(helpsection=="options") THEN
   WRITE(*,*) ""
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-add-atom" .OR. helpsection=="-add-atoms" .OR. &
+  &helpsection=="-addatom" .OR. helpsection=="-addatoms" ) THEN
+  WRITE(*,*) "..> Ajouter de nouveaux atomes au système :"
+  WRITE(*,*) "          -add-atom <espèce> at <x> <y> <z>"
+  WRITE(*,*) "          -add-atom <espèce> near <indice>"
+  WRITE(*,*) "          -add-atom <espèce> random <N>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-add-shells".OR. helpsection=="-as" &
+  & .OR. helpsection=="-create-shells".OR. helpsection=="-cs") THEN
+  WRITE(*,*) "..> Ajouter des coquilles à une ou toutes les espèces :"
+  WRITE(*,*) "          -add-shells <all|species>"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-alignx") THEN
   WRITE(*,*) "..> Aligner le premier vecteur avec l'axe X :"
   WRITE(*,*) "          -alignx"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-bs") THEN
-  WRITE(*,*) "..> Réassocier les coquilles avec leurs cœurs:"
+  WRITE(*,*) "..> Réassocier les coquilles avec leurs cœurs :"
   WRITE(*,*) "          -bind-shells"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-center") THEN
+  WRITE(*,*) "..> Placer un atome ou le centre de masse du système au centre de la boîte :"
+  WRITE(*,*) "          -center <index>"
+  WRITE(*,*) "          -center com"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-crack") THEN
   WRITE(*,*) "..> Insérer une fracture dans le système :"
   WRITE(*,*) "          -crack <I/II/III> <stress/strain> <K> <pos1> <pos2> "//&
            &            "<crackline> <crackplane> <μ> <ν>"
-ENDIF
-!
-IF(helpsection=="options" .OR. helpsection=="-create-shells".OR. helpsection=="-cs") THEN
-  WRITE(*,*) "..> Créer des coquilles pour une ou toutes les espèces :"
-  WRITE(*,*) "          -cs <all|species>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-cut") THEN
@@ -224,6 +239,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-disloc") THEN
   WRITE(*,*) "..> Insérer une dislocation dans le système :"
   WRITE(*,*) "          -disloc <pos1> <pos2> <screw|edge|edge2|mixed> <x|y|z> <x|y|z> <b> <ν>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-disturb" ) THEN
+  WRITE(*,*) "..> Déplacer aléatoirement les atomes :"
+  WRITE(*,*) "          -disturb <dmax>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
@@ -281,6 +301,12 @@ IF(helpsection=="options" .OR. helpsection=="-remove-property" .OR. helpsection=
   WRITE(*,*) "          -rmprop <property>"
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-remove-shell" .OR. helpsection=="-rmshell" .OR. &
+  &helpsection=="-remove-shells" .OR. helpsection=="-rmshells" ) THEN
+  WRITE(*,*) "..> Supprimer les coquilles sur une espèce chimique, ou sur tous les atomes :"
+  WRITE(*,*) "          -rmshells <espèce|all>"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Tourner le système autour d'un axe :"
   WRITE(*,*) "          -rot <x|y|z> <angle>"
@@ -331,8 +357,13 @@ IF(helpsection=="options" .OR. helpsection=="-unit" .OR. helpsection=="-u") THEN
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-unskew") THEN
-  WRITE(*,*) "..> Réduire l'inclinaison de la boîte:"
+  WRITE(*,*) "..> Réduire l'inclinaison de la boîte :"
   WRITE(*,*) "          -unskew"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-velocity") THEN
+  WRITE(*,*) "..> Donner une vitesse aléatoire aux atomes selon une distribution de Maxwell-Boltzmann :"
+  WRITE(*,*) "          -velocity <T>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-wrap") THEN
@@ -546,6 +577,19 @@ CASE(703)
   !strings(1) = name of command line argument
   msg = "/!\ ALERTE : argument inconnu dans la ligne de commande : "//TRIM(strings(1))
   nwarn = nwarn+1
+CASE(750)
+  msg = ""
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "/!\ ALERTE : VOUS NE DEVRIEZ PAS EXÉCUTER CE PROGRAMME EN TANT QUE ROOT !"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  temp=""
+  DO WHILE(temp.NE."ok")
+    msg = "    Entrez 'ok' pour continuer malgré tout, ou Ctrl+C pour quitter."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    READ(*,*) temp
+  ENDDO
+  msg = ""
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 800- 899: ERROR MESSAGES
 CASE(800)
@@ -734,26 +778,20 @@ CASE(2056)
   !string(1) = cut_dir, i.e. "above" or "below"
   !string(2) = cutdir, i.e. x, y or z
   !reals(1) = cutdistance in angstroms
-  IF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
-    IF( DABS(reals(1))<1.d12 ) THEN
-      WRITE(msg,"(3f16.3)") reals(1)
-    ELSEIF( reals(1)<-1.d12 ) THEN
-      WRITE(msg,"(a4)") "-INF"
-    ELSEIF( reals(1)>1.d12 ) THEN
-      WRITE(msg,"(a4)") "+INF"
-    ENDIF
-    IF(strings(1)=="above") THEN
-      temp = "au-dessus de "
-    ELSE
-      temp = "en-dessous de "
-    ENDIF
-    msg = ">>> Troncation du système "//TRIM(temp)//" "// &
-      & TRIM(ADJUSTL(msg))//" A suivant "//TRIM(strings(2))//"."
-  ELSEIF( strings(1)=="selec" ) THEN
-    msg = ">>> Troncation des atomes sélectionnés."
-  ELSE
-    msg = ">>> Troncation de tous les atomes du système."
+  IF( DABS(reals(1))<1.d12 ) THEN
+    WRITE(msg,"(3f16.3)") reals(1)
+  ELSEIF( reals(1)<-1.d12 ) THEN
+    WRITE(msg,"(a4)") "-INF"
+  ELSEIF( reals(1)>1.d12 ) THEN
+    WRITE(msg,"(a4)") "+INF"
   ENDIF
+  IF(strings(1)=="above") THEN
+    temp = "au-dessus de "
+  ELSE
+    temp = "en-dessous de "
+  ENDIF
+  msg = ">>> Troncation du système "//TRIM(temp)//" "// &
+    & TRIM(ADJUSTL(msg))//" A suivant "//TRIM(strings(2))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2057)
   !reals(1) = NPcut, number of deleted atoms

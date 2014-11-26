@@ -17,8 +17,6 @@
 
 <p><code>-add-shells &#60;species&#62;</code></p>
 
-<p><code>-as &#60;species&#62;</code></p>
-
 
 <h4>Description</h4>
 
@@ -40,10 +38,10 @@
 <li><code class="command">atomsk system.cfg -add-shells O system.gin</code>
 <p>This will read the file <code>initial.gin</code>, add shells on all oxygen ions, and write the result to the GULP file <code>system.gin</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -as all final.gin</code>
+<li><code class="command">atomsk initial.cfg -add-shells all final.gin</code>
 <p>This will create shells for all atoms.</p></li>
 
-<li><code class="command">atomsk initial.cfg -as Ti -as O final.gin</code>
+<li><code class="command">atomsk initial.cfg -add-shells Ti -add-shells O final.gin</code>
 <p>This will create shells for Ti and O atoms.</p></li>
 </ul>
 

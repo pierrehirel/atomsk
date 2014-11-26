@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 26 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -585,22 +585,19 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    IF( temp(1:5)=='above' .OR. temp(1:5)=='below' ) THEN
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      !read cut distance
-      i=i+1
-      READ(cla(i),'(a)',END=400,ERR=400) temp
-      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
-        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      !read cut direction
-      i=i+1
-      READ(cla(i),'(a)',END=400,ERR=400) temp
-      temp = TRIM(ADJUSTL(temp))
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    ELSE
-      i=i-1
-    ENDIF
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    IF( temp(1:5).NE.'above' .AND. temp(1:5)=='below' ) GOTO 120
+    !read cut distance
+    i=i+1
+    READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+      & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !read cut direction
+    i=i+1
+    READ(cla(i),'(a)',END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-deform' .OR. clarg=='-def') THEN
     ioptions = ioptions+1

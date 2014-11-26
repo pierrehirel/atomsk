@@ -21,6 +21,179 @@ Atomsk is designed to run in UNIX/Linux and Microsoft(R) Windows(R) environments
 Atomsk is a command-line program that aims at creating, manipulating, and converting atomic systems. It supports many file formats, among which LAMMPS, VASP, Quantum Espresso, Atomeye CFG format, and xCrySDen XSF format (see the list of supported formats below), which makes it easy to convert files for ab initio calculations, classical potential simulations, or visualization. Additionnaly atomsk can also perform some simple transformations of atomic positions (thanks to the many options described below), like creating supercells, cutting crystal planes, applying stress, or inserting dislocations.
 
 
+.SH MODES
+Modes decide how the files will be treated. Only one mode can be used at a time. Running atomsk without any argument will trigger the interactive mode, which offers a command-line interpreter. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
+.TP
+.B --all-in-one, -AI1
+Converts several files to one file containing all snapshots.
+.TP
+.B --average
+Averages atomic positions over several configurations.
+.TP
+.B --create, -C
+Creates a system from scratch.
+.TP
+.B --ddplot
+Converts two files to a ddplot file.
+.TP
+.B --diff
+Computes the difference in atom positions between two files.
+.TP
+.B --edm
+Computes individual electric dipole moments.
+.TP
+.B --electronic-polarization, -PE
+Computes polarization of ions in a core-shell model.
+.TP
+.B --help
+Displays help.
+.TP
+.B --list, -L
+Converts a list of files.
+.TP
+.B --merge, -M
+Merges several systems into one.
+.TP
+.B --nye
+Computes the Nye tensor.
+.TP
+.B --one-in-all, -1IA
+Converts a file containing many snapshots into several files.
+.TP
+.B --polycrystal
+Construct a polycrystal.
+.TP
+.B --rdf
+Computes the radial distribution function(s) of a system.
+.TP
+.B --unwrap
+Unwraps atom coordinates of a system.
+
+
+
+.SH OPTIONS
+Options apply some transformations to the system. If several options are called in the same command line, they are applied successively in the order they are called.
+.TP
+.B -add-atom <species> at <x> <y> <z>
+.TP
+.B -add-atom <species> near <index>
+.TP
+.B -add-atom <species> random <N>
+Adds an atom at the given position, or near the atom with the given index, or N atoms at random positions.
+.TP
+.B -add-shells <species>
+Creates shells (in the sense of a shell model) for the <species>. <species> can be set to "all".
+.TP
+.B -alignx
+Aligns the first supercell vector with the X axis, and the second supercell vector in the XY plane.
+.TP
+.B -bind-shells, -bs
+Re-associates shells (in the sense of a shell model) with their core.
+.TP
+.B -center <index>
+Shift the whole system so the atom with the given index is at the center of the box. If index<=0 then the center of mass of the system is centered.
+.TP
+.B -crack <crackmode> <cracktype> <K> <pos1> <pos2> <crackline> <crackplane> <μ> <ν>
+Introduces a crack in the system.
+.TP
+.B -cut <above|below> <d> <normal>
+Removes all atoms that are above or below the plane defined by its <normal>.
+.TP
+.B -deform <direction> <ε> <ν>
+Applies normal strain.
+.TP
+.B -dislocation <pos1> <pos2> <disloctype> <dislocline> <dislocplane> <b> <ν>
+Introduces a straight edge or screw dislocation line in the system.
+.TP
+.B -disturb <dmax>
+Apply a random displacement (maximum dmax) to all atoms.
+.TP
+.B -duplicate <Nx> <Ny> <Nz>, -dup <Nx> <Ny> <Nz>
+Duplicates the system.
+.TP
+.B -fix
+Fixes atoms in one or all directions of space.
+.TP
+.B -fractional, -frac
+Converts atom positions to reduced coordinates.
+.TP
+.B -mirror <d> <direction>
+Applies a mirror plane normal to the <direction> at distance <d> from origin.
+.TP
+.B -options <file>
+Reads a list of options from a file, and apply these options to the system.
+.TP
+.B -orient <Hx> <Hy> <Hz> <H'x> <H'y> <H'z>
+Changes the crystallographic orientation of the system.
+.TP
+.B -properties <file>, -prop <file>
+Reads some properties of the system from <file>.
+.TP
+.B -rebox
+Attempts to determine the supercell parameters.
+.TP
+.B -remove-atom <index|species>, -rmatom <index|species>
+Removes an atom given its index, or all atoms of a given species.
+.TP
+.B -remove-doubles <distance>, -rmd <distance>
+Removes atoms that are too close to other atoms.
+.TP
+.B -remove-property <property>, -rmprop <property>
+Removes one or all auxiliary properties.
+.TP
+.B -remove-shells <species>, -rmshells <species>
+Removes the shells from ions with the given species, or all ions.
+.TP
+.B -rotate <axis> <angle>
+Rotates the system around a cartesian <axis>.
+.TP
+.B -select all
+.TP
+.B -select invert
+.TP
+.B -select <index>
+.TP
+.B -select <species>
+.TP
+.B -select random <N> <species>
+.TP
+.B -select prop <property> <values>
+.TP
+.B -select <above|below> <x1> <dir>
+.TP
+.B -select <N> <species> neighbor <index>
+.TP
+.B -select <in|out> <geometry> <x1> <y1> [<z1>] <x2> [<y2> <z2>]
+Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
+.TP
+.B -shear <surface normal> <shear amp> <shear direction>
+Applies shear strain to the system.
+.TP
+.B -shift <above|below> <d> <normal> <tauX> <tauY> <tauZ>
+Shifts some atoms.
+.TP
+.B -sort <property> <order>
+Sorts the atoms according to one <property>. <order> can be "up", "down", or "pack".
+.TP
+.B -stress <xx|yy|zz|xy|xz|yz|p> <value>
+Applies stress to the system. The elastic tensor must be defined with the option "-properties".
+.TP
+.B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
+Substitutes atoms of a given species by another.
+.TP
+.B -unit <unit1> <unit2>, -u <unit1> <unit2>
+Changes the unit in which atom positions and supercell parameters are written.
+.TP
+.B -unskew
+Reduces the skew of the box.
+.TP
+.B -velocity
+Generate a Maxwell-Boltzmann distribution a velocities.
+.TP
+.B -wrap
+Wraps atoms back into the supercell.
+
+
 .SH SUPPORTED FILE FORMATS
 .SS Input:
 .TP
@@ -133,177 +306,6 @@ SIESTA XV file.
 .TP
 .B xyz/exyz/sxyz
 XYZ general purpose format.
-
-
-.SH MODES
-Modes decide how the files will be treated. Only one mode can be used at a time. Running atomsk without any argument will trigger the interactive mode, which offers a command-line interpreter. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
-.TP
-.B --all-in-one, -AI1
-Converts several files to one file containing all snapshots.
-.TP
-.B --average
-Averages atomic positions over several configurations.
-.TP
-.B --create, -C
-Creates a system from scratch.
-.TP
-.B --ddplot
-Converts two files to a ddplot file.
-.TP
-.B --diff
-Computes the difference in atom positions between two files.
-.TP
-.B --edm
-Computes individual electric dipole moments.
-.TP
-.B --electronic-polarization, -PE
-Computes polarization of ions in a core-shell model.
-.TP
-.B --help
-Displays help.
-.TP
-.B --list, -L
-Converts a list of files.
-.TP
-.B --merge, -M
-Merges several systems into one.
-.TP
-.B --nye
-Computes the Nye tensor.
-.TP
-.B --one-in-all, -1IA
-Converts a file containing many snapshots into several files.
-.TP
-.B --polycrystal
-Construct a polycrystal.
-.TP
-.B --rdf
-Computes the radial distribution function(s) of a system.
-.TP
-.B --unwrap
-Unwraps atom coordinates of a system.
-
-.SH OPTIONS
-Options apply some transformations to the system. If several options are called in the same command line, they are applied successively in the order they are called.
-.TP
-.B -add-atom <species> at <x> <y> <z>
-.TP
-.B -add-atom <species> near <index>
-.TP
-.B -add-atom <species> random <N>
-Adds an atom at the given position, or near the atom with the given index, or N atoms at random positions.
-.TP
-.B -add-shells <species>, -as <species>
-Creates shells (in the sense of a shell model) for the <species>. <species> can be set to "all".
-.TP
-.B -alignx
-Aligns the first supercell vector with the X axis, and the second supercell vector in the XY plane.
-.TP
-.B -bind-shells, -bs
-Re-associates shells (in the sense of a shell model) with their core.
-.TP
-.B -center <index>
-Shift the whole system so the atom with the given index is at the center of the box. If index<=0 then the center of mass of the system is centered.
-.TP
-.B -crack <crackmode> <cracktype> <K> <pos1> <pos2> <crackline> <crackplane> <μ> <ν>
-Introduces a crack in the system.
-.TP
-.B -cut <above|below> <d> <normal>
-Removes all atoms that are above or below the plane defined by its <normal>.
-.TP
-.B -deform <direction> <ε> <ν>
-Applies normal strain.
-.TP
-.B -dislocation <pos1> <pos2> <disloctype> <dislocline> <dislocplane> <b> <ν>
-Introduces a straight edge or screw dislocation line in the system.
-.TP
-.B -disturb <dx>
-Apply a random displacement (maximum dx) to all atoms.
-.TP
-.B -duplicate <Nx> <Ny> <Nz>, -dup <Nx> <Ny> <Nz>
-Duplicates the system.
-.TP
-.B -fix
-Fixes atoms in one or all directions of space.
-.TP
-.B -fractional, -frac
-Converts atom positions to reduced coordinates.
-.TP
-.B -mirror <d> <direction>
-Applies a mirror plane normal to the <direction> at distance <d> from origin.
-.TP
-.B -options <file>
-Reads a list of options from a file, and apply these options to the system.
-.TP
-.B -orient <Hx> <Hy> <Hz> <H'x> <H'y> <H'z>
-Changes the crystallographic orientation of the system.
-.TP
-.B -properties <file>, -prop <file>
-Reads some properties of the system from <file>.
-.TP
-.B -rebox
-Attempts to determine the supercell parameters.
-.TP
-.B -remove-atom <index|species>, -rmatom <index|species>
-Removes an atom given its index, or all atoms of a given species.
-.TP
-.B -remove-doubles <distance>, -rmd <distance>
-Removes atoms that are too close to other atoms.
-.TP
-.B -remove-property <property>, -rmprop <property>
-Removes one or all auxiliary properties.
-.TP
-.B -remove-shells <species>, -rmshells <species>
-Removes the shells from ions with the given species, or all ions.
-.TP
-.B -rotate <axis> <angle>
-Rotates the system around a cartesian <axis>.
-.TP
-.B -select all
-.TP
-.B -select invert
-.TP
-.B -select <index>
-.TP
-.B -select <species>
-.TP
-.B -select random <N> <species>
-.TP
-.B -select prop <property> <values>
-.TP
-.B -select <above|below> <x1> <dir>
-.TP
-.B -select <N> <species> neighbor <index>
-.TP
-.B -select <in|out> <geometry> <x1> <y1> [<z1>] <x2> [<y2> <z2>]
-Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
-.TP
-.B -shear <surface normal> <shear amp> <shear direction>
-Applies shear strain to the system.
-.TP
-.B -shift <above|below> <d> <normal> <tauX> <tauY> <tauZ>
-Shifts some atoms.
-.TP
-.B -sort <property> <order>
-Sorts the atoms according to one <property>. <order> can be "up", "down", or "pack".
-.TP
-.B -stress <xx|yy|zz|xy|xz|yz|P> <value>
-Applies stress to the system. The elastic tensor must be defined with the option "-properties".
-.TP
-.B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
-Substitutes atoms of a given species by another.
-.TP
-.B -unit <unit1> <unit2>, -u <unit1> <unit2>
-Changes the unit in which atom positions and supercell parameters are written.
-.TP
-.B -unskew
-Reduces the skew of the box.
-.TP
-.B -velocity
-Generate a Maxwell-Boltzmann distribution a velocities.
-.TP
-.B -wrap
-Wraps atoms back into the supercell.
 
 
 

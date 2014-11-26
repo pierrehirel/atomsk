@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 26 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -189,6 +189,20 @@ IF(helpsection=="options") THEN
   WRITE(*,*) ""
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-add-atom" .OR. helpsection=="-add-atoms" .OR. &
+  &helpsection=="-addatom" .OR. helpsection=="-addatoms" ) THEN
+  WRITE(*,*) "..> Add new atoms to the system:"
+  WRITE(*,*) "          -add-atom <species> at <x> <y> <z>"
+  WRITE(*,*) "          -add-atom <species> near <index>"
+  WRITE(*,*) "          -add-atom <species> random <N>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-add-shells".OR. helpsection=="-as" &
+  & .OR. helpsection=="-create-shells".OR. helpsection=="-cs") THEN
+  WRITE(*,*) "..> Create shells for some or all atoms:"
+  WRITE(*,*) "          -add-shells <all|species>"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-alignx") THEN
   WRITE(*,*) "..> Align the first supercell vector with the X axis:"
   WRITE(*,*) "          -alignx"
@@ -199,15 +213,16 @@ IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-b
   WRITE(*,*) "          -bind-shells"
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-center") THEN
+  WRITE(*,*) "..> Place an atom or the center of mass of the system at the center of the box:"
+  WRITE(*,*) "          -center <index>"
+  WRITE(*,*) "          -center com"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-crack") THEN
   WRITE(*,*) "..> Insert a crack in the system:"
   WRITE(*,*) "          -crack <I|II|III> <stress|strain> <K> <pos1> <pos2> "//&
            &            "<crackline> <crackplane> <μ> <ν>"
-ENDIF
-!
-IF(helpsection=="options" .OR. helpsection=="-create-shells".OR. helpsection=="-cs") THEN
-  WRITE(*,*) "..> Create shells for some or all atoms:"
-  WRITE(*,*) "          -cs <all|species>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-cut") THEN
@@ -223,6 +238,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-disloc") THEN
   WRITE(*,*) "..> Insert a dislocation in the system:"
   WRITE(*,*) "          -disloc <pos1> <pos2> <screw|edge|edge2> <x|y|z> <x|y|z> <b> <ν>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-disturb" ) THEN
+  WRITE(*,*) "..> Apply a random displacement to atom positions:"
+  WRITE(*,*) "          -disturb <dmax>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
@@ -279,6 +299,12 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-remove-property" .OR. helpsection=="-rmprop") THEN
   WRITE(*,*) "..> Remove one or all auxiliary properties:"
   WRITE(*,*) "          -rmprop <property>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-remove-shell" .OR. helpsection=="-rmshell" .OR. &
+  &helpsection=="-remove-shells" .OR. helpsection=="-rmshells" ) THEN
+  WRITE(*,*) "..> Remove shells from atoms of given species, or on all atoms :"
+  WRITE(*,*) "          -rmshells <species|all>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
@@ -553,6 +579,19 @@ CASE(703)
   !strings(1) = name of command line argument
   msg = "/!\ WARNING: Unrecognized command-line argument: "//TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(750)
+  msg = ""
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "/!\ WARNING: YOU SHOULD NOT RUN THIS PROGRAM AS ROOT!"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  temp=""
+  DO WHILE(temp.NE."ok")
+    msg = "    Enter 'ok' to continue anyway, or Ctrl+C to quit."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    READ(*,*) temp
+  ENDDO
+  msg = ""
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 800- 899: ERROR MESSAGES
 CASE(800)
@@ -742,21 +781,15 @@ CASE(2056)
   !string(1) = cut_dir, i.e. "above" or "below"
   !string(2) = cutdir, i.e. x, y or z
   !reals(1) = cutdistance in angstroms
-  IF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
-    IF( DABS(reals(1))<1.d12 ) THEN
-      WRITE(msg,"(3f16.3)") reals(1)
-    ELSEIF( reals(1)<-1.d12 ) THEN
-      WRITE(msg,"(a4)") "-INF"
-    ELSEIF( reals(1)>1.d12 ) THEN
-      WRITE(msg,"(a4)") "+INF"
-    ENDIF
-    msg = ">>> Cutting the system "//TRIM(strings(1))//" "// &
-      & TRIM(ADJUSTL(msg))//" A along "//TRIM(strings(2))//"."
-  ELSEIF( strings(1)=="selec" ) THEN
-    msg = ">>> Cutting selected atoms from the system."
-  ELSE
-    msg = ">>> Cutting all atoms from the system."
+  IF( DABS(reals(1))<1.d12 ) THEN
+    WRITE(msg,"(3f16.3)") reals(1)
+  ELSEIF( reals(1)<-1.d12 ) THEN
+    WRITE(msg,"(a4)") "-INF"
+  ELSEIF( reals(1)>1.d12 ) THEN
+    WRITE(msg,"(a4)") "+INF"
   ENDIF
+  msg = ">>> Cutting the system "//TRIM(strings(1))//" "// &
+    & TRIM(ADJUSTL(msg))//" A along "//TRIM(strings(2))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2057)
   !reals(1) = NPcut, number of deleted atoms

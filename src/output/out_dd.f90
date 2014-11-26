@@ -6,14 +6,13 @@ MODULE out_dd
 !* This module reads in two arrays containing atomic positions, and               *
 !* writes a file in the ddplot (.dd) and PLT formats.                             *
 !* These file formats are described for instance at:                              *
-!*     http://cnls.lanl.gov/~groger/codes/ddplot/ddplot.html                      *
-!*     http://groger.ipm.cz/download/ddplot/ddplot.html                           *
+!*     http://groger.ipm.cz/download/ddplot/ddplot.html#formats                   *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 26 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

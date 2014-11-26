@@ -16,7 +16,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Oct. 2014                                     *
+!* Last modification: P. Hirel - 26 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,6 +59,7 @@ CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
 CHARACTER(LEN=128):: homedir  !home directory and .atomsk file
 CHARACTER(LEN=128):: temp
+CHARACTER(LEN=128):: username !the user's name
 CHARACTER(LEN=4096):: clarg
 CHARACTER(LEN=16),DIMENSION(20):: opt_file !options read from a file
 CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
@@ -94,6 +95,7 @@ IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
 fileexists = .FALSE.
  clarg = ''
 outfileformat=''
+username = ''
 pfiles(:) = ''
 strlength=0
 nwarn = 0
@@ -151,6 +153,9 @@ verbosity = 1
   !
   !Detect environment language
   CALL GET_ENVIRONMENT_VARIABLE('LANG',clarg)
+  !
+  !Get user name
+  CALL GET_ENVIRONMENT_VARIABLE('USER',username)
 #endif
 !
 !At this point, clarg may contain the language environment variable
@@ -298,6 +303,12 @@ ELSE
       !then it is most probably an option
       ELSEIF(clarg(1:1)=='-') THEN
         ioptions=ioptions+1
+        IF( IARGC()==1 ) THEN
+          !Program was called only with option name
+          !=> display help and leave
+          CALL DISPLAY_HELP(clarg)
+          GOTO 1100
+        ENDIF
       !
       ELSE
         !some other command-line argument: can be a file name, etc.
@@ -337,6 +348,12 @@ options_array(:) = ''
 !Print a nice message
 CALL DISPLAY_HEADER()
 CALL DATE_MSG()
+!
+!Display a warning if user is root
+IF( username=="root" ) THEN
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(750,(/""/),(/0.d0/))
+ENDIF
 !
 !
 !!Read command-line options and try to understand them
