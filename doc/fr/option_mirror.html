@@ -32,7 +32,9 @@
 
 <p>La &#60;normale&#62; au plan miroir peut être 'x', 'y', 'z' (axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation crystallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001].</p>
 
-<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), le miroir leur est aussi appliqué. De même, si des forces ou des vitesses sont définies alors elles sont aussi transformées.</p>
+<p>Si les forces (fx,fy,fz) ou les vitesses (vx,vy,vz) existent comme propriétés auxiliaires, alors la transformation miroir s'appliquera aussi à ces vecteurs.</p>
+
+<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), le miroir leur est aussi appliqué.</p>
 
 <p>Après l'application du miroir, il est possible que certains atomes se trouvent à l'extérieur de la boîte. Il est possible de les remettre dans la boîte par conditions aux limites périodiques grâce à l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 

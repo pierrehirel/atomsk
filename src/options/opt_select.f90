@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 02 Dec. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -273,8 +273,15 @@ CASE('index')
     SELECT(:) = .FALSE.
     DO i=1,SIZE(atomindices)
       IF( atomindices(i)>0 .AND. atomindices(i)<=SIZE(P,1) ) THEN
-        SELECT(atomindices(i)) = .TRUE.
-        Nselect = Nselect+1
+        !WARNING: an index can appear twice in the list of atomindices(:)
+        ! do not double-count selected atoms
+        IF( .NOT.SELECT(atomindices(i)) ) THEN
+          SELECT(atomindices(i)) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          nwarn = nwarn+1
+          CALL ATOMSK_MSG(2753,(/""/),(/DBLE(atomindices(i))/))
+        ENDIF
       ELSE
         !Atom index is out-of-bounds
         nwarn = nwarn+1

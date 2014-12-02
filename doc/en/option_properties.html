@@ -37,7 +37,7 @@
             &#60;id1&#62; &#60;ux1&#62; &#60;uy1&#62; &#60;uz1&#62; [&#60;sx1&#62; &#60;sy1&#62; &#60;sz1&#62;]<br/>
             &#60;id2&#62; &#60;ux2&#62; &#60;uy2&#62; &#60;uz2&#62; [&#60;sx2&#62; &#60;sy2&#62; &#60;sz2&#62;]<br/>
             ...</code></p>
-  <p>The displacements can be given for all atoms, or only some of them. The displacement vectors will be immediately applied to the atom positions.</p></li>
+  <p>The displacements can be given for all atoms, or only some of them. If shells are present, but no displacement is specified for them, then they will be displaced by the same vector as their core. The displacement vectors will be immediately applied to the atom positions (and shells, if any).</p></li>
   
   <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but <code>atomsk</code> will work with whatever number is given). In case of an ionic core-shell model the charge Q of the core and the charge q of the shell can be given:<br/>
       <p><code>charge<br/>

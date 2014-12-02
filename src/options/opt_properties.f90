@@ -12,7 +12,7 @@ MODULE properties
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 27 Nov. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -270,19 +270,32 @@ DO
       !Read the displacement for each atom and apply it immediately
       !Note: the values may not be given for all atoms
       DO
+        j=0
         READ(35,'(a128)',END=173,ERR=173) msg2
         IF( LEN_TRIM(msg2)>0 ) THEN
+          !Read displacement of atom (or ionic core)
           READ(msg2,*,END=173,ERR=173) i, a, b, c
+          !Read displacement of ionic shell (optional)
           READ(msg2,*,END=172,ERR=172) i, a, b, c, tempreal, tempreal2, tempreal3
+          j=1
           172 CONTINUE
           IF( i>0 .AND. i<=SIZE(P,1) ) THEN
             P(i,1) = P(i,1) + a
             P(i,2) = P(i,2) + b
             P(i,3) = P(i,3) + c
             IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-              S(i,1) = S(i,1) + tempreal
-              S(i,2) = S(i,2) + tempreal2
-              S(i,3) = S(i,3) + tempreal3
+              IF( j>0 ) THEN
+                !Displacements were explicitely given for the shell => use that
+                S(i,1) = S(i,1) + tempreal
+                S(i,2) = S(i,2) + tempreal2
+                S(i,3) = S(i,3) + tempreal3
+              ELSE
+                !User did not specify any displacement for the shell
+                !=> use same displacement vector as for the core
+                S(i,1) = S(i,1) + a
+                S(i,2) = S(i,2) + b
+                S(i,3) = S(i,3) + c
+              ENDIF
             ENDIF
           ELSE
             !given index is out-of-bounds

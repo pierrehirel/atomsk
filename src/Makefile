@@ -120,8 +120,6 @@ help:
         endif
 	@echo "- make install      install the program in ${BINPATH}"
 	@echo "                    (requires SuperUser rights)"
-	@echo "- make all          compile the program and install it"
-	@echo "                    (requires SuperUser rights)"
 	@echo "- make clean        remove compiled files from current directory"
 	@echo "- make uninstall    uninstall the program from ${BINPATH}"
 	@echo "                    (requires SuperUser rights)"
@@ -130,9 +128,8 @@ help:
 	@echo ""
 
 
-# All = compile the code and then install it (only on UNIX and Linux systems)
+# All = compile the code
 all: atomsk
-	$(MAKE) install
 
 
 # Compile the program

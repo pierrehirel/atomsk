@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Nov. 2014                                     *
+!* Last modification: P. Hirel - 02 Dec. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1037,7 +1037,12 @@ CASE(2077)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random" .OR. strings(1)=="rand" ) THEN
     WRITE(temp,*) NINT(reals(1))
-    msg = ">>> Randomly selecting "//TRIM(ADJUSTL(temp))//" atoms"
+    msg = ">>> Randomly selecting "//TRIM(ADJUSTL(temp))
+    IF( NINT(reals(1))<=1 ) THEN
+      msg = TRIM(msg)//" atom"
+    ELSE
+      msg = TRIM(msg)//" atoms"
+    ENDIF
     IF( strings(2).NE."any" .AND. strings(2).NE."all" ) THEN
       msg = TRIM(msg)//" of "//TRIM(strings(2))
     ENDIF
@@ -1628,6 +1633,11 @@ CASE(2751)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2752)
   msg = "/!\ WARNING: no selection is defined, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2753)
+  !reals(1) = atom index
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNING: atom #"//TRIM(ADJUSTL(temp))//" was already selected, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

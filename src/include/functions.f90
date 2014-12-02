@@ -10,7 +10,7 @@ MODULE functions
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Oct. 2014                                     *
+!* Last modification: P. Hirel - 01 Dec. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -185,11 +185,11 @@ IF( LEN_TRIM(longname)>64 ) THEN
     !Look for the separator before that
     temp = longname(1:i-1)
     i = SCAN(temp,pathsep,BACK=.TRUE.)
-    IF( i>0 .AND. i<=36 ) THEN
+    IF( i>0 .AND. i>=36 ) THEN
       !Look for the separator before that
       temp = longname(1:i-1)
       j = SCAN(temp,pathsep,BACK=.TRUE.)
-      IF( j>0 .AND. j<=36 ) THEN
+      IF( j>0 .AND. j>=36 ) THEN
         !part2 will contain the two last folder names + file name
         part2 = longname(j:)
       ELSE

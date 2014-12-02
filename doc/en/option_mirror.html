@@ -32,7 +32,9 @@
 
 <p>The &#60;normal&#62; can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices  (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001].</p>
 
-<p>If some atoms have shells (in the sense of an ionic core-shell model), they are also mirrored along with their cores. If forces or velocities are defined, then they are also mirrored.</p>
+<p>If forces (fx,fy,fz) or velocities (vx,vy,vz) exist as auxiliary properties, then they will also be mirrored.</p>
+
+<p>If some atoms have shells (in the sense of an ionic core-shell model), they are also mirrored along with their cores.</p>
 
 <p>After applying the mirror transformation it is possible that some atoms end up out of the simulation box. They can be put back into the box using periodic boundary conditions thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
