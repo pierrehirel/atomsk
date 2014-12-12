@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Dec. 2014                                     *
+!* Last modification: P. Hirel - 11 Dec. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -180,9 +180,13 @@ IF(helpsection=="modes" .OR. helpsection=="polycrystal") THEN
   WRITE(*,*) "..> Mode polycristal :"
   WRITE(*,*) "          atomsk --polycrystal <cellule> <paramètres> <outputfile> [options]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="polycrystal") THEN
+IF(helpsection=="modes" .OR. helpsection=="average") THEN
   WRITE(*,*) "..> Mode moyenne :"
   WRITE(*,*) "          atomsk --average <listfile> <outputfile> [options]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="nye") THEN
+  WRITE(*,*) "..> Mode tenseur de Nye:"
+  WRITE(*,*) "          atomsk --nye <reference> <dislocation> <outputfile> [options] [<formats>]"
 ENDIF
 !
 IF(helpsection=="options") THEN

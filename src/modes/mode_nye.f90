@@ -13,7 +13,7 @@ MODULE mode_nye
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     philippe.carrez@univ-lille1.fr                                             *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 12 Dec. 2014                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -809,14 +809,15 @@ DO iat=1,SIZE(Pfirst,1)
           DEALLOCATE (Delta_G_matrix,Q_plus,work_array,Stemp)
           !
           !
-          !Compute the Nye tensor:  alpha(jk) = -epsilon(jim) * T(imk)   (Eq.22)
+          !Compute the Nye tensor:  alpha(jk) = -epsilon(imk) * T(ijm)   (Eq.22)
+          !NOTE: Eq.22 is wrong in the published article by Hartley et al.
           DO j=1,3
             DO k=1,3
               alpha_tensor(j,k)=0.d0
               DO i=1,3
                 DO m=1,3
-                  eps = EPS_LEVI_CIVITA(j,i,m)
-                  alpha_tensor(j,k) = alpha_tensor(j,k) - eps*A_tensor(i,m,k)
+                  eps = EPS_LEVI_CIVITA(i,m,k)
+                  alpha_tensor(j,k) = alpha_tensor(j,k) - DBLE(eps)*A_tensor(i,j,m)
                 ENDDO
               ENDDO
             ENDDO
@@ -867,10 +868,10 @@ AUXNAMES(8)="alpha_32"
 AUXNAMES(9)="alpha_33"
 !
 ALLOCATE(comment(1))
-comment(1) = "# Per-atom G matrix computed by atomsk"
+ comment(1) = "# Per-atom Nye tensor computed by atomsk"
 !
-CALL WRITE_AFF(prefix,outfileformats,Hfirst,Pfirst,S,comment,AUXNAMES,AUX)
-!CALL WRITE_AFF(prefix,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
+!CALL WRITE_AFF(prefix,outfileformats,Hfirst,Pfirst,S,comment,AUXNAMES,AUX)
+CALL WRITE_AFF(prefix,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
 !
 DEALLOCATE (Psecond, AUX, AUXNAMES)
 !
