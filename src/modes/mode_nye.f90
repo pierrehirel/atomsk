@@ -854,7 +854,7 @@ ENDDO ! End loop on all atoms at_nb
 !
 400 CONTINUE
 !Write final results into file(s)
-!DEALLOCATE (Pfirst)
+DEALLOCATE (Pfirst)
 ALLOCATE (AUXNAMES(9))
 !
 AUXNAMES(1)="alpha_11"
@@ -873,7 +873,7 @@ ALLOCATE(comment(1))
 !CALL WRITE_AFF(prefix,outfileformats,Hfirst,Pfirst,S,comment,AUXNAMES,AUX)
 CALL WRITE_AFF(prefix,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
 !
-DEALLOCATE (Psecond, AUX, AUXNAMES)
+DEALLOCATE (Psecond,AUX,AUXNAMES)
 !
 !
 !

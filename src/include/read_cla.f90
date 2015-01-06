@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Nov. 2014                                     *
+!* Last modification: P. Hirel - 12 Dec. 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -286,6 +286,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(3)
     i=i+1
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
+    IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
     mode = '1ia'
