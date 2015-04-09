@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 June 2014                                     *
+!* Last modification: P. Hirel - 23 Feb. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,10 +47,10 @@ CONTAINS
 ! vectors H defining periodic conditions, and a radius R,
 ! this routine builds a list of neighbors for all atoms,
 ! i.e. a list that looks like the following:
-!        2 4 6 0
-!        1 3 4 5
-!        2 4 5 0
-!        1 2 3 5
+!        2 4 6 0 0 0 0
+!        1 3 4 5 0 0 0
+!        2 4 5 0 0 0 0
+!        1 2 3 5 6 0 0
 !    etc.
 ! meaning that neighbors of atom #1 are atoms #2, 4, 6,
 ! neighbors of atom #2 are #1, 3, 4, 5, etc.
@@ -80,19 +80,22 @@ REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 LOGICAL,DIMENSION(6):: IsCloseToBorder !is the atom close to the borders of the box?
 INTEGER:: i, j, k, l, m, n, u
 INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
-INTEGER:: Nneighbours  !number of neighbors of atom i
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList  !list of neighbours
 REAL(dp):: distance
 REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for periodic replica
 REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
 !
+INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !list of neighbours
 !
 !
 !Initialize variables
+IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
+ALLOCATE(NNeigh(SIZE(A,1)))
+NNeigh(:) = 0
 IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
-ALLOCATE(NeighList(SIZE(A,1),4))  !initially, allow for 4 neighbors
+ALLOCATE(NeighList(SIZE(A,1),100))  !initially, allow for 100 neighbors
 NeighList(:,:) = 0
 IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
 !
@@ -103,13 +106,7 @@ DO i=1,3
 ENDDO
 !
 DO i=1,SIZE(A,1)
-  !Count the neighbours that were already detected for atom i
-  Nneighbours = 0
-  n=1
-  DO WHILE ( n<=SIZE(NeighList,2) .AND. NeighList(i,n).NE.0 )
-    n = n+1
-    Nneighbours = Nneighbours+1
-  ENDDO
+  !Count the neighbors that were already detected for atom i
   !
   !Save fractional coordinate of atom i in Vfrac
   Vfrac(1,:) = A(i,1:3)
@@ -202,11 +199,11 @@ DO i=1,SIZE(A,1)
           distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
           !
           IF ( distance < R ) THEN
-            !Atom j is neighbour of atom i
-            Nneighbours = Nneighbours+1
-            !If total number of neighbours exceeds size of NeighList, expand NeighList
-            IF( Nneighbours > SIZE(NeighList,2) ) THEN
-              !The neighbour list of this atom is full
+            !Atom j is neighbor of atom i
+            NNeigh(i) = NNeigh(i)+1
+            !If total number of neighbors exceeds size of NeighList, expand NeighList
+            IF( NNeigh(i) > SIZE(NeighList,2) ) THEN
+              !The neighbor list of this atom is full
               !=> Increase the size of NeighList by NNincrement
               IF( ALLOCATED(tempList) ) DEALLOCATE(tempList)
               ALLOCATE( tempList (SIZE(NeighList,1) , SIZE(NeighList,2)+NNincrement ) )
@@ -221,17 +218,14 @@ DO i=1,SIZE(A,1)
               DEALLOCATE(tempList)
               !
             ELSE
-              !Add atom j to the list of neighbours of atom i
-              NeighList(i,Nneighbours) = j
+              !Add atom j to the list of neighbors of atom i
+              NeighList(i,NNeigh(i)) = j
             ENDIF
             !
-            !i is also a neighbour of atom j => save this
-            n=1
-            DO WHILE ( n<=SIZE(NeighList,2) .AND. NeighList(j,n).NE.0 )
-              n=n+1
-            ENDDO
-            IF( n>SIZE(NeighList,2) ) THEN
-              !The neighbour list of this atom is full
+            !i is also a neighbor of atom j => save this
+            Nneigh(j) = NNeigh(j)+1
+            IF( NNeigh(j) > SIZE(NeighList,2) ) THEN
+              !The neighbor list of this atom is full
               !=> Increase the size of NeighList by NNincrement
               IF( ALLOCATED(tempList) ) DEALLOCATE(tempList)
               ALLOCATE( tempList (SIZE(NeighList,1) , SIZE(NeighList,2)+NNincrement ) )
@@ -245,10 +239,10 @@ DO i=1,SIZE(A,1)
               NeighList(:,:) = tempList(:,:)
               DEALLOCATE(tempList)
             ELSE
-              NeighList(j,n) = i
+              NeighList(j,NNeigh(j)) = i
             ENDIF
             !
-            !We already found that j is neighbour of i
+            !We already found that j is neighbor of i
             !=> no need to keep on looking for replica of atom j
             !=> exit the loops on replica
             GOTO 200
@@ -272,6 +266,8 @@ IF( ALLOCATED(NeighList) ) THEN
     DEALLOCATE(NeighList)
   ENDIF
 ENDIF
+!
+DEALLOCATE(NNeigh)
 !
 !
 END SUBROUTINE NEIGHBOR_LIST

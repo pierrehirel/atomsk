@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Nov. 2014                                     *
+!* Last modification: P. Hirel - 17 Feb. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -185,6 +185,41 @@ DO WHILE(i<SIZE(cla))
       i=i-1
     ENDIF
     IF(LEN_TRIM(mode_param(1))==0 .OR. i>SIZE(cla)) GOTO 130
+    !
+  ELSEIF(clarg=='--density') THEN
+    IF(ALLOCATED(mode_param)) GOTO 150
+    ALLOCATE(mode_param(4))
+    mode_param(:) = " "
+    mode = 'density'
+    i=i+1
+    READ(cla(i),'(a4096)',END=130,ERR=130) pfiles(1) !File containing atom positions
+    IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
+    i=i+1
+    READ(cla(i),*,END=130,ERR=130) mode_param(1)  !property whose density will be calculated
+    i=i+1
+    READ(cla(i),*,END=130,ERR=130) temp  !den_type: 1, 2 or 3 (for 1-D, 2-D or 3-D density)
+    SELECT CASE(temp)
+    CASE("1","1d","1D","1-d","1-D")
+      j=1
+    CASE("2","2d","2D","2-d","2-D")
+      j=2
+    CASE("3","3d","3D","3-d","3-D")
+      j=3
+    CASE DEFAULT
+      !It is neither 1-D, 2-D nor 3-D => don't know what it is, abort
+      j=-1
+      nerr = nerr+1
+      GOTO 1000
+    END SELECT
+    WRITE(mode_param(2),*) j
+    IF( j==1 .OR. j==2 ) THEN
+      i=i+1
+      READ(cla(i),*,END=130,ERR=130) mode_param(3)  !axis: x, y or z
+    ENDIF
+    i=i+1
+    READ(cla(i),*,END=130,ERR=130) tempreal  !Sigma = square of variance
+    WRITE(mode_param(4),*) tempreal
+    IF( i>SIZE(cla) ) GOTO 130
     !
   ELSEIF(clarg=='--difference' .OR. clarg=='--diff' .OR. clarg=='-D') THEN
     mode = 'diff'

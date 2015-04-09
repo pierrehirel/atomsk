@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Sept. 2014                                    *
+!* Last modification: P. Hirel - 23 March 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -30,7 +30,6 @@ MODULE subroutines
 !* INT2MONTH           transforms an integer into a month                         *
 !* INT2DAY             transforms an integer into a day                           *
 !* BOX2DBLE            transforms a string into a real number                     *
-!* PROGBAR             writes a progress bar to a string                          *
 !* CHECKNAN            checks an array for NaN (Not a Number) values              *
 !* GEN_NRANDNUMBERS    generate a list of N random real numbers in [0.0,1.0]      *
 !* GEN_NRANDGAUSS      generate a list of N numbers with gaussian distribution    *
@@ -330,67 +329,6 @@ RETURN
 status=1
 !
 END SUBROUTINE BOX2DBLE
-!
-!
-!
-!********************************************************
-! PROGBAR
-! This subroutine writes a progress bar in the string
-! "pbar", according to the given percentage. The number
-! "percent" must be given in % (i.e. between 0 and 100).
-!********************************************************
-SUBROUTINE PROGBAR(percent,pbar)
-!
-IMPLICIT NONE
-CHARACTER(LEN=22):: pbar
-REAL(dp),INTENT(IN):: percent
-!
-pbar = ""
-IF(percent<5.d0) THEN
-  pbar = "[>                   ]"
-ELSEIF(percent>=5.d0 .AND. percent<10.d0) THEN
-  pbar = "[=>                  ]"
-ELSEIF(percent>=10.d0 .AND. percent<15.d0) THEN
-  pbar = "[==>                 ]"
-ELSEIF(percent>=15.d0 .AND. percent<20.d0) THEN
-  pbar = "[===>                ]"
-ELSEIF(percent>=20.d0 .AND. percent<25.d0) THEN
-  pbar = "[====>               ]"
-ELSEIF(percent>=25.d0 .AND. percent<30.d0) THEN
-  pbar = "[=====>              ]"
-ELSEIF(percent>=30.d0 .AND. percent<35.d0) THEN
-  pbar = "[======>             ]"
-ELSEIF(percent>=35.d0 .AND. percent<40.d0) THEN
-  pbar = "[=======>            ]"
-ELSEIF(percent>=40.d0 .AND. percent<45.d0) THEN
-  pbar = "[========>           ]"
-ELSEIF(percent>=45.d0 .AND. percent<50.d0) THEN
-  pbar = "[=========>          ]"
-ELSEIF(percent>=50.d0 .AND. percent<55.d0) THEN
-  pbar = "[==========>         ]"
-ELSEIF(percent>=55.d0 .AND. percent<60.d0) THEN
-  pbar = "[===========>        ]"
-ELSEIF(percent>=60.d0 .AND. percent<65.d0) THEN
-  pbar = "[============>       ]"
-ELSEIF(percent>=65.d0 .AND. percent<70.d0) THEN
-  pbar = "[=============>      ]"
-ELSEIF(percent>=70.d0 .AND. percent<75.d0) THEN
-  pbar = "[==============>     ]"
-ELSEIF(percent>=75.d0 .AND. percent<80.d0) THEN
-  pbar = "[===============>    ]"
-ELSEIF(percent>=80.d0 .AND. percent<85.d0) THEN
-  pbar = "[================>   ]"
-ELSEIF(percent>=85.d0 .AND. percent<90.d0) THEN
-  pbar = "[=================>  ]"
-ELSEIF(percent>=90.d0 .AND. percent<95.d0) THEN
-  pbar = "[==================> ]"
-ELSEIF(percent>=95.d0 .AND. percent<100.d0) THEN
-  pbar = "[===================>]"
-ELSEIF(percent>=100.d0) THEN
-  pbar = "[====================]"
-ENDIF
-!
-END SUBROUTINE PROGBAR
 !
 !
 !********************************************************

@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 03 April 2014                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -444,7 +444,7 @@ DO ioptions=1,SIZE(options_array)
         CASE("z","Z")
           b(3) = tempreal
         END SELECT
-      ELSEIF(disloctype=="edge") THEN
+      ELSEIF(disloctype(1:4)=="edge") THEN
         !only one component is given, normal to dislocline and plane of cut
         SELECT CASE(dislocline)
         CASE("x","X")

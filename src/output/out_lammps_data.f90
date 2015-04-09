@@ -7,12 +7,13 @@ MODULE out_lammps_data
 !* This module writes a data file for LAMMPS, that can be called                  *
 !* with the  'read_data <filename>' in the LAMMPS input file, see:                *
 !*     http://lammps.sandia.gov/doc/read_data.html                                *
+!* Support for bonds is limited to ionic core-shell model.                        *
 !**********************************************************************************
 !* (C) June 2010 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 07 April 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,11 +50,14 @@ CHARACTER(LEN=2):: answer, skew
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
-LOGICAL:: velocities, charges !are atom velocities, charges present?
+LOGICAL:: charges, shells, velocities !are atom charges, shells, velocities, defined?
 INTEGER:: i, iloop, j, Nspecies
-INTEGER:: NPdigits  !number of digits in the number of particles
-INTEGER:: Ntypes    !number of atom types
+INTEGER:: NPdigits   !number of digits in the number of particles
+INTEGER:: Ntypes     !number of atom types
+INTEGER:: Nbondtypes !number of bond types (core-shell springs)
+INTEGER:: Nshells    !number of shells (core-shell model)
 INTEGER:: vx, vy, vz, q, typecol !index of velocities, charges, atom types in AUX
+INTEGER,DIMENSION(:),ALLOCATABLE:: BONDS     !list of core-shell springs
 REAL(dp):: alpha, beta, gamma, Kx, Ky, Kz !for conventional notation
 REAL(dp):: tiltbefore
 REAL(dp),DIMENSION(3):: tilt  !xy, xz, yz
@@ -69,6 +73,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !Initialize variables
  charges = .FALSE.
+shells = .FALSE.
 velocities = .FALSE.
 i=0
 j=0
@@ -77,6 +82,8 @@ typecol = 0
 vx = 0
 vy = 0
 vz = 0
+Nbondtypes = 0
+Nshells = 0
 Nspecies = 0
 tilt(:) = 0.d0
 K=H
@@ -92,6 +99,19 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !Count number of digits composing the number of particles
 WRITE(temp,*) SIZE(P,1)
 NPdigits = LEN_TRIM(ADJUSTL(temp))
+!
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+  shells = .TRUE.
+  !count how many shells actually exist
+  !and how many different bonds
+  !(e.g. if atom A is described with core-shell that is one bond type;
+  ! if atom B is also described with core-shell then it is another bond type, etc.)
+  DO i=1,SIZE(S,1)
+    IF( NINT(S(i,4))>0 ) THEN
+      Nshells = Nshells+1
+    ENDIF
+  ENDDO
+ENDIF
 !
 !Check if some auxiliary properties are present
 IF( ALLOCATED(AUXNAMES) ) THEN
@@ -124,11 +144,17 @@ OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 !Write header of data file
 WRITE(40,*) TRIM(ADJUSTL(comment(1)))
 WRITE(40,*) ''
-WRITE(40,*) SIZE(P(:,1)), ' atoms'
+WRITE(40,*) SIZE(P,1)+Nshells, ' atoms'
+IF( Nshells>0 ) THEN
+  WRITE(40,*) Nshells, ' bonds'
+ENDIF
 !
 !Determine how many different species are present
 WRITE(40,*) Ntypes, ' atom types'
 WRITE(40,*) ''
+IF( Nbondtypes>0 ) THEN
+  WRITE(40,*) Nbondtypes, ' bond types'
+ENDIF
 !
 !
 !Check that supercell vectors form a lower rectangular matrix
@@ -239,58 +265,83 @@ Nspecies = 0
 WRITE(40,'(a5)') 'Atoms'
 WRITE(40,*) ''
 !
-IF( Ntypes>1 ) THEN
-  IF( charges ) THEN
-    !Atom charges are defined
-    IF( typecol.NE.0 ) THEN
-      !Atom types are in auxiliary properties, use it
-      DO i=1,SIZE(Ppoint,1)
-        WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
-      ENDDO
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+  !Ion shells are present (core-shell model)
+  !=> use appropriate format as described in Section How-to 25
+  !   http://lammps.sandia.gov/doc/Section_howto.html#howto_25
+  DO i=1,SIZE(Ppoint,1)
+    WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+    IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
+      WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), S(i,1), S(i,2), S(i,3)
+    ENDIF
+!1    1    2   1.5005    0.00000000   0.00000000   0.00000000 # core of core/shell pair 1
+!2    1    4  -2.5005    0.00000000   0.00000000   0.00000000 # shell of core/shell pair 1
+!3    2    1   1.5056    4.01599500   4.01599500   4.01599500 # core of core/shell pair 2
+!4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2 
+  ENDDO
+  !
+  WRITE(40,*) ''
+  WRITE(40,'(a5)') 'Bonds'
+  WRITE(40,*) ''
+  DO i=1,SIZE(BONDS,1)
+    
+  ENDDO
+  !
+ELSE
+  IF( Ntypes>1 ) THEN
+    IF( charges ) THEN
+      !Atom charges are defined
+      IF( typecol.NE.0 ) THEN
+        !Atom types are in auxiliary properties, use it
+        DO i=1,SIZE(Ppoint,1)
+          WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+        ENDDO
+        !
+      ELSE
+        !Replace species by atom types in their order of appearance
+        DO i=1,SIZE(Ppoint,1)
+          DO j=1,SIZE(atypes,1)
+            IF( atypes(j,1)==INT(Ppoint(i,4)) ) Nspecies = j
+          ENDDO
+          WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+        ENDDO
+      ENDIF
       !
     ELSE
-      !Replace species by atom types in their order of appearance
-      DO i=1,SIZE(Ppoint,1)
-        DO j=1,SIZE(atypes,1)
-          IF( atypes(j,1)==INT(Ppoint(i,4)) ) Nspecies = j
+      !No atom charge defined
+      IF( typecol.NE.0 ) THEN
+        !Atom types are in auxiliary properties, use it
+        DO i=1,SIZE(Ppoint,1)
+          WRITE(40,211) i, NINT(AUX(i,typecol)), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
-        WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
-      ENDDO
+        !
+      ELSE
+        !Replace species by atom types in their order of appearance
+        DO i=1,SIZE(Ppoint,1)
+          DO j=1,SIZE(atypes,1)
+            IF( atypes(j,1)==INT(Ppoint(i,4)) ) Nspecies = j
+          ENDDO
+          WRITE(40,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+        ENDDO
+      ENDIF
     ENDIF
     !
   ELSE
-    !No atom charge defined
-    IF( typecol.NE.0 ) THEN
-      !Atom types are in auxiliary properties, use it
+    Nspecies = 1 !only one type of atom
+    !
+    IF( charges ) THEN
       DO i=1,SIZE(Ppoint,1)
-        WRITE(40,211) i, NINT(AUX(i,typecol)), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+        !Format when atom charges are defined
+        WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
       ENDDO
       !
     ELSE
-      !Replace species by atom types in their order of appearance
       DO i=1,SIZE(Ppoint,1)
-        DO j=1,SIZE(atypes,1)
-          IF( atypes(j,1)==INT(Ppoint(i,4)) ) Nspecies = j
-        ENDDO
+        !Format when no atom charge is defined
         WRITE(40,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
       ENDDO
     ENDIF
-  ENDIF
-  !
-ELSE
-  Nspecies = 1 !only one type of atom
-  !
-  IF( charges ) THEN
-    DO i=1,SIZE(Ppoint,1)
-      !Format when atom charges are defined
-      WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
-    ENDDO
     !
-  ELSE
-    DO i=1,SIZE(Ppoint,1)
-      !Format when no atom charge is defined
-      WRITE(40,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
-    ENDDO
   ENDIF
   !
 ENDIF
@@ -308,14 +359,14 @@ IF( velocities ) THEN
 ENDIF
 !
 !Write shell positions (if any)
-IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
-  WRITE(40,*) ''
-  WRITE(40,'(a10)') 'Shells'
-  WRITE(40,*) ''
-  DO i=1,SIZE(S,1)
-    WRITE(40,'(i8,2X,3(f16.8,1X))') NINT(S(i,4)), (S(i,j), j=1,3)
-  ENDDO
-ENDIF
+!IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+!  WRITE(40,*) ''
+!  WRITE(40,'(a10)') 'Shells'
+!  WRITE(40,*) ''
+!  DO i=1,SIZE(S,1)
+!    WRITE(40,'(i8,2X,3(f16.8,1X))') NINT(S(i,4)), (S(i,j), j=1,3)
+!  ENDDO
+!ENDIF
 !
 !
 !

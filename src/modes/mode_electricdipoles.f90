@@ -21,7 +21,7 @@ MODULE edm
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 May 2014                                      *
+!* Last modification: P. Hirel - 24 March 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,7 +59,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2),INTENT(IN):: Pspecies  !atom species forming the polyhedra (type #2)
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=16):: ion1, ion2
-CHARACTER(LEN=22):: pbar
+CHARACTER(LEN=27):: pbar
 CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128):: outputfile, pxsf, pcfg, pnorm, pstat  !Output file names
 CHARACTER(LEN=128):: poladat, polaxsf, ptot                !Output file names
@@ -375,11 +375,7 @@ DO i=1,SIZE(aentries,1)
           IF( aentries(i,2)>5000 ) THEN
             !If there are many atoms, display a fancy progress bar
             mi = 100.d0*DBLE(N1)/aentries(i,2)
-            CALL PROGBAR(mi,pbar)
-            WRITE(temp,'(i3)') NINT(mi)
-            WRITE(msg,*) "     "//TRIM(ADJUSTL(temp))//"% "//pbar
-            CALL ATOMSK_MSG(10,(/TRIM(msg)/),(/0.d0/))
-            IF(mi>=100.d0) WRITE(*,*) ''
+            CALL ATOMSK_MSG(10,(/""/),(/mi/))
           ENDIF
           !
           !Find nearest neighbours of current atom j

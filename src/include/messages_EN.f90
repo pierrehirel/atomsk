@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Dec. 2014                                     *
+!* Last modification: P. Hirel - 08 April 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -150,6 +150,10 @@ ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Create mode:"
   WRITE(*,*) "          atomsk -C <structure> <a0> <species> <outputfile> [<formats>] [options]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="density") THEN
+  WRITE(*,*) "..> Density mode:"
+  WRITE(*,*) "          atomsk --density <file> <property> <dimension> <axis> <sigma> [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> DDplot mode:"
@@ -540,16 +544,76 @@ CASE(9)
   msg = "<?> Enter the name of an existing file:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(10)
-  !strings(1) = message to be displayed
+  !reals(1) = percentage (between 0 and 100)
   !SPECIAL: this writes a message on the screen without advancing, so
   ! it is restricted to verbosity levels that display something on screen
-  IF(verbosity.NE.0) THEN
-    IF(verbosity.NE.2) THEN
-      DO i=1,4096
+  IF( verbosity==1 .OR. verbosity>=3 ) THEN
+    WRITE(temp2,'(i3)') NINT(reals(1))
+    temp = ""
+    IF(reals(1)<100.d0) THEN
+      IF( reals(1) >=50.d0 ) THEN
+        IF(reals(1)>=100.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [====================]"
+        ELSEIF(reals(1)>=95.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [===================>]"
+        ELSEIF(reals(1)>=90.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [==================> ]"
+        ELSEIF(reals(1)>=85.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [=================>  ]"
+        ELSEIF(reals(1)>=80.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [================>   ]"
+        ELSEIF(reals(1)>=75.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [===============>    ]"
+        ELSEIF(reals(1)>=70.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [==============>     ]"
+        ELSEIF(reals(1)>=65.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [=============>      ]"
+        ELSEIF(reals(1)>=60.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [============>       ]"
+        ELSEIF(reals(1)>=55.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [===========>        ]"
+        ELSE
+          temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
+        ENDIF
+      ELSE  
+        IF(reals(1)<5.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [>                   ]"
+        ELSEIF(reals(1)<10.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [=>                  ]"
+        ELSEIF(reals(1)<15.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [==>                 ]"
+        ELSEIF(reals(1)<20.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [===>                ]"
+        ELSEIF(reals(1)<25.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [====>               ]"
+        ELSEIF(reals(1)<30.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [=====>              ]"
+        ELSEIF(reals(1)<35.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [======>             ]"
+        ELSEIF(reals(1)<40.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [=======>            ]"
+        ELSEIF(reals(1)<45.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [========>           ]"
+        ELSEIF(reals(1)<50.d0) THEN
+          temp = TRIM(ADJUSTL(temp2))//"% [=========>          ]"
+        ELSE
+          temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
+        ENDIF
+      ENDIF
+      !
+      temp = " "//TRIM(temp)
+      !
+      !Display the progress bar
+      DO i=1,27
         WRITE(*,'(a1)',ADVANCE="NO") CHAR(8)
       ENDDO
-      WRITE(*,'(a)',ADVANCE="NO") TRIM(strings(1))
+      !
+      WRITE(*,'(a)',ADVANCE="NO") TRIM(temp)
+      !
+    ELSE
+      WRITE(*,*) ''
     ENDIF
+    !
   ENDIF
 CASE(11)
   msg = ">>> Constructing neighbor list..."
@@ -636,7 +700,9 @@ CASE(1000)
   msg = ">>> Opening the input file: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
-  msg = "..> Input file was read successfully."
+  !reals(1) = number of atoms
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Input file was read successfully ("//TRIM(ADJUSTL(temp))//" atoms)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1002)
   msg = "..> Found INP file, reading supercell from it..."
@@ -1643,6 +1709,12 @@ CASE(2753)
   WRITE(temp,*) NINT(reals(1))
   msg = "/!\ WARNING: atom #"//TRIM(ADJUSTL(temp))//" was already selected, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2754)
+  !strings(1) = type of object (e.g. "dislocation" or "crack")
+  msg = "/!\ WARNING: the position of the "//TRIM(ADJUSTL(strings(1)))//" is out of the box."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Are you sure you know what you are doing?"
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
@@ -1721,6 +1793,9 @@ CASE(2815)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2816)
   msg = "X!X ERROR: the elastic tensor is not defined, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2817)
+  msg = "X!X ERROR: the property '"//TRIM(ADJUSTL(strings(1)))//"' is not defined, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -2164,7 +2239,20 @@ CASE(4064)
 CASE(4065)
   !reals(1) = number of files
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Atom positions were averaged over "//TRIM(ADJUSTL(temp))//" configurations."
+  msg = "..> Atom positions were averaged over "//TRIM(ADJUSTL(temp))//" configurations."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4066)
+  msg = ">>> Running in mode density."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4067)
+  !strings(1) = property
+  !reals(1) = dimension (1, 2 or 3)
+  WRITE(temp,*) NINT(reals(1))
+  msg = ">>> Computing the "//TRIM(ADJUSTL(temp))//"-D density of "//TRIM(ADJUSTL(strings(1)))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4068)
+  WRITE(msg,*) NINT(reals(1))
+  msg = "..> Density was successfully computed."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"
@@ -2271,7 +2359,7 @@ CASE(4711)
   msg = "/!\ WARNING: this file has a different number of atoms and will not be treated: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4712)
-  msg = "/!\ WARNING: some atoms may be out of the box, which may lead to wrong results."
+  msg = "/!\ WARNING: some atoms seem to be out of the box, which may lead to wrong results."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Do you wish to wrap them now? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)

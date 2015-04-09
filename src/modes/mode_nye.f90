@@ -13,7 +13,7 @@ MODULE mode_nye
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     philippe.carrez@univ-lille1.fr                                             *
-!* Last modification: P. Hirel - 12 Dec. 2014                                     *
+!* Last modification: P. Hirel - 24 March 2015                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -56,7 +56,7 @@ SUBROUTINE NYE_TENSOR(filefirst,filesecond,options_array,prefix,outfileformats)
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: filefirst, filesecond, prefix
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(IN):: outfileformats !list of output file formats
-CHARACTER(LEN=22):: pbar
+CHARACTER(LEN=27):: pbar
 CHARACTER(LEN=128):: temp, temp2
 CHARACTER(LEN=4096):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE :: comment
@@ -191,11 +191,7 @@ DO iat=1,SIZE(Pfirst,1)
   IF( SIZE(Pfirst,1) > 5000 ) THEN
     !If there are many atoms, display a fancy progress bar
     tempreal = 100.d0*DBLE(iat)/SIZE(Pfirst,1)
-    CALL PROGBAR(tempreal,pbar)
-    WRITE(temp,'(i3)') NINT(tempreal)
-    WRITE(temp,*) "     "//TRIM(ADJUSTL(temp))//"% "//pbar
-    CALL ATOMSK_MSG(10,(/TRIM(temp)/),(/0.d0/))
-    IF(tempreal>=100.d0) WRITE(*,*) ''
+    CALL ATOMSK_MSG(10,(/""/),(/tempreal/))
   ENDIF
   !
   !Search for neighbors of atom #iat in the first system
@@ -556,11 +552,7 @@ DO iat=1,SIZE(Pfirst,1)
   IF( SIZE(Pfirst,1) > 5000 ) THEN
     !If there are many atoms, display a fancy progress bar
     tempreal = 100.d0*DBLE(iat)/SIZE(Pfirst,1)
-    CALL PROGBAR(tempreal,pbar)
-    WRITE(temp,'(i3)') NINT(tempreal)
-    WRITE(temp,*) "     "//TRIM(ADJUSTL(temp))//"% "//pbar
-    CALL ATOMSK_MSG(10,(/TRIM(temp)/),(/0.d0/))
-    IF(tempreal>=100.d0) WRITE(*,*) ''
+    CALL ATOMSK_MSG(10,(/""/),(/tempreal/))
   ENDIF
   !
   A_tensor(:,:,:)=0.d0

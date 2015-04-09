@@ -1,14 +1,26 @@
 CHANGELOG FOR ATOMSK
 ====================
 
-beta 0.9 TODO LIST
-------------------
+TODO LIST
+---------
 - use OpenMP to parallelize some parts of the code, like the loops for neighbor search, for computing the Nye tensor, for constructing Voronoi polycrystals, or for converting files in mode "--list". The code should auto-detect the number of cores on the user's machine, and by default use as many threads. A command-line parameter should allow the user to specify the max. number of threads to use (e.g. "-threads N").
 
 
 
-beta 0.8 (in development)
+beta 0.9 (in development)
 -------------------------
+- new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
+- new option "-neutralize"
+
+
+beta 0.8.1 (in development)
+---------------------------
+- in mode "--create", added possibility to generate L12 lattices.
+- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2".
+
+
+beta 0.8 (05 Jan. 2015)
+-----------------------
 - many changes make this version incompatible with branch 0.7. Source files were re-organized. The main Makefile was modified (simplified), new Makefiles were added in sub-directories for better dependency support. Also fixed many issues with the compilation on Microsoft(R) Windows(R) systems.
 - from now on, both 32-bits and 64-bits static binaries will be available for GNU/Linux platforms.
 - new mode "--average" allows to average atom positions over a list of configurations.

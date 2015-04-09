@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Nov. 2014                                     *
+!* Last modification: P. Hirel - 16 Feb. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,6 +60,7 @@ USE oia_xyz
 !Module for mode all-in-one
 USE aio
 !Particular modules that compute something
+USE mode_density
 USE mode_difference
 USE edm
 USE mode_epola
@@ -81,7 +82,7 @@ CHARACTER(LEN=*),DIMENSION(5),INTENT(IN):: pfiles !pfiles(1)=file1
                                                   !pfiles(3)=filefirst
                                                   !pfiles(4)=filesecond
                                                   !pfiles(5)=listfile
-CHARACTER(LEN=1):: merge_dir !for merge mode
+CHARACTER(LEN=1):: axis !an axis: x, y or z
 CHARACTER(LEN=1):: answer !"y" or "n"
 CHARACTER(LEN=2):: Pspecies  !species forming polyhedra (mode EDM)
 CHARACTER(LEN=2):: species
@@ -89,6 +90,7 @@ CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
 CHARACTER(LEN=10):: create_struc
 CHARACTER(LEN=128):: msg, test, temp
+CHARACTER(LEN=128):: property !name of the property whose density will be calculated (mode DENSITY)
 CHARACTER(LEN=4096):: file1, file2  !should be inputfile, ouputfile (or vice-versa)
 CHARACTER(LEN=4096):: listfile      !used by modes 'filelist' and 'rdf'
 CHARACTER(LEN=4096):: filefirst, filesecond !used by modes 'ddplot' and 'merge'
@@ -116,7 +118,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties of atoms
 !Initialize variables
 inputfile=''
 outputfile=''
-merge_dir = ''
+axis = ''
 NT_mn(:) = 0
 file1 = pfiles(1)
 file2 = pfiles(2)
@@ -294,7 +296,7 @@ CASE('merge')
   READ(mode_param(i),*,ERR=7000,END=7000) temp
   IF( temp=='x' .OR. temp=='y' .OR. temp=='z' .OR. &
     & temp=='X' .OR. temp=='Y' .OR. temp=='Z'      ) THEN
-    READ(temp,*,ERR=7000,END=7000) merge_dir
+    READ(temp,*,ERR=7000,END=7000) axis
     i=i+1
     READ(mode_param(i),*,ERR=7000,END=7000) m
   ELSE
@@ -324,7 +326,7 @@ CASE('merge')
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Merge all files
-  CALL MERGE_XYZ(merge_files(:),merge_dir,options_array,outputfile,outfileformats)
+  CALL MERGE_XYZ(merge_files(:),axis,options_array,outputfile,outfileformats)
 !
 !
 !
@@ -398,11 +400,15 @@ CASE('create')
   outputfile = TRIM(ADJUSTL(file1))
   IF(LEN_TRIM(outputfile)==0) outputfile = TRIM(ADJUSTL(filefirst))
   IF(LEN_TRIM(outputfile)==0) THEN
-    DO i=1,SIZE(create_species)
-      outputfile = TRIM(outputfile)//TRIM(create_species(i))
-    ENDDO
-    IF(create_struc=='per' .OR. create_struc=='perovskite') THEN
-      outputfile = TRIM(outputfile)//'3'
+    IF(create_struc=='L12') THEN
+      outputfile = TRIM(create_species(1))//'3'//TRIM(create_species(2))
+    ELSE
+      DO i=1,SIZE(create_species)
+        outputfile = TRIM(outputfile)//TRIM(create_species(i))
+      ENDDO
+      IF(create_struc=='per' .OR. create_struc=='perovskite') THEN
+        outputfile = TRIM(outputfile)//'3'
+      ENDIF
     ENDIF
   ENDIF
   msg = 'CREATE mode: outputfile: '//TRIM(outputfile)
@@ -702,6 +708,8 @@ CASE('diff')
   !Calculate the difference between the two sets of positions
   CALL DIFF_XYZ(H,Pfirst,Psecond,test)
 !
+!
+!
 5100 CONTINUE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!  MODE ELECTRIC DIPOLE MOMENTS
@@ -840,9 +848,46 @@ CASE('rdf')
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('nye')
   !in this mode the code reads two files and computes the Nye tensor
+  !
+  !Check if user asked for wrapping of atoms
   CALL CHECK_OPTION_WRAP(options_array)
   !
   CALL NYE_TENSOR(filefirst,filesecond,options_array,file1,outfileformats)
+!
+!
+!
+5500 CONTINUE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  DENSITY
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+CASE('density')
+  !DENSITY mode:
+  !in this mode the program reads one file
+  !and computes the density of a given property
+  msg = 'DENSITY mode file: '//TRIM(file1)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !Read parameters from 'mode_param'
+  READ(mode_param(1),*,END=7000,ERR=7000) property !name of the property whose density will be calculated
+  READ(mode_param(2),*,END=7000,ERR=7000) j        !type of density to output: 1, 2 or 3 (for 1-D, 2-D or 3-D)
+  IF( j==1 .OR. j==2 ) THEN
+    READ(mode_param(3),*,END=7000,ERR=7000) axis
+  ENDIF
+  READ(mode_param(4),*,END=7000,ERR=7000) NNN      !Sigma = square of variance
+  IF(ALLOCATED(mode_param)) DEALLOCATE(mode_param)
+  !
+  !Set the name for output file
+  strlength = SCAN(file1,'.',BACK=.TRUE.)
+  IF(strlength.NE.0) THEN
+    test = file1(1:strlength-1)
+  ELSE
+    test = file1
+  ENDIF
+  !
+  !Check if user asked for wrapping of atoms
+  CALL CHECK_OPTION_WRAP(options_array)
+  !
+  !Compute polarization
+  CALL DENSITY_XYZ(file1,options_array,property,j,axis,NNN,test)
 !
 !
 !

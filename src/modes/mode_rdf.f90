@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 24 March 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,7 +54,7 @@ SUBROUTINE RDF_XYZ(listfile,rdf_maxR,rdf_dr,options_array)
 IMPLICIT NONE
 !Input
 CHARACTER(LEN=*),INTENT(IN):: listfile  !file containing the names of files to analyze
-CHARACTER(LEN=22):: pbar
+CHARACTER(LEN=27):: pbar
 REAL(dp),INTENT(IN):: rdf_maxR            !maximum radius for RDF
 REAL(dp),INTENT(IN):: rdf_dr              !width of the "skin"
 !
@@ -246,11 +246,7 @@ DO
             IF( rdf_Nsteps*aentries(k,2)>10000 ) THEN
               !If there are many atoms, display a fancy progress bar
               progress = 100.d0 * (DBLE(j)/DBLE(rdf_Nsteps))
-              CALL PROGBAR(progress,pbar)
-              WRITE(temp,'(i3)') NINT(progress)
-              WRITE(msg,*) "     "//TRIM(ADJUSTL(temp))//"% "//pbar
-              CALL ATOMSK_MSG(10,(/TRIM(msg)/),(/0.d0/))
-              IF(progress>=100.d0) WRITE(*,*) ''
+              CALL ATOMSK_MSG(10,(/""/),(/progress/))
             ENDIF
             !
             !Set radius of current sphere

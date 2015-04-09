@@ -22,7 +22,7 @@ MODULE dislocation
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Nov. 2014                                     *
+!* Last modification: P. Hirel - 09 April 2015                                    *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* DISLOC_XYZ          main subroutine - introduces a dislocation                 *
@@ -219,6 +219,12 @@ ENDIF
 IF( VECLENGTH(H(:,a1))<3.d0*VECLENGTH(b(:)) .OR. VECLENGTH(H(:,a2))<3.d0*VECLENGTH(b(:)) ) THEN
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2726,(/''/),(/0.d0/))
+ENDIF
+!Check that the position for the dislocation is inside the box
+IF( pos1<MINVAL(P(:,a1)) .OR. pos1>MAXVAL(P(:,a1)) .OR. &
+  & pos2<MINVAL(P(:,a2)) .OR. pos2>MAXVAL(P(:,a2))     ) THEN
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(2754,(/'dislocation'/),(/0.d0/))
 ENDIF
 !
 !

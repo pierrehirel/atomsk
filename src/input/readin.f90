@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 July 2014                                     *
+!* Last modification: P. Hirel - 25 Feb. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -245,7 +245,7 @@ IF(verbosity==4) THEN
     ENDIF
   ENDIF
 ENDIF
-CALL ATOMSK_MSG(1001,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(1001,(/''/),(/DBLE(SIZE(P,1))/))
 GOTO 1000
 !
 !
