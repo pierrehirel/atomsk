@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Nov. 2014                                     *
+!* Last modification: P. Hirel - 09 April 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -398,11 +398,15 @@ CASE('create')
   outputfile = TRIM(ADJUSTL(file1))
   IF(LEN_TRIM(outputfile)==0) outputfile = TRIM(ADJUSTL(filefirst))
   IF(LEN_TRIM(outputfile)==0) THEN
-    DO i=1,SIZE(create_species)
-      outputfile = TRIM(outputfile)//TRIM(create_species(i))
-    ENDDO
-    IF(create_struc=='per' .OR. create_struc=='perovskite') THEN
-      outputfile = TRIM(outputfile)//'3'
+    IF(create_struc=='L12') THEN
+      outputfile = TRIM(create_species(1))//'3'//TRIM(create_species(2))
+    ELSE
+      DO i=1,SIZE(create_species)
+        outputfile = TRIM(outputfile)//TRIM(create_species(i))
+      ENDDO
+      IF(create_struc=='per' .OR. create_struc=='perovskite') THEN
+        outputfile = TRIM(outputfile)//'3'
+      ENDIF
     ENDIF
   ENDIF
   msg = 'CREATE mode: outputfile: '//TRIM(outputfile)

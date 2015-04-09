@@ -2,6 +2,12 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+beta 0.8.1 (in development)
+---------------------------
+- in mode "--create", added possibility to generate L12 lattices. Thanks to J. Amodeo, MATEIS, Lyon, France, for proposing this feature.
+- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to A. Pal, Rensselaer Polytechnic Institute, New York, USA, for reporting this bug.
+
+
 beta 0.8 (05 Jan. 2015)
 -----------------------
 - many changes make this version incompatible with branch 0.7. Source files were re-organized. The main Makefile was modified (simplified), new Makefiles were added in sub-directories for better dependency support. Also fixed many issues with the compilation on Microsoft(R) Windows(R) systems.

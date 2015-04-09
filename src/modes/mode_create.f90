@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 Oct. 2014                                     *
+!* Last modification: P. Hirel - 09 April 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -115,7 +115,7 @@ END SELECT
 !
 !Determine if structure is cubic or not
 SELECT CASE(create_struc)
-CASE('sc','SC','fcc','FCC','bcc','BCC','diamond','dia','zincblende','zb','ZB','perovskite','per','rocksalt','rs','RS')
+CASE('sc','SC','fcc','FCC','L12','bcc','BCC','diamond','dia','zincblende','zb','ZB','perovskite','per','rocksalt','rs','RS')
   cubic = .TRUE.
 CASE DEFAULT
   cubic = .FALSE.
@@ -209,13 +209,13 @@ CASE('fcc')
   P(:,3) = create_a0(3)*P(:,3)
   !Set up atom species
   CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2,4) = P(1,4)
   IF(nspecies==2) THEN
-    CALL ATOMNUMBER(create_species(2),P(2,4))
+    CALL ATOMNUMBER(create_species(2),P(3,4))
   ELSE
-    P(2,4) = P(1,4)
+    P(3,4) = P(1,4)
   ENDIF
-  P(3,4) = P(2,4)
-  P(4,4) = P(2,4)
+  P(4,4) = P(3,4)
   !Set up the unit cell
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
@@ -227,6 +227,37 @@ CASE('fcc')
   ELSE
     comment(1) = 'Fcc '//TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' alloy'
   ENDIF
+!
+!
+CASE('L12')
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(4,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(1,1) = 0.5d0
+  P(1,2) = 0.5d0
+   P(2,2) = 0.5d0
+   P(2,3) = 0.5d0
+  P(3,1) = 0.5d0
+  P(3,3) = 0.5d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2,4) = P(1,4)
+  P(3,4) = P(1,4)
+  CALL ATOMNUMBER(create_species(2),P(4,4))
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))//"3"//TRIM(create_species(2))
+  comment(1) = 'L12 '//TRIM(ADJUSTL(comment(1)))
 !
 !
 CASE('hcp')
