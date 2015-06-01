@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 April 2015                                    *
+!* Last modification: P. Hirel - 18 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2408,7 +2408,9 @@ CASE(4711)
   msg = "/!\ ALERTE : ce fichier contient un nombre différent d'atomes et ne sera pas traité : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4712)
-  msg = "/!\ ALERTE : certains atomes semblent se trouver hors de la boîte, ce qui peut fausser les résultats."
+  msg = "/!\ ALERTE : il est recommandé d'exécuter de mode avec l'option '-wrap',"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            sans quoi les atomes qui sont en dehors de la boîte pourraient fausser les résultats."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Voulez-vous les remettre dans la boîte maintenant ?"//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)

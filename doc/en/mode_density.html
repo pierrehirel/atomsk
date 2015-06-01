@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Mode density - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: density</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --density &#60;file&#62; &#60;property&#62; &#60;dimension&#62; [&#60;axis&#62;] &#60;&sigma;&#62; [options]</code></p>
+
+<h4>Description</h4>
+
+<p>This mode computes the density of a given &#60;property&#62;.</p>
+
+<p>The discrete (atomic) values of the given &#60;property&#62; are replaced by Gaussian functions of variance &sigma;<sup>2</sup> that are evaluated in a finite-element grid. The <em>density</em> of the &#60;property&#62; at a point of the grid is defined as the sum of Gaussian functions belonging to all atoms.</p>
+
+<p>The parameters associated with the mode <code>edm</code> are:</p>
+<ul>
+  <li><strong>file</strong>: file containing atomic positions; must be one of the <a href="./formats.html">supported input formats</a>.</li>
+  <li><strong>property</strong>: name of the property whose density must be computed. It can be "mass", an atom species, or any defined per-atom auxiliary property.</li>
+  <li><strong>dimension</strong>: must be 1, 2 or 3. Decides if a 1-D, 2-D or 3-D density plot will be computed.</li>
+  <li><strong>axis</strong>: if dimension=1, the density will be computed along this axis. If dimension=2, the density will be computed in the plane normal to this axis. If dimension=3, must be omitted.</li>
+  <li><strong>&sigma;</strong>: square root of the variance for the Gaussian functions.</li>
+</ul>
+
+<p>The <strong>1-D density profile</strong> will replace atoms by 1-D Gaussian functions, and compute the density along the specified &#60;axis&#62;. This can be used to determine the density of an element, or of a property (e.g. electric charge), along a given direction.</p>
+
+<p>The <strong>2-D density plot</strong> will replace atoms by 2-D Gaussian functions, and compute the density in the plane normal to the &#60;axis&#62;. This can be used to apply a Gaussian blur to atomic positions and produce an image comparable to a high-resolution transmission electron microscope image, or determine a density of a property (e.g. electric charge) in a plane.</p>
+
+<p>The <strong>3-D density plot</strong> will replace atoms by 3-D Gaussian functions, and compute the density in the whole volume. In addition, the positions where the density is significantly higher or lower than the average will be written into file(s) (see below). This can be useful to find the positions of interstitial atoms, or the positions of vacancies.</p>
+
+<p>The system is considered to be periodic, and the periodic replicas of atoms will contribute to the density.</p>
+
+<p>Output consists of the following files:</p>
+
+<ul>
+  <li><strong>*_density.dat</strong>: file containing the data of the 1-D, 2-D or 3-D grid.</li>
+</ul>
+
+<p>In the case of a 2-D density computation, the following file will be produced:</p>
+
+<ul>
+  <li><strong>*_density.gp</strong>: gnuplot script that allows to visualize the data file.</li>
+</ul>
+
+<p>And in the case of a 3-D density computation, the following files will also be produced:</p>
+
+<ul>
+  <li><strong>*_interstitial.xsf</strong>: positions (x,y,z) where the density is higher than average (in <a href="./format_xsf.html">XSF format</a>).</li>
+  <li><strong>*_vacancy.xsf</strong>: positions (x,y,z) where the density is lower than average (in <a href="./format_xsf.html">XSF format</a>).</li>
+</ul>
+
+<p>If this mode is used with one or several <a href="./options.html">options</a> they will be applied to the system <em>before</em> computing the density.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only the selected atoms will be counted in the density.</p>
+
+<p>Note that this mode assumes that the atom coordinates are <em>wrapped</em>, i.e. that all atoms are inside of the simulation box. If it is not the case then the calculation may be wrong. Coordinates can be wrapped thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --density myfile.cfg Fe 1 X 0.6</code>
+<p>This will read the file <code>myfile.cfg</code>, and compute the 1-D density profile of iron atoms (Fe) along the X axis. Each iron atom will be replaced by a Gaussian function of variance &sigma;<sup>2</sup>=0.6<sup>2</sup>. The results will be written in the file <code>myfile_density.dat</code>.</p></li>
+
+<li><code class="command">atomsk --density Al.xsf mass 2 Z 2.0</code>
+<p>This will read the file <code>Al.xsf</code>, and compute the density of mass in the 2-D plane normal to the Z axis, using Gaussian functions with &sigma;=2.0. The results will be written in the file <code>Al_density.dat</code>. A gnuplot script named <code>Al_density.gp</code> will also be produced to visualize the data.</p></li>
+
+<li><code class="command">atomsk --density MD_5000.lmc mass 3 2.0</code>
+<p>This will read the file <code>MD_5000.lmc</code>, and compute the 3-D density of mass in the whole system, using Gaussian functions with &sigma;=2.0. Note that no &#60;axis&#62; must be specified. The results will be written in the file <code>MD_5000_density.dat</code>. In addition, if the variations of mass are significant then the positions where the density is high will be written into <code>MD_5000_interstitials.xsf</code>, and the positions where it is low will be written into <code>MD_5000_vacancies.xsf</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

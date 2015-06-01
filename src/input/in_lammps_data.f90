@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 July 2014                                     *
+!* Last modification: P. Hirel - 26 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,12 +49,14 @@ CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
+LOGICAL:: dobonds    !are there bonds in the file?
+LOGICAL:: molecule   !is there a column "moleculeID" before the column "atom-type"?
 LOGICAL:: velocities !are velocities in the file?
 INTEGER:: i, id, j, k, Ncol
 INTEGER:: Naux  !number of auxiliary properties
 INTEGER:: NP, Nspieces !number of particles, of atomic spieces
 INTEGER:: strlength
-INTEGER:: q, vx, vy, vz !columns for electric charge, velocities
+INTEGER:: molID, q, vx, vy, vz !columns for molecule ID, electric charge, velocities in AUX
 REAL(dp):: alpha, beta, gamma
 REAL(dp):: a, b, c
 REAL(dp):: atomtype
@@ -67,17 +69,26 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !Initialize variables
 tempcomment(:)=''
+dobonds = .FALSE.
+molecule = .FALSE.
 velocities = .FALSE.
 i = 0
-q = 0
 Naux = 0
 Nspieces = 0
 strlength = 0
 Ncol = 0
+molID = 0
+q = 0
 vx = 0
 vy = 0
 vz = 0
  column(:) = 0.d0
+xlo = 0.d0
+xhi = 0.d0
+ylo = 0.d0
+yhi = 0.d0
+zlo = 0.d0
+zhi = 0.d0
 xy = 0.d0
 xz = 0.d0
 yz = 0.d0
@@ -126,6 +137,12 @@ DO
     ALLOCATE(P(NP,4))
   ELSEIF(temp(strlength-9:)=='atom types') THEN
     READ(temp,*,ERR=820,END=820) Nspieces
+  ELSEIF(temp(strlength-4:)=='bonds') THEN
+    dobonds = .TRUE.
+    molecule = .TRUE.
+  ELSEIF(temp(strlength-9:)=='bond types') THEN
+    dobonds = .TRUE.
+    molecule = .TRUE.
   ELSEIF(temp(strlength-6:)=='xlo xhi') THEN
     READ(temp,*,ERR=810,END=810) xlo, xhi
   ELSEIF(temp(strlength-6:)=='ylo yhi') THEN
@@ -188,6 +205,10 @@ DO i=1,NP
     ENDDO
     210 CONTINUE
     Ncol = Ncol-2 !number of columns besides index and type
+    IF( molecule ) THEN
+      !Don't count the "moleculeID" column
+      Ncol = Ncol-1
+    ENDIF
     !
     !We know Ncol, allocate arrays
     Naux=1  !first aux. for storing atom type
@@ -196,6 +217,10 @@ DO i=1,NP
       vy=vx+1
       vz=vy+1
       Naux=Naux+3
+    ENDIF
+    IF(molecule) THEN
+      Naux = Naux+1
+      molID = Naux
     ENDIF
     IF( Ncol==4 ) THEN
       !Assume "atom_style charge" = id type q x y z
@@ -217,12 +242,20 @@ DO i=1,NP
     AUXNAMES(1) = 'type'
     !
     !Now read the coordinates for that atom
-    READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+    IF( molecule ) THEN
+      READ(temp,*,ERR=800,END=800) id, molID, atomtype, (column(j), j=1,Ncol)
+    ELSE
+      READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+    ENDIF
   ELSE
     !The number of columns Ncol is known => read coordinates
     !"atomtype" is the second column for styles "atomic", "charge"
     !which are the only ones we consider here
-    READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+    IF( molecule ) THEN
+      READ(temp,*,ERR=800,END=800) id, molID, atomtype, (column(j), j=1,Ncol)
+    ELSE
+      READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+    ENDIF
   ENDIF
   !
   !Check that the particle id is within the bounds
@@ -236,6 +269,9 @@ DO i=1,NP
   P(id,3) = column(Ncol)
   P(id,4) = DBLE(atomtype)
   AUX(id,1) = DBLE(atomtype)
+  IF(molecule) THEN
+    AUX(id,molID) = molID
+  ENDIF
   IF(q>0) THEN
     AUX(id,q) = column(1)
   ENDIF
@@ -244,16 +280,16 @@ ENDDO
 !
 !
 300 CONTINUE
-!Try to read velocities
+!Try to read bonds and velocities
 !(in this file format the section 'Velocities'
 ! always comes after the 'Atoms' section)
-WRITE(msg,*) 'Reading Velocities...'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 DO
   READ(30,'(a128)',ERR=500,END=500) temp
   temp = ADJUSTL(temp)
   strlength = LEN_TRIM(temp)
   IF(temp(1:10)=='Velocities') THEN
+    WRITE(msg,*) 'Reading Velocities...'
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
     DO
       !Each line has format  "id vx vy vz"
@@ -265,9 +301,43 @@ DO
       AUX(id,vy) = column(2)
       AUX(id,vz) = column(3)
     ENDDO
-    !We are done
-    GOTO 500
+    !
+  ELSEIF(temp(1:5)=='Bonds') THEN
+    WRITE(msg,*) 'Reading Bonds...'
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
+    DO
+      !Each line has format  "id type atom1 atom2"
+      READ(30,*,ERR=500,END=500) id, (column(j), j=1,3)
+      !BONDS(id,1) = column(1)
+      !BONDS(id,2) = column(2)
+      !BONDS(id,3) = column(3)
+    ENDDO
+    !
+  ELSEIF(temp(1:6)=='Angles') THEN
+    WRITE(msg,*) 'Reading Angles...'
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
+    DO
+      !Each line has format  "id type atom1 atom2 atom3"
+      READ(30,*,ERR=500,END=500) id, (column(j), j=1,4)
+      !ANGLES(id,1) = column(1)
+      !ANGLES(id,2) = column(2)
+      !ANGLES(id,3) = column(3)
+      !ANGLES(id,4) = column(4)
+    ENDDO
+    !
+  ELSEIF(temp(1:9)=='Dihedrals') THEN
+    WRITE(msg,*) 'Reading Dihedrals...'
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
+    DO
+      !Each line has format  "id type atom1 atom2 atom3 atom4"
+      READ(30,*,ERR=500,END=500) id, (column(j), j=1,4)
+    ENDDO
+    !
   ENDIF
+  !
 ENDDO
 !
 !

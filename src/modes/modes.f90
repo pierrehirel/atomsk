@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Feb. 2015                                     *
+!* Last modification: P. Hirel - 18 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,6 +60,7 @@ USE oia_xyz
 !Module for mode all-in-one
 USE aio
 !Particular modules that compute something
+USE mode_centrosym
 USE mode_density
 USE mode_difference
 USE edm
@@ -888,6 +889,42 @@ CASE('density')
   !
   !Compute polarization
   CALL DENSITY_XYZ(file1,options_array,property,j,axis,NNN,test)
+!
+!
+!
+5600 CONTINUE
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  CENTRAL SYMMETRY PARAMETER
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+CASE('cs')
+  !CENTRAL SYMMETRY PARAMETER mode:
+  !in this mode the program reads one file
+  !and computes the central symmetry parameter for each atom
+  msg = 'CENTRAL SYMMETRY PARAMETER mode file: '//TRIM(filefirst)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  outputfile = TRIM(ADJUSTL(file1))
+  !If we have an output file name, activate its extension
+  IF(LEN_TRIM(outputfile).NE.0) THEN
+    CALL GUESS_FORMAT(outputfile,outfileformat,'writ')
+    IF(outfileformat.NE.'xxx') CALL SET_OUTPUT(outfileformats,outfileformat,.TRUE.)
+  ELSE
+    j=SCAN(inputfile,pathsep,BACK=.TRUE.)
+    strlength = SCAN(filefirst,'.',BACK=.TRUE.)
+    IF(strlength>j) THEN
+      outputfile = filefirst(1:strlength-1)
+    ELSE
+      outputfile = filefirst
+    ENDIF
+  ENDIF
+  msg = 'outputfile: '//TRIM(outputfile)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  !Check if user asked for wrapping of atoms
+  CALL CHECK_OPTION_WRAP(options_array)
+  !
+  !Compute central symmetry parameter
+  CALL CENTRO_SYM(filefirst,options_array,outputfile,outfileformats)
 !
 !
 !

@@ -2196,7 +2196,9 @@ CASE(4711)
   msg = "/!\ WARNUNG: this file has a different number of atoms and will not be treated: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4712)
-  msg = "/!\ WARNUNG: some atoms may be out of the box, which may lead to wrong results."
+  msg = "/!\ WARNUNG: it is recommended to run this mode with the option '-wrap',"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            otherwise atoms that are out of the box may lead to wrong results."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Do you wish to wrap them now? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)

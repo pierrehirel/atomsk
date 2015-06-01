@@ -10,13 +10,16 @@ TODO LIST
 beta 0.9 (in development)
 -------------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
+- new mode "--central-symmetry" allows to compute a central symmetry parameter.
 - new option "-neutralize"
+- added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
+- fixed a bug in the displaying of progress bar that slowed down the program.
 
 
-beta 0.8.1 (in development)
----------------------------
-- in mode "--create", added possibility to generate L12 lattices.
-- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2".
+beta 0.8.1 (09 April 2015)
+--------------------------
+- in mode "--create", added possibility to generate L12 lattices. Thanks to J. Amodeo (MATEIS, Lyon, France), for proposing this feature.
+- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to A. Pal (Rensselaer Polytechnic Institute, New York, USA), for reporting this bug.
 
 
 beta 0.8 (05 Jan. 2015)

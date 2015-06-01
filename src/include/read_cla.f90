@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 Feb. 2015                                     *
+!* Last modification: P. Hirel - 18 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -108,6 +108,12 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(5)
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
+    !
+  ELSEIF(clarg=='--central-symmetry' .OR. clarg=="--cs") THEN
+    mode = 'cs'
+    i=i+1
+    READ(cla(i),'(a4096)',END=130,ERR=130) pfiles(3) !File containing atom positions
+    IF(LEN_TRIM(pfiles(3))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--create' .OR. clarg=='-C') THEN
     IF(ALLOCATED(mode_param)) GOTO 150

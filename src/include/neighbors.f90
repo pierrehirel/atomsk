@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Feb. 2015                                     *
+!* Last modification: P. Hirel - 13 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -95,7 +95,10 @@ IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
 ALLOCATE(NNeigh(SIZE(A,1)))
 NNeigh(:) = 0
 IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
-ALLOCATE(NeighList(SIZE(A,1),100))  !initially, allow for 100 neighbors
+!Assume a continuous atom density to estimate initial size of NeighList
+CALL VOLUME_PARA(H,distance)
+n = MAX( 20 , NINT((DBLE(SIZE(A,1))/distance)*(2.d0/3.d0)*pi*(R**3)) )
+ALLOCATE(NeighList(SIZE(A,1),n))
 NeighList(:,:) = 0
 IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
 !
@@ -106,8 +109,6 @@ DO i=1,3
 ENDDO
 !
 DO i=1,SIZE(A,1)
-  !Count the neighbors that were already detected for atom i
-  !
   !Save fractional coordinate of atom i in Vfrac
   Vfrac(1,:) = A(i,1:3)
   CALL CART2FRAC(Vfrac,H)
@@ -211,18 +212,15 @@ DO i=1,SIZE(A,1)
               DO n=1,SIZE(NeighList,2)
                 tempList(:,n) = NeighList(:,n)
               ENDDO
-              tempList(i,SIZE(NeighList,2)+1) = j
               DEALLOCATE(NeighList)
               ALLOCATE( NeighList( SIZE(tempList,1) , SIZE(tempList,2) ) )
               NeighList(:,:) = tempList(:,:)
               DEALLOCATE(tempList)
-              !
-            ELSE
-              !Add atom j to the list of neighbors of atom i
-              NeighList(i,NNeigh(i)) = j
             ENDIF
+            !Add atom j to the list of neighbors of atom i
+            NeighList(i,NNeigh(i)) = j
             !
-            !i is also a neighbor of atom j => save this
+            !Atom i is also a neighbor of atom j => save this
             Nneigh(j) = NNeigh(j)+1
             IF( NNeigh(j) > SIZE(NeighList,2) ) THEN
               !The neighbor list of this atom is full
@@ -233,14 +231,13 @@ DO i=1,SIZE(A,1)
               DO u=1,SIZE(NeighList,2)
                 tempList(:,u) = NeighList(:,u)
               ENDDO
-              tempList(j,n) = i
               DEALLOCATE(NeighList)
               ALLOCATE( NeighList( SIZE(tempList,1) , SIZE(tempList,2) ) )
               NeighList(:,:) = tempList(:,:)
               DEALLOCATE(tempList)
-            ELSE
-              NeighList(j,NNeigh(j)) = i
             ENDIF
+            !Add atom i to the list of neighbors of atom j
+            NeighList(j,NNeigh(j)) = i
             !
             !We already found that j is neighbor of i
             !=> no need to keep on looking for replica of atom j

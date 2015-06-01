@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 April 2015                                    *
+!* Last modification: P. Hirel - 18 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2359,7 +2359,9 @@ CASE(4711)
   msg = "/!\ WARNING: this file has a different number of atoms and will not be treated: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4712)
-  msg = "/!\ WARNING: some atoms seem to be out of the box, which may lead to wrong results."
+  msg = "/!\ WARNING: it is recommended to run this mode with the option '-wrap',"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            otherwise atoms that are out of the box may lead to wrong results."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Do you wish to wrap them now? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)

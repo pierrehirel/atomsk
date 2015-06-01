@@ -19,12 +19,12 @@ uY=$(echo "$alat*sqrt(2.0)" | bc -l)
 b=$(echo "$alat*0.5*sqrt(3.0)" | bc -l)
 ### Number of unit cells along X, Y, Z
 ### This can be changed to make the system bigger or smaller
-eX=20
-eY=30
-eZ=1
+NX=20
+NY=30
+NZ=1
 ### Position of the dislocation (also the center of cylinder)
-posX=$(echo "$uX*$eX*0.5"|bc)
-posY=$(echo "$uY*(0.5*$eY+0.666666666)"|bc)
+dx=$(echo "$uX*$NX*0.5"|bc)
+dy=$(echo "$uY*(0.5*$NY+0.666666666)"|bc)
 ### Radius (in A) of cylinder around dislocation core
 radius=50.0
 
@@ -40,7 +40,13 @@ radius=50.0
 ### Fix atoms at the boundaries (options select and fix)
 ### Output to XSF, CFG and BOP formats
 
-atomsk --create bcc $alat Fe orient [121] [-101] [1-11] -expand $eX $eY $eZ -prop Fe_prop.txt -disloc $posX $posY screw z y $b 0.0 -select out cylinder z $posX $posY $radius -fix all above -100.0 x Fe_dislo.xsf cfg bop
+atomsk --create bcc $alat Fe orient [121] [-101] [1-11] \
+       -duplicate $NX $NY $NZ \
+       -prop Fe_prop.txt \
+       -disloc $dx $dy screw z y $b 0.0 \
+       Fe_dislo.xsf cfg bop
+#       -select out cylinder z $dX $dY $radius \
+#       -fix all above -100.0 x \
 
 ### Note: dislocation stresses and fixed atoms can be visualized
 ###       with Atomeye: see auxiliary properties in "Fe_dislo.cfg"

@@ -13,7 +13,7 @@ MODULE out_lammps_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 April 2015                                    *
+!* Last modification: P. Hirel - 26 May 2015                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -52,13 +52,17 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxi
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: charges, shells, velocities !are atom charges, shells, velocities, defined?
 INTEGER:: i, iloop, j, Nspecies
+INTEGER:: molID      !column for molecule ID in AUX
+INTEGER:: moleculeID !actual molecule ID
 INTEGER:: NPdigits   !number of digits in the number of particles
 INTEGER:: Ntypes     !number of atom types
 INTEGER:: Nbondtypes !number of bond types (core-shell springs)
 INTEGER:: Nshells    !number of shells (core-shell model)
-INTEGER:: vx, vy, vz, q, typecol !index of velocities, charges, atom types in AUX
-INTEGER,DIMENSION(:),ALLOCATABLE:: BONDS     !list of core-shell springs
+INTEGER:: vx, vy, vz, q, qs, typecol !index of velocities, charges, shell charges, atom types in AUX
+INTEGER,DIMENSION(20):: BOND_TYPES  !types of bonds (assuming max. 20 different atom types)
+INTEGER,DIMENSION(:),ALLOCATABLE:: BONDS  !list of bonds
 REAL(dp):: alpha, beta, gamma, Kx, Ky, Kz !for conventional notation
+REAL(dp):: Qcore, Qshell !electric charge of core, shell
 REAL(dp):: tiltbefore
 REAL(dp),DIMENSION(3):: tilt  !xy, xz, yz
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
@@ -77,6 +81,7 @@ shells = .FALSE.
 velocities = .FALSE.
 i=0
 j=0
+molID = 0
 q = 0
 typecol = 0
 vx = 0
@@ -87,6 +92,7 @@ Nshells = 0
 Nspecies = 0
 tilt(:) = 0.d0
 K=H
+BOND_TYPES(:) = 0
 IF(ALLOCATED(R)) DEALLOCATE(R)
 Ppoint=>P
 !Find how many different species are in P
@@ -102,13 +108,16 @@ NPdigits = LEN_TRIM(ADJUSTL(temp))
 !
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   shells = .TRUE.
-  !count how many shells actually exist
-  !and how many different bonds
+  !count how many shells actually exist (=number of core-shell springs)
   !(e.g. if atom A is described with core-shell that is one bond type;
   ! if atom B is also described with core-shell then it is another bond type, etc.)
   DO i=1,SIZE(S,1)
     IF( NINT(S(i,4))>0 ) THEN
       Nshells = Nshells+1
+      IF( .NOT.ANY( NINT(S(i,4))==BOND_TYPES(:) ) ) THEN
+        Nbondtypes = Nbondtypes+1
+        BOND_TYPES(Nbondtypes) = NINT(S(i,4))
+      ENDIF
     ENDIF
   ENDDO
 ENDIF
@@ -122,8 +131,12 @@ IF( ALLOCATED(AUXNAMES) ) THEN
       vy = i
     ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vz' ) THEN
       vz = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='molID' ) THEN
+      molID = i
     ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='q' ) THEN
       q = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='qs' ) THEN
+      qs = i
     ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='type' ) THEN
       typecol = i
       !Find how many different species are in AUX
@@ -154,6 +167,7 @@ WRITE(40,*) Ntypes, ' atom types'
 WRITE(40,*) ''
 IF( Nbondtypes>0 ) THEN
   WRITE(40,*) Nbondtypes, ' bond types'
+  WRITE(40,*) ''
 ENDIF
 !
 !
@@ -198,9 +212,16 @@ ENDIF
 !
 !
 !Write supercell data
-WRITE(40,160) zero, K(1,1), '  xlo xhi'
-WRITE(40,160) zero, K(2,2), '  ylo yhi'
-WRITE(40,160) zero, K(3,3), '  zlo zhi'
+IF( VECLENGTH(K(1,:)) > 1.d-12 ) THEN
+  WRITE(40,160) zero, K(1,1), '  xlo xhi'
+ENDIF
+IF( VECLENGTH(K(2,:)) > 1.d-12 ) THEN
+  WRITE(40,160) zero, K(2,2), '  ylo yhi'
+ENDIF
+IF( VECLENGTH(K(3,:)) > 1.d-12 ) THEN
+  WRITE(40,160) zero, K(3,3), '  zlo zhi'
+ENDIF
+!
 IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
   !LAMMPS requires that skew parameters are less than half the box
   !length in each direction. If it is not the case, warn the user.
@@ -260,6 +281,7 @@ WRITE(40,*) ''
 !
 !
 200 CONTINUE
+molID = 0
 Nspecies = 0
 !Write atom positions
 WRITE(40,'(a5)') 'Atoms'
@@ -267,25 +289,49 @@ WRITE(40,*) ''
 !
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !Ion shells are present (core-shell model)
-  !=> use appropriate format as described in Section How-to 25
+  !=> the format is described in Section How-to 25
   !   http://lammps.sandia.gov/doc/Section_howto.html#howto_25
-  DO i=1,SIZE(Ppoint,1)
-    WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
-    IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
-      WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), S(i,1), S(i,2), S(i,3)
-    ENDIF
-!1    1    2   1.5005    0.00000000   0.00000000   0.00000000 # core of core/shell pair 1
-!2    1    4  -2.5005    0.00000000   0.00000000   0.00000000 # shell of core/shell pair 1
-!3    2    1   1.5056    4.01599500   4.01599500   4.01599500 # core of core/shell pair 2
-!4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2 
-  ENDDO
   !
+  PRINT*, "molID = ", molID
+  PRINT*, "typecol = ", typecol
+  !(1) Write positions of cores (atoms) and shells
+  !    "atom-ID molecule-ID atom-type q x y z"
+  j=0
+  DO i=1,SIZE(Ppoint,1)
+    j=j+1
+    IF( molID>0 ) THEN
+      moleculeID = NINT(AUX(i,molID))
+    ELSE
+      moleculeID = moleculeID+1
+    ENDIF
+    IF( q>0 ) THEN
+      Qcore = AUX(i,q)
+    ENDIF
+    IF( qs>0 ) THEN
+      Qshell = AUX(i,qs)
+    ENDIF
+    IF( typecol.NE.0 ) THEN
+      !Atom types are in auxiliary properties, use it
+      Nspecies = NINT(AUX(i,typecol))
+    ELSE
+      !Replace species by atom types in their order of appearance
+      DO iloop=1,SIZE(atypes,1)
+        IF( atypes(iloop,1)==INT(Ppoint(iloop,4)) ) Nspecies = j
+      ENDDO
+    ENDIF
+    WRITE(40,212) j, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+    IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
+      j=j+1
+      WRITE(40,212) j, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
+    ENDIF
+  ENDDO
+  !(2) Write bond pairs with format "ID type atom1 atom2"
   WRITE(40,*) ''
   WRITE(40,'(a5)') 'Bonds'
   WRITE(40,*) ''
-  DO i=1,SIZE(BONDS,1)
-    
-  ENDDO
+  !DO i=1,SIZE(BONDS,1)
+    !WRITE(40,210) i, BONDS(i,1), BONDS(i,2), BONDS(i,3)
+  !ENDDO
   !
 ELSE
   IF( Ntypes>1 ) THEN
@@ -347,6 +393,7 @@ ELSE
 ENDIF
 210 FORMAT(i8,2X,i3,2X,f7.3,2X,3(f16.8,1X))
 211 FORMAT(i8,2X,i3,2X,3(f16.8,1X))
+212 FORMAT(i8,2X,i3,2X,i3,2X,f7.3,2X,3(f16.8,1X))
 !
 !Write velocities
 IF( velocities ) THEN
