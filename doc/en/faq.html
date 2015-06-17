@@ -29,27 +29,31 @@
 
 <ul>
 
+<li><a href="#" id="genwhat" class="showLink" onclick="showHide('genwhat');return false;"><strong>What is <code>Atomsk</code>?</strong></a></li>
+
+<div id="genwhat-show" class="more"><p>Atomsk is a command-line program to convert, transform, manipulate atomic data files for the purposes of <em>ab initio</em> calculations, molecular dynamics simulations, and visualization.</p></div>
+
 <li><a href="#" id="genname" class="showLink" onclick="showHide('genname');return false;"><strong>Why is that program named "<code>atomsk</code>"?</strong></a></li>
 
-<div id="genname-show" class="more"><p>This program was formerly known as <code>pikashu</code>. Although I don't really care about the name of the code, the former name did not sound very serious. <code>Atomsk</code> is a far more simple name, and the presence of the sound "atom" suggests that this code deals with atomic systems.</p></div>
+<div id="genname-show" class="more"><p>Atomsk stands for <strong>Atom</strong>, <strong>M</strong>olecule, <strong>M</strong>aterial <strong>S</strong>oftware <strong>K</strong>it. It is quite short which is convenient when you type it several times a day in your command-line, and the presence of the sound "atom" suggests that this code deals with atomic systems.</p></div>
 
 
 <li><a href="#" id="genpurp" class="showLink" onclick="showHide('genpurp');return false;"><strong>Why create such a program?</strong></a></li>
 
 <div id="genpurp-show" class="more"><p>After some time writing various small programs to design atomic systems, one quickly realizes that the same basic operations must be re-coded over and over again: building supercells, wrapping atoms into the box, deform the box, and so on. Therefore you end up copy/pasting the same routines (or worse, re-write them from scratch) for every different system (fcc, bcc, diamond lattices...). In addition, if you want to use another simulation or visualization software, you may have to re-write your codes to comply with the file formats of the target software.</p>
 
-<p>I thought it would be more efficient to write a general-purpose program that could perform these operations in any system, no matter the atom species or the lattice, and no matter what the input and output formats are. Such is the purpose of <code>atomsk</code>.</p></div>
+<p>I thought it would be more efficient to write a general-purpose program that could perform these operations in any system, no matter the atom species or the lattice, and no matter what the input and output formats are. Such is the purpose of <code>Atomsk</code>.</p></div>
 
 
 <li><a href="#" id="genprinc" class="showLink" onclick="showHide('genprinc');return false;"><strong>What are the principles behind <code>atomsk</code>?</strong></a></li>
 
-<div id="genprinc-show" class="more"><p><code>Atomsk</code> follows two principles. The first one states that when you want to do something simple, then it should be simple to do it. An example of something "simple" is to convert a file: we don't want to spend hours reading documentation just to figure out how to convert one file. That is why in <code>atomsk</code> you have to enter only the two informations: the name of the file you want to convert, and the final file format, e.g.:</p>
+<div id="genprinc-show" class="more"><p><code>Atomsk</code> follows two principles. The first one states that when you want to do something simple, then it should be simple to do it. An example of something "simple" is to convert a file: we don't want to spend hours reading documentation just to figure out how to convert one file. That is why in <code>Atomsk</code> you have to enter only the two informations: the name of the file you want to convert, and the final file format, e.g.:</p>
 
 <p><code class="command">atomsk file.xsf cfg</code></p>
 
 <p>A corollary of this principle is that when you want to do something complicated (build complex systems, compute some property...), then it may not be so simple to do it. Some programs allow to perform very complex tasks simply, but they are very specialized software -while <code>atomsk</code> tries to be quite general and applicable to many systems.</p>
 
-<p>The second principle is that when one reads a command-line of <code>atomsk</code>, what it does should be obvious and non-ambiguous. For example the following command:</p>
+<p>The second principle is that when one reads a command-line of <code>Atomsk</code>, what it does should be obvious and non-ambiguous. For example the following command:</p>
 
 <p><code class="command">atomsk --create fcc 4.02 Al -duplicate 10 10 4 supercell.xsf</code></p>
 
@@ -59,7 +63,7 @@
 
 <li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Where can I download <code>atomsk</code>?</strong></a></li>
 
-<div id="gendl-show" class="more"><p>It is recommended to visit <a href="http://pierrehirel.info/codes_atomsk.php?lang=eng">this page</a> and download the executable binary for your platform. You can also download the source code if you wish to compile the code yourself or have a look at it.</p></div>
+<div id="gendl-show" class="more"><p>It is recommended to visit <a href="http://atomsk.univ-lille1.fr/?lang=eng">this page</a> and download the executable binary for your platform. You can also download the source code if you wish to compile the code yourself or have a look at it.</p></div>
 
 </ul>
 
@@ -69,7 +73,7 @@
 <ul>
 
 
-<li><a href="#" id="usetype" class="showLink" onclick="showHide('usetype');return false;"><strong>What type of systems can I construct with <code>atomsk</code>?</strong></a></li>
+<li><a href="#" id="usetype" class="showLink" onclick="showHide('usetype');return false;"><strong>What type of systems can I construct with <code>Atomsk</code>?</strong></a></li>
 
 <div id="usetype-show" class="more"><p><code>Atomsk</code> was primarily designed to construct and manipulate atomic systems for materials physics. It has facilities to construct supercells, insert defects (vacancies, interstitials, dislocations, cracks...), and to read and write file formats commonly used in that field.</p>
 

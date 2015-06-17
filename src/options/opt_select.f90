@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Dec. 2014                                     *
+!* Last modification: P. Hirel - 03 June 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,11 +45,12 @@ SUBROUTINE SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
-CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere". If "neighbors" then
-                                !neighbors of an atom must be searched
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg, temp
-CHARACTER(LEN=128):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh'
+CHARACTER(LEN=128):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh' or 'list'
+CHARACTER(LEN=4096):: region_geom !geometry of the region: "box" or "sphere". If "neighbors" then
+                                  !neighbors of an atom must be searched. If region_side=="list" then
+                                  !region_geom contains the name of the file.
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL:: exceeds100 !are there more than 100 neighboring atoms?
 LOGICAL:: keep  !keep atom?
@@ -103,7 +104,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 SELECT CASE(region_side)
 !
-CASE('all','any','none','above','below','invert','inv','in','out','prop','property','random','rand','random%','rand%')
+CASE('all','any','none','above','below','invert','inv','in','list','out','prop','property','random','rand','random%','rand%')
   CONTINUE
   !
 CASE DEFAULT
@@ -1031,6 +1032,36 @@ CASE("neigh","neighbors")
       ENDIF
     ENDDO
   ENDIF
+  !
+  !
+CASE("list")
+  !A list of atom indices is read from the file "region_geom"
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  Nselect=0
+  !Check that the file actually exists
+  CALL CHECKFILE(region_geom,"read")
+  OPEN(UNIT=30,FILE=region_geom,FORM='FORMATTED')
+  DO
+    READ(30,'(a128)',ERR=280,END=280) temp
+    temp = ADJUSTL(temp)
+    IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
+      IF( i>0 .AND. i<=SIZE(P,1) ) THEN
+        IF( .NOT. ALLOCATED(SELECT) ) THEN
+          ALLOCATE( SELECT(SIZE(P,1)) )
+          SELECT(:) = .FALSE.
+        ENDIF
+        !Select atom #i
+        SELECT(i) = .TRUE.
+        Nselect = Nselect+1
+      ELSE
+        !Atom index is out-of-bounds
+        nwarn = nwarn+1
+        CALL ATOMSK_MSG(2742,(/""/),(/DBLE(atomindices(i))/))
+      ENDIF
+    ENDIF
+  ENDDO
+  280 CONTINUE
+  CLOSE(30)
   !
   !
   !

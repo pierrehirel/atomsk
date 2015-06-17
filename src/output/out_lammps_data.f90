@@ -72,6 +72,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),TARGET:: P !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R !copy of P (if necessary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: S !positions of shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing result
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
@@ -106,20 +107,19 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 WRITE(temp,*) SIZE(P,1)
 NPdigits = LEN_TRIM(ADJUSTL(temp))
 !
-IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-  shells = .TRUE.
-  !count how many shells actually exist (=number of core-shell springs)
-  !(e.g. if atom A is described with core-shell that is one bond type;
-  ! if atom B is also described with core-shell then it is another bond type, etc.)
-  DO i=1,SIZE(S,1)
-    IF( NINT(S(i,4))>0 ) THEN
-      Nshells = Nshells+1
-      IF( .NOT.ANY( NINT(S(i,4))==BOND_TYPES(:) ) ) THEN
-        Nbondtypes = Nbondtypes+1
-        BOND_TYPES(Nbondtypes) = NINT(S(i,4))
-      ENDIF
-    ENDIF
-  ENDDO
+IF( ALLOCATED(BONDS) .AND. SIZE(BONDS)>0 ) THEN
+  !count how many bonds exist
+  !CALL FIND_NSP( DBLE(BONDS(:,3)) , aentries )
+  Nbondtypes = SIZE(aentries,1)
+!   DO i=1,SIZE(BONDS)
+!     IF( NINT(S(i,4))>0 ) THEN
+!       Nshells = Nshells+1
+!       IF( .NOT.ANY( NINT(S(i,4))==BOND_TYPES(:) ) ) THEN
+!         Nbondtypes = Nbondtypes+1
+!         BOND_TYPES(Nbondtypes) = NINT(S(i,4))
+!       ENDIF
+!     ENDIF
+!   ENDDO
 ENDIF
 !
 !Check if some auxiliary properties are present

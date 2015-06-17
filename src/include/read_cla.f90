@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 May 2015                                      *
+!* Last modification: P. Hirel - 03 June 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1066,6 +1066,12 @@ DO WHILE(i<SIZE(cla))
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         READ(temp,*,END=120,ERR=120) tempreal
       ENDIF
+      !
+    ELSEIF( temp=='list' ) THEN
+      !Read the name of the file atom indices will be read from
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !
     ELSEIF( temp=='random' .OR. temp=='rand' ) THEN
       !A number N of atoms of given species must be selected at random

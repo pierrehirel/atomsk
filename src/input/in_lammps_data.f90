@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 May 2015                                      *
+!* Last modification: P. Hirel - 12 June 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,6 +57,7 @@ INTEGER:: Naux  !number of auxiliary properties
 INTEGER:: NP, Nspieces !number of particles, of atomic spieces
 INTEGER:: strlength
 INTEGER:: molID, q, vx, vy, vz !columns for molecule ID, electric charge, velocities in AUX
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: BONDS   !(1) atom 1, (2) atom 2, (3) bond type
 REAL(dp):: alpha, beta, gamma
 REAL(dp):: a, b, c
 REAL(dp):: atomtype
@@ -96,6 +97,7 @@ H(:,:) = 0.d0
 IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+IF(ALLOCATED(BONDS)) DEALLOCATE(BONDS)
 !
 !
 100 CONTINUE
@@ -140,6 +142,8 @@ DO
   ELSEIF(temp(strlength-4:)=='bonds') THEN
     dobonds = .TRUE.
     molecule = .TRUE.
+    READ(temp,*,ERR=820,END=820) i
+    ALLOCATE(BONDS(i,3))
   ELSEIF(temp(strlength-9:)=='bond types') THEN
     dobonds = .TRUE.
     molecule = .TRUE.
@@ -188,7 +192,7 @@ WRITE(msg,*) 'Reading atom coordinates...'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 i=0
 DO i=1,NP
-  READ(30,'(a128)') temp
+  READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
   !Remove trailing comment if any
   strlength = SCAN(temp,'#')
@@ -297,44 +301,35 @@ DO
       !i.e. "id" may not span from 1 up to NP. In addition
       !the id of atoms may be in arbitrary order
       READ(30,*,ERR=500,END=500) id, (column(j), j=1,3)
-      AUX(id,vx) = column(1)
-      AUX(id,vy) = column(2)
-      AUX(id,vz) = column(3)
+      IF( id>0 .AND. id<=SIZE(AUX,1) ) THEN
+        AUX(id,vx) = column(1)
+        AUX(id,vy) = column(2)
+        AUX(id,vz) = column(3)
+      ELSE
+        !id is out-of-bounds
+      ENDIF
     ENDDO
     !
   ELSEIF(temp(1:5)=='Bonds') THEN
-    WRITE(msg,*) 'Reading Bonds...'
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
-    DO
-      !Each line has format  "id type atom1 atom2"
-      READ(30,*,ERR=500,END=500) id, (column(j), j=1,3)
-      !BONDS(id,1) = column(1)
-      !BONDS(id,2) = column(2)
-      !BONDS(id,3) = column(3)
-    ENDDO
-    !
-  ELSEIF(temp(1:6)=='Angles') THEN
-    WRITE(msg,*) 'Reading Angles...'
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
-    DO
-      !Each line has format  "id type atom1 atom2 atom3"
-      READ(30,*,ERR=500,END=500) id, (column(j), j=1,4)
-      !ANGLES(id,1) = column(1)
-      !ANGLES(id,2) = column(2)
-      !ANGLES(id,3) = column(3)
-      !ANGLES(id,4) = column(4)
-    ENDDO
-    !
-  ELSEIF(temp(1:9)=='Dihedrals') THEN
-    WRITE(msg,*) 'Reading Dihedrals...'
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
-    DO
-      !Each line has format  "id type atom1 atom2 atom3 atom4"
-      READ(30,*,ERR=500,END=500) id, (column(j), j=1,4)
-    ENDDO
+    IF( .NOT.ALLOCATED(BONDS) ) THEN
+    
+    ELSE
+      WRITE(msg,*) 'Reading Bonds...'
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
+      DO
+        !In LAMMPS each line has format "id type atom1 atom2"
+        !Atomsk saves it with th format "atom1 atom2 type" in array BONDS
+        READ(30,*,ERR=500,END=500) id, (column(j), j=1,3)
+        IF( id>0 .AND. id<=SIZE(BONDS) ) THEN
+          BONDS(id,1) = column(2)
+          BONDS(id,2) = column(3)
+          BONDS(id,3) = column(1)
+        ELSE
+          !id is out-of-bounds
+        ENDIF
+      ENDDO
+    ENDIF
     !
   ENDIF
   !

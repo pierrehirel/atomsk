@@ -25,6 +25,8 @@
 
 <p><code>-select &#60;index1&#62;,&#60;index2&#62;,&#60;index3&#62;:&#60;index4&#62;,...</code></p>
 
+<p><code>-select list &#60;file&#62;</code></p>
+
 <p><code>-select random &#60;N&#62; &#60;species&#62;</code></p>
 
 <p><code>-select &#60;above|below&#62; &#60;d&#62; &#60;dir&#62;</code></p>
@@ -51,6 +53,8 @@
 <p>When using <strong>-select &#60;species&#62;</strong>, all atoms of the given species are selected. The chemical symbol must be used (e.g. Al, Si, C, Cu...).</p>
 
 <p>When using <strong>-select &#60;index&#62;</strong> (where &#60;index&#62; in an integer), only the atom of the given index is selected. Several indices can be given, separated by a comma. A range of indices can be defined by two integers separated by a colon.</p>
+
+<p>When using <strong>-select list &#60;file&#62;</strong>, the list of atoms to select is read from a &#60;file&#62;. The &#60;file&#62; must be a text file containing one atom index (integer number) per line.</p>
 
 <p>When using <strong>-select random</strong>, N atoms of the given &#60;species&#62; are selected randomly (where N in an integer). If N is a real number followed by the symbol "%", then the given percentage of atoms will be selected. If &#60;species&#62; is set to "any" or "all" then N atoms will be randomly selected regardless of their species. Note that this option attempts to generate random indices of the atoms to be selected, therefore it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
 

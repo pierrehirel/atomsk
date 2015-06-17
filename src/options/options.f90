@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 April 2014                                    *
+!* Last modification: P. Hirel - 03 June 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -202,8 +202,8 @@ REAL(dp):: rot_angle              !in degrees
 !
 !Variables relative to Option: select
 CHARACTER(LEN=16):: region_dir   !x, y, z
-CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere"
 CHARACTER(LEN=128):: region_side   !'in' or 'out' or 'all' or 'property'
+CHARACTER(LEN=4096):: region_geom  !geometry of the region: "box" or "sphere"
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
@@ -786,6 +786,9 @@ DO ioptions=1,SIZE(options_array)
       !Store index of atoms whose neighbors must be searched in region_1(2)
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
           & region_side, region_1(1), region_geom, region_1(2)
+    ELSEIF( region_side=="list" ) THEN
+      !store the name of file containing list of atoms in "region_geom"
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom
     ENDIF
     IF(nerr.NE.0) GOTO 1000
     CALL SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
