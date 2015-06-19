@@ -2,6 +2,11 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+beta 0.8.2 (in development)
+---------------------------
+- fixed a bug that caused a crash when reading LAMMPS data files that contained fewer atoms than declared.
+
+
 beta 0.8.1 (in development)
 ---------------------------
 - in mode "--create", added possibility to generate L12 lattices. Thanks to J. Amodeo, MATEIS, Lyon, France, for proposing this feature.

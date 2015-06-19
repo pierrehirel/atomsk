@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 July 2014                                     *
+!* Last modification: P. Hirel - 17 June 2014                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -171,7 +171,7 @@ WRITE(msg,*) 'Reading atom coordinates...'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 i=0
 DO i=1,NP
-  READ(30,'(a128)') temp
+  READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
   !Remove trailing comment if any
   strlength = SCAN(temp,'#')
