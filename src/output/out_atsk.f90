@@ -12,7 +12,7 @@ MODULE out_atsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 July 2014                                     *
+!* Last modification: P. Hirel - 30 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,7 +117,7 @@ ENDIF
 500 CONTINUE
 CLOSE(40)
 msg = "ATSK"
-temp = "outputfile"
+temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !

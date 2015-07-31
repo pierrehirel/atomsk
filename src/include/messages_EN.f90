@@ -4,13 +4,13 @@ MODULE messages_EN
 !*  MESSAGES_EN                                                                   *
 !**********************************************************************************
 !* This module contains the ENGLISH (default)                                     *
-!* version of the messages displayed by the atomsk program.                       *
+!* version of the messages displayed by the Atomsk program.                       *
 !**********************************************************************************
 !* (C) June 2011 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 May 2015                                      *
+!* Last modification: P. Hirel - 23 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,7 +28,7 @@ MODULE messages_EN
 !* List of subroutines in this module:                                            *
 !* DISPLAY_LICENSE_EN  displays the license of the program                        *
 !* DISPLAY_HELP_EN     displays the help of the program                           *
-!* ATOMSK_MSG_EN       all messages used by atomsk                                *
+!* ATOMSK_MSG_EN       all messages used by Atomsk                                *
 !* DATE_MSG_EN         displays a nice message according to the date              *
 !**********************************************************************************
 !
@@ -49,7 +49,7 @@ CONTAINS
 !********************************************************
 ! DISPLAY_LICENSE
 ! This subroutine displays the license message
-! of atomsk
+! of Atomsk
 !********************************************************
 SUBROUTINE DISPLAY_LICENSE_EN()
 !
@@ -98,7 +98,7 @@ END SUBROUTINE DISPLAY_LICENSE_EN
 !********************************************************
 ! DISPLAY_HELP
 ! This subroutine displays all or part of
-! the help for atomsk
+! the help for Atomsk
 !********************************************************
 SUBROUTINE DISPLAY_HELP_EN(helpsection)
 !
@@ -137,23 +137,19 @@ IF(helpsection=="modes" .OR. helpsection=="normal") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="list") THEN
   WRITE(*,*) "..> List mode:"
-  WRITE(*,*) "          atomsk -L <listfile> [<formats>] [options]"
+  WRITE(*,*) "          atomsk --list <listfile> [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ai1") THEN
   WRITE(*,*) "..> All-in-one mode:"
-  WRITE(*,*) "          atomsk -AI1 <listfile> <outputfile> [options] [<formats>]"
+  WRITE(*,*) "          atomsk --all-in-one <listfile> <outputfile> [options] [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
   WRITE(*,*) "..> One-in-all mode:"
-  WRITE(*,*) "          atomsk -1IA <inputfile> [<outputfile>] [<formats>] [options]"
+  WRITE(*,*) "          atomsk --one-in-all <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Create mode:"
-  WRITE(*,*) "          atomsk -C <structure> <a0> <species> <outputfile> [<formats>] [options]"
-ENDIF
-IF(helpsection=="modes" .OR. helpsection=="density") THEN
-  WRITE(*,*) "..> Density mode:"
-  WRITE(*,*) "          atomsk --density <file> <property> <dimension> <axis> <sigma> [options]"
+  WRITE(*,*) "          atomsk --create <structure> <a0> <species> <outputfile> [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> DDplot mode:"
@@ -161,11 +157,19 @@ IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="merge") THEN
   WRITE(*,*) "..> Merge mode:"
-  WRITE(*,*) "          atomsk -M [<x|y|z>] <Nfiles> <file1>...<fileN> <outputfile> [<formats>] [options]"
+  WRITE(*,*) "          atomsk --merge [<x|y|z>] <Nfiles> <file1>...<fileN> <outputfile> [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="unwrap") THEN
   WRITE(*,*) "..> Unwrap mode:"
   WRITE(*,*) "          atomsk --unwrap <reference> <system> [<outputfile>] [<formats>] [options]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="density") THEN
+  WRITE(*,*) "..> Density mode:"
+  WRITE(*,*) "          atomsk --density <file> <property> <dimension> <axis> <sigma> [options]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="difference") THEN
+  WRITE(*,*) "..> List mode:"
+  WRITE(*,*) "          atomsk --difference <file1> <file2> [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="edm") THEN
   WRITE(*,*) "..> Mode electric dipole moments:"
@@ -173,7 +177,7 @@ IF(helpsection=="modes" .OR. helpsection=="edm") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="PE") THEN
   WRITE(*,*) "..> Mode electronic polarization:"
-  WRITE(*,*) "          atomsk -PE <system> [options]"
+  WRITE(*,*) "          atomsk --electronic-polarization <system> [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="rdf") THEN
   WRITE(*,*) "..> Mode radial distribution function:"
@@ -190,6 +194,10 @@ ENDIF
 IF(helpsection=="modes" .OR. helpsection=="nye") THEN
   WRITE(*,*) "..> Mode Nye:"
   WRITE(*,*) "          atomsk --nye <reference> <dislocation> <outputfile> [options] [<formats>]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="interpolate") THEN
+  WRITE(*,*) "..> Mode Interpolate:"
+  WRITE(*,*) "          atomsk --interpolate <file1> <file2> <N> [options] [<formats>]"
 ENDIF
 !
 IF(helpsection=="options") THEN
@@ -386,12 +394,13 @@ ENDIF
 IF(helpsection=="formats") THEN
 WRITE(*,*) ">>> FORMATS:"
 WRITE(*,*) "    Formats must be specified as written in the first column."
-WRITE(*,*) "    atomsk can convert from any 'yes' in the INPUT column"
+WRITE(*,*) "    Atomsk can convert from any 'yes' in the INPUT column"
 WRITE(*,*) "    to any 'yes' in the OUTPUT column:"
 WRITE(*,*) "                            |  INPUT | OUTPUT"
 WRITE(*,*) "    ------------------------+--------+--------"
-WRITE(*,*) "    atsk (atomsk format)    |   yes  |  yes"
+WRITE(*,*) "    atsk (Atomsk format)    |   yes  |  yes"
 WRITE(*,*) "    bop (Bond-Order format) |   yes  |  yes"
+WRITE(*,*) "    cel (Dr. Probe/EMS)     |   yes  |  yes"
 WRITE(*,*) "    coo (COORAT/MBPP)       |   yes  |  yes"
 WRITE(*,*) "    cfg (Atomeye)           |   yes  |  yes"
 WRITE(*,*) "    cif (Cryst.Info.File)   |   yes  |  yes"
@@ -416,7 +425,7 @@ ENDIF
 !
 WRITE(*,*) ""
 WRITE(*,*) ">>> Look at the /doc folder provided with the program"
-WRITE(*,*) "    or go to: http://pierrehirel.info/codes/atomsk/"
+WRITE(*,*) "    or go to: http://atomsk.univ-lille1.fr/"
 WRITE(*,*) ""
 !
 !
@@ -438,7 +447,7 @@ CHARACTER(LEN=128),INTENT(OUT):: msg
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = '# File generated with atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
+msg = '# File generated with Atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
 !
 END SUBROUTINE ATOMSK_CREATE_DATE
 !
@@ -618,6 +627,11 @@ CASE(10)
 CASE(11)
   msg = ">>> Constructing neighbor list..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(12)
+  msg = ">>> If you use Atomsk in your work, please cite the following article:"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    Pierre Hirel, Comput. Phys. Comm. XX (2015) xxxx-xxxx"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
 CASE(700)
@@ -753,7 +767,7 @@ CASE(1706)
 CASE(1800)
   msg = "X!X ERROR: I could not guess the format of this input file!"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Maybe it is a format unsupported by atomsk yet?"
+  msg = "    Maybe it is a format unsupported by Atomsk yet?"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Anyway it appears I cannot help, I will skip this file."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -1803,7 +1817,9 @@ CASE(2817)
 !**************************
 ! 3000-3999: MESSAGES FOR OUTPUT
 CASE(3000)
-  msg = ">>> Writing output file(s):"
+  !reals(1) = number of atoms
+  WRITE(temp,*) NINT(reals(1))
+  msg = ">>> Writing output file(s) ("//TRIM(ADJUSTL(temp))//" atoms):"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file
@@ -1896,7 +1912,7 @@ CASE(3707)
   WRITE(msg,*) NINT(reals(1))
   msg = "/!\ WARNING: number of particles if very large: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    If ddplot cannot display so many atoms, then use atomsk"
+  msg = "    If ddplot cannot display so many atoms, then use Atomsk"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    with the -cut option to reduce the number of atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -1987,9 +2003,9 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "clear             Clear memory (destroy atomic system)"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit              Exit atomsk"
+  msg = "quit              Exit Atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "OPTIONS: atomsk options can be used in this command-line interpreter,"
+  msg = "OPTIONS: the options of Atomsk can be used in this command-line interpreter,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "        enter 'help options' to display the available options."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2390,7 +2406,7 @@ CASE(4802)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4803)
   !reals(1) = theoretical number of atoms in nanotube
-  !reals(2) = number found by atomsk
+  !reals(2) = number found by Atomsk
   WRITE(msg,*) "X!X ERROR: inconsistent number of atoms in nanotube."
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(msg,*) NINT(reals(1))
@@ -2505,13 +2521,13 @@ CASE(5000)
   !strings(1) = user's configuration file
   msg = ">>> The answers to the following questions will set up your preferences"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "..> for atomsk, which will be saved in "//TRIM(ADJUSTL(strings(1)))//"."
+  msg = "..> for Atomsk, which will be saved in "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5001)
-  msg = "<?> Do you want atomsk to always overwrite files by default?"
+  msg = "<?> Do you want Atomsk to always overwrite files by default?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5002)
-  msg = "<?> Do you want atomsk to always ignore existing files by default?"
+  msg = "<?> Do you want Atomsk to always ignore existing files by default?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5003)
   msg = "<?> Enter a file format you always want to write to ('no' to skip):"

@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 May 2015                                      *
+!* Last modification: P. Hirel - 30 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -346,7 +346,8 @@ CASE('create')
   create_a0(2) = create_a0(1)
   create_a0(3) = create_a0(1)
   i=2
-  IF(create_struc=='graphite' .OR. create_struc=='hcp') THEN
+  IF( create_struc=='graphite' .OR. create_struc=='hcp' .OR.            &
+    & create_struc=='wurtzite' .OR. create_struc=='wz'      ) THEN
     i=i+1
     READ(mode_param(i),*,END=7000,ERR=7000) create_a0(3)
   ELSEIF(create_struc=='nanotube' .OR. create_struc=='NT' .OR. create_struc=='nt') THEN

@@ -19,7 +19,7 @@ MODULE guess_form
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 July 2014                                     *
+!* Last modification: P. Hirel - 31 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,7 +58,7 @@ LOGICAL:: fileisopened
 INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
-REAL(dp):: isbop, iscfg, iscif, iscml, iscoorat, isdd, isdlp, isgin, isimd
+REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, isdd, isdlp, isgin, isimd
 REAL(dp):: islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isxsf, isxv
 REAL(dp):: isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
@@ -74,6 +74,7 @@ test=''
 i = 1
 testreal = 0.d0
 isbop = 0.d0     !Bond-Order Potential format
+iscel = 0.d0     !CEL Super-cell file for Dr. Probe
 iscfg = 0.d0     !Atomeye CFG format
 iscif = 0.d0     !Crystallographic Information File
 iscml = 0.d0     !Chemical Markup Language
@@ -133,6 +134,8 @@ IF( strlength > 0 ) THEN
   !The extension is considered as a strong indication of the file format:
   !increase corresponding counter by a lot
   SELECT CASE(extension)
+  CASE('cel','CEL')
+    iscel = iscel+0.6d0
   CASE('cfg','CFG')
     iscfg = iscfg+0.6d0
     iscoorat = iscoorat-0.4d0
@@ -168,12 +171,15 @@ IF( strlength > 0 ) THEN
   CASE('xyz','XYZ')
     isxyz = isxyz+0.6d0
     iscoorat = iscoorat-0.4d0
+    iscfg = iscfg-0.4d0
   CASE('exyz','EXYZ')
     isexyz = isexyz+0.6d0
     iscoorat = iscoorat-0.4d0
+    iscfg = iscfg-0.4d0
   CASE('sxyz','SXYZ')
     issxyz = issxyz+0.6d0
     iscoorat = iscoorat-0.4d0
+    iscfg = iscfg-0.4d0
   CASE DEFAULT
     CONTINUE
   END SELECT
@@ -261,16 +267,22 @@ IF(fileexists) THEN
     ELSEIF(test(1:3)=='UNRLD') THEN
       isbop = isbop+0.4
     !
+    !Search for patterns corresponding to CEL format
+    ELSEIF(TRIM(ADJUSTL(test))=='*') THEN
+      iscel = iscel+0.5 ! EOF signal (short CEL file)
+    !
     !Search for patterns corresponding to CFG format
     ELSEIF(test(1:19)=='Number of particles') THEN
-      iscfg = iscfg+0.4d0
+      IF( i<=2 ) THEN
+        iscfg = iscfg+0.6d0
+      ENDIF
     ELSEIF(test(1:3)=='A =' .OR. test(1:2)=='A=') THEN
       iscfg = iscfg+0.2d0
     ELSEIF(test(1:6)=='H(1,1)' .OR. test(1:6)=='H(1,2)' .OR. &
           &test(1:6)=='H(2,1)' .OR. test(1:6)=='H(2,2)' .OR. &
           &test(1:6)=='H(3,1)' .OR. test(1:6)=='H(3,2)' .OR. &
           &test(1:6)=='H(3,3)') THEN
-      iscfg = iscfg+0.1
+      iscfg = iscfg+0.1d0
     ELSEIF(test(1:13)=='.NO_VELOCITY.') THEN
       iscfg = iscfg+0.6d0
     ELSEIF(test(1:11)=='entry_count') THEN
@@ -347,20 +359,20 @@ IF(fileexists) THEN
       isimd = isimd+0.4d0
     !
     !Search for patterns corresponding to LAMMPS data format
-    ELSEIF(test(strlength-4:)=='atoms') THEN
+    ELSEIF(strlength-4==INDEX(test,'atoms').AND.strlength>4) THEN
       islmp = islmp+0.2d0
-    ELSEIF(test(strlength-9:)=='atom types') THEN
+    ELSEIF(strlength-4==INDEX(test,'Atoms').AND.strlength>4) THEN
+      islmp = islmp+0.1d0 ! Note: 'Atoms' and 'atoms' have different weights?
+    ELSEIF(strlength-9==INDEX(test,'atom types').AND.strlength>9) THEN
       islmp = islmp+0.4d0
-    ELSEIF(test(strlength-6:)=='xlo xhi') THEN
+    ELSEIF(strlength-6==INDEX(test,'xlo xhi').AND.strlength>6) THEN
       islmp = islmp+0.4d0
-    ELSEIF(test(strlength-6:)=='ylo yhi') THEN
+    ELSEIF(strlength-6==INDEX(test,'ylo yhi').AND.strlength>6) THEN
       islmp = islmp+0.4d0
-    ELSEIF(test(strlength-6:)=='zlo zhi') THEN
+    ELSEIF(strlength-6==INDEX(test,'zlo zhi').AND.strlength>6) THEN
       islmp = islmp+0.4d0
-    ELSEIF(test(strlength-7:)=='xy xz yz') THEN
+    ELSEIF(strlength-7==INDEX(test,'xy xz yz').AND.strlength>7) THEN
       islmp = islmp+0.4d0
-    ELSEIF(test(strlength-4:)=='Atoms') THEN
-      islmp = islmp+0.1d0
     !
     !Search for patterns corresponding to LAMMPS custom format
     ELSEIF(test(1:5)=='ITEM:') THEN
@@ -509,14 +521,16 @@ IF(fileexists) THEN
         isdlp = isdlp-0.1d0
         ismoldy = ismoldy-0.1d0
         isposcar = isposcar-0.1d0
+        GOTO 249
         241 CONTINUE
         !MOLDY format has lines  "x y z N"
         READ(test,*,ERR=242,END=242) testreal, testreal, testreal, NP
         ismoldy = ismoldy+0.01d0
         isdlp = isdlp-0.1d0
         isposcar = isposcar-0.1d0
+        GOTO 249
         242 CONTINUE
-        !SIESTA XV format has lines  "N an x y z fx fy fz"
+        !SIESTA XV format has lines  "N Z x y z fx fy fz"
         READ(test,*,ERR=243,END=243) NP, NP, testreal, testreal, testreal, &
                                     & testreal, testreal, testreal
         isxv = isxv+0.05d0
@@ -525,15 +539,16 @@ IF(fileexists) THEN
         isxyz = isxyz-0.1d0
         isposcar = isposcar-0.1d0
         243 CONTINUE
+        GOTO 249
         !Atomeye, DL_POLY CONFIG (or REVCON), and VASP POSCAR formats have lines "x y z"
-        READ(test,*,ERR=244,END=244) testreal, testreal, testreal
+        READ(test,*,ERR=249,END=249) testreal, testreal, testreal
         isposcar = isposcar+0.01d0
         iscfg = iscfg+0.01d0
         isxyz = isxyz-0.1d0
         isdlp = isdlp+0.01d0
         ismoldy = ismoldy-0.1d0
         isxv = isxv-0.1d0
-        244 CONTINUE
+        249 CONTINUE
       ENDIF
     !
     ! -- Add other formats here --
@@ -551,7 +566,7 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isbop,iscfg,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,islmp, &
+likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,islmp, &
        &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isxmd,isxsf, &
        &     isxv,isxyz,isexyz,issxyz)
 !
@@ -563,6 +578,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   BOP ', isbop
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   CFG ', iscfg
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   CEL ', iscel
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   CIF ', iscif
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -621,6 +638,8 @@ ELSE
     infileformat = 'bop'
   ELSEIF(iscfg==likely) THEN
     infileformat = 'cfg'
+  ELSEIF(iscel==likely) THEN
+    infileformat = 'cel'
   ELSEIF(iscif==likely) THEN
     infileformat = 'cif'
   ELSEIF(iscoorat==likely) THEN

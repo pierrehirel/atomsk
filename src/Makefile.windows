@@ -41,6 +41,8 @@ FORTRAN=gfortran.exe
 # COMPILATION FLAGS:
 # (note that the flag "-DWINDOWS" is mandatory for Windows systems)
 FFLAGS=-O2 -DWINDOWS -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+# Un-comment the following line to produce a static version
+#FFLAGS+=-static
 
 # Path to the LAPACK library
 # The following assumes that the LAPACK and BLAS libraries

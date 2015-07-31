@@ -1,0 +1,16 @@
+# Makefile for compiling atomsk and
+# linking statically.
+# All defaults are used (see main Makefile)
+# except the installation path which is defined below.
+
+# USAGE:
+#    make -f Makefile.static all
+
+export
+
+# 
+FORTRAN=gfortran
+FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -static -fPIC
+
+# Goto main Makefile
+include Makefile

@@ -6,17 +6,26 @@ PROGRAM atomsk
 !*    |   |o          Atom/Molecule/Material Software Kit           ,0;-o         *
 !*    o---o           ===--=--------=--------=--------=--         o'   'O         *
 !**********************************************************************************
-!* This program is meant to convert many formats of files containing              *
-!* atomic positions, into other formats. It can also perform some simple          *
-!* transformations on atomistic systems.                                          *
-!* Please read the contents of /doc for a detailed description.                   *
+!* Atomsk is a command-line program that aims at creating, manipulating, and      *
+!* converting atomic systems, for the purpose of ab initio calculations,          *
+!* classical potential simulations, or visualization. It supports many file       *
+!* formats, among which LAMMPS, VASP, Quantum Espresso, Atomeye CFG format, and   *
+!* xCrySDen XSF format (see the list of supported formats). Additionnaly, Atomsk  *
+!* can also perform some simple transformations of atomic positions (thanks to    *
+!* the many options), like creating supercells, cutting crystal planes, applying  *
+!* stress, or inserting dislocations.                                             *
+!*                                                                                *
+!* Please refer to the contents of /doc for a detailed description, or go to:     *
+!*                                                                                *
+!*     http://atomsk.univ-lille1.fr/                                              *
+!*                                                                                *
 !**********************************************************************************
-!* Version of the program: see "comv.f90"                                         *
+!* Version of the program: see "/include/comv.f90"                                *
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Nov. 2014                                     *
+!* Last modification: P. Hirel - 15 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

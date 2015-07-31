@@ -9,12 +9,13 @@ SGE=comv.f90              \
     atoms.f90             \
     functions.f90         \
     subroutines.f90       \
-    neighbors.f90         \
     display_messages.f90  \
     messages_EN.f90       \
     $(L10N)               \
     messages.f90          \
+    neighbors.f90         \
     files.f90             \
+    symops.f90            \
     guess_format.f90      \
     read_cla.f90          \
     determine_H.f90       \

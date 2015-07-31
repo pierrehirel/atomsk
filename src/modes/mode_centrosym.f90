@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 May 2015                                      *
+!* Last modification: P. Hirel - 29 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -191,6 +191,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Construct neighbor list
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
 CALL NEIGHBOR_LIST(H,P,8.d0,NeighList)
+PRINT*, "SIZE NeighList = ", SIZE(NeighList,1), SIZE(NeighList,2)
 !
 IF( verbosity==4 ) THEN
   !Some debug messages
@@ -264,7 +265,7 @@ DO i=1,SIZE(P,1)
     !keep only neighbors j that are approx. at the same distance as the four 1st neighbors
     Nneigh = 0
     DO j=1,SIZE(PosList,1)
-      IF( PosList(j,4) < 1.25d0*SUM(PosList(1:4,4))/4.d0 ) THEN
+      IF( PosList(j,4) < 1.4d0*SUM(PosList(1:4,4))/4.d0 ) THEN
         Nneigh = Nneigh+1
         sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
       ELSE

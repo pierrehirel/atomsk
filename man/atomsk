@@ -206,6 +206,9 @@ Bond-Order Potential (BOP) format.
 .B cfg
 Atomeye configuration.
 .TP
+.B cel
+Dr Probe cell Files.
+.TP
 .B cif
 Crystallographic Information Files.
 .TP
@@ -262,6 +265,9 @@ Bond-Order Potential (BOP) format.
 .TP
 .B cfg
 Atomeye configuration.
+.TP
+.B cel
+Dr Probe cell Files.
 .TP
 .B cif
 Crystallographic Information Files.
@@ -336,7 +342,7 @@ This will compute the displacement vectors between the atomic systems described 
 .SH SEE ALSO
 .TP
 This man page only summarizes the capabilities of atomsk. A more complete documentation in html format is provided with the program and available at:
-http://pierrehirel.info/codes/atomsk/
+http://atomsk.univ-lille1.fr/
 
 
 .SH AUTHOR

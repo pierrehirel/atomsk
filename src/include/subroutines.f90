@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 March 2014                                    *
+!* Last modification: P. Hirel - 31 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,6 +50,7 @@ MODULE subroutines
 !* UNWRAP              unwrap atoms that have jumped a boundary                   *
 !* DERIVATIVE          calculate the derivative of a function                     *
 !* CHECK_CTENSOR       checks if an elastic tensor is symmetric                   *
+!* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
 !**********************************************************************************
 !
 !
@@ -1131,6 +1132,109 @@ DO i=2,9
 ENDDO
 !
 END SUBROUTINE CHECK_CTENSOR
+!
+!
+!********************************************************
+!  COMPFORMULA
+!  This subroutine extracts the compound formula from the
+!  given atomic site list P taking the auxiliary list AUX
+!  into account if it contains site occupancies.
+!  The formula is returned as string.
+!  The compound summed atomic mass is returned as well.
+!  (C) Juri Barthel 
+!*     Gemeinschaftslabor fuer Elektronenmikroskopie
+!*     RWTH Aachen (GERMANY)
+!*     ju.barthel@fz-juelich.de
+!********************************************************
+!
+SUBROUTINE COMPFORMULA(P,AUXNAMES,AUX,formula,mass)
+!
+USE atoms
+!
+IMPLICIT NONE
+INTEGER:: i, j, iaux
+INTEGER:: occ
+INTEGER:: NP, Naux, NS, NA, NF
+INTEGER,DIMENSION(ATOMMAXZ+10):: ispecies
+REAL(dp):: PO, amass, socc
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
+REAL(dp),INTENT(OUT):: mass
+CHARACTER(LEN=2):: species
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=4096), INTENT(OUT):: formula
+CHARACTER(LEN=4096) :: temp, msg
+!
+! 
+!Initialize variables
+mass = 0.0d+0
+amass = 0.0d+0
+formula = ''
+temp = ''
+msg = ''
+Naux = 0
+occ = 0 ! no occupancy information by default
+PO = 1.0d+0 ! 1.0 occupancy of each atomic site by default
+ispecies = 0 ! preset species hash
+NP = SIZE(P,1) ! number of sites
+IF (ALLOCATED(AUX).AND.ALLOCATED(AUXNAMES)) THEN ! Get number of auxiliary properties
+  Naux = SIZE(AUX,2) ! ? Redundant but maybe better MIN(SIZE(AUX,2),SIZE(AUXNAMES))
+ENDIF
+IF (Naux>0) THEN
+  DO iaux=1, Naux
+    IF("occ"==TRIM(AUXNAMES(iaux))) occ = iaux
+  ENDDO
+END IF
+!
+!Get different atomic species
+!    from list P(:,4) = atomic numbers of all atomic sites
+CALL FIND_NSP(P(:,4),aentries)
+NS = SIZE(aentries,1) ! number of different species
+!Get occupation numbers of the different species
+IF (NS>0) THEN
+  ispecies = 0
+  !Remember the index of each species in aentries
+  !     but only for those species which are on atom sites
+  DO i=1, NS
+    j = aentries(i,1)
+    IF (j>0.AND.aentries(i,2)>0.0d+0) ispecies(j) = i
+  ENDDO
+  !Erase atom species counts in aentries
+  aentries(1:NS,2) = 0.0d+0
+  !Sum up the occupancies
+  DO i=1, NP
+    IF (P(i,4)<1.or.P(i,4)>ATOMMAXZ) CYCLE ! unknown element
+    j = ispecies(NINT(P(i,4))) ! species index in aentries
+    IF (j<=0) CYCLE ! invalid index
+    IF (occ>0) PO = AUX(i,occ) ! set individual occupancy from AUX
+    aentries(j,2) = aentries(j,2) + PO ! accumulation
+  ENDDO
+ENDIF
+! Create formula string and sum up atomic masses
+DO i=1, NS
+  CALL ATOMSPECIES(aentries(i,1),species)
+  temp=''
+  socc = aentries(i,2)
+  IF (socc<=0.d0) CYCLE ! this species is not in the compound
+  NA = INT(socc)
+  NF = INT((socc - NA)*1.0d+1)
+  IF( NA>0 .or. NF>0 ) THEN
+    WRITE(temp,'(i10)') NA
+    IF( NF>0) THEN
+      WRITE(temp,'(a,i1)') TRIM(ADJUSTL(temp))//".", NF
+    END IF
+    temp = TRIM(species)//TRIM(ADJUSTL(temp))
+  ENDIF
+  msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))
+  CALL ATOMMASS(species,amass)
+  mass = mass + amass*socc
+ENDDO
+formula = msg
+!
+IF (ALLOCATED(aentries)) DEALLOCATE(aentries)
+!
+END SUBROUTINE COMPFORMULA
 !
 !
 !

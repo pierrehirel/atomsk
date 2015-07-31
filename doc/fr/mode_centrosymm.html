@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Mode symétrie centrale - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : symétrie centrale</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --central-symmetry &#60;file&#62; [options]</code></p>
+
+<h4>Description</h4>
+
+<p>Ce mode calcule un paramètre de symétrie centrale pour chaque atome.</p>
+
+<p>Le paramètre de symétrie centrale a été introduit par C.L. Kelchner, <em>Phys. Rev. B</em> <strong>58</strong> (1998) 11085, puis modifié dans son implémentation dans le programme de visualisation <a href="http://mt.seas.upenn.edu/Archive/Graphics/A/">Atomeye</a>. Ce mode suit cette dernière définition, i.e. le paramètre de symétrie centrale est sans unité et défini par :</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>c<sub>i</sub></em> = ( &Sum; |<em>d<sub>j</sub></em>+<em>d<sub>k</sub></em>|<sup>2</sup> ) / ( 2 &Sum; |<em>d<sub>j</sub></em>|<sup>2</sup> )</p>
+
+<p>où les atomes <em>j</em> et <em>k</em> sont des voisins opposés de l'atome central <em>i</em>, et la somme court sur toutes les paires de voisins opposés.</p>
+
+<p>Ce paramètre de symétrie central a été conçu pour les matériaux mono-atomiques. Dans un cristal cfc chaque atome a 12 voisins; dans un cristal cubique centré chaque atome en a 8. Dans un cristal parfait chaque voisin a un atome opposé, la symétrie centrale est parfaite et le paramètre est donc nul <em>c<sub>i</sub></em>=0. Lorsque la symétrie est brisée, par exemple sur les surfaces où il manque des voisins, dans les défauts d'empilement ou les dislocations où l'environnement est distordu, alors les atomes auront un paramètre <em>c<sub>i</sub></em>&gt;0.</p>
+
+<p>Atomsk peut aussi calculer ce paramètre dans d'autres types de matériaux, s'ils possèdent une forme de symétrie centrale. C'est le cas par exemple de certains matériaux binaires à structure NaCl (MgO, LiF...), ou de matériaux ternaires comme les perovskites (SrTiO<sub>3</sub>, BaTiO<sub>3</sub>...). Dans de tels réseaux Atomsk calcule le paramètre de symétrie centrale en utilisant uniquement les voisins de même espèce. Par exemple dans NaCl, pour un atome central <em>i</em> de sodium (Na) seuls les atomes voisins de chlore (Cl) sont utilisés pour calculer <em>c<sub>i</sub></em>, et inversement. Dans la perovskite SrTiO<sub>3</sub>, le paramètre de symétrie centrale des ions Sr sera calculé en utilisant uniquement les premiers voisins oxygène, et ainsi de suite.</p>
+
+<p>Notez que ce paramètre n'a pas de sens dans les systèmes qui n'ont pas de symétrie centrale, comme les structures diamant, zincblende, ou hexagonales.</p>
+
+<p>Si ce mode est utilisé avec des <a href="./options.html">options</a> alors ces options seront appliquées <em>avant</em> que le paramètre de symétrie central ne soit calculé.</p>
+
+<p>Notez que ce mode suppose que tous les atomes se trouvent dans la boîte. Si ce n'est pas le cas alors le calcul peut donner de mauvais résultats. Les atomes peuvent être replacés dans la boîte grâce à l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --central-symmetry Al_dislocation.cfg Al_centrosymm.cfg -wrap</code>
+<p>Avec cette commande, Atomsk va lire le fichier <code>Al_dislocation.cfg</code>, et calculera le paramètre de symétrie centrale pour chaque atome. Le résultat final sera écrit dans <code>Al_centrosymm.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --central-symmetry SrTiO3.xsf SrTiO3_centrosymm.cfg -wrap</code>
+<p>Ceci va lire le fichier <code>SrTiO3.xsf</code>, et calculera le paramètre de symétrie centrale pour chaque atome. Le résultat final sera écrit dans <code>SrTiO3_centrosymm.cfg</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

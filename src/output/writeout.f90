@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2014                                     *
+!* Last modification: P. Hirel - 31 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,6 +67,7 @@ USE subroutines
 USE out_atsk
 USE out_bop
 USE out_cfg
+USE out_cel
 USE out_cif
 USE out_dlp_cfg
 USE out_gulp_gin
@@ -260,7 +261,7 @@ ENDIF
 !!Then, write output file
 ! by calling the module corresponding to the output format
 ! Output to several formats is possible
-CALL ATOMSK_MSG(3000,(/TRIM(outputfile)/),(/0.d0/))
+CALL ATOMSK_MSG(3000,(/TRIM(outputfile)/),(/DBLE(SIZE(P,1))/))
 !
 !
 DO i=1,SIZE(outfileformats)
@@ -292,6 +293,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_CFG(H,P,comment,AUXNAMES,AUX,outputfile)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('cel','CEL')
+    CALL NAME_OUTFILE(prefix,outputfile,'cel  ')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_CEL(H,P,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

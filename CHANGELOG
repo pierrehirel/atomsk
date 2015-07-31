@@ -12,15 +12,26 @@ beta 0.9 (in development)
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
 - new option "-neutralize"
+- added support for reading and writing files in CEL format. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this file format.
+- enhanced support for CIF format. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.
+- in mode "--create", added possibility to generate wurtzite lattices.
 - in option "-select", added possibility to read a list of atom indices from a file.
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
+- faster algorithm for neighbor search, based on cell decomposition. Thanks to Srinivasan Mahendran, UMET, Lille, France, for his help with the implementation of this feature.
 - fixed a bug in the displaying of progress bar that slowed down the program.
+- l10n: added the German translations of the messages. Thanks to Juri Barthel, RWTH Aachen, Germany, for translating Atomsk.
+
+
+
+beta 0.8.2 (14 June 2015)
+-------------------------
+- fixed a bug that caused a crash when reading LAMMPS data files that contained fewer atoms than declared.
 
 
 beta 0.8.1 (09 April 2015)
 --------------------------
-- in mode "--create", added possibility to generate L12 lattices. Thanks to J. Amodeo (MATEIS, Lyon, France), for proposing this feature.
-- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to A. Pal (Rensselaer Polytechnic Institute, New York, USA), for reporting this bug.
+- in mode "--create", added possibility to generate L12 lattices. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for proposing this feature.
+- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to Anirban Pal, Rensselaer Polytechnic Institute, New York, USA, for reporting this bug.
 
 
 beta 0.8 (05 Jan. 2015)
@@ -29,7 +40,7 @@ beta 0.8 (05 Jan. 2015)
 - from now on, both 32-bits and 64-bits static binaries will be available for GNU/Linux platforms.
 - new mode "--average" allows to average atom positions over a list of configurations.
 - new mode "--interpolate" allows to generate a chain of configurations between two given configurations.
-- new mode "--nye" allows to compute the Nye tensor. Thanks to P. Carrez (UMET, Lille, France) for implementing this mode.
+- new mode "--nye" allows to compute the Nye tensor. Thanks to Philippe Carrez, UMET, Lille, France, for implementing this mode.
 - new mode "--polycrystal" allows to generate a 2-D or 3-D polycrystal from a unit cell using the Voronoi method. Positions and crystallographic orientations of the grains can be explicitely given, or randomly generated.
 - added support for both reading and writing XMD files (*.xmd).
 - new option "-add-atom" allows to add an atom at given position, or near an existing atom, or add N atoms at random positions.
@@ -80,7 +91,7 @@ beta 0.7.6 (28 March 2014)
 
 beta 0.7.5 (15 March 2014)
 --------------------------
-- fixed a bug that prevented to read some atoms in some CIF files. Thanks to P. Bonfa' (Uni. Parma, Italy) for pointing out this bug.
+- fixed a bug that prevented to read some atoms in some CIF files. Thanks to Pietro Bonfa', Uni. Parma, Italy, for pointing out this bug.
 - fixed a bug that prevented to read some CFG files.
 - fixed a bug that prevented to read some LAMMPS custom files (*.lmc).
 
@@ -88,22 +99,22 @@ beta 0.7.5 (15 March 2014)
 beta 0.7.4 (20 Feb. 2014)
 -------------------------
 - fixed a bug where the force on the first atom would always be zero when reading a file in XSF format.
-- fixed a bug where atoms would not be properly removed if they were at the exact same position in option "-remove-doubles". Thanks to S. Ritterbex (UMET, Lille, France) for pointing out this bug.
+- fixed a bug where atoms would not be properly removed if they were at the exact same position in option "-remove-doubles". Thanks to Sebastian Ritterbex, UMET, Lille, France, for pointing out this bug.
 
 
 beta 0.7.3 (01 Feb. 2014)
 -------------------------
-- fixed a bug where Quantum Espresso PWscf files (*.pw) would not always be read correctly. Thanks to J. Czernek (IMC, Prague, Czech Republic) for pointing out this bug.
-- fixed a bug when the user answered "yes" when prompted for atom sorting when writing POSCAR files: atoms would be sorted but not their auxiliary properties. Thanks to D. Marrocchelli (MIT, Boston, USA) for pointing out this bug.
+- fixed a bug where Quantum Espresso PWscf files (*.pw) would not always be read correctly. Thanks to Jaroslaw Czernek, IMC, Prague, Czech Republic, for pointing out this bug.
+- fixed a bug when the user answered "yes" when prompted for atom sorting when writing POSCAR files: atoms would be sorted but not their auxiliary properties. Thanks to Dario Marrocchelli, MIT, Boston, USA, for pointing out this bug.
 - fixed a bug that was causing a crash when the program prompted which file to use as an input and the user would enter something else than an integer.
 
 
 beta 0.7.2 (16 Nov. 2013)
 -------------------------
-- fixed a bug where oriented unit cells would not always be properly created in mode "--create", when running a 32-bits version of the program. Thanks to P. Carrez (UMET, Lille, France) for pointing out this bug.
+- fixed a bug where oriented unit cells would not always be properly created in mode "--create", when running a 32-bits version of the program. Thanks to Philippe Carrez, UMET, Lille, France, for pointing out this bug.
 - fixed a bug that could cause a segfault in mode "--merge" when files contained auxiliary properties.
 - fixed a bug that could cause a segfault when calling option "-cut" and no selection was defined.
-- fixed a bug where atoms would not be sorted when writing a VASP POSCAR file, when the program was run in French. Thanks to N. Garvik (UMET, Lille, France) for pointing out this bug.
+- fixed a bug where atoms would not be sorted when writing a VASP POSCAR file, when the program was run in French. Thanks to Nils Garvik, UMET, Lille, France, for pointing out this bug.
 
 
 beta 0.7.1 (08 June 2013)
@@ -141,10 +152,10 @@ beta 0.7 (06 April 2013)
 - option "-properties" now allows to read values for any custom auxiliary property from a file.
 - option "-rotate" does not rotate the box anymore if some atoms were previously selected with the option -select, only the selected atoms are rotated. If no selection was defined (i.e. the array SELECT is not allocated, all atoms are selected) then the box is rotated.
 - option "-shear" now allows to specify the applied shear in %.
-- fixed a bug where supercell parameters would not always be read correctly from the INP file when reading a COORAT file. Thanks to D. Di Stefano (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
-- fixed a bug where VASP POSCAR files would be written with a wrong format when writing fractional coordinates. Thanks to D. Di Stefano (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
-- fixed a bug where the position of a dislocation would be incorrect when the dislocation line and the normal to the glide plane were not a permutation of x,y,z. Thanks to P. Carrez and A. Kraych (UMET, Lille, France) for pointing out this bug.
-- fixed a bug where the option "-dislocation" would fail to compute the solutions to the equations of anisotropic elasticity in some cases. Thanks to B. Ziebarth (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed a bug where supercell parameters would not always be read correctly from the INP file when reading a COORAT file. Thanks to Davide Di Stefano, Fraunhofer-IWM, Freiburg, Germany, for pointing out this bug.
+- fixed a bug where VASP POSCAR files would be written with a wrong format when writing fractional coordinates. Thanks to Davide Di Stefano, Fraunhofer-IWM, Freiburg, Germany, for pointing out this bug.
+- fixed a bug where the position of a dislocation would be incorrect when the dislocation line and the normal to the glide plane were not a permutation of x,y,z. Thanks to Philippe Carrez and Antoine Kraych, UMET, Lille, France, for pointing out this bug.
+- fixed a bug where the option "-dislocation" would fail to compute the solutions to the equations of anisotropic elasticity in some cases. Thanks to Benedikt Ziebarth, Fraunhofer-IWM, Freiburg, Germany, for pointing out this bug.
 - fixed a bug where option "-unit" would erroneously scale the atom positions when they are reduced.
 - fixed a bug where the target "make all" would fail to install the code after compiling.
 - fixed bugs where lines would be truncated at the 80th character when writing some file formats, when the code was compiled with Intel Fortran compiler.
@@ -170,8 +181,8 @@ beta 0.6.4 (17 June 2012)
 - mode "--diff" now also outputs a CFG file containing displacements as auxiliary property.
 - when reading COORAT file, if the volume of the cell (instead of lattice parameter alat) is provided in the INP file, pikashu will now read the supercell properly.
 - fixed a bug when reading GULP files where atom species were not followed by "core" nor "shell".
-- fixed a bug where atom velocities were not read from LAMMPS data files (LMP). Thanks to E.M. Kalivoda (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
-- fixed a bug where reduced coordinates would not be detected in some cases, and hence not converted to cartesian coordinates. Thanks to A. Hashibon (Fraunhofer-IWM, Freiburg, Germany) for pointing out this bug.
+- fixed a bug where atom velocities were not read from LAMMPS data files (LMP). Thanks to Eva Marie Kalivoda, Fraunhofer-IWM, Freiburg, Germany, for pointing out this bug.
+- fixed a bug where reduced coordinates would not be detected in some cases, and hence not converted to cartesian coordinates. Thanks to Adham Hashibon, Fraunhofer-IWM, Freiburg, Germany, for pointing out this bug.
 - fixed bugs in the neighbor search algorithms that occured when searching for neighbors in non-orthogonal cells. Performance was also improved, with gains up to 30%.
 
 
@@ -182,7 +193,7 @@ beta 0.6.3 (22 May 2012)
 - mode "--edm" now also outputs positions and polarization vectors in a dat file.
 - added support of auxiliary properties and velocities when reading and writing GULP gin/res files.
 - fixed a bug where the theoretical stresses associated with an edge dislocation (isotropic case) would not be correctly computed.
-- fixed a bug that occured when reading LAMMPS custom files (LMC) that contained non-triclinic boxes which origin was non zero. Thanks to E.M. Kalivoda (Fraunhofer-IWM, Freiburg, Germany) for correcting this bug.
+- fixed a bug that occured when reading LAMMPS custom files (LMC) that contained non-triclinic boxes which origin was non zero. Thanks to Eva Marie Kalivoda, Fraunhofer-IWM, Freiburg, Germany, for correcting this bug.
 - fixed a bug where VASP POSCAR files were not always properly recognized and read.
 - fixed a bug that prevented reading GULP files when the first atom had a fractional coordinate.
 - improved some scripts in /tools/.
@@ -201,7 +212,7 @@ beta 0.6.1 (22 Feb. 2012)
 -------------------------
 - new mode "--all-in-one" allows to read many snapshots and store them in a unique file in XYZ and/or animated XSF formats.
 - new option "-remove-atom" allows to remove one atom according to its index, or all atoms of a given species.
-- added support for both reading and writing of SIESTA XV files. Thanks to E.M. Kalivoda (Fraunhofer-IWM, Freiburg, Germany) for developing these modules.
+- added support for both reading and writing of SIESTA XV files. Thanks to Eva Marie Kalivoda, Fraunhofer-IWM, Freiburg, Germany, for developing these modules.
 - when using mode "--edm" with an ionic core-shell model, the total charge (core+shell) of each ion is now used.
 - the option "-properties" now allows to specify the charges of cores and shells for use with an ionic core-shell model.
 - fixed a bug preventing mode "--all-in-one" to work.
@@ -228,7 +239,7 @@ beta 0.6 (01 Dec. 2011)
 - new option "-create-shells" allows for creating shells for some or all atoms (in the sense of an ionic core-shell model).
 - new option "-fix" allows to fix some atoms in one or all directions of space.
 - new option "-rmprop" allows for removing one or all auxiliary properties.
-- option "-dislocation" can now introduce dislocations using anisotropic elasticity, which is automatically triggered when an elastic tensor is provided thanks to the option "-properties". This option now also computes the theoretical elastic stresses of dislocations and saves them as auxiliary properties. The usage was also changed to make it easier to specify the plane of cut.
+- option "-dislocation" can now introduce dislocations using anisotropic elasticity, which is automatically triggered when an elastic tensor is provided thanks to the option "-properties". Thanks to Matous Mrovec, Fraunhofer-IWM, Freiburg, Germany, for helping with the implementation of this feature. This option now also computes the theoretical elastic stresses of dislocations and saves them as auxiliary properties. The usage was also changed to make it easier to specify the plane of cut.
 - option "-expand" now duplicates the system as a block, adding the new atoms after the ones that already exist. The reason is that it makes the construction of CONFIG files (for DL_POLY) more convenient. This behaviour does not introduce any restriction since options like "-sort" can be used to change the order of atoms.
 - option "-properties" now allows to specify atom charges, atom types, elastic tensor, compliance tensor (Voigt notation or 6x6 tensors).
 - option "-sort" now allows to sort atoms according to one of their auxiliary properties (increasing or decreasing values, or pack).

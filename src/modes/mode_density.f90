@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 April 2015                                    *
+!* Last modification: P. Hirel - 24 June 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -602,9 +602,8 @@ IF( den_type==2 ) THEN
   WRITE(msg,'(f18.3)') MINVAL(P(:,a2))
   WRITE(temp,'(f18.3)') MAXVAL(P(:,a2))
   WRITE(31,*) "set yrange ["//TRIM(ADJUSTL(msg))//":"//TRIM(ADJUSTL(temp))//"]"
-  WRITE(msg,'(f18.3)') MINVAL(DenGrid2(:,:))
-  WRITE(temp,'(f18.3)') 1.1d0*MAXVAL(DenGrid2(:,:))
-  WRITE(31,*) "#set zrange ["//TRIM(ADJUSTL(msg))//":"//TRIM(ADJUSTL(temp))//"]"
+  WRITE(msg,'(f18.3)') MAX ( DABS(MINVAL(DenGrid2(:,:))) , MAXVAL(DenGrid2(:,:)) )
+  WRITE(31,*) "set cbrange [-"//TRIM(ADJUSTL(msg))//":"//TRIM(ADJUSTL(msg))//"]"
   WRITE(31,*) ""
   WRITE(31,*) "### The plot itself"
   WRITE(31,*) "splot '"//TRIM(ADJUSTL(prefix))//"_"//TRIM(ADJUSTL(property))//"_density.dat' using 1:2:3 with pm3d"

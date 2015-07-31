@@ -11,7 +11,7 @@ MODULE in_imd
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 30 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -259,31 +259,31 @@ DO i=1,SIZE(P,1)
   READ(30,'(a128)',ERR=800,END=800) temp3
   READ(temp3,*,ERR=800,END=800) (acol(j), j=1,Ncol)
   id = NINT(acol(idcol))
-  IF( id>SIZE(P,1) ) THEN
-    CALL ATOMSK_MSG(1811,(/''/),(/DBLE(id)/))
-    nerr = nerr+1
-    GOTO 1000
-  ENDIF
-  P(id,1) = acol(xcol)
-  P(id,2) = acol(ycol)
-  IF(zcol.NE.0) P(id,3) = acol(zcol)
-  !Types in IMD start at 0 => add 1
-  P(id,4) = acol(typecol)+1
-  AUX(id,1) = P(id,4)
-  !
-  IF(velocities) THEN
-    !Read velocities
-    AUX(id,2) = acol(vx)
-    AUX(id,3) = acol(vy)
-    AUX(id,4) = acol(vz)
-    !Read mass of atom
-    IF(masscol>0) THEN
-      AUX(id,5) = acol(masscol)
-    ENDIF
+  IF( id<=0 .OR. id>SIZE(P,1) ) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2742,(/""/),(/DBLE(id)/))
   ELSE
-    !Read mass of atom
-    IF(masscol>0) THEN
-      AUX(id,2) = acol(masscol)
+    P(id,1) = acol(xcol)
+    P(id,2) = acol(ycol)
+    IF(zcol.NE.0) P(id,3) = acol(zcol)
+    !Types in IMD start at 0 => add 1
+    P(id,4) = acol(typecol)+1
+    AUX(id,1) = P(id,4)
+    !
+    IF(velocities) THEN
+      !Read velocities
+      AUX(id,2) = acol(vx)
+      AUX(id,3) = acol(vy)
+      AUX(id,4) = acol(vz)
+      !Read mass of atom
+      IF(masscol>0) THEN
+        AUX(id,5) = acol(masscol)
+      ENDIF
+    ELSE
+      !Read mass of atom
+      IF(masscol>0) THEN
+        AUX(id,2) = acol(masscol)
+      ENDIF
     ENDIF
   ENDIF
   !

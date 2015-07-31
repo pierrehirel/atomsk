@@ -263,22 +263,27 @@ DO i=1,NP
   ENDIF
   !
   !Check that the particle id is within the bounds
-  IF(id>NP .OR. id<=0) GOTO 800
+  IF( id<=0 .OR. id>SIZE(P,1) ) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2742,(/""/),(/DBLE(id)/))
+  ELSE
+    !
+    !Set coordinates and spieces for this particle:
+    !Coordinates are always the last three columns
+    !except for styles "dipole" and "hybrid" which we ignore here
+    P(id,1) = column(Ncol-2)
+    P(id,2) = column(Ncol-1)
+    P(id,3) = column(Ncol)
+    P(id,4) = DBLE(atomtype)
+    AUX(id,1) = DBLE(atomtype)
+    IF(molecule) THEN
+      AUX(id,molID) = molID
+    ENDIF
+    IF(q>0) THEN
+      AUX(id,q) = column(1)
+    ENDIF
+  ENDIF
   !
-  !Set coordinates and spieces for this particle:
-  !Coordinates are always the last three columns
-  !except for styles "dipole" and "hybrid" which we ignore here
-  P(id,1) = column(Ncol-2)
-  P(id,2) = column(Ncol-1)
-  P(id,3) = column(Ncol)
-  P(id,4) = DBLE(atomtype)
-  AUX(id,1) = DBLE(atomtype)
-  IF(molecule) THEN
-    AUX(id,molID) = molID
-  ENDIF
-  IF(q>0) THEN
-    AUX(id,q) = column(1)
-  ENDIF
 ENDDO
 !
 !

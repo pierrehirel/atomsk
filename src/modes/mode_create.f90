@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 13 Jan. 2014                                     *
+!* Last modification: P. Hirel - 30 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,6 +111,8 @@ CASE('zi','Zi','zb','ZB')
   create_struc = 'zincblende'
 CASE('na','NA','nt','NT')
   create_struc = 'nanotube'
+CASE('wu','Wu','WU','wz','Wz','WZ')
+  create_struc = 'wurtzite'
 END SELECT
 !
 !Determine if structure is cubic or not
@@ -346,6 +348,45 @@ CASE('dia','diamond','zincblende','zc')
   ELSE
     comment(1) = TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' with zincblende structure'
   ENDIF
+!
+!
+CASE('wurtzite','wz')
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,1) = create_a0(2)*DCOS(DEG2RAD(60.d0))
+  H(2,2) = create_a0(2)*DSIN(DEG2RAD(60.d0))
+  H(3,3) = create_a0(3)
+  !Set up atom positions
+  ALLOCATE(P(4,4))
+  P(:,:) = 0.d0
+  x = 1.d0/3.d0
+  y = 1.d0/3.d0
+  z1 = 0.5d0
+  P(2,1) = x*H(1,1) + y*H(2,1)
+  P(2,2) = y*H(2,2)
+  P(2,3) = z1*H(3,3)
+  z1 = 3.d0/8.d0
+  P(3,3) = z1*H(3,3)
+  x = 1.d0/3.d0
+  y = 1.d0/3.d0
+  z1 = 7.d0/8.d0
+  P(4,1) = x*H(1,1) + y*H(2,1)
+  P(4,2) = y*H(2,2)
+  P(4,3) = z1*H(3,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2:4,4) = P(1,4)
+  IF(nspecies==2) THEN
+    CALL ATOMNUMBER(create_species(2),P(3,4))
+    P(4,4) = P(3,4)
+  ENDIF
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))
+  comment(1) = TRIM(ADJUSTL(comment(1)))//' with wurtzite structure'
 !
 !
 CASE('rocksalt','rs')

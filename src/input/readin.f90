@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Feb. 2015                                     *
+!* Last modification: P. Hirel - 31 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -65,6 +65,7 @@ USE guess_form
 USE in_atsk
 USE in_bop
 USE in_cfg
+USE in_cel
 USE in_cif
 USE in_dlp_cfg
 USE in_gulp_gin
@@ -161,6 +162,8 @@ CASE('bop')
   CALL READ_BOP(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('cfg')
   CALL READ_CFG(inputfile,H,P,comment,AUXNAMES,AUX)
+CASE('cel')
+  CALL READ_CEL(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('cif')
   CALL READ_CIF(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('coo')

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 June 2015                                     *
+!* Last modification: P. Hirel - 30 July 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -129,7 +129,8 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    IF(mode_param(1)=='graphite'.OR. mode_param(1)=='hcp') THEN
+    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp' .OR.            &
+      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'      ) THEN
       !Get lattice constant c
       i=i+1
       m=m+1
