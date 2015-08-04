@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 July 2015                                     *
+!* Last modification: P. Hirel - 03 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -383,9 +383,10 @@ CASE('wurtzite','wz')
   IF(nspecies==2) THEN
     CALL ATOMNUMBER(create_species(2),P(3,4))
     P(4,4) = P(3,4)
+    WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))
+  ELSE
+    WRITE(comment(1),*) TRIM(create_species(1))
   ENDIF
-  !Set up the messages
-  WRITE(comment(1),*) TRIM(create_species(1))
   comment(1) = TRIM(ADJUSTL(comment(1)))//' with wurtzite structure'
 !
 !

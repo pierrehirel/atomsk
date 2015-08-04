@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 July 2015                                     *
+!* Last modification: P. Hirel - 04 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -619,7 +619,7 @@ CASE(11)
   msg = ">>> Construction de la liste de voisins..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(12)
-  msg = ">>> Si vous utilisez Atomsk dans vos travaus, merci de citer l'article suivant :"
+  msg = ">>> Si vous utilisez Atomsk dans vos travaux, merci de citer l'article suivant :"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "    Pierre Hirel, Comput. Phys. Comm. XX (2015) xxxx-xxxx"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1869,7 +1869,7 @@ CASE(2817)
 CASE(3000)
   !reals(1) = number of atoms
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Écriture des fichiers "//TRIM(ADJUSTL(temp))//" atomes):"
+  msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" atomes):"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file
@@ -1978,6 +1978,16 @@ CASE(3709)
 CASE(3710)
   !strings(1) = file format
   msg = "/!\ ALERTE : format '"//TRIM(strings(1))//"' inconnu, abandon..."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3711) ! missing occupancy data for cel file output
+  msg = "/!\ ALERTE : l'occupation des sites est manquante."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            L'occupation sera fixée à 1 pour tous les atomes."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3712) ! missing thermal vibration data for cel file output
+  msg = "/!\ ALERTE : les données de vibration thermique sont manquantes."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            La vibration thermique sera fixée à zéro pour tous les atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES
@@ -2428,7 +2438,7 @@ CASE(4712)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            sans quoi les atomes qui sont en dehors de la boîte pourraient fausser les résultats."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Voulez-vous les remettre dans la boîte maintenant ?"//langyes//"/"//langno//")"
+  msg = "            Voulez-vous les remettre dans la boîte maintenant ? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4713)
   !strings(1) = action to follow if user says "yes"

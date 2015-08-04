@@ -19,6 +19,9 @@ body
  max-width: 500px;
 }
 
+h1
+{font-variant: small-caps;
+}
 a:visited
 {color: magenta;
  text-decoration: none;

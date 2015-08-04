@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 July 2015                                     *
+!* Last modification: P. Hirel - 04 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1928,6 +1928,16 @@ CASE(3709)
 CASE(3710)
   !strings(1) = file format
   msg = "/!\ WARNING: unknown format '"//TRIM(strings(1))//"', skipping..."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3711) ! missing occupancy data for cel file output
+  msg = "/!\ WARNING: occupancy data is missing for CEL output file."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Occupancy of all atoms will be set to 1."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3712) ! missing thermal vibration data for cel file output
+  msg = "/!\ WARNING: thermal vibration data is missing for CEL output file."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Thermal vibration will be set to zero for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

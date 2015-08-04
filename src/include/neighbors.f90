@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 July 2015                                     *
+!* Last modification: P. Hirel - 04 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -293,9 +293,9 @@ ELSE
   !Determine the number of cells needed along each dimension X, Y, Z
   DO i=1,3
     distance = MAXVAL(H(:,i))
-    tempreal = 0.7d0*distance/R
-    IF( distance < 2.d0*R .OR. NINT(tempreal) < 3 ) THEN
-      !Ensure that there is always one cell along any given direction
+    tempreal = 0.9d0*distance/R
+    IF( distance < 2.d0*R .OR. NINT(tempreal) < 2 ) THEN
+      !Ensure that there is always at least one cell along any given direction
       NcellsX(i) = 1
     ELSE
       NcellsX(i) = NINT(tempreal)
@@ -308,7 +308,7 @@ ELSE
   PRINT*, "Cell dimensions: ", Cell_L(1), "x", Cell_L(2), "x", Cell_L(3)
   !
   PRINT*, "(2)"
-  !Allocate each atom to an array
+  !For each atom, find the index of the cell it belongs to
   ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to
   Atom_Cell(:) = 0
   ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
@@ -320,11 +320,11 @@ ELSE
     !Link this atom to the corresponding cell
     !Atom_Cell(i) = Iy + NcellsX(2)*( Ix-1 + NcellsX(1)*(Iz-1) )
     Atom_Cell(i) = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
-    !IF( Atom_Cell(i) > SIZE(Cell_NP) .OR. Atom_Cell(i) <=0) THEN
-    !  PRINT*, Ix, Iy, Iz, "// AtomCell(", i, ") = ", Atom_Cell(i), "/", SIZE(Cell_NP)
-    !ENDIF
-    !IF( Atom_Cell(i)<=0 ) Atom_Cell(i) = 1
-    !IF( Atom_Cell(i)>SIZE(Cell_N) ) Atom_Cell(i) = SIZE(Cell_N)
+    IF( Atom_Cell(i) > SIZE(Cell_NP) .OR. Atom_Cell(i) <=0) THEN
+      PRINT*, Ix, Iy, Iz, "// AtomCell(", i, ") = ", Atom_Cell(i), "/", SIZE(Cell_NP)
+    ENDIF
+    IF( Atom_Cell(i)<=0 ) Atom_Cell(i) = 1
+    IF( Atom_Cell(i)>SIZE(Cell_NP) ) Atom_Cell(i) = SIZE(Cell_NP)
     !Increment number of atoms of this cell
     Cell_NP(Atom_Cell(i)) = Cell_NP(Atom_Cell(i)) + 1
   ENDDO
@@ -352,8 +352,8 @@ ELSE
   !
   PRINT*, "(4)"
   !Make a neighbor list for the cells
-  !Each cell has 3^3 = 27 neighboring cells (including itself)
-  !For each neighboring cell we store its index, and the coordinates of the
+  !For each cell we consider a cube of 3*3*3 = 27 cells (central cell + neighboring cells)
+  !For each of the 27 cells, we store 4 numbers: the cell index, and the coordinates of the
   !appropriate periodic image (in units of box vectors)
   ALLOCATE( Cell_Neigh(Ncells,27,4) )
   Cell_Neigh(:,:,:) = 0
@@ -368,12 +368,12 @@ ELSE
           a1=l
           shift(1) = 0
           IF( a1>NcellsX(1) ) THEN
-            !No cell exist to the right of cell #iCell
+            !No cell exists to the right of cell #iCell
             !The neighboring cell is actually the periodic image of cell #1 shifted by +H(1,:)
             a1 = 1
             shift(1) = 1
           ELSEIF( a1<=0 ) THEN
-            !No cell exist to the left of cell #iCell
+            !No cell exists to the left of cell #iCell
             !The neighboring cell is actually the periodic image of cell #NcellsX(1) shifted by -H(1,:)
             a1 = NcellsX(1)
             shift(1) = -1
@@ -383,12 +383,12 @@ ELSE
             a2=m
             shift(2) = 0
             IF( a2>NcellsX(2) ) THEN
-              !No cell exist on top of cell #iCell
+              !No cell exists on top of cell #iCell
               !The neighboring cell is actually the periodic image of cell #1 shifted by +H(2,:)
               a2 = 1
               shift(2) = 1
             ELSEIF( a2<=0 ) THEN
-              !No cell exist below cell #iCell
+              !No cell exists below cell #iCell
               !The neighboring cell is actually the periodic image of cell #NcellsX(2) shifted by -H(2,:)
               a2 = NcellsX(2)
               shift(2) = -1
@@ -398,12 +398,12 @@ ELSE
               a3=n
               shift(3) = 0
               IF( a3>NcellsX(3) ) THEN
-                !No cell exist in front of cell #iCell
+                !No cell exists in front of cell #iCell
                 !The neighboring cell is actually the periodic image of cell #1 shifted by +H(3,:)
                 a3 = 1
                 shift(3) = 1
               ELSEIF( a3<=0 ) THEN
-                !No cell exist behind cell #iCell
+                !No cell exists behind cell #iCell
                 !The neighboring cell is actually the periodic image of cell #NcellsX(3) shifted by -H(3,:)
                 a3 = NcellsX(3)
                 shift(3) = -1
@@ -435,12 +435,13 @@ ELSE
     iCell = Atom_Cell(i)
     !
     !Parse all 27 cells (=cell #iCell and its neighbors)
-    DO j=1,SIZE(Cell_Neigh,2)
+    DO j=1,27  !SIZE(Cell_Neigh,2)
       !Parse atoms in cell #j (there are Cell_NP(j) atoms in it)
-      DO k=1,Cell_NP(j)
+      DO k=1,Cell_NP(Cell_Neigh(iCell,j,1))
         !Cell_Neigh(iCell,j,1) is the index of the j-th neighboring cell of cell #iCell
         !n = actual index of the k-th atom in that cell
         n = Cell_AtomID( Cell_Neigh(iCell,j,1) , k )
+        !PRINT*, "Cell #", iCell, "/", Ncells, " | Neighbor #", j, " is cell #", k, " | Atom #", n
         !Do not count atom #i as its own neighbor (i.e. n!=i)
         IF( n>0 .AND. n<=SIZE(A,1) .AND. n.NE.i ) THEN
           !Check if this atom was already counted as neighbor
@@ -515,9 +516,9 @@ ENDIF
 !
 IF(ALLOCATED(Nneigh)) DEALLOCATE(Nneigh)
 !
-DO i=1,10   !SIZE(NeighList,1)
-  WRITE(*,'(a6,i4,a1,100i6)') "### Atom #", i, ":", NeighList(i,:)
-ENDDO
+!DO i=1,10   !SIZE(NeighList,1)
+!  WRITE(*,'(a6,i4,a1,100i6)') "### Atom #", i, ":", NeighList(i,:)
+!ENDDO
 IF( ALLOCATED(NeighList) ) THEN
   !If the neighbor list contains only zeros, then no neighbor was found
   !=> deallocate NeighList
@@ -525,6 +526,8 @@ IF( ALLOCATED(NeighList) ) THEN
     DEALLOCATE(NeighList)
   ENDIF
 ENDIF
+!
+PRINT*, "exit NEIGHBOR_LIST"
 !
 !
 END SUBROUTINE NEIGHBOR_LIST

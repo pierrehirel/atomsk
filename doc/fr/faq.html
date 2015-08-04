@@ -29,9 +29,9 @@
 
 <ul>
 
-<li><a href="#" id="genname" class="showLink" onclick="showHide('genname');return false;"><strong>Pourquoi ce programme s'appelle-t-il "<code>atomsk</code>" ?</strong></a></li>
+<li><a href="#" id="genname" class="showLink" onclick="showHide('genname');return false;"><strong>Pourquoi ce programme s'appelle-t-il Atomsk ?</strong></a></li>
 
-<div id="genname-show" class="more"><p>Auparavant ce programme s'appelait <code>pikashu</code>, et bien que je n'accorde pas beaucoup d'importance au nom de ce code j'ai décidé que ce n'était pas assez sérieux. <code>Atomsk</code> est un nom plus simple, et la présence du mot "atome" dans le nom suggère que ce programme sert à manipuler des systèmes atomiques.</p></div>
+<div id="genname-show" class="more"><p>Atomsk signifie <strong>Atom</strong>, <strong>M</strong>olecule, <strong>M</strong>aterial <strong>S</strong>oftware <strong>K</strong>it. C'est un nom assez court, ce qui est pratique quand on le tape régulièrement en ligne de commandes, et la présence du mot "atome" suggère que ce programme sert à manipuler des systèmes atomiques.</p></div>
 
 
 
@@ -39,18 +39,18 @@
 
 <div id="genpurp-show" class="more"><p>Après avoir passé quelque temps à écrire des bouts de code pour construire des systèmes atomiques, on réalise très vite que l'on doit re-programmer les mêmes opérations : construire des super-cellules, remettre les atomes dans la boîte, déformer la boîte, etc. On se retrouve ainsi à copier-coller (ou pire, ré-écrire en partant de rien) les mêmes routines pour différents systèmes (cfc, bcc, diamant...). Par ailleurs, si l'on souhaite utiliser un code de simulation ou de visualisation différent, il est aussi nécessaire de ré-écrire ses programmes pour produire des fichiers respectant le bon format.</p>
 
-<p>J'ai pensé qu'il serait plus efficace d'écrire un code assez général pour réaliser ces opérations basiques dans n'importe quel système, peu importe les espèces chimiques ou le type de réseau, et peu importe les formats des fichiers d'entrée et de sortie. Tel est le but d'<code>atomsk</code>.</p></div>
+<p>J'ai pensé qu'il serait plus efficace d'écrire un code assez général pour réaliser ces opérations basiques dans n'importe quel système, peu importe les espèces chimiques ou le type de réseau, et peu importe les formats des fichiers d'entrée et de sortie. Tel est le but d'Atomsk.</p></div>
 
 
-<li><a href="#" id="genprinc" class="showLink" onclick="showHide('genprinc');return false;"><strong>Quels sont les principes suivis par <code>atomsk</code>?</strong></a></li>
+<li><a href="#" id="genprinc" class="showLink" onclick="showHide('genprinc');return false;"><strong>Quels sont les principes suivis par Atomsk ?</strong></a></li>
 
-<div id="genprinc-show" class="more"><p><code>Atomsk</code> suit deux principes. Le premier stipule que lorsque vous voulez effectuer une tâche simple, elle devrait être simple à effectuer. Un exemple de tâche "simple" est la conversion de fichiers : personne n'a envie de lire une documentation pendant des heures pour comprendre comment convertir un fichier d'un format à un autre. C'est pourquoi dans <code>atomsk</code> il n'y a que les deux informations essentielles à entrer : le nom du fichier à convertir, et le format de fichier de sortie, par exemple :</p>
+<div id="genprinc-show" class="more"><p>Atomsk suit deux principes. Le premier stipule que lorsque vous voulez effectuer une tâche simple, elle devrait être simple à effectuer. Un exemple de tâche "simple" est la conversion de fichiers : personne n'a envie de lire une documentation pendant des heures pour comprendre comment convertir un fichier d'un format à un autre. C'est pourquoi dans Atomsk il n'y a que les deux informations essentielles à entrer : le nom du fichier à convertir, et le format de fichier de sortie, par exemple :</p>
 
 <p><code class="command">atomsk fichier.xsf cfg</code></p>
 
-<p>Un corollaire à ce principe est que si vous voulez faire quelque chose de plus élaboré (construire un système complexe, calculer une certaine propriété...) alors ça ne sera sans doute pas simple à faire. Certains programmes permettent de réaliser des tâches compliquées simplement, mais souvent ce sont des programmes très spécialisés -alors qu'<code>atomsk</code> a pour vocation d'être général et applicable à de nombreux types de systèmes atomiques.</p>
+<p>Un corollaire à ce principe est que si vous voulez faire quelque chose de plus élaboré (construire un système complexe, calculer une certaine propriété...) alors ça ne sera sans doute pas simple à faire. Certains programmes permettent de réaliser des tâches compliquées simplement, mais souvent ce sont des programmes très spécialisés -alors qu'Atomsk a pour vocation d'être général et applicable à de nombreux types de systèmes atomiques.</p>
 
-<p>Le second principe est que lorsqu'on lit une commande d'<code>atomsk</code>, ce qu'elle fait devrait être évident et non-ambigu. Par exemple la commande suivante :</p>
+<p>Le second principe est que lorsqu'on lit une commande d'Atomsk, ce qu'elle fait devrait être évident et non-ambigu. Par exemple la commande suivante :</p>
 
 <p><code class="command">atomsk --create fcc 4.02 Al -duplicate 10 10 4 supercell.xsf</code></p>
 
@@ -59,9 +59,18 @@
 
 
 
-<li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Où peut-on obtenir <code>atomsk</code>?</strong></a></li>
+<li><a href="#" id="gendl" class="showLink" onclick="showHide('gendl');return false;"><strong>Où peut-on obtenir Atomsk ?</strong></a></li>
 
 <div id="gendl-show" class="more"><p>Il est recommandé de visiter <a href="http://atomsk.univ-lille1.fr/fr/">cette page</a> et de télécharger la version exécutable pour votre plate-forme. Vous pouvez aussi télécharger le code source si vous désirez compiler le programme vous-même ou y jeter un &oelig;il.</p></div>
+
+
+<li><a href="#" id="gencite" class="showLink" onclick="showHide('gencite');return false;"><strong>Comment puis-je citer Atomsk?</strong></a></li>
+
+<div id="gencite-show" class="more"><p>Si vous utilisez Atomsk dans votre travail, merci de citer l'article suivant :</p>
+<ul>
+  <li>Pierre Hirel, <em>Comput. Phys. Comm.</em> (2015)</li>
+</ul>
+</div>
 
 </ul>
 
@@ -73,11 +82,11 @@
 <ul>
 
 
-<li><a href="#" id="usetype" class="showLink" onclick="showHide('usetype');return false;"><strong>Quels types de systèmes puis-je construire avec <code>atomsk</code> ?</strong></a></li>
+<li><a href="#" id="usetype" class="showLink" onclick="showHide('usetype');return false;"><strong>Quels types de systèmes puis-je construire avec Atomsk ?</strong></a></li>
 
-<div id="usetype-show" class="more"><p><code>Atomsk</code> a été conçu pour construire et manipuler des systèmes atomiques pour la physique des matériaux. Il propose des outils pour créer des super-cellules, insérer des défauts (lacunes, interstitiels, dislocations, fracture...), et pour lire et écrire des formats de fichiers utilisés couramment dans ce domaine.</p>
+<div id="usetype-show" class="more"><p>Atomsk a été conçu pour construire et manipuler des systèmes atomiques pour la physique des matériaux. Il propose des outils pour créer des super-cellules, insérer des défauts (lacunes, interstitiels, dislocations, fracture...), et pour lire et écrire des formats de fichiers utilisés couramment dans ce domaine.</p>
 
-<p>Bien qu'<code>atomsk</code> supporte des formats de fichiers utilisés couramment dans les domaines de la chimie et de la biologie (DL_POLY, PDB, XYZ...), il n'a pas été conçu pour construire des systèmes moléculaires. <code>Atomsk</code> ne comprend pas les concepts de molécule, de liaison chimique, et il lui manque des outils élémentaires pour construire de tels systèmes (par ex. la solvation).</p></div>
+<p>Bien qu'Atomsk supporte des formats de fichiers utilisés couramment dans les domaines de la chimie et de la biologie (DL_POLY, PDB, XYZ...), il n'a pas été conçu pour construire des systèmes moléculaires. Atomsk ne comprend pas les concepts de molécule, de liaison chimique, et il lui manque des outils élémentaires pour construire de tels systèmes (par ex. la solvation).</p></div>
 
 
 <li><a href="#" id="useprec" class="showLink" onclick="showHide('useprec');return false;"><strong>Quelle est la précision sur les positions atomiques ?</strong></a></li>
@@ -85,7 +94,7 @@
 <div id="useprec-show" class="more"><p>En interne tous les nombres réels sont enregistrés avec une précision de 64 bits. Dans les fichiers de sortie les coordonnées des atomes sont écrites avec une précision de 8 digits. Ceci devrait être suffisant pour la plupart des applications.</p></div>
 
 
-<li><a href="#" id="usenp" class="showLink" onclick="showHide('usenp');return false;"><strong>Quel est le nombre maximum d'atomes que <code>atomsk</code> peut manipuler ?</strong></a></li>
+<li><a href="#" id="usenp" class="showLink" onclick="showHide('usenp');return false;"><strong>Quel est le nombre maximum d'atomes que Atomsk peut manipuler ?</strong></a></li>
 
 <div id="usenp-show" class="more"><p>En principe la limite est celle des entiers codés sur 32 bits (4 octets), soit environ 2 milliards (2<sup>31</sup>), mais dans la pratique il est fort probable que la quantité de mémoire virtuelle disponible sur la machine sera le facteur limitant. Chaque atome est caractérisé par sa position x, y, z, et son numéro atomique, ce qui fait un total de quatre nombres qui sont enregistrés comme des réels 64 bits : au final chaque atome utilise 256 bits, soit 32 octets, de mémoire. Les atomes sont stockés dans un tableau de taille Nx4, où N est le nombre d'atomes. Un système composé d'un million d'atomes occupera donc environ 32 Mo (ou 30,5 Mio) de mémoire, un de 10 millions d'atomes environ 320 Mo, et ainsi de suite. Ainsi pour atteindre les 2 milliards d'atomes vous auriez besoin d'environ 64 Go de mémoire.</p>
 
@@ -94,9 +103,9 @@
 
 <li><a href="#" id="useunit" class="showLink" onclick="showHide('useunit');return false;"><strong>Quelles unités sont utilisées ?</strong></a></li>
 
-<div id="useunit-show" class="more"><p>Par défaut des angstr&ouml;ms, bien que dans la pratique <code>atomsk</code> transfère les nombres d'un fichier à l'autre sans se soucier du système d'unités.
+<div id="useunit-show" class="more"><p>Par défaut des angstr&ouml;ms, bien que dans la pratique Atomsk transfère les nombres d'un fichier à l'autre sans se soucier du système d'unités.
 
-<p>Notez que <code>atomsk</code> n'opère absolument aucune transformation implicite des unités. Par exemple, si vous lisez un fichier contenant des positions atomiques en Bohrs, alors dans le fichier de sortie elles apparaîtront également en Bohrs. Pour changer explicitement les unités il est possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
+<p>Notez que Atomsk n'opère absolument aucune transformation implicite des unités. Par exemple, si vous lisez un fichier contenant des positions atomiques en Bohrs, alors dans le fichier de sortie elles apparaîtront également en Bohrs. Pour changer explicitement les unités il est possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
 
 
 <li><a href="#" id="usenclo" class="showLink" onclick="showHide('usenclo');return false;"><strong>Combien d'options puis-je utiliser dans une même ligne de commandes ?</strong></a></li>
@@ -106,13 +115,13 @@
 
 <li><a href="#" id="useuc" class="showLink" onclick="showHide('useuc');return false;"><strong>Comment puis-je créer une cellule élémentaire ?</strong></a></li>
 
-<div id="useuc-show" class="more"><p><code>atomsk</code> peut générer des cellules élémentaires pour certains réseaux cristallins simples grâce au <a href="./mode_create.html">mode create</a>. Par exemple pour créer une cellule élémentaire d'aluminium cubique à faces centrées (paramètre de maille 4.02 &Aring;) et l'écrire dans le fichier <code>aluminium.xsf</code> :</p>
+<div id="useuc-show" class="more"><p>Atomsk peut générer des cellules élémentaires pour certains réseaux cristallins simples grâce au <a href="./mode_create.html">mode create</a>. Par exemple pour créer une cellule élémentaire d'aluminium cubique à faces centrées (paramètre de maille 4.02 &Aring;) et l'écrire dans le fichier <code>aluminium.xsf</code> :</p>
 
 <p><code class="command">atomsk --create fcc 4.02 Al aluminium.xsf</code></p>
 
 <p>Cependant cette méthode est assez limitée, puisque beaucoup de types de réseau ne peuvent tout simplement pas être générés. Si vous connaissez le groupe d'espace et les positions de Wyckoff du cristal que vous voulez générer, alors le <a href="http://www.cryst.ehu.es/cryst/get_wp.html">Bilbao Crystallographic server</a> peut être extrêmement utile. Certains codes permettent également de générer des structures cristallines, comme <a href="http://jp-minerals.org/vesta/">VESTA</a>, <a href="https://wiki.fysik.dtu.dk/ase/">ASE</a>, ou certains codes de simulation comme <a href="http://xmd.sourceforge.net/">XMD</a> ou <a href="https://nanochemistry.curtin.edu.au/gulp/">GULP</a>.</p>
 
-<p>Il est possible que <code>atomsk</code> intègre ce genre de fonctionnalité dans le futur, mais aucun plan précis n'est prévu pour l'instant.</p></div>
+<p>Il est possible que Atomsk intègre ce genre de fonctionnalité dans le futur, mais aucun plan précis n'est prévu pour l'instant.</p></div>
 
 
 <li><a href="#" id="usesc" class="showLink" onclick="showHide('usesc');return false;"><strong>J'ai une cellule unité, comment puis-je générer une super-cellule ?</strong></a></li>
@@ -127,7 +136,7 @@
 
 <li><a href="#" id="useconv" class="showLink" onclick="showHide('useconv');return false;"><strong>Comment convertir un fichier pour un programme de simulation ou de visualisation ?</strong></a></li>
 
-<div id="useconv-show" class="more"><p>Exécutez <code>atomsk</code> avec le nom du fichier d'entrée et le format de fichier de sortie que vous désirez (voir <a href="./formats.html">cette page</a> pour une liste des formats de fichiers supportés par <code>atomsk</code>). Par exemple, pour convertir le fichier "file.xsf" au format CFG pour Atomeye, exécutez :</p>
+<div id="useconv-show" class="more"><p>Exécutez Atomsk avec le nom du fichier d'entrée et le format de fichier de sortie que vous désirez (voir <a href="./formats.html">cette page</a> pour une liste des formats de fichiers supportés par Atomsk). Par exemple, pour convertir le fichier "file.xsf" au format CFG pour Atomeye, exécutez :</p>
 
 <p><code class="command">atomsk file.xsf cfg</code></p>
 
@@ -137,22 +146,22 @@
 </div>
 
 
-<li><a href="#" id="usecalc" class="showLink" onclick="showHide('usecalc');return false;"><strong>J'ai créé un fichier d'entrée avec <code>atomsk</code>, mais mon code de calcul <em>ab initio</em> ou de dynamique moléculaire n'accepte pas ce fichier ou plante.</strong></a></li>
+<li><a href="#" id="usecalc" class="showLink" onclick="showHide('usecalc');return false;"><strong>J'ai créé un fichier d'entrée avec Atomsk, mais mon code de calcul <em>ab initio</em> ou de dynamique moléculaire n'accepte pas ce fichier ou plante.</strong></a></li>
 
-<div id="usecalc-show" class="more"><p>Bien que l'un des buts de <code>atomsk</code> soit effectivement d'aider à la préparation de fichiers à des fins de simulations, il n'est pas conçu pour préparer tous les fichiers ni tous les paramètres de votre simulation. La plupart du temps <code>atomsk</code> préparera seulement un brouillon que vous devrez éditer avant de lancer une simulation. Éditer un tel fichier signifie que vous devez savoir ce que vous voulez faire et comment le faire avec le code de simulation que vous utilisez. Si ce n'est pas le cas, alors <code>atomsk</code> ne peut pas vous aider : référez-vous à la documentation du code que vous voulez utiliser.</p></div>
+<div id="usecalc-show" class="more"><p>Bien que l'un des buts de Atomsk soit effectivement d'aider à la préparation de fichiers à des fins de simulations, il n'est pas conçu pour préparer tous les fichiers ni tous les paramètres de votre simulation. La plupart du temps Atomsk préparera seulement un brouillon que vous devrez éditer avant de lancer une simulation. Éditer un tel fichier signifie que vous devez savoir ce que vous voulez faire et comment le faire avec le code de simulation que vous utilisez. Si ce n'est pas le cas, alors Atomsk ne peut pas vous aider : référez-vous à la documentation du code que vous voulez utiliser.</p></div>
 
 
-<li><a href="#" id="usescript" class="showLink" onclick="showHide('usescript');return false;"><strong>Est-il possible d'écrire des scripts pour <code>atomsk</code> ?</strong></a></li>
+<li><a href="#" id="usescript" class="showLink" onclick="showHide('usescript');return false;"><strong>Est-il possible d'écrire des scripts pour Atomsk ?</strong></a></li>
 
-<div id="usescript-show" class="more"><p>Oui, il y a trois façons de travailler avec des scripts avec <code>atomsk</code>.</p>
+<div id="usescript-show" class="more"><p>Oui, il y a trois façons de travailler avec des scripts avec Atomsk.</p>
 
-<p>La première et la plus naturelle est d'utiliser des scripts bash (ou batch sous Windows). Les variables définies dans le script bash peuvent être utilisées dans les arguments d'<code>atomsk</code>, puisqu'ils sont interprétés par le shell avant l'exécution du programme. Tous les exemples fournis avec le code dans le dossier "examples" utilisent des scripts bash.</p>
+<p>La première et la plus naturelle est d'utiliser des scripts bash (ou batch sous Windows). Les variables définies dans le script bash peuvent être utilisées dans les arguments d'Atomsk, puisqu'ils sont interprétés par le shell avant l'exécution du programme. Tous les exemples fournis avec le code dans le dossier "examples" utilisent des scripts bash.</p>
 
 <p>Deuxièmement, il est aussi possible d'écrire des options dans un fichier texte, par exemple :</p>
 
 <div class="txtfile">
 <h5>mes_options.txt</h5>
-<p><code># options pour atomsk<br/>
+<p><code># options pour Atomsk<br/>
 duplicate 40 30 1<br/>
 deform x 3% 0.33<br/>
 </code></p></div>
@@ -161,11 +170,11 @@ deform x 3% 0.33<br/>
 
 <p><code class="command">atomsk unitcell.xsf -options mes_options.txt final.xsf</code></p>
 
-<p>Enfin, il est aussi possible d'écrire des "scripts atomsk" et de les faire interpréter par le programme. Cette possibilité est détaillée dans le <a href="./mode_interactive.html">mode interactif</a>.</p>
+<p>Enfin, il est aussi possible d'écrire des "scripts Atomsk" et de les faire interpréter par le programme. Cette possibilité est détaillée dans le <a href="./mode_interactive.html">mode interactif</a>.</p>
 </div>
 
 
-<li><a href="#" id="useverb" class="showLink" onclick="showHide('useverb');return false;"><strong>Je n'aime pas la façon dont <code>atomsk</code> affiche constamment des informations sur mon écran, comment changer cela ?</strong></a></li>
+<li><a href="#" id="useverb" class="showLink" onclick="showHide('useverb');return false;"><strong>Je n'aime pas la façon dont Atomsk affiche constamment des informations sur mon écran, comment changer cela ?</strong></a></li>
 
 <div id="useverb-show" class="more"><p>L'affichage d'informations est le comportement par défaut, une manière pour le programme d'indiquer ce qu'il fait. Ce comportement par défaut peut être changé grâce au <a href="./progbe_verb.html">paramètre de ligne de commande <code>-verbosity</code></a>. Par exemple pour rendre le programme complètement silencieux, appelez-le avec <code>-v 0</code>.</p>
 
@@ -174,9 +183,9 @@ deform x 3% 0.33<br/>
 <p>Notez que même si la verbosité est égale à zéro, les messages d'alerte et d'erreur seront toujours affichés à l'écran. Pour éviter cela, utilisez la redirection standard : <code>&#62;/dev/null 2&#62;&amp;1</code>.</div>
 
 
-<li><a href="#" id="usecrash" class="showLink" onclick="showHide('usecrash');return false;"><strong>J'ai voulu utiliser <code>atomsk</code>, et il a planté.</strong></a></li>
+<li><a href="#" id="usecrash" class="showLink" onclick="showHide('usecrash');return false;"><strong>J'ai voulu utiliser Atomsk, et il a planté.</strong></a></li>
 
-<div id="usecrash-show" class="more"><p>Le programme est censé détecter les causes possibles d'erreurs et se fermer proprement, mais dans certains cas il est possible qu'il se termine brutalement avec une erreur de segmentation ou toute autre forme d'erreur ou de plantage. Dans la plupart des cas cela signifie qu'il y a un bug dans le programme, et ce bug peut être n'importe quoi. La meilleure chose à faire est d'envoyer un email à <a href="./contact.html">l'auteur</a>, avec votre fichier d'entrée et la ligne de commande complète que vous avez utilisée pour exécuter <code>atomsk</code>. Le bug pourra alors être corrigé dans une future version du programme.</p>
+<div id="usecrash-show" class="more"><p>Le programme est censé détecter les causes possibles d'erreurs et se fermer proprement, mais dans certains cas il est possible qu'il se termine brutalement avec une erreur de segmentation ou toute autre forme d'erreur ou de plantage. Dans la plupart des cas cela signifie qu'il y a un bug dans le programme, et ce bug peut être n'importe quoi. La meilleure chose à faire est d'envoyer un email à <a href="./contact.html">l'auteur</a>, avec votre fichier d'entrée et la ligne de commande complète que vous avez utilisée pour exécuter Atomsk. Le bug pourra alors être corrigé dans une future version du programme.</p>
 
 <p>Veuillez notez que si vous pestez contre le programme (ou contre son auteur) mais n'envoyez pas de rapport de bug, il est très improbable que le bug soit jamais corrigé.</p></div>
 
@@ -194,18 +203,18 @@ deform x 3% 0.33<br/>
 
 <div id="instcomp-show" class="more"><p>De nombreux efforts ont été faits pour tester le programme avec différents compilateurs (GNU Fortran, g95, Intel Fortran) et sur différentes plates-formes (différentes variantes de Linux et Windows), référez-vous à la <a href="./install.html">page d'installation</a> pour une liste des compilateurs testés. Cependant pour des raisons évidentes de temps et de ressources, <em>tous</em> les environnements possibles et imaginables n'ont pas été testés -il est donc possible que, dans des cas particuliers, la compilation échoue.</p>
 
-<p>Certaines vieilles versions des compilateurs ne permettent pas de compiler le présent code. Par exemple <code>atomsk</code> <em>ne compilera pas</em> avec GNU Fortran 4.1, mais compile parfaitement avec GNU Fortran 4.4 et supérieur. Il est donc recommandé d'utiliser une version à jour de votre compilateur. Si cela ne fonctionne toujours pas, essayez avec un compilateur différent.</p></div>
+<p>Certaines vieilles versions des compilateurs ne permettent pas de compiler le présent code. Par exemple Atomsk <em>ne compilera pas</em> avec GNU Fortran 4.1, mais compile parfaitement avec GNU Fortran 4.4 et supérieur. Il est donc recommandé d'utiliser une version à jour de votre compilateur. Si cela ne fonctionne toujours pas, essayez avec un compilateur différent.</p></div>
 
 
 <li><a href="#" id="instundef" class="showLink" onclick="showHide('instundef');return false;"><strong>Lors de la compilation j'ai le message d'erreur "<strong>undefined reference to dgesv_</strong>" (ou un message similaire).</strong></a></li>
 
-<div id="instundef-show" class="more"><p>Cela signifie que le compilateur n'a pas réussi à lier <code>atomsk</code> à la bibliothèque LAPACK. Tout d'abord assurez-vous que LAPACK est installé sur votre système, et compilé avec le même compilateur que celui que vous utilisez pour compiler <code>atomsk</code>. Ensuite, assurez-vous que la variable <code>LAPACK</code> (dans le Makefile que vous utilisez) pointe bien vers la bibliothèque LAPACK.</p></div>
+<div id="instundef-show" class="more"><p>Cela signifie que le compilateur n'a pas réussi à lier Atomsk à la bibliothèque LAPACK. Tout d'abord assurez-vous que LAPACK est installé sur votre système, et compilé avec le même compilateur que celui que vous utilisez pour compiler Atomsk. Ensuite, assurez-vous que la variable <code>LAPACK</code> (dans le Makefile que vous utilisez) pointe bien vers la bibliothèque LAPACK.</p></div>
 
 
 
 <li><a href="#" id="instwin" class="showLink" onclick="showHide('instwin');return false;"><strong>Ce programme fonctionne-t-il sur Windows XP, Vista, Seven, 3.1 ou autre ?</strong></a></li>
 
-<div id="instwin-show" class="more"><p>Oui, <code>atomsk</code> fonctionne nativement sur les systèmes Microsoft&reg; Windows&reg;. Le plus simple est de télécharger l'exécutable pour Windows depuis la <a href="http://atomsk.univ-lille1.fr/fr/">page de téléchargement</a>, puis d'exécuter le programme.</p>
+<div id="instwin-show" class="more"><p>Oui, Atomsk fonctionne nativement sur les systèmes Microsoft&reg; Windows&reg;. Le plus simple est de télécharger l'exécutable pour Windows depuis la <a href="http://atomsk.univ-lille1.fr/fr/">page de téléchargement</a>, puis d'exécuter le programme.</p>
 
 <p>Si vous avez le courage de compiler le programme sous Microsoft&reg; Windows&reg;, suivez les <a href="./install.html">instructions d'installation</a>. Il est nécessaire d'installer le programme <a href="http://gnuwin32.sourceforge.net/">GNU Make</a> pour pouvoir utiliser la commande "<code>make</code>", ainsi qu'un compilateur Fortran 95 (<a href="http://www.mingw.org/">MinGW</a> est recommandé). La bibliothèque LAPACK doit aussi être installée, référez-vous à <a href="http://gcc.gnu.org/wiki/LAPACK%20on%20Windows">cette page (GNU Fortran)</a> et/ou <a href="http://icl.cs.utk.edu/lapack-for-windows/">cette page (Intel&reg; Fortran)</a>. Un Makefile pour Windows est fourni dans le dossier <em>src</em> (<code>Makefile.windows</code>), vous pouvez l'éditer pour l'adapter à votre système. Ensuite exécutez GNU make :</p>
 
@@ -216,18 +225,18 @@ deform x 3% 0.33<br/>
 
 <li><a href="#" id="instbin" class="showLink" onclick="showHide('instbin');return false;"><strong>Pouvez-vous fournir un paquet (rpm, deb...) pour ma distribution GNU/Linux préférée ?</strong></a></li>
 
-<div id="instbin-show" class="more"><p>Non. J'admets qu'il serait très utile d'avoir un paquet <code>atomsk</code>, mais n'ai pas le temps ni le savoir-faire pour en créer. Mais si des volontaires veulent packager atomsk, ils sont bienvenus.</p>
+<div id="instbin-show" class="more"><p>Non. J'admets qu'il serait très utile d'avoir un paquet Atomsk, mais n'ai pas le temps ni le savoir-faire pour en créer. Mais si des volontaires veulent packager Atomsk, ils sont bienvenus.</p>
 
 <p>La plus simple alternative est sans doute d'utiliser la version binaire pour Linux proposée sur la <a href="http://atomsk.univ-lille1.fr/fr/">page Web d'Atomsk</a>.</p></div>
 
 
 <li><a href="#" id="instlinux" class="showLink" onclick="showHide('instlinux');return false;"><strong>Sous Linux, pourquoi le programme s'installe-t-il dans <em>/usr/local/bin</em> par défaut ?</strong></a></li>
 
-<div id="instlinux-show" class="more"><p>Les gestionnaires de paquets de la plupart des distributions GNU/Linux travaillent dans le dossier  <em>/usr/bin</em>. Il est donc recommandé de ne pas modifier manuellement le contenu de ce dossier -c'est pourquoi <code>atomsk</code> n'y touche pas. Le dossier <em>/usr/local/bin</em> est prévu pour recevoir des programmes ajoutés par l'utilisateur (comme <code>atomsk</code>).</p>
+<div id="instlinux-show" class="more"><p>Les gestionnaires de paquets de la plupart des distributions GNU/Linux travaillent dans le dossier  <em>/usr/bin</em>. Il est donc recommandé de ne pas modifier manuellement le contenu de ce dossier -c'est pourquoi Atomsk n'y touche pas. Le dossier <em>/usr/local/bin</em> est prévu pour recevoir des programmes ajoutés par l'utilisateur (comme Atomsk).</p>
 
-<p>Une autre possibilité serait d'installer <code>atomsk</code> dans le dossier <em>/opt/bin</em>, qui est aussi réservé pour des programmes non gérés par le système. Pour cela vous pouvez modifier la variable <code>INSTPATH</code> dans le <code>Makefile</code> que vous utilisez, avant d'utiliser la commande "<code>make install</code>".</p>
+<p>Une autre possibilité serait d'installer Atomsk dans le dossier <em>/opt/bin</em>, qui est aussi réservé pour des programmes non gérés par le système. Pour cela vous pouvez modifier la variable <code>INSTPATH</code> dans le <code>Makefile</code> que vous utilisez, avant d'utiliser la commande "<code>make install</code>".</p>
 
-<p>Si vous n'êtes pas sûr de la meilleure solution pour votre système, utilisez les paramètres par défaut fournis avec <code>atomsk</code> ou demandez à votre administrateur système.</p></div>
+<p>Si vous n'êtes pas sûr de la meilleure solution pour votre système, utilisez les paramètres par défaut fournis avec Atomsk ou demandez à votre administrateur système.</p></div>
 
 </ul>
 
@@ -242,12 +251,12 @@ deform x 3% 0.33<br/>
 
 <li><a href="#" id="devcloc" class="showLink" onclick="showHide('devcloc');return false;"><strong>Combien de lignes de codes contient le code source ?</strong></a></li>
 
-<div id="devcloc-show" class="more"><p>Dans sa version Beta 0.8 <code>atomsk</code> comporte environ 27 000 lignes de code, et 17 000 lignes de commentaires.</p></div>
+<div id="devcloc-show" class="more"><p>Dans sa version Beta 0.8 Atomsk comporte environ 27 000 lignes de code, et 17 000 lignes de commentaires.</p></div>
 
 
 <li><a href="#" id="devgui" class="showLink" onclick="showHide('devgui');return false;"><strong>Y aura-t-il une interface graphique (GUI) ?</strong></a></li>
 
-<div id="devgui-show" class="more"><p>Certaines personnes sont plus enclines à utiliser une interface avec des fenêtres et des menus déroulants, au lieu d'un terminal austère. Ils seront sans doute déçus par <code>atomsk</code>. Ce programme est conçu pour être utilisé en ligne de commande, ce qui signifie qu'il doit être léger et rapide, doit pouvoir être utilisé sur des machines distantes, et pouvoir être appelé depuis des scripts bash. Il est difficile de remplir ce cahier des charges avec une interface graphique. Donc la réponse courte est non : il n'y a aucune interface graphique de prévue pour <code>atomsk</code>. Si vous n'aimez pas les lignes de commandes et recherchez un programme avec une interface graphique, alors <code>atomsk</code> n'est probablement pas ce que vous cherchez.</p></div>
+<div id="devgui-show" class="more"><p>Certaines personnes sont plus enclines à utiliser une interface avec des fenêtres et des menus déroulants, au lieu d'un terminal austère. Ils seront sans doute déçus par Atomsk. Ce programme est conçu pour être utilisé en ligne de commande, ce qui signifie qu'il doit être léger et rapide, doit pouvoir être utilisé sur des machines distantes, et pouvoir être appelé depuis des scripts bash. Il est difficile de remplir ce cahier des charges avec une interface graphique. Donc la réponse courte est non : il n'y a aucune interface graphique de prévue pour Atomsk. Si vous n'aimez pas les lignes de commandes et recherchez un programme avec une interface graphique, alors Atomsk n'est probablement pas ce que vous cherchez.</p></div>
 
 
 
@@ -258,7 +267,7 @@ deform x 3% 0.33<br/>
 
 <li><a href="#" id="devlang" class="showLink" onclick="showHide('devlang');return false;"><strong>Pourquoi ce programme est-il écrit en Fortran et pas en Python/C/C++/Java/&#60;mon langage préféré&#62; ?!?</strong></a></li>
 
-<div id="devlang-show" class="more"><p>En premier lieu parce que Fortran est le langage de programmation que je connais le mieux. <em>A posteriori</em> je ne regrette pas ce choix : Fortran peut manipuler des nombres complexes de manière simple, et s'interface naturellement avec LAPACK (une bibliothèque également écrite en Fortran). Mais puisque <code>atomsk</code> est un logiciel libre, le ré-écrire dans un autre langage fait partie de vos droits.</p></div>
+<div id="devlang-show" class="more"><p>En premier lieu parce que Fortran est le langage de programmation que je connais le mieux. <em>A posteriori</em> je ne regrette pas ce choix : Fortran peut manipuler des nombres complexes de manière simple, et s'interface naturellement avec LAPACK (une bibliothèque également écrite en Fortran). Mais puisque Atomsk est un logiciel libre, le ré-écrire dans un autre langage fait partie de vos droits.</p></div>
 
 </ul>
 

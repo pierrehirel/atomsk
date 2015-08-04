@@ -6,12 +6,11 @@ MODULE messages_DE
 !* This module contains the GERMAN                                                *
 !* version of the messages displayed by the atomsk program.                       *
 !**********************************************************************************
-!* (C) October 2014 - Pierre Hirel                                                *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
-!*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2014                                     *
-!*                    J. Barthel - 21 July 2015 (new & translation of old text)   *
+!* (C) July 2015 - Juri Barthel                                                   *
+!*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
+!*     RWTH Aachen (GERMANY)                                                      *
+!*     ju.barthel@fz-juelich.de                                                   *
+!* Last modification: P. Hirel - 04 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -524,6 +523,11 @@ CASE(10)
   ENDIF
 CASE(11)
   msg = ">>> Konstruiere Nachbarliste..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(12)
+  msg = ">>> Wenn Sie Atomsk in Ihrer Arbeit nutzen, bitte zietieren Sie den folgenden Artikel:"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    Pierre Hirel, Comput. Phys. Comm. XX (2015) xxxx-xxxx"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNUNG MESSAGES
@@ -1731,7 +1735,7 @@ CASE(2816)
 CASE(3000)
   !reals(1) = number of atoms
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Schreibe Ausgabedatei(en) ("//TRIM(ADJUSTL(temp))//" atoms):"
+  msg = ">>> Schreibe Ausgabedatei(en) ("//TRIM(ADJUSTL(temp))//" Atomen):"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file

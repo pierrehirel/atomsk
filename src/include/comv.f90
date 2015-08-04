@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.9-2015.07.31' !Version of the program
+CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.9-2015.08.04' !Version of the program
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !
@@ -57,9 +57,9 @@ INTEGER:: verbosity          !level of verbosity of the program
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are made available
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(18),PARAMETER:: listofformats =                             &
-& (/'atsk ','bop  ','cfg  ','cif  ','coo  ','dlp  ','gin  ','imd  ','lmp  ','mol  ',   &
-&   'pos  ','pw   ','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '                    &
+CHARACTER(LEN=5),DIMENSION(19),PARAMETER:: listofformats =                             &
+& (/'atsk ','bop  ','cfg  ','cif  ','cel  ','coo  ','dlp  ','gin  ','imd  ','lmp  ',   &
+&   'mol  ','pos  ','pw   ','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '            &
 & /)
 !
 END MODULE comv
