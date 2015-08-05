@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 June 2015                                     *
+!* Last modification: P. Hirel - 05 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -90,6 +90,7 @@ USE shift
 USE sort
 USE stress
 USE substitute
+USE swap
 USE unit
 USE unskew
 USE velocity
@@ -229,6 +230,9 @@ REAL(dp):: stress                !value of applied stress (GPa)
 !
 !Variables relative to Option: substitute
 CHARACTER(LEN=3):: sp1, sp2
+!
+!Variables relative to Option: swap
+INTEGER,DIMENSION(2):: swap_id  !indices of atoms to swap
 !
 !Variables relative to Option: unit
 CHARACTER(LEN=16):: unit1, unit2
@@ -873,6 +877,10 @@ DO ioptions=1,SIZE(options_array)
   CASE('-substitute', '-sub')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sp1, sp2
     CALL SUBSTITUTE_XYZ(P,S,sp1,sp2,SELECT)
+  !
+  CASE('-swap')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, swap_id(1), swap_id(2)
+    CALL SWAP_XYZ(P,S,AUX,swap_id)
   !
   CASE('-unit', '-u')
     READ(options_array(ioptions),'(a128)',END=800,ERR=800) temp  !optionname, unit1, unit2

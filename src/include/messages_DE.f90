@@ -323,6 +323,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-sub") THEN
   WRITE(*,*) "..> Ersetze Atomsorte sp1 durch Sorte sp2:"
   WRITE(*,*) "          -sub <sp1> <sp2>"
+!
+IF(helpsection=="options" .OR. helpsection=="-swap") THEN
+  WRITE(*,*) "..> Vertauschen zwei Atomen:"
+  WRITE(*,*) "          -swap <id1> <id2>"
+ENDIF
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-unit" .OR. helpsection=="-u") THEN
@@ -1503,6 +1508,16 @@ CASE(2124)
     msg = ">>> Wende den Spannungszustand aus der Datei "// &
         & TRIM(ADJUSTL(temp))//" an."
   END SELECT
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2125)
+  !reals(1) = index of first atom
+  !reals(2) = index of second atom
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Tauschen die Atomen #"//TRIM(ADJUSTL(temp))//" und #"//TRIM(ADJUSTL(temp2))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2126)
+  msg = "..> Atomen wurden vertauschen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES

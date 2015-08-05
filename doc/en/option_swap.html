@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option swap - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: swap</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-swap &#60;id1&#62; &#60;id2&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This will swap the positions of the two atoms of the given indices.</p>
+
+<p>If shells (in the sens of an ionic core-shell model) and/or auxiliary properties are defined, then they will also be swapped.</p>
+
+
+<h4>Default</h4>
+
+<p>By default no atom is swapped.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -swap 530 1065 final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, and exchange the positions and all properties of atoms 530 and 1065. The final result will be written into <code>final.xsf</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

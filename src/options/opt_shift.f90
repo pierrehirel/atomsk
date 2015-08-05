@@ -5,13 +5,12 @@ MODULE shift
 !**********************************************************************************
 !* This module reads cartesian coordinates from an array and                      *
 !* shifts atoms that are above (or below) a given plane.                          *
-!* Then it outputs the result in a XYZ file.                                      *
 !**********************************************************************************
 !* (C) March 2010 - Pierre Hirel                                                  *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 04 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

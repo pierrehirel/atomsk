@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Aug. 2015                                     *
+!* Last modification: P. Hirel - 05 Aug. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1259,6 +1259,18 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF(LEN_TRIM(temp)>3) GOTO 120
+  !
+  ELSEIF(clarg=='-swap') THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) m
+    WRITE(temp,*) m
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) m
+    WRITE(temp,*) m
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-unit' .OR. clarg=='-u') THEN
     ioptions = ioptions+1

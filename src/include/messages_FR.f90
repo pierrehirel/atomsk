@@ -367,6 +367,11 @@ IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-su
   WRITE(*,*) "          -sub <sp1> <sp2>"
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-swap") THEN
+  WRITE(*,*) "..> Échanger les indices de deux atomes :"
+  WRITE(*,*) "          -swap <id1> <id2>"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-unit" .OR. helpsection=="-u") THEN
   WRITE(*,*) "..> Changer l'unité de distance :"
   WRITE(*,*) "          -u <unit1> <unit2>"
@@ -1638,6 +1643,16 @@ CASE(2124)
   CASE DEFAULT
     msg = ">>> Application de l'état de contrainte défini dans "//TRIM(ADJUSTL(temp))//"."
   END SELECT
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2125)
+  !reals(1) = index of first atom
+  !reals(2) = index of second atom
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Échange des atomes #"//TRIM(ADJUSTL(temp))//" et #"//TRIM(ADJUSTL(temp2))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2126)
+  msg = "..> Les atomes ont été échangés."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
