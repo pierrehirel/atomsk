@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2014                                     *
+!* Last modification: P. Hirel - 22 Sept. 2015                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -195,27 +195,37 @@ DO
     IF( line(1:3)=="box" ) THEN
       !Read size of the final box
       READ(line(4:),*,END=800,ERR=800) P1, P2, P3
-      !Set box vectors
+      !Set final box vectors
       H(:,:) = 0.d0
       H(1,1) = P1
       H(2,2) = P2
       H(3,3) = P3
-      !If the user provided a unit cell (and not a supercell), and
-      !if the final box is smaller than 2 times the unit cell along one dimension,
-      !then consider that it is a 2-D system and use 2-D Voronoi construction
-      IF( .NOT.ANY( H(:,:)>20.d0) .OR. SIZE(Puc,1)<100 ) THEN
-        !It is a small unit cell
-        IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) ) THEN
-          twodim = 1
-          H(1,1) = Huc(1,1)
-        ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) ) THEN
-          twodim = 2
-          H(2,2) = Huc(2,2)
-        ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
-          twodim = 3
-          H(3,3) = Huc(3,3)
-        ENDIF
+      IF( SIZE(Puc,1)<100 .OR. ANY(H(:,:)<20.d0) ) THEN
+        !The user provided a small cell (<100 atoms), or asked for a final cell with a small dimension (<20A)
+        !=> If the final box is smaller than 2 times the unit cell along one dimension,
+        !   then consider that it is a 2-D system and use 2-D Voronoi construction
+        DO i=1,3
+          IF( H(i,i)<2.1d0*VECLENGTH(Huc(i,:)) ) THEN
+            !The final box is "small" along this dimension
+            twodim = i
+            !Make sure that the final box dimension matches the unit cell length
+            H(i,i) = Huc(i,i)
+          ENDIF
+        ENDDO
       ENDIF
+!       IF( SIZE(Puc,1)<100 .OR. ANY( H(:,:)<20.d0) ) THEN
+!         !It is a small unit cell
+!         IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) ) THEN
+!           twodim = 1
+!           H(1,1) = Huc(1,1)
+!         ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) ) THEN
+!           twodim = 2
+!           H(2,2) = Huc(2,2)
+!         ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
+!           twodim = 3
+!           H(3,3) = Huc(3,3)
+!         ENDIF
+!       ENDIF
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       Hset=.TRUE.

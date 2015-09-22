@@ -1,10 +1,10 @@
-This is the atomsk package.
+This is the Atomsk package.
 
-atomsk stands for Atom/Molecule/Material Software Kit.
+Atomsk stands for Atom/Molecule/Material Software Kit.
 
 PURPOSE:
 ========
-atomsk is a command-line program meant to manipulate
+Atomsk is a command-line program meant to manipulate
 atomic systems, and convert from and to various file formats.
 
 QUICK START:
