@@ -2,13 +2,18 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-beta 0.8.2 (in development)
----------------------------
+beta 0.8.3 (22 Sept. 2015)
+--------------------------
+-fixed a bug in mode "--polycrystal" where it was not possible to construct a 2-D polycrystal when the seed had at least one dimension greater than 20 A. Thanks to Jianyang Wu, Xiamen University, China, for pointing out this bug.
+
+
+beta 0.8.2 (14 June 2015)
+-------------------------
 - fixed a bug that caused a crash when reading LAMMPS data files that contained fewer atoms than declared.
 
 
-beta 0.8.1 (in development)
----------------------------
+beta 0.8.1 (9 April 2015)
+-------------------------
 - in mode "--create", added possibility to generate L12 lattices. Thanks to J. Amodeo, MATEIS, Lyon, France, for proposing this feature.
 - fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to A. Pal, Rensselaer Polytechnic Institute, New York, USA, for reporting this bug.
 
