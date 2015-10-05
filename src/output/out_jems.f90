@@ -1,18 +1,18 @@
-MODULE out_cel
+MODULE out_jems
 !
 !
 !**********************************************************************************
-!*  OUT_CEL                                                                       *
+!*  OUT_JEMS                                                                      *
 !**********************************************************************************
-!* This module writes a Dr. Probe super-cell structure definition file (CEL).     *
-!* The CEL format is used by the TEM simulation software Dr. Probe and described  *
+!* This module writes a crystal structure for JEMS.                               *
+!* The JEMS format is used by the TEM simulation software JEMS, and is described  *
 !* on the software website:                                                       *
-!*     http://www.er-c.org/barthel/drprobe/celfile.html                           *
+!*     http://www.jems-saas.ch/                                                   *
 !**********************************************************************************
-!* (C) July 2015 - Juri Barthel                                                   *
-!*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
-!*     RWTH Aachen (GERMANY)                                                      *
-!*     ju.barthel@fz-juelich.de                                                   *
+!* (C) October 2015 - Pierre Hirel                                                *
+!*     Unité Matériaux Et Transformations (UMET),                                 *
+!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
@@ -42,7 +42,7 @@ IMPLICIT NONE
 !
 CONTAINS
 !
-SUBROUTINE WRITE_CEL(H,P,comment,AUXNAMES,AUX,outputfile)
+SUBROUTINE WRITE_JEMS(H,P,comment,AUXNAMES,AUX,outputfile)
 !
 REAL(dp),PARAMETER :: r2d = 180.d0/pi
 CHARACTER(LEN=*),INTENT(IN):: outputfile
@@ -51,17 +51,17 @@ CHARACTER(LEN=5):: zone
 CHARACTER(LEN=8):: date
 CHARACTER(LEN=10):: time
 CHARACTER(LEN=16):: month, smonth
-CHARACTER(LEN=4096):: msg, tempt, temp, tempocc, tempbiso
+CHARACTER(LEN=128):: temp1, temp2, temp3
+CHARACTER(LEN=1096):: msg, tempi, temp, tempabs, tempocc, tempdw
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 INTEGER:: i, iaux
-INTEGER:: occ
-INTEGER:: biso
+INTEGER:: absorption, occ, dw
 INTEGER:: Naux, NP
 INTEGER,DIMENSION(8):: values
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
-REAL(dp):: P1, P2, P3, PO, PB
-REAL(dp):: smass_tot !mass of the compound
+REAL(dp):: P1, P2, P3, PA, PO, PB
+REAL(dp):: snumber
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: G   !Invert of H
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
@@ -69,23 +69,21 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
 !Initialize variables
-CALL INVMAT(H,G)
-Naux = 0
-IF (ALLOCATED(AUX).AND.ALLOCATED(AUXNAMES)) THEN ! Get number of auxiliary properties
-  Naux = SIZE(AUX,2) ! ? Redundant but maybe better MIN(SIZE(AUX,2),SIZE(AUXNAMES))
-ENDIF
 occ = 0 ! no occupancy information by default
-biso = 0 ! no thermal vibration information by default
-PO = 1.0d+0 ! 1.0 occupancy of each atomic site by default
-PB = 0.0d+0 ! 0.0 thermal vibration parameter (Biso) by default
+dw = 0 ! no thermal vibration information by default
+PA = 0.03d0 ! Default absorption coefficient
+PO = 1.0d0  ! Default occupancy of each atomic site
+PB = 0.0d0  ! Default Debye-Waller parameter
 NP = SIZE(P,1)
-IF (Naux>0) THEN
-  DO iaux=1, Naux
+IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+  DO iaux=1,SIZE(AUXNAMES)
     SELECT CASE(TRIM(AUXNAMES(iaux)))
     CASE("occ")
       occ = iaux
     CASE("Debye-Waller")
-      biso = iaux
+      dw = iaux
+    CASE("absorption")
+      absorption = iaux
     ENDSELECT
   ENDDO
 END IF
@@ -95,13 +93,13 @@ IF (occ<=0) THEN
   nwarn = nwarn+1
   CALL ATOMSK_MSG(3711,(/''/),(/0.d0/))
 ENDIF
-IF (biso<=0) THEN
+IF (dw<=0) THEN
   nwarn = nwarn+1
   CALL ATOMSK_MSG(3712,(/''/),(/0.d0/))
 ENDIF
 !
 !
-msg = 'entering WRITE_CEL'
+msg = 'entering WRITE_JEMS'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
@@ -109,55 +107,62 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 100 CONTINUE
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
 !
-!
-!Prepare a time stamp
-CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
-CALL INT2MONTH(VALUES(2),month,smonth)
-WRITE(msg,'(i2,a2,i4)') VALUES(3), ", ", VALUES(1)
-WRITE(tempt,*) TRIM(smonth)//" "//TRIM(ADJUSTL(msg))
-!
-!Write a comment in the first line
-WRITE(40,'(a)') comment(1)
+! Write header of JEMS file
+WRITE(40,'(a)') "file|"//TRIM(ADJUSTL(outputfile))
+WRITE(40,'(a16)') "system|triclinic"
+WRITE(40,'(a21)') "HMSymbol|1|1|0|0| P 1"
+WRITE(40,'(a16)') "rps|0| x , y , z"
 !
 !Write cell vectors (conventional notation, size in nm, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
-WRITE(temp,'(6(f8.4,2X))') a,b,c,alpha*r2d,beta*r2d,gamma*r2d
-WRITE(40,'(a)') " 0  "//TRIM(ADJUSTL(temp))
+WRITE(temp,'(f16.4)') a
+WRITE(40,'(a)') "lattice|0|"//TRIM(ADJUSTL(temp))
+WRITE(temp,'(f16.4)') b
+WRITE(40,'(a)') "lattice|1|"//TRIM(ADJUSTL(temp))
+WRITE(temp,'(f16.4)') c
+WRITE(40,'(a)') "lattice|2|"//TRIM(ADJUSTL(temp))
+WRITE(temp,'(f16.4)') alpha*r2d
+WRITE(40,'(a)') "lattice|3|"//TRIM(ADJUSTL(temp))
+WRITE(temp,'(f16.4)') beta*r2d
+WRITE(40,'(a)') "lattice|4|"//TRIM(ADJUSTL(temp))
+WRITE(temp,'(f16.4)') gamma*r2d
+WRITE(40,'(a)') "lattice|5|"//TRIM(ADJUSTL(temp))
 !
+!Invert matrix of cell vectors
+CALL INVMAT(H,G)
 !
 !Write atom site list
 DO i=1,SIZE(P,1)
+  WRITE(tempi,*) i-1  !JEMS starts counting at zero, not 1
   ! Get species string
   CALL ATOMSPECIES(P(i,4),species)
   ! Prepare string with fractional x,y,z atom position in the cell
   P1 = P(i,1)
   P2 = P(i,2)
   P3 = P(i,3)
-  WRITE(temp,'(3(f9.6,1X))')  P1*G(1,1) + P2*G(2,1) + P3*G(3,1),     &
-                           &  P1*G(1,2) + P2*G(2,2) + P3*G(3,2),     &
-                           &  P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
+  WRITE(temp1,'(f16.4)')  P1*G(1,1) + P2*G(2,1) + P3*G(3,1)
+  WRITE(temp2,'(f16.4)')  P1*G(1,2) + P2*G(2,2) + P3*G(3,2)
+  WRITE(temp3,'(f16.4)')  P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
   ! add strings of auxiliary properties to temp
   IF (occ>0) PO = AUX(i,occ)
   WRITE(tempocc,'(f9.6)') PO
-  IF (biso>0) PB = AUX(i,biso)
-  WRITE(tempbiso,'(f9.6)') PB
-  ! combine the strings and add 3 not used entries
-  WRITE(temp,*) species//'  '//TRIM(ADJUSTL(temp))//'  '//           &
-              & TRIM(ADJUSTL(tempocc))//'  '//                       &
-              & TRIM(ADJUSTL(tempbiso))//                            &
-              & '  0.000000  0.000000  0.000000'
-  ! write to file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  IF (dw>0) PB = AUX(i,dw)
+  WRITE(tempdw,'(f9.6)') PB
+  IF (absorption>0) PA = AUX(i,dw)
+  WRITE(tempabs,'(f9.6)') PA
+  !
+  !Format:  atom|i|XX,a,x,y,z,Debye-Waller,occupancy,absorption
+  !Example: atom|0|Ga,a,0.0000,0.0000,0.0000,0.0050,1.0000,0.0520
+  WRITE(40,'(a)') "atom|"//TRIM(ADJUSTL(tempi))//"|"//TRIM(species)//",a,"//         &
+                & TRIM(ADJUSTL(temp1))//","//TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))// &
+                & ","//TRIM(ADJUSTL(tempdw))//","//TRIM(ADJUSTL(tempocc))//","//TRIM(ADJUSTL(tempabs))
 ENDDO
-!
-!Write end line
-WRITE(40,'(a1)') "*"
 !
 !
 !
 200 CONTINUE
 CLOSE(40)
-msg = "CEL"
+msg = "JEMS"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 GOTO 1000
@@ -172,6 +177,6 @@ nerr=nerr+1
 1000 CONTINUE
 !
 !
-END SUBROUTINE WRITE_CEL
+END SUBROUTINE WRITE_JEMS
 !
-END MODULE out_cel
+END MODULE out_jems

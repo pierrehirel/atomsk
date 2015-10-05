@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Aug. 2015                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -413,6 +413,7 @@ WRITE(*,*) "    dd  (ddplot)            |    no  | yes (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   yes  |  yes"
 WRITE(*,*) "    gin (GULP input)        |   yes  |  yes"
 WRITE(*,*) "    imd (IMD input)         |   yes  |  yes"
+WRITE(*,*) "    jems (JEMS input)       |    no  |  yes"
 WRITE(*,*) "    lmc (LAMMPS output)     |   yes  |   no"
 WRITE(*,*) "    lmp (LAMMPS data)       |   yes  |  yes"
 WRITE(*,*) "    mol (MOLDY format)      |   yes  |  yes"
@@ -442,17 +443,18 @@ END SUBROUTINE DISPLAY_HELP_EN
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE(VALUES,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE(VALUES,formula,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
+CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = '# File generated with Atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
+msg = TRIM(ADJUSTL(formula))//' - File generated with Atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
 !
 END SUBROUTINE ATOMSK_CREATE_DATE
 !
@@ -566,9 +568,7 @@ CASE(10)
     temp = ""
     IF(reals(1)<100.d0) THEN
       IF( reals(1) >=50.d0 ) THEN
-        IF(reals(1)>=100.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [====================]"
-        ELSEIF(reals(1)>=95.d0) THEN
+        IF(reals(1)>=95.d0) THEN
           temp = TRIM(ADJUSTL(temp2))//"% [===================>]"
         ELSEIF(reals(1)>=90.d0) THEN
           temp = TRIM(ADJUSTL(temp2))//"% [==================> ]"
@@ -617,15 +617,16 @@ CASE(10)
       !
       temp = " "//TRIM(temp)
       !
-      !Display the progress bar
+      !Remove previous 27 characters on the line
       DO i=1,27
         WRITE(*,'(a1)',ADVANCE="NO") CHAR(8)
       ENDDO
-      !
+      !Display the progress bar
       WRITE(*,'(a)',ADVANCE="NO") TRIM(temp)
       !
     ELSE
-      WRITE(*,*) ''
+      temp = TRIM(ADJUSTL(temp2))//"% [====================]"
+      WRITE(*,*) TRIM(temp)
     ENDIF
     !
   ENDIF
@@ -1944,15 +1945,16 @@ CASE(3710)
   !strings(1) = file format
   msg = "/!\ WARNING: unknown format '"//TRIM(strings(1))//"', skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
-CASE(3711) ! missing occupancy data for cel file output
-  msg = "/!\ WARNING: occupancy data is missing for CEL output file."
+CASE(3711) ! missing occupancy data
+  msg = "/!\ WARNING: occupancy data is missing, occupancy of all atoms will be set to 1."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Occupancy of all atoms will be set to 1."
+CASE(3712) ! missing thermal vibration data
+  msg = "/!\ WARNING: Debye-Waller factors are missing,"
   CALL DISPLAY_MSG(1,msg,logfile)
-CASE(3712) ! missing thermal vibration data for cel file output
-  msg = "/!\ WARNING: thermal vibration data is missing for CEL output file."
+  msg = "            thermal vibration will be set to zero for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Thermal vibration will be set to zero for all atoms."
+CASE(3713) ! missing absorption data
+  msg = "/!\ WARNING: absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES
@@ -2098,7 +2100,7 @@ CASE(4034)
     msg = " polyhedra."
   ENDIF
   msg = ">>> Computing the moments of "//TRIM(strings(1))// &
-      & " "//TRIM(strings(2))//TRIM(msg)
+      & "-"//TRIM(strings(2))//TRIM(msg)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF(reals(1)<0.d0) THEN
     WRITE(msg,"(f16.2)") DABS(reals(1))
@@ -2108,7 +2110,7 @@ CASE(4034)
     msg = "..> Trying to find nearest neighbors automatically."
   ELSE
     WRITE(msg,*) INT(reals(1))
-    msg = "..> Using the "//TRIM(ADJUSTL(msg))//" neighbors of "// &
+    msg = "..> Using the "//TRIM(ADJUSTL(msg))//" first neighbors of "// &
         & TRIM(strings(1))//" ions."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)

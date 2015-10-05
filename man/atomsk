@@ -1,7 +1,7 @@
 .TH atomsk 1 LOCAL
 
 .SH NAME
-atomsk - Atom/Molecule/Material Software Kit
+Atomsk - Atom/Molecule/Material Software Kit
 
 .SH SYNOPSIS
 .B atomsk
@@ -18,7 +18,7 @@ atomsk - Atom/Molecule/Material Software Kit
 Atomsk is designed to run in UNIX/Linux and Microsoft(R) Windows(R) environments.
 
 .SH DESCRIPTION
-Atomsk is a command-line program that aims at creating, manipulating, and converting atomic systems. It supports many file formats, among which LAMMPS, VASP, Quantum Espresso, Atomeye CFG format, and xCrySDen XSF format (see the list of supported formats below), which makes it easy to convert files for ab initio calculations, classical potential simulations, or visualization. Additionnaly atomsk can also perform some simple transformations of atomic positions (thanks to the many options described below), like creating supercells, cutting crystal planes, applying stress, or inserting dislocations.
+Atomsk is a command-line program that aims at creating, manipulating, and converting atomic systems. It supports many file formats, among which LAMMPS, VASP, Quantum Espresso, Atomeye CFG format, and xCrySDen XSF format (see the list of supported formats below), which makes it easy to convert files for ab initio calculations, classical potential simulations, or visualization. Additionnaly Atomsk can also perform some simple transformations of atomic positions (thanks to the many options described below), like creating supercells, cutting crystal planes, applying stress, or inserting dislocations.
 
 
 .SH MODES
@@ -287,6 +287,9 @@ GULP input file.
 .B imd
 IMD configuration.
 .TP
+.B jems
+JEMS Files.
+.TP
 .B lmp
 LAMMPS data file.
 .B mol
@@ -341,7 +344,7 @@ This will compute the displacement vectors between the atomic systems described 
 
 .SH SEE ALSO
 .TP
-This man page only summarizes the capabilities of atomsk. A more complete documentation in html format is provided with the program and available at:
+This man page only summarizes the capabilities of Atomsk. A more complete documentation in html format is provided with the program and available at:
 http://atomsk.univ-lille1.fr/
 
 

@@ -1,11 +1,6 @@
 CHANGELOG FOR ATOMSK
 ====================
 
-TODO LIST
----------
-- use OpenMP to parallelize some parts of the code, like the loops for neighbor search, for computing the Nye tensor, for constructing Voronoi polycrystals, or for converting files in mode "--list". The code should auto-detect the number of cores on the user's machine, and by default use as many threads. A command-line parameter should allow the user to specify the max. number of threads to use (e.g. "-threads N").
-
-
 
 beta 0.9 (in development)
 -------------------------
@@ -14,7 +9,8 @@ beta 0.9 (in development)
 - new option "-neutralize"
 - new option "-swap" allows to exchange the indices of two atoms.
 - added support for reading and writing files in CEL format. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this file format.
-- enhanced support for CIF format. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.
+- added support for writing files in JEMS format.
+- enhanced support for CIF format. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
 - in mode "--create", added possibility to generate wurtzite lattices.
 - in option "-select", added possibility to read a list of atom indices from a file.
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
@@ -27,7 +23,6 @@ beta 0.9 (in development)
 beta 0.8.3 (22 Sept. 2015)
 --------------------------
 - fixed a bug in mode "--polycrystal" where it was not possible to construct a 2-D polycrystal when the seed had at least one dimension greater than 20 A. Thanks to Jianyang Wu, Xiamen University, China, for pointing out this bug.
-
 
 
 beta 0.8.2 (14 June 2015)

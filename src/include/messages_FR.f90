@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Aug. 2015                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -412,6 +412,7 @@ WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
 WRITE(*,*) "    gin (GULP input)        |   oui  |  oui"
 WRITE(*,*) "    imd (IMD input)         |   oui  |  oui"
+WRITE(*,*) "    jems (JEMS input)       |   non  |  oui"
 WRITE(*,*) "    lmc (LAMMPS output)     |   oui  |  non"
 WRITE(*,*) "    lmp (LAMMPS data)       |   oui  |  oui"
 WRITE(*,*) "    mol (MOLDY format)      |   oui  |  oui"
@@ -440,17 +441,18 @@ END SUBROUTINE DISPLAY_HELP_FR
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE_FR(VALUES,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE_FR(VALUES,formula,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
+CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)') &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = '# Fichier généré avec Atomsk par '//TRIM(ADJUSTL(username))//' le '//TRIM(ADJUSTL(msg))
+msg = TRIM(ADJUSTL(formula))//' - Fichier généré avec Atomsk par '//TRIM(ADJUSTL(username))//' le '//TRIM(ADJUSTL(msg))
 !
 END SUBROUTINE ATOMSK_CREATE_DATE_FR
 !
@@ -1994,15 +1996,16 @@ CASE(3710)
   !strings(1) = file format
   msg = "/!\ ALERTE : format '"//TRIM(strings(1))//"' inconnu, abandon..."
   CALL DISPLAY_MSG(1,msg,logfile)
-CASE(3711) ! missing occupancy data for cel file output
-  msg = "/!\ ALERTE : l'occupation des sites est manquante."
+CASE(3711) ! missing occupancy data
+  msg = "/!\ ALERTE : l'occupation des sites est manquante, l'occupation sera fixée à 1 pour tous les atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            L'occupation sera fixée à 1 pour tous les atomes."
+CASE(3712) ! missing thermal vibration data
+  msg = "/!\ ALERTE : les facteurs de Debye-Waller sont manquants,"
   CALL DISPLAY_MSG(1,msg,logfile)
-CASE(3712) ! missing thermal vibration data for cel file output
-  msg = "/!\ ALERTE : les données de vibration thermique sont manquantes."
+  msg = "            la vibration thermique sera fixée à zéro pour tous les atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            La vibration thermique sera fixée à zéro pour tous les atomes."
+CASE(3713) ! missing absorption data
+  msg = "/!\ ALERTE : les facteurs d'absorption sont manquants, ils seront fixés à 0.03 pour tous les atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES
@@ -2146,8 +2149,8 @@ CASE(4034)
   ELSE
     msg = " polyèdres"
   ENDIF
-  msg = ">>> Calcul des moments des "//TRIM(msg)//" "//TRIM(strings(1))// &
-      & " "//TRIM(strings(2))//"."
+  msg = ">>> Calcul des moments des"//TRIM(msg)//" "//TRIM(strings(1))// &
+      & "-"//TRIM(strings(2))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF(reals(1)<0.d0) THEN
     WRITE(msg,"(f16.2)") DABS(reals(1))
@@ -2157,7 +2160,7 @@ CASE(4034)
     msg = "..> En essayant de trouver les premiers voisins automatiquement."
   ELSE
     WRITE(msg,*) INT(reals(1))
-    msg = "..> En utilisant les "//TRIM(ADJUSTL(msg))//" voisins des ions "// &
+    msg = "..> En utilisant les "//TRIM(ADJUSTL(msg))//" premiers voisins des ions "// &
         & TRIM(strings(1))//"."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2449,7 +2452,7 @@ CASE(4711)
   msg = "/!\ ALERTE : ce fichier contient un nombre différent d'atomes et ne sera pas traité : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4712)
-  msg = "/!\ ALERTE : il est recommandé d'exécuter de mode avec l'option '-wrap',"
+  msg = "/!\ ALERTE : il est recommandé d'exécuter ce mode avec l'option '-wrap',"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            sans quoi les atomes qui sont en dehors de la boîte pourraient fausser les résultats."
   CALL DISPLAY_MSG(1,msg,logfile)

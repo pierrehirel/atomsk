@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 July 2015                                     *
+!* Last modification: P. Hirel - 22 Sept. 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -967,26 +967,32 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_temp  !options and their p
 INTEGER:: i
 !
 !Check if user asked for wrapping of atoms
-IF( .NOT.ALLOCATED(options_array) .OR. .NOT.ANY(options_array(:)=="-wrap") ) THEN
+IF( .NOT.ALLOCATED(options_array) ) THEN
+  !User did not ask to wrap atoms => warn and ask
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
+  READ(*,*) answer
+  IF( answer==langyes .OR. answer==langBigYes ) THEN
+    ALLOCATE(options_array(1))
+    options_array(1) = "-wrap"
+  ENDIF
+  !
+ELSEIF( .NOT.ANY(options_array=="-wrap") ) THEN
   !User did not ask to wrap atoms => warn and ask
   nwarn=nwarn+1
   CALL ATOMSK_MSG(4712,(/""/),(/0.d0/))
   READ(*,*) answer
   IF( answer==langyes .OR. answer==langBigYes ) THEN
     !Add option "-wrap" to options_array (at the beginning)
-    IF( ALLOCATED(options_array) ) THEN
-      ALLOCATE( options_temp(SIZE(options_array)+1) )
-      options_temp(:) = ""
-      DO i=1,SIZE(options_array)
-        options_temp(i+1) = options_array(i)
-      ENDDO
-      DEALLOCATE(options_array)
-      ALLOCATE(options_array(SIZE(options_temp)))
-      options_array(:) = options_temp(:)
-      DEALLOCATE(options_temp)
-    ELSE
-      ALLOCATE(options_array(1))
-    ENDIF
+    ALLOCATE( options_temp(SIZE(options_array)+1) )
+    options_temp(:) = ""
+    DO i=1,SIZE(options_array)
+      options_temp(i+1) = options_array(i)
+    ENDDO
+    DEALLOCATE(options_array)
+    ALLOCATE(options_array(SIZE(options_temp)))
+    options_array(:) = options_temp(:)
+    DEALLOCATE(options_temp)
     options_array(1) = "-wrap"
   ENDIF
 ENDIF

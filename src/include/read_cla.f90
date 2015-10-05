@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Aug. 2015                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,8 +60,15 @@ REAL(dp):: smass, tempreal
 !
 !Initialize variables
 pfiles(:)=''
+i=0
+ioptions = 0
+Nout = 0
 IF(ALLOCATED(mode_param)) DEALLOCATE(mode_param)
 IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
+!
+IF( ALLOCATED(options_array) .AND. SIZE(options_array)>=1 ) THEN
+  options_array(:) = ""
+ENDIF
 !
 !
 IF(verbosity==4) THEN
@@ -79,9 +86,6 @@ IF( .NOT.ALLOCATED(cla) .OR. SIZE(cla)<=0 ) THEN
   GOTO 1000
 ENDIF
 !
-i=0
-ioptions = 0
-Nout = 0
 !
 DO WHILE(i<SIZE(cla))
   i=i+1
@@ -426,6 +430,9 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='imd' .OR. clarg=='IMD') THEN
     Nout = Nout+1
     tempout(Nout) = 'imd'
+  ELSEIF(clarg=='jems' .OR. clarg=='JEMS') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'jems'
   ELSEIF(clarg=='lammps' .OR. clarg=='LAMMPS' .OR. clarg=='lmp' .OR. clarg=='LMP') THEN
     Nout = Nout+1
     tempout(Nout) = 'lmp'
@@ -1370,11 +1377,11 @@ nerr=nerr+1
 !Check size of array options_array(:)
 !if it is empty or no option was detected in the command-line parameters, de-allocate it
 IF( ALLOCATED(options_array) ) THEN
-  IF( SIZE(options_array)<1 ) THEN
+  IF( ioptions<=0 ) THEN
     DEALLOCATE(options_array)
   ELSEIF( LEN_TRIM(options_array(1))<1 ) THEN
     DEALLOCATE(options_array)
-  ELSEIF( ioptions<=0 ) THEN
+  ELSEIF( SIZE(options_array)<1 ) THEN
     DEALLOCATE(options_array)
   ENDIF
 ENDIF

@@ -19,7 +19,7 @@ MODULE guess_form
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2015                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,8 +59,8 @@ INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
 REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, isdd, isdlp, isgin, isimd
-REAL(dp):: islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isxsf, isxv
-REAL(dp):: isxmd, isxyz, isexyz, issxyz
+REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isxsf
+REAL(dp):: isxv,isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
 REAL(dp):: certainty
@@ -83,6 +83,7 @@ isdd = 0.d0      !ddplot format
 isdlp = 0.d0     !DL_POLY format
 isgin = 0.d0     !GULP input file format
 isimd = 0.d0     !IMD format
+isjems = 0.d0    !JEMS format
 islmp = 0.d0     !LAMMPS data file
 islmpc = 0.d0    !LAMMPS custom dump file
 ismoldy=0.d0     !MOLDY file
@@ -134,11 +135,13 @@ IF( strlength > 0 ) THEN
   !The extension is considered as a strong indication of the file format:
   !increase corresponding counter by a lot
   SELECT CASE(extension)
-  CASE('cel','CEL')
-    iscel = iscel+0.6d0
+  CASE('atsk','ATSK')
+    isatsk = isatsk+0.6d0
   CASE('cfg','CFG')
     iscfg = iscfg+0.6d0
     iscoorat = iscoorat-0.4d0
+  CASE('cel','CEL')
+    iscel = iscel+0.6d0
   CASE('cif','CIF')
     iscif = iscif+0.6d0
   CASE('cml','CML')
@@ -149,14 +152,14 @@ IF( strlength > 0 ) THEN
     isgin = isgin+0.6d0
   CASE('imd','IMD')
     isimd = isimd+0.6d0
+  CASE('jems','JEMS')
+    isjems = isjems+0.6d0
   CASE('lmc','LMC')
     islmpc = islmpc+0.6d0
   CASE('lmp','LMP')
     islmp = islmp+0.6d0
   CASE('mol','MOL')
     ismoldy = ismoldy+0.15d0
-  CASE('atsk','ATSK')
-    isatsk = isatsk+0.6d0
   CASE('pdb','PDB')
     ispdb = ispdb+0.6d0
   CASE('pw','PW')
@@ -253,23 +256,23 @@ IF(fileexists) THEN
     ELSEIF(test(1:4)=='A   ') THEN
       isbop = isbop+0.1d0
     ELSEIF(test(1:4)=='LEN ') THEN
-      isbop = isbop+0.1
+      isbop = isbop+0.1d0
     ELSEIF(test(1:6)=='LATPAR') THEN
-      isbop = isbop+0.2
+      isbop = isbop+0.2d0
     ELSEIF(test(1:4)=='ND  ') THEN
-      isbop = isbop+0.2
+      isbop = isbop+0.2d0
     ELSEIF(test(1:3)=='D  ') THEN
-      isbop = isbop+0.2
+      isbop = isbop+0.2d0
     ELSEIF(test(1:6)=='NINERT') THEN
-      isbop = isbop+0.4
+      isbop = isbop+0.4d0
     ELSEIF(test(1:6)=='DINERT') THEN
-      isbop = isbop+0.4
+      isbop = isbop+0.4d0
     ELSEIF(test(1:3)=='UNRLD') THEN
-      isbop = isbop+0.4
+      isbop = isbop+0.4d0
     !
     !Search for patterns corresponding to CEL format
     ELSEIF(TRIM(ADJUSTL(test))=='*') THEN
-      iscel = iscel+0.5 ! EOF signal (short CEL file)
+      iscel = iscel+0.5d0 ! EOF signal (short CEL file)
     !
     !Search for patterns corresponding to CFG format
     ELSEIF(test(1:19)=='Number of particles') THEN
@@ -292,17 +295,17 @@ IF(fileexists) THEN
     !
     !Search for patterns corresponding to CIF format
     ELSEIF( test(1:7)=='_audit_' ) THEN
-      iscif = iscif+0.3
+      iscif = iscif+0.3d0
     ELSEIF( test(1:6)=='_cell_' ) THEN
-      iscif = iscif+0.3
+      iscif = iscif+0.3d0
     ELSEIF( test(1:5)=='loop_' ) THEN
-      iscif = iscif+0.3
+      iscif = iscif+0.3d0
     ELSEIF( test(1:6)=='_atom_' ) THEN
-      iscif = iscif+0.3
+      iscif = iscif+0.3d0
     ELSEIF( test(1:8)=='_diffrn_' ) THEN
-      iscif = iscif+0.3
+      iscif = iscif+0.3d0
     ELSEIF( test(1:7)=='_exptl_' ) THEN
-      iscif = iscif+0.3
+      iscif = iscif+0.3d0
     !
     !Search for patterns corresponding to CML format
     !ELSEIF(test(1,1)=='<') THEN
@@ -357,6 +360,20 @@ IF(fileexists) THEN
       isimd = isimd+0.4d0
     ELSEIF(test(1:3)=='#E ') THEN
       isimd = isimd+0.4d0
+    !
+    !Search for patterns corresponding to JEMS format
+    ELSEIF(test(1:7)=='system|') THEN
+      isjems = isjems+0.5d0
+    ELSEIF(test(1:4)=='rps|') THEN
+      isjems = isjems+0.6d0
+    ELSEIF(test(1:8)=='lattice|') THEN
+      isjems = isjems+0.3d0
+    ELSEIF(test(1:5)=='atom|') THEN
+      isjems = isjems+0.3d0
+    ELSEIF(test(1:3)=='aff|') THEN
+      isjems = isjems+0.3d0
+    ELSEIF(SCAN(test,'|')>0) THEN
+      isjems = isjems+0.1d0
     !
     !Search for patterns corresponding to LAMMPS data format
     ELSEIF(strlength-4==INDEX(test,'atoms').AND.strlength>4) THEN

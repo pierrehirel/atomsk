@@ -62,12 +62,17 @@
             ...</code></p>
   <p>The velocities can be given for all atoms, or only some of them. Atoms which velocity is not given will keep their velocities if they were previously defined, or else be assigned a zero velocity. In order to generate random velocities with a Maxwell-Boltzmann distribution one can use the <a href="./option_velocity.html">option <code>-velocity</code></a>.</p></li>
   
-  <li>Any arbitrary property can be defined for each atom using the keyword "auxiliary" followed by the name of the property, each following line containing an atom index and the value of the property for that atom:<br/>
+  <li><strong>Any arbitrary property</strong> can be defined for each atom using the keyword "auxiliary" followed by the name of the property, each following line containing an atom index and the value of the property for that atom:<br/>
       <p><code>auxiliary &#60;property&#62;<br/>
             &#60;id1&#62; &#60;value1&#62;<br/>
             &#60;id2&#62; &#60;value2&#62;<br/>
             ...</code></p>
-  <p>With this, the &#60;property&#62; of atom &#60;id1&#62; will take the &#60;value1&#62;, and so on. The list can contain values for all atoms, or only for some atoms. Atoms for which no value is given will keep their value if the &#60;property&#62; was previously defined for them, or else will be assigned a zero value.</p></li>
+  <p>With this, the &#60;property&#62; of atom &#60;id1&#62; will take the &#60;value1&#62;, and so on. Alternatively it is also possible to assign the same value to all atoms of a given species, by giving an atomic symbol instead of an atom index:</p>
+      <p><code>auxiliary &#60;property&#62;<br/>
+            &#60;species1&#62; &#60;value1&#62;<br/>
+            &#60;species2&#62; &#60;value2&#62;<br/>
+            ...</code></p>
+  <p>This way, the &#60;property&#62; will take the &#60;value1&#62; for all atoms of the &#60;species1&#62;. The list can contain values for all atoms, or only for some atoms. Atoms for which no value is given will keep their value if the &#60;property&#62; was previously defined for them, or else will be assigned a zero value.</p></li>
 </ul>
 
 <br/>

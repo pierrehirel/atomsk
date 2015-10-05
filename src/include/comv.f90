@@ -3,15 +3,15 @@ MODULE comv
 !**********************************************************************************
 !*  COMV                                                                          *
 !**********************************************************************************
-!* This module contains the global variables used by atomsk.                      *
-!* Global variables should be limited to the strict minimum, and never            *
+!* This module contains the global variables used by Atomsk.                      *
+!* Global variables should be limited to the strict minimum, and NEVER            *
 !* include variables or arrays about atomic systems (atom positions etc.).        *
 !**********************************************************************************
 !* (C) March 2010 - Pierre Hirel                                                  *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel (see date in the variable "version")               *
+!* Last modification: P. Hirel (see date in the variable "version" below)         *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.9-2015.09.22' !Version of the program
+CHARACTER(LEN=24),PARAMETER:: version = 'Beta 0.9-2015.10.05' !Version of the program
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !
@@ -57,9 +57,9 @@ INTEGER:: verbosity          !level of verbosity of the program
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are made available
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(19),PARAMETER:: listofformats =                             &
-& (/'atsk ','bop  ','cfg  ','cif  ','cel  ','coo  ','dlp  ','gin  ','imd  ','lmp  ',   &
-&   'mol  ','pos  ','pw   ','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '            &
+CHARACTER(LEN=5),DIMENSION(20),PARAMETER:: listofformats =                             &
+& (/'atsk ','bop  ','cfg  ','cif  ','cel  ','coo  ','dlp  ','gin  ','imd  ','jems ',   &
+&   'lmp  ','mol  ','pos  ','pw   ','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '    &
 & /)
 !
 END MODULE comv

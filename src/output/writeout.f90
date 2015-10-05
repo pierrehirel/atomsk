@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2015                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -72,6 +72,7 @@ USE out_cif
 USE out_dlp_cfg
 USE out_gulp_gin
 USE out_imd
+USE out_jems
 USE out_lammps_data
 USE out_mbpp_coorat
 USE out_moldy
@@ -98,7 +99,7 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to w
 CHARACTER(LEN=8):: date
 CHARACTER(LEN=10):: time
 CHARACTER(LEN=128):: msg
-CHARACTER(LEN=128):: username
+CHARACTER(LEN=128):: formula, username
 CHARACTER(LEN=*):: prefix
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN),OPTIONAL:: AUXNAMES !names of auxiliary properties
@@ -106,6 +107,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,OPTIONAL:: comment
 LOGICAL:: fileexists
 INTEGER:: i, j
 INTEGER,DIMENSION(8):: values
+REAL(dp):: smass_tot
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P          !positions of atoms (or ionic cores)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),OPTIONAL:: S !positions of ionic shells
@@ -194,16 +196,16 @@ IF(i==1) THEN
   IF( ALLOCATED(comment) .AND. SIZE(comment)<=0 ) DEALLOCATE(comment)
   IF(.NOT.ALLOCATED(comment)) ALLOCATE(comment(1))
   CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
-  !WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
-  !     &  VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
-  !comment(1) = '# File generated with atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
-  CALL CREATE_DATE(VALUES,username,comment(1))
+  !Generate compound formula
+  CALL COMPFORMULA(P,AUXNAMES,AUX,formula,smass_tot)
+  !Generate message for the comment
+  CALL CREATE_DATE(VALUES,formula,username,comment(1))
 ENDIF
 !
 !Make sure that each comment line starts with a hash sign (#)
 DO i=1,SIZE(comment)
   msg = TRIM(ADJUSTL(comment(i)))
-  IF(msg(1:1).NE.'#') comment(i) = '#'//TRIM(comment(i))
+  IF(msg(1:1).NE.'#') comment(i) = '# '//TRIM(comment(i))
 ENDDO
 !
 !
@@ -358,6 +360,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_IMD(H,P,comment,AUXNAMES,AUX,outputfile)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('jems','JEMS')
+    CALL NAME_OUTFILE(prefix,outputfile,'jems ')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_JEMS(H,P,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

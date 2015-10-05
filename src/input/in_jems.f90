@@ -1,18 +1,18 @@
-MODULE in_cel
+MODULE in_jems
 !
 !
 !**********************************************************************************
-!*  IN_CEL                                                                        *
+!*  IN_JEMS                                                                       *
 !**********************************************************************************
-!* This module reads a Dr. Probe super-cell structure definition file (CEL).      *
-!* The CEL format is used by the TEM simulation software Dr. Probe and described  *
+!* This module reads a crystal structure for JEMS.                                *
+!* The JEMS format is used by the TEM simulation software JEMS, and is described  *
 !* on the software website:                                                       *
-!*     http://www.er-c.org/barthel/drprobe/celfile.html                           *
+!*     http://www.jems-saas.ch/                                                   *
 !**********************************************************************************
-!* (C) July 2015 - Juri Barthel                                                   *
-!*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
-!*     RWTH Aachen (GERMANY)                                                      *
-!*     ju.barthel@fz-juelich.de                                                   *
+!* (C) October 2015 - Pierre Hirel                                                *
+!*     Unité Matériaux Et Transformations (UMET),                                 *
+!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
@@ -41,7 +41,7 @@ IMPLICIT NONE
 !
 CONTAINS
 !
-SUBROUTINE READ_CEL(inputfile,H,P,comment,AUXNAMES,AUX)
+SUBROUTINE READ_JEMS(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
@@ -122,7 +122,7 @@ AUX = 0.d0
 occ = 1
 biso = 2
 AUXNAMES(occ) = 'occ'
-AUXNAMES(biso) = 'Debye-Waller'
+AUXNAMES(biso) = 'biso'
 !
 !Go back to beginning of file and store data
 REWIND(30)
@@ -184,6 +184,6 @@ nerr = nerr+1
 1000 CONTINUE
 !
 !
-END SUBROUTINE READ_CEL
+END SUBROUTINE READ_JEMS
 !
-END MODULE in_cel
+END MODULE in_jems

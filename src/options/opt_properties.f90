@@ -12,7 +12,7 @@ MODULE properties
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Nov. 2014                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,6 +58,7 @@ INTEGER:: Nprop  !number of per-atom properties declared in the file
 INTEGER:: vx, vy, vz !columns in AUX where atom velocities are stored
 REAL(dp):: a, b, c, alpha, beta, gamma
 REAL(dp):: aniA, aniH !anisotropy factors
+REAL(dp):: snumber
 REAL(dp):: tempreal, tempreal2, tempreal3
 REAL(dp),DIMENSION(9):: Voigt     !Elastic constants (Voigt notation)
 REAL(dp),DIMENSION(3,3):: rot_matrix  !rotation matrix
@@ -651,8 +652,10 @@ DO
       DO
         readprop=.FALSE.
         READ(35,'(a128)',END=163,ERR=163) msg2
+        msg2 = ADJUSTL(msg2)
         IF( LEN_TRIM(msg2)>0 ) THEN
           READ(msg2,*,END=162,ERR=162) i, tempreal
+          ! Succeeded reading an integer number i
           IF( i>0 .AND. i<=SIZE(AUX,1) ) THEN
             AUX(i,auxcol) = tempreal
             readprop=.TRUE.
@@ -663,9 +666,26 @@ DO
           ENDIF
           !
           162 CONTINUE
+          ! Failed reading an integer number i
+          ! => maybe it is an atom species
           IF(.NOT.readprop) THEN
-            CALL ATOMSK_MSG(2749,(/AUXNAMES(auxcol)/),(/DBLE(i)/))
-            nwarn=nwarn+1
+            species = msg2(1:2)
+            CALL ATOMNUMBER(species,snumber)
+            IF( snumber>1.d-6 ) THEN
+              !We have an atomic number
+              !Read the value of the property
+              READ(msg2,*,END=162,ERR=162) species, tempreal
+              !Give this value of the property to all atoms of this species
+              DO i=1,SIZE(P,1)
+                IF( NINT(P(i,4))==NINT(snumber) ) THEN
+                  AUX(i,auxcol) = tempreal
+                ENDIF
+              ENDDO
+            ELSE
+              !Cannot make sense out of this line
+              CALL ATOMSK_MSG(2749,(/AUXNAMES(auxcol)/),(/DBLE(i)/))
+              nwarn=nwarn+1
+            ENDIF
           ENDIF
         ELSE
           EXIT

@@ -213,19 +213,6 @@ DO
           ENDIF
         ENDDO
       ENDIF
-!       IF( SIZE(Puc,1)<100 .OR. ANY( H(:,:)<20.d0) ) THEN
-!         !It is a small unit cell
-!         IF( H(1,1)<1.1d0*VECLENGTH(Huc(1,:)) ) THEN
-!           twodim = 1
-!           H(1,1) = Huc(1,1)
-!         ELSEIF( H(2,2)<1.1d0*VECLENGTH(Huc(2,:)) ) THEN
-!           twodim = 2
-!           H(2,2) = Huc(2,2)
-!         ELSEIF( H(3,3)<1.1d0*VECLENGTH(Huc(3,:)) ) THEN
-!           twodim = 3
-!           H(3,3) = Huc(3,3)
-!         ENDIF
-!       ENDIF
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       Hset=.TRUE.

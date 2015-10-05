@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 04 Aug. 2015                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -370,6 +370,7 @@ WRITE(*,*) "    dd  (ddplot)            |  nein  |  ja (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  ja    |  ja "
 WRITE(*,*) "    gin (GULP input)        |  ja    |  ja "
 WRITE(*,*) "    imd (IMD input)         |  ja    |  ja "
+WRITE(*,*) "    jems (JEMS input)       |  nein  |  ja "
 WRITE(*,*) "    lmc (LAMMPS output)     |  ja    |  nein"
 WRITE(*,*) "    lmp (LAMMPS data)       |  ja    |  ja "
 WRITE(*,*) "    mol (MOLDY format)      |  ja    |  ja "
@@ -399,17 +400,18 @@ END SUBROUTINE DISPLAY_HELP_DE
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE_DE(VALUES,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE_DE(VALUES,formula,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
+CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)') &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = '# Datei mit Atomsk von '//TRIM(ADJUSTL(username))//' am '//TRIM(ADJUSTL(msg))//" generiert."
+msg = TRIM(ADJUSTL(formula))//' - Datei mit Atomsk von '//TRIM(ADJUSTL(username))//' am '//TRIM(ADJUSTL(msg))//" generiert."
 !
 END SUBROUTINE ATOMSK_CREATE_DATE_DE
 !
@@ -1868,15 +1870,18 @@ CASE(3710)
   msg = "/!\ WARNUNG: Unbekanntes Format '"//TRIM(strings(1))// &
       & "'. Ueberspringe "
   CALL DISPLAY_MSG(1,msg,logfile)
-CASE(3711) ! missing occupancy data for cel file output
+CASE(3711) ! missing occupancy data
   msg = "/!\ WARNUNG: Besetzungsdaten fehlen."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Verwende Standard Besetzungen von 1 fuer alle Atome."
+  msg = "             Verwende Standard Besetzungen von 1 fuer alle Atome."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3712) ! missing occupancy data for cel file output
   msg = "/!\ WARNUNG: Daten zur thermischen Vibration fehlen."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Setze die Biso Werte aller Atome auf Null."
+  msg = "             Setze die Biso Werte aller Atome auf Null."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3713) ! missing absorption data
+  msg = "/!\ WARNUNG: absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES
@@ -2031,7 +2036,7 @@ CASE(4034)
     msg = " Polyeder."
   ENDIF
   msg = ">>> Berechne Momente von "//TRIM(strings(1))// &
-      & " "//TRIM(strings(2))//TRIM(msg)
+      & "-"//TRIM(strings(2))//TRIM(msg)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF(reals(1)<0.d0) THEN
     WRITE(msg,"(f16.2)") DABS(reals(1))
@@ -2042,7 +2047,7 @@ CASE(4034)
   ELSE
     WRITE(msg,*) INT(reals(1))
     msg = "..> Beruecksichtige die "//TRIM(ADJUSTL(msg))// &
-        & " Nachbarn der "//TRIM(strings(1))//" Ionen."
+        & " ersten Nachbarn der "//TRIM(strings(1))//" Ionen."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4035)

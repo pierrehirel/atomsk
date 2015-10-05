@@ -4,12 +4,13 @@ MODULE messages
 !*  MESSAGES                                                                      *
 !**********************************************************************************
 !* This module deals with messages displayed by the ATOMSK program.               *
+!* When the requested language does not exist it always falls back to english.    *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Oct. 2014                                     *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -163,21 +164,22 @@ END SUBROUTINE DATE_MSG
 ! CREATE_DATE
 ! Write the username and.
 !********************************************************
-SUBROUTINE CREATE_DATE(VALUES,username,msg)
+SUBROUTINE CREATE_DATE(VALUES,formula,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
+CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 SELECT CASE(lang)
 !
 CASE("de")
-  CALL ATOMSK_CREATE_DATE_DE(VALUES,username,msg)
+  CALL ATOMSK_CREATE_DATE_DE(VALUES,formula,username,msg)
 CASE("fr")
-  CALL ATOMSK_CREATE_DATE_FR(VALUES,username,msg)
+  CALL ATOMSK_CREATE_DATE_FR(VALUES,formula,username,msg)
 CASE DEFAULT
-  CALL ATOMSK_CREATE_DATE(VALUES,username,msg)
+  CALL ATOMSK_CREATE_DATE(VALUES,formula,username,msg)
 END SELECT
 !
 END SUBROUTINE CREATE_DATE

@@ -1163,8 +1163,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 REAL(dp),INTENT(OUT):: mass
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
-CHARACTER(LEN=4096), INTENT(OUT):: formula
-CHARACTER(LEN=4096) :: temp, msg
+CHARACTER(LEN=128), INTENT(OUT):: formula
+CHARACTER(LEN=128) :: temp, msg
 !
 ! 
 !Initialize variables

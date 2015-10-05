@@ -15,9 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
-!*                    J. Barthel - 27 July 2015                                   *
-!*                    -  Biso, Usio, symmetry -> symops.f90                       *
+!* Last modification: P. Hirel - 05 Oct. 2015                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -192,97 +190,25 @@ DO !Main reading loop
     !
     !       J. Barthel, 2015-07-31
     !
-    ! REMOVED -> IF(.NOT.ALLOCATED(P)) THEN, J. Barthel, 2015-07-31
+    !Read the number of atoms from the formula
+    !The formula should be element symbols followed by numbers
+    !and separated by blank spaces, e.g. 'C4 H16 O'.
     !
-      !Read the number of atoms from the formula
-      !The formula should be element symbols followed by numbers
-      !and separated by blank spaces, e.g. 'C4 H16 O'.
-      !
-      !Remove the keyword "_chemical_formula_sum"
-      temp = TRIM(ADJUSTL(temp(22:)))
-      !Remove the quotes if any
+    !Remove the keyword "_chemical_formula_sum"
+    temp = TRIM(ADJUSTL(temp(22:)))
+    !Remove the quotes if any
+    strlength=SCAN(temp,"'")
+    DO WHILE(strlength>0)
+      temp(strlength:strlength)=" "
       strlength=SCAN(temp,"'")
-      DO WHILE(strlength>0)
-        temp(strlength:strlength)=" "
-        strlength=SCAN(temp,"'")
-      ENDDO
-      temp = ADJUSTL(temp)
-      !
-      WRITE(msg,*) 'Found chemical formula: ', TRIM(temp)
-      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-      !
-      !READ(temp,*) temp2
-      !temp = ADJUSTL(temp(LEN_TRIM(temp2)+1:))
-!
-! CODE BELOW REMOVED -> J: Barthel, 2015-07-31
-!
-!      !Parse the line to find atom element names
-!      NP=0
-!      DO WHILE(LEN_TRIM(temp)>0)
-!        sp_NP=0
-!        species=temp(1:2)
-!        CALL ATOMNUMBER(species,snumber)
-!        IF( NINT(snumber)>0 ) THEN
-!          !This is an atom species: read how many of them there are
-!          temp2=ADJUSTL(temp(3:))
-!          strlength=VERIFY(temp2,'0123456789')
-!          IF(strlength<=1) THEN
-!            !There is only one such atom
-!            sp_NP=1
-!          ELSE
-!            !Read how many such atoms exist
-!            READ(temp2,*,ERR=800,END=800) sp_NP
-!          ENDIF
-!          WRITE(msg,*) "Species, sp_NP: ", NINT(snumber), sp_NP
-!          CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!        ELSE
-!          !Try with only the first letter
-!          species=temp(1:1)
-!          CALL ATOMNUMBER(species,snumber)
-!          IF( NINT(snumber)>0 ) THEN
-!            !This is an atom species: read how many of them there are
-!            temp2=ADJUSTL(temp(2:))
-!            strlength=VERIFY(temp2,'0123456789')
-!            IF(strlength<=1) THEN
-!              !There is only one such atom
-!              sp_NP=1
-!            ELSE
-!              !Read how many such atoms exist
-!              READ(temp2,*,ERR=800,END=800) sp_NP
-!            ENDIF
-!            WRITE(msg,*) "Species, sp_NP: ", NINT(snumber), sp_NP
-!            CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!          ENDIF
-!        ENDIF
-!        !
-!        IF(sp_NP>0) THEN
-!          NP = NP+sp_NP
-!        ENDIF
-!        !
-!        strlength=SCAN(temp," ")
-!        temp = ADJUSTL(temp(strlength:))
-!      ENDDO
-!      !
-!      WRITE(msg,*) 'NP = ', NP
-!      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!      !
-!      !Allocate P
-!      IF(NP>0) THEN
-!        ALLOCATE(P(NP,4))
-!        P(:,:) = 0.d0
-!      ELSE
-!        !Zero atom in the formula? Something is wrong
-!        GOTO 800
-!      ENDIF
-!    ENDIF
-!
-! CODE ABOVE REMOVED, J. Barthel, 2015-07-31.
-!
-  !
+    ENDDO
+    temp = ADJUSTL(temp)
+    !
+    WRITE(msg,*) 'Found chemical formula: ', TRIM(temp)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !
   ELSEIF( temp(1:5)=="loop_" ) THEN
-  !
-    !IF( .NOT.atpos_done ) THEN ! Take care here ... we need to read the atpos and the symmetry table if both are present.
-    !                             Let's remove this check and combine it with the respective keyword parsing section.
     !
     !Check if it is a loop over atom positions or symmetry operations
     READ(30,'(a128)',ERR=200,END=200) temp
@@ -355,11 +281,19 @@ DO !Main reading loop
             IF(strlength>0) columns(at_z) = columns(at_z)(1:strlength-1)
             !
             !Make sure that column #at_sp contains an atom species
-            READ(columns(at_sp),*,ERR=170,END=170) species
+            READ(columns(at_sp),*,ERR=170,END=170) temp
+            temp = ADJUSTL(temp)
+            species = temp(1:2)
             CALL ATOMNUMBER(species,snumber)
+            IF( snumber<=0.d0 ) THEN
+              species = temp(1:1)
+              CALL ATOMNUMBER(species,snumber)
+            ENDIF
             IF( NINT(snumber)>0 ) THEN
               !This line indeed contains information about an atom
               NP = NP+1
+            ELSE
+              GOTO 170
             ENDIF
           ENDDO
           !
@@ -519,7 +453,7 @@ DO !Main reading loop
           !
           180 CONTINUE ! finalize counting of symmetry operations
           ! debug out
-          WRITE(msg,*) 'Counted symetry operations, Nsym = ', Nsym
+          WRITE(msg,*) 'Counted symmetry operations, Nsym = ', Nsym
           CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
           !
           IF(NSym>0) THEN
@@ -550,7 +484,9 @@ DO !Main reading loop
             ! Translate the string to a transformation in the
             ! symmetry operation module
             CALL SYMOPS_SET_STR(TRIM(temp),i,k)
-            IF (k==0) THEN
+            IF (k==0) THEN ! report interpretation error
+              CALL ATOMSK_MSG(812,(/TRIM(temp)/),(/0.d0/))
+              nerr = nerr+1
             END IF
             !
           ENDDO
@@ -559,13 +495,7 @@ DO !Main reading loop
         !
       ENDIF ! symmetry data reading
       !
-      ! removed by JB 2015-07-23. No longer warn user that symmetry operations are not taken into account
-      !nwarn=nwarn+1
-      !CALL ATOMSK_MSG(1704,(/""/),(/0.d0/))
-      !
     ENDIF !if "_atom" elseif "_symmetry"
-      !
-    !ENDIF !if not atpos_done // removed by J.B., combined with keyword parser
     !
   ENDIF ! end of main keyword parser
   !

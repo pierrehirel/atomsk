@@ -82,14 +82,13 @@ DO
       !read language for messages
       READ(temp(5:),*,END=800,ERR=800) msg
       msg = ADJUSTL(msg)
-      SELECT CASE(msg(1:2))
-      CASE("fr","Fr","FR")
+      IF( INDEX(msg,"fr")>0 .OR. INDEX(msg,"FR")>0 ) THEN
         lang="fr"
-      CASE("de","De","DE")
+      ELSEIF( INDEX(msg,"de")>0 .OR. INDEX(msg,"DE")>0 ) THEN
         lang="de"
-      CASE DEFAULT
+      ELSE
         lang="en"
-      END SELECT
+      ENDIF
     !
     ELSE
       nwarn = nwarn+1

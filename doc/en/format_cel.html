@@ -23,19 +23,19 @@
 
 <h4>Restrictions</h4>
 
-<p></p>
+<p>Dr Probe is a software for simulating high-resolution scanning or transmission electron microscopy (HRTEM) images. Atomsk can read and write CEL files, with the restrictions below.</p>
 
-<p></p>
+<p>To write this file format, the occupancy and thermal vibration should be defined as auxiliary properties for each atom. If they are not set, Atomsk will use default values of 1 and 0, respectively.<p>
 
-<p></p>
+<p>It should be noted that Atomsk does not perform any implicit conversion of units. By default CEL files use nanometers as unit of length (and nm<sup>2</sup> for thermal vibration), and Atomsk stores these values without modifying them. When reading a CEL file, one can convert the values to another unit with the <a href="./option_unit.html">option <code>-unit</code></a>. When writing a CEL file, one should convert the units to nm.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk my_system.cif cel</code>
-<p>This will read the file <code>my_system.cif</code>, and convert it to <code>my_system.cel</code>.</p></li>
+<li><code class="command">atomsk my_system.xsf -unit A nm cel</code>
+<p>This will read the file <code>my_system.xsf</code>, convert the units to and convert it to <code>my_system.cel</code>.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

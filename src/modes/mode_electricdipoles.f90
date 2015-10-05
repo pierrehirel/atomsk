@@ -21,7 +21,7 @@ MODULE edm
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 March 2015                                    *
+!* Last modification: P. Hirel - 22 Sept. 2015                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -299,32 +299,8 @@ DO i=1,SIZE(aentries,1)
     ENDDO
     !
     !Setup the text messages
-    ion1 = ''
-    ion2 = ''
     CALL ATOMSPECIES(aentries(i,1),ion1)
-    !
-    IF(Q1==1.d0) THEN
-      msg=''
-    ELSE
-      WRITE(msg,'(f16.2)') DABS(Q1)
-    ENDIF
-    IF(Q1>=0.d0) THEN
-      ion1 = TRIM(ion1)//TRIM(ADJUSTL(msg))//'+'
-    ELSE
-      ion1 = TRIM(ion1)//TRIM(ADJUSTL(msg))//'-'
-    ENDIF
-    IF(Q2==1.d0) THEN
-      msg=''
-    ELSE
-      WRITE(msg,'(f16.2)') DABS(Q2)
-    ENDIF
-    IF(Q2>=0.d0) THEN
-      ion2 = TRIM(Pspecies)//TRIM(ADJUSTL(msg))//'+'
-    ELSE
-      ion2 = TRIM(Pspecies)//TRIM(ADJUSTL(msg))//'-'
-    ENDIF
-    !
-    CALL ATOMSK_MSG(4034,(/TRIM(ion1),TRIM(ion2)/),(/NNN/))
+    CALL ATOMSK_MSG(4034,(/TRIM(ion1),TRIM(Pspecies)/),(/NNN/))
     IF( N1>5000 ) THEN
       CALL ATOMSK_MSG(3,(/''/),(/0.d0/))
     ENDIF
@@ -437,7 +413,7 @@ DO i=1,SIZE(aentries,1)
           ELSE
             !SIZE(V_NN) is zero => no neighbour was found
             nwarn=nwarn+1
-            CALL ATOMSK_MSG(4706,(/TRIM(ion2)/),(/DBLE(j)/))
+            CALL ATOMSK_MSG(4706,(/TRIM(Pspecies)/),(/DBLE(j)/))
           ENDIF
         ENDIF
       ENDDO
