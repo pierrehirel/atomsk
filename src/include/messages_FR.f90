@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 06 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -696,6 +696,37 @@ CASE(804)
 CASE(806)
   msg = "X!X ERREUR : les systèmes n'ont pas le même nombre d'atomes !"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(807)
+  !reals(1) = index of line in file that caused the error on read
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X ERREUR en essayant de lire la ligne #"//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(808)
+  !strings(1) = string where conversion failed
+  msg = "X!X ERREUR : impossible de convertir l'expression '"//TRIM(strings(1))// &
+      & "' en valeur numérique."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(809)
+  !strings(1) = space group H-M symbol which couldn't be identified
+  msg = "X!X ERREUR : groupe d'espace non reconnu : '"// &
+      & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(810)
+  !reals(1) = space group number
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X ERREUR : groupe d'espace invalide : "//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(811)
+  !reals(1) = space group number
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X ERREUR : impossible d'accéder aux données du groupe d'espace : "// &
+      & TRIM(ADJUSTL(msg))//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(812)
+  !strings(1) = non-conformal symmetry operation string
+  msg = "X!X ERREUR : impossible d'appliquer les opérations de symétrie : '"// &
+      & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -758,6 +789,11 @@ CASE(1706)
   msg = "/!\ ALERTE : les paramètres de boîte sont en Bohrs, alors que les positions atomiques sont en angströms."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Les paramètres de boîte seront convertis en angströms pour rétablir la cohérence."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1707) ! invalid symmetry operation string input.
+  !strings(1) = failed symmetry operation string
+  msg = "/!\ ALERTE : opération de symétrie invalide : '"// &
+      & TRIM(strings(1))//"', ignorée..."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !1800-1899: ERROR MESSAGES

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 06 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -612,6 +612,26 @@ CASE(808)
   msg = "X!X FEHLER beim Konvertieren von '"//TRIM(strings(1))// &
       & "' in einen numerischen Wert."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(809)
+  !strings(1) = space group H-M symbol which couldn't be identified
+  msg = "X!X FEHLER: unbekannte Raumgruppe: '"//TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(810)
+  !reals(1) = invalid space group number
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X FEHLER: ungueltige Raumgruppe: "//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(811)
+  !reals(1) = space group number
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X FEHLER beim Zugriff auf Daten der Raumgruppe "// &
+      & TRIM(ADJUSTL(msg))//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(812)
+  !strings(1) = non-conformal symmetry operation string
+  msg = "X!X FEHLER beim Interpretieren der Symmetrieoperationen '"// &
+      & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -678,7 +698,7 @@ CASE(1706)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string
-  msg = "/!\ WARNUNG: unzulaessige Zeichenkette fuer CIF "// &
+  msg = "/!\ WARNUNG: unzulaessige Zeichenkette fuer "// &
       & "Symmetrieoperation '"//TRIM(strings(1))//"'. Ueberspringe..."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
@@ -748,7 +768,7 @@ CASE(1812)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1813)
   !strings(1) = string where conversion failed
-  msg = "X!X FEHLER beim Analysieren der CIF Operation in '"// &
+  msg = "X!X FEHLER beim Analysieren der Operation in '"// &
       & TRIM(strings(1))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 !

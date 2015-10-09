@@ -13,7 +13,7 @@ MODULE out_jems
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 09 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -108,7 +108,8 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
 !
 ! Write header of JEMS file
-WRITE(40,'(a)') "file|"//TRIM(ADJUSTL(outputfile))
+CALL GETCWD(msg)
+WRITE(40,'(a)') "file|"//TRIM(ADJUSTL(msg))//pathsep//TRIM(ADJUSTL(outputfile))
 WRITE(40,'(a16)') "system|triclinic"
 WRITE(40,'(a21)') "HMSymbol|1|1|0|0| P 1"
 WRITE(40,'(a16)') "rps|0| x , y , z"

@@ -16,7 +16,7 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: J. Barthel - 27 July 2015                                   *
+!* Last modification: P. Hirel - 09 Aug. 2015                                     *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !*     SUBROUTINE SYMOPS_INIT initializes the array symops_trf to identity        *
@@ -38,6 +38,10 @@ MODULE symops
 !*                numbers in the module symops.                                   *
 !*     SUBROUTINE SYMOPS_PARSE_STR_LINTRF translates a 1D operation string to     *
 !*                linear transformation parameters by parsing the string.         *
+!*     SUBROUTINE SYMOPS_SET_SGNAME sets symmetry operations for a spacegroup     *
+!*                given by the space group Hermann-Mauguin symbol.                *
+!*     SUBROUTINE SYMOPS_SET_SGNUM sets symmetry operations for a spacegroup      *
+!*                given by the space group number (1 - 230).                      *
 !* REMARK: SUBROUTINE SYMOPS_PARSE_STR_LINTRF is a recursive routine.             *
 !*                Use the respective compiler option to enable recursice routines *
 !*                (ifort: /recursive)                                             *
@@ -62,6 +66,7 @@ USE functions
 USE messages
 USE files
 USE subroutines
+USE spacegroups
 !
 IMPLICIT NONE
 !
@@ -611,6 +616,135 @@ GOTO 1000
 1000 CONTINUE
 !
 END SUBROUTINE SYMOPS_PARSE_STR_LINTRF
+!
+!
+!
+!
+SUBROUTINE SYMOPS_SET_SGNAME(sgname,nchk)
+!
+CHARACTER(LEN=*),INTENT(IN)::sgname ! Hermann-Mauguin symbol identifying the space group
+INTEGER,INTENT(OUT)::nchk ! output success code: 0: failure, 1: success
+!
+INTEGER::nsgnum,i
+CHARACTER(LEN=128)::temp,msg
+!
+!Initialization
+nchk=0
+nsgnum=0
+i=0
+msg = 'entering SYMOPS_SET_SGNAME'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Get the space group number. This call will initialize the spacegroup
+!module if it isn't initialized yet.
+temp=ADJUSTL(sgname)
+CALL SG_NAMGETNUM(TRIM(temp),nsgnum)
+IF (nsgnum<1 .OR. nsgnum>sg_nummax) GOTO 801 ! invalid space group name
+WRITE(msg,*) nsgnum
+msg = "Identified space group '"//TRIM(temp)//"' as number "// &
+    & TRIM(ADJUSTL(msg))//"."
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Apply set the symmetry operations based on the SG number
+CALL SYMOPS_SET_SGNUM(nsgnum,i)
+IF (i.NE.0) THEN
+  nchk=0
+  GOTO 1000 ! pipe error through, error messages were posted by SYMOPS_SET_SGNUM
+ENDIF
+!
+800 CONTINUE ! success
+nchk=1
+GOTO 1000
+!
+!Error handling
+801 CONTINUE ! error, invalid space group name
+CALL ATOMSK_MSG(809,(/TRIM(temp)/),(/0.d0/))
+nerr = nerr+1
+nchk = 0
+GOTO 1000
+!
+!Routine exit.
+1000 CONTINUE
+!
+END SUBROUTINE SYMOPS_SET_SGNAME
+!
+!
+!
+!
+SUBROUTINE SYMOPS_SET_SGNUM(nsgnumber,nchk)
+!
+INTEGER,INTENT(IN)::nsgnumber ! space group number (1 - 230)
+INTEGER,INTENT(OUT)::nchk ! output success code: 0: failure, 1: success
+!
+!
+INTEGER::nsgnum,nsymnum,ichk,i,nfail
+CHARACTER(LEN=128)::temp,msg
+!
+!Initialization
+nchk=0
+ichk=0
+nsgnum=nsgnumber
+nsymnum=0
+nfail=0
+msg = 'entering SYMOPS_SET_SGNUM'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+IF (nsgnum<1 .OR. nsgnum>sg_nummax) GOTO 801 ! invalid space group number
+!Get number of symmetry operations for the space group
+CALL SG_NUMGETSYMNUM(nsgnum,nsymnum,ichk)
+IF (ichk.NE.1) THEN
+  IF (ichk==-1) GOTO 802
+  IF (ichk==-2) GOTO 801
+ENDIF
+IF (nsymnum.LE.0) GOTO 802
+!Prepare the symmetry data array
+IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
+ALLOCATE(symops_trf(symops_nltrf,nsymnum))
+!Initialize symmetry operations
+CALL SYMOPS_INIT()
+!
+!Set the operations from the space group data
+DO i=1, nsymnum
+  !Get the symmetry operation string
+  temp=''
+  CALL SG_NUMGETSYMOP(nsgnum,i,temp(1:sg_soplen),ichk)
+  IF (ichk.LE.0) GOTO 802
+  !Set the operation parameters from the string
+  CALL SYMOPS_SET_STR(TRIM(temp),i,ichk)
+  IF (ichk.LE.0) THEN ! report interpretation error
+                      ! do not stop here, go on
+    CALL ATOMSK_MSG(812,(/TRIM(temp)/),(/0.d0/))
+    nerr = nerr+1
+    nfail = nfail+1
+  ENDIF
+ENDDO
+!
+!
+800 CONTINUE 
+IF (nfail==0) nchk=1 ! success
+GOTO 1000
+!
+!Error handling
+801 CONTINUE ! error, invalid space group number
+CALL ATOMSK_MSG(810,(/''/),(/DBLE(nsgnum)/))
+nerr = nerr+1
+nchk = 0
+GOTO 1000
+802 CONTINUE ! error, failed to access space group data
+CALL ATOMSK_MSG(811,(/''/),(/DBLE(nsgnum)/))
+nerr = nerr+1
+nchk = 0
+GOTO 1000
+803 CONTINUE ! error, failed to access space group data
+CALL ATOMSK_MSG(812,(/TRIM(temp)/),(/0.d0/))
+nerr = nerr+1
+nchk = 0
+GOTO 1000
+!
+!Routine exit.
+1000 CONTINUE
+!
+END SUBROUTINE SYMOPS_SET_SGNUM
 !
 !
 !

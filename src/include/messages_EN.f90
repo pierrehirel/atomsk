@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 06 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -704,6 +704,37 @@ CASE(804)
 CASE(806)
   msg = "X!X ERROR: the systems do not have the same number of atoms!"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(807)
+  !reals(1) = index of line in file that caused the error on read
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X ERROR while trying to read line #"//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(808)
+  !strings(1) = string where conversion failed
+  msg = "X!X ERROR: failed to convert '"//TRIM(strings(1))// &
+      & "' to numerical value."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(809)
+  !strings(1) = space group H-M symbol which couldn't be identified
+  msg = "X!X ERROR: failed to identify the space group '"// &
+      & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(810)
+  !reals(1) = space group number
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X ERROR: invalid space group: "//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(811)
+  !reals(1) = space group number
+  WRITE(msg,"(i18)") NINT(reals(1))
+  msg = "X!X ERROR: no access to data of space group "// &
+      & TRIM(ADJUSTL(msg))//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(812)
+  !strings(1) = non-conformal symmetry operation string
+  msg = "X!X ERROR: failed to interpret the symmetry operations '"// &
+      & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -767,6 +798,11 @@ CASE(1706)
   msg = "/!\ WARNING: cell dimensions are in Bohrs, while atom positions are in angströms."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Cell dimensions will be converted to angströms for consistency."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1707) ! invalid symmetry operation string input.
+  !strings(1) = failed symmetry operation string
+  msg = "/!\ WARNING: invalid symmetry operation string '"// &
+      & TRIM(strings(1))//"', skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !1800-1899: ERROR MESSAGES
@@ -833,6 +869,11 @@ CASE(1812)
   !reals(1) = index of atom
   WRITE(msg,*) NINT(reals(1))
   msg = "X!X ERROR: unable to read properties of atom #"//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1813)
+  !strings(1) = string where conversion failed
+  msg = "X!X ERROR: failed to parse symmetry operation in '"// &
+      & TRIM(strings(1))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
