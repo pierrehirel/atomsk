@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>In this mode, <code>atomsk</code> will convert a list of files. This is of course convenient when one has a lot of files to convert, typically snapshots of a molecular dynamics run.</p>
+<p>In this mode, Atomsk will convert a list of files. This is of course convenient when one has a lot of files to convert, typically snapshots of a molecular dynamics run.</p>
 
 <p>The file &#60;listfile&#62; should contain a list of files to convert. A quick and simple way to build such a file is to list files in a directory and use the redirection symbol "&#62;". For instance:
 
@@ -32,7 +32,7 @@
 
 <ul>
   <li>empty lines, and lines starting with &#35; are ignored (this can be used to insert comments).</li>
-  <li>a line containing a file name will trigger the conversion of that file in all formats that are active. If the file is not found, a warning is displayed and <code>atomsk</code> goes on with the following files.</li>
+  <li>a line containing a file name will trigger the conversion of that file in all formats that are active. If the file is not found, a warning is displayed and Atomsk goes on with the following files.</li>
   <li>a line containing the statement <code>all &#60;format&#62;</code> activates this &#60;format&#62;.</li>
   <li>if a format is specified after a file name, the file will be converted to that format. This applies only to that file, not the following files.</li>
 </ul>

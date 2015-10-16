@@ -24,13 +24,13 @@
 
 <h4>Restrictions</h4>
 
-<p><code>atomsk</code> can read Quantum Espresso PWscf files (*.pw). If coordinates are reduced (i.e. if they appear after <code>ATOMIC_POSITIONS crystal</code>) then <code>atomsk</code> will immediately convert them to cartesian coordinates. To convert back to reduced coordinates one can use the <a href="./option_fractional.html">option <code>-frac</code></a>. If atom positions are given in lattice coordinates (i.e. if they appear after <code>ATOMIC_POSITIONS alat</code>) then <code>atomsk</code> will also immediately convert them to cartesian coordinates.</p>
+<p>Atomsk can read Quantum Espresso PWscf files (*.pw). If coordinates are reduced (i.e. if they appear after <code>ATOMIC_POSITIONS crystal</code>) then Atomsk will immediately convert them to cartesian coordinates. To convert back to reduced coordinates one can use the <a href="./option_fractional.html">option <code>-frac</code></a>. If atom positions are given in lattice coordinates (i.e. if they appear after <code>ATOMIC_POSITIONS alat</code>) then Atomsk will also immediately convert them to cartesian coordinates.</p>
 
-<p>By default in the Quantum Espresso PW file format, all quantities whose dimensions are not explicitly specified are in <em>Rydberg</em> atomic units, in particular cell dimensions and atom positions are in units of Bohr radius. So, if cell dimensions and atom coordinates are all expressed in the same units (e.g. all in Bohr, or all in anstroms), then <code>atomsk</code> conserves this unit (i.e. coordinates are NOT converted to angstroms). However, if no unit is specified for the cell (meaning it is in Bohr), while the atom coordinates are specified in angstroms, then the cell dimensions will be converted to angstroms for consistency. To convert units one can also use the <a href="./option_unit.html">option <code>-unit</code></a>.</p>
+<p>By default in the Quantum Espresso PW file format, all quantities whose dimensions are not explicitly specified are in <em>Rydberg</em> atomic units, in particular cell dimensions and atom positions are in units of Bohr radius. So, if cell dimensions and atom coordinates are all expressed in the same units (e.g. all in Bohr, or all in anstroms), then Atomsk conserves this unit (i.e. coordinates are NOT converted to angstroms). However, if no unit is specified for the cell (meaning it is in Bohr), while the atom coordinates are specified in angstroms, then the cell dimensions will be converted to angstroms for consistency. To convert units one can also use the <a href="./option_unit.html">option <code>-unit</code></a>.</p>
 
-<p>Note that in this format the cell vectors and atom positions can be specified in Bohrs (if <code>ATOMIC_POSITIONS bohr</code> is used), however <code>atomsk</code> does <em>not</em> automatically convert them to Angstr&ouml;ms (nor to any other arbitrary unit). If needed, one can use the <a href="./option_unit.html">option <code>-unit</code></a> to perform the conversion before writing or after reading a PW file.</p>
+<p>Note that in this format the cell vectors and atom positions can be specified in Bohrs (if <code>ATOMIC_POSITIONS bohr</code> is used), however Atomsk does <em>not</em> automatically convert them to Angstr&ouml;ms (nor to any other arbitrary unit). If needed, one can use the <a href="./option_unit.html">option <code>-unit</code></a> to perform the conversion before writing or after reading a PW file.</p>
 
-<p>When writing a file in the PW format, <code>atomsk</code> will use a format similar to the following:</p>
+<p>When writing a file in the PW format, Atomsk will use a format similar to the following:</p>
 
 <div class="txtfile"><h5>example.pw</h5>
 <p><code>
@@ -84,7 +84,7 @@ K_POINTS automatic<br/>
 
 <p>The paths to the pseudopotentials (i.e. "pseudo_dir") has to be set according to your local configuration. The file names of pseudopotentials (in the section "ATOMIC_SPECIES") are also dummy ones and have to be replaced.</p>
 
-<p>By default <code>atomsk</code> uses <code>ATOMIC_POSITIONS crystal</code> if atom coordinates are reduced (e.g. if the <a href="./option_fractional.html">option <code>-frac</code></a> was used), or <code>ATOMIC_POSITIONS angstrom</code> if coordinates are cartesian. As a result, if coordinates and cell parameters are in Bohrs, then the lines <code>ATOMIC_POSITIONS</code> and <code>CELL_PARAMETERS</code> will be wrong and will have to be modified manually; the <a href="./tools.html">tool <code>qepw_bohr.sh</code></a> can fix these lines.</p>
+<p>By default Atomsk uses <code>ATOMIC_POSITIONS crystal</code> if atom coordinates are reduced (e.g. if the <a href="./option_fractional.html">option <code>-frac</code></a> was used), or <code>ATOMIC_POSITIONS angstrom</code> if coordinates are cartesian. As a result, if coordinates and cell parameters are in Bohrs, then the lines <code>ATOMIC_POSITIONS</code> and <code>CELL_PARAMETERS</code> will be wrong and will have to be modified manually; the <a href="./tools.html">tool <code>qepw_bohr.sh</code></a> can fix these lines.</p>
 
 <p>If auxiliary properties exist, then only the fixed coordinates (<code>fixx, fixy, fixz</code>) are written for each atom.</p>
 

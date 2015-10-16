@@ -35,13 +35,13 @@
          &#60;atomN&#62; &#60;xN&#62; &#60;yN&#62; &#60;zN&#62;<br/>
 </code></p></div>
 
-<p>Since no standard specification exist, some programs use the atomic number in the first column, while some other programs use the atomic symbol; and the coordinates x, y and z can be either cartesian or fractional coordinates, depending on the periodicity of the system (cartesian coordinates are usually used for single molecules, while fractional coordinates are used for periodic crystals). Also, the system (or supercell) dimensions are not written in a default XYZ file, contrary to other formats like CFG or XSF.</p>
+<p>Since no standard specification exist, some programs use the atomic number in the first column, while some other programs use the atomic symbol; and the coordinates x, y and z can be either Cartesian or fractional coordinates, depending on the periodicity of the system (cartesian coordinates are usually used for single molecules, while fractional coordinates are used for periodic crystals). Also, the system (or supercell) dimensions are not written in a default XYZ file, contrary to other formats like CFG or XSF.</p>
  
-<p><code>atomsk</code> automatically detects if the species or the atomic number is used in the first column, and it also detects if fractional or cartesian coordinates are used. Since no supercell parameters are contained in the default XYZ format, <code>atomsk</code> automatically creates a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>) for compatibility with other output formats that require a supercell. Alternatively one can use the <a href="./option_properties.html">option <code>-properties</code></a> to set up the supercell parameters.</p>
+<p>Atomsk automatically detects if the species or the atomic number is used in the first column, and it also detects if fractional or cartesian coordinates are used. Since no supercell parameters are contained in the default XYZ format, Atomsk automatically creates a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>) for compatibility with other output formats that require a supercell. Alternatively one can use the <a href="./option_properties.html">option <code>-properties</code></a> to set up the supercell parameters.</p>
 
-<p>When writing an output file to the "default" XYZ format, <code>atomsk</code> uses the specification described in the <a href="http://openbabel.org/wiki/XYZ_%28format%29">OpenBabel Wiki</a>, i.e. it uses the atomic species as a first column and cartesian coordinates.</p>
+<p>When writing an output file to the "default" XYZ format, Atomsk uses the specification described in the <a href="http://openbabel.org/wiki/XYZ_%28format%29">OpenBabel Wiki</a>, i.e. it uses the atomic species as a first column and cartesian coordinates.</p>
 
-<p><code>atomsk</code> can also read and write the <strong>extended XYZ format</strong>, described for instance <a href="http://www.jrkermode.co.uk/quippy/extended_xyz.html">here</a> or <a href="https://camtools.cam.ac.uk/access/wiki/site/5b59f819-0806-4a4d-0046-bcad6b9ac70f/extendedxyz.html">here</a>. This format is fully compatible with the default XYZ format, the comment line being replaced by a set of keywords and values, for instance:</p>
+<p>Atomsk can also read and write the <strong>extended XYZ format</strong>, described for instance <a href="http://www.jrkermode.co.uk/quippy/extended_xyz.html">here</a> or <a href="https://camtools.cam.ac.uk/access/wiki/site/5b59f819-0806-4a4d-0046-bcad6b9ac70f/extendedxyz.html">here</a>. This format is fully compatible with the default XYZ format, the comment line being replaced by a set of keywords and values, for instance:</p>
 
 <div class="txtfile"><h5>example.xyz</h5>
 <p><code>&#60;NP&#62;<br/>
@@ -55,13 +55,13 @@
 
 <p>where the keyword "<code>Properties</code>" defines the format of each line by three values: the name of the property, its format (S=string, I=integer, R=real), and the number of columns for that property. For instance "<code>species:S:1:pos:R:3</code>" tells that atomic species is a string using 1 column, and atom positions are real numbers using 3 columns.</p>
 
-<p>When reading an extended XYZ file <code>atomsk</code> only reads the supercell parameters that follow the keyword <code>Lattice</code>, and the properties (following the keyword <code>Properties</code>). Any other keyword (like the "<code>Time</code>" keyword in the example above) is ignored.</p>
+<p>When reading an extended XYZ file Atomsk only reads the supercell parameters that follow the keyword <code>Lattice</code>, and the properties (following the keyword <code>Properties</code>). Any other keyword (like the "<code>Time</code>" keyword in the example above) is ignored.</p>
 
 <p>When writing extended XYZ files the second line always contains lattice parameters (after the keyword "<code>Lattice</code>") and auxiliary properties (following the keyword "<code>Properties</code>"). Each auxiliary property takes real values in a single column, so the format looks like "<code>Properties=species:S:1:pos:R:3:aux1:R:1:aux2:R:1...</code>". To write extended XYZ files, use <code>exyz</code> as a command-line option, for instance:</p>
 
 <p><code class="command">atomsk initial.cfg final.xyz exyz</code></p>
 
-<p>Finally, <code>atomsk</code> can deal with yet another specification called here the <strong>special XYZ format</strong>. It consists of the default XYZ format with (if necessary) auxiliary properties. Also, additional informations are written at the end of the file: a scaling factor (after the keyword "alat"), the supercell parameters (after "supercell" or "conventional"), the atom masses (one line per atom type), a keyword specifying if cartesian or reduced coordinates are used, and the name of auxiliary properties (if any):</p>
+<p>Finally, Atomsk can deal with yet another specification called here the <strong>special XYZ format</strong>. It consists of the default XYZ format with (if necessary) auxiliary properties. Also, additional informations are written at the end of the file: a scaling factor (after the keyword "alat"), the supercell parameters (after "supercell" or "conventional"), the atom masses (one line per atom type), a keyword specifying if cartesian or reduced coordinates are used, and the name of auxiliary properties (if any):</p>
 
 <div class="txtfile"><h5>example.xyz</h5>
 <p><code>&#60;NP&#62;<br/>
@@ -93,7 +93,7 @@
 
 <p><code class="command">atomsk initial.cfg final.xyz sxyz</code></p>
 
-<p>By default <code>atomsk</code> always writes the coordinates in cartesian basis in all the XYZ formats described above, but this can be changed with the <a href="./option_fractional.html">option <code>-fractional</code></a>.</p>
+<p>By default Atomsk always writes the coordinates in cartesian basis in all the XYZ formats described above, but this can be changed with the <a href="./option_fractional.html">option <code>-fractional</code></a>.</p>
 
 <p>Note that since all these formats use the same extension (.xyz), it is not possible to write to two of these formats at the same time. When specifying both xyz, exyz and/or sxyz as output formats, then only one file with the extended XYZ (exyz) format will be written.</p>
 

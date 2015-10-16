@@ -17,17 +17,17 @@
 
 <p><strong>Extension:</strong> .atsk</p>
 
-<p><strong>Specification:</strong> see source code of <code>atomsk</code></p>
+<p><strong>Specification:</strong> see source code of Atomsk</p>
 
 <p><strong>Visualization programs:</strong> none</p>
 
 <h4>Restrictions</h4>
 
-<p>This file format is specific to <code>atomsk</code>. It stores the cell vectors, atom positions, ionic shell positions if any (in the sense of an ionic core-shell model), and all auxiliary properties of atoms.</p>
+<p>This file format is specific to Atomsk. It stores the cell vectors, atom positions, ionic shell positions if any (in the sense of an ionic core-shell model), and all auxiliary properties of atoms.</p>
 
-<p>Because it is a binary format it usually uses less disk space than ASCII (text) files, hence it is faster to read and write ATSK files. However it also means that such files cannot be read in a text editor. This format can be useful to read and write intermediate files when invoking <code>atomsk</code> several times to design a system, especially if the system is large (several 100,000 atoms).</p>
+<p>Because it is a binary format it usually uses less disk space than ASCII (text) files, hence it is faster to read and write ATSK files. However it also means that such files cannot be read in a text editor. This format can be useful to read and write intermediate files when invoking Atomsk several times to design a system, especially if the system is large (several 100,000 atoms).</p>
 
-<p><strong>IMPORTANT NOTE:</strong> This file format is intended for use with <code>atomsk</code> only. It is unlikely to ever be transferrable to any other program, and may even not be readable by <code>atomsk</code> on another computer, nor by a different version of <code>atomsk</code>. Its use should be restricted to temporary or intermediate files. Saving or archiving files in this format is strongly discouraged.</p>
+<p><strong>IMPORTANT NOTE:</strong> This file format is intended for use with Atomsk only. It is unlikely to ever be transferrable to any other program, and may even not be readable by Atomsk on another computer, nor by a different version of Atomsk. Its use should be restricted to temporary or intermediate files. Saving or archiving files in this format is strongly discouraged.</p>
 
 
 
@@ -37,7 +37,7 @@
 <li><code class="command">atomsk system1.cfg -duplicate 10 10 10 temp1.atsk<br/>
 atomsk system2.xsf -duplicate 12 10 16 temp2.atsk<br/>
 atomsk --merge y 2 temp1.atsk temp2.atsk final.xsf</code>
-<p>The <code>atomsk</code> binary file format can be useful when manipulating large systems. Note that it is used only for temporary files (<code>temp1.atsk</code> and <code>temp2.atsk</code>), and not for the final system (<code>final.xsf</code>).</p></li>
+<p>The Atomsk binary file format can be useful when manipulating large systems. Note that it is used only for temporary files (<code>temp1.atsk</code> and <code>temp2.atsk</code>), and not for the final system (<code>final.xsf</code>).</p></li>
 </ul>
 
 

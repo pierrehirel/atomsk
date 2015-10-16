@@ -24,9 +24,9 @@
 
 <h4>Restrictions</h4>
 
-<p><code>atomsk</code> can read both periodic and molecular structures written in XSF format (see specification). For molecular XSF, since it contains no cell parameter <code>atomsk</code> will try to automatically create a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>). Alternatively one can use the <a href="./option_properties.html">option <code>-properties</code></a> to set up the supercell parameters. If forces are present in the file, <code>atomsk</code> will also read them.</p>
+<p>Atomsk can read both periodic and molecular structures written in XSF format (see specification). For molecular XSF, since it contains no cell parameter Atomsk will try to automatically create a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>). Alternatively one can use the <a href="./option_properties.html">option <code>-properties</code></a> to set up the supercell parameters. If forces are present in the file, Atomsk will also read them.</p>
 
-<p>When writing to XSF format <code>atomsk</code> assumes periodic structure. If auxiliary properties exist, then only the forces (<code>fx, fy, fz</code>) are written.</p>
+<p>When writing to XSF format Atomsk assumes periodic structure. If auxiliary properties exist, then only the forces (<code>fx, fy, fz</code>) are written.</p>
 
 <p>If the file is an animated XSF file (which contains several snapshots) then only the first snapshot will be read and converted. To convert all the snapshots one can use the <a href="./mode_oneinall.html">mode one-in-all</a>. To create an animated XSF file one can use the <a href="./mode_allinone.html">mode all-in-one</a>.</p>
 

@@ -24,11 +24,11 @@
 
 <h4>Restrictions</h4>
 
-<p><code>atomsk</code> peut lire les fichiers au format Quantum Espresso PWscf (*.pw). Si les coordonnées sont réduites (c-à-d si elles sont dans la section <code>ATOMIC_POSITIONS crystal</code>) alors <code>atomsk</code> les convertira immédiatement en coordonnées cartésiennes. Pour retouver des coordonnées réduites il est possible d'utiliser l'<a href="./option_fractional.html">option <code>-frac</code></a>.</p>
+<p>Atomsk peut lire les fichiers au format Quantum Espresso PWscf (*.pw). Si les coordonnées sont réduites (c-à-d si elles sont dans la section <code>ATOMIC_POSITIONS crystal</code>) alors Atomsk les convertira immédiatement en coordonnées cartésiennes. Pour retouver des coordonnées réduites il est possible d'utiliser l'<a href="./option_fractional.html">option <code>-frac</code></a>.</p>
 
-<p>Par défaut dans le format Quantum Espresso PWscf, les quantités dont les dimensions ne sont pas définies explicitement sont en unités atomiques, et donc les vecteurs de boîte et positions atomiques sont en Bohrs. Ainsi, si les vecteurs de boîte et les coordonnées atomiques sont exprimées dans le même système d'unités (par ex. tous en Bohrs, ou tous en &Aring;) alors <code>atomsk</code> conserve cette unité (autrement dit les unités ne <em>sont pas</em> automatiquement converties en &Aring;). Cependant, si aucune unité n'est spécifiée pour les vecteurs de boîte (ce qui signifie qu'ils sont en Bohrs), tandis que les positions atomiques sont exprimées en &Aring;, alors les vecteurs de boîte sont convertis en &Aring; pour que le tout soit cohérent. Pour convertir les unités il est aussi possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p>
+<p>Par défaut dans le format Quantum Espresso PWscf, les quantités dont les dimensions ne sont pas définies explicitement sont en unités atomiques, et donc les vecteurs de boîte et positions atomiques sont en Bohrs. Ainsi, si les vecteurs de boîte et les coordonnées atomiques sont exprimées dans le même système d'unités (par ex. tous en Bohrs, ou tous en &Aring;) alors Atomsk conserve cette unité (autrement dit les unités ne <em>sont pas</em> automatiquement converties en &Aring;). Cependant, si aucune unité n'est spécifiée pour les vecteurs de boîte (ce qui signifie qu'ils sont en Bohrs), tandis que les positions atomiques sont exprimées en &Aring;, alors les vecteurs de boîte sont convertis en &Aring; pour que le tout soit cohérent. Pour convertir les unités il est aussi possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p>
 
-<p>Lorsqu'il écrit un fichier au format PW, <code>atomsk</code> utiliser un format similaire au suivant :</p>
+<p>Lorsqu'il écrit un fichier au format PW, Atomsk utiliser un format similaire au suivant :</p>
 
 <div class="txtfile"><h5>exemple.pw</h5>
 <p><code>
@@ -82,7 +82,7 @@ K_POINTS automatic<br/>
 
 <p>Le chemin vers les pseudopotentiels (suivant le mot-clé "pseudo_dir") doit être défini selon votre configuration locale. Les noms de fichiers des pseudopotentiels (dans la section "ATOMIC_SPECIES") sont aussi fictifs et doivent être remplacés selon les pseudopotentiels que vous souhaitez utiliser.</p>
 
-<p>Par défaut <code>atomsk</code> utilise <code>ATOMIC_POSITIONS crystal</code> si les positions des atomes sont exprimées en coordonnées réduites (par ex. si l'<a href="./option_fractional.html">option <code>-frac</code></a> a été utilisée), ou <code>ATOMIC_POSITIONS angstrom</code> si elles sont en coordonnées cartésiennes. De fait, si les coordonnées atomiques et les vecteurs de boîte sont en réalité en Bohrs, les lignes <code>ATOMIC_POSITIONS</code> et <code>CELL_PARAMETERS</code> seront incorrectes et devront être modifiées à la main; le <a href="./tools.html">script <code>qepw_bohr.sh</code></a> fourni avec <code>atomsk</code> permet de réaliser ce changement.</p>
+<p>Par défaut Atomsk utilise <code>ATOMIC_POSITIONS crystal</code> si les positions des atomes sont exprimées en coordonnées réduites (par ex. si l'<a href="./option_fractional.html">option <code>-frac</code></a> a été utilisée), ou <code>ATOMIC_POSITIONS angstrom</code> si elles sont en coordonnées cartésiennes. De fait, si les coordonnées atomiques et les vecteurs de boîte sont en réalité en Bohrs, les lignes <code>ATOMIC_POSITIONS</code> et <code>CELL_PARAMETERS</code> seront incorrectes et devront être modifiées à la main; le <a href="./tools.html">script <code>qepw_bohr.sh</code></a> fourni avec Atomsk permet de réaliser ce changement.</p>
 
 <p>i des propriétés auxiliaires existent, alors seules les directions dans lesquelles les atomes sont fixés (<code>fixx, fixy, fixz</code>) sont utilisées et écrites pour chaque atome.</p>
 

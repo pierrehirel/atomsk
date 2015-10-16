@@ -19,13 +19,13 @@
 
 <h4>Description</h4>
 
-<p>Dans ce mode <code>atomsk</code> calcule la ou les fonction(s) de distribution radiale (radial distribution function, RDF) des systèmes contenus dans le &#60;fichierliste&#62;.</p>
+<p>Dans ce mode Atomsk calcule la ou les fonction(s) de distribution radiale (radial distribution function, RDF) des systèmes contenus dans le &#60;fichierliste&#62;.</p>
 
 <p>L'analyse est faite pour toutes les "peaux" [R;R+dR] où R varie de 0 jusqu'à &#60;R<sub>max</sub>&#62;, et est moyennée sur tous les atomes (moyenne spatiale). Le rayon maximal &#60;R<sub>max</sub>&#62; et l'épaisseur &#60;dR&#62; de la "peau" doivent être fournis (en &Aring;). Le rayon maximal &#60;R<sub>max</sub>&#62; peut être supérieur à la taille du système.</p>
 
 <p>Le &#60;fichierliste&#62; doit contenir une liste de fichiers à traiter, chacun de ces fichiers contenant une configuration d'une simulation en dynamique moléculaire par exemple. La fonction de distribution radiale finale est moyennée sur toutes ces configurations, autrement dit il s'agit d'une moyenne spatiale et temporelle.</p>
 
-<p>Si les systèmes contiennent plusieurs espèces chimiques alors les fonctions de distribution radiale partielles sont calculées. Par exemple si des atomes A et B existent, alors <code>atomsk</code> calculera les fonctions de distribution des atomes A autour des atomes A, de B autour de A, et B autour de B.</p>
+<p>Si les systèmes contiennent plusieurs espèces chimiques alors les fonctions de distribution radiale partielles sont calculées. Par exemple si des atomes A et B existent, alors Atomsk calculera les fonctions de distribution des atomes A autour des atomes A, de B autour de A, et B autour de B.</p>
 
 <p>Après le calcul les fichiers suivants sont produits (&#60;A&#62; et &#60;B&#62; sont remplacés par les symboles atomiques) :</p>
 

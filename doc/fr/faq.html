@@ -108,6 +108,16 @@
 <p>Notez que Atomsk n'opère absolument aucune transformation implicite des unités. Par exemple, si vous lisez un fichier contenant des positions atomiques en Bohrs, alors dans le fichier de sortie elles apparaîtront également en Bohrs. Pour changer explicitement les unités il est possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
 
 
+<li><a href="#" id="useprompt" class="showLink" onclick="showHide('useprompt');return false;"><strong>Je me retrouve face à une invite de commande (<code>atomsk&#62;</code>) et je ne sais pas quoi faire.</strong></a></li>
+
+<div id="useprompt-show" class="more"><p>Cela veut dire que vous avez lancé Atomsk sans argument, soit en entrant juste "atomsk" dans votre ligne de commandes, soit en double-cliquant sur l'exécutable ou un lien. Ceci lance Atomsk en <a href="./mode_interactive.html">mode interactif</a>. Dans ce mode Atomsk attend vos commandes, et les éxécute en temps-réel (si elles sont valides). Dans ce mode tapez "help" pour voir une liste des commandes disponibles.</p>
+
+<p>Si vous ne souhaitez pas utiliser Atomsk de façon interactive, alors vous devez l'exécuter avec des arguments, par exemple :</p>
+
+<p><code class="command">atomsk initial.xsf -duplicate 2 2 2 final.cfg</code></p>
+</div>
+
+
 <li><a href="#" id="usenclo" class="showLink" onclick="showHide('usenclo');return false;"><strong>Combien d'options puis-je utiliser dans une même ligne de commandes ?</strong></a></li>
 
 <div id="usenclo-show" class="more"><p>Il n'y a virtuellement aucune limitation, autre que celle de votre environnement. Sous UNIX/Linux vous pouvez taper "<code>getconf ARG_MAX</code>" pour connaître la longueur maximale de ligne de commande que votre shell supporte.</p></div>
@@ -220,7 +230,7 @@ deform x 3% 0.33<br/>
 
 <p><code>make.exe -f Makefile.windows atomsk</code></p>
 
-<p>De manière non-native, <code>atomsk</code> devrait également fonctionner sous Windows dans un environnement Linux tel que <a href="http://www.cygwin.com">Cygwin</a>, bien que cela n'a pas été testé.</p></div>
+<p>De manière non-native, Atomsk devrait également fonctionner sous Windows dans un environnement Linux tel que <a href="http://www.cygwin.com">Cygwin</a>, bien que cela n'a pas été testé.</p></div>
 
 
 <li><a href="#" id="instbin" class="showLink" onclick="showHide('instbin');return false;"><strong>Pouvez-vous fournir un paquet (rpm, deb...) pour ma distribution GNU/Linux préférée ?</strong></a></li>

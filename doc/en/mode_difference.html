@@ -24,7 +24,7 @@
 
 <p>This mode computes the difference in atomic positions between two configurations.</p>
 
-<p>The displacement vectors are defined by the subtraction of the positions of the &#60;file1&#62; from those of the &#60;file2&#62; (in other words disp=&#60;file2&#62;-&#60;file1&#62; ). Both files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by <code>atomsk</code></a>.</p>
+<p>The displacement vectors are defined by the subtraction of the positions of the &#60;file1&#62; from those of the &#60;file2&#62; (in other words disp=&#60;file2&#62;-&#60;file1&#62; ). Both files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by Atomsk</a>.</p>
 
 <p>The results are written in six separate files which names are prefixed with the name of the &#60;file2&#62;:</p>
 
@@ -43,7 +43,7 @@
 </ul>
 
 
-<p>Note that this mode assumes that coordinates are <em>not wrapped</em>. If they are wrapped (either because the simulation code has written wrapped coordinates in the file, or because you run <code>atomsk</code> with the <a href="./option_wrap.html">option <code>-wrap</code></a>) then some atoms may seem to teleport from one end of the supercell to another, and displacement vectors may be wrong. If coordinates are wrapped you may unwrap them first with the <a href="./mode_unwrap.html">mode <code>--unwrap</code></a>.</p>
+<p>Note that this mode assumes that coordinates are <em>not wrapped</em>. If they are wrapped (either because the simulation code has written wrapped coordinates in the file, or because you run Atomsk with the <a href="./option_wrap.html">option <code>-wrap</code></a>) then some atoms may seem to teleport from one end of the supercell to another, and displacement vectors may be wrong. If coordinates are wrapped you may unwrap them first with the <a href="./mode_unwrap.html">mode <code>--unwrap</code></a>.</p>
 
 <p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied on the two files <em>before</em> the difference is computed.</p>
 

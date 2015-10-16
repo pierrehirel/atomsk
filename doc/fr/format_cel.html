@@ -23,19 +23,25 @@
 
 <h4>Restrictions</h4>
 
-<p></p>
+<p>Dr Probe est un logiciel de simulation d'images de microscopie haute résolution (HRTEM). Atomsk peut lire les fichiers au format CEL, avec les restrictions ci-dessous.</p>
 
-<p></p>
+<p>Pour écrire un fichier au format CEL il est recommandé de définir les taux d'occupation des sites et les paramètres vibrationnels en tant que propriétés auxiliaires de chaque atome. Si ces propriétés ne sont pas définies, alors Atomsk écrira dans le fichier les valeurs par défaut 1 et 0, respectivement.<p>
 
-<p></p>
+<p>Notez que Atomsk ne réalise aucune conversion implicite des unités. Par défaut les fichiers CEL utilisent le nanomètre comme unité de longueur (et nm<sup>2</sup> pour les vibrations thermiques), et Atomsk enregistre ces valeurs telles quelles sans les modifier. Il appartient à l'utilisateur de convertir explicitement ces valeurs s'il souhaite obtenir des &Aring; (ou toute autre unité), par exemple avec l'<a href="./option_unit.html">option <code>-unit</code></a>. De même, si des données sont lues en &Aring; (ou toute autre unité), il appartient à l'utilisateur de les convertir en nm avant d'écrire un fichier au format CEL. Les exemples ci-dessous illustrent ces points.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk my_system.cif cel</code>
-<p>Ceci va lire le fichier <code>my_system.cif</code>, et le convertira en <code>my_system.cel</code>.</p></li>
+<li><code class="command">atomsk mon_systeme.xsf -unit A nm cel</code>
+<p>Ceci va lire le fichier <code>mon_systeme.xsf</code> (dans lequel les positions atomiques sont en &Aring;), ensuite convertira les positions atomiques en nanomètres, puis écrira le résultat final dans <code>mon_systeme.cel</code>.</p></li>
+
+<li><code class="command">atomsk supercell.cel -unit nm A cfg</code>
+<p>Ceci va lire le fichier <code>supercell.cel</code> (où les positions atomiques sont en nanomètres), convertira les positions en &Aring;, et écrira le résultat final dans <code>supercell.cfg</code>.</p></li>
+
+<li><code class="command">atomsk unitcell.cel -dupplicate 1 1 3 supercell.cel</code>
+<p>Ceci va lire le fichier <code>unitcell.cel</code>, dupliquera le systèmes trois fois suivant Z, et écrira le résultat final dans <code>supercell.cel</code>. Notez que puisque les fichiers initial et final utilisent les mêmes unités (càd des nanomètres) il n'y a pas besoin de les convertir.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

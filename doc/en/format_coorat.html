@@ -23,9 +23,9 @@
 
 <h4>Restrictions</h4>
 
-<p>The supercell parameters are not specified in a COORAT file, but in the MBPP input file (INP). So, when reading a COORAT file, <code>atomsk</code> will search for a file named INP in the current directory, and if it exists read the supercell parameters from it. Each supercell parameter may contain one special character (o, e, h...) and/or a star (*) indicating multiplication with a number (e.g. "<code>0.5*h</code>"); the slash sign (/) is not recognized. If no INP file is found then <code>atomsk</code> automatically creates a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>) for compatibility with other output formats that require a supercell.</p>
+<p>The supercell parameters are not specified in a COORAT file, but in the MBPP input file (INP). So, when reading a COORAT file, Atomsk will search for a file named INP in the current directory, and if it exists read the supercell parameters from it. Each supercell parameter may contain one special character (o, e, h...) and/or a star (*) indicating multiplication with a number (e.g. "<code>0.5*h</code>"); the slash sign (/) is not recognized. If no INP file is found then Atomsk automatically creates a bounding box (this is identical to the <a href="./option_rebox.html">option <code>-rebox</code></a>) for compatibility with other output formats that require a supercell.</p>
 
-<p>When writing to the COORAT format, <code>atomsk</code> will attempt to write supercell parameters to the file called INP in the current directory. If this file already exists the user will be prompted whether to overwrite it or choose another name. Beware that this INP file is incomplete and is <em>not</em> fully set for a simulation.</p>
+<p>When writing to the COORAT format, Atomsk will attempt to write supercell parameters to the file called INP in the current directory. If this file already exists the user will be prompted whether to overwrite it or choose another name. Beware that this INP file is incomplete and is <em>not</em> fully set for a simulation.</p>
 
 
 

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 06 Oct. 2015                                     *
+!* Last modification: P. Hirel - 16 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1247,27 +1247,38 @@ CASE(2090)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2091)
-  !strings(1) = what to convert
+  !strings(1) = what to convert / property name
   !strings(2) = first unit of distance
   !strings(3) = second unit of distance
   !strings(4) = first unit of time
   !strings(5) = second unit of time
-  IF( LEN_TRIM(strings(4))>0 ) THEN
-    temp = TRIM(strings(2))//"/"//TRIM(strings(4))
+  !reals(1) = 0 or factor
+  IF( strings(1)=="velocities" .OR. strings(1)=="coordinates" ) THEN
+    IF( LEN_TRIM(strings(4))>0 ) THEN
+      temp = TRIM(strings(2))//"/"//TRIM(strings(4))
+    ELSE
+      temp = TRIM(strings(2))
+    ENDIF
+    IF( LEN_TRIM(strings(5))>0 ) THEN
+      temp2 = TRIM(strings(3))//"/"//TRIM(strings(5))
+    ELSE
+      temp2 = TRIM(strings(3))
+    ENDIF
+    msg = ">>> Konvertiere "//TRIM(strings(1))//" von "//TRIM(temp)//&
+        & " nach "//TRIM(temp2)//"."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
-    temp = TRIM(strings(2))
+    WRITE(temp,'(f16.3)') reals(1)
+    msg = ">>> Neuskalierung die Eigenschaft "//TRIM(strings(1))//" um den Faktor "//TRIM(ADJUSTL(temp))//"."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  IF( LEN_TRIM(strings(5))>0 ) THEN
-    temp2 = TRIM(strings(3))//"/"//TRIM(strings(5))
-  ELSE
-    temp2 = TRIM(strings(3))
-  ENDIF
-  msg = ">>> Konvertiere "//TRIM(strings(1))//" von "//TRIM(temp)//&
-      & " nach "//TRIM(temp2)//"."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2092)
   !strings(1) = what was converted
-  msg = "..> "//TRIM(ADJUSTL(strings(1)))//" konvertiert."
+  IF( strings(1)=="velocities" .OR. strings(1)=="coordinates" ) THEN
+    msg = "..> "//TRIM(ADJUSTL(strings(1)))//" konvertiert."
+  ELSE
+    msg = "..> "//TRIM(ADJUSTL(strings(1)))//" neu skaliert."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2093)
   msg = ">>> Periodisches umbrechen der Atome..."
@@ -1677,6 +1688,20 @@ CASE(2751)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2752)
   msg = "/!\ WARNUNG: Keine Auswahl definiert. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2753)
+  !reals(1) = atom index
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNUNG: atom #"//TRIM(ADJUSTL(temp))//"  wurde bereits ausgewählt. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2754)
+  !strings(1) = type of object (e.g. "dislocation" or "crack")
+  msg = "/!\ WARNUNG: Das "//TRIM(ADJUSTL(strings(1)))//" wird aus der Box platziert."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Das macht wenig Sinn. Bitte ueberpruefen!"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2755)
+  msg = "/!\ WARNUNG: Faktor ist Null. Ueberspringe."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

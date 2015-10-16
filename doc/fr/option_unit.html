@@ -15,16 +15,18 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-unit &#60;unité1&#62; &#60;unité2&#62;</code></p>
+<p><code>-unit &#60;propriété&#62; &#60;facteur&#62;</code></p>
 
-<p><code>-u &#60;unité1&#62; &#60;unité2&#62;</code></p>
+<p><code>-unit &#60;unité1&#62; &#60;unité2&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet de convertir les coordonnées des atomes d'un système d'&#60;unité1&#62; vers une autre &#60;unité2&#62;.</p>
+<p>Cette option multiplie les valeurs de la &#60;propriété&#62; donnée par le &#60;facteur&#62; donné. Elle permet aussi de convertir les coordonnées ou les vitesses des atomes d'une &#60;unité1&#62; vers une &#60;unité2&#62;.</p>
 
-<p>Les unités de distance supportées sont :</p>
+<p>La &#60;propriété&#62; peut être une direction cartésienne (X, Y ou Z) pour redimensionner les coordonnées des atomes, ou bien n'importe quelle propriété auxiliaire existante (par exemple vx, vy ou vz pour les vitesses des atomes, fx, fy ou fz pour les forces, etc.).</p>
+
+<p>Cette option permet aussi de convertir les coordonnées ou les vitesses des atomes d'un système d'&#60;unité1&#62; vers une autre &#60;unité2&#62;. Les unités de distance supportées sont :</p>
 
 <ul>
   <li><strong>km</strong></li>
@@ -53,28 +55,34 @@
 
 <p>Les unités de vitesse doivent être spécifiées comme la concaténation d'une unité de distance, d'un symbole de division (/), et d'une unité de temps (voir les exemples ci-dessous).</p>
 
-<p>Notez que <code>atomsk</code> effectuera la conversion aveuglément, puisqu'il n'a aucun moyen de connaître le véritable système d'unités employé dans le fichier d'entrée. Il appartient à l'utilisateur de vérifier que les coordonnées sont bien dans l'&#60;unité1&#62; avant d'effectuer la conversion.</p>
+<p>Notez que Atomsk effectuera la conversion aveuglément, puisqu'il n'a aucun moyen de connaître le véritable système d'unités employé dans le fichier d'entrée. Il appartient à l'utilisateur de vérifier que les coordonnées sont bien dans l'&#60;unité1&#62; avant d'effectuer la conversion.</p>
 
 
 <h4>Défaut</h4>
 
-<p>Par défaut les unités ne sont pas changées.</p>
+<p>Par défaut les unités ne sont pas changées. À la lecture d'un fichier, Atomsk lit et enregistre les nombres tels quels, sans opérer la moindre conversion implicite d'unités. Par exemple si un fichier d'entrée contient les nombres "1.0 2.0 3.0" en Bohrs, alors ils seront enregistrés et écrits comme "1.0 2.0 3.0" dans le fichier de sortie, même dans les formats qui utilisent une autre unité par défaut. Il appartient à l'utilisateur d'effectuer explicitement la conversion d'unités, par exemple avec l'option <code>-unit</code>.</p>
 
 
 
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.xyz -unit x 1.1 final.xsf</code>
+<p>Ceci lira le fichier <code>initial.xyz</code>, multipliera la coordonnée X de tous les atomes par 1,1, et écrira le résultat dans le fichier <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.lmc -unit vx 2.0 -unit vy 2.0 -unit vz 2.0 final.xsf</code>
+<p>Ceci va multiplier toutes les vitesses des atomes (vx, vy et vz) par un facteur 2.</p></li>
+
 <li><code class="command">atomsk initial.xyz -unit Bohr Angstroms final.xsf</code>
-<p>Ceci lira le fichier <code>initial.xyz</code>, dans lequel les coordonnées sont exprimées en rayons de Bohr, convertira en angstroms, et écrira le résultat dans <code>final.xsf</code>.</p></li>
+<p>Ceci lira le fichier <code>initial.xyz</code>, dans lequel les coordonnées sont exprimées en rayons de Bohr, convertira en angströms, et écrira le résultat dans <code>final.xsf</code>.</p></li>
 
-<li><code class="command">atomsk initial.xsf final.xyz -u A nm</code>
-<p>Ceci convertira des Angstroms en nanomètres.</p></li>
+<li><code class="command">atomsk initial.xsf -unit A nm final.xyz</code>
+<p>Ceci convertira des Angströms en nanomètres.</p></li>
 
-<li><code class="command">atomsk initial.lmc final.cfg -u A/ps nm/ps</code>
-<p>Ceci convertira les vitesses des atomes de Angstroms par picoseconde (&Aring;/ps) vers des nanomètres par picoseconde (nm/ps).</p></li>
+<li><code class="command">atomsk initial.lmc -unit A/ps nm/ps final.cfg</code>
+<p>Ceci convertira les vitesses des atomes de Angströms par picoseconde (&Aring;/ps) vers des nanomètres par picoseconde (nm/ps).</p></li>
 
-<li><code class="command">atomsk initial.lmc final.cfg -u nm/fs km/h</code>
+<li><code class="command">atomsk initial.lmc -unit nm/fs km/h final.cfg</code>
 <p>Ceci convertira les vitesses des atomes de nanomètres par femtoseconde (nm/fs) vers des kilomètres par heure (km/h).</p></li>
 </ul>
 

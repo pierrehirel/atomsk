@@ -19,13 +19,13 @@
 
 <h4>Description</h4>
 
-<p>In this mode <code>atomsk</code> computes the radial distribution function(s) (RDF) for the systems in &#60;listfile&#62;.</p>
+<p>In this mode Atomsk computes the radial distribution function(s) (RDF) for the systems in &#60;listfile&#62;.</p>
 
 <p>The analysis is performed for all skins [R;R+dR] with R ranging from 0 up to &#60;R<sub>max</sub>&#62;, and averaged over all atoms (i.e. space-averaged). The maximum radius &#60;R<sub>max</sub>&#62; and the width &#60;dR&#62; of the skin (or shell) must be provided (in &Aring;). The maximum radius &#60;R<sub>max</sub>&#62; can be greater than the system size.</p>
 
 <p>The &#60;listfile&#62; must contain a list of files to process, which should be consecutive snapshots of a molecular dynamics run. The final RDF is averaged over all these snapshots, i.e. it is both space- and time-averaged.</p>
 
-<p>If the system contains several atom species then all the partial RDFs are computed. E.g. if atoms A and B exist, then <code>atomsk</code> will compute the RDF for A atoms around A atoms, B around A, and B around B.</p>
+<p>If the system contains several atom species then all the partial RDFs are computed. E.g. if atoms A and B exist, then Atomsk will compute the RDF for A atoms around A atoms, B around A, and B around B.</p>
 
 <p>Output consists of the following files (where the &#60;A&#62; and &#60;B&#62; are replaced by the atomic symbols):</p>
 

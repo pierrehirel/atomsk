@@ -15,7 +15,7 @@
 
 <p><strong>Name:</strong> LAMMPS custom dump file</p>
 
-<p><strong>Extension:</strong> unspecified (<code>atomsk</code> uses .lmc)</p>
+<p><strong>Extension:</strong> unspecified (Atomsk uses .lmc)</p>
 
 <p><strong>Specification:</strong> <a href="http://lammps.sandia.gov/doc/dump.html">LAMMPS online manual</a></p>
 
@@ -23,21 +23,21 @@
 
 <h4>Restrictions</h4>
 
-<p>LAMMPS can write various informations in a custom format with a "<code>dump ID group-ID custom N file args</code>" command, as indicated on <a href="http://lammps.sandia.gov/doc/dump.html">this page of the LAMMPS manual</a>. These files do not have a specific extension, but <code>atomsk</code> calls them 'lmc' files.</p>
+<p>LAMMPS can write various informations in a custom format with a "<code>dump ID group-ID custom N file args</code>" command, as indicated on <a href="http://lammps.sandia.gov/doc/dump.html">this page of the LAMMPS manual</a>. These files do not have a specific extension, but Atomsk calls them 'lmc' files.</p>
 
 <p>In such files, a line starting with "<code>ITEM: ATOMS</code>" indicates the format of data for the following lines. There must be at least three entries: the three coordinates x, y and z, which may be unscaled (x,y,z), scaled (xs,ys,zs), unwrapped (xu,yu,zu) or scaled unwrapped (xsu,ysu,zsu) as defined by the <a href="http://lammps.sandia.gov/doc/dump.html">LAMMPS dump command</a>. For instance, using "<code>dump myfile all custom 100 MD*.lmc type xu yu zu</code>" in the LAMMPS input script will produce one LMC file every 100 steps named MD0.lmc, MD100.lmc, MD200.lmc, etc. and containing atom types and unwrapped coordinates.</p>
 
-<p>If the line "<code>ITEM: ATOMS</code>" contains the keyword <code>element</code>, then the element names are read and stored. If the elements are not specified, <code>atomsk</code> will use the atom "types" (1, 2, 3...) and interpret them as atomic numbers (respectively H, He, Li and so on). These atom types can be replaced with the <a href="./option_substitute.html">option <code>-substitute</code></a>. In addition, atom types are saved as auxiliary properties (with the name "<code>type</code>") to ensure they are conserved when converting to formats that support it. This behavior can be cancelled by removing this auxiliary property with the <a href="./option_rmprop.html">option <code>-rmprop type</code></a>. Finally, if neither the element or the type appear in the file, then <code>atomsk</code> will simply consider that all atoms are hydrogen atoms.</p>
+<p>If the line "<code>ITEM: ATOMS</code>" contains the keyword <code>element</code>, then the element names are read and stored. If the elements are not specified, Atomsk will use the atom "types" (1, 2, 3...) and interpret them as atomic numbers (respectively H, He, Li and so on). These atom types can be replaced with the <a href="./option_substitute.html">option <code>-substitute</code></a>. In addition, atom types are saved as auxiliary properties (with the name "<code>type</code>") to ensure they are conserved when converting to formats that support it. This behavior can be cancelled by removing this auxiliary property with the <a href="./option_rmprop.html">option <code>-rmprop type</code></a>. Finally, if neither the element or the type appear in the file, then Atomsk will simply consider that all atoms are hydrogen atoms.</p>
 
 <p>If the line "<code>ITEM: ATOMS</code>" contains the keyword <code>id</code>, then the atoms coordinates will be sorted according to their ID. Otherwise the atoms will not be sorted (they will appear in the output file in the same order as in the input file).</p>
 
-<p>If additional properties (e.g. potential energy, stress/atom...) are defined in the line "<code>ITEM: ATOMS</code>", then <code>atomsk</code> will store all of them as auxiliary properties. These properties must then exist for each atom in the file.</p>
+<p>If additional properties (e.g. potential energy, stress/atom...) are defined in the line "<code>ITEM: ATOMS</code>", then Atomsk will store all of them as auxiliary properties. These properties must then exist for each atom in the file.</p>
 
-<p>If coordinates (or auxiliary properties) are specified several times, then only the coordinates that appear first will be used by <code>atomsk</code>. For instance if unwrapped and "normal" coordinates are present with the format "<code>xu x yu y z zu</code>", then <code>atomsk</code> will use <code>xu</code>, <code>yu</code> and <code>z</code>. When reduced (or "scaled") coordinates are output then all 3 space coordinates should be reduced (e.g. <code>xs</code>, <code>ys</code> and <code>zs</code>) for <code>atomsk</code> to correctly read them.</p>
+<p>If coordinates (or auxiliary properties) are specified several times, then only the coordinates that appear first will be used by Atomsk. For instance if unwrapped and "normal" coordinates are present with the format "<code>xu x yu y z zu</code>", then Atomsk will use <code>xu</code>, <code>yu</code> and <code>z</code>. When reduced (or "scaled") coordinates are output then all 3 space coordinates should be reduced (e.g. <code>xs</code>, <code>ys</code> and <code>zs</code>) for Atomsk to correctly read them.</p>
 
 <p>Note that the order in which atom coordinates and auxiliary properties are written does not matter, as long as this order is specified correctly in the line "<code>ITEM: ATOMS</code>" (which should be the case, unless LAMMPS has a bug or the LMC file was produced by hand with a wrong format).</p>
 
-<p><code>atomsk</code> cannot write LMC files.</p>
+<p>Atomsk cannot write LMC files.</p>
 
 
 

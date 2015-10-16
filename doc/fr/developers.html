@@ -15,14 +15,14 @@
 
 <p align="right"><em>Lasciate ogni speranza voi ch'entrate.</em><br/>Dante's Inferno, Canto III 9</p>
 
-<p><code>atomsk</code> is a quite simple and dumb program, written by a humble physicist not so skilled at programming. The program was designed so that, in its properly compiled binary form, it can be understood by a computer, but that does not mean that the source code can easily be understood by a human being. I make this statement as a hint of what you will get into if you want to look at or modify the source code: lousy programming, non-optimized allocations, some GOTO statements, and a zest of global variables. And did I mention the many modules?</p>
+<p>Atomsk is a quite simple and dumb program, written by a humble physicist not so skilled at programming. The program was designed so that, in its properly compiled binary form, it can be understood by a computer, but that does not mean that the source code can easily be understood by a human being. I make this statement as a hint of what you will get into if you want to look at or modify the source code: lousy programming, non-optimized allocations, some GOTO statements, and a zest of global variables. And did I mention the many modules?</p>
 
 <p>This page contains some informations for courageous developers who would like to make their way through the source code, and some informations for those who would like to add their contribution, be it for their personal use or for public release. Take a deep breath before diving.</p>
 
 
 <h4>Structure of the program</h4>
 
-<p><code>atomsk</code> is made of many modules, each of which handling a very specific operation. For instance one module is responsible for writing XYZ file (<code>out_xyz.f90</code>), and it does just that -if you need to change the format of XYZ files you have to modify only this module. This structure facilitates the maintainance of the code. Also it (hopefully) makes it easier for new users to look into the code, as they can look only at the modules dealing with the operations they need.</p>
+<p>Atomsk is made of many modules, each of which handling a very specific operation. For instance one module is responsible for writing XYZ file (<code>out_xyz.f90</code>), and it does just that -if you need to change the format of XYZ files you have to modify only this module. This structure facilitates the maintainance of the code. Also it (hopefully) makes it easier for new users to look into the code, as they can look only at the modules dealing with the operations they need.</p>
 
 <p>The global variables are stored in <code>comv.f90</code>, and should be as little as possible. For more flexibility, most variables and arrays are passed to modules. The array that is used to store atomic coordinates is named "P". It has a size of (Natoms,4), where the three first columns are the X, Y and Z cartesian coordinates, and the fourth column is the atomic number. The array used to store supercell vectors is H, and has dimension (3,3).</p>
 
@@ -38,7 +38,7 @@
 
 <p>In order to keep things simple, some rules should be respected within each type of module. Input modules, option modules, and output modules, should NOT depend on one another, so be careful when introducing a "USE" statement in any module. For instance do not introduce a dependence to an input module (like "<code>USE in_xyz</code>") in an option module. In output modules, the arrays P and H must not be modified and should be <code>INTENT(IN)</code>. "Modes" modules can use any of the input, options and/or output.</p>
 
-<p>A good way to start digging into the source code is to look at the structure of the file "mode_normal.f90". One can see that this module reads in a file (by calling the reading module "readin.f90"), applies options if any (by calling the module "options.f90"), and then outputs one or several files (by calling "writeout.f90"). This is exactly what <code>atomsk</code> uses when converting a file.</p>
+<p>A good way to start digging into the source code is to look at the structure of the file "mode_normal.f90". One can see that this module reads in a file (by calling the reading module "readin.f90"), applies options if any (by calling the module "options.f90"), and then outputs one or several files (by calling "writeout.f90"). This is exactly what Atomsk uses when converting a file.</p>
 
 <p>In other modes, these modules are called in more or less different ways.</p>
 
@@ -46,11 +46,11 @@
 
 <h4>Auxiliary properties</h4>
 
-<p>From version 0.6 <code>atomsk</code> reads and writes auxiliary properties, i.e. any per-atom property like velocities, forces, electric charges, etc. The array "AUXNAMES" contains strings that are the names of the auxiliary properties; the array "AUX" contains real numbers which are the values of the properties for each atom. As such, the array "AUX" must always have its first dimension equal to the first dimension of the array P.</p>
+<p>From version 0.6 Atomsk reads and writes auxiliary properties, i.e. any per-atom property like velocities, forces, electric charges, etc. The array "AUXNAMES" contains strings that are the names of the auxiliary properties; the array "AUX" contains real numbers which are the values of the properties for each atom. As such, the array "AUX" must always have its first dimension equal to the first dimension of the array P.</p>
 
-<p>When reading file formats <code>atomsk</code> reads some or all auxiliary properties it may contain. The arrays "AUXNAMES" and "AUX" must then be allocated properly and consistently. If no auxiliary property exist then these arrays must <em>not</em> be allocated by input modules.</p>
+<p>When reading file formats Atomsk reads some or all auxiliary properties it may contain. The arrays "AUXNAMES" and "AUX" must then be allocated properly and consistently. If no auxiliary property exist then these arrays must <em>not</em> be allocated by input modules.</p>
 
-<p>Some common properties are recognized by <code>atomsk</code> by their names. Below is a list of names that one should use to store properties in AUXNAMES:</p>
+<p>Some common properties are recognized by Atomsk by their names. Below is a list of names that one should use to store properties in AUXNAMES:</p>
 
 <ul>
   <li><strong>type</strong> for atom types (e.g. used in LAMMPS data and custom formats);</li>
@@ -68,7 +68,7 @@
 
 <h4>Array names</h4>
 
-<p>The following describes some arrays commonly used in <code>atomsk</code> and passed between modules:</p>
+<p>The following describes some arrays commonly used in Atomsk and passed between modules:</p>
 
 <ul>
   <li><strong>H(3,3)</strong>: the three vectors of the supercell (cartesian coordinates in &Aring;);</li>
@@ -101,7 +101,7 @@
 <ul>
   <li><strong>20</strong>: logfile (by default "atomsk.log");</li>
   <li><strong>30-34</strong>: input files;</li>
-  <li><strong>35-39</strong>: intermediate files (used internally by <code>atomsk</code>);</li>
+  <li><strong>35-39</strong>: intermediate files (used internally by Atomsk);</li>
   <li><strong>40-45</strong>: output files.</li>
 </ul>
 
@@ -112,11 +112,11 @@
 
 <p>If necessary, take example on the existing modules.</p>
 
-<p>If you wrote a reading module and want to integrate it to <code>atomsk</code>, the source code needs to be edited in the following way:</p>
+<p>If you wrote a reading module and want to integrate it to Atomsk, the source code needs to be edited in the following way:</p>
 
 <ul>
   <li><strong>readin.f90</strong>: load your module at the beginning of the file (<em>USE ...</em>); add the corresponding line in the 'read' section (label 200);</li>
-  <li><strong>guess_format.f90</strong>: add some rules by which <code>atomsk</code> can recognize the file format you add: file extension, keywords...</li>
+  <li><strong>guess_format.f90</strong>: add some rules by which Atomsk can recognize the file format you add: file extension, keywords...</li>
   <li><strong>Makefile</strong>: add your module in the SIN variable of the Makefile so it is compiled together with the program. Make sure to add it before the module "readin.f90".</li>
 </ul>
 
@@ -129,13 +129,13 @@
 
 <p>If necessary, take example on the existing modules.</p>
 
-<p>If you wrote a writing module and want to integrate it to <code>atomsk</code>, the source code needs to be edited in the following way:</p>
+<p>If you wrote a writing module and want to integrate it to Atomsk, the source code needs to be edited in the following way:</p>
 
 <ul>
   <li><strong>comv.f90</strong>: add the extension of your file format (e.g. 'xyz', 'cfg'...)  to the global array "listofformats";</li>
   <li><strong>read_cla.f90</strong>: add the command-line keyword corresponding to the file format you are adding (e.g. 'xyz', 'cfg'...);</li>
   <li><strong>writeout.f90</strong>: load your module at the beginning of the file (<em>USE ...</em>); and then add the corresponding lines to the "write" section (label 200);</li>
-  <li><strong>guess_format.f90</strong>: for <code>atomsk</code> to recognize the file format, add the file extension at label 100 (in <code>SELECT CASE(extension)</code>), in label 300 (line <code>likely=MAX(...)</code> and in the following <code>IF</code> statement);</li>
+  <li><strong>guess_format.f90</strong>: for Atomsk to recognize the file format, add the file extension at label 100 (in <code>SELECT CASE(extension)</code>), in label 300 (line <code>likely=MAX(...)</code> and in the following <code>IF</code> statement);</li>
   <li><strong>Makefile</strong>: add your module in the SOU variable of the Makefile so it is compiled together with the program. Make sure to add it before the module "writeout.f90".</li>
 </ul>
 
@@ -160,7 +160,7 @@
 
 <h4>Adding a mode</h4>
 
-<p>A "mode" is a routine that decides what is done with the atom positions. For instance the default mode (so-called "<a href="./mode_normal.html">normal mode</a>") reads a file and converts it to one or many other formats. The "<a href="./mode_difference.html">mode difference</a>" computes the difference between two files. Many different things can be imagined, and the appropriate way to do them within <code>atomsk</code> is by using modes. If you add a new mode, it is advised that you take advantage of routines that are already implemented in <code>atomsk</code> to read/write files, and apply transformations.</p>
+<p>A "mode" is a routine that decides what is done with the atom positions. For instance the default mode (so-called "<a href="./mode_normal.html">normal mode</a>") reads a file and converts it to one or many other formats. The "<a href="./mode_difference.html">mode difference</a>" computes the difference between two files. Many different things can be imagined, and the appropriate way to do them within Atomsk is by using modes. If you add a new mode, it is advised that you take advantage of routines that are already implemented in Atomsk to read/write files, and apply transformations.</p>
 
 <p>If your mode computes per-atom quantities, it is advised to save them as auxiliary properties (see definition of arrays AUX and AUXNAMES above) so that output modules can write these auxiliary properties. For instance one could compute the local von Mises strain of each atom, save it in AUX, and write it as auxiliary properties in a CFG file. This is of course a dumb example as this quantity can already be computed and displayed within Atomeye, but hopefully it gives the idea.</p>
 
@@ -169,7 +169,7 @@
 
 <h4 id="lang">Adding a language</h4>
 
-<p>All messages displayed by <code>atomsk</code> are in a separate module to make it easy to add translations to other languages. For the program to speak a language of your choice, you will need to edit the following files:</p>
+<p>All messages displayed by Atomsk are in a separate module to make it easy to add translations to other languages. For the program to speak a language of your choice, you will need to edit the following files:</p>
 
 <ul>
   <li><strong>messages_XX.f90</strong>: copy the file "messages_EN.f90" to a new file, replacing the "EN" in the file name by the two-letters abbreviation of your language (e.g. "messages_FR.f90" for French, "messages_DE.f90" for German, etc.). Then you can start editing the new file and translating the English messages. The condition <code>CASE DEFAULT</code> should redirect to the English messages.</li>

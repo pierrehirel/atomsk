@@ -24,15 +24,15 @@
 
 <h4>Restrictions</h4>
 
-<p><code>atomsk</code> peut lire les fichiers d'entrée de GULP (gin, res ou grs) sous certaines conditions. Les "noms" des atomes dans la première colonne doivent commencer par le symbole atomique, suivi de n'importe quelle chaîne de caractères (par ex. O1, Ti_2, etc.). Si les vitesses des atomes existent, elles sont lues et enregistrées coomme propriétés auxiliaires.</p>
+<p>Atomsk peut lire les fichiers d'entrée de GULP (gin, res ou grs) sous certaines conditions. Les "noms" des atomes dans la première colonne doivent commencer par le symbole atomique, suivi de n'importe quelle chaîne de caractères (par ex. O1, Ti_2, etc.). Si les vitesses des atomes existent, elles sont lues et enregistrées coomme propriétés auxiliaires.</p>
 
-<p>Si des coquilles sont présentes (dans le sens d'un potentiel ionique de type c&oelig;ur-coquille) leurs positions sont aussi lues, mais notez qu'elles ne seront transférées que lors de la conversion vers des formats de fichiers qui le supportent (tels que les fichiers d'entrée de GULP eux-mêmes, ou par exemple les <a href="./format_dlp.html">fichiers CONFIG de DL_POLY</a>). Pour que <code>atomsk</code> associe correctement les c&oelig;ur et coquilles, la position de chaque coquille doit apparaître directement après celle du c&oelig;ur correspondant (comme dans l'exemple ci-dessous), ou bien les positions de tous les c&oelig;ur doivent être suivies par les positions de toutes les coquilles dans le même ordre. Si ce n'est pas le cas (par ex. si les c&oelig;ur et coquilles sont écrits dans n'importe quel autre ordre arbitraire) alors il est possible de les ré-associer grâce à l'<a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+<p>Si des coquilles sont présentes (dans le sens d'un potentiel ionique de type c&oelig;ur-coquille) leurs positions sont aussi lues, mais notez qu'elles ne seront transférées que lors de la conversion vers des formats de fichiers qui le supportent (tels que les fichiers d'entrée de GULP eux-mêmes, ou par exemple les <a href="./format_dlp.html">fichiers CONFIG de DL_POLY</a>). Pour que Atomsk associe correctement les c&oelig;ur et coquilles, la position de chaque coquille doit apparaître directement après celle du c&oelig;ur correspondant (comme dans l'exemple ci-dessous), ou bien les positions de tous les c&oelig;ur doivent être suivies par les positions de toutes les coquilles dans le même ordre. Si ce n'est pas le cas (par ex. si les c&oelig;ur et coquilles sont écrits dans n'importe quel autre ordre arbitraire) alors il est possible de les ré-associer grâce à l'<a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
 
-<p>Si les <strong>charges électriques</strong> des c&oelig;ur (et coquilles) sont définies dans la section "species" alors <code>atomsk</code> les enregistrera comme propriétés auxiliaires. Si les charges apparaissent après les coordonnées de chaque particule, alors elles écraseront les valeurs définies dans la section "species".</p>
+<p>Si les <strong>charges électriques</strong> des c&oelig;ur (et coquilles) sont définies dans la section "species" alors Atomsk les enregistrera comme propriétés auxiliaires. Si les charges apparaissent après les coordonnées de chaque particule, alors elles écraseront les valeurs définies dans la section "species".</p>
 
-<p>La lecture des fichiers de GULP a principalement deux restrictions. Premièrement les opérations de symétrie ne sont pas prises en compte. Si les coordonnées sont définies dans un réseau primitif avec des opérations de symétrie, seules ces positions seront lues (les opérations de symétrie ne seront pas appliquées). La prise en charge de la symétrie n'est pas simple à implémenter, ça n'a donc pas été fait dans ce programme. Deuxièmement, depuiss que la méthode Nudged Elastic band (NEB) est implémentée dans GULP (&#62;3.4) les fichiers res ou grs peuvent contenir les positions atomiques de toutes les images du calcul NEB. Ceci n'est pas non plus reconnu, et <code>atomsk</code> ne lira les positions que de la première image NEB.</p>
+<p>La lecture des fichiers de GULP a principalement deux restrictions. Premièrement les opérations de symétrie ne sont pas prises en compte. Si les coordonnées sont définies dans un réseau primitif avec des opérations de symétrie, seules ces positions seront lues (les opérations de symétrie ne seront pas appliquées). La prise en charge de la symétrie n'est pas simple à implémenter, ça n'a donc pas été fait dans ce programme. Deuxièmement, depuiss que la méthode Nudged Elastic band (NEB) est implémentée dans GULP (&#62;3.4) les fichiers res ou grs peuvent contenir les positions atomiques de toutes les images du calcul NEB. Ceci n'est pas non plus reconnu, et Atomsk ne lira les positions que de la première image NEB.</p>
 
-<p><code>atomsk</code> peut écrire un fichier basique au format GIN, contenant les vecteurs de boîte et les positions des c&oelig;ur (et shells) :</p>
+<p>Atomsk peut écrire un fichier basique au format GIN, contenant les vecteurs de boîte et les positions des c&oelig;ur (et shells) :</p>
 
 <div class="txtfile">
 <h5>exemple.gin</h5>
@@ -63,7 +63,7 @@
 
 <p>Comme le montre cet exemple, si un atome est constitué d'un c&oelig;ur et d'une coquille alors les coordonnées de la coquille apparaissent juste après celles de son c&oelig;ur.</p>
 
-<p><strong>Les valeurs entre crochets</strong> ne seront écriites par <code>atomsk</code> que si elles sont définies, soit parce qu'elles ont été lues depuis un fichier d'entrée, soit après avoir été définies grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
+<p><strong>Les valeurs entre crochets</strong> ne seront écriites par Atomsk que si elles sont définies, soit parce qu'elles ont été lues depuis un fichier d'entrée, soit après avoir été définies grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
 
 <p>Si les charges électriques (q) sont définies, elles seront écrites. Comme indiqué dans la documentation de GULP, si les charges électriques sont écrites alors les occupations partielles des sites (occ) peuvent aussi être écrites (si elles sont définies). De la même manière, si les charges et les occupations sont définies alors le rayon pour les breathing shells (rad) peuvent aussi être écrites. Notez que le nombre de colonnes est toujours le même pour les c&oelig;ur et les shells. Un couple c&oelig;ur-coquille aura la même occupation de site, et le rayon pour le breathing shell sera attribué seulement à la coquille (pour le c&oelig;ur cette valeur sera zéro).</p>
 
@@ -75,7 +75,7 @@
 
 <p>Par défaut les coordonnées sont écrites dans la base cartésienne. La conversion vers des coordonnées réduites peut se faire grâce à l'<a href="./option_fractional.html">option <code>-frac</code></a>.</p>
 
-<p>Notez que le fichier GIN écrit par <code>atomsk</code> n'est qu'un brouillon, il n'est PAS préparé pour une simulation. Il appartient à l'utilisateur de vérifier et compléter ce fichier selon ses besoins (mots-clés, potentiels interatomiques, options pour la relaxation/dynamique moléculaire, etc.) avant d'exécuter une simulation.</p>
+<p>Notez que le fichier GIN écrit par Atomsk n'est qu'un brouillon, il n'est PAS préparé pour une simulation. Il appartient à l'utilisateur de vérifier et compléter ce fichier selon ses besoins (mots-clés, potentiels interatomiques, options pour la relaxation/dynamique moléculaire, etc.) avant d'exécuter une simulation.</p>
 
 
 

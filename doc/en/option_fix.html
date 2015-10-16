@@ -36,7 +36,7 @@
 
 <p>The &#60;normal&#62; can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001].</p>
 
-<p>Note that this option does not actually make atoms inert for <code>atomsk</code>, it just "marks" them as fixed (by adding an auxiliary property to each atom). As far as <code>atomsk</code> is concerned, fixed atoms are not treated differently. Only when writing the output files will the fixed atoms be marked differently in formats that support it (see the <a href="./formats.html">list of formats</a>). In order to restrict the options of <code>atomsk</code> to only some atoms one may use the <a href="./option_select.html">option <code>-select</code></a>.</p>
+<p>Note that this option does not actually make atoms inert for Atomsk, it just "marks" them as fixed (by adding three auxiliary properties to each atom: fixx, fixy, fixz). As far as Atomsk is concerned, fixed atoms are not different from other atoms. Only when writing the output files will the fixed atoms be marked differently in formats that support it (see the <a href="./formats.html">list of formats</a>). In order to restrict the options of Atomsk to only some atoms one may use the <a href="./option_select.html">option <code>-select</code></a>.</p>
 
 <p>This option can be used several times to fix atoms in several directions, or to fix different atoms (see example 2 below).</p>
 

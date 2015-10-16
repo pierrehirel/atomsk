@@ -27,7 +27,7 @@
 
 <p>To write this file format, the occupancy and thermal vibration should be defined as auxiliary properties for each atom. If they are not set, Atomsk will use default values of 1 and 0, respectively.<p>
 
-<p>It should be noted that Atomsk does not perform any implicit conversion of units. By default CEL files use nanometers as unit of length (and nm<sup>2</sup> for thermal vibration), and Atomsk stores these values without modifying them. When reading a CEL file, one can convert the values to another unit with the <a href="./option_unit.html">option <code>-unit</code></a>. When writing a CEL file, one should convert the units to nm.</p>
+<p>It should be noted that Atomsk does not perform any implicit conversion of units. By default CEL files use nanometers as unit of length (and nm<sup>2</sup> for thermal vibration). When reading CEL files, Atomsk stores these values as-is. It is up to the user to convert them to &Aring; (or any other unit) if he wishes to do so after reading the file, e.g. with the <a href="./option_unit.html">option <code>-unit</code></a>. Similarly, if data is read in &Aring; (or any other unit), it is up to the user to convert them into nm before writing a CEL file. The examples below illustrate these points.</p>
 
 
 
@@ -35,7 +35,13 @@
 
 <ul>
 <li><code class="command">atomsk my_system.xsf -unit A nm cel</code>
-<p>This will read the file <code>my_system.xsf</code>, convert the units to and convert it to <code>my_system.cel</code>.</p></li>
+<p>This will read the file <code>my_system.xsf</code> (where atom positions are stored in &Aring;), convert atom positions into nanometers, and write the final result into <code>my_system.cel</code>.</p></li>
+
+<li><code class="command">atomsk supercell.cel -unit nm A cfg</code>
+<p>This will read the file <code>supercell.cel</code> (where atom positions are stored in nanometers), convert atom positions into &Aring;, and write the final result into <code>supercell.cfg</code>.</p></li>
+
+<li><code class="command">atomsk unitcell.cel -dupplicate 1 1 3 supercell.cel</code>
+<p>This will read the file <code>unitcell.cel</code>, duplicate the system three times along Z, and write the final result into into <code>supercell.cel</code>. Note that since both input and output files use the same convention of units (i.e. nanometers) it is not necessary to convert the units.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

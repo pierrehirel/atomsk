@@ -108,6 +108,16 @@
 <p>Note that Atomsk makes absolutely no implicit transformation of the units. For instance, if you read a file containing atom positions in Bohrs, then in the output file they will also appear in Bohrs. In order to explicitely convert the units of the atom coordinates and cell parameters you can use the <a href="./option_unit.html">option <code>-unit</code></a>.</p></div>
 
 
+<li><a href="#" id="useprompt" class="showLink" onclick="showHide('useprompt');return false;"><strong>I am faced with a prompt (<code>atomsk&#62;</code>) and I don't know what to do.</strong></a></li>
+
+<div id="useprompt-show" class="more"><p>That means that you have run Atomsk without any argument, either by entering "atomsk" in your command-line, or double-clicking the executable or a link to it. This triggers the <a href="./mode_interactive.html">interactive mode</a>. In this mode the program waits for your commands, and executes them in real-time (if they are valid). In this mode, type "help" to see a list of available commands.</p>
+
+<p>If you do not wish to use Atomsk interactively, then you must run it in a command-line with trailing arguments, for instance:</p>
+
+<p><code class="command">atomsk initial.xsf -duplicate 2 2 2 final.cfg</code></p>
+</div>
+
+
 <li><a href="#" id="usenclo" class="showLink" onclick="showHide('usenclo');return false;"><strong>How many options can I call in a single command-line?</strong></a></li>
 
 <div id="usenclo-show" class="more"><p>There is virtually no limitation, apart from those of your shell itself. Try "<code>getconf ARG_MAX</code>" to know the maximum command line length that your shell supports.</p></div>

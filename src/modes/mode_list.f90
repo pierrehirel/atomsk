@@ -229,6 +229,7 @@ DO i=1,SIZE(filearray)
       !Now we know the input file and the format to convert it to
       !=> convert the file
       CALL CONVERT_AFF(inputfile,options_array,outputfile,outfileformats)
+      IF(nerr>0) GOTO 1000
       !
       !Increment the counter of converted files
       Nfiles = Nfiles+1

@@ -22,14 +22,14 @@
 
 <p>This option forces the program to re-calculate the supercell vectors.</p>
 
-<p>BEWARE: the calculation tries to provide a <strong>rectangular</strong> bounding box (so the box will NOT be correct for non-rectangular systems), and is very inaccurate. Don't trust it blindly: check the supercell vectors afterwards!</p>
+<p>BEWARE: this option tries to provide a <strong>rectangular</strong> bounding box (so the box will NOT be correct for non-rectangular systems), and is very inaccurate. Do not trust it blindly: check the supercell vectors afterwards!</p>
 
 <p>If you know the supercell parameters precisely, you may consider specifying them with the <a href="./option_properties.html">option <code>-properties</code></a> instead of the present one.</p>
 
 
 <h4>Default</h4>
 
-<p>By default <code>atomsk</code> uses the supercell parameters read from the input file. If no supercell parameters are found in the input file, then a warning is displayed and the present option is automatically called after reading the file (and before applying any other option). For instance, this is the case with the <a href="./format_xyz.html">default XYZ format</a> which does not contain supercell parameters.</p>
+<p>By default Atomsk uses the supercell parameters read from the input file. If no supercell parameters are found in the input file, then a warning is displayed and the present option is automatically called after reading the file (and before applying any other option). For instance, this is the case with the <a href="./format_xyz.html">default XYZ format</a> which does not contain supercell parameters.</p>
 
 
 

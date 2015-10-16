@@ -13,21 +13,21 @@
 
 <h2>Format: ATSK</h2>
 
-<p><strong>Nom :</strong> fichier binaire d'<code>atomsk</code></p>
+<p><strong>Nom :</strong> fichier binaire d'Atomsk</p>
 
 <p><strong>Extension :</strong> .atsk</p>
 
-<p><strong>Spécification :</strong> voir le code source d'<code>atomsk</code></p>
+<p><strong>Spécification :</strong> voir le code source d'Atomsk</p>
 
 <p><strong>Programmes de visualisation :</strong> aucun</p>
 
 <h4>Restrictions</h4>
 
-<p>Ce format de fichier est spécifique à <code>atomsk</code>. Il enregistre les vecteurs de boîte, les positions atomiques, les positions des coquiles (dans le cadre d'un potentiel ionique c&oelig;ur-coquille), et les propriétés auxiliaires des atomes.</p>
+<p>Ce format de fichier est spécifique à Atomsk. Il enregistre les vecteurs de boîte, les positions atomiques, les positions des coquiles (dans le cadre d'un potentiel ionique c&oelig;ur-coquille), et les propriétés auxiliaires des atomes.</p>
 
-<p>Puisque c'est un format binaire, il utilise généralement moins d'espace disque que les fichiers ASCII (ou fichiers texte), il est donc plus rapide de lire et écrire des fichiers ATSK. Cependant cela signifie aussi qu'il est impossible de lire ce type de fichiers dans un éditeur de texte. Ce format peut être utile pour lire/écrire des fichiers intermédiaires, par exemple lorsqu'il est nécessaire d'invoquer <code>atomsk</code> plusieurs fois de suite pour construire un système atomique, surtout si le système est grand (plusieurs centaines de milliers d'atomes).</p>
+<p>Puisque c'est un format binaire, il utilise généralement moins d'espace disque que les fichiers ASCII (ou fichiers texte), il est donc plus rapide de lire et écrire des fichiers ATSK. Cependant cela signifie aussi qu'il est impossible de lire ce type de fichiers dans un éditeur de texte. Ce format peut être utile pour lire/écrire des fichiers intermédiaires, par exemple lorsqu'il est nécessaire d'invoquer Atomsk plusieurs fois de suite pour construire un système atomique, surtout si le système est grand (plusieurs centaines de milliers d'atomes).</p>
 
-<p><strong>NOTE IMPORTANTE :</strong> Ce format de fichiers est conçu pour être utilisé uniquement par <code>atomsk</code>. Il est très improbable que ce format soit un jour lisible par d'autres programmes, il peut même être impossible de lire un fichier ATSK sur une machine différente de celle où il a été produit, ou avec une version différente d'<code>atomsk</code>. L'utilisation de ce format devrait se restreindre aux fichiers temporaires ou intermédiaires. Il est fortement déconseillé de sauvegarder ou d'archiver des fichiers dans ce format.</p>
+<p><strong>NOTE IMPORTANTE :</strong> Ce format de fichiers est conçu pour être utilisé uniquement par Atomsk. Il est très improbable que ce format soit un jour lisible par d'autres programmes, il peut même être impossible de lire un fichier ATSK sur une machine différente de celle où il a été produit, ou avec une version différente d'Atomsk. L'utilisation de ce format devrait se restreindre aux fichiers temporaires ou intermédiaires. Il est fortement déconseillé de sauvegarder ou d'archiver des fichiers dans ce format.</p>
 
 
 
@@ -37,7 +37,7 @@
 <li><code class="command">atomsk system1.cfg -duplicate 10 10 10 temp1.atsk<br/>
 atomsk system2.xsf -duplicate 12 10 16 temp2.atsk<br/>
 atomsk --merge y 2 temp1.atsk temp2.atsk final.xsf</code>
-<p>Le format binaire d'<code>atomsk</code> peut être utile pour manipuler de larges systèmes atomiques. Notez qu'il n'est utilisé que pour les fichiers temporaires intermédiaires (<code>temp1.atsk</code> et <code>temp2.atsk</code>), et pas pour le fichier final (<code>final.xsf</code>).</p></li>
+<p>Le format binaire d'Atomsk peut être utile pour manipuler de larges systèmes atomiques. Notez qu'il n'est utilisé que pour les fichiers temporaires intermédiaires (<code>temp1.atsk</code> et <code>temp2.atsk</code>), et pas pour le fichier final (<code>final.xsf</code>).</p></li>
 </ul>
 
 

@@ -21,21 +21,21 @@
 
 <h2>Availability</h2>
 
-<p>It is recommended to download <code>atomsk</code> from <a href="http://atomsk.univ-lille1.fr/">this page</a>. You may, at your convenience, download the executable binary for your platform, or download the source code and compile it for your system.</p>
+<p>It is recommended to download Atomsk from <a href="http://atomsk.univ-lille1.fr/">this page</a>. You may, at your convenience, download the executable binary for your platform, or download the source code and compile it for your system.</p>
 
 
 
 <h2>Executable version</h2>
 
-<p>The easiest way to start with <code>atomsk</code> is to download the executable version for your platform from <a href="http://atomsk.univ-lille1.fr/">this page</a>. This static binary version should run out-of-the-box, without any additional requirement.</p>
+<p>The easiest way to start with Atomsk is to download the executable version for your platform from <a href="http://atomsk.univ-lille1.fr/">this page</a>. This static binary version should run out-of-the-box, without any additional requirement.</p>
 
-<p>The GNU/Linux versions of <code>atomsk</code> come with an install script called "install.sh". If you choose to run this script, run it as root (or with sudo). The program will be installed in <em>/usr/local/bin/</em> by default.</p>
+<p>The GNU/Linux versions of Atomsk come with an install script called "install.sh". If you choose to run this script, run it as root (or with sudo). The program will be installed in <em>/usr/local/bin/</em> by default.</p>
 
 
 
 <h2>Compilation from source</h2>
 
-<p>If you do not wish to use the static binary version of <code>atomsk</code>, you can download the source code and compile it yourself. The compilation requires the LAPACK library to be present on your system.</p>
+<p>If you do not wish to use the static binary version of Atomsk, you can download the source code and compile it yourself. The compilation requires the LAPACK library to be present on your system.</p>
 
 <p>The source code of the program comes with a Makefile. For a summary of available targets, enter the <code>src</code> directory and type "<code>make</code>" or "<code>make help</code>". To compile the program, type:</p>
 
@@ -47,10 +47,10 @@
 
 <p>If the command above does not work straightforwardly check the following points. First you need the <strong>GNU Make</strong> program installed on your computer. Second, by default the Makefile uses the <strong>GNU Fortran Compiler</strong> (<code>gfortran</code>), so it is recommended that you have it installed.</p>
 
-<p>Then, check that the <strong>LAPACK library</strong> is installed on your system. The path to the library must be defined in the <code>LAPACK</code> variable. On UNIX/Linux systems, if LAPACK is installed system-wide then using "<code>LAPACK=-llapack</code>" should work. Otherwise (e.g. if you compiled LAPACK in your home directory), enter the full path to the library with the format: "<code>LAPACK=-L/path/to/library -llapack</code>". The users of Intel&reg; MKL may refer to the Intel&reg; documentation. On Microsoft&reg; Windows&reg; systems, a version of the LAPACK library properly compiled is also required (the <code>Makefile.windows</code> gives some hints on how to achieve that, see also <a href="http://icl.cs.utk.edu/lapack-for-windows/">here</a> and/or <a href="http://gcc.gnu.org/wiki/LAPACK%20on%20Windows">here</a>). Please note that the author of <code>atomsk</code> will <em>not</em> provide any support for LAPACK. If you experience problems with getting or compiling LAPACK on your machine, 
+<p>Then, check that the <strong>LAPACK library</strong> is installed on your system. The path to the library must be defined in the <code>LAPACK</code> variable. On UNIX/Linux systems, if LAPACK is installed system-wide then using "<code>LAPACK=-llapack</code>" should work. Otherwise (e.g. if you compiled LAPACK in your home directory), enter the full path to the library with the format: "<code>LAPACK=-L/path/to/library -llapack</code>". The users of Intel&reg; MKL may refer to the Intel&reg; documentation. On Microsoft&reg; Windows&reg; systems, a version of the LAPACK library properly compiled is also required (the <code>Makefile.windows</code> gives some hints on how to achieve that, see also <a href="http://icl.cs.utk.edu/lapack-for-windows/">here</a> and/or <a href="http://gcc.gnu.org/wiki/LAPACK%20on%20Windows">here</a>). Please note that the author of Atomsk will <em>not</em> provide any support for LAPACK. If you experience problems with getting or compiling LAPACK on your machine, 
 please turn to the LAPACK community.</p>
 
-<p><strong>In order to customize the compilation for your machine</strong>, please <em>do not</em> edit the main Makefile (i.e. the file <code>Makefile</code>). Instead, it is recommended to create a separate file named <code>Makefile.something</code> that you can re-use each time you compile <code>atomsk</code>. This custom <code>Makefile.something</code> may contain some or all of the following variables:</p>
+<p><strong>In order to customize the compilation for your machine</strong>, please <em>do not</em> edit the main Makefile (i.e. the file <code>Makefile</code>). Instead, it is recommended to create a separate file named <code>Makefile.something</code> that you can re-use each time you compile Atomsk. This custom <code>Makefile.something</code> may contain some or all of the following variables:</p>
 
 <ul>
   <li><code>export</code> (this keyword is mandatory)</li>
@@ -83,7 +83,7 @@ please turn to the LAPACK community.</p>
 
 <p>If compilation results in <strong>errors</strong>, first have a look at the <a href="./faq.html#compil">FAQ</a>, and second ask your local system administrator to help you. If you believe that the problem is directly related to the source code of the program, then you can send a bug report to <a href="./contact.html">the author</a>. Please be sure to specify which module caused a compilation error.</p>
 
-<p>When successfull the compilation will result in an executable binary named "<code>atomsk</code>" under UNIX/Linux, or "<code>atomsk.exe</code>" under Microsoft&reg; Windows&reg;. You may copy this executable in a folder of your choice in order to run it.</p>
+<p>When successfull the compilation will result in an executable binary named "Atomsk" under UNIX/Linux, or "<code>atomsk.exe</code>" under Microsoft&reg; Windows&reg;. You may copy this executable in a folder of your choice in order to run it.</p>
 
 The <code>Makefile</code> contains facilities to install the program system-wide on Linux machines (see below).</p>
 
@@ -93,7 +93,7 @@ The <code>Makefile</code> contains facilities to install the program system-wide
 
 <p>Once the compilation is achieved, if you have the super user rights on your machine you can type:</p>
 <p><code class="command">make install</code></p>
-<p>By default the program <code>atomsk</code> will be copied into your <em>/usr/local/bin</em> folder, so that all users of your machine have access to it. The <a href="./tools.html">companion tools</a> will also be copied to that folder and made executable. The present html documentation will be copied to the <em>/usr/local/share/doc/atomsk</em> folder (copy this location into a web browser to visualize it). The man page of <code>atomsk</code> will be copied to <em>/usr/local/share/man/man1/</em> and can be accessed by typing "<code>man atomsk</code>". These default directories can be changed by editing the Makefile and changing the <code>INSTPATH</code>, <code>DOCPATH</code> and <code>MANPATH</code> variables.</p>
+<p>By default the program Atomsk will be copied into your <em>/usr/local/bin</em> folder, so that all users of your machine have access to it. The <a href="./tools.html">companion tools</a> will also be copied to that folder and made executable. The present html documentation will be copied to the <em>/usr/local/share/doc/atomsk</em> folder (copy this location into a web browser to visualize it). The man page of Atomsk will be copied to <em>/usr/local/share/man/man1/</em> and can be accessed by typing "<code>man atomsk</code>". These default directories can be changed by editing the Makefile and changing the <code>INSTPATH</code>, <code>DOCPATH</code> and <code>MANPATH</code> variables.</p>
 
 <p>You can also use the command "<code>make all</code>" with superuser rights to compile and install the program in one shot (this is equivalent to "<code>make atomsk &amp;&amp; make install &amp;&amp; make clean</code>").</p>
 

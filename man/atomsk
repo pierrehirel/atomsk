@@ -181,8 +181,10 @@ Applies stress to the system. The elastic tensor must be defined with the option
 .B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
 Substitutes atoms of a given species by another.
 .TP
-.B -unit <unit1> <unit2>, -u <unit1> <unit2>
-Changes the unit in which atom positions and supercell parameters are written.
+.B -unit <property> <factor>
+.TP
+.B -unit <unit1> <unit2>
+Multiplies the values of the given property by a factor, or converts atom positions and velocity from one system of unit into another.
 .TP
 .B -unskew
 Reduces the skew of the box.

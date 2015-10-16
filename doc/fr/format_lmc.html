@@ -15,7 +15,7 @@
 
 <p><strong>Name:</strong> fichier de sortie LAMMPS personnalisé</p>
 
-<p><strong>Extension :</strong> non spécifié (<code>atomsk</code> utilise .lmc)</p>
+<p><strong>Extension :</strong> non spécifié (Atomsk utilise .lmc)</p>
 
 <p><strong>Spécification :</strong> <a href="http://lammps.sandia.gov/doc/dump.html">manuel de LAMMPS</a></p>
 
@@ -23,21 +23,21 @@
 
 <h4>Restrictions</h4>
 
-<p>LAMMPS peut écrire diverses informations dans un fichier de sortie personnalisé grâce à la commande "<code>dump ID group-ID custom N file args</code>", comme indiqué sur <a href="http://lammps.sandia.gov/doc/dump.html">cette page du manuel de LAMMPS</a>. Ces fichiers n'ont pas d'extension spécifique, <code>atomsk</code> les appelle des fichiers 'lmc'.</p>
+<p>LAMMPS peut écrire diverses informations dans un fichier de sortie personnalisé grâce à la commande "<code>dump ID group-ID custom N file args</code>", comme indiqué sur <a href="http://lammps.sandia.gov/doc/dump.html">cette page du manuel de LAMMPS</a>. Ces fichiers n'ont pas d'extension spécifique, Atomsk les appelle des fichiers 'lmc'.</p>
 
 <p>Dans un tel fichier, une ligne commençant par "<code>ITEM: ATOMS</code>" indique le format des données des lignes suivantes. Il doit y avoir au moins trois entrées : les trois coordonnées atomiques x, y et z, qui peuvent être les coordonnées directes (x,y,z), réduites (xs,ys,zs), non-remballées (xu,yu,zu) ou réduites non-remballées (xsu,ysu,zsu), telles que définies par la <a href="http://lammps.sandia.gov/doc/dump.html">commande dump de LAMMPS</a>. Par exemple la commande "<code>dump myfile all custom 100 MD*.lmc type xu yu zu</code>" dans le script de LAMMPS produira un fichier LMC tous les 100 pas de simulation, nommés MD0.lmc, MD100.lmc, MD200.lmc, etc. et contenant les types d'atomes et leurs coordonnées non remballées.</p>
 
-<p>Si la ligne "<code>ITEM: ATOMS</code>" contient le mot-clé <code>element</code>, alors ces noms d'éléments sont lus et enregistrés. Si les éléments ne sont pas définis, <code>atomsk</code> utilisera les "types" d'atomes (1, 2, 3...) et les interprétera comme des numéros atomiques (respectivement H, He, Li et ainsi de suite). Ces types d'atomes peuvent être remplacés grâce à l'<a href="./option_substitute.html">option <code>-substitute</code></a>. De plus les types sont sauvegardés comme propriété auxiliaire (avec le nom "type") pour chaque atome afin d'assurer que ces types soient bien transférés lors de la conversion vers des formats qui le supportent. Les types peuvent être effacés en supprimant la propriété "type" grâce à l'<a href="./option_rmprop.html">option <code>-rmprop type</code></a>. Enfin, si ni les éléments ni le type d'atome n'apparaissent dans le fichier LMC, alors <code>atomsk</code> considérera que tous les atomes sont des atomes d'hydrogène.</p>
+<p>Si la ligne "<code>ITEM: ATOMS</code>" contient le mot-clé <code>element</code>, alors ces noms d'éléments sont lus et enregistrés. Si les éléments ne sont pas définis, Atomsk utilisera les "types" d'atomes (1, 2, 3...) et les interprétera comme des numéros atomiques (respectivement H, He, Li et ainsi de suite). Ces types d'atomes peuvent être remplacés grâce à l'<a href="./option_substitute.html">option <code>-substitute</code></a>. De plus les types sont sauvegardés comme propriété auxiliaire (avec le nom "type") pour chaque atome afin d'assurer que ces types soient bien transférés lors de la conversion vers des formats qui le supportent. Les types peuvent être effacés en supprimant la propriété "type" grâce à l'<a href="./option_rmprop.html">option <code>-rmprop type</code></a>. Enfin, si ni les éléments ni le type d'atome n'apparaissent dans le fichier LMC, alors Atomsk considérera que tous les atomes sont des atomes d'hydrogène.</p>
 
 <p>Si la ligne "<code>ITEM: ATOMS</code>" contient le mot-clé <code>id</code>, alors les atomes seront rangés selon la valeur de leur ID. Sinon, les atomes seront rangés simplement dans l'ordre dans lequel ils apparaissent dans le fichier.</p>
 
-<p>Si d'autres propriétés (par ex. l'énergie potentielle, la contrainte par atome...) sont définies dans la ligne "<code>ITEM: ATOMS</code>", alors <code>atomsk</code> les enregistrera comme propriétés auxiliaires. Ces propriétés doivent alors exister pour chaque atome dans le fichier.</p>
+<p>Si d'autres propriétés (par ex. l'énergie potentielle, la contrainte par atome...) sont définies dans la ligne "<code>ITEM: ATOMS</code>", alors Atomsk les enregistrera comme propriétés auxiliaires. Ces propriétés doivent alors exister pour chaque atome dans le fichier.</p>
 
-<p>Si des coordonnées apparaissent plusieurs fois, seules les premières sont utilisées par <code>atomsk</code>. Par exemple si les coordonnées remballées et non remballées sont présentes avec le format "<code>xu x yu y z zu</code>", alors <code>atomsk</code> utilisera <code>xu</code>, <code>yu</code> et <code>z</code>. Dans le cas de coordonnées réduites, lese trois composantes doivent être réduites (c'est-à-dire <code>xs</code>, <code>ys</code> et <code>zs</code>) pour que <code>atomsk</code> les interprète correctement.</p>
+<p>Si des coordonnées apparaissent plusieurs fois, seules les premières sont utilisées par Atomsk. Par exemple si les coordonnées remballées et non remballées sont présentes avec le format "<code>xu x yu y z zu</code>", alors Atomsk utilisera <code>xu</code>, <code>yu</code> et <code>z</code>. Dans le cas de coordonnées réduites, lese trois composantes doivent être réduites (c'est-à-dire <code>xs</code>, <code>ys</code> et <code>zs</code>) pour que Atomsk les interprète correctement.</p>
 
 <p>Notez que l'ordre dans lequel les coordonnées des atomes et les propriétés auxiliaires apparaissent dans le fichier n'a que peu d'importance, tant que leur ordre d'apparition est correctement spécifié dans la ligne "<code>ITEM: ATOMS</code>" (ce qui devrait toujours être le cas, sauf si LAMMPS a un bug ou si le fichier LMC a été produit par un autre code avec un format incorrect).</p>
 
-<p><code>atomsk</code> ne peut pas écrire de fichier au format LMC.</p>
+<p>Atomsk ne peut pas écrire de fichier au format LMC.</p>
 
 
 

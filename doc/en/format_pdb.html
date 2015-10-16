@@ -25,9 +25,9 @@
 
 <p>The Protein Data Bank file format (pdb) is a standard file format for organic and non-organic compounds which structure has been determined experimentally. As such this format contains details about the experimental setup used to determine the structure, the journal article references where the work was published, the name of authors, etc.</p>
 
-<p>When reading a PDB file, <code>atomsk</code> stores the lines EXPDTA, AUTHORS... as comments. These lines will appear as comments in other file formats, or will be re-used if a PDB file is produced as output. All atom positions (contained in lines starting with <code>ATOM</code> and <code>HETATM</code>) are read by <code>atomsk</code>. If present, the occupancy and charge of each atom are stored as auxiliary properties.</p>
+<p>When reading a PDB file, Atomsk stores the lines EXPDTA, AUTHORS... as comments. These lines will appear as comments in other file formats, or will be re-used if a PDB file is produced as output. All atom positions (contained in lines starting with <code>ATOM</code> and <code>HETATM</code>) are read by Atomsk. If present, the occupancy and charge of each atom are stored as auxiliary properties.</p>
 
-<p><code>atomsk</code> can write files in the PDB format. However since <code>atomsk</code> does not deal with experimental data, only a draft file is produced, and it will contain a <code>CAVEAT</code> line indicating that it does not fully comply to the PDB standard. The produced file will have to be edited to add the data required by the PDB.</p>
+<p>Atomsk can write files in the PDB format. However since Atomsk does not deal with experimental data, only a draft file is produced, and it will contain a <code>CAVEAT</code> line indicating that it does not fully comply to the PDB standard. The produced file will have to be edited to add the data required by the PDB.</p>
 
 
 

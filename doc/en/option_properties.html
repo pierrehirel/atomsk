@@ -39,7 +39,7 @@
             ...</code></p>
   <p>The displacements can be given for all atoms, or only some of them. If shells are present, but no displacement is specified for them, then they will be displaced by the same vector as their core. The displacement vectors will be immediately applied to the atom positions (and shells, if any).</p></li>
   
-  <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but <code>atomsk</code> will work with whatever number is given). In case of an ionic core-shell model the charge Q of the core and the charge q of the shell can be given:<br/>
+  <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but Atomsk will work with whatever number is given). In case of an ionic core-shell model the charge Q of the core and the charge q of the shell can be given:<br/>
       <p><code>charge<br/>
             &#60;species1&#62; &#60;Q<sub>1</sub>&#62; [&#60;q<sub>1</sub>&#62;]<br/>
             &#60;species2&#62; &#60;Q<sub>2</sub>&#62; [&#60;q<sub>2</sub>&#62;]<br/>
@@ -109,7 +109,7 @@
             C<sub>11</sub> C<sub>22</sub> C<sub>33</sub><br/>
             C<sub>23</sub> C<sub>31</sub> C<sub>12</sub><br/>
             C<sub>44</sub> C<sub>55</sub> C<sub>66</sub><br/></code></p>
-      <p>Beware: when it is read by <code>atomsk</code>, the elastic tensor is always assumed to correspond to the current orientation of the system. The elastic tensor is read without taking any previous definition of the crystallographic orientation into account. In other words the <em>C<sub>ij</sub>'</em> coefficients must always be provided. On the contrary if the crystal orientation is defined or changed <em>after</em> reading the elastic tensor, then the elastic tensor will be rotated accordingly.</p>
+      <p>Beware: when it is read by Atomsk, the elastic tensor is always assumed to correspond to the current orientation of the system. The elastic tensor is read without taking any previous definition of the crystallographic orientation into account. In other words the <em>C<sub>ij</sub>'</em> coefficients must always be provided. On the contrary if the crystal orientation is defined or changed <em>after</em> reading the elastic tensor, then the elastic tensor will be rotated accordingly.</p>
       
       <p>Similarly, if a rotation option (such as <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> or <a href="./option_orient.html"><code>-orient</code></a>) is used <em>before</em> the elastic tensor is defined with the present option, then the elastic tensor is assumed to correspond to the rotated system. If a rotation option is called <em>after</em> the present option, then the elastic tensor will be transformed accordingly.</p>
       
@@ -196,7 +196,7 @@ auxiliary my_energy<br/>
 </li>
 
 
-<li>In the example file "<code>iron.txt</code>" below, the elastic tensor is defined first -therefore it is assumed to be the generic tensor <em>C</em> for the orientation X=[100], Y=[010], Z=[001]. Then the crystal orientation is given, so <code>atomsk</code> will automatically rotate the elastic tensor, yielding the <em>C'</em> corresponding to the orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]:
+<li>In the example file "<code>iron.txt</code>" below, the elastic tensor is defined first -therefore it is assumed to be the generic tensor <em>C</em> for the orientation X=[100], Y=[010], Z=[001]. Then the crystal orientation is given, so Atomsk will automatically rotate the elastic tensor, yielding the <em>C'</em> corresponding to the orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]:
 
 <div class="txtfile">
 <h5>iron.txt</h5>
@@ -214,7 +214,7 @@ orientation<br/>
 
 <p>This is often the most convenient way to obtain an elastic tensor suitable for your system.</p></li>
 
-<li>Now in the example below, the crystal orientation is defined first, therefore the provided elastic tensor must be the rotated <em>C'</em> for that orientation -remember that when <code>atomsk</code> reads the elastic tensor it always assumes that it corresponds to the current orientation of the system:
+<li>Now in the example below, the crystal orientation is defined first, therefore the provided elastic tensor must be the rotated <em>C'</em> for that orientation -remember that when Atomsk reads the elastic tensor it always assumes that it corresponds to the current orientation of the system:
 
 <div class="txtfile">
 <h5>iron.txt</h5>

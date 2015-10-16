@@ -23,11 +23,11 @@
 
 <h4>Restrictions</h4>
 
-<p><code>Atomsk</code> can read files in the XMD format containing box dimensions and atom positions. Such files can be produced by XMD thanks to the commands <code>WRITE BOX</code>, <code>WRITE PARTICLE</code>, etc. (refer to XMD's manual). Atom types and masses, if set, are saved as auxiliary properties to ensure that they are conserved when converting to another file format that supports them, such as <a href="./format_lmp.html">LAMMPS data file</a>, <a href="./format_imd.html">IMD configuration file</a>, or another XMD file. Note that if the XMD file contains instructions for XMD to build or transform an atomic systems (commands such as <code>DUP</code>, <code>FILL</code>, <code>SCREW</code>, etc.), they are not executed by <code>atomsk</code>.</p>
+<p>Atomsk can read files in the XMD format containing box dimensions and atom positions. Such files can be produced by XMD thanks to the commands <code>WRITE BOX</code>, <code>WRITE PARTICLE</code>, etc. (refer to XMD's manual). Atom types and masses, if set, are saved as auxiliary properties to ensure that they are conserved when converting to another file format that supports them, such as <a href="./format_lmp.html">LAMMPS data file</a>, <a href="./format_imd.html">IMD configuration file</a>, or another XMD file. Note that if the XMD file contains instructions for XMD to build or transform an atomic systems (commands such as <code>DUP</code>, <code>FILL</code>, <code>SCREW</code>, etc.), they are not executed by Atomsk.</p>
 
-<p><code>Atomsk</code> can also write XMD files. If atom types and masses are defined as auxiliary properties, they are used to create the XMD file. XMD can handle only orthogonal simulation boxes, i.e. the box vectors must be (<code>H(1,1) 0 0</code>), (<code>0 H(2,2) 0</code>) and (<code>0 0 H(3,3)</code>). If the actual box is not orthogonal then <code>atomsk</code> will display a warning saying that all box parameters cannot be written, and the geometry of the system will most likely be wrong.</p>
+<p>Atomsk can also write XMD files. If atom types and masses are defined as auxiliary properties, they are used to create the XMD file. XMD can handle only orthogonal simulation boxes, i.e. the box vectors must be (<code>H(1,1) 0 0</code>), (<code>0 H(2,2) 0</code>) and (<code>0 0 H(3,3)</code>). If the actual box is not orthogonal then Atomsk will display a warning saying that all box parameters cannot be written, and the geometry of the system will most likely be wrong.</p>
 
-<p>The XMD file produced by <code>atomsk</code> can be read from an XMD script thanks to the command <code>READ file.xmd</code>.</p>
+<p>The XMD file produced by Atomsk can be read from an XMD script thanks to the command <code>READ file.xmd</code>.</p>
 
 
 

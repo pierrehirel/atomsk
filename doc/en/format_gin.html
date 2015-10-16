@@ -24,15 +24,15 @@
 
 <h4>Restrictions</h4>
 
-<p>When reading GULP input files (gin, res or grs), <code>atomsk</code> will always read the positions of atom cores. The "atom names" in the first column should always start with the species symbol (one or two letters) for <code>atomsk</code> to recognize it. It may be appened by any string or characters (e.g. O1, Ti_2, etc.). If velocities are present, they are saved as auxiliary properties.</p>
+<p>When reading GULP input files (gin, res or grs), Atomsk will always read the positions of atom cores. The "atom names" in the first column should always start with the species symbol (one or two letters) for Atomsk to recognize it. It may be appened by any string or characters (e.g. O1, Ti_2, etc.). If velocities are present, they are saved as auxiliary properties.</p>
 
-<p>If <strong>electronic shells</strong> are present (in the sense of an ionic core-shell model potential) their positions are also read, but beware that they will be transferred for output only to formats that support it (like GULP files themselves, or <a href="./format_dlp.html">DL_POLY CONFIG files</a>). For <code>atomsk</code> to associate cores and shells correctly, the position of each shell should always appear right after the position of the corresponding core (like in the example below), or all core positions should be contiguous and followed by all shells positions in a matching order. If it is not the case (i.e. if cores and shells are written in any other arbitrary order) one can use the <a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
+<p>If <strong>electronic shells</strong> are present (in the sense of an ionic core-shell model potential) their positions are also read, but beware that they will be transferred for output only to formats that support it (like GULP files themselves, or <a href="./format_dlp.html">DL_POLY CONFIG files</a>). For Atomsk to associate cores and shells correctly, the position of each shell should always appear right after the position of the corresponding core (like in the example below), or all core positions should be contiguous and followed by all shells positions in a matching order. If it is not the case (i.e. if cores and shells are written in any other arbitrary order) one can use the <a href="./option_bindshells.html">option <code>-bind-shells</code></a>.</p>
 
-<p>If the <strong>electric charges</strong> of cores (and shells) are defined in the section "species" then <code>atomsk</code> will store them as auxiliary properties. If the charges appear after each particle coordinate, then they will override the ones defined in the "species" section.</p>
+<p>If the <strong>electric charges</strong> of cores (and shells) are defined in the section "species" then Atomsk will store them as auxiliary properties. If the charges appear after each particle coordinate, then they will override the ones defined in the "species" section.</p>
 
-<p>The reading of GULP files come essentially with two restrictions. First, symmetry operations are not taken into account. So, if coordinates of a primitive lattice are used, only atoms in that primitive cell will be read and output. Symmetry is a whole other story to implement, so it was not done in this program. And second, since NEB was implemented in GULP (&#62;3.4) the restart files (res or grs) can contain all atomic positions for all images of NEB. This is not recognized here, and only the positions of the 1st NEB image will be read and converted by <code>atomsk</code>.</p>
+<p>The reading of GULP files come essentially with two restrictions. First, symmetry operations are not taken into account. So, if coordinates of a primitive lattice are used, only atoms in that primitive cell will be read and output. Symmetry is a whole other story to implement, so it was not done in this program. And second, since NEB was implemented in GULP (&#62;3.4) the restart files (res or grs) can contain all atomic positions for all images of NEB. This is not recognized here, and only the positions of the 1st NEB image will be read and converted by Atomsk.</p>
 
-<p><code>atomsk</code> can only write a basic GIN file, containing the cell parameters and the positions of the cores (and shells if any) with the following format:</p>
+<p>Atomsk can only write a basic GIN file, containing the cell parameters and the positions of the cores (and shells if any) with the following format:</p>
 
 <div class="txtfile"><h5>example.gin</h5>
 <p><code>opti<br/>
@@ -61,7 +61,7 @@
 
 <p>As shown in this example, if an atom is made of a core and a shell, the coordinates of the shell appear right after the ones of the core.</p>
 
-<p><strong>Values in square brackets</strong> will be written by <code>atomsk</code> only if they are defined, either by being read from an input file or thanks to the <a href="./option_properties.html">option <code>-properties</code></a>.</p>
+<p><strong>Values in square brackets</strong> will be written by Atomsk only if they are defined, either by being read from an input file or thanks to the <a href="./option_properties.html">option <code>-properties</code></a>.</p>
 
 <p>So, if the electric charges of ions (q) are defined, they will be written. As stated in the GULP documentation, if electric charges are written, then the site occupancies (occ) may also be written (if they are defined). Similarly, if charges and occupancies are defined, then the radius for breathing shells (rad) may also be written. Note that the number of columns is always the same for cores and shells. A pair of core and shell will be given the same occupancy, and the breathing shell radius will be assigned only to the shell (for cores this column will contain 0.0).</p>
 
@@ -73,7 +73,7 @@
 
 <p>By default coordinates are written in the cartesian basis, but output to fractional coordinates can be triggered by the <a href="./option_fractional.html">option <code>-frac</code></a>.</p>
 
-<p>Note that the GIN file that <code>atomsk</code> writes is just a draft, it is NOT fully set for a simulation. It is up to the user to complete this GIN file with the simulation parameters (keywords, atomic potential, options for relaxation/MD, etc.) before running a simulation.</p>
+<p>Note that the GIN file that Atomsk writes is just a draft, it is NOT fully set for a simulation. It is up to the user to complete this GIN file with the simulation parameters (keywords, atomic potential, options for relaxation/MD, etc.) before running a simulation.</p>
 
 
 

@@ -4,7 +4,7 @@ MODULE unit
 !*  UNIT                                                                          *
 !**********************************************************************************
 !* This module reads an array of type (species x y z) and converts                *
-!* coordinates or atom velocities from one unit to another.                       *
+!* coordinates, atom velocities, or any property, from one unit to another.       *
 !**********************************************************************************
 !* (C) October 2010 - Pierre Hirel                                                *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
@@ -40,9 +40,10 @@ SUBROUTINE UNIT_XYZ(H,P,S,AUXNAMES,AUX,u1,u2)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=16),INTENT(IN):: u1, u2
+CHARACTER(LEN=128),INTENT(IN):: u1, u2
 CHARACTER(LEN=16),DIMENSION(4):: units
 CHARACTER(LEN=128):: msg
+CHARACTER(LEN=128):: property  !name of property that must be rescaled
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL:: isreduced
 INTEGER:: i, j
@@ -55,10 +56,11 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of atoms, sh
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX !auxiliary properties of atoms/shells
 !
 !Initialize variables
+property=''
+units(:) = ''
 f(:)=1.d0
 factor = 1.d0
 transform = 0
-units(:) = ''
 vx = 0
 vy = 0
 vz = 0
@@ -66,7 +68,23 @@ vz = 0
 i = SCAN(u1,'/')
 j = SCAN(u2,'/')
 IF( i==0 .AND. j==0 ) THEN
-  !atom coordinates will be transformed
+  !Check if u1 or u2 contain a number
+  READ(u1,*,ERR=10,END=10) factor
+  !u1 contained a number => u2 must be a property name
+  transform=-1
+  property=ADJUSTL(u2)
+  GOTO 50
+  10 CONTINUE
+  !u1 did not contain a number => try with u2
+  READ(u2,*,ERR=10,END=10) factor
+  !u2 contained a number => u1 must be a property name
+  transform=-1
+  property=ADJUSTL(u1)
+  GOTO 50
+  !
+  20 CONTINUE
+  !Neither u1 nor u2 are numbers, they must be both strings containing a unit
+  !=> atom coordinates will be transformed
   transform = 0
   units(1) = u1
   units(2) = u2
@@ -105,75 +123,57 @@ ELSE
   nerr = nerr+1
   GOTO 1000
 ENDIF
+!
+50 CONTINUE
 WRITE(msg,*) 'Entering UNIT_XYZ: ', units(1), units(2), units(3), units(4)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-IF( transform==1 ) THEN
-  msg = "velocities"
+IF( transform==-1 ) THEN
+  msg = u2
+  CALL ATOMSK_MSG(2091,(/property/),(/factor/))
+  IF( factor==0.d0 ) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2755,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
 ELSE
-  msg = "coordinates"
+  IF( transform==1 ) THEN
+    msg = "velocities"
+  ELSE
+    msg = "coordinates"
+  ENDIF
+  CALL ATOMSK_MSG(2091,(/msg,units(1),units(2),units(3),units(4)/),(/0.d0/))
+  IF( TRIM(ADJUSTL(units(1)))==TRIM(ADJUSTL(units(2))) ) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2738,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
 ENDIF
-CALL ATOMSK_MSG(2091,(/msg,units(1),units(2),units(3),units(4)/),(/0.d0/))
 !
-IF( TRIM(ADJUSTL(units(1)))==TRIM(ADJUSTL(units(2))) ) THEN
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(2738,(/''/),(/0.d0/))
-  GOTO 1000
-ENDIF
 !
 !
 100 CONTINUE
-!Define the factor for distance units depending on the two units
-DO i=1,2
-  SELECT CASE(units(i))
-  CASE('km')
-    f(i) = 1.d3
-  CASE('m')
-    f(i) = 1.d0
-  CASE('mm')
-    f(i) = 1.d-3
-  CASE('µm','micron')
-    f(i) = 1.d-6
-  CASE('nm')
-    f(i) = 1.d-9
-  CASE('A','Angstrom','angstrom','Angstroms','angstroms')
-    f(i) = 1.d-10
-  CASE('B','Bohr','bohr','Bohrs','bohrs')
-    f(i) = a_bohr  !defined in constants.f90
-  CASE('pm')
-    f(i) = 1.d-12
-  CASE('fm')
-    f(i) = 1.d-15
-  CASE DEFAULT
-    CALL ATOMSK_MSG(803,(/TRIM(units(i))/),(/0.d0/))
-    nerr = nerr+1
-    GOTO 1000
-  END SELECT
-ENDDO
-factor = f(1) / f(2)
-WRITE(msg,*) 'factor: ', factor
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!
-!
-IF( transform==1 ) THEN
-  !Define factor for time units
-  DO i=3,4
+IF( transform>0 ) THEN
+  !Define the factor for distance units depending on the two units
+  DO i=1,2
     SELECT CASE(units(i))
-    CASE('h')
-      f(i) = 3600.d0
-    CASE('min','mn')
-      f(i) = 60.d0
-    CASE('s')
+    CASE('km')
+      f(i) = 1.d3
+    CASE('m')
       f(i) = 1.d0
-    CASE('ms')
+    CASE('mm')
       f(i) = 1.d-3
-    CASE('µs')
+    CASE('µm','micron')
       f(i) = 1.d-6
-    CASE('ns')
+    CASE('nm')
       f(i) = 1.d-9
-    CASE('ps')
+    CASE('A','Angstrom','angstrom','Angstroms','angstroms')
+      f(i) = 1.d-10
+    CASE('B','Bohr','bohr','Bohrs','bohrs')
+      f(i) = a_bohr  !defined in constants.f90
+    CASE('pm')
       f(i) = 1.d-12
-    CASE('fs')
+    CASE('fm')
       f(i) = 1.d-15
     CASE DEFAULT
       CALL ATOMSK_MSG(803,(/TRIM(units(i))/),(/0.d0/))
@@ -181,15 +181,90 @@ IF( transform==1 ) THEN
       GOTO 1000
     END SELECT
   ENDDO
-  factor2 = f(3)/f(4)
-  WRITE(msg,*) 'factor2: ', factor2
+  factor = f(1) / f(2)
+  WRITE(msg,*) 'factor: ', factor
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  IF( transform==1 ) THEN
+    !Define factor for time units
+    DO i=3,4
+      SELECT CASE(units(i))
+      CASE('h')
+        f(i) = 3600.d0
+      CASE('min','mn')
+        f(i) = 60.d0
+      CASE('s')
+        f(i) = 1.d0
+      CASE('ms')
+        f(i) = 1.d-3
+      CASE('µs')
+        f(i) = 1.d-6
+      CASE('ns')
+        f(i) = 1.d-9
+      CASE('ps')
+        f(i) = 1.d-12
+      CASE('fs')
+        f(i) = 1.d-15
+      CASE DEFAULT
+        CALL ATOMSK_MSG(803,(/TRIM(units(i))/),(/0.d0/))
+        nerr = nerr+1
+        GOTO 1000
+      END SELECT
+    ENDDO
+    factor2 = f(3)/f(4)
+    WRITE(msg,*) 'factor2: ', factor2
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+  !
 ENDIF
 !
 !
 !
 200 CONTINUE
-IF( transform==0 ) THEN
+IF( transform==-1 ) THEN
+  !Multiply the property u1 by the factor u2
+  !
+  SELECT CASE(property)
+  CASE('x','X')
+    !Multiply all X coordinates by the given factor
+    DO i=1,SIZE(P,1)
+      P(i,1) = factor*P(i,1)
+    ENDDO
+  CASE('y','Y')
+    !Multiply all Y coordinates by the given factor
+    DO i=1,SIZE(P,1)
+      P(i,2) = factor*P(i,2)
+    ENDDO
+  CASE('z','Z')
+    !Multiply all Z coordinates by the given factor
+    DO i=1,SIZE(P,1)
+      P(i,3) = factor*P(i,3)
+    ENDDO
+  CASE DEFAULT
+    !Search the property number in AUXNAMES
+    j=0
+    IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>=1 ) THEN
+      DO i=1,SIZE(AUXNAMES)
+        IF( TRIM(ADJUSTL(AUXNAMES(i)))==TRIM(ADJUSTL(property)) ) THEN
+          j=i
+        ENDIF
+      ENDDO
+    ENDIF
+    !
+    IF( j>0 ) THEN
+      !Multiply all values of this auxiliary property by the factor
+      DO i=1,SIZE(AUX,1)
+        AUX(i,j) = factor*AUX(i,j)
+      ENDDO
+    ELSE
+      !No property with that name
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(2730,(/property/),(/0.d0/))
+    ENDIF
+  END SELECT
+  !
+  !
+ELSEIF( transform==0 ) THEN
   !Convert atom coordinates (only if they are not reduced)
   CALL FIND_IF_REDUCED(P,isreduced)
   IF(.NOT.isreduced) THEN
@@ -216,7 +291,8 @@ IF( transform==0 ) THEN
     ENDDO
   ENDDO
   !
-ELSE
+  !
+ELSEIF( transform==1 ) THEN
   !Convert atom velocities
   IF(vx>0 ) THEN
     AUX(:,vx) = AUX(:,vx) * factor / factor2
@@ -230,7 +306,9 @@ ELSE
 ENDIF
 !
 !
-IF( transform==1 ) THEN
+IF( transform==-1 ) THEN
+  msg = property
+ELSEIF( transform==1 ) THEN
   msg = "velocities"
 ELSE
   msg = "coordinates"

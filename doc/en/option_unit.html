@@ -15,16 +15,18 @@
 
 <h4>Syntax</h4>
 
-<p><code>-unit &#60;unit1&#62; &#60;unit2&#62;</code></p>
+<p><code>-unit &#60;property&#62; &#60;factor&#62;</code></p>
 
-<p><code>-u &#60;unit1&#62; &#60;unit2&#62;</code></p>
+<p><code>-unit &#60;unit1&#62; &#60;unit2&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This converts atom coordinates or velocities from one unit system &#60;unit1&#62; to another &#60;unit2&#62;.<p>
+<p>This option multiplies the values of the given auxiliary property by the given factor. It also allows to convert atom coordinates or velocities from one unit system &#60;unit1&#62; to another &#60;unit2&#62;.<p>
 
-<p>The supported units of distance are:</p>
+<p>The &#60;property&#62; can be a Cartesian direction (X, Y or Z) to rescale atom coordinates, or any defined auxiliary property (like vx, vy or vz for atom velocities, fx, fy, fz for atom forces, etc.).</p>
+
+<p>This option also allows to convert atom coordinates or velocities from one unit system into another. The supported units of distance are:</p>
 
 <ul>
   <li><strong>km</strong></li>
@@ -53,28 +55,34 @@
 
 <p>Units of velocity must be specified as the concatenation of a unit of distance, a slash symbol (/), and a unit of time (see examples below).</p>
 
-<p>Note that <code>atomsk</code> will perform the conversion blindly, as it has no way to know in which unit the coordinates are written in the input file. It is up to the user to make sure that the &#60;unit1&#62; actually corresponds to what is written in the input file.</p>
+<p>Note that Atomsk will perform the conversion blindly, as it has no way to know in which unit the coordinates are written in the input file. It is up to the user to make sure that the &#60;unit1&#62; actually corresponds to what is written in the input file.</p>
 
 
 <h4>Default</h4>
 
-<p>By default the units are not changed.</p>
+<p>By default the units are not changed. When reading an input file, Atomsk just reads and stores the numbers as-is, without performing any implicit conversion of units. For instance if the input file contains the atom coordinates "1.0 2.0 3.0" in units of Bohr radius, then they will also appear as "1.0 2.0 3.0" in the output file, even in file formats that use another unit as their default. The conversion of units must be performed explicitely by the user, e.g. with the option <code>-unit</code>.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.lmc -unit x 1.1 final.cfg</code>
+<p>This will multiply all X coordinates of atoms by a factor of 1.1.</p></li>
+
+<li><code class="command">atomsk initial.lmc -unit vx 2.0 -unit vy 2 -unit vz 2 final.cfg</code>
+<p>This will multiply all atom velocities (vx, vy, vz) by a factor of 2.</p></li>
+
 <li><code class="command">atomsk initial.xyz -unit Bohr Angstroms final.xsf</code>
-<p>This will read the file <code>initial.xyz</code>, where atom coordinates are written in units of Bohr radius, convert them to angstroms, and output the result into <code>final.xsf</code>.</p></li>
+<p>This will read the file <code>initial.xyz</code>, where atom coordinates are written in units of Bohr radius, convert them to angströms, and output the result into <code>final.xsf</code>.</p></li>
 
-<li><code class="command">atomsk initial.xsf final.xyz -u A nm</code>
-<p>This will convert from Angstroms to nanometers.</p></li>
+<li><code class="command">atomsk initial.xsf -unit A nm final.xyz</code>
+<p>This will convert from Angströms to nanometers.</p></li>
 
-<li><code class="command">atomsk initial.lmc final.cfg -u A/ps nm/ps</code>
-<p>This will convert atom velocities from Angstroms per picosecond (&Aring;/ps) to nanometers per picosecond (nm/ps).</p></li>
+<li><code class="command">atomsk initial.lmc -unit A/ps nm/ps final.cfg</code>
+<p>This will convert atom velocities from Angströms per picosecond (&Aring;/ps) to nanometers per picosecond (nm/ps).</p></li>
 
-<li><code class="command">atomsk initial.lmc final.cfg -u nm/fs km/h</code>
+<li><code class="command">atomsk initial.lmc -unit nm/fs km/h final.cfg</code>
 <p>This will convert atom velocities from nanometers per femtosecond (nm/fs) into kilometers per hour (km/h).</p></li>
 </ul>
 

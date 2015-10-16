@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 Oct. 2015                                     *
+!* Last modification: P. Hirel - 16 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1388,37 +1388,48 @@ CASE(2090)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2091)
-  !strings(1) = what to convert
+  !strings(1) = what to convert / property name
   !strings(2) = first unit of distance
   !strings(3) = second unit of distance
   !strings(4) = first unit of time
   !strings(5) = second unit of time
-  IF( LEN_TRIM(strings(4))>0 ) THEN
-    temp = TRIM(strings(2))//"/"//TRIM(strings(4))
+  !reals(1) = 0 or factor
+  IF( strings(1)=="velocities" .OR. strings(1)=="coordinates" ) THEN
+    IF( LEN_TRIM(strings(4))>0 ) THEN
+      temp = TRIM(strings(2))//"/"//TRIM(strings(4))
+    ELSE
+      temp = TRIM(strings(2))
+    ENDIF
+    IF( LEN_TRIM(strings(5))>0 ) THEN
+      temp2 = TRIM(strings(3))//"/"//TRIM(strings(5))
+    ELSE
+      temp2 = TRIM(strings(3))
+    ENDIF
+    IF( strings(1)=="velocities" ) THEN
+      temp = "vitesses"
+    ELSE
+      temp = "coordonnées"
+    ENDIF
+    msg = ">>> Conversion des "//TRIM(strings(2))//" de "//TRIM(temp)//&
+        & " vers "//TRIM(temp2)//"."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
-    temp = TRIM(strings(2))
+    WRITE(temp,'(f16.3)') reals(1)
+    msg = ">>> Multiplication des valeurs de "//TRIM(strings(1))//" par un facteur "//TRIM(ADJUSTL(temp))//"."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  IF( LEN_TRIM(strings(5))>0 ) THEN
-    temp2 = TRIM(strings(3))//"/"//TRIM(strings(5))
-  ELSE
-    temp2 = TRIM(strings(3))
-  ENDIF
-  IF( strings(1)=="velocities" ) THEN
-    temp = "vitesses"
-  ELSE
-    temp = "coordonnées"
-  ENDIF
-  msg = ">>> Conversion des "//TRIM(strings(2))//" de "//TRIM(temp)//&
-      & " vers "//TRIM(temp2)//"."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2092)
   !strings(1) = what was converted
-  IF( strings(1)=="velocities" ) THEN
-    temp = "vitesses"
+  IF( strings(1)=="velocities" .OR. strings(1)=="coordinates" ) THEN
+    IF( strings(1)=="velocities" ) THEN
+      temp = "vitesses"
+    ELSE
+      temp = "coordonnées"
+    ENDIF
+    msg = "..> Les "//TRIM(ADJUSTL(temp))//" ont été converties."
   ELSE
-    temp = "coordonnées"
+    msg = "..> "//TRIM(ADJUSTL(strings(1)))//" ont été redimensionnées."
   ENDIF
-  msg = "..> Les "//TRIM(ADJUSTL(temp))//" ont été converties."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2093)
   msg = ">>> Replacement des atomes dans la boîte..."
@@ -1831,6 +1842,9 @@ CASE(2754)
   msg = "/!\ ALERTE : la position de la "//TRIM(ADJUSTL(strings(1)))//" est à l'extérieur de la boîte."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Êtes-vous sûr de savoir ce que vous faites ?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2755)
+  msg = "/!\ ALERTE : le facteur est égal à zéro, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

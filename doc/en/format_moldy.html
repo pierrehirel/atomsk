@@ -15,7 +15,7 @@
 
 <p><strong>Name:</strong> configuration for MOLDY</p>
 
-<p><strong>Extension:</strong> unspecified (<code>atomsk</code> uses .mol)</p>
+<p><strong>Extension:</strong> unspecified (Atomsk uses .mol)</p>
 
 <p><strong>Specification:</strong> <a href="https://www.wiki.ed.ac.uk/display/ComputerSim/MOLDY+Information">MOLDY Wiki</a></p>
 
@@ -24,9 +24,9 @@
 
 <h4>Restrictions</h4>
 
-<p><code>atomsk</code> can read MOLDY configuration files (e.g. "system.in" or "system.out"). As stated in the specification, the second line contains three integers that correspond to the number of replicas along the X, Y and Z directions. <code>atomsk</code> will read these numbers and actually perform the replication (i.e. these integers have the same effect as the <a href="./option_duplicate.html">option <code>-duplicate</code></a>).</p>
+<p>Atomsk can read MOLDY configuration files (e.g. "system.in" or "system.out"). As stated in the specification, the second line contains three integers that correspond to the number of replicas along the X, Y and Z directions. Atomsk will read these numbers and actually perform the replication (i.e. these integers have the same effect as the <a href="./option_duplicate.html">option <code>-duplicate</code></a>).</p>
 
-<p>When writing to the MOLDY format, <code>atomsk</code> will use ".mol" for the file extension. The atom masses that are written are those of the most common isotopes as provided by the <a href="http://www.nist.gov/pml/data/periodic.cfm">National Institute of Standards and Technology (NIST)</a>.</p>
+<p>When writing to the MOLDY format, Atomsk will use ".mol" for the file extension. The atom masses that are written are those of the most common isotopes as provided by the <a href="http://www.nist.gov/pml/data/periodic.cfm">National Institute of Standards and Technology (NIST)</a>.</p>
 
 
 

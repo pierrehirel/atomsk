@@ -25,9 +25,9 @@
 
 <p>Le format PDB est un standard pour la représentation de composés organiques (et non-organiques) dont la structure a été déterminée expérimentalement. Il est donc conçu pour contenir de nombreuses informations sur les détails de l'expérience, la référence de l'article publié, le nom et l'affiliation des auteurs, etc.</p>
 
-<p>Lorsqu'il lit un fichier PDB <code>atomsk</code> enregistre les lignes EXPDTA, AUTHORS... comme commentaires. Ces lignes apparaîtront donc comme des commentaires dans les autres formats de fichiers, ou seront ré-utilisées si le fichier de sortie est au format PDB. Toutes les positions des atomes (contenues dans les lignes commençant par <code>ATOM</code> ou <code>HETATM</code>) sont lues par <code>atomsk</code>. L'occupation et la charge de chaque atome sont enregistrées comme propriétés auxiliaires si elles existent dans le fichier PDB.</p>
+<p>Lorsqu'il lit un fichier PDB, Atomsk enregistre les lignes EXPDTA, AUTHORS... comme commentaires. Ces lignes apparaîtront donc comme des commentaires dans les autres formats de fichiers, ou seront ré-utilisées si le fichier de sortie est au format PDB. Toutes les positions des atomes (contenues dans les lignes commençant par <code>ATOM</code> ou <code>HETATM</code>) sont lues par Atomsk. L'occupation et la charge de chaque atome sont enregistrées comme propriétés auxiliaires si elles existent dans le fichier PDB.</p>
 
-<p><code>atomsk</code> peut écrire des fichiers au format PDB. Cependant puisque <code>atomsk</code> n'est pas conçu pour traiter des données expérimentales, seul un brouillon sera produit, contenant une ligne commençant par <code>CAVEAT</code> pour indiquer que le fichier produit n'est pas pleinement compatible avec le standard PDB. Ce brouillon devra être édité pour ajouter les données requises par le standard PDB.</p>
+<p>Atomsk peut écrire des fichiers au format PDB. Cependant puisque Atomsk n'est pas conçu pour traiter des données expérimentales, seul un brouillon sera produit, contenant une ligne commençant par <code>CAVEAT</code> pour indiquer que le fichier produit n'est pas pleinement compatible avec le standard PDB. Ce brouillon devra être édité pour ajouter les données requises par le standard PDB.</p>
 
 
 <p><a href="./index.html">Retour au menu principal</a></p>

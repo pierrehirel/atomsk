@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Aug. 2015                                     *
+!* Last modification: P. Hirel - 15 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -235,7 +235,7 @@ CHARACTER(LEN=3):: sp1, sp2
 INTEGER,DIMENSION(2):: swap_id  !indices of atoms to swap
 !
 !Variables relative to Option: unit
-CHARACTER(LEN=16):: unit1, unit2
+CHARACTER(LEN=128):: unit1, unit2
 !
 !Variables relative to Option: velocity
 REAL(dp):: vel_T  !target temperature for Maxwell-Boltzmann distribution

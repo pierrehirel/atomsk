@@ -24,13 +24,13 @@
 
 <h4>Restrictions</h4>
 
-<p><code>atomsk</code> can read Quantum Espresso PWscf output files (*.out) only through the <a href="./mode_oneinall.html">mode one-in-all</a>. Each snapshot will then be converted to a separate file.</p>
+<p>Atomsk can read Quantum Espresso PWscf output files (*.out) only through the <a href="./mode_oneinall.html">mode one-in-all</a>. Each snapshot will then be converted to a separate file.</p>
 
-<p>If forces are defined, then they will be read by <code>atomsk</code>. Whether forces will appear or not in the final file depends <a href="./formats.html">if the output format supports it</a>.</p>
+<p>If forces are defined, then they will be read by Atomsk. Whether forces will appear or not in the final file depends <a href="./formats.html">if the output format supports it</a>.</p>
 
-<p>By default in the Quantum Espresso PW file format, all quantities whose dimensions are not explicitly specified are in <em>Rydberg</em> atomic units, in particular cell dimensions and atom positions are in units of Bohr radius. So, if cell dimensions and atom coordinates are all expressed in the same units (e.g. all in Bohr, or all in anstroms), then <code>atomsk</code> conserves this unit (i.e. coordinates are NOT converted to angstroms). However, if no unit is specified for the cell (meaning it is in Bohr), while the atom coordinates are specified in angstroms, then the cell dimensions will be converted to angstroms for consistency. To convert units one can also use the <a href="./option_unit.html">option <code>-unit</code></a>.</p>
+<p>By default in the Quantum Espresso PW file format, all quantities whose dimensions are not explicitly specified are in <em>Rydberg</em> atomic units, in particular cell dimensions and atom positions are in units of Bohr radius. So, if cell dimensions and atom coordinates are all expressed in the same units (e.g. all in Bohr, or all in anstroms), then Atomsk conserves this unit (i.e. coordinates are NOT converted to angstroms). However, if no unit is specified for the cell (meaning it is in Bohr), while the atom coordinates are specified in angstroms, then the cell dimensions will be converted to angstroms for consistency. To convert units one can also use the <a href="./option_unit.html">option <code>-unit</code></a>.</p>
 
-<p><code>atomsk</code> can not write Quantum Espresso PWscf output files.</p>
+<p>Atomsk can not write Quantum Espresso PWscf output files.</p>
 
 
 
