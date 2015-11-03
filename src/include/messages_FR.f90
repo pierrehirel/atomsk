@@ -59,7 +59,7 @@ CHARACTER(LEN=128):: msg
 !
 msg = ""
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "Atomsk - Un programme pour traiter les systèmes atomiques."
+msg = "Atomsk - Un outil pour manipuler et convertir les fichiers de données atomiques."
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 CALL DISPLAY_COPYRIGHT()
@@ -412,7 +412,7 @@ WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
 WRITE(*,*) "    gin (GULP input)        |   oui  |  oui"
 WRITE(*,*) "    imd (IMD input)         |   oui  |  oui"
-WRITE(*,*) "    jems (JEMS input)       |   non  |  oui"
+WRITE(*,*) "    jems (JEMS input)       |   oui  |  oui"
 WRITE(*,*) "    lmc (LAMMPS output)     |   oui  |  non"
 WRITE(*,*) "    lmp (LAMMPS data)       |   oui  |  oui"
 WRITE(*,*) "    mol (MOLDY format)      |   oui  |  oui"
@@ -628,7 +628,7 @@ CASE(11)
 CASE(12)
   msg = ">>> Si vous utilisez Atomsk dans vos travaux, merci de citer l'article suivant :"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "    Pierre Hirel, Comput. Phys. Comm. XX (2015) xxxx-xxxx"
+  msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES

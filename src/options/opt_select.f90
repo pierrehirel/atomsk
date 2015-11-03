@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 June 2015                                     *
+!* Last modification: P. Hirel - 20 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -80,6 +80,7 @@ REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries   !species, Natoms of this species
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX        !auxiliary properties of atoms/shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: facenormals !vectors normal to faces (prism)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q     !positions of atoms of a given species
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN  !final positions of 1st nearest neighbors
@@ -96,6 +97,7 @@ Nselect = 0
 snumber = 0.d0
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 IF(ALLOCATED(atomindices)) DEALLOCATE(atomindices)
+IF(ALLOCATED(facenormals)) DEALLOCATE(facenormals)
 !
 !
 msg = 'Entering SELECT_XYZ'
@@ -235,16 +237,18 @@ END SELECT
 !
 !
 10 CONTINUE
-WRITE(msg,*) "region_side = ", TRIM(region_side)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(msg,*) "region_geom = ", TRIM(region_geom)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(msg,*) "region_dir = ", TRIM(region_dir)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(msg,*) "region_1 = ", region_1(:)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(msg,*) "region_2 = ", region_2(:)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+IF( verbosity==4 ) THEN
+  WRITE(msg,*) "region_side = ", TRIM(region_side)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "region_geom = ", TRIM(ADJUSTL(region_geom))
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "region_dir = ", TRIM(region_dir)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "region_1 = ", region_1(:)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "region_2 = ", region_2(:)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+ENDIF
 !
 !
 !A message to the user of what this option will do
@@ -544,6 +548,67 @@ CASE('in','out')
           SELECT(i) = .TRUE.
           Nselect = Nselect+1
         ENDIF
+      ENDIF
+    ENDDO
+  !
+  !
+  CASE('prism')
+    !Define the axes: a3 is the direction of the main axis
+    SELECT CASE(region_dir)
+    CASE("x","X")
+      a1 = 2
+      a2 = 3
+      a3 = 1
+    CASE("y","Y")
+      a1 = 3
+      a2 = 1
+      a3 = 2
+    CASE("z","Z")
+      a1 = 1
+      a2 = 2
+      a3 = 3
+    CASE DEFAULT
+      CALL ATOMSK_MSG(2800,(/region_dir/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    END SELECT
+    !region_1(1:3) = position of the center of the base of the prism
+    !region_2(1) = number of faces of the prism (integer, must be >3)
+    !region_2(2) = "radius" of the base of the pyramid (=distance from center to an edge)
+    !region_2(3) = height of the prism
+    !
+    !Determine all vectors normal to the faces of the prism
+    ALLOCATE( facenormals(2+NINT(region_2(1)),3) )
+    facenormals(:,:) = 0.d0
+    !The first two vectors always correspond to the two bases of the prism
+    facenormals(1,a3) = 1.d0
+    facenormals(2,a3) = -1.d0
+    !For each face, the normal joins the center and 
+    DO i=3,NINT(region_2(1))+2
+      !Position of center
+      V1 = region_1(a1) + DBLE(i-3)/180.d0
+      V2 = 0
+      V3 = 0
+      facenormals(i,a1) = 0.d0
+      facenormals(i,a2) = 0.d0
+    ENDDO
+    !
+    !Select atoms that are in/out of the prism
+    DO i=1,SIZE(P,1)
+      IF( P(i,a3) >= region_1(a3) .AND. P(i,a3) <= region_1(a3)+region_2(3) ) THEN
+        !The atom is within the planes defined by the bases of the prism
+        !Now check if it is inside the prism
+        !tempreal = VEC_PLANE( Vplane(1,:) , cutdistance , P(i,1:3) )
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the prism, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !...and if we want to select the outside of the prism, set to false
+          SELECT(i) = .FALSE.
+        ENDIF
+      ELSE
+        !The atom is outside the planes defined by the bases of the prism
       ENDIF
     ENDDO
     !

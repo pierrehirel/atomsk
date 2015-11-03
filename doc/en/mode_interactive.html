@@ -57,6 +57,18 @@
 <li><code class="command">atomsk</code>
 <p>Just enter "<code>atomsk</code>" and follow the instructions.</p></li>
 
+<li><code class="command">
+<strong>user@computer:~#</strong> atomsk<br/>
+ &#62;&#62;&#62; Atomsk is a free Open Source software, for details type 'atomsk --license'.<br/>
+ &#62;&#62;&#62; Atomsk command-line interpreter:<br/>
+ ..&#62; Type "help" for a summary of commands.<br/>
+<strong>atomsk&#62;</strong> read initial.xsf<br/>
+<strong>atomsk&#62;</strong> duplicate 6 6 2<br/>
+<strong>atomsk&#62;</strong> write final.xsf cfg<br/>
+<strong>atomsk&#62;</strong> quit
+</code>
+<p>In interactive mode, Atomsk waits for commands and executes them in real-time. In this example, the user read a file ("initial.xsf"), used the <a href="./option_duplicate.html">option <code>-duplicate</code></a>, and wrote the system into output files "final.xsf" and "final.cfg". Note that in interactive mode, the option must be used <em>without</em> the leading dash sign: use "duplicate" instead of "-duplicate". The last command "quit" exits Atomsk.</p></li>
+
 <li>
 <div class="txtfile">
 <h5>script.ats</h5>

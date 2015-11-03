@@ -24,9 +24,9 @@
 
 <p>This option multiplies the values of the given auxiliary property by the given factor. It also allows to convert atom coordinates or velocities from one unit system &#60;unit1&#62; to another &#60;unit2&#62;.<p>
 
-<p>The &#60;property&#62; can be a Cartesian direction (X, Y or Z) to rescale atom coordinates, or any defined auxiliary property (like vx, vy or vz for atom velocities, fx, fy, fz for atom forces, etc.).</p>
+<p>The &#60;property&#62; can be a Cartesian direction (X, Y or Z) to rescale atom coordinates, or any defined auxiliary property (like vx, vy or vz for atom velocities, fx, fy, fz for atom forces, etc.). The &#60;factor&#62; must be a real number (it may be equal to zero).</p>
 
-<p>This option also allows to convert atom coordinates or velocities from one unit system into another. The supported units of distance are:</p>
+<p>This option also has presets that allow to convert the cell dimensions and atom coordinates from one unit system into another. The supported units of distance are:</p>
 
 <ul>
   <li><strong>km</strong></li>
@@ -40,7 +40,7 @@
   <li><strong>fm</strong></li>
 </ul>
 
-<p>The supported units of time are:</p>
+<p>This option also has presets to convert atom velocities. Units of velocity must be specified as the concatenation of a unit of distance, a slash symbol (/), and a unit of time (see examples below). The supported units of time are:</p>
 
 <ul>
   <li><strong>h</strong></li>
@@ -53,9 +53,9 @@
   <li><strong>fs</strong></li>
 </ul>
 
-<p>Units of velocity must be specified as the concatenation of a unit of distance, a slash symbol (/), and a unit of time (see examples below).</p>
+<p>Note that in any case, Atomsk will perform the conversion blindly, as it has no way to know in which unit the coordinates are written in the input file. It is up to the user to make sure that the &#60;unit1&#62; actually corresponds to what is written in the input file.</p>
 
-<p>Note that Atomsk will perform the conversion blindly, as it has no way to know in which unit the coordinates are written in the input file. It is up to the user to make sure that the &#60;unit1&#62; actually corresponds to what is written in the input file.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the unit conversion will be applied only to selected atoms. Non-selected atoms and box vectors will remain unchanged.</p>
 
 
 <h4>Default</h4>

@@ -55,9 +55,7 @@ MODULE spacegroups
 !
 USE comv
 USE constants
-USE functions
 USE messages
-USE subroutines
 !
 IMPLICIT NONE
 !

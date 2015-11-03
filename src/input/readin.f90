@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2015                                     *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -70,6 +70,7 @@ USE in_cif
 USE in_dlp_cfg
 USE in_gulp_gin
 USE in_imd
+USE in_jems
 USE in_lmp_c
 USE in_lmp_data
 USE in_mbpp_coorat
@@ -174,6 +175,8 @@ CASE('gin')
   CALL READ_GIN(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('imd')
   CALL READ_IMD(inputfile,H,P,comment,AUXNAMES,AUX)
+CASE('jems')
+  CALL READ_JEMS(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('lmc')
   CALL READ_LMP_CUSTOM(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('lmp')

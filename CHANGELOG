@@ -9,7 +9,7 @@ beta 0.9 (in development)
 - new option "-neutralize"
 - new option "-swap" allows to exchange the indices of two atoms.
 - added support for reading and writing files in CEL format. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this file format.
-- added support for writing files in JEMS format.
+- added support for reading and writing files in JEMS format.
 - enhanced support for CIF format. Symmetry operations are now taken into account. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
 - in mode "--create", added possibility to generate wurtzite lattices.
 - in option "-select", added possibility to read a list of atom indices from a file.
@@ -17,6 +17,7 @@ beta 0.9 (in development)
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
 - new set of algorithms to apply symmetry operations and deal with space groups. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.
 - faster algorithm for neighbor search, based on cell decomposition. Thanks to Srinivasan Mahendran, UMET, Lille, France, for his help with the implementation of this feature.
+- fixed a bug in mode "--merge" where sometimes auxiliary properties would not be correctly handled.
 - fixed a bug in the displaying of progress bar that slowed down the program.
 - l10n: added the German translations of the messages. Thanks to Juri Barthel, RWTH Aachen, Germany, for translating Atomsk.
 

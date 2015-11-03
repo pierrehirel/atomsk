@@ -10,7 +10,7 @@ MODULE addatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 June 2014                                     *
+!* Last modification: P. Hirel - 02 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -53,6 +53,7 @@ INTEGER:: NP !number of particles
 INTEGER:: i, j, k, m, n
 INTEGER:: addedatoms !number of atoms added
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist  !list of indices of neighbors
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
 REAL(dp):: distance, distance2, dmax
 REAL(dp):: snumber !atomic number
 REAL(dp):: x, y, z
@@ -69,6 +70,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newS          !positions of atoms, s
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX   !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN                !positions of neighbors
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList             !positions of neighbors
 !
 species = ''
 exceeds100 = .FALSE.
@@ -209,6 +211,10 @@ CASE("random","RANDOM","rand","RAND")
    randarray(2*NP+n) = H(3,3) * randarray(2*NP+n)
   ENDDO
   !
+  !Construct neighbor list of new system with all atoms
+  CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
+  CALL NEIGHBOR_LIST(H,newP(:,:),6.d0,NeighList)
+  !
   !For each random position, search for the 4 nearest neighbors
   !and replace the position by the center of the 4 neighbors positions
   m = SIZE(P,1)
@@ -223,13 +229,19 @@ CASE("random","RANDOM","rand","RAND")
     !Search for the nearest neighbors of the position (x,y,z)
     !Note: in order to avoid introducing two new atoms in the same site,
     !     perform the neighbor search in the system newP containing atoms previously introduced
-    CALL FIND_NNN(H,newP(1:m,:),(/x,y,z/),4,V_NN,Nlist,exceeds100)
+    !CALL FIND_NNN(H,newP(1:m,:),(/x,y,z/),4,V_NN,Nlist,exceeds100)
     !
-    IF( SIZE(V_NN,1) >= 4 ) THEN
-      !Determine the center of the 4 nearest atoms
-      x = SUM( V_NN(1:4,1) ) / 4.d0
-      y = SUM( V_NN(1:4,2) ) / 4.d0
-      z = SUM( V_NN(1:4,3) ) / 4.d0
+    !Generate list of positions of neighbors of atom #n
+    CALL NEIGHBOR_POS(H,newP,(/x,y,z/),NeighList(m+n,:),6.d0,PosList)
+    !
+    IF( SIZE(PosList,1) >= 4 ) THEN
+      !Atom #m+n has more than 4 neighbors => try to adjust its position
+      !Sort neighbors by increasing distance
+      CALL BUBBLESORT(PosList,4,'up  ')
+      !Determine the equidistance of the 4 nearest atoms
+      x = SUM( PosList(1:4,1) ) / 4.d0
+      y = SUM( PosList(1:4,2) ) / 4.d0
+      z = SUM( PosList(1:4,3) ) / 4.d0
     ENDIF
     !Save final position to newP
     m=m+1
@@ -239,6 +251,7 @@ CASE("random","RANDOM","rand","RAND")
     newP(m,4) = snumber
     addedatoms = addedatoms+1
     !
+    IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
     IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
   ENDDO
   !

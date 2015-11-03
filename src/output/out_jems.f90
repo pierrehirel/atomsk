@@ -13,7 +13,7 @@ MODULE out_jems
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Oct. 2015                                     *
+!* Last modification: P. Hirel - 23 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,12 +69,15 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
 !Initialize variables
-occ = 0 ! no occupancy information by default
-dw = 0 ! no thermal vibration information by default
-PA = 0.03d0 ! Default absorption coefficient
-PO = 1.0d0  ! Default occupancy of each atomic site
-PB = 0.0d0  ! Default Debye-Waller parameter
-NP = SIZE(P,1)
+absorption = 0  ! Assume that no absorption data is available
+occ = 0         ! Assume that no occupancy information is available
+dw = 0          ! Assume that no thermal vibration information is available
+PA = 0.03d0     ! Default absorption coefficient
+PO = 1.0d0      ! Default occupancy of each atomic site
+PB = 0.0d0      ! Default Debye-Waller parameter
+NP = SIZE(P,1)  ! Number of atoms in the system
+!
+!Look for absorption, occupancy, Debye-Waller param. in the auxiliary properties
 IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
   DO iaux=1,SIZE(AUXNAMES)
     SELECT CASE(TRIM(AUXNAMES(iaux)))
@@ -88,7 +91,7 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
   ENDDO
 END IF
 !
-!Warnings in case of missing occupancy and thermal vibration parameters
+!Warnings in case of missing occupancy or thermal vibration parameters
 IF (occ<=0) THEN
   nwarn = nwarn+1
   CALL ATOMSK_MSG(3711,(/''/),(/0.d0/))
@@ -114,7 +117,7 @@ WRITE(40,'(a16)') "system|triclinic"
 WRITE(40,'(a21)') "HMSymbol|1|1|0|0| P 1"
 WRITE(40,'(a16)') "rps|0| x , y , z"
 !
-!Write cell vectors (conventional notation, size in nm, angles in degrees)
+! Write cell vectors (conventional notation, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(temp,'(f16.4)') a
 WRITE(40,'(a)') "lattice|0|"//TRIM(ADJUSTL(temp))

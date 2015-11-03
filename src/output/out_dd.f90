@@ -12,7 +12,7 @@ MODULE out_dd
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Nov. 2014                                     *
+!* Last modification: P. Hirel - 27 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,13 +55,13 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: Pfirst, Psecond
 !
 !
 !If arrays do not contain the same number of atoms, exit
-IF( SIZE(Pfirst(:,1)) .NE. SIZE(Psecond(:,1))) THEN
+IF( SIZE(Pfirst,1) .NE. SIZE(Psecond,1) ) THEN
   CALL ATOMSK_MSG(806,(/outputfile/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
 !Display a message if number of atoms is too big for ddplot
-IF(SIZE(Pfirst(:,1))>6000) THEN
+IF(SIZE(Pfirst,1)>6000) THEN
   nwarn = nwarn+1
   CALL ATOMSK_MSG(3707,(/''/),(/DBLE(SIZE(Pfirst(:,1)))/))
 ENDIF
@@ -81,11 +81,12 @@ WRITE(40,'(3(f10.6,1X))') H(1,1), H(2,2), H(3,3)
 WRITE(40,'(a12)') 'DISLO_CENTER'
 WRITE(40,*) '0.000 0.000'
 WRITE(40,'(a9)') 'NUM_UNREL'
-WRITE(40,'(i5)') SIZE(Pfirst(:,1))
+WRITE(temp,'(i16)') SIZE(Pfirst,1)
+WRITE(40,*) TRIM(ADJUSTL(temp))
 WRITE(40,'(a10)') 'COOR_UNREL'
 !
 !Write positions of ideal system
-DO i=1,SIZE(Pfirst(:,1))
+DO i=1,SIZE(Pfirst,1)
   WRITE(40,110) Pfirst(i,1), Pfirst(i,2), Pfirst(i,3), Pfirst(i,4)
 ENDDO
 !
@@ -95,7 +96,7 @@ WRITE(40,'(i5)') SIZE(Pfirst(:,1))
 WRITE(40,'(a8)') 'COOR_REL'
 !
 !Write positions of relaxed system
-DO i=1,SIZE(Psecond(:,1))
+DO i=1,SIZE(Psecond,1)
   WRITE(40,110) Psecond(i,1), Psecond(i,2), Psecond(i,3)
 ENDDO
 110 FORMAT(3(f16.8,1X),f6.2)
@@ -121,7 +122,7 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 ! !Number of atoms in relaxed system
 ! WRITE(42,'(i5)') SIZE(Pfirst(:,1))
 ! !Z-coordinates of atoms in relaxed system
-! DO i=1,SIZE(Psecond(:,1))
+! DO i=1,SIZE(Psecond,1)
 !   WRITE(42,110) Psecond(i,3)/alat
 ! ENDDO
 ! !Atom positions in relaxed system
@@ -131,7 +132,7 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 ! !
 ! WRITE(42,'(i5)') SIZE(Pfirst(:,1))
 ! !Z-coordinates of atoms in ideal system
-! DO i=1,SIZE(Psecond(:,1))
+! DO i=1,SIZE(Psecond,1)
 !   WRITE(42,110) Pfirst(i,3)
 ! ENDDO
 ! !Atom positions in ideal system

@@ -10,7 +10,7 @@ MODULE unit
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Sept. 2013                                    *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE UNIT_XYZ(H,P,S,AUXNAMES,AUX,u1,u2)
+SUBROUTINE UNIT_XYZ(H,P,S,AUXNAMES,AUX,u1,u2,SELECT)
 !
 !
 IMPLICIT NONE
@@ -46,6 +46,7 @@ CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128):: property  !name of property that must be rescaled
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL:: isreduced
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: i, j
 INTEGER:: transform  !0=atom coordinates; 1=atom velocities
 INTEGER:: vx, vy, vz !columns in AUX where velocities are stored
@@ -65,6 +66,9 @@ vx = 0
 vy = 0
 vz = 0
 !
+msg = 'Entering UNIT_XYZ, u1, u2 = '//TRIM(u1)//" , "//TRIM(u2)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
 i = SCAN(u1,'/')
 j = SCAN(u2,'/')
 IF( i==0 .AND. j==0 ) THEN
@@ -76,7 +80,7 @@ IF( i==0 .AND. j==0 ) THEN
   GOTO 50
   10 CONTINUE
   !u1 did not contain a number => try with u2
-  READ(u2,*,ERR=10,END=10) factor
+  READ(u2,*,ERR=20,END=20) factor
   !u2 contained a number => u1 must be a property name
   transform=-1
   property=ADJUSTL(u1)
@@ -131,11 +135,6 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF( transform==-1 ) THEN
   msg = u2
   CALL ATOMSK_MSG(2091,(/property/),(/factor/))
-  IF( factor==0.d0 ) THEN
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(2755,(/''/),(/0.d0/))
-    GOTO 1000
-  ENDIF
 ELSE
   IF( transform==1 ) THEN
     msg = "velocities"
@@ -153,7 +152,7 @@ ENDIF
 !
 !
 100 CONTINUE
-IF( transform>0 ) THEN
+IF( transform>=0 ) THEN
   !Define the factor for distance units depending on the two units
   DO i=1,2
     SELECT CASE(units(i))
@@ -228,17 +227,23 @@ IF( transform==-1 ) THEN
   CASE('x','X')
     !Multiply all X coordinates by the given factor
     DO i=1,SIZE(P,1)
-      P(i,1) = factor*P(i,1)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        P(i,1) = factor*P(i,1)
+      ENDIF
     ENDDO
   CASE('y','Y')
     !Multiply all Y coordinates by the given factor
     DO i=1,SIZE(P,1)
-      P(i,2) = factor*P(i,2)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        P(i,2) = factor*P(i,2)
+      ENDIF
     ENDDO
   CASE('z','Z')
     !Multiply all Z coordinates by the given factor
     DO i=1,SIZE(P,1)
-      P(i,3) = factor*P(i,3)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        P(i,3) = factor*P(i,3)
+      ENDIF
     ENDDO
   CASE DEFAULT
     !Search the property number in AUXNAMES
@@ -254,7 +259,9 @@ IF( transform==-1 ) THEN
     IF( j>0 ) THEN
       !Multiply all values of this auxiliary property by the factor
       DO i=1,SIZE(AUX,1)
-        AUX(i,j) = factor*AUX(i,j)
+        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          AUX(i,j) = factor*AUX(i,j)
+        ENDIF
       ENDDO
     ELSE
       !No property with that name
@@ -265,23 +272,24 @@ IF( transform==-1 ) THEN
   !
   !
 ELSEIF( transform==0 ) THEN
-  !Convert atom coordinates (only if they are not reduced)
-  CALL FIND_IF_REDUCED(P,isreduced)
-  IF(.NOT.isreduced) THEN
-    DO i=1,SIZE(P,1)
+  !Convert atom coordinates
+  DO i=1,SIZE(P,1)
+    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
       DO j=1,3
         P(i,j) = P(i,j)*factor
       ENDDO
-    ENDDO
-    !
-    !Same with shells if they exist
-    IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
-      DO i=1,SIZE(S,1)
+    ENDIF
+  ENDDO
+  !
+  !Same with shells if they exist
+  IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+    DO i=1,SIZE(S,1)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
         DO j=1,3
           S(i,j) = S(i,j)*factor
         ENDDO
-      ENDDO
-    ENDIF
+      ENDIF
+    ENDDO
   ENDIF
   !
   !Convert base vectors H
@@ -295,13 +303,25 @@ ELSEIF( transform==0 ) THEN
 ELSEIF( transform==1 ) THEN
   !Convert atom velocities
   IF(vx>0 ) THEN
-    AUX(:,vx) = AUX(:,vx) * factor / factor2
+    DO i=1,SIZE(AUX,1)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        AUX(i,vx) = AUX(i,vx) * factor / factor2
+      ENDIF
+    ENDDO
   ENDIF
   IF(vy>0 ) THEN
-    AUX(:,vy) = AUX(:,vy) * factor / factor2
+    DO i=1,SIZE(AUX,1)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        AUX(i,vy) = AUX(i,vy) * factor / factor2
+      ENDIF
+    ENDDO
   ENDIF
   IF(vz>0 ) THEN
-    AUX(:,vz) = AUX(:,vz) * factor / factor2
+    DO i=1,SIZE(AUX,1)
+      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        AUX(i,vz) = AUX(i,vz) * factor / factor2
+      ENDIF
+    ENDDO
   ENDIF
 ENDIF
 !

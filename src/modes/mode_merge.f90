@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 July 2014                                     *
+!* Last modification: P. Hirel - 30 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -230,8 +230,10 @@ DO i=1,SIZE(merge_files)
         DO j=1,SIZE(currAUXNAMES)
           auxexists=.FALSE.
           auxcol=0
-          DO k=1,SIZE(AUXNAMES)
-            IF( currAUXNAMES(j)==AUXNAMES(k) ) THEN
+          k=0
+          DO WHILE ( k<=SIZE(AUXNAMES) .AND. auxcol==0 )
+            k=k+1
+            IF( TRIM(ADJUSTL(currAUXNAMES(j)))==TRIM(ADJUSTL(AUXNAMES(k))) ) THEN
               auxexists=.TRUE.
               auxcol=k
             ENDIF

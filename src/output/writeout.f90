@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 26 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -365,7 +365,7 @@ DO i=1,SIZE(outfileformats)
     ENDIF
   !
   CASE('jems','JEMS')
-    CALL NAME_OUTFILE(prefix,outputfile,'jems ')
+    CALL NAME_OUTFILE(prefix,outputfile,'txt  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')

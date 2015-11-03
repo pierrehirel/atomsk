@@ -13,7 +13,7 @@ MODULE out_lammps_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 May 2015                                      *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -71,8 +71,8 @@ REAL(dp),DIMENSION(:,:),POINTER:: Ppoint  !pointer to P or R
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),TARGET:: P !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R !copy of P (if necessary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: S !positions of shells
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing result
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes   !atom types and their number
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !atom species and their number
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
@@ -94,11 +94,13 @@ Nspecies = 0
 tilt(:) = 0.d0
 K=H
 BOND_TYPES(:) = 0
+IF(ALLOCATED(atypes)) DEALLOCATE(atypes)
+IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 IF(ALLOCATED(R)) DEALLOCATE(R)
 Ppoint=>P
 !Find how many different species are in P
-CALL FIND_NSP(P(:,4),atypes)
-Ntypes = SIZE(atypes(:,1))
+CALL FIND_NSP(P(:,4),aentries)
+Ntypes = SIZE(aentries,1)
 !
 msg = 'entering WRITE_LMP_DATA'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -110,7 +112,7 @@ NPdigits = LEN_TRIM(ADJUSTL(temp))
 IF( ALLOCATED(BONDS) .AND. SIZE(BONDS)>0 ) THEN
   !count how many bonds exist
   !CALL FIND_NSP( DBLE(BONDS(:,3)) , aentries )
-  Nbondtypes = SIZE(aentries,1)
+  !Nbondtypes = SIZE(aentries,1)
 !   DO i=1,SIZE(BONDS)
 !     IF( NINT(S(i,4))>0 ) THEN
 !       Nshells = Nshells+1
@@ -122,7 +124,7 @@ IF( ALLOCATED(BONDS) .AND. SIZE(BONDS)>0 ) THEN
 !   ENDDO
 ENDIF
 !
-!Check if some auxiliary properties are present
+!Check if auxiliary properties relevant to LAMMPS data files are present
 IF( ALLOCATED(AUXNAMES) ) THEN
   DO i=1,SIZE(AUXNAMES)
     IF( TRIM(ADJUSTL(AUXNAMES(i)))=='vx' ) THEN
@@ -141,12 +143,17 @@ IF( ALLOCATED(AUXNAMES) ) THEN
       typecol = i
       !Find how many different species are in AUX
       CALL FIND_NSP(AUX(:,typecol),atypes)
-      Ntypes = SIZE(atypes(:,1))
+      Ntypes = SIZE(atypes,1)
+      !Verify that atom types are all greater than zero
+      IF( ANY(atypes(:,1)<0.99999999d0) ) THEN
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(3714,(/""/),(/0.d0/))
+      ENDIF
     ENDIF
   ENDDO
   !
-  IF( vx.NE.0 .AND. vy.NE.0 .AND. vz.NE.0 ) velocities = .TRUE.
-  IF( q.NE.0 ) charges = .TRUE.
+  IF( vx>0 .AND. vy>0 .AND. vz>0 ) velocities = .TRUE.
+  IF( q>0 ) charges = .TRUE.
 ENDIF
 !
 !
@@ -337,7 +344,7 @@ ELSE
   IF( Ntypes>1 ) THEN
     IF( charges ) THEN
       !Atom charges are defined
-      IF( typecol.NE.0 ) THEN
+      IF( typecol>0 ) THEN
         !Atom types are in auxiliary properties, use it
         DO i=1,SIZE(Ppoint,1)
           WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
@@ -346,8 +353,8 @@ ELSE
       ELSE
         !Replace species by atom types in their order of appearance
         DO i=1,SIZE(Ppoint,1)
-          DO j=1,SIZE(atypes,1)
-            IF( atypes(j,1)==INT(Ppoint(i,4)) ) Nspecies = j
+          DO j=1,SIZE(aentries,1)
+            IF( NINT(aentries(j,1))==NINT(Ppoint(i,4)) ) Nspecies = j
           ENDDO
           WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
@@ -355,7 +362,7 @@ ELSE
       !
     ELSE
       !No atom charge defined
-      IF( typecol.NE.0 ) THEN
+      IF( typecol>0 ) THEN
         !Atom types are in auxiliary properties, use it
         DO i=1,SIZE(Ppoint,1)
           WRITE(40,211) i, NINT(AUX(i,typecol)), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
@@ -364,8 +371,8 @@ ELSE
       ELSE
         !Replace species by atom types in their order of appearance
         DO i=1,SIZE(Ppoint,1)
-          DO j=1,SIZE(atypes,1)
-            IF( atypes(j,1)==INT(Ppoint(i,4)) ) Nspecies = j
+          DO j=1,SIZE(aentries,1)
+            IF( NINT(aentries(j,1))==NINT(Ppoint(i,4)) ) Nspecies = j
           ENDDO
           WRITE(40,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
@@ -431,6 +438,8 @@ GOTO 1000
 !
 !
 1000 CONTINUE
+IF(ALLOCATED(atypes)) DEALLOCATE(atypes)
+IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 IF(ALLOCATED(R)) DEALLOCATE(R)
 !
 END SUBROUTINE WRITE_LMP_DATA

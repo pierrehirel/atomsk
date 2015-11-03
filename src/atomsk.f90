@@ -201,7 +201,7 @@ ELSE
   i=0
   j=0
   DO WHILE ( i<IARGC() )
-    i=i+1 !index of actual command-line argument
+    i=i+1 !index of current command-line argument
     CALL GETARG(i,clarg)
     !
     !Catch special keywords: 'version', 'help', 'license'

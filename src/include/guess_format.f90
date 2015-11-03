@@ -6,20 +6,22 @@ MODULE guess_form
 !* This module tries to determine the format of a file.                           *
 !* If the file has an extension then the file format will be determined           *
 !* from the extension *and* from the file content.                                *
-!* If the fil has no extension then the file format will be determined            *
+!* If the file has no extension then the file format will be determined           *
 !* only from the file content.                                                    *
-!* The content of the file is always parsed and searched for specific             *
-!* keywords characteristic to some known file formats, so that the                *
-!* actual format is correctly detected even for file with no extension            *
-!* or with a wrong extension (e.g. a CFG file with extension ".xyz").             *
-!* If the file doesn't exist or has to be written then only the                   *
+!* The purpose of this module is to recognize the format of a file                *
+!* EVEN IF IT HAS NO EXTENSION, OR IF ITS EXTENSION IS ERRONEOUS.                 *
+!* (e.g. a CFG file with extension ".xyz").                                       *
+!* For that purpose, if the file exists then its content is ALWAYS parsed         *
+!* and searched for specific keywords.                                            *
+!* Those keywords are used to recognize the file format.                          *
+!* If the file doesn't exist or has to be written, then only the                  *
 !* extension is taken into account.                                               *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -362,7 +364,11 @@ IF(fileexists) THEN
       isimd = isimd+0.4d0
     !
     !Search for patterns corresponding to JEMS format
+    ELSEIF(test(1:5)=='file|') THEN
+      isjems = isjems+0.5d0
     ELSEIF(test(1:7)=='system|') THEN
+      isjems = isjems+0.5d0
+    ELSEIF(test(1:9)=='HMSymbol|') THEN
       isjems = isjems+0.5d0
     ELSEIF(test(1:4)=='rps|') THEN
       isjems = isjems+0.6d0
@@ -583,7 +589,7 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,islmp, &
+likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,isjems,islmp, &
        &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isxmd,isxsf, &
        &     isxv,isxyz,isexyz,issxyz)
 !
@@ -611,6 +617,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   GIN ', isgin
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   IMD ', isimd
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   JEMS', isjems
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   LMP ', islmp
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -671,6 +679,8 @@ ELSE
     infileformat = 'gin'
   ELSEIF(isimd==likely) THEN
     infileformat = 'imd'
+  ELSEIF(isjems==likely) THEN
+    infileformat = 'jems'
   ELSEIF(islmpc==likely) THEN
     infileformat = 'lmc'
   ELSEIF(islmp==likely) THEN

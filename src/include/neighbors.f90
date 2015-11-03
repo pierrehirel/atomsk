@@ -505,7 +505,7 @@ END SUBROUTINE NEIGHBOR_LIST
 !
 !********************************************************
 ! NEIGHBOR_POS
-! Given an atom position, the list of indices of its
+! Given an atom position V, the list of indices of its
 ! neighbors, and the box vectors H, this subroutine
 ! generates a list of the positions of the neighbors,
 ! taking periodic boundary conditions into account.
@@ -543,7 +543,6 @@ IF(SIZE(NeighList)<=0) RETURN
 Nm = MAX( 1 , CEILING(radius/VECLENGTH(H(1,:)))+1 )
 Nn = MAX( 1 , CEILING(radius/VECLENGTH(H(2,:)))+1 )
 No = MAX( 1 , CEILING(radius/VECLENGTH(H(3,:)))+1 )
-PRINT*, "Nm,n,o: ", Nm, Nn, No
 !
 Nneighbors=0
 i=1

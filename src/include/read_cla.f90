@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,6 +87,7 @@ IF( .NOT.ALLOCATED(cla) .OR. SIZE(cla)<=0 ) THEN
 ENDIF
 !
 !
+i=0
 DO WHILE(i<SIZE(cla))
   i=i+1
   !Initialize variables
@@ -376,16 +377,16 @@ DO WHILE(i<SIZE(cla))
   !
   !
   !Deal with output formats
-  ELSEIF(clarg=='atsk' .OR. clarg=='atomsk' .OR. clarg=='ATSK' .OR. clarg=='ATOMSK') THEN
+  ELSEIF(clarg=='atsk' .OR. clarg=='atomsk' .OR. clarg=='ATSK' .OR. clarg=='ATOMSK' .OR. clarg=='Atomsk') THEN
     Nout = Nout+1
     tempout(Nout) = 'atsk'
   ELSEIF(clarg=='bop' .OR. clarg=="BOP") THEN
     Nout = Nout+1
     tempout(Nout) = 'bop'
-  ELSEIF(clarg=='cfg' .OR. clarg=='CFG') THEN
+  ELSEIF(clarg=='cfg' .OR. clarg=='CFG' .OR. clarg=='atomeye' .OR. clarg=='Atomeye' .OR. clarg=='ATOMEYE') THEN
     Nout = Nout+1
     tempout(Nout) = 'cfg'
-  ELSEIF(clarg=='cel' .OR. clarg=='CEL') THEN
+  ELSEIF(clarg=='cel' .OR. clarg=='CEL' .OR. clarg=='drprobe' .OR. clarg=='DrProbe') THEN
     Nout = Nout+1
     tempout(Nout) = 'cel'
   ELSEIF(clarg=='cif' .OR. clarg=='CIF') THEN
@@ -409,7 +410,7 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='coo'.OR. clarg=='COO' .OR. clarg=='mbpp' .OR. clarg=='MBPP') THEN
     Nout = Nout+1
     tempout(Nout) = 'coo'
-  ELSEIF(clarg=='coorat' .OR. clarg=='COORAT') THEN
+  ELSEIF(clarg=='coorat' .OR. clarg=='COORAT' .OR. clarg=='mbpp' .OR. clarg=='MBPP') THEN
     !if a file name was defined before, 
     IF(LEN_TRIM(pfiles(1)).NE.0) THEN
       IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'COORAT'
@@ -424,13 +425,13 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='exyz' .OR. clarg=='EXYZ') THEN
     Nout = Nout+1
     tempout(Nout) = 'exyz'
-  ELSEIF(clarg=='gin' .OR. clarg=='gulp' .OR. clarg=='GIN') THEN
+  ELSEIF(clarg=='gin' .OR. clarg=='GIN' .OR. clarg=='gulp' .OR. clarg=='GULP') THEN
     Nout = Nout+1
     tempout(Nout) = 'gin'
   ELSEIF(clarg=='imd' .OR. clarg=='IMD') THEN
     Nout = Nout+1
     tempout(Nout) = 'imd'
-  ELSEIF(clarg=='jems' .OR. clarg=='JEMS') THEN
+  ELSEIF(clarg=='jems' .OR. clarg=='JEMS' .OR. clarg=='Jems') THEN
     Nout = Nout+1
     tempout(Nout) = 'jems'
   ELSEIF(clarg=='lammps' .OR. clarg=='LAMMPS' .OR. clarg=='lmp' .OR. clarg=='LMP') THEN
@@ -461,13 +462,14 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='xmd' .OR. clarg=='XMD') THEN
     Nout = Nout+1
     tempout(Nout) = 'xmd'
-  ELSEIF(clarg=='xsf' .OR. clarg=='XSF') THEN
+  ELSEIF(clarg=='xsf' .OR. clarg=='XSF' .OR. clarg=='xcrysden' .OR. clarg=='XCrySDen' &
+        & .OR. clarg=='XCrysDen'.OR. clarg=='XCRYSDEN') THEN
     Nout = Nout+1
     tempout(Nout) = 'xsf'
   ELSEIF(clarg=='sxyz' .OR. clarg=='SXYZ') THEN
     Nout = Nout+1
     tempout(Nout) = 'sxyz'
-  ELSEIF(clarg=='xv' .OR. clarg=='XV' .OR. clarg=='siesta' .OR. clarg=='SIESTA') THEN
+  ELSEIF(clarg=='xv' .OR. clarg=='XV' .OR. clarg=='siesta' .OR. clarg=='Siesta' .OR. clarg=='SIESTA') THEN
     Nout = Nout+1
     tempout(Nout) = 'xv'
   ELSEIF(clarg=='xyz' .OR. clarg=='XYZ') THEN

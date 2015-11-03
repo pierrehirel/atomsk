@@ -965,13 +965,15 @@ Ndiff = 0
 DO i=1,SIZE(A)
   foundA = .FALSE.
   !
-  !Check if we can find A in the array aentries(:,1)
-  DO j=1,SIZE(atemp,1)
-    IF( DABS(A(i)-atemp(j,1))<1.d-12 ) THEN
-      foundA = .TRUE.
-      atemp(j,2) = atemp(j,2)+1
-    ENDIF
-  ENDDO
+  IF( i>1 ) THEN
+    !Check if we can find A in the array aentries(:,1)
+    DO j=1,SIZE(atemp,1)
+      IF( DABS(A(i)-atemp(j,1))<1.d-12 ) THEN
+        foundA = .TRUE.
+        atemp(j,2) = atemp(j,2)+1
+      ENDIF
+    ENDDO
+  ENDIF
   !
   !If it was not found then it is a new entry
   IF(.NOT.foundA) THEN

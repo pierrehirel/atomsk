@@ -24,9 +24,9 @@
 
 <p>Cette option multiplie les valeurs de la &#60;propriété&#62; donnée par le &#60;facteur&#62; donné. Elle permet aussi de convertir les coordonnées ou les vitesses des atomes d'une &#60;unité1&#62; vers une &#60;unité2&#62;.</p>
 
-<p>La &#60;propriété&#62; peut être une direction cartésienne (X, Y ou Z) pour redimensionner les coordonnées des atomes, ou bien n'importe quelle propriété auxiliaire existante (par exemple vx, vy ou vz pour les vitesses des atomes, fx, fy ou fz pour les forces, etc.).</p>
+<p>La &#60;propriété&#62; peut être une direction cartésienne (X, Y ou Z) pour redimensionner les coordonnées des atomes, ou bien n'importe quelle propriété auxiliaire existante (par exemple vx, vy ou vz pour les vitesses des atomes, fx, fy ou fz pour les forces, etc.). Le &#60;facteur&#62; doit être un nombre réel (qui peut être égal à zéro).</p>
 
-<p>Cette option permet aussi de convertir les coordonnées ou les vitesses des atomes d'un système d'&#60;unité1&#62; vers une autre &#60;unité2&#62;. Les unités de distance supportées sont :</p>
+<p>Cette option dispose aussi de mots-clés prédéfinis permettant de convertir les dimensions de boîte et les coordonnées des atomes d'un système d'&#60;unité1&#62; vers une autre &#60;unité2&#62;. Les unités de distance supportées sont :</p>
 
 <ul>
   <li><strong>km</strong></li>
@@ -40,7 +40,7 @@
   <li><strong>fm</strong></li>
 </ul>
 
-<p>Et les unités de temps :</p>
+<p>Cette option dispose aussi de mots-clés prédéfinis permettant de convertir les vitesses des atomes. Les unités de vitesse doivent être spécifiées comme la concaténation d'une unité de distance, d'un symbole de division (/), et d'une unité de temps (voir les exemples ci-dessous). Les unités de temps supportées sont les suivantes :</p>
 
 <ul>
   <li><strong>h</strong></li>
@@ -53,9 +53,9 @@
   <li><strong>fs</strong></li>
 </ul>
 
-<p>Les unités de vitesse doivent être spécifiées comme la concaténation d'une unité de distance, d'un symbole de division (/), et d'une unité de temps (voir les exemples ci-dessous).</p>
+<p>Notez que dans tous les cas, Atomsk effectuera la conversion aveuglément, puisqu'il n'a aucun moyen de connaître le véritable système d'unités employé dans le fichier d'entrée. Il appartient à l'utilisateur de vérifier que les coordonnées sont bien dans l'&#60;unité1&#62; avant d'effectuer la conversion.</p>
 
-<p>Notez que Atomsk effectuera la conversion aveuglément, puisqu'il n'a aucun moyen de connaître le véritable système d'unités employé dans le fichier d'entrée. Il appartient à l'utilisateur de vérifier que les coordonnées sont bien dans l'&#60;unité1&#62; avant d'effectuer la conversion.</p>
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors le changement d'unités ne s'appliquera qu'aux atomes sélectionnés. Les atomes non sélectionnés, ainsi que les dimensions de boîte, resteront inchangées.</p>
 
 
 <h4>Défaut</h4>

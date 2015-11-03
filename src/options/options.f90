@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Oct. 2015                                     *
+!* Last modification: P. Hirel - 26 Oct. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -892,7 +892,7 @@ DO ioptions=1,SIZE(options_array)
     unit1 = temp(1:strlength)
     temp = temp(strlength:)
     unit2 = ADJUSTL(temp)
-    CALL UNIT_XYZ(H,P,S,AUXNAMES,AUX,unit1,unit2)
+    CALL UNIT_XYZ(H,P,S,AUXNAMES,AUX,unit1,unit2,SELECT)
   !
   CASE('-unskew')
     CALL UNSKEW_XYZ(H)

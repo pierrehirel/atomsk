@@ -370,7 +370,7 @@ WRITE(*,*) "    dd  (ddplot)            |  nein  |  ja (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  ja    |  ja "
 WRITE(*,*) "    gin (GULP input)        |  ja    |  ja "
 WRITE(*,*) "    imd (IMD input)         |  ja    |  ja "
-WRITE(*,*) "    jems (JEMS input)       |  nein  |  ja "
+WRITE(*,*) "    jems (JEMS input)       |  ja    |  ja "
 WRITE(*,*) "    lmc (LAMMPS output)     |  ja    |  nein"
 WRITE(*,*) "    lmp (LAMMPS data)       |  ja    |  ja "
 WRITE(*,*) "    mol (MOLDY format)      |  ja    |  ja "
@@ -388,7 +388,7 @@ ENDIF
 !
 WRITE(*,*) ""
 WRITE(*,*) ">>> Schau im mitgelieferten /doc Ordner nach oder "
-WRITE(*,*) "    besuche: http://pierrehirel.info/codes/atomsk/"
+WRITE(*,*) "    besuche: http://atomsk.univ-lille1.fr/"
 WRITE(*,*) ""
 !
 !
@@ -534,7 +534,7 @@ CASE(11)
 CASE(12)
   msg = ">>> Wenn Sie Atomsk in Ihrer Arbeit nutzen, bitte zietieren Sie den folgenden Artikel:"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "    Pierre Hirel, Comput. Phys. Comm. XX (2015) xxxx-xxxx"
+  msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNUNG MESSAGES

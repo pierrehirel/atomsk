@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Oct. 2015                                     *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,7 +58,7 @@ CHARACTER(LEN=128):: msg
 !
 msg = ""
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "Atomsk - A program for dealing with atomic systems."
+msg = "Atomsk - A tool for manipulating and converting atomic data files."
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 CALL DISPLAY_COPYRIGHT()
@@ -413,7 +413,7 @@ WRITE(*,*) "    dd  (ddplot)            |    no  | yes (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   yes  |  yes"
 WRITE(*,*) "    gin (GULP input)        |   yes  |  yes"
 WRITE(*,*) "    imd (IMD input)         |   yes  |  yes"
-WRITE(*,*) "    jems (JEMS input)       |    no  |  yes"
+WRITE(*,*) "    jems (JEMS input)       |   yes  |  yes"
 WRITE(*,*) "    lmc (LAMMPS output)     |   yes  |   no"
 WRITE(*,*) "    lmp (LAMMPS data)       |   yes  |  yes"
 WRITE(*,*) "    mol (MOLDY format)      |   yes  |  yes"
@@ -636,7 +636,7 @@ CASE(11)
 CASE(12)
   msg = ">>> If you use Atomsk in your work, please cite the following article:"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "    Pierre Hirel, Comput. Phys. Comm. XX (2015) xxxx-xxxx"
+  msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
@@ -2010,6 +2010,9 @@ CASE(3712) ! missing thermal vibration data
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3713) ! missing absorption data
   msg = "/!\ WARNING: absorption factors are missing, they will be set to 0.03 for all atoms."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3714)
+  msg = "/!\ WARNING: some atoms have an invalid type."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

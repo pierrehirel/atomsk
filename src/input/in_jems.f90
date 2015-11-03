@@ -13,7 +13,7 @@ MODULE in_jems
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 03 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,117 +45,130 @@ SUBROUTINE READ_JEMS(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=128):: msg, temp, temp2
-CHARACTER(LEN=32),DIMENSION(32):: columns !contents of columns
+CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: isreduced
 INTEGER:: i, j, iaux
-INTEGER:: Naux !number of auxiliary properties
-INTEGER:: Ncol, NP ! number of columns and number of atoms
-INTEGER:: occ  !index of occupancies in AUXNAMES
-INTEGER:: biso !index of Biso in AUXNAMES
+INTEGER:: NP   ! number of atoms
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
-REAL(dp):: sbiso
+REAL(dp):: P1, P2, P3, dw, occ, absorption
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !Initialize variables
-Naux=0
 NP=0
-Ncol = 9
-occ=0
-biso=0
 a=0.d0
 b=0.d0
 c=0.d0
 alpha=0.d0
 beta=0.d0
 gamma=0.d0
+H(:,:) = 0.d0
 !
-msg = 'entering READ_CEL'
+IF (ALLOCATED(P)) DEALLOCATE(P)
+IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
+IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+!
+msg = 'entering READ_JEMS'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 !
 100 CONTINUE
 OPEN(UNIT=30,FILE=inputfile,STATUS='UNKNOWN',ERR=800)
-!
-!Go back to beginning of file and count number of lines
 REWIND(30)
-i=1  ! init line counter
-!We try to read the whole file here, this is also a check
-!for a corrupt input file.
-!A proper CEL file should end with a '*' character in the
-!last line.
+!
+!Parse the file a first time to count atoms
+NP=0
 DO
-  READ(30,'(a128)',ERR=207,END=207) temp ! o.O ! Error or end of file -> corrupt cel file
+  READ(30,'(a128)',ERR=200,END=200) temp
   temp = ADJUSTL(temp)
-  !CALL ATOMSK_MSG(999,(/temp/),(/0.d0/))
-  !
-  IF( temp(1:1)=='*' ) EXIT ! find the line which terminates the cel file
-  !
-  ! count number of lines before the end
-  i = i+1
-  !
-ENDDO
-!
-NP = i-3 ! number of atom sites = number of lines - number of lines for header and termination
-WRITE(msg,*) 'Counted atoms, NP = ', NP
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-IF (NP<=0) GOTO 800 ! No atoms, -> error
-!
-! allocate the atom data P and auxiliary data AUX and AUXNAMES
-IF (ALLOCATED(P)) DEALLOCATE(P)
-ALLOCATE(P(NP,4))
-IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
-IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
-Naux = 2
-WRITE(msg,*) 'Naux = ', Naux
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ALLOCATE(AUX(NP,Naux),AUXNAMES(Naux))
-! init the new arrays
-P = 0.d0
-AUX = 0.d0
-occ = 1
-biso = 2
-AUXNAMES(occ) = 'occ'
-AUXNAMES(biso) = 'biso'
-!
-!Go back to beginning of file and store data
-REWIND(30)
-! read the first header line
-READ(30,'(a128)',ERR=200,END=200) temp ! this is a comment and can be ignored
-! read the 2nd header line
-READ(30,*,ERR=200,END=200) i, a, b, c, alpha, beta, gamma ! cell dimensions (nm by default in CEL files)
-! convert the cell dimensions from nm to A
-!a = 1.0d+1*a
-!b = 1.0d+1*b
-!c = 1.0d+1*c
-! convert the cell angles from degree to radian
-alpha = DEG2RAD(alpha)
-beta  = DEG2RAD(beta)
-gamma = DEG2RAD(gamma)
-! read the atom site list
-DO i=1, NP
-  ! line format: <Symbol string> <f_x> <f_y> <f_z> <occ> <biso> <unused> <unused> <unused>
-  ! using unformatted reading
-  READ(30,*,ERR=200,END=200) temp, P(i,1), P(i,2), P(i,3), &
-                           & AUX(i,occ), sbiso ! ignore the rest of the line
-  ! interpret the symbol and set the atomic number in P(i,4)
-  temp = ADJUSTL(temp)
-  species = temp(1:2)
-  CALL ATOMNUMBER(species,P(i,4))
-  IF( P(i,4)<=0.d0 ) THEN
-    species = temp(1:1)
-    CALL ATOMNUMBER(species,P(i,4))
+  IF( temp(1:5)=="atom|" ) THEN
+    NP = NP+1
   ENDIF
 ENDDO
 !
 !
+!
 200 CONTINUE
+WRITE(msg,*) 'Counted atoms, NP = ', NP
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+IF (NP<=0) GOTO 800 ! No atoms => error
+!
+! Allocate the atom data P and auxiliary data AUX and AUXNAMES
+ALLOCATE(P(NP,4))
+P(:,:) = 0.d0
+ALLOCATE(AUX(NP,3))
+AUX(:,:) = 0.d0
+ALLOCATE(AUXNAMES(3))
+AUXNAMES(1) = 'Debye-Waller'
+AUXNAMES(2) = 'occ'
+AUXNAMES(3) = 'absorption'
+!
+!Go back to beginning of file and store data
+REWIND(30)
+DO
+  READ(30,'(a128)',ERR=300,END=300) temp
+  temp = ADJUSTL(temp)
+  !Replace all commas by blank spaces
+  j=SCAN(temp,",")
+  DO WHILE(j>0)
+    temp(j:j) = " "
+    j=SCAN(temp,",")
+  ENDDO
+  !Replace vertical bars by blank spaces
+  j=SCAN(temp,"|")
+  DO WHILE(j>0)
+    temp(j:j) = " "
+    j=SCAN(temp,"|")
+  ENDDO
+  !
+  IF( temp(1:8)=="lattice " ) THEN
+    READ(temp(9:),*,ERR=800,END=800) j, P1
+    IF(j==0) THEN
+      a = P1
+    ELSEIF(j==1) THEN
+      b = P1
+    ELSEIF(j==2) THEN
+      c = P1
+    ELSEIF(j==3) THEN
+      alpha = DEG2RAD(P1)
+    ELSEIF(j==4) THEN
+      beta = DEG2RAD(P1)
+    ELSEIF(j==5) THEN
+      gamma = DEG2RAD(P1)
+    ENDIF
+  ELSEIF( temp(1:5)=="atom " ) THEN
+    !Read atom position
+    !NOTE: in JEMS files the first atom has an index zero, while Atomsk starts counting at 1
+    !NOTE2: here we attempt to read atom position, and return an error if it fails (GOTO 800).
+    !      However, even if Debye-Waller, occupancies and absorption coefficients are supposed
+    !      to be present in a proper JEMS file, Atomsk will not fail if they are not present,
+    !      it will just ignore them and go on.
+    READ(temp(6:),*,ERR=800,END=800) j, species, msg, P1, P2, P3
+    READ(temp(6:),*,ERR=220,END=220) j, species, msg, P1, P2, P3, dw, occ, absorption
+    220 CONTINUE
+    IF( j+1>0 .AND. j+1<=SIZE(P,1) ) THEN
+      P(j+1,1) = P1
+      P(j+1,2) = P2
+      P(j+1,3) = P3
+      CALL ATOMNUMBER(species,P(j+1,4))
+      AUX(j+1,1) = dw
+      AUX(j+1,2) = occ
+      AUX(j+1,3) = absorption
+    ELSE
+      !Out-of-range atom
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(2742,(/''/),(/DBLE(j+1)/))
+    ENDIF
+  ENDIF
+ENDDO
+!
+!
+300 CONTINUE
 CLOSE(30)
 !Save cell vectors in H(:,:)
 CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
@@ -167,16 +180,10 @@ IF(isreduced) THEN
 ENDIF
 GOTO 1000
 !
-207 CONTINUE
-CLOSE(30)
-CALL ATOMSK_MSG(807,(/''/),(/DBLE(i)/))
-nerr = nerr+1
-GOTO 1000
-!
 !
 800 CONTINUE
 801 CONTINUE
-CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
+CALL ATOMSK_MSG(802,(/''/),(/DBLE(j+1)/))
 nerr = nerr+1
 !
 !

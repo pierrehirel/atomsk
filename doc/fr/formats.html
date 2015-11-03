@@ -23,52 +23,72 @@
 <table border="1">
   <tr> <th>FORMAT</th> <th><strong>ENTRÉE</strong></th> <th><strong>SORTIE</strong></th> </tr>
   
+  <tr> <th colspan="3"><strong>Logiciels de visualisation</strong></th> </tr>
+  
   <tr>
-    <th align="left"><a href="./format_atsk.html">atsk</a> (format binaire d'Atomsk)</th>
+    <th align="left"><a href="./format_cfg.html">cfg</a> (format Atomeye)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [all]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [all]</td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_bop.html">bop</a> (BOP format)</th>
+    <th align="left"><a href="./format_dd.html">dd</a> (format ddplot)</th>
+    <td><img src="../img/no.png" alt="NON" title="Atomsk ne peut pas lire ce format"></td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> (<a href="./mode_ddplot.html">mode ddplot</a> only)</td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_xsf.html">xsf</a> (format XCrySDen)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Forces sur les atomes">f</abbr>]</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Forces sur les atomes">f</abbr>]</td>
+  </tr>
+  
+  
+  <tr> <th colspan="3"><strong>Codes de calcul <em>ab initio</em></strong></th> </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_coorat.html">COORAT</a> (format MBPP)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"></td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"></td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_pos.html">POSCAR</a> (format VASP)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_cfg.html">cfg</a> (AtomEye format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [all]</td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [all]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_cel.html">cel</a> (Dr Probe cell)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Occupation des sites">occ</abbr>,<abbr title="Paramètres de vibration thermique de Debye-Waller">Tvib</abbr>]</td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Occupation des sites">occ</abbr>,<abbr title="Paramètres de vibration thermique de Debye-Waller">Tvib</abbr>]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_cif.html">cif</a> (Crystallographic Information File)</th>
+    <th align="left"><a href="./format_qepw.html">PW</a> (format Quantum Espresso)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"></td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"></td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_dlp.html">CONFIG</a> (DL_POLY format)</th>
+    <th align="left"><a href="./format_qeout.html">PWout</a> (format de sortie Quantum Espresso)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> (<a href="./mode_oneinall.html">mode one-in-all</a> only)</td>
+    <td><img src="../img/no.png" alt="NO" title="Atomsk ne peut pas écrire ce format"> </td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_xv.html">XV</a> (format SIESTA)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Vitesses des atomes">v</abbr>]</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Vitesses des atomes">v</abbr>]</td>
+  </tr>
+  
+  
+  <tr> <th colspan="3"><strong>Codes de simulations atomistiques</strong></th> </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_bop.html">bop</a> (format BOP)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_dlp.html">CONFIG</a> (format DL_POLY)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Forces sur les atomes">f</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Forces sur les atomes">f</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_coorat.html">COORAT</a> (MBPP format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"></td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"></td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_dd.html">dd</a> (ddplot format)</th>
-    <td><img src="../img/no.png" alt="NON" title="Atomsk ne peut pas lire ce format"></td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> (<a href="./mode_ddplot.html">mode ddplot</a> only)</td>
   </tr>
   
   <tr>
@@ -78,73 +98,73 @@
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_imd.html">imd</a> (IMD format)</th>
+    <th align="left"><a href="./format_imd.html">imd</a> (format IMD)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Types des atomes">type</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Types des atomes">type</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_jems.html">jems</a> (JEMS format)</th>
-    <td><img src="../img/no.png" alt="NO" title="Atomsk ne peut pas lire ce format"></td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> []</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_lmc.html">lmc</a> (LAMMPS custom format)</th>
+    <th align="left"><a href="./format_lmc.html">lmc</a> (format personnalisé LAMMPS)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [all]</td>
     <td><img src="../img/no.png" alt="NON" title="Atomsk ne peut pas écrire ce format"></td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_lmp.html">lmp</a> (LAMMPS data file)</th>
+    <th align="left"><a href="./format_lmp.html">lmp</a> (format de données de LAMMPS)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Types des atomes">type</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Forces sur les atomes">f</abbr>,<abbr title="Charges électriques des ions/coquilles">q</abbr>,<abbr title="Types des atomes">type</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_moldy.html">MOLDY</a></th>
+    <th align="left"><a href="./format_moldy.html">mol (format MOLDY)</a></th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"></td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"></td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_pdb.html">pdb</a> (Protein Data Bank format)</th>
+    <th align="left"><a href="./format_xmd.html">xmd</a> (format XMD)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Types des atomes">type</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Types des atomes">type</abbr>,<abbr title="Vitesses des atomes">v</abbr>]</td>
+  </tr>
+  
+  
+  <tr> <th colspan="3"><strong>Logiciels de simulation d'image de microscopie électronique</strong></th> </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_cel.html">cel</a> (format Dr Probe)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Occupation des sites">occ</abbr>,<abbr title="Paramètres de vibration thermique de Debye-Waller">Tvib</abbr>]</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Occupation des sites">occ</abbr>,<abbr title="Paramètres de vibration thermique de Debye-Waller">Tvib</abbr>]</td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_jems.html">jems</a> (format JEMS)</th>
+    <td><img src="../img/no.png" alt="NO" title="Atomsk ne peut pas lire ce format"></td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Occupation des sites">occ</abbr>,<abbr title="Paramètres de vibration thermique de Debye-Waller">Tvib</abbr>,<abbr title="Coefficients d'absorption">abs</abbr>]</td>
+  </tr>
+  
+  
+  <tr> <th colspan="3"><strong>Autres formats</strong></th> </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_atsk.html">atsk</a> (format binaire d'Atomsk)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [all]</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [all]</td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_cif.html">cif</a> (fichier d'information cristallographique)</th>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"></td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"></td>
+  </tr>
+  
+  <tr>
+    <th align="left"><a href="./format_pdb.html">pdb</a> (format Protein Data Bank)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Charges électriques des ions/coquilles">q</abbr>,<abbr title="Occupation des sites">occ</abbr>]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Charges électriques des ions/coquilles">q</abbr>,<abbr title="Occupation des sites">occ</abbr>]</td>
   </tr>
   
   <tr>
-    <th align="left"><a href="./format_pos.html">POSCAR</a> (VASP format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_qepw.html">PW</a> (Quantum Espresso format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"></td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Coordonnées figées">fix</abbr>]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_qeout.html">PWout</a> (Quantum Espresso output format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> (<a href="./mode_oneinall.html">mode one-in-all</a> only)</td>
-    <td><img src="../img/no.png" alt="NO" title="Atomsk ne peut pas écrire ce format"> </td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_xsf.html">xsf</a> (xCrySDen format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Forces sur les atomes">f</abbr>]</td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Forces sur les atomes">f</abbr>]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_xv.html">XV</a> (SIESTA format)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Vitesses des atomes">v</abbr>]</td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Vitesses des atomes">v</abbr>]</td>
-  </tr>
-  
-  <tr>
-    <th align="left"><a href="./format_xyz.html">xyz/exyz/sxyz</a> (general purpose format)</th>
+    <th align="left"><a href="./format_xyz.html">xyz/exyz/sxyz</a> (format multi-usages)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [all]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [all]</td>
   </tr>
@@ -157,6 +177,8 @@
 
 <ul>
   <li>[all] signifie que toutes les propriétés auxiliaires seront lues (ou écrites) peu importe leur nom ou leur nombre ;</li>
+  
+  <li>[abs] indique les coefficients d'absorption;</li>
   
   <li>[bsrad] signifie le rayon de respiration des coquilles (dans le cadre d'un potentiel ionique c&oelig;ur-coquille) ;</li>
   
