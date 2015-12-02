@@ -33,6 +33,10 @@
 
 <p>If the box skew is too large (for instance if <code>|H(2,1)|&#62;0.5*H(1,1)</code>), the user will be prompted whether to reduce it before writing the data file (see the error message "<em>Triclinic box skew is too large</em>" in the <a href="http://lammps.sandia.gov/doc/Section_errors.html#err_3">LAMMPS errors page</a>, and <a href="http://lammps.sandia.gov/doc/Section_howto.html#howto_12">this section of the LAMMPS manual</a> about triclinic boxes). To make sure that the box is never skewed it is recommended to run Atomsk with the <a href="./option_unskew.html">option <code>-unskew</code></a>.</p>
 
+<p>If shells exist in the system (in the sense of an ionic core-shell model), then Atomsk will write the corresponding information, as specified in <a href="http://lammps.sandia.gov/doc/Section_howto.html#howto-26">this section of the LAMMPS manual</a>. The number of atoms actually includes the total number of cores and shells. The number of bonds and bond types is also written. A section "<code>Masses</code>" gives the masses of cores and shells. The mass of cores are those of the most common isotopes as provided by the <a href="http://www.nist.gov/pml/data/periodic.cfm">National Institute of Standards and Technology (NIST)</a>; the mass of shells is defined as 1/10 of these values. Modify them manually if needed. In the section "<code>Atoms</code>", each line has the format "<code>ID molecule-ID type q x y z</code>", where q is the electric charge of the core or shell. When an ion has a shell, the position of the shell appears immediately after the position of the core (and they share the same molecule-ID). Finally, an additional section "<code>Bonds</code>" specifies the existing core-shell bonds.</p>
+
+<p>When reading a LMP file containing shells, Atomsk cannot distinguish between cores and shells, so both are saved as atoms. They do however keep their atom types.</p>
+
 <p>Note that the LMP file produced by Atomsk is just a draft, it is NOT fully set for a simulation. Other atom properties (masses...) and parameters (interatomic potential, etc.) are assumed to be set in the LAMMPS input script.</p>
 
 

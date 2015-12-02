@@ -7,13 +7,15 @@ MODULE out_lammps_data
 !* This module writes a data file for LAMMPS, that can be called                  *
 !* with the  'read_data <filename>' in the LAMMPS input file, see:                *
 !*     http://lammps.sandia.gov/doc/read_data.html                                *
-!* Support for bonds is limited to ionic core-shell model.                        *
+!* Support for bonds is limited to adiabatic core-shell model, described          *
+!* in LAMMPS documentation section How-to 26:                                     *
+!*     http://lammps.sandia.gov/doc/Section_howto.html#howto-26                   *
 !**********************************************************************************
 !* (C) June 2010 - Pierre Hirel                                                   *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Nov. 2015                                     *
+!* Last modification: P. Hirel - 30 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,22 +49,25 @@ SUBROUTINE WRITE_LMP_DATA(H,P,S,comment,AUXNAMES,AUX,outputfile)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=2):: answer, skew
+CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: charges, shells, velocities !are atom charges, shells, velocities, defined?
-INTEGER:: i, iloop, j, Nspecies
-INTEGER:: molID      !column for molecule ID in AUX
-INTEGER:: moleculeID !actual molecule ID
+INTEGER:: bondtype   !bond type (core-shell model)
+INTEGER:: i, iloop, j, l
+INTEGER:: molID      !position of the molecule-ID in AUX (=0 if not defined)
+INTEGER:: moleculeID !actual ID of a molecule
 INTEGER:: NPdigits   !number of digits in the number of particles
+INTEGER:: Nspecies
 INTEGER:: Ntypes     !number of atom types
-INTEGER:: Nbondtypes !number of bond types (core-shell springs)
+INTEGER:: Nbond      !bond number (core-shell model)
 INTEGER:: Nshells    !number of shells (core-shell model)
+INTEGER:: Nshelltypes !number of shell types (core-shell model)
 INTEGER:: vx, vy, vz, q, qs, typecol !index of velocities, charges, shell charges, atom types in AUX
-INTEGER,DIMENSION(20):: BOND_TYPES  !types of bonds (assuming max. 20 different atom types)
-INTEGER,DIMENSION(:),ALLOCATABLE:: BONDS  !list of bonds
 REAL(dp):: alpha, beta, gamma, Kx, Ky, Kz !for conventional notation
 REAL(dp):: Qcore, Qshell !electric charge of core, shell
+REAL(dp):: smass         !mass of an atom
 REAL(dp):: tiltbefore
 REAL(dp),DIMENSION(3):: tilt  !xy, xz, yz
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
@@ -71,8 +76,9 @@ REAL(dp),DIMENSION(:,:),POINTER:: Ppoint  !pointer to P or R
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),TARGET:: P !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R !copy of P (if necessary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: S !positions of shells
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes   !atom types and their number
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !atom species and their number
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes    !atom types and their number
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries  !atom species and their number
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentriesS !atom species and their number (shells)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
@@ -82,46 +88,50 @@ shells = .FALSE.
 velocities = .FALSE.
 i=0
 j=0
-molID = 0
 q = 0
 typecol = 0
 vx = 0
 vy = 0
 vz = 0
-Nbondtypes = 0
+Nbond = 0
 Nshells = 0
+Nshelltypes = 0
 Nspecies = 0
 tilt(:) = 0.d0
 K=H
-BOND_TYPES(:) = 0
 IF(ALLOCATED(atypes)) DEALLOCATE(atypes)
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
+IF(ALLOCATED(aentriesS)) DEALLOCATE(aentriesS)
 IF(ALLOCATED(R)) DEALLOCATE(R)
 Ppoint=>P
-!Find how many different species are in P
-CALL FIND_NSP(P(:,4),aentries)
-Ntypes = SIZE(aentries,1)
+!
 !
 msg = 'entering WRITE_LMP_DATA'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!
+!Find how many different species are in P
+CALL FIND_NSP(P(:,4),aentries)
+Ntypes = SIZE(aentries,1)
 !
 !Count number of digits composing the number of particles
 WRITE(temp,*) SIZE(P,1)
 NPdigits = LEN_TRIM(ADJUSTL(temp))
 !
-IF( ALLOCATED(BONDS) .AND. SIZE(BONDS)>0 ) THEN
-  !count how many bonds exist
-  !CALL FIND_NSP( DBLE(BONDS(:,3)) , aentries )
-  !Nbondtypes = SIZE(aentries,1)
-!   DO i=1,SIZE(BONDS)
-!     IF( NINT(S(i,4))>0 ) THEN
-!       Nshells = Nshells+1
-!       IF( .NOT.ANY( NINT(S(i,4))==BOND_TYPES(:) ) ) THEN
-!         Nbondtypes = Nbondtypes+1
-!         BOND_TYPES(Nbondtypes) = NINT(S(i,4))
-!       ENDIF
-!     ENDIF
-!   ENDDO
+!If shells are present (ionic core-shell model), count number of shells and number of bonds
+IF( ALLOCATED(S) .AND. SIZE(S)>0 ) THEN
+  !count how many species have shells
+  CALL FIND_NSP( S(:,4) , aentriesS )
+  Nshells = 0
+  Nshelltypes = 0
+  DO i=1,SIZE(aentriesS,1)
+    IF( aentriesS(i,1) > 0.1d0 ) THEN
+      Nshelltypes = Nshelltypes+1
+      Nshells = Nshells + NINT(aentriesS(i,2))
+    ENDIF
+  ENDDO
+  !Update total number of atom types
+  Ntypes = Ntypes + Nshelltypes
 ENDIF
 !
 !Check if auxiliary properties relevant to LAMMPS data files are present
@@ -171,11 +181,10 @@ ENDIF
 !
 !Determine how many different species are present
 WRITE(40,*) Ntypes, ' atom types'
-WRITE(40,*) ''
-IF( Nbondtypes>0 ) THEN
-  WRITE(40,*) Nbondtypes, ' bond types'
-  WRITE(40,*) ''
+IF( Nshelltypes>0 ) THEN
+  WRITE(40,*) Nshelltypes, ' bond types'
 ENDIF
+WRITE(40,*) ''
 !
 !
 !Check that supercell vectors form a lower rectangular matrix
@@ -288,6 +297,32 @@ WRITE(40,*) ''
 !
 !
 200 CONTINUE
+!In case of core/shell model, write mass ratio
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+  WRITE(40,'(a6)') "Masses"
+  WRITE(40,*) ''
+  !Write mass of cores
+  DO i=1,SIZE(aentries,1)
+    CALL ATOMSPECIES(aentries(i,1),species)
+    CALL ATOMMASS(species,smass)
+    WRITE(temp,'(f16.8)') smass
+    WRITE(40,*) i, "  ", TRIM(ADJUSTL(temp))//" #"//species//" core"
+  ENDDO
+  !Write mass of shells
+  j=0
+  DO i=1,SIZE(aentriesS,1)
+    IF( aentriesS(i,1)>0.1d0 ) THEN
+      j=j+1
+      CALL ATOMSPECIES(aentriesS(i,1),species)
+      CALL ATOMMASS(species,smass)
+      WRITE(temp,'(f16.8)') smass/10.d0
+      WRITE(40,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))//"    #"//species//" shell"
+    ENDIF
+  ENDDO
+  WRITE(40,*) ''
+ENDIF
+!
+!
 molID = 0
 Nspecies = 0
 !Write atom positions
@@ -296,16 +331,17 @@ WRITE(40,*) ''
 !
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !Ion shells are present (core-shell model)
-  !=> the format is described in Section How-to 25
-  !   http://lammps.sandia.gov/doc/Section_howto.html#howto_25
+  !=> the format is described in Section How-to 26
+  !   http://lammps.sandia.gov/doc/Section_howto.html#howto-26
   !
-  PRINT*, "molID = ", molID
-  PRINT*, "typecol = ", typecol
   !(1) Write positions of cores (atoms) and shells
-  !    "atom-ID molecule-ID atom-type q x y z"
+  !    with format "atom-ID molecule-ID atom-type q x y z"
   j=0
+  moleculeID = 0
   DO i=1,SIZE(Ppoint,1)
     j=j+1
+    !If "molecule-ID" is defined in AUX, it is used,
+    !otherwise the moleculeID is incremented at each new atom-shell pair.
     IF( molID>0 ) THEN
       moleculeID = NINT(AUX(i,molID))
     ELSE
@@ -313,32 +349,68 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     ENDIF
     IF( q>0 ) THEN
       Qcore = AUX(i,q)
-    ENDIF
-    IF( qs>0 ) THEN
-      Qshell = AUX(i,qs)
+    ELSE
+      Qcore = 0.d0
     ENDIF
     IF( typecol.NE.0 ) THEN
       !Atom types are in auxiliary properties, use it
       Nspecies = NINT(AUX(i,typecol))
     ELSE
       !Replace species by atom types in their order of appearance
-      DO iloop=1,SIZE(atypes,1)
-        IF( atypes(iloop,1)==INT(Ppoint(iloop,4)) ) Nspecies = j
+      DO iloop=1,SIZE(aentries,1)
+        IF( aentries(iloop,1)==NINT(Ppoint(i,4)) ) Nspecies = iloop
       ENDDO
     ENDIF
     WRITE(40,212) j, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+    !
     IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
+      !Write shell info immediately after its core
+      !NOTE: i is not the correct shell index!
       j=j+1
+      IF( qs>0 ) THEN
+        Qshell = AUX(i,qs)
+      ELSE
+        Qshell = 0.d0
+      ENDIF
+      !Determine type of this shell
+      l=0
+      DO iloop=1,SIZE(aentriesS,1)
+        IF( aentriesS(iloop,1)>0.1d0 ) THEN
+          l=l+1
+          IF( aentriesS(iloop,1)==NINT(S(i,4)) ) THEN
+            Nspecies = SIZE(aentries,1)+l
+          ENDIF
+        ENDIF
+      ENDDO
       WRITE(40,212) j, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
     ENDIF
   ENDDO
+  !
   !(2) Write bond pairs with format "ID type atom1 atom2"
+  !    ID   = bond number (1-Nbonds)
+  !    type = bond type (1-Nbondtype)
+  !    atom1,atom2 = IDs of 1st,2nd atoms in bond
   WRITE(40,*) ''
   WRITE(40,'(a5)') 'Bonds'
   WRITE(40,*) ''
-  !DO i=1,SIZE(BONDS,1)
-    !WRITE(40,210) i, BONDS(i,1), BONDS(i,2), BONDS(i,3)
-  !ENDDO
+  j=0
+  DO i=1,SIZE(S,1)
+    j=j+1
+    IF( S(i,4)>0.1d0 ) THEN
+      !Atom #i has a shell
+      !Determine the type of that bond
+      DO l=1,SIZE(aentriesS,1)
+        IF( NINT(aentriesS(l,1)) == NINT(S(i,4)) ) THEN
+          bondtype = l
+        ENDIF
+      ENDDO
+      !Ionic core #j is bonded with ionic shell #j+1
+      Nbond = Nbond+1 ! = ID (bond number)
+      WRITE(40,*) Nbond, bondtype, j, j+1
+      !
+      j=j+1
+    ENDIF
+  ENDDO
   !
 ELSE
   IF( Ntypes>1 ) THEN

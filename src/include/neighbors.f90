@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Sept. 2015                                    *
+!* Last modification: P. Hirel - 09 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,6 @@ MODULE neighbors
 USE comv
 USE functions
 USE subroutines
-USE messages
 !
 !
 CONTAINS
@@ -126,10 +125,11 @@ IF(ALLOCATED(Cell_AtomID)) DEALLOCATE(Cell_AtomID)
 IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
 !
 !
-IF( (VECLENGTH(H(1,:))<2.d0*R .AND. VECLENGTH(H(2,:))<2.d0*R .AND. VECLENGTH(H(3,:))<2.d0*R) &
+IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
   & .OR. SIZE(A,1) < 2000 ) THEN
   !
-  !Quite small system or number of atoms => a simplistic Verlet neighbor search will suffice
+  !System is pseudo-2D or contains a small number of atoms
+  !=> a simplistic Verlet neighbor search will suffice
   !
   !Define "close to border" in reduced units
   DO i=1,3
@@ -298,7 +298,9 @@ ELSE
       !Ensure that there is always at least one cell along any given direction
       NcellsX(i) = 1
     ELSE
-      NcellsX(i) = NINT(tempreal)
+      !Large cell or small R => do not create zillions of small cells
+      !Decomposition into max. 20 cells along that direction should be enough
+      NcellsX(i) = MIN( NINT(tempreal) , 20 )
     ENDIF
     !Length of a cell along each direction
     Cell_L(i) = distance / DBLE(NcellsX(i))
@@ -474,9 +476,6 @@ ELSE
       ENDDO  !k
     ENDDO  !j
     !
-    IF( Nneigh(i)==0 ) THEN
-      CALL ATOMSK_MSG(4706,(/""/),(/DBLE(i)/))
-    ENDIF
   ENDDO  !i
   !
   !Free memory

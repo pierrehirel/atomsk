@@ -10,7 +10,7 @@ MODULE remdoubles
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Sept. 2014                                    *
+!* Last modification: P. Hirel - 06 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,13 +45,13 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
-INTEGER:: i, j
+INTEGER:: i, j, iat
 INTEGER:: Nremoved
-INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !list of neighbors
 REAL(dp):: distance
 REAL(dp),INTENT(IN):: rmd_radius  !radius below which atoms are considered too close
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN  !final positions of 1st NN
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList  !final positions of neighbors
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of atoms, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T               !positions of atoms, shells (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX !auxiliary properties of atoms
@@ -76,36 +76,37 @@ ENDIF
 !
 !
 100 CONTINUE
+!Construct neighbor list
+CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
+CALL NEIGHBOR_LIST(H,P,rmd_radius,NeighList)
+!
+!Find atoms that must be removed
+!For now, atoms to be removed are marked by setting their P(i,4) to zero
 Nremoved = 0
 DO i=1,SIZE(P,1)-1  !Loop on all atoms
   IF( P(i,4)>0.1d0 ) THEN  !Ignore atoms that were already eliminated
     !
-    !Create a temporary array containing all atoms of index greater than i
-    !Note: this makes the neighbour search faster
-    ALLOCATE( Q(SIZE(P,1)-i,4) )
-    Q(:,:) = 0.d0
-    DO j=1,SIZE(Q,1)
-      Q(j,:) = P(i+j,:)
-    ENDDO
+    !Find positions of neighbours of P(i,:) that are closer than rmd_radius
+    CALL NEIGHBOR_POS(H,P(:,:),P(i,1:3),NeighList(i,:),rmd_radius,PosList)
+    !Now PosList(:,:) contains the cartesian positions of all neighbors in the rmd_radius,
+    !their distance to the atom #i, and their indices.
     !
-    !Find all neighbours of P(i,:) that are closer than rmd_radius
-    CALL FIND_NNRdR(H,Q,P(i,:),-0.1d0,rmd_radius,V_NN,Nlist,exceeds100)
-    !
-    !If atoms were found, mark them for elimination
-    IF( SIZE(Nlist)>0 ) THEN
-      DO j=1,SIZE(Nlist)
-        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(Nlist(j)+i) ) THEN  !remove only selected atoms
+    !If neighboring atoms are within the rmd_radius, mark them for elimination
+    !(they will be effectively removed from the array later)
+    IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
+      DO j=1,SIZE(PosList,1)
+        iat = NINT(PosList(j,5))  !index of current neighbor
+        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(iat) ) THEN  !remove only selected atoms
           !Only consider atoms that were not removed before
-          IF( P(Nlist(j)+i,4) > 0.1d0 ) THEN
+          IF( P(iat,4) > 0.1d0 ) THEN
             Nremoved = Nremoved+1
-            CALL ATOMSPECIES(P(i,4),species)
-            P(Nlist(j)+i,4) = 0.d0
+            CALL ATOMSPECIES(P(iat,4),species)
+            P(iat,4) = 0.d0
           ENDIF
         ENDIF
       ENDDO
+      DEALLOCATE(PosList)
     ENDIF
-    !
-    DEALLOCATE(Q)
     !
   ENDIF
 ENDDO
@@ -164,7 +165,8 @@ IF(Nremoved>0) THEN
       DEALLOCATE(T)
     ENDIF
   !
-  ELSE
+  ELSE !i.e. if Nremoved>=SIZE(P,1), all atoms must be removed
+    Nremoved = SIZE(P,1)
     DEALLOCATE(P)
     ALLOCATE(P(0,4))
   ENDIF

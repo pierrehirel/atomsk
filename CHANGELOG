@@ -12,7 +12,7 @@ beta 0.9 (in development)
 - added support for reading and writing files in JEMS format.
 - enhanced support for CIF format. Symmetry operations are now taken into account. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
 - in mode "--create", added possibility to generate wurtzite lattices.
-- in option "-select", added possibility to read a list of atom indices from a file.
+- in option "-select", added possibility to read a list of atom indices from a file. Also added the possibility to select atoms according to a finite-element grid.
 - in option "-unit", added possibility to scale any coordinate or property by a given factor.
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
 - new set of algorithms to apply symmetry operations and deal with space groups. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.

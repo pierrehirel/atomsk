@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Nov. 2015                                     *
+!* Last modification: P. Hirel - 05 Nov. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -378,8 +378,6 @@ IF(fileexists) THEN
       isjems = isjems+0.3d0
     ELSEIF(test(1:3)=='aff|') THEN
       isjems = isjems+0.3d0
-    ELSEIF(SCAN(test,'|')>0) THEN
-      isjems = isjems+0.1d0
     !
     !Search for patterns corresponding to LAMMPS data format
     ELSEIF(strlength-4==INDEX(test,'atoms').AND.strlength>4) THEN

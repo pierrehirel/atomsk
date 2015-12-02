@@ -176,7 +176,7 @@ ELSEIF( SIZE(aentries,1)==3 ) THEN
   ENDIF
 ELSE
   Nspecies = 0
-  PRINT*, "X!X ERROR Nspecies is zero"
+  !PRINT*, "X!X ERROR Nspecies is zero"
   GOTO 1000
 ENDIF
 WRITE(msg,*) "Nspecies:", Nspecies
@@ -191,7 +191,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Construct neighbor list
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
 CALL NEIGHBOR_LIST(H,P,8.d0,NeighList)
-PRINT*, "SIZE NeighList = ", SIZE(NeighList,1), SIZE(NeighList,2)
+!PRINT*, "SIZE NeighList = ", SIZE(NeighList,1), SIZE(NeighList,2)
 !
 IF( verbosity==4 ) THEN
   !Some debug messages
@@ -332,9 +332,9 @@ DO i=1,SIZE(P,1)
   IF( MOD(Nneigh,2) .NE. 0 ) THEN
     Nneigh = Nneigh-1
   ENDIF
-  IF( Nneigh.NE.Mdefault ) THEN
-    PRINT*, "Atom # ", i, " has ", Nneigh, "neighbors:" !, (NeighList(i,j),j=1,Nneigh)
-  ENDIF
+  !IF( Nneigh.NE.Mdefault ) THEN
+  !  PRINT*, "Atom # ", i, " has ", Nneigh, "neighbors:" !, (NeighList(i,j),j=1,Nneigh)
+  !ENDIF
   !
   IF( verbosity==4 ) THEN
     !Some debug messages

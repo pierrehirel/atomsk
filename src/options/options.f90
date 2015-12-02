@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Oct. 2015                                     *
+!* Last modification: P. Hirel - 01 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -790,7 +790,7 @@ DO ioptions=1,SIZE(options_array)
       !Store index of atoms whose neighbors must be searched in region_1(2)
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
           & region_side, region_1(1), region_geom, region_1(2)
-    ELSEIF( region_side=="list" ) THEN
+    ELSEIF( region_side=="list" .OR. region_side=="grid" ) THEN
       !store the name of file containing list of atoms in "region_geom"
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom
     ENDIF
