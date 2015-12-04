@@ -86,7 +86,7 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 
 <p>When using <strong>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</strong>, the neighbors of the atom of the given &#60;index&#62; are selected. If &#60;NNN&#62; is a positive integer then the &#60;NNN&#62; closest neighbors are selected, regardless of their distance (&#60;NNN&#62; must then be smaller than 100). If &#60;NNN&#62; is a negative real number then all neighbors within a radius of |&#60;NNN&#62;| are selected, regardless of their number. If &#60;NNN&#62; is zero, then the first nearest neighbors are selected. Note that if some atoms are out of the box then the neighbor search can give wrong results (the <a href="./option_wrap.html">option <code>-wrap</code></a> can be used to wrap all atoms into the box). If &#60;species&#62; is the chemical symbol of a species then only atoms of that species are selected. If &#60;species&#62; is set to "all" or "any" then atoms are selected regardless of their species.</p>
 
-<p>When using <strong>-select grid</strong>, a finite-element grid of values is read from the &#60;file&#62;. The &#60;file&#62; must be a text file complying to one of two formats. First, it may contain lines giving the position (x,y,z) of elements of the grid (in &Aring;), followed by 1 to select atoms inside that grid element, or 0 to un-select them. Second, the &#60;file&#62; may contain lines of 0 and 1, separated by blank spaces or contiguous, giving a visual representation of the grid (see examples below). This can be used to select complex shapes.</p>
+<p>When using <strong>-select grid</strong>, a finite-element grid of values is read from the &#60;file&#62;. The &#60;file&#62; must be a text file complying to one of two formats. First, it may contain lines giving the position (x,y,z) of elements of the grid (either in &Aring; or in reduced coordinates), followed by 1 to select atoms inside that grid element, or 0 to un-select them. The grid can be defined in 3-D, and elements may form a regular pattern, or have any arbitrary positions. Second, the &#60;file&#62; may contain lines of 0 and 1 (either separated by blank spaces or contiguous), giving a visual representation of a 2-D grid (see examples below). This can be used to select complex shapes.</p>
 
 <p>The options called after the option <code>-select</code> will be applied only to the atoms that are selected by the present option, refer to their documentation to know how each option treats selected atoms. Beware that some options can result in strange (i.e. non-physical) results when applied to some atoms only.</p>
 
@@ -161,10 +161,10 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 0.354 0.9870 0.5688 1<br/>
 0.75432 0.98700 0.10753 0<br/>
 </code></p></div>
-<code class="command">atomsk initial.cfg -select grid one.txt -rmatom select final.xyz</code>
+<code class="command">atomsk initial.cfg -select grid grid.txt -rmatom select final.xyz</code>
 <p>The file "grid.txt" contains lines giving the position (x,y,z) of elements of a finite-element grid, followed by an integer (0 or 1). Atomsk will read the file "initial.cfg", automatically scale the grid so that it matches the box dimensions, select atoms that are inside the grid elements marked "1", and <a href="./option_rmatom.html">remove selected atoms</a>. The result will be written into "final.xyz".</p></li>
 
-<li><div class="txtfile"><h5>one.txt</h5>
+<li><div class="txtfile"><h5>A.txt</h5>
 <p><code>00000000000000<br/>
 00000011000000<br/>
 00001111110000<br/>
@@ -173,8 +173,8 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 00001100110000<br/>
 00000000000000<br/>
 </code></p></div>
-<code class="command">atomsk initial.cfg -select grid one.txt -rmatom select final.xyz</code>
-<p>The file "one.txt" contains lines of 0 and 1 that form a visual representation of the letter "A". Atomsk will read the file "initial.cfg", automatically scale the grid so that it matches the box dimensions, select atoms that are inside the grid elements marked "1", and <a href="./option_rmatom.html">remove selected atoms</a>. The result will be written into "final.xyz".</p></li>
+<code class="command">atomsk initial.cfg -select grid A.txt -rmatom select final.xyz</code>
+<p>The file "A.txt" contains lines of 0 and 1 that form a visual representation of the letter "A". Atomsk will read the file "initial.cfg", automatically scale the grid so that it matches the box dimensions, select atoms that are inside the grid elements marked "1", and <a href="./option_rmatom.html">remove selected atoms</a>. The result will be written into "final.xyz".</p></li>
 </ul>
 
 

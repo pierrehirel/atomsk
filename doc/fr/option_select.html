@@ -41,6 +41,8 @@
 
 <p><code>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</code></p>
 
+<p><code>-select grid &#60;fichier&#62;</code></p>
+
 
 <h4>Description</h4>
 
@@ -83,6 +85,8 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 
 <p>En utilisant <strong>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</strong>, les voisins de l'atome ayant l'&#60;indice&#62; donné sont sélectionnés. Si &#60;NNN&#62; est un entier positif alors les &#60;NNN&#62; voisins les plus proches sont sélectionnés, peu importe leur distance (&#60;NNN&#62; doit alors être inférieur à 100). Si &#60;NNN&#62; est un nombre réel négatif alors tous les voisins dans un rayon |&#60;NNN&#62;| sont sélectionnés, peu importe leur nombre. Si &#60;NNN&#62; est égal à zero, alors les premiers voisins sont sélectionnés. Notez que si certains atomes se trouvent hors de la boîte, la recherche de voisins peut donner des résultats erronés (l'<a href="./option_wrap.html">option <code>-wrap</code></a> peut être utilisée pour replacer les atomes dans la boîte). Si &#60;espèce&#62; est le symbole chimique d'une espèce alors seuls les atomes de cette espèce sont sélectionnés. Si &#60;espèce&#62; est "all" ou "any" alors les atomes sont sélectionnés sans tenir compte 
 de leur espèce chimique.</p>
+
+<p>En utilisant <strong>-select grid</strong>, une grille d'éléments finis est lue depuis le &#60;fichier&#62;. Le &#60;fichier&#62; doit être un fichier texte respectant l'un des deux formats suivants. Premièrement, il peut contenir des lignes donnant les positions (x,y,z) d'éléments de la grille (soit en &Aring;, soit en coordonnées réduites), suivi de "1" si les atomes à l'intérieur de cet élément doivent être sélectionnés, ou de "0" sinon. La grille peut être définie en 3-D, et les éléments peuvent être espacés régulièrement ou non. Deuxièmement, le &#60;fichier&#62; peut contenir des lignes de 0 et de 1 (soit séparés d'espaces, soit contigus), correspondant à une représentation visuelle d'une grille en 2-D (voir les exemples ci-dessous). Ceci peut être utile pour sélectionner des formes complexes.</p>
 
 <p>Les options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
 
@@ -144,6 +148,33 @@ de leur espèce chimique.</p>
 
 <li><code class="command">atomsk initial.cfg -select prop vx 1e5:1e6 final.xyz</code>
 <p>Ceci va sélectionner les atomes dont la vitesse suivant X (vx) est comprise entre 1e5 et 1e6 (selon l'unité de vitesse employée dans le fichier d'entrée).</p></li>
+
+<li><div class="txtfile"><h5>grille.txt</h5>
+<p><code>0.2354 0.2 0.4013540 1<br/>
+0.196874 0.5354 0.541 0<br/>
+0.9432587 0.651 0.3554 1<br/>
+0.68354 0.2189 0.35 0<br/>
+0.4568 0.2367 0.920 1<br/>
+0.87413356 0.543254 0.357401 0<br/>
+0.367744 0.5485 0.548 1<br/>
+0.1289 0.855354 0.36871 0<br/>
+0.354 0.9870 0.5688 1<br/>
+0.75432 0.98700 0.10753 0<br/>
+</code></p></div>
+<code class="command">atomsk initial.cfg -select grid grille.txt -rmatom select final.xyz</code>
+<p>Le fichier "grille.txt" contient des lignes donnant la position (x,y,z) d'éléments d'une grille d'éléments finis, suivie par un entier (0 ou 1). Atomsk va lire le fichier "initial.cfg", mettra automatiquement la grille aux dimensions de la boîte, sélectionnera les atomes situés à l'intérieur des éléments marqués d'un "1", et <a href="./option_rmatom.html">supprimera les atomes sélectionnés</a>. Le resultat sera écrit dans "final.xyz".</p></li>
+
+<li><div class="txtfile"><h5>A.txt</h5>
+<p><code>00000000000000<br/>
+00000011000000<br/>
+00001111110000<br/>
+00001100110000<br/>
+00001111110000<br/>
+00001100110000<br/>
+00000000000000<br/>
+</code></p></div>
+<code class="command">atomsk initial.cfg -select grid A.txt -rmatom select final.xyz</code>
+<p>Le fichier "A.txt" contient des lignes de 0 et de 1, qui forment une représentation graphique de la lettre "A". Atomsk va lire le fichier "initial.cfg", mettra automatiquement la grille aux dimensions de la boîte, sélectionnera les atomes situés à l'intérieur des éléments marqués d'un "1", et <a href="./option_rmatom.html">supprimera les atomes sélectionnés</a>. Le resultat sera écrit dans "final.xyz".</p></li>
 </ul>
 
 

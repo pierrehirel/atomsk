@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 04 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,12 +45,15 @@ SUBROUTINE WRITE_QEPW(H,P,comment,AUXNAMES,AUX,outputfile)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=2):: species
+CHARACTER(LEN=4096):: pseudo_dir
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
-LOGICAL:: isreduced
-INTEGER:: i
-INTEGER:: fixx, fixy, fixz
+LOGICAL:: fileexists !does file exist?
+LOGICAL:: isreduced  !are positions in reduced coordinates?
+INTEGER:: i, j
+INTEGER:: fx, fy, fz       !position of forces (x,y,z) in AUX
+INTEGER:: fixx, fixy, fixz !position of flags for fixed atoms in AUX
 REAL(dp):: smass  !mass of atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
@@ -59,6 +62,10 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
 !Initialize variables
+pseudo_dir = ""
+fx=0
+fy=0
+fz=0
 fixx=0
 fixy=0
 fixz=0
@@ -77,7 +84,13 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Check if some atoms are fixed
 IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
   DO i=1,SIZE(AUXNAMES)
-    IF(TRIM(ADJUSTL(AUXNAMES(i)))=="fixx") THEN
+    IF(TRIM(ADJUSTL(AUXNAMES(i)))=="fx") THEN
+      fx=i
+    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fy") THEN
+      fy=i
+    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fz") THEN
+      fz=i
+    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fixx") THEN
       fixx=i
     ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fixy") THEN
       fixy=i
@@ -95,7 +108,14 @@ OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 !Write control section
 WRITE(40,'(a8)') "&CONTROL"
 WRITE(40,'(a)') "  title = '"//TRIM(comment(1))//"'"
-WRITE(40,'(a)') "  pseudo_dir = '/your/path/to/pseudo/'"
+!pseudo_dir: value of the $ESPRESSO_PSEUDO environment variable if set;
+!            '$HOME/espresso/pseudo/' otherwise
+CALL GET_ENVIRONMENT_VARIABLE('ESPRESSO_PSEUDO',pseudo_dir)
+IF( LEN_TRIM(pseudo_dir)<=0 ) THEN
+  CALL GET_ENVIRONMENT_VARIABLE('HOME',msg)
+  pseudo_dir = TRIM(ADJUSTL(msg))//"/espresso/pseudo/"
+ENDIF
+WRITE(40,'(a)') "  pseudo_dir = '"//TRIM(ADJUSTL(pseudo_dir))//"'"
 WRITE(40,'(a)') "  calculation = 'scf'"
 WRITE(40,'(a1)') "/"
 !
@@ -131,8 +151,37 @@ WRITE(40,*) ""
 WRITE(40,'(a14)') "ATOMIC_SPECIES"
 DO i=1,SIZE(aentries,1)
   CALL ATOMSPECIES(aentries(i,1),species)
+  !Look for files starting with element name in pseudo_dir
+  msg = TRIM(ADJUSTL(pseudo_dir))//TRIM(ADJUSTL(species))//".*"
+  CALL SYSTEM(system_ls//" "//TRIM(msg)//" > .atomsk.tmp.out_qe_pw")
+  INQUIRE(FILE=".atomsk.tmp.out_qe_pw",EXIST=fileexists)
+  msg = ""
+  temp = ""
+  IF( fileexists ) THEN
+    OPEN(UNIT=50,FILE=".atomsk.tmp.out_qe_pw",FORM="FORMATTED",STATUS="UNKNOWN")
+    READ(50,'(a4096)',ERR=150,END=150) temp
+    150 CONTINUE
+    CLOSE(50,STATUS='DELETE')
+  ENDIF
+  !
+  IF( LEN_TRIM(temp)>0 ) THEN
+    !Verify that file exists
+    INQUIRE(FILE=temp,EXIST=fileexists)
+    IF( fileexists ) THEN
+      j=SCAN(temp,"/",BACK=.TRUE.)
+      msg = TRIM(ADJUSTL(temp(j+1:)))
+    ENDIF
+  ELSE
+    fileexists = .FALSE.
+  ENDIF
+  !
+  !If no suitable file was found, use a dummy one
+  IF( .NOT.fileexists ) THEN
+    msg = TRIM(species)//".fixme.upf"
+  ENDIF
+  !
   CALL ATOMMASS(species,smass)
-  WRITE(40,'(a2,2X,f6.3,2X,a)') species, smass, TRIM(species)//".fixme.upf"
+  WRITE(40,'(a2,2X,f6.3,2X,a)') species, smass, TRIM(msg)
 ENDDO
 !
 !Write cell parameters
@@ -198,6 +247,17 @@ WRITE(40,*) ""
 WRITE(40,'(a18)') "K_POINTS automatic"
 WRITE(40,'(a)') "2 2 2  0 0 0"
 !
+!Write forces on atoms
+IF( fx>0 .AND. fy>0 .AND. fz>0 ) THEN
+  WRITE(40,*) ""
+  msg = "ATOMIC_FORCES"
+  WRITE(40,'(a)') TRIM(msg)
+  DO i=1,SIZE(P,1)
+    CALL ATOMSPECIES(P(i,4),species)
+    WRITE(msg,210) species, AUX(i,fx), AUX(i,fy), AUX(i,fz)
+    WRITE(40,'(a)') TRIM(msg)
+  ENDDO
+ENDIF
 GOTO 500
 !
 !

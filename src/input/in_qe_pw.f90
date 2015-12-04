@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 04 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -52,10 +52,12 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: fields
 LOGICAL:: convnot !are conventional vectors a,b,c,alpha,beta,gamma defined?
 LOGICAL:: celldm_defined !are the celldm(:) defined?
+INTEGER:: fx, fy, fz       !position of forces (x,y,z) in AUX
+INTEGER:: fixx, fixy, fixz !position of flags for fixed atoms in AUX
 INTEGER:: i
 INTEGER:: ibrav  !index of Bravais lattice
-INTEGER:: fixx, fixy, fixz
-INTEGER:: NP  !total number of particles in the system
+INTEGER:: Naux   !number of auxiliary properties
+INTEGER:: NP     !total number of particles in the system
 INTEGER:: strlength
 REAL(dp):: a, b, c, cosalpha, cosbeta, cosgamma
 REAL(dp):: tempreal
@@ -70,9 +72,13 @@ section = ''
  convnot=.FALSE.
  celldm_defined=.FALSE.
 ibrav=0
+fx=0
+fy=0
+fz=0
 fixx=0
 fixy=0
 fixz=0
+Naux=0
 NP=0
 a = 0.d0
 b = 0.d0
@@ -121,6 +127,17 @@ DO
         fields(i) = TRIM(ADJUSTL(temp(:strlength-1)))
         temp = temp(strlength+1:)
       ENDDO
+      !
+      IF( section=="atomic_positions" .AND. fixx==0 .AND. fixy==0 .AND. fixz==0 ) THEN
+        IF( i==7 ) THEN
+          !This section contains 7 fields:  X x y z if_pos(1) if_pos(2) if_pos(3)
+          !Set indexes to store fixed coordinates into AUX later
+          fixx=Naux+1
+          fixy=Naux+2
+          fixz=Naux+3
+          Naux=Naux+3
+        ENDIF
+      ENDIF
     ENDIF
     !
     DO i=1,SIZE(fields)
@@ -139,6 +156,14 @@ DO
           section = "system"
         ELSEIF( fields(i)(1:2) == '/' ) THEN
           section = ""
+        ELSEIF( fields(i)(1:13) == 'ATOMIC_FORCES' .OR. fields(i)(1:13) == 'atomic_forces' ) THEN
+          section = "atomic_forces"
+          fx=1
+          fy=2
+          fz=3
+          Naux=Naux+3
+        ELSEIF( temp(1:16)=='ATOMIC_POSITIONS' .OR. temp(1:16)=='atomic_positions' ) THEN
+          section = "atomic_positions"
           !
         ELSEIF( section=='system' ) THEN
           !
@@ -219,6 +244,7 @@ IF( NP==0 ) THEN
     READ(30,'(a128)',END=200,ERR=200) temp
     IF( temp(1:16)=='ATOMIC_POSITIONS' .OR. temp(1:16)=='atomic_positions' ) THEN
       DO
+        !Attempt to read species + 3 real numbers until it fails
         READ(30,*,END=200,ERR=200) species, tempreal,tempreal,tempreal
         NP=NP+1
       ENDDO
@@ -235,6 +261,21 @@ REWIND(30)
 !
 IF( NP.NE.0 ) THEN
   ALLOCATE(P(NP,4))
+  IF( Naux>0 ) THEN
+    ALLOCATE(AUXNAMES(Naux))
+    ALLOCATE(AUX(SIZE(P,1),Naux))
+    AUX(:,:) = 0.d0
+    IF( fx>0 .AND. fy>0 .AND. fz>0 ) THEN
+      AUXNAMES(fx) = "fx"
+      AUXNAMES(fy) = "fy"
+      AUXNAMES(fz) = "fz"
+    ENDIF
+    IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
+      AUXNAMES(fixx) = "fixx"
+      AUXNAMES(fixy) = "fixy"
+      AUXNAMES(fixz) = "fixz"
+    ENDIF
+  ENDIF
 ELSE
   nerr=nerr+1
   GOTO 1000
@@ -305,7 +346,11 @@ DO
   ELSEIF( temp(1:16)=='ATOMIC_POSITIONS' .OR. temp(1:16)=='atomic_positions' ) THEN
     msg = ADJUSTL(temp(18:))
     DO i=1,SIZE(P,1)
-      READ(30,*,END=800,ERR=800) species, P(i,1), P(i,2), P(i,3)
+      IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
+        READ(30,*,END=800,ERR=800) species, P(i,1), P(i,2), P(i,3), AUX(i,fixx), AUX(i,fixy), AUX(i,fixz)
+      ELSE
+        READ(30,*,END=800,ERR=800) species, P(i,1), P(i,2), P(i,3)
+      ENDIF
       CALL ATOMNUMBER(species,P(i,4))
     ENDDO
     !If coordinates were reduced or in lattice coordinates, convert them
@@ -314,6 +359,13 @@ DO
     ELSEIF( msg(1:4)=='alat' .OR. msg(1:4)=='ALAT' .OR. LEN_TRIM(msg)==0 ) THEN
       P(:,1:3) = celldm(1)*P(:,1:3)
     ENDIF
+    !
+    !
+  ELSEIF( temp(1:16)=='ATOMIC_POSITIONS' .OR. temp(1:16)=='atomic_positions' ) THEN
+    msg = ADJUSTL(temp(18:))
+    DO i=1,SIZE(AUX,1)
+      READ(30,*,END=800,ERR=800) species, AUX(i,fx), AUX(i,fy), AUX(i,fz)
+    ENDDO
     !
   ENDIF
 ENDDO
