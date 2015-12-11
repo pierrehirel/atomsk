@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Oct. 2015                                     *
+!* Last modification: P. Hirel - 07 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -788,7 +788,7 @@ CASE(1705)
 CASE(1706)
   msg = "/!\ ALERTE : les paramètres de boîte sont en Bohrs, alors que les positions atomiques sont en angströms."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Les paramètres de boîte seront convertis en angströms pour rétablir la cohérence."
+  msg = "            Les positions des atomes seront converties en Bohrs pour rétablir la cohérence."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string
@@ -854,6 +854,26 @@ CASE(1811)
     msg = "X!X ERREUR : l'indice de l'atome #"//TRIM(ADJUSTL(msg))//" est négatif."
   ELSE
     msg = "X!X ERREUR : l'indice de l'atome #"//TRIM(ADJUSTL(msg))//" est plus grand que le nombre d'atomes."
+  ENDIF
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1812)
+  !reals(1) = index of atom
+  WRITE(msg,*) NINT(reals(1))
+  msg = "X!X ERREUR : impossible de lire les propriétés de l'atome #"//TRIM(ADJUSTL(msg))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1813)
+  !strings(1) = string where conversion failed
+  msg = "X!X ERREUR : échec lors de la lecture des opérations de symétrie dans '"// &
+      & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1814)
+  !strings(1) = name of file format
+  !strings(2) = name of mode to use to read this file format
+  IF( LEN_TRIM(strings(2))>0 ) THEN
+    msg = "X!X ERREUR : les fichiers au format "//TRIM(ADJUSTL(strings(1)))//  &
+        & " ne peuvent être lus que dans le mode "//TRIM(ADJUSTL(strings(2)))//"."
+  ELSE
+    msg = "X!X ERREUR : les fichiers au format "//TRIM(ADJUSTL(strings(1)))//" ne peuvent pas être lus."
   ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 !

@@ -51,6 +51,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxi
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: fileexists !does file exist?
 LOGICAL:: isreduced  !are positions in reduced coordinates?
+LOGICAL:: pseudo_dir_exists !does the pseudo_dir exist?
 INTEGER:: i, j
 INTEGER:: fx, fy, fz       !position of forces (x,y,z) in AUX
 INTEGER:: fixx, fixy, fixz !position of flags for fixed atoms in AUX
@@ -63,6 +64,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !Initialize variables
 pseudo_dir = ""
+pseudo_dir_exists = .FALSE.
 fx=0
 fy=0
 fz=0
@@ -115,6 +117,20 @@ IF( LEN_TRIM(pseudo_dir)<=0 ) THEN
   CALL GET_ENVIRONMENT_VARIABLE('HOME',msg)
   pseudo_dir = TRIM(ADJUSTL(msg))//"/espresso/pseudo/"
 ENDIF
+!Verify if the pseudo_dir actually exists
+temp = TRIM(ADJUSTL(pseudo_dir))//".atomsk.tmp"
+OPEN(UNIT=49,FILE=temp,FORM="FORMATTED",STATUS="UNKNOWN",ERR=110,IOSTAT=j)
+110 CONTINUE
+CLOSE(49,STATUS='DELETE')
+IF( j==0 ) THEN
+  !Directory exists
+  pseudo_dir_exists = .TRUE.
+ELSE
+  !There was an error when trying to open a file in that directory
+  !=> directory does not exist
+  pseudo_dir_exists = .FALSE.
+ENDIF
+!
 WRITE(40,'(a)') "  pseudo_dir = '"//TRIM(ADJUSTL(pseudo_dir))//"'"
 WRITE(40,'(a)') "  calculation = 'scf'"
 WRITE(40,'(a1)') "/"
@@ -150,29 +166,33 @@ WRITE(40,'(a1)') "/"
 WRITE(40,*) ""
 WRITE(40,'(a14)') "ATOMIC_SPECIES"
 DO i=1,SIZE(aentries,1)
+  fileexists = .FALSE.
   CALL ATOMSPECIES(aentries(i,1),species)
-  !Look for files starting with element name in pseudo_dir
-  msg = TRIM(ADJUSTL(pseudo_dir))//TRIM(ADJUSTL(species))//".*"
-  CALL SYSTEM(system_ls//" "//TRIM(msg)//" > .atomsk.tmp.out_qe_pw")
-  INQUIRE(FILE=".atomsk.tmp.out_qe_pw",EXIST=fileexists)
-  msg = ""
-  temp = ""
-  IF( fileexists ) THEN
-    OPEN(UNIT=50,FILE=".atomsk.tmp.out_qe_pw",FORM="FORMATTED",STATUS="UNKNOWN")
-    READ(50,'(a4096)',ERR=150,END=150) temp
-    150 CONTINUE
-    CLOSE(50,STATUS='DELETE')
-  ENDIF
   !
-  IF( LEN_TRIM(temp)>0 ) THEN
-    !Verify that file exists
-    INQUIRE(FILE=temp,EXIST=fileexists)
+  IF( pseudo_dir_exists ) THEN
+    !Look for files starting with element name in pseudo_dir
+    msg = TRIM(ADJUSTL(pseudo_dir))//TRIM(ADJUSTL(species))//".*"
+    CALL SYSTEM(system_ls//" "//TRIM(msg)//" > .atomsk.tmp.out_qe_pw")
+    INQUIRE(FILE=".atomsk.tmp.out_qe_pw",EXIST=fileexists)
+    msg = ""
+    temp = ""
     IF( fileexists ) THEN
-      j=SCAN(temp,"/",BACK=.TRUE.)
-      msg = TRIM(ADJUSTL(temp(j+1:)))
+      OPEN(UNIT=50,FILE=".atomsk.tmp.out_qe_pw",FORM="FORMATTED",STATUS="UNKNOWN")
+      READ(50,'(a4096)',ERR=150,END=150) temp
+      150 CONTINUE
+      CLOSE(50,STATUS='DELETE')
     ENDIF
-  ELSE
-    fileexists = .FALSE.
+    !
+    IF( LEN_TRIM(temp)>0 ) THEN
+      !Verify that file exists
+      INQUIRE(FILE=temp,EXIST=fileexists)
+      IF( fileexists ) THEN
+        j=SCAN(temp,"/",BACK=.TRUE.)
+        msg = TRIM(ADJUSTL(temp(j+1:)))
+      ENDIF
+    ELSE
+      fileexists = .FALSE.
+    ENDIF
   ENDIF
   !
   !If no suitable file was found, use a dummy one

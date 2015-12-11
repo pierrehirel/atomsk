@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Nov. 2015                                     *
+!* Last modification: P. Hirel - 07 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -797,7 +797,7 @@ CASE(1705)
 CASE(1706)
   msg = "/!\ WARNING: cell dimensions are in Bohrs, while atom positions are in angströms."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Cell dimensions will be converted to angströms for consistency."
+  msg = "            Atom positions will be converted to Bohrs for consistency."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string
@@ -874,6 +874,16 @@ CASE(1813)
   !strings(1) = string where conversion failed
   msg = "X!X ERROR: failed to parse symmetry operation in '"// &
       & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1814)
+  !strings(1) = name of file format
+  !strings(2) = name of mode to use to read this file format
+  IF( LEN_TRIM(strings(2))>0 ) THEN
+    msg = "X!X ERROR: files in "//TRIM(ADJUSTL(strings(1)))//  &
+        & " format can only be read with the mode "//TRIM(ADJUSTL(strings(2)))//"."
+  ELSE
+    msg = "X!X ERROR: files in "//TRIM(ADJUSTL(strings(1)))//" format cannot be read."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

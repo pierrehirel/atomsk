@@ -21,7 +21,7 @@ MODULE oia_qeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 June 2014                                     *
+!* Last modification: P. Hirel - 07 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -160,10 +160,15 @@ DO  !loop on all snapshots
       !  lattice parameter (alat)  =       6.6604  a.u.
       strlength = SCAN(test,"=")
       test = TRIM(ADJUSTL(test(strlength+1:)))
-      IF( test(LEN_TRIM(test)-4:)=="a.u." ) THEN
+      READ(test,*,ERR=800,END=800) alat
+      !Try to read units, go on if it fails
+      READ(test,*,ERR=210,END=210) alat, msg
+      210 CONTINUE
+      msg=ADJUSTL(msg)
+      IF( msg(1:4)=="a.u." ) THEN
         cell_units = 'B'
       ENDIF
-      READ(test(1:LEN_TRIM(test)-5),*,ERR=800,END=800) alat
+      cell_defined = .TRUE.
       !
     ELSEIF( test(1:12)=="crystal axes" ) THEN
       !After this line come the three cell vectors, with the format:
@@ -205,7 +210,9 @@ DO  !loop on all snapshots
         READ(test(1:strlength2-1),*,ERR=800,END=800) celldm(3+i)
       ENDDO
       !
-      IF(alat<=0.d0 .AND. celldm(1)>0.d0) alat = celldm(1)
+      IF(alat<=1.d-12 .AND. celldm(1)>0.d0) THEN
+        alat = celldm(1)
+      ENDIF
       IF(ibrav.NE.0) THEN
         !Define the cell vectors H(:,:) according to the value of ibrav and the celldm(:)
         CALL QE_PW_IBRAV(ibrav,celldm(:),H)
@@ -243,6 +250,8 @@ DO  !loop on all snapshots
       IF( INDEX(test,"(alat units)")>0 ) THEN
         atpos_units = "a"
       ENDIF
+      !
+      CALL ATOMSK_MSG(4041,(/''/),(/DBLE(snap)/))
       !
       DO i=1,SIZE(P,1)
         READ(30,'(a128)',ERR=500,END=500) test
@@ -331,10 +340,12 @@ DO  !loop on all snapshots
     !A new cell was defined
     IF(cell_units=="B" .AND. atpos_units=="A") THEN
       !Atom coordinates are in angstroms while cell vectors are in Bohrs
-      ! => convert cell vectors to angstroms for consistency
+      ! => convert atom positions into Bohrs for consistency
       nwarn=nwarn+1
       CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
-      H(:,:) = 1.d10*a_bohr*H(:,:)
+      DO i=1,SIZE(P,1)
+        P(i,1:3) = P(i,1:3) / (1.d10*a_bohr)
+      ENDDO
     ENDIF
   ENDIF
   !

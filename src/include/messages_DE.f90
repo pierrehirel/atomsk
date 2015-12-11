@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 16 Oct. 2015                                     *
+!* Last modification: P. Hirel - 07 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -694,7 +694,7 @@ CASE(1705)
 CASE(1706)
   msg = "/!\ WARNUNG: Zell-Dimensionen in Bohrs, aber atomare Positionen in Angstroems."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "             Zell Dimensionen werden in Angstroems konvertiert."
+  msg = "             Atomare Positionen werden in Bohr konvertiert."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string
@@ -770,6 +770,16 @@ CASE(1813)
   !strings(1) = string where conversion failed
   msg = "X!X FEHLER beim Analysieren der Operation in '"// &
       & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1814)
+  !strings(1) = name of file format
+  !strings(2) = name of mode to use to read this file format
+  IF( LEN_TRIM(strings(2))>0 ) THEN
+    msg = "X!X FEHLER: Datei im Format "//TRIM(ADJUSTL(strings(1)))//  &
+        & " könnten nur im Modus "//TRIM(ADJUSTL(strings(2)))//" gelesen werden."
+  ELSE
+    msg = "X!X FEHLER: Datei im Format "//TRIM(ADJUSTL(strings(1)))//" könnten nicht gelesen werden."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 July 2014                                     *
+!* Last modification: P. Hirel - 11 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -397,7 +397,7 @@ DO WHILE(i<NP .OR. j<NS)
     temp2 = temp(strlength:)
     !
     !
-    WRITE(msg,*) 'Read coordinates: ', TRIM(temp2)
+    WRITE(msg,*) 'Read '//TRIM(coord)//' coordinates: ', TRIM(temp2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     IF(coord=='cart') THEN
@@ -708,10 +708,10 @@ DO WHILE(i<NP .OR. j<NS)
       !Note: for GULP, a fix=1 means that the particle is mobile,
       !     while for atomsk fix=1 means that it is fixed, so this
       !     needs to be converted
-      IF( Ncol.NE.0 ) THEN
+      IF( Ncol>0 ) THEN
         IF( Ncol==1 ) THEN
           !Only charge
-          IF(ptype=='shel') THEN
+          IF(ptype=='shel' .AND. qs>0) THEN
             READ(temp2,*,END=800,ERR=800) AUX(i,qs)
           ELSE
             READ(temp2,*,END=800,ERR=800) AUX(i,q)
@@ -725,9 +725,10 @@ DO WHILE(i<NP .OR. j<NS)
           ENDIF
         ELSEIF( Ncol==3 ) THEN
           !ambiguous case
-          IF( fixx.NE.0 .AND. fixy.NE.0 .AND. fixz.NE.0 ) THEN
-            !fixx fixy fixz
+          IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
+            !Fixed coordinates fixx fixy fixz
             READ(temp2,*,END=800,ERR=800) AUX(i,fixx), AUX(i,fixy), AUX(i,fixz)
+            !Replace 0 by 1 and vice-versa
             AUX(i,fixx) = DABS(AUX(i,fixx)-1.d0)
             AUX(i,fixy) = DABS(AUX(i,fixy)-1.d0)
             AUX(i,fixz) = DABS(AUX(i,fixz)-1.d0)
@@ -748,6 +749,7 @@ DO WHILE(i<NP .OR. j<NS)
             READ(temp2,*,END=800,ERR=800) AUX(i,q), AUX(i,fixx),                &
                                         & AUX(i,fixy), AUX(i,fixz)
           ENDIF
+          !Replace 0 by 1 and vice-versa
           AUX(i,fixx) = DABS(AUX(i,fixx)-1.d0)
           AUX(i,fixy) = DABS(AUX(i,fixy)-1.d0)
           AUX(i,fixz) = DABS(AUX(i,fixz)-1.d0)
@@ -791,12 +793,18 @@ ENDDO
 500 CONTINUE
 !Convert fractional coordinates to cartesian
 IF(coord=='frac') THEN
+  msg = 'converting to cartesian coordinates'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   CALL FRAC2CART(P,H)
-  IF(ALLOCATED(S)) CALL FRAC2CART(S,H)
+  IF(ALLOCATED(S)) THEN
+    CALL FRAC2CART(S,H)
+  ENDIF
 ENDIF
 !
 !Continue reading, look for velocities
-IF( velocities ) THEN
+IF( velocities .AND. vx>0 .AND. vy>0 .AND. vz>0 ) THEN
+  msg = 'looking for velocities...'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Atom velocities are present: read them
   !Note: velocities may not be defined for all atoms, and will
   !     remain zero if not defined in this section.
@@ -805,13 +813,21 @@ IF( velocities ) THEN
     READ(30,'(a128)',ERR=550,END=550) temp
     temp = ADJUSTL(temp)
     IF( temp(1:3)=="vel" ) THEN
+      msg = 'Found velocities'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO
         READ(30,'(a128)',ERR=550,END=550) temp
         temp = ADJUSTL(temp)
         READ(temp,*,ERR=550,END=550) i, P1, P2, P3
-        AUX(i,vx) = P1
-        AUX(i,vy) = P2
-        AUX(i,vz) = P3
+        IF( i>0 .AND. i<=SIZE(AUX,1) ) THEN
+          AUX(i,vx) = P1
+          AUX(i,vy) = P2
+          AUX(i,vz) = P3
+        ELSE
+          !out-of-bounds
+          nwarn=nwarn+1
+          CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
+        ENDIF
       ENDDO
     ENDIF
   ENDDO

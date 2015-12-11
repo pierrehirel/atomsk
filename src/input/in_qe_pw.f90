@@ -44,6 +44,7 @@ CONTAINS
 SUBROUTINE READ_QEPW(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
+CHARACTER(LEN=1):: cell_units, atpos_units !units of cell vectors, atom positions: A (angstroms) or B (Bohrs)
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=16):: section  !section of the PW file
 CHARACTER(LEN=128):: msg, temp
@@ -68,6 +69,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX !auxiliary properties
 !
 !
 !Initialize variables
+atpos_units='B'
+ cell_units='B'
 section = ''
  convnot=.FALSE.
  celldm_defined=.FALSE.
@@ -334,12 +337,19 @@ DO
       READ(30,*,END=800,ERR=800) H(2,1), H(2,2), H(2,3)
       READ(30,*,END=800,ERR=800) H(3,1), H(3,2), H(3,3)
       msg = ADJUSTL(temp(16:))
-      IF( msg(1:4)=='alat' .OR. msg(1:4)=='ALAT' .OR. LEN_TRIM(msg)==0 ) THEN
+      IF( LEN_TRIM(msg)<=0 .OR. msg(1:4)=="bohr" .OR. msg(1:4)=="Bohr" ) THEN
+        !Cell dimensions are in Bohrs
+        cell_units='B'
+      ELSEIF( msg(1:4)=='alat' .OR. msg(1:4)=='ALAT' .OR. LEN_TRIM(msg)==0 ) THEN
         !If celldm(1) was not specified, the H(:,:) are in Bohrs
         !Otherwise the H(:,:) must be normalized to alat=celldm(1)
         IF( celldm(1).NE.0.d0 ) THEN
           H(:,:) = celldm(1)*H(:,:)
         ENDIF
+        cell_units='B'
+      ELSEIF( msg(1:3)=="ang" ) THEN
+        !Cell dimensions are in Angströms
+        cell_units='A'
       ENDIF
     ENDIF
     !
@@ -354,10 +364,17 @@ DO
       CALL ATOMNUMBER(species,P(i,4))
     ENDDO
     !If coordinates were reduced or in lattice coordinates, convert them
-    IF( msg(1:7)=='crystal' .OR. msg(1:7)=='CRYSTAL' ) THEN
+    IF( LEN_TRIM(msg)<=0 .OR. msg(1:4)=="bohr" .OR. msg(1:4)=="Bohr" ) THEN
+      !Atom positions are in Bohrs
+      atpos_units='B'
+    ELSEIF( msg(1:7)=='crystal' .OR. msg(1:7)=='CRYSTAL' ) THEN
       CALL FRAC2CART(P,H)
     ELSEIF( msg(1:4)=='alat' .OR. msg(1:4)=='ALAT' .OR. LEN_TRIM(msg)==0 ) THEN
       P(:,1:3) = celldm(1)*P(:,1:3)
+      atpos_units=cell_units
+    ELSEIF( msg(1:3)=="ang" ) THEN
+      !Atom positions are in Angströms
+      atpos_units='A'
     ENDIF
     !
     !
@@ -381,6 +398,16 @@ nerr = nerr+1
 !
 1000 CONTINUE
 CLOSE(30)
+!
+IF( cell_units=="B" .AND. atpos_units=="A" ) THEN
+  !Atom coordinates are in angstroms while cell vectors are in Bohrs
+  ! => convert atom positions into Bohrs for consistency
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
+  DO i=1,SIZE(P,1)
+    P(i,1:3) = P(i,1:3) / (1.d10*a_bohr)
+  ENDDO
+ENDIF
 !
 !
 !

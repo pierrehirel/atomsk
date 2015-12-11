@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Nov. 2015                                     *
+!* Last modification: P. Hirel - 07 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -199,6 +199,12 @@ CASE('xyz')
   CALL READ_XYZ(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 ! -- please add other formats in alphabetical order --
+!
+! File formats that were recognized but cannot be read by this module
+CASE('pwo')
+  !These files can only be read with the mode "--one-in-all"
+  CALL ATOMSK_MSG(1814,(/"PWscf output","--one-in-all"/),(/0.d0/))
+!
 !
 CASE DEFAULT
   GOTO 800
