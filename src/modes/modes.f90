@@ -989,10 +989,10 @@ ELSEIF( .NOT.ANY(options_array=="-wrap") ) THEN
     DO i=1,SIZE(options_array)
       options_temp(i+1) = options_array(i)
     ENDDO
-    DEALLOCATE(options_array)
+    IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
     ALLOCATE(options_array(SIZE(options_temp)))
     options_array(:) = options_temp(:)
-    DEALLOCATE(options_temp)
+    IF(ALLOCATED(options_temp)) DEALLOCATE(options_temp)
     options_array(1) = "-wrap"
   ENDIF
 ENDIF

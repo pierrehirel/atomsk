@@ -54,6 +54,9 @@
 <li><code class="command">atomsk initial.xsf -fix y final.gin</code>
 <p>Ceci lira le fichier <code>initial.xsf</code>, et figera la composante Y de tous les atomes. Le résultat sera écrit dans le fichier <code>final.gin</code>.</p></li>
 
+<li><code class="command">atomsk systeme.xsf -select out box 10 BOX-10 10 BOX-10 10 BOX-10 -fix all lammps</code>
+<p>Ceci va lire le fichier <code>systeme.xsf</code>, <a href="./option_select.html">selectionner les atomes</a> qui sont situés à moins de 10 &Aring; d'une bordure de la boîte, et figera ces atomes (suivant les trois directions X, Y et Z). Le résultat final sera écrit dans le fichier <code>systeme.lmp</code>.</p></li>
+
 <li><code class="command">atomsk system.xsf -fix x above 5 z gin</code>
 <p>Ceci lira <code>system.xsf</code>, et figera la composante X de tous les atomes situés au-dessus de 5 &Aring; suivant Z. Le résultat sera écrit dans <code>system.gin</code>.</p></li>
 
@@ -62,9 +65,6 @@
 
 <li><code class="command">atomsk initial.xsf -fix all below 0.2*BOX z -fix all above 0.8*BOX z final.gin</code>
 <p>Ceci figera complètement les atomes situés en-dessous de 0.2 fois la hauteur de boîte suivant Z, ou au-dessus de 0.8 fois cette hauteur.</p></li>
-
-<li><code class="command">atomsk initial.cfg -select out box 10 10 0 60 60 100 -fix all final.bop</code>
-<p>Ceci va <a href="./option_select.html">sélectionner les atomes dans une région</a>, et figera ces atomes dans les trois directions de l'espace. Ceci peut être utile pour figer les atomes en bord de boîte.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

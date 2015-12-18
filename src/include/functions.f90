@@ -10,7 +10,7 @@ MODULE functions
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 Dec. 2014                                     *
+!* Last modification: P. Hirel - 16 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -253,10 +253,10 @@ END FUNCTION IS_INTEGER
 FUNCTION VECLENGTH(V) RESULT(Vlength)
 !
 IMPLICIT NONE
-REAL(dp), DIMENSION(3),INTENT(IN):: V
+REAL(dp),DIMENSION(3),INTENT(IN):: V
 REAL(dp):: Vlength
 !
-Vlength = DSQRT( V(1)**2 + V(2)**2 + V(3)**2 )
+Vlength = DSQRT(DABS( V(1)*V(1) + V(2)*V(2) + V(3)*V(3) ))
 !
 END FUNCTION VECLENGTH
 !

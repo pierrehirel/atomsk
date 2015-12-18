@@ -182,7 +182,8 @@ ENDIF
 i=0
 IF( .NOT.ALLOCATED(comment) .OR. SIZE(comment)<=0 ) THEN
   i=1
-ELSEIF( LEN_TRIM(comment(1))==0 .OR. comment(1)(1:17)=="# File generated " ) THEN
+ENDIF
+IF( LEN_TRIM(comment(1))==0 .OR. comment(1)(1:17)=="# File generated " ) THEN
   i=1
 ENDIF
 IF(i==1) THEN
@@ -203,10 +204,12 @@ IF(i==1) THEN
 ENDIF
 !
 !Make sure that each comment line starts with a hash sign (#)
-DO i=1,SIZE(comment)
-  msg = TRIM(ADJUSTL(comment(i)))
-  IF(msg(1:1).NE.'#') comment(i) = '# '//TRIM(comment(i))
-ENDDO
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  DO i=1,SIZE(comment)
+    msg = TRIM(ADJUSTL(comment(i)))
+    IF(msg(1:1).NE.'#') comment(i) = '# '//TRIM(comment(i))
+  ENDDO
+ENDIF
 !
 !
 IF(LEN_TRIM(prefix)==0) THEN

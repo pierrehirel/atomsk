@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Dec. 2015                                     *
+!* Last modification: P. Hirel - 18 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,6 +37,7 @@ USE functions
 USE messages
 USE files
 USE subroutines
+USE symops
 !
 !
 CONTAINS
@@ -61,13 +62,13 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4):: coord, ptype
-CHARACTER(LEN=32):: coord1, coord2, coord3
+CHARACTER(LEN=128):: coord1, coord2, coord3
 CHARACTER(LEN=128):: test, test2, test3, temp, temp2
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
-LOGICAL:: charges  !are charges of cores/shells defined in the "species" section?
+LOGICAL:: chargesC, chargesS  !are charges of cores/shells defined in the "species" section?
 LOGICAL:: knowcol  !do we know the number of columns on each line?
 LOGICAL:: velocities !are velocities present?
 INTEGER:: fixx, fixy, fixz !columns in AUX where the fixes are defined
@@ -83,17 +84,18 @@ REAL(dp):: alpha, beta, gamma
 REAL(dp):: Hx, Hy, Hz !Length of H(1,:), H(2,:) and H(3,:)
 REAL(dp):: P1, P2, P3
 REAL(dp):: snumber !Mass of atoms
-REAL(dp), DIMENSION(3,3):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(100,3):: tempq  !temp. array for core/shell charges (max.100 species)
-REAL(dp), DIMENSION(:,:),ALLOCATABLE:: P, S !positions of cores, shells
-REAL(dp), DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
+REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(30,3):: tempq  !temp. array for core/shell charges (max.30 species)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !positions of cores, shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !Initialize variables
 test=''
 tempcomment(:)=''
  coord = 'cart'
- charges = .FALSE.
+ chargesC = .FALSE.
+ chargesS = .FALSE.
 knowcol=.FALSE.
 velocities = .FALSE.
 Ncol = 0
@@ -140,7 +142,7 @@ DO
       tempcomment(k) = TRIM(ADJUSTL(temp))
     ENDDO
     !Save comments to array comment(:)
-    ALLOCATE(comment(k-1))
+    ALLOCATE(comment(MAX(1,k-1)))
     DO j=1,k-1
       comment(j) = tempcomment(j)
     ENDDO
@@ -191,26 +193,62 @@ DO
     !  tempq(:,2) = core charge
     !  tempq(:,3) = shell charge (if any)
     READ(temp(8:),*,END=20,ERR=20) k
-    DO i=1,k
-      IF(i>100) GOTO 20 !tempq can store only 100 different species
-      READ(30,*,END=20,ERR=20) test, test2, test3
-      READ(test,*,END=20,ERR=20) species
-      CALL ATOMNUMBER(species,snumber)
-      IF(NINT(snumber)==0) GOTO 20
-      tempq(i,1) = snumber
-      IF( test2(1:4)=="shel" ) THEN
-        READ(test3,*,END=20,ERR=20) tempq(i,3)
-      ELSE
-        READ(test3,*,END=20,ERR=20) tempq(i,2)
+    IF( k<=SIZE(tempq) ) THEN
+      tempq(:,:) = 0.d0
+      DO i=1,k
+        READ(30,*,END=20,ERR=20) test, test2, test3
+        !Determine ion species
+        READ(test,*,END=20,ERR=20) species
+        CALL ATOMNUMBER(species,snumber)
+        IF(NINT(snumber)<=0) GOTO 20
+        !Read the type of entry: "core" or "shel"
+        test2 = ADJUSTL(test2)
+        ptype = test2(1:4)
+        !Read the electric charge
+        READ(test3,*,END=20,ERR=20) P1
+        !Parse tempq and store charge in the appropriate row
+        j=0
+        DO WHILE ( LEN_TRIM(ptype)>0 )
+          j=j+1
+          IF( NINT(tempq(j,1)) == NINT(snumber) ) THEN
+            !Ion #i is the same species as ion #j
+            !Save the new charge into tempq
+            IF( ptype=="shel" ) THEN
+              tempq(j,3) = P1
+              chargesS = .TRUE.
+            ELSE
+              tempq(j,2) = P1
+              chargesC = .TRUE.
+            ENDIF
+            ptype=""
+          ELSEIF( NINT(tempq(j,1)) <= 0 ) THEN
+            !Ion #i belongs to a species never seen before
+            !=> create a new entry
+            tempq(j,1) = snumber
+            IF( ptype=="shel" ) THEN
+              tempq(j,3) = P1
+              chargesS = .TRUE.
+            ELSE
+              tempq(j,2) = P1
+              chargesC = .TRUE.
+            ENDIF
+            ptype=""
+          ENDIF
+        ENDDO
+      ENDDO
+      !
+      IF( verbosity==4 ) THEN
+        DO i=1,j
+          WRITE(msg,*) 'tempq:', NINT(tempq(i,1)), tempq(i,2), tempq(i,3)
+          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        ENDDO
       ENDIF
-      IF(i<5) THEN
-        WRITE(msg,*) 'tempq:', tempq(i,1), tempq(i,2), tempq(i,3)
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      ENDIF
-    ENDDO
-    charges = .TRUE.
+      !
+    ENDIF
     !
   ELSEIF( temp(1:10)=="spacegroup" ) THEN
+    !Read the space group
+    READ(30,'(a128)',END=820,ERR=820) test
     nwarn=nwarn+1
     CALL ATOMSK_MSG(1704,(/""/),(/0.d0/))
   ENDIF
@@ -397,7 +435,7 @@ DO WHILE(i<NP .OR. j<NS)
     temp2 = temp(strlength:)
     !
     !
-    WRITE(msg,*) 'Read '//TRIM(coord)//' coordinates: ', TRIM(temp2)
+    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', TRIM(temp2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     IF(coord=='cart') THEN
@@ -406,7 +444,7 @@ DO WHILE(i<NP .OR. j<NS)
       !Save the rest of the line in "temp2" for later
       temp2 = ADJUSTL(temp2)
       DO k=1,3
-        READ(temp2,*) test
+        READ(temp2,*,END=800,ERR=800) test
         strlength = LEN_TRIM(test)+1
         temp2 = ADJUSTL(temp2(strlength:))
       ENDDO
@@ -429,7 +467,7 @@ DO WHILE(i<NP .OR. j<NS)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ELSE
         !Easy case: "coord1" is just a real
-        READ(coord1,*) P1
+        READ(coord1,*,END=800,ERR=800) P1
         strlength = strlength+SCAN(temp2,'0123456789')+LEN_TRIM(coord1)
       ENDIF
       !
@@ -448,7 +486,7 @@ DO WHILE(i<NP .OR. j<NS)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ELSE
         !Easy case: "coord2" is just a real
-        READ(coord2,*) P2
+        READ(coord2,*,END=800,ERR=800) P2
         strlength = strlength+SCAN(temp2,'0123456789')+LEN_TRIM(coord2)
       ENDIF
       !
@@ -467,7 +505,7 @@ DO WHILE(i<NP .OR. j<NS)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ELSE
         !Easy case: "coord3" is just a real
-        READ(coord3,*) P3
+        READ(coord3,*,END=800,ERR=800) P3
         strlength = strlength+SCAN(temp2,'0123456789')+LEN_TRIM(coord3)
       ENDIF
       temp2 = temp(strlength:)
@@ -482,15 +520,27 @@ DO WHILE(i<NP .OR. j<NS)
     !WRITE(msg,*) '       ', P1, P2, P3
     !CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     IF(ptype=='core') THEN
-      P(i,4) = snumber
-      P(i,1) = P1
-      P(i,2) = P2
-      P(i,3) = P3
+      IF( i>0 .AND. i<=SIZE(P,1) ) THEN
+        P(i,4) = snumber
+        P(i,1) = P1
+        P(i,2) = P2
+        P(i,3) = P3
+      ELSE
+        !out-of-bounds
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
+      ENDIF
     ELSE
-      S(j,4) = snumber
-      S(j,1) = P1
-      S(j,2) = P2
-      S(j,3) = P3
+      IF( j>0 .AND. j<=SIZE(S,1) ) THEN
+        S(j,4) = snumber
+        S(j,1) = P1
+        S(j,2) = P2
+        S(j,3) = P3
+      ELSE
+        !out-of-bounds
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(2742,(/""/),(/DBLE(j)/))
+      ENDIF
     ENDIF
     !
     !
@@ -515,12 +565,16 @@ DO WHILE(i<NP .OR. j<NS)
         ENDIF
       ENDDO
       43 CONTINUE
-      WRITE(msg,*) 'Ncol = ', Ncol
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      WRITE(msg,*) 'charges = ', charges
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      WRITE(msg,*) 'velocities = ', velocities
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      IF( verbosity==4) THEN
+        WRITE(msg,*) 'Ncol = ', Ncol
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        WRITE(msg,*) 'charges cores =  ', chargesC
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        WRITE(msg,*) 'charges shells = ', chargesS
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        WRITE(msg,*) 'velocities = ', velocities
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
       !
       !The number of columns fixes the format:
       !(only Ncol=3 is ambiguous, it will be dealt with later)
@@ -560,9 +614,14 @@ DO WHILE(i<NP .OR. j<NS)
           IF( (test=='1'.OR.test=='0') .AND. (test2=='1'.OR.test2=='0')  &
             & .AND. (test3=='1'.OR.test3=='0')                           ) THEN
             !It is the fix flags
-            !Charges may have been defined elsewhere
-            IF(charges) THEN
+            !However, charges of cores/shells may have been defined elsewhere
+            !(e.g. in the "species" section)
+            IF(chargesC) THEN
               q = icol
+              icol=icol+1
+            ENDIF
+            IF(chargesS .AND. ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+              qs = icol
               icol=icol+1
             ENDIF
             fixx = icol
@@ -635,11 +694,19 @@ DO WHILE(i<NP .OR. j<NS)
         AUX(:,:) = 0.d0
         ALLOCATE( AUXNAMES(icol) )
         !Set names of auxiliary properties
-        IF(occ.NE.0) AUXNAMES(occ) = 'occupancy'
-        IF(radius.NE.0) AUXNAMES(radius) = 'bsradius'
-        IF(fixx.NE.0) AUXNAMES(fixx) = 'fixx'
-        IF(fixy.NE.0) AUXNAMES(fixy) = 'fixy'
-        IF(fixz.NE.0) AUXNAMES(fixz) = 'fixz'
+        IF(occ>0 .AND. occ<=SIZE(AUX,1)) AUXNAMES(occ) = 'occupancy'
+        IF(radius>0 .AND. radius<=SIZE(AUX,1)) AUXNAMES(radius) = 'bsradius'
+        IF(fixx>0 .AND. fixx<=SIZE(AUX,1)) AUXNAMES(fixx) = 'fixx'
+        IF(fixy>0 .AND. fixy<=SIZE(AUX,1)) AUXNAMES(fixy) = 'fixy'
+        IF(fixz>0 .AND. fixz<=SIZE(AUX,1)) AUXNAMES(fixz) = 'fixz'
+        !
+        IF( chargesC .OR. chargesS ) THEN
+          !Charges of cores or shells were defined before (in section "species")
+          !Define them for all 
+          DO k=1,SIZE(AUX,1)
+            
+          ENDDO
+        ENDIF
         !
         WRITE(msg,*) 'SIZE AUX = ', SIZE(AUX,1), SIZE(AUX,2)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -655,15 +722,15 @@ DO WHILE(i<NP .OR. j<NS)
           vy=2
           vz=3
         ENDIF
-        IF( charges ) THEN
+        IF( chargesC ) THEN
           k=k+1
           q=k
-          IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
-            k=k+1
-            qs=k
-          ENDIF
         ENDIF
-        IF(k.NE.0) THEN
+        IF( chargesS .AND. ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+          k=k+1
+          qs=k
+        ENDIF
+        IF(k>0) THEN
           ALLOCATE( AUX(SIZE(P,1),k) )
           AUX(:,:) = 0.d0
           ALLOCATE( AUXNAMES(k) )
@@ -671,12 +738,16 @@ DO WHILE(i<NP .OR. j<NS)
       ENDIF !endif Ncol.NE.0
       !
       !Set names of auxiliary properties
-      IF(q.NE.0) AUXNAMES(q) = 'q'
-      IF(qs.NE.0) AUXNAMES(qs) = 'qs'
       IF( velocities ) THEN
         AUXNAMES(vx) = 'vx'
         AUXNAMES(vy) = 'vy'
         AUXNAMES(vz) = 'vz'
+      ENDIF
+      IF( q>0 .AND. q<=SIZE(AUXNAMES) ) THEN
+        AUXNAMES(q) = 'q'
+      ENDIF
+      IF( qs>0 .AND. qs<=SIZE(AUXNAMES) ) THEN
+        AUXNAMES(qs) = 'qs'
       ENDIF
       !
       !We know the number of columns: go back one line
@@ -691,14 +762,18 @@ DO WHILE(i<NP .OR. j<NS)
       !
       !If charges were defined before, set it for this atom
       !(note that it will be overriden later if q.NE.0)
-      IF(charges) THEN
+      IF( chargesC .AND. q>0 ) THEN
         DO k=1,SIZE(tempq,1)
           IF( NINT(tempq(k,1))==NINT(P(i,4)) ) THEN
-            IF( ptype=='shel' ) THEN
-              AUX(i,qs) = tempq(k,3)
-            ELSE
-              AUX(i,q) = tempq(k,2)
-            ENDIF
+            AUX(i,q) = tempq(k,2)
+            EXIT
+          ENDIF
+        ENDDO
+      ENDIF
+      IF( chargesS .AND. qs>0 ) THEN
+        DO k=1,SIZE(tempq,1)
+          IF( NINT(tempq(k,1))==NINT(P(i,4)) ) THEN
+            AUX(i,qs) = tempq(k,3)
             EXIT
           ENDIF
         ENDDO
@@ -834,6 +909,9 @@ IF( velocities .AND. vx>0 .AND. vy>0 .AND. vz>0 ) THEN
 ENDIF
 !
 550 CONTINUE
+!
+!Apply symmetry operations
+
 GOTO 1000
 !
 !

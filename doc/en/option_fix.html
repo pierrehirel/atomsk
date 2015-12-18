@@ -53,8 +53,11 @@
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.xsf -fix y final.gin</code>
+<li><code class="command">atomsk initial.xsf -fix Y final.gin</code>
 <p>This will read the file <code>initial.xsf</code>, and fix the Y coordinate of all atoms. The result will be output to the file <code>final.gin</code>.</p></li>
+
+<li><code class="command">atomsk system.xsf -select out box 10 BOX-10 10 BOX-10 10 BOX-10 -fix all lammps</code>
+<p>This will read the file <code>system.xsf</code>, <a href="./option_select.html">select atoms</a> that are within 10 &Aring; of each boundary, and fix these atoms (in all three coordinates X, Y and Z). The result will be output to the file <code>system.lmp</code>.</p></li>
 
 <li><code class="command">atomsk system.xsf -fix x above 5 z gin</code>
 <p>This will read the file <code>system.xsf</code>, and fix the X coordinate of all atoms that are above 5 &Aring; along Z. The result will be output to the file <code>system.gin</code>.</p></li>
@@ -64,9 +67,6 @@
 
 <li><code class="command">atomsk initial.xsf -fix all below 0.2*BOX z -fix all above 0.8*BOX z final.gin</code>
 <p>This will fix all atoms that are below 0.2 times the box height along Z, or above 0.8 times that height.</p></li>
-
-<li><code class="command">atomsk initial.cfg -select out box 10 10 0 60 60 100 -fix all final.bop</code>
-<p>This will <a href="./option_select.html">select atoms in a region</a>, and fix them in the three directions of space. This can be used to easily fix atoms at the border of a simulation cell.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

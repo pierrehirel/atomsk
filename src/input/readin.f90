@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Dec. 2015                                     *
+!* Last modification: P. Hirel - 18 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -211,6 +211,31 @@ CASE DEFAULT
 END SELECT
 IF(nerr>=1) GOTO 800
 !
+IF(verbosity==4) THEN
+  msg = "Finished reading input file, size of arrays:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  IF( ALLOCATED(P) ) THEN
+    WRITE(msg,*) "P: ", SIZE(P,1), SIZE(P,2)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+  IF( ALLOCATED(S) ) THEN
+    WRITE(msg,*) "S: ", SIZE(S,1), SIZE(S,2)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+  IF( ALLOCATED(AUX) ) THEN
+    WRITE(msg,*) "AUX: ", SIZE(AUX,1), SIZE(AUX,2)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+  IF( ALLOCATED(AUXNAMES) ) THEN
+    WRITE(msg,*) "AUXNAMES: ", SIZE(AUXNAMES)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+  IF( ALLOCATED(comment) ) THEN
+    WRITE(msg,*) "comment: ", SIZE(comment)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+ENDIF
+!
 IF(.NOT.ALLOCATED(P)) nerr=nerr+1
 IF(nerr>=1) GOTO 800
 !
@@ -222,7 +247,9 @@ IF(ALLOCATED(S)) THEN
     CALL ATOMSK_MSG(1802,(/'S'/),(/0.d0/))
   ELSEIF( SIZE(S,1)<=0 ) THEN
     !no shell => S should not be allocated
+    PRINT*, "DEALLOCATE S"
     DEALLOCATE(S)
+    PRINT*, "DEALLOCATED"
   ENDIF
 ENDIF
 IF( ALLOCATED(AUXNAMES) .OR. ALLOCATED(AUX) ) THEN
@@ -245,10 +272,10 @@ ENDIF
 !
 IF(verbosity==4) THEN
   IF(ALLOCATED(AUX)) THEN
-    WRITE(msg,'(a5,12(a9,1X))') "AUXNAMES: ", (TRIM(AUXNAMES(i))//' ', i=1,SIZE(AUXNAMES(:)) )
+    WRITE(msg,'(a5,12(a9,1X))') "AUXNAMES: ", (TRIM(AUXNAMES(i))//' ', i=1,SIZE(AUXNAMES) )
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO strlength=1,MIN(20,SIZE(AUX,1))
-      WRITE(msg,'(a5,20e10.3)') "AUX: ", (AUX(strlength,i), i=1,SIZE(AUX(1,:)) )
+      WRITE(msg,'(a5,20e10.3)') "AUX: ", (AUX(strlength,i), i=1,SIZE(AUX,2) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
     IF(SIZE(AUX,1)>20) THEN
@@ -257,6 +284,7 @@ IF(verbosity==4) THEN
     ENDIF
   ENDIF
 ENDIF
+!
 CALL ATOMSK_MSG(1001,(/''/),(/DBLE(SIZE(P,1))/))
 GOTO 1000
 !

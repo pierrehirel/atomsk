@@ -32,7 +32,7 @@ MODULE mode_normal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 16 Dec. 2015                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -85,7 +85,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, tempcomment
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: strlength
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(3,3):: HS  !Copy of H for shells if necessary
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !positions of cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
@@ -98,7 +97,6 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Initialize variables
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 H(:,:) = 0.d0
-HS(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 infileformat=''
 strlength=0
@@ -130,7 +128,7 @@ IF(verbosity==4) THEN
   temp = 'atomsk.xyz'
   CALL WRITE_XYZ(H,P,tempcomment,AUXNAMES,AUX,temp,'sxyz ')
 ENDIF
-IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 800
+IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 1000
 !
 !
 !
@@ -139,8 +137,7 @@ IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 800
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 300 CONTINUE
 !!Determine if the cell vectors were found or not
-IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
-    & .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
   !!If basis vectors H were not found in the input file, then compute them
   ! (this does not work perfectly yet, see determine_H.f90)
   CALL ATOMSK_MSG(4701,(/''/),(/0.d0/))
@@ -162,7 +159,6 @@ IF(verbosity==4) THEN
 ENDIF
 !
 IF(nerr>=1 .OR. .NOT.ALLOCATED(P)) GOTO 810
-HS = H
 !
 !
 !
@@ -173,7 +169,9 @@ HS = H
 msg = 'APPLYING OPTIONS TO THE SYSTEM:'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+IF( ALLOCATED(options_array) ) THEN
+  CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+ENDIF
 !
 450 CONTINUE
 IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 820

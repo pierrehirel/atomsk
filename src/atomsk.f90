@@ -295,10 +295,10 @@ ELSE
               cla_new(j) = opt_file(n)
               n=n+1
             ENDDO
-            DEALLOCATE(cla)
+            IF(ALLOCATED(cla)) DEALLOCATE(cla)
             ALLOCATE(cla(SIZE(cla_new)))
             cla(:) = cla_new(:)
-            DEALLOCATE(cla_new)
+            IF(ALLOCATED(cla_new)) DEALLOCATE(cla_new)
           ENDIF
         ENDDO
         115 CONTINUE

@@ -18,6 +18,7 @@ beta 0.9 (in development)
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
 - new set of algorithms to apply symmetry operations and deal with space groups. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.
 - faster algorithm for neighbor search, based on cell decomposition. Thanks to Srinivasan Mahendran, UMET, Lille, France, for his help with the implementation of this feature.
+- fixed a bug that could cause the program to crash when reading GULP input files.
 - fixed a bug in mode "--merge" where sometimes auxiliary properties would not be correctly handled.
 - fixed a bug in the displaying of progress bar that slowed down the program.
 - l10n: added the German translations of the messages. Thanks to Juri Barthel, RWTH Aachen, Germany, for translating Atomsk.

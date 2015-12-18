@@ -919,10 +919,10 @@ DO ioptions=1,SIZE(options_array)
     !Write atoms positions to "atomsk.xyz"
     temp = 'atomsk.xyz'
     OPEN(UNIT=36,FILE=temp,STATUS="UNKNOWN",FORM="FORMATTED")
-    WRITE(36,*) SIZE(P(:,1))
-    msg = '#Debug file for atomsk, after option: '//TRIM(optionname)
+    WRITE(36,*) SIZE(P,1)
+    msg = '#Debug file for Atomsk, after option: '//TRIM(optionname)
     WRITE(36,*) TRIM(msg)
-    DO i=1, SIZE(P(:,1))
+    DO i=1, SIZE(P,1)
       CALL ATOMSPECIES(P(i,4),species)
       WRITE(36,'(a2,2X,3(f16.8,1X))') species, P(i,1:3)
     ENDDO
@@ -980,7 +980,7 @@ DO ioptions=1,SIZE(options_array)
   IF( ALLOCATED(SELECT) ) THEN
     IF( SIZE(SELECT)<=0 .OR. .NOT.ANY(SELECT(:)) ) THEN
       nwarn=nwarn+1
-      DEALLOCATE(SELECT)
+      IF( ALLOCATED(SELECT)) DEALLOCATE(SELECT)
       CALL ATOMSK_MSG(2750,(/""/),(/0.d0/))
     ENDIF
   ENDIF
