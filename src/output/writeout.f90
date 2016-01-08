@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Oct. 2015                                     *
+!* Last modification: P. Hirel - 07 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -158,6 +158,8 @@ ENDIF
 !When building bigger systems, it is assumed that the user has tested
 !his scripts on smaller systems already, and knows what he is doing
 IF( SIZE(P,1)<30000 ) THEN
+  WRITE(msg,*) 'Looking for NaN in array P...'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   CALL CHECKNAN(P,i)
   IF( i.NE.0 ) THEN
     nerr=nerr+1
@@ -166,6 +168,8 @@ IF( SIZE(P,1)<30000 ) THEN
   ENDIF
   !Also check auxiliary properties
   IF( ALLOCATED(AUX) ) THEN
+    WRITE(msg,*) 'Looking for NaN in array AUX...'
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     CALL CHECKNAN(AUX,i)
     IF( i.NE.0 ) THEN
       nerr=nerr+1
@@ -182,11 +186,14 @@ ENDIF
 i=0
 IF( .NOT.ALLOCATED(comment) .OR. SIZE(comment)<=0 ) THEN
   i=1
-ENDIF
-IF( LEN_TRIM(comment(1))==0 .OR. comment(1)(1:17)=="# File generated " ) THEN
-  i=1
+ELSE
+  IF( LEN_TRIM(comment(1))==0 .OR. comment(1)(1:17)=="# File generated " ) THEN
+    i=1
+  ENDIF
 ENDIF
 IF(i==1) THEN
+  WRITE(msg,*) 'Generating comment...'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Get user name: this is environment-dependent
 #if defined(WINDOWS)
   CALL GET_ENVIRONMENT_VARIABLE('USERNAME',username)
@@ -212,7 +219,7 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
 ENDIF
 !
 !
-IF(LEN_TRIM(prefix)==0) THEN
+IF(LEN_TRIM(prefix)<=0) THEN
   CALL ATOMSK_MSG(3700,(/TRIM(msg)/),(/0.d0/))
   READ(*,*) prefix
 ENDIF

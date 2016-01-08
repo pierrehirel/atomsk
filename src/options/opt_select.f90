@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Dec. 2015                                     *
+!* Last modification: P. Hirel - 06 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,7 +61,7 @@ INTEGER:: a1, a2, a3
 INTEGER:: atomrank, atomrank2  !rank of atom to be selected
 INTEGER:: clock
 INTEGER:: gridformat !format of the file (for select grid)
-INTEGER:: i, j, k
+INTEGER:: i, j, k, l, m, n
 INTEGER:: Ngrid    !number of elements in the grid
 INTEGER:: Nperline !number of grid element per line
 INTEGER:: Nselect  !number of atoms selected
@@ -1139,15 +1139,23 @@ CASE("list")
   !
 CASE('grid')
   !Elements of a grid are read from the file "region_geom"
-  !This file is a text file that can have one of two formats:
+  !This file is a text file that can have one of three formats:
   !
-  !(1) It may contain several lines with values "x y z 1|0"
-  !    The last value indicates if atoms inside that element are selected (1) or not (0)
+  !(1) It may contain one line with three integers "NX NY NZ",
+  !    indicating the number of grid elements along each direction
+  !    (in that case all elements have the same size),
+  !    followed by lines of 0 and 1 indicating if atoms inside each element
+  !    are selected (1) or not (0).
   !
-  !(2) It may contain rows of 0 and 1 that represent a 2-D grid.
+  !(2) It may contain several lines with values "x y z 1|0".
+  !    The (x,y,z) are actually the positions of nodes and are used
+  !    to define Voronoi polyhedra. The last value (1 or 0) indicates
+  !    if atoms inside a grid element are selected (1) or not (0)
+  !
+  !(3) It may contain rows of 0 and 1 that represent a 2-D grid.
   !    The values may be separated by blank spaces or contiguous.
   !
-  gridformat = 1  !by default, assume format "x y z 1|0"
+  gridformat = 2  !by default, assume format "x y z 1|0"
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
   Nselect=0
   !Check that the file actually exists
@@ -1167,14 +1175,27 @@ CASE('grid')
         !First line of data => determine the format of the file
         !Look for symbols different from 0 and 1
         IF( SCAN(temp,"23456789.") .NE. 0 ) THEN
-          !It should be 3 real numbers + an integer
-          !Try to confirm:
+          !Try to read three integers
+          READ(temp,*,ERR=291,END=291) a1, a2, a3
+          !Success => we have NX=a1, NY=a2, NZ=a3
+          gridformat=1
+          IF( a1<=0 .OR. a2<=0 .OR. a3<=0 ) THEN
+            !cannot have a grid with zero dimension => abort
+            nerr=nerr+1
+            GOTO 1000
+          ENDIF
+          Ngrid = a1*a2*a3
+          GOTO 292
+          291 CONTINUE
+          !Failed to read 3 integers => it should be 3 real numbers + an integer
+          !Try to confirm (if it fails, then the file has a bad format, abort):
           READ(temp,*,ERR=800,END=800) V1, V2, V3, i
           !No error, the format is confirmed
-          gridformat = 1
-        ELSE
-          !It should be rows of 0 and 1
           gridformat = 2
+        ELSE
+          !There are no symbols different from 0 and 1
+          !=> the file should contain rows of 0 and 1
+          gridformat = 3
           !Determine how many integers are in one line
           !Strip all blank spaces
           Nperline=0
@@ -1190,11 +1211,11 @@ CASE('grid')
         !
       ELSE
         !Not first line of data => read line assuming same format
-        IF( gridformat==1 ) THEN
+        IF( gridformat==2 ) THEN
           !Verify that 3 real numbers + 1 integer can be read
           READ(temp,*,ERR=800,END=800) V1, V2, V3, i
           Ngrid=Ngrid+1
-        ELSE !i.e. gridformat=2
+        ELSEIF( gridformat==3 ) THEN
           Ngrid=Ngrid+Nperline
         ENDIF
       ENDIF
@@ -1204,9 +1225,11 @@ CASE('grid')
   292 CONTINUE
   IF( verbosity==4 ) THEN
     IF( gridformat==1 ) THEN
-      WRITE(msg,*) "Format of the grid file: (1) x y z 1|0"
+      WRITE(msg,*) "Format of the grid file: (1) NX NY NZ + lines of 0 and 1"
+    ELSEIF( gridformat==2 ) THEN
+      WRITE(msg,*) "Format of the grid file: (2) lines of  x y z 1|0"
     ELSE
-      WRITE(msg,*) "Format of the grid file: (2) rows of 1|0"
+      WRITE(msg,*) "Format of the grid file: (3) lines of 1|0 forming a 2-D pattern"
     ENDIF
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     WRITE(msg,*) "Number of grid elements: ", Ngrid
@@ -1224,6 +1247,40 @@ CASE('grid')
     REWIND(30)
     !
     IF( gridformat==1 ) THEN
+      !First line contains NX, NY, NZ (it was already read, so there should not be any error)
+      READ(30,*,ERR=800,END=800) temp
+      !Read lines of 0 and 1
+      !Each new value corresponds to a new grid element
+      !Note that in that case, positions of grid elements are not used
+      Ngrid=0 !grid element counter
+      DO
+        READ(30,'(a4096)',ERR=295,END=295) region_geom
+        region_geom = ADJUSTL(region_geom)
+        IF( LEN_TRIM(region_geom)>0 .AND. region_geom(1:1).NE."#" ) THEN
+          !Strip all blank spaces
+          j=SCAN(TRIM(region_geom)," ")
+          DO WHILE( j>0 )
+            region_geom = ADJUSTL( region_geom(:j-1)//ADJUSTL(region_geom(j+1:)) )
+            j=SCAN(TRIM(region_geom)," ")
+          ENDDO
+          !Read values (should be only 0 or 1)
+          DO i=1,LEN_TRIM(region_geom)
+            Ngrid=Ngrid+1
+            IF( Ngrid<=SIZE(GRID,1) ) THEN
+              READ(region_geom(i:i),'(i1)',ERR=800,END=800) j
+              IF( j==0 ) THEN
+                GRID(Ngrid,4) = 0.d0
+              ELSE
+                GRID(Ngrid,4) = 1.d0
+              ENDIF
+            ENDIF
+          ENDDO !i
+        ENDIF
+      ENDDO
+      GOTO 295
+      !
+    ELSEIF( gridformat==2 ) THEN
+      !Read position and status (0 or 1) of each grid element
       DO
         READ(30,'(a128)',ERR=295,END=295) temp
         temp = ADJUSTL(temp)
@@ -1235,10 +1292,14 @@ CASE('grid')
           ENDIF
         ENDIF
       ENDDO
-    ELSE
+      !
+    ELSEIF( gridformat==3 ) THEN
       WRITE(msg,*) "Number of elements per line: ", Nperline
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      k=0 !line counter
+      a1 = Nperline
+      a2 = 0  !will be incremented while reading the file
+      a3 = 1
+      Ngrid=0
       DO
         READ(30,'(a128)',ERR=295,END=295) temp
         temp = ADJUSTL(temp)
@@ -1250,18 +1311,16 @@ CASE('grid')
             j=SCAN(TRIM(temp)," ")
           ENDDO
           !
-          k=k+1
-          V2 = ( DBLE(k)/(DBLE(SIZE(GRID,1))/DBLE(Nperline)) ) * VECLENGTH(H(2,:)) !Y coordinate of this line
+          a2=a2+1
           DO i=1,Nperline
             Ngrid=Ngrid+1
-            GRID(Ngrid,1) = DBLE(i) * VECLENGTH(H(1,:)) / DBLE(Nperline)  !X coordinate of this element
-            GRID(Ngrid,2) = V2
-            GRID(Ngrid,3) = 0.1d0
-            msg = temp(i:i)
-            IF( LEN_TRIM(msg)<=0 ) msg="0"
-            READ(msg,*,ERR=800,END=800) GRID(Ngrid,4)
-            IF( GRID(Ngrid,4)>0.1d0 ) THEN
-              Nselect=Nselect+1
+            IF( Ngrid<=SIZE(GRID,1) ) THEN
+              READ(temp(i:i),'(i1)',ERR=800,END=800) j
+              IF( j==0 ) THEN
+                GRID(Ngrid,4) = 0.d0
+              ELSE
+                GRID(Ngrid,4) = 1.d0
+              ENDIF
             ENDIF
           ENDDO
         ENDIF
@@ -1269,15 +1328,6 @@ CASE('grid')
     ENDIF
     295 CONTINUE
     CLOSE(30)
-    !
-    IF( gridformat==1 ) THEN
-      !Check if coordinates of GRID elements are already reduced or not
-      CALL FIND_IF_REDUCED(GRID,isreduced)
-      !If reduced, convert them to Cartesian
-      IF( isreduced ) THEN
-        CALL FRAC2CART(GRID,H)
-      ENDIF
-    ENDIF
     !
     IF( verbosity==4 ) THEN
       WRITE(msg,*) "Finite-element grid:"
@@ -1288,116 +1338,161 @@ CASE('grid')
       ENDDO
     ENDIF
     !
-    !Generate a neighbor list for GRID elements
-    !Guess radius for neighbor search, do not let it fall below 8 A
-    distance = 2.d0*MAX(VECLENGTH(H(1,:)),VECLENGTH(H(2,:)),VECLENGTH(H(3,:))) / DSQRT(DBLE(Ngrid))
-    CALL NEIGHBOR_LIST(H,GRID,distance,NeighList)
-    !
-    IF( verbosity==4 ) THEN
-      DO i=1,SIZE(NeighList,1)
-        WRITE(msg,*) "Grid neighbors:"
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-        WRITE(msg,*) i, "|", NeighList(i,:)
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      ENDDO
-    ENDIF
-    !
     ALLOCATE(SELECT(SIZE(P,1)))
+    SELECT(:) = .FALSE.
+    Nselect=0
     !
-    IF( Nselect < SIZE(GRID,1)/2 ) THEN
-      !Unselect all atoms, and parse only grid elements that must be selected
-      SELECT(:) = .FALSE.
-      Nselect=0
+    IF( gridformat == 1 .OR. gridformat==3 ) THEN
+      !All elements have the same size, define dimensions of an element
+      !(reminder: a1=NX, a2=NY, a3=NZ)
+      region_1(1) = H(1,1)/DBLE(a1)
+      region_1(2) = H(2,2)/DBLE(a2)
+      region_1(3) = H(3,3)/DBLE(a3)
       !
       DO i=1,SIZE(P,1)
-        DO j=1,SIZE(GRID,1)
-          IF( DABS(GRID(j,4)) > 0.1d0 ) THEN
-            !Find neighbor elements of element #j
-            CALL NEIGHBOR_POS(H,GRID,GRID(j,1:3),NeighList(j,:),distance,PosList)
-            !
-            IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
-              !PosList(:,1:3) positions of neighbors
-              !PosList(:,4)   distances of neighbors
-              !PosList(:,5)   index of neighbor (=index of element in GRID)
-              !
-              !Check if atom #i is inside element #j
-              keep=.TRUE.
-              DO k=1,SIZE(PosList,1)  !Loop on all neighbors of element #j
-                !Compute vector between the neighboring element #k and element #j
-                region_1(:) = PosList(k,1:3) - GRID(j,1:3)
-                !Compute vector between atom and element #j
-                region_2(:) = P(i,1:3) - GRID(j,1:3)
-                IF( VEC_PLANE(region_1,VECLENGTH(region_1),region_2) > -0.001d0 ) THEN
-                  !Atom is above this plane of cut, hence out of the grid element #j
-                  !=> un-select it and exit the loop on k
-                  keep = .FALSE.
-                  EXIT
+        !Parse all grid elements
+        Ngrid=0 !counter for grid elements
+        DO n=1,a3  !outer loop along Z
+          DO m=1,a2
+            DO l=1,a1  !inner loop along X
+              Ngrid=Ngrid+1
+              !Find if atom #i is in this grid element
+              IF( P(i,1)>=DBLE(l-1)*region_1(1) .AND. P(i,1)<DBLE(l)*region_1(1) .AND. &
+                & P(i,2)>=DBLE(m-1)*region_1(2) .AND. P(i,2)<DBLE(m)*region_1(2) .AND. &
+                & P(i,3)>=DBLE(n-1)*region_1(3) .AND. P(i,3)<DBLE(n)*region_1(3)      ) THEN
+                !Atom #i is inside that grid element
+                !Now check if atoms inside current grid elements must be selected
+                IF( NINT(GRID(Ngrid,4)) > 0 ) THEN
+                  SELECT(i) = .TRUE.
+                  Nselect=Nselect+1
+                  !Stop parsing grid elements, jump to next atom
+                  GOTO 297
                 ENDIF
-              ENDDO
-              !
-              IF( keep ) THEN
-                !Atom #i is inside grid element #j => select it
-                SELECT(i) = .TRUE.
-                Nselect=Nselect+1
-                !An atom can only be inside one grid element => exit loop on j
-                EXIT
               ENDIF
-              !
-            ELSE
-              !PRINT*, "WARNING: grid element #", j, " has no neighbor"
-            ENDIF
-            !
-          ENDIF
-          !
-        ENDDO !loop on j
-      ENDDO  !loop on i
-    ELSE
-      !Select all atoms, and parse only grid elements that must be un-selected
-      SELECT(:) = .TRUE.
-      Nselect=SIZE(P,1)
+            ENDDO !l
+          ENDDO !m
+        ENDDO !n
+        297 CONTINUE
+      ENDDO
       !
-      DO i=1,SIZE(P,1)
-        DO j=1,SIZE(GRID,1)
-          IF( DABS(GRID(j,4)) < 0.1d0 ) THEN
-            !Find neighbor elements of element #j
-            CALL NEIGHBOR_POS(H,GRID,GRID(j,1:3),NeighList(j,:),distance,PosList)
-            !
-            IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
-              !PosList(:,1:3) positions of neighbors
-              !PosList(:,4)   distances of neighbors
-              !PosList(:,5)   index of neighbor (=index of element in GRID)
+    ELSE  !i.e. gridformat==2
+      !Check if coordinates of GRID elements are already reduced or not
+      CALL FIND_IF_REDUCED(GRID,isreduced)
+      !If reduced, convert them to Cartesian
+      IF( isreduced ) THEN
+        CALL FRAC2CART(GRID,H)
+      ENDIF
+      !
+      !Generate a neighbor list for GRID elements
+      !Guess radius for neighbor search, do not let it fall below 8 A
+      distance = 2.d0*MAX(VECLENGTH(H(1,:)),VECLENGTH(H(2,:)),VECLENGTH(H(3,:))) / DSQRT(DBLE(Ngrid))
+      CALL NEIGHBOR_LIST(H,GRID,distance,NeighList)
+      !
+      IF( verbosity==4 ) THEN
+        DO i=1,SIZE(NeighList,1)
+          WRITE(msg,*) "Grid neighbors:"
+          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+          WRITE(msg,*) i, "|", (NeighList(i,j),j=1,10)
+          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        ENDDO
+      ENDIF
+      !
+      IF( Nselect < SIZE(GRID,1)/2 ) THEN
+        !Unselect all atoms, and parse only grid elements that must be selected
+        SELECT(:) = .FALSE.
+        Nselect=0
+        !
+        DO i=1,SIZE(P,1)
+          DO Ngrid=1,SIZE(GRID,1)
+            IF( DABS(GRID(Ngrid,4)) > 0.1d0 ) THEN
+              !Find neighbor elements of element #Ngrid
+              CALL NEIGHBOR_POS(H,GRID,GRID(Ngrid,1:3),NeighList(Ngrid,:),distance,PosList)
               !
-              !Check if atom #i is inside element #j
-              keep=.TRUE.
-              DO k=1,SIZE(PosList,1)  !Loop on all neighbors of element #j
-                !Compute vector between the neighboring element #k and element #j
-                region_1(:) = PosList(k,1:3) - GRID(j,1:3)
-                !Compute vector between atom and element #j
-                region_2(:) = P(i,1:3) - GRID(j,1:3)
-                IF( VEC_PLANE(region_1,VECLENGTH(region_1),region_2) > -0.001d0 ) THEN
-                  !Atom is above this plane of cut, hence out of the grid element #j
-                  !=> un-select it and exit the loop on k
-                  keep = .FALSE.
+              IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
+                !PosList(:,1:3) positions of neighbors
+                !PosList(:,4)   distances of neighbors
+                !PosList(:,5)   index of neighbor (=index of element in GRID)
+                !
+                !Check if atom #i is inside element #Ngrid
+                keep=.TRUE.
+                DO k=1,SIZE(PosList,1)  !Loop on all neighbors of element #Ngrid
+                  !Compute vector between the neighboring element #k and element #Ngrid
+                  region_1(:) = PosList(k,1:3) - GRID(Ngrid,1:3)
+                  !Compute vector between atom and element #Ngrid
+                  region_2(:) = P(i,1:3) - GRID(Ngrid,1:3)
+                  IF( VEC_PLANE(region_1,VECLENGTH(region_1),region_2) > -0.001d0 ) THEN
+                    !Atom is above this plane of cut, hence out of the grid element #Ngrid
+                    !=> un-select it and exit the loop on k
+                    keep = .FALSE.
+                    EXIT
+                  ENDIF
+                ENDDO
+                !
+                IF( keep ) THEN
+                  !Atom #i is inside grid element #Ngrid => select it
+                  SELECT(i) = .TRUE.
+                  Nselect=Nselect+1
+                  !An atom can only be inside one grid element => exit loop on Ngrid
                   EXIT
                 ENDIF
-              ENDDO
-              !
-              IF( keep ) THEN
-                !Atom #i is inside grid element #j => unselect it
-                SELECT(i) = .FALSE.
-                Nselect=Nselect-1
-                !An atom can only be inside one grid element => exit loop on j
-                EXIT
+                !
+              ELSE
+                !PRINT*, "WARNING: grid element #", Ngrid, " has no neighbor"
               ENDIF
               !
-            ELSE
-              !PRINT*, "WARNING: grid element #", j, " has no neighbor"
             ENDIF
             !
-          ENDIF
-          !
-        ENDDO !loop on j
-      ENDDO  !loop on i
+          ENDDO !loop on Ngrid
+        ENDDO  !loop on i
+      ELSE
+        !Select all atoms, and parse only grid elements that must be un-selected
+        SELECT(:) = .TRUE.
+        Nselect=SIZE(P,1)
+        !
+        DO i=1,SIZE(P,1)
+          DO Ngrid=1,SIZE(GRID,1)
+            IF( DABS(GRID(Ngrid,4)) < 0.1d0 ) THEN
+              !Find neighbor elements of element #Ngrid
+              CALL NEIGHBOR_POS(H,GRID,GRID(Ngrid,1:3),NeighList(Ngrid,:),distance,PosList)
+              !
+              IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
+                !PosList(:,1:3) positions of neighbors
+                !PosList(:,4)   distances of neighbors
+                !PosList(:,5)   index of neighbor (=index of element in GRID)
+                !
+                !Check if atom #i is inside element #Ngrid
+                keep=.TRUE.
+                DO k=1,SIZE(PosList,1)  !Loop on all neighbors of element #Ngrid
+                  !Compute vector between the neighboring element #k and element #Ngrid
+                  region_1(:) = PosList(k,1:3) - GRID(Ngrid,1:3)
+                  !Compute vector between atom and element #Ngrid
+                  region_2(:) = P(i,1:3) - GRID(Ngrid,1:3)
+                  IF( VEC_PLANE(region_1,VECLENGTH(region_1),region_2) > -0.001d0 ) THEN
+                    !Atom is above this plane of cut, hence out of the grid element #Ngrid
+                    !=> un-select it and exit the loop on k
+                    keep = .FALSE.
+                    EXIT
+                  ENDIF
+                ENDDO
+                !
+                IF( keep ) THEN
+                  !Atom #i is inside grid element #Ngrid => unselect it
+                  SELECT(i) = .FALSE.
+                  Nselect=Nselect-1
+                  !An atom can only be inside one grid element => exit loop on Ngrid
+                  EXIT
+                ENDIF
+                !
+              ELSE
+                !PRINT*, "WARNING: grid element #", Ngrid, " has no neighbor"
+              ENDIF
+              !
+            ENDIF
+            !
+          ENDDO !loop on Ngrid
+        ENDDO  !loop on i
+        !
+      ENDIF
       !
     ENDIF
     !

@@ -86,7 +86,16 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 
 <p>When using <strong>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</strong>, the neighbors of the atom of the given &#60;index&#62; are selected. If &#60;NNN&#62; is a positive integer then the &#60;NNN&#62; closest neighbors are selected, regardless of their distance (&#60;NNN&#62; must then be smaller than 100). If &#60;NNN&#62; is a negative real number then all neighbors within a radius of |&#60;NNN&#62;| are selected, regardless of their number. If &#60;NNN&#62; is zero, then the first nearest neighbors are selected. Note that if some atoms are out of the box then the neighbor search can give wrong results (the <a href="./option_wrap.html">option <code>-wrap</code></a> can be used to wrap all atoms into the box). If &#60;species&#62; is the chemical symbol of a species then only atoms of that species are selected. If &#60;species&#62; is set to "all" or "any" then atoms are selected regardless of their species.</p>
 
-<p>When using <strong>-select grid</strong>, a finite-element grid of values is read from the &#60;file&#62;. The &#60;file&#62; must be a text file complying to one of two formats. First, it may contain lines giving the position (x,y,z) of elements of the grid (either in &Aring; or in reduced coordinates), followed by 1 to select atoms inside that grid element, or 0 to un-select them. The grid can be defined in 3-D, and elements may form a regular pattern, or have any arbitrary positions. Second, the &#60;file&#62; may contain lines of 0 and 1 (either separated by blank spaces or contiguous), giving a visual representation of a 2-D grid (see examples below). This can be used to select complex shapes.</p>
+<p>When using <strong>-select grid</strong>, a finite-element grid of values is read from the &#60;file&#62;. The &#60;file&#62; must be a text file complying to one of the three following formats:</p>
+<ul>
+  <li>The &#60;file&#62; may contain a first line containing three integers NX, NY, NZ, defining the number of grid elements along each Cartesian direction. In that case all grid elements are rectangular boxes with the same dimensions. Then the file must contain NXxNYxNZ numbers 0 or 1, either contiguous or separated by blank spaces, in one or several lines (in the limit of 4096 characters per line). Each value corresponds to one grid element, starting by increasing X, then Y, and finally Z. A 0 means that atoms inside a grid element must <em>not</em> be selected, and 1 that they must be selected.</li>
+  
+  <li>Or, the &#60;file&#62; may contain lines giving the positions (x,y,z) of elements of the grid (either in &Aring; or in reduced coordinates), followed by an integer number, 1 to select atoms inside that grid element, or 0 to un-select them. The elements of the grid may form a regular pattern, or have any arbitrary positions.</li>
+  
+  <li>Or, the &#60;file&#62; may contain lines of 0 and 1 (either separated by blank spaces or contiguous), giving a visual representation of a 2-D grid (see examples below). This can be useful to select simple geometric forms, like letters.</li>
+</ul>
+
+<p>The two first formats allow to manipulate 3-D grids; the last one only allows to generate 2-D grids (see examples below). This option can be used to select complex shapes.</p>
 
 <p>The options called after the option <code>-select</code> will be applied only to the atoms that are selected by the present option, refer to their documentation to know how each option treats selected atoms. Beware that some options can result in strange (i.e. non-physical) results when applied to some atoms only.</p>
 
@@ -150,6 +159,27 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 <p>This will select all atoms whose velocity along X (vx) is between 1e5 and 1e6 (in units of velocity used in the input file).</p></li>
 
 <li><div class="txtfile"><h5>grid.txt</h5>
+<p><code>4 4 3<br/>
+&#35; First XY plane<br/>
+1 0 0 0<br/>
+0 1 0 0<br/>
+0 0 1 0<br/>
+0 0 0 1<br/>
+&#35; Second XY plane<br/>
+0 0 0 1<br/>
+0 0 1 0<br/>
+0 1 0 0<br/>
+1 0 0 0<br/>
+&#35; Third XY plane<br/>
+0 0 0 0<br/>
+0 1 1 0<br/>
+0 1 1 0<br/>
+0 0 0 0<br/>
+</code></p></div>
+<code class="command">atomsk initial.cfg -select grid grid.txt -rmatom select final.xyz</code>
+<p>The file "grid.txt" contains a first line defining the number of grid elements: the atomic system will be decomposed into a grid of size 4x4x3. Then, the following lines provide the status (0 or 1) of the 48 elements of the grid (note that blank spaces and empty lines are ignored). A value of 1 means that atoms inside that element will be selected, and a value of 0 that they will not. Each group of 4x4 values represent an XY plane, and there are three such groups along Z. So, Atomsk will read the file "initial.cfg", automatically scale the grid so that it matches the box dimensions, select atoms that are inside the grid elements marked "1", and <a href="./option_rmatom.html">remove selected atoms</a>. The result will be written into "final.xyz".</p></li>
+
+<li><div class="txtfile"><h5>grid.txt</h5>
 <p><code>0.2354 0.2 0.4013540 1<br/>
 0.196874 0.5354 0.541 0<br/>
 0.9432587 0.651 0.3554 1<br/>
@@ -174,7 +204,7 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 00000000000000<br/>
 </code></p></div>
 <code class="command">atomsk initial.cfg -select grid A.txt -rmatom select final.xyz</code>
-<p>The file "A.txt" contains lines of 0 and 1 that form a visual representation of the letter "A". Atomsk will read the file "initial.cfg", automatically scale the grid so that it matches the box dimensions, select atoms that are inside the grid elements marked "1", and <a href="./option_rmatom.html">remove selected atoms</a>. The result will be written into "final.xyz".</p></li>
+<p>The file "A.txt" contains lines of 0 and 1 that form a visual representation of the letter "A". In this case the grid is 2-dimensional. Atomsk will read the file "initial.cfg", automatically scale the grid so that it matches the box dimensions, select atoms that are inside the grid elements marked "1", and <a href="./option_rmatom.html">remove selected atoms</a>. The result will be written into "final.xyz".</p></li>
 </ul>
 
 

@@ -86,7 +86,16 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 <p>En utilisant <strong>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</strong>, les voisins de l'atome ayant l'&#60;indice&#62; donné sont sélectionnés. Si &#60;NNN&#62; est un entier positif alors les &#60;NNN&#62; voisins les plus proches sont sélectionnés, peu importe leur distance (&#60;NNN&#62; doit alors être inférieur à 100). Si &#60;NNN&#62; est un nombre réel négatif alors tous les voisins dans un rayon |&#60;NNN&#62;| sont sélectionnés, peu importe leur nombre. Si &#60;NNN&#62; est égal à zero, alors les premiers voisins sont sélectionnés. Notez que si certains atomes se trouvent hors de la boîte, la recherche de voisins peut donner des résultats erronés (l'<a href="./option_wrap.html">option <code>-wrap</code></a> peut être utilisée pour replacer les atomes dans la boîte). Si &#60;espèce&#62; est le symbole chimique d'une espèce alors seuls les atomes de cette espèce sont sélectionnés. Si &#60;espèce&#62; est "all" ou "any" alors les atomes sont sélectionnés sans tenir compte 
 de leur espèce chimique.</p>
 
-<p>En utilisant <strong>-select grid</strong>, une grille d'éléments finis est lue depuis le &#60;fichier&#62;. Le &#60;fichier&#62; doit être un fichier texte respectant l'un des deux formats suivants. Premièrement, il peut contenir des lignes donnant les positions (x,y,z) d'éléments de la grille (soit en &Aring;, soit en coordonnées réduites), suivi de "1" si les atomes à l'intérieur de cet élément doivent être sélectionnés, ou de "0" sinon. La grille peut être définie en 3-D, et les éléments peuvent être espacés régulièrement ou non. Deuxièmement, le &#60;fichier&#62; peut contenir des lignes de 0 et de 1 (soit séparés d'espaces, soit contigus), correspondant à une représentation visuelle d'une grille en 2-D (voir les exemples ci-dessous). Ceci peut être utile pour sélectionner des formes complexes.</p>
+<p>En utilisant <strong>-select grid</strong>, une grille d'éléments finis est lue depuis le &#60;fichier&#62;. Le &#60;fichier&#62; doit être un fichier texte respectant l'un des trois formats suivants :</p>
+<ul>
+  <li>Le &#60;fichier&#62; peut contenir une première ligne contenant trois entiers NX, NY, NZ, définissant le nombre d'éléments suivant chaque direction cartésienne. Dans ce cas tous les éléments sont des parallélépipèdes de mêmes dimensions. Ensuite, le fichier doit contenir NXxNYxNZ nombres 0 ou 1, contigus ou séparés par des espaces, sur une ou plusieurs lignes (dans la limite de 4096 caractères par ligne). Chaque nombre correspond à un élément de la grille, en se déplaçant d'abord suivant X, puis suivant Y, puis suivant Z. Un 0 indique que les atomes à l'intérieur d'un élément ne doivent pas être sélectionnés, et un 1 qu'ils doivent l'être.</li>
+  
+  <li>Ou, le &#60;fichier&#62; peut contenir des lignes donnant la position (x,y,z) d'éléments de la grille (soit en &Aring; soit en coordonnées réduites), suivies par un nombre entier 0 ou 1. Ces éléments forment alors les n&oelig;uds d'un maillage de Voronoï, qui peut être régulier ou non.</li>
+  
+  <li>Ou, le &#60;fichier&#62; peut contenir des lignes de 0 et 1 (contigus ou séparés par des espaces) formant une représentation 2-D d'une grille. Ceci peut être utile pour sélectionner des formes géométriques simples, comme des lettres.</li>
+</ul>
+
+<p>Les deux premiers formats permettent de manipuler des grilles en 3-D ; le dernier format, uniquement des grilles bidimensionnelles (voir les exemples ci-dessous). Cette option permet de sélectionner des formes complexes.</p>
 
 <p>Les options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
 
@@ -148,6 +157,27 @@ de leur espèce chimique.</p>
 
 <li><code class="command">atomsk initial.cfg -select prop vx 1e5:1e6 final.xyz</code>
 <p>Ceci va sélectionner les atomes dont la vitesse suivant X (vx) est comprise entre 1e5 et 1e6 (selon l'unité de vitesse employée dans le fichier d'entrée).</p></li>
+
+<li><div class="txtfile"><h5>grille.txt</h5>
+<p><code>4 4 3<br/>
+&#35; Premier plan XY<br/>
+1 0 0 0<br/>
+0 1 0 0<br/>
+0 0 1 0<br/>
+0 0 0 1<br/>
+&#35; Second plan XY<br/>
+0 0 0 1<br/>
+0 0 1 0<br/>
+0 1 0 0<br/>
+1 0 0 0<br/>
+&#35; Troisième plan XY<br/>
+0 0 0 0<br/>
+0 1 1 0<br/>
+0 1 1 0<br/>
+0 0 0 0<br/>
+</code></p></div>
+<code class="command">atomsk initial.cfg -select grid grille.txt -rmatom select final.xyz</code>
+<p>Le fichier "grille.txt" contient une première ligne donnant le nombre d'éléments suivant chaque direction : ici, le système atomique sera découpé selon une grille de taille 4x4x3. Les lignes suivantes donnent l'état (0 ou 1) de chacun des 48 éléments de la grille (les lignes vides ou commençant par un signe &#35; sont ignorées). Une valeur de 1 indique que les atomes à l'intérieur d'un élément seront sélectionnés, et 0 qu'ils ne le seront pas. Dans ce fichier, chaque groupement de 4x4 chiffres représente une grille dans un plan XY, et il y a trois de ces plans suivant Z. En résumé, Atomsk va lire le fichier "initial.cfg", mettra automatiquement la grille à l'échelle du système atomique, sélectionnera les atomes situés dans des éléments marqués d'un "1", et <a href="./option_rmatom.html">supprimera les atomes sélectionnés</a>. Le résultat final sera écrit dans le fichier "final.xyz".</p></li>
 
 <li><div class="txtfile"><h5>grille.txt</h5>
 <p><code>0.2354 0.2 0.4013540 1<br/>
