@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 March 2015                                    *
+!* Last modification: P. Hirel - 18 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -245,8 +245,7 @@ DO
             !
             IF( rdf_Nsteps*aentries(k,2)>10000 ) THEN
               !If there are many atoms, display a fancy progress bar
-              progress = 100.d0 * (DBLE(j)/DBLE(rdf_Nsteps))
-              CALL ATOMSK_MSG(10,(/""/),(/progress/))
+              CALL ATOMSK_MSG(10,(/""/),(/DBLE(j),DBLE(rdf_Nsteps)/))
             ENDIF
             !
             !Set radius of current sphere

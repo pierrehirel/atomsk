@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Dec. 2015                                     *
+!* Last modification: P. Hirel - 22 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -373,6 +373,11 @@ IF(helpsection=="options" .OR. helpsection=="-swap") THEN
   WRITE(*,*) "          -swap <id1> <id2>"
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-torsion") THEN
+  WRITE(*,*) "..> Apply torsion around an axis:"
+  WRITE(*,*) "          -torsion <x|y|z> <angle>"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-unit" .OR. helpsection=="-u") THEN
   WRITE(*,*) "..> Convert coordinates to another unit:"
   WRITE(*,*) "          -u <unit1> <unit2>"
@@ -560,76 +565,70 @@ CASE(9)
   msg = "<?> Enter the name of an existing file:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(10)
-  !reals(1) = percentage (between 0 and 100)
+  !reals(1) = index of current element
+  !reals(2) = total number of elements
   !SPECIAL: this writes a message on the screen without advancing, so
   ! it is restricted to verbosity levels that display something on screen
   IF( verbosity==1 .OR. verbosity>=3 ) THEN
-    WRITE(temp2,'(i3)') NINT(reals(1))
     temp = ""
-    IF(reals(1)<100.d0) THEN
-      IF( reals(1) >=50.d0 ) THEN
-        IF(reals(1)>=95.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [===================>]"
-        ELSEIF(reals(1)>=90.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [==================> ]"
-        ELSEIF(reals(1)>=85.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [=================>  ]"
-        ELSEIF(reals(1)>=80.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [================>   ]"
-        ELSEIF(reals(1)>=75.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [===============>    ]"
-        ELSEIF(reals(1)>=70.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [==============>     ]"
-        ELSEIF(reals(1)>=65.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [=============>      ]"
-        ELSEIF(reals(1)>=60.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [============>       ]"
-        ELSEIF(reals(1)>=55.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [===========>        ]"
-        ELSE
-          temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
-        ENDIF
-      ELSE  
-        IF(reals(1)<5.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [>                   ]"
-        ELSEIF(reals(1)<10.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [=>                  ]"
-        ELSEIF(reals(1)<15.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [==>                 ]"
-        ELSEIF(reals(1)<20.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [===>                ]"
-        ELSEIF(reals(1)<25.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [====>               ]"
-        ELSEIF(reals(1)<30.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [=====>              ]"
-        ELSEIF(reals(1)<35.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [======>             ]"
-        ELSEIF(reals(1)<40.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [=======>            ]"
-        ELSEIF(reals(1)<45.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [========>           ]"
-        ELSEIF(reals(1)<50.d0) THEN
-          temp = TRIM(ADJUSTL(temp2))//"% [=========>          ]"
-        ELSE
-          temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
-        ENDIF
+    tempreal = 100.d0*reals(1)/reals(2) !percentage of progress
+    WRITE(temp2,'(i3)') NINT(tempreal)
+    IF( tempreal >=50.d0 ) THEN
+      IF(tempreal>=100.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [====================]"
+      ELSEIF(tempreal>=95.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===================>]"
+      ELSEIF(tempreal>=90.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [==================> ]"
+      ELSEIF(tempreal>=85.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=================>  ]"
+      ELSEIF(tempreal>=80.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [================>   ]"
+      ELSEIF(tempreal>=75.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===============>    ]"
+      ELSEIF(tempreal>=70.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [==============>     ]"
+      ELSEIF(tempreal>=65.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=============>      ]"
+      ELSEIF(tempreal>=60.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [============>       ]"
+      ELSEIF(tempreal>=55.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===========>        ]"
+      ELSE
+        temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
       ENDIF
-      !
-      temp = " "//TRIM(temp)
-      !
-      !Remove previous 27 characters on the line
-      DO i=1,27
-        WRITE(*,'(a1)',ADVANCE="NO") CHAR(8)
-      ENDDO
-      !Display the progress bar
-      WRITE(*,'(a)',ADVANCE="NO") TRIM(temp)
-      !
-    ELSE
-      temp = TRIM(ADJUSTL(temp2))//"% [====================]"
-      WRITE(*,*) TRIM(temp)
+    ELSE  
+      IF(tempreal<5.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [>                   ]"
+      ELSEIF(tempreal<10.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=>                  ]"
+      ELSEIF(tempreal<15.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [==>                 ]"
+      ELSEIF(tempreal<20.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===>                ]"
+      ELSEIF(tempreal<25.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [====>               ]"
+      ELSEIF(tempreal<30.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=====>              ]"
+      ELSEIF(tempreal<35.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [======>             ]"
+      ELSEIF(tempreal<40.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=======>            ]"
+      ELSEIF(tempreal<45.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [========>           ]"
+      ELSEIF(tempreal<50.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=========>          ]"
+      ELSE
+        temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
+      ENDIF
     ENDIF
-    !
+    !Display the progress bar
+    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//" "//TRIM(temp)
+    IF( NINT(reals(1)) == NINT(reals(2)) ) THEN
+      WRITE(*,*) ""
+    ENDIF
   ENDIF
+  !
 CASE(11)
   msg = ">>> Constructing neighbor list..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1668,6 +1667,26 @@ CASE(2125)
 CASE(2126)
   msg = "..> Atoms were swapped."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2127)
+  !strings(1) = roll axis: x, y or z
+  !reals(1) = roll angle in degrees
+  WRITE(msg,"(f16.2)") reals(1)
+  msg = ">>> Rolling the system by "//TRIM(ADJUSTL(msg)) &
+      & //"° around "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2128)
+  msg = "..> System was successfully rolled."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2129)
+  !strings(1) = torsion axis: x, y or z
+  !reals(1) = torsion angle in degrees
+  WRITE(msg,"(f16.2)") reals(1)
+  msg = ">>> Applying a torsion of "//TRIM(ADJUSTL(msg)) &
+      & //"° around "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2130)
+  msg = "..> Torsion was successfully applied."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2269,7 +2288,7 @@ CASE(4049)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4050)
   !strings(1) = file containing the names of files to include
-  msg = ">>> Folding all files from "//TRIM(strings(1))// &
+  msg = ">>> Folding all files listed in "//TRIM(strings(1))// &
       & " into one file..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4051)
@@ -2584,7 +2603,9 @@ CASE(4817)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4818)
   !strings(1) = file format (e.g. "xyz", "cfg"...)
-  msg = "X!X ERROR: the file list in "//TRIM(strings(1))//" seems to be empty."
+  msg = "X!X ERROR: the file "//TRIM(strings(1))//" seems to be empty,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          or does not contain any valid file name."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4819)
   msg = "X!X ERROR: base vectors are not orthogonal, aborting."

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option torsion - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: torsion</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-torsion &#60;axis&#62; &#60;&theta;&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to apply torsion to the system around a cartesian axis.</p>
+
+<p>The user has to provide the axis of rotation (has to be x, y or z -referring to cartesian axes), and the angle of rotation &theta; (in degrees).</p>
+
+<p>The axis of rotation is the center of the plane normal to the &#60;axis&#62;. If you want to rotate the system around another point of your system, you can use the <a href="./option_shift.html">option <code>-shift</code></a>.</p>
+
+<p>If forces (fx,fy,fz) or velocities (vx,vy,vz) exist as auxiliary properties, then they will be rotated accordingly.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rotation will be applied only to selected atoms, and the box <em>will not</em> be rotated. This can result in some atoms being out of the box, which can be fixed thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+<p>This option does not change the dimensions of the cell, nor the elastic tensor if it is defined.</p>
+
+
+
+
+<h4>Default</h4>
+
+<p>By default no torsion is applied.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -torsion x 10 final.xyz</code>
+<p>This will apply a torsion of 10 degrees around X.</p></li>
+
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

@@ -21,7 +21,7 @@ MODULE edm
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Sept. 2015                                    *
+!* Last modification: P. Hirel - 18 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -350,8 +350,7 @@ DO i=1,SIZE(aentries,1)
           !
           IF( aentries(i,2)>5000 ) THEN
             !If there are many atoms, display a fancy progress bar
-            mi = 100.d0*DBLE(N1)/aentries(i,2)
-            CALL ATOMSK_MSG(10,(/""/),(/mi/))
+            CALL ATOMSK_MSG(10,(/""/),(/DBLE(N1),aentries(i,2)/))
           ENDIF
           !
           !Find nearest neighbours of current atom j

@@ -95,6 +95,9 @@ READ(30,'(a128)',ERR=800,END=800) comment(1)
 !megatm = total number of particles
 READ(30,*,ERR=800,END=800) levcfg, imcon, megatm
 !
+WRITE(msg,*) 'levcfg, imcon, megatm:', levcfg, imcon, megatm
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
 !
 !
 100 CONTINUE
@@ -177,13 +180,13 @@ DO
   snap = snap+1
   CALL ATOMSK_MSG(4041,(/''/),(/DBLE(snap)/))
   !
-  !Read the file
+  !Read atom positions
   DO i=1, megatm
     !First entry is not necessarily the atom species but "atom name"
-    !meaning basically that it could be anything...
-    !Here we assume that meaningful names are used, i.e. that
+    !meaning basically that it can be anything...
+    !Here it is assumed that meaningful names are used, i.e. that
     !the atom species is in the first or two first letters.
-    !We also assume that the shells are specified by the suffix "_s",
+    !It is also assumed that the shells are specified by the suffix "_s",
     !and that shells are written in the same order as atom cores
     !(either alternating core, shell, core, shell... or all
     !core positions and then all shells positions)
@@ -315,7 +318,7 @@ GOTO 1000
 !
 !
 800 CONTINUE
-CALL ATOMSK_MSG(1801,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(1801,(/TRIM(inputfile)/),(/0.d0/))
 nerr = nerr+1
 GOTO 1000
 !

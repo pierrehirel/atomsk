@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 Dec. 2015                                     *
+!* Last modification: P. Hirel - 21 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,6 +83,7 @@ USE rmatom
 USE remdoubles
 USE rmprop
 USE rmshells
+USE roll
 USE rotate
 USE select
 USE shear
@@ -91,6 +92,7 @@ USE sort
 USE stress
 USE substitute
 USE swap
+USE torsion
 USE unit
 USE unskew
 USE velocity
@@ -626,6 +628,10 @@ DO ioptions=1,SIZE(options_array)
     rmshells_prop = ADJUSTL(rmshells_prop)
     CALL RMSHELLS_XYZ(P,S,rmshells_prop,SELECT)
   !
+  CASE('-roll')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
+    CALL ROLL_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT)
+  !
   CASE('-rot', '-rotate')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
     CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT,C_tensor)
@@ -881,6 +887,10 @@ DO ioptions=1,SIZE(options_array)
   CASE('-swap')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, swap_id(1), swap_id(2)
     CALL SWAP_XYZ(P,S,AUX,swap_id)
+  !
+  CASE('-torsion')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
+    CALL TORSION_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT)
   !
   CASE('-unit', '-u')
     READ(options_array(ioptions),'(a128)',END=800,ERR=800) temp  !optionname, unit1, unit2

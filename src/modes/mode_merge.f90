@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 Oct. 2015                                     *
+!* Last modification: P. Hirel - 21 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -127,6 +127,24 @@ DO i=1,SIZE(merge_files)
   CALL READ_AFF(merge_files(i),Htemp,P,S,tempcomment,currAUXNAMES,currAUX)
   IF(nerr>0) GOTO 800
   !
+  IF( verbosity==4 ) THEN
+    !Print some debug messages
+    msg = 'Size of arrays for file:'//TRIM(ADJUSTL(merge_files(i)))
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(msg,*) "P: ", SIZE(P,1), SIZE(P,2)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    IF( ALLOCATED(S) ) THEN
+      WRITE(msg,*) "S: ", SIZE(S,1), SIZE(S,2)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDIF
+    IF( ALLOCATED(currAUX) ) THEN
+      WRITE(msg,*) "currAUXNAMES: ", SIZE(currAUXNAMES)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      WRITE(msg,*) "currAUX: ", SIZE(AUX,1), SIZE(AUX,2)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDIF
+  ENDIF
+  !
   IF(i==1) THEN
     !First file: allocate arrays and fill them
     ALLOCATE( Q( SIZE(P,1), SIZE(P,2) ) )
@@ -223,8 +241,9 @@ DO i=1,SIZE(merge_files)
     ENDIF
     !
     !If auxiliary properties were read from current file, merge them with existing ones
-    IF( ALLOCATED(currAUXNAMES) .AND. SIZE(currAUXNAMES)>0 ) THEN
-      IF( ALLOCATED(AUXNAMES) ) THEN
+    IF( ALLOCATED(currAUXNAMES) .AND. ALLOCATED(currAUX) ) THEN
+      !
+      IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
         !Some auxiliary properties already existed
         !Check if some property names already exist in AUXNAMES
         DO j=1,SIZE(currAUXNAMES)
@@ -276,6 +295,8 @@ DO i=1,SIZE(merge_files)
         ENDDO
         !
       ELSE
+        IF( ALLOCATED(AUXNAMES) ) DEALLOCATE(AUXNAMES)
+        IF( ALLOCATED(AUX) ) DEALLOCATE(AUX)
         WRITE(msg,*) 'Allocating AUX'
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
         !No auxiliary property existed before, the current ones are the first ones
@@ -285,7 +306,7 @@ DO i=1,SIZE(merge_files)
         ALLOCATE( AUX( SIZE(Q,1),SIZE(currAUX,2) ) )
         AUX(:,:) = 0.d0
         DO k=1,SIZE(currAUX,1)
-          AUX(SIZE(AUX,1)-SIZE(currAUX)+k,:) = currAUX(k,:)
+          AUX(SIZE(AUX,1)-SIZE(currAUX,1)+k,:) = currAUX(k,:)
         ENDDO
       ENDIF
     ENDIF

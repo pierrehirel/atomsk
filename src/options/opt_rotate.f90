@@ -80,7 +80,7 @@ DO WHILE(DABS(rot_angle)>=360.d0)
   IF(rot_angle<=-360.d0) rot_angle = rot_angle+360.d0
 ENDDO
 !
-IF(rot_angle==0.d0) THEN
+IF( DABS(rot_angle)<=1.d-12) THEN
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2734,(/''/),(/0.d0/))
   GOTO 1000

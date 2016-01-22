@@ -93,7 +93,7 @@ ATOMIC_FORCES<br/>
 
 <p>Enfin, si les forces sur les atomes sont définies, alors elles seront écrites dans la section "ATOMIC_FORCES". Sinon cette section n'apparaîtra pas.</p>
 
-<p>Par défaut Atomsk utilise <code>ATOMIC_POSITIONS crystal</code> si les positions des atomes sont exprimées en coordonnées réduites (par ex. si l'<a href="./option_fractional.html">option <code>-frac</code></a> a été utilisée), ou <code>ATOMIC_POSITIONS angstrom</code> si elles sont en coordonnées cartésiennes. De fait, si les coordonnées atomiques et les vecteurs de boîte sont en réalité en Bohrs, les lignes <code>ATOMIC_POSITIONS</code> et <code>CELL_PARAMETERS</code> seront incorrectes et devront être modifiées à la main; le <a href="./tools.html">script <code>qepw_bohr.sh</code></a> fourni avec Atomsk permet de réaliser ce changement.</p>
+<p>Par défaut Atomsk utilise <code>ATOMIC_POSITIONS crystal</code> si les positions des atomes sont exprimées en coordonnées réduites (par ex. si l'<a href="./option_fractional.html">option <code>-frac</code></a> a été utilisée), ou <code>ATOMIC_POSITIONS angstrom</code> si elles sont en coordonnées cartésiennes. De fait, si les coordonnées atomiques et les vecteurs de boîte sont en réalité en Bohrs, les lignes <code>ATOMIC_POSITIONS ansgtrom</code> et <code>CELL_PARAMETERS angstrom</code> seront incorrectes et devront être modifiées à la main; le <a href="./tools.html">script <code>qepw_bohr.sh</code></a> fourni avec Atomsk permet de réaliser ce changement.</p>
 
 <p>i des propriétés auxiliaires existent, alors seules les directions dans lesquelles les atomes sont fixés (<code>fixx, fixy, fixz</code>) sont utilisées et écrites pour chaque atome.</p>
 

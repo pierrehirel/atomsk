@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 07 Dec. 2015                                     *
+!* Last modification: P. Hirel - 22 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -323,11 +323,16 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-sub") THEN
   WRITE(*,*) "..> Ersetze Atomsorte sp1 durch Sorte sp2:"
   WRITE(*,*) "          -sub <sp1> <sp2>"
+ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
   WRITE(*,*) "..> Vertauschen zwei Atomen:"
   WRITE(*,*) "          -swap <id1> <id2>"
 ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-torsion") THEN
+  WRITE(*,*) "..> Apply torsion around an axis:"
+  WRITE(*,*) "          -torsion <x|y|z> <angle>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-unit" .OR. helpsection=="-u") THEN
@@ -517,15 +522,67 @@ CASE(9)
   msg = "<?> Geben Sie den Namen einer vorhandenen Datei an:"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(10)
-  !strings(1) = message to be displayed
+  !reals(1) = index of current element
+  !reals(2) = total number of elements
   !SPECIAL: this writes a message on the screen without advancing, so
   ! it is restricted to verbosity levels that display something on screen
-  IF(verbosity.NE.0) THEN
-    IF(verbosity.NE.2) THEN
-      DO i=1,4096
-        WRITE(*,'(a1)',ADVANCE="NO") CHAR(8)
-      ENDDO
-      WRITE(*,'(a)',ADVANCE="NO") TRIM(strings(1))
+  IF( verbosity==1 .OR. verbosity>=3 ) THEN
+    temp = ""
+    tempreal = 100.d0*reals(1)/reals(2) !percentage of progress
+    WRITE(temp2,'(i3)') NINT(tempreal)
+    IF( tempreal >=50.d0 ) THEN
+      IF(tempreal>=100.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [====================]"
+      ELSEIF(tempreal>=95.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===================>]"
+      ELSEIF(tempreal>=90.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [==================> ]"
+      ELSEIF(tempreal>=85.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=================>  ]"
+      ELSEIF(tempreal>=80.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [================>   ]"
+      ELSEIF(tempreal>=75.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===============>    ]"
+      ELSEIF(tempreal>=70.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [==============>     ]"
+      ELSEIF(tempreal>=65.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=============>      ]"
+      ELSEIF(tempreal>=60.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [============>       ]"
+      ELSEIF(tempreal>=55.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===========>        ]"
+      ELSE
+        temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
+      ENDIF
+    ELSE  
+      IF(tempreal<5.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [>                   ]"
+      ELSEIF(tempreal<10.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=>                  ]"
+      ELSEIF(tempreal<15.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [==>                 ]"
+      ELSEIF(tempreal<20.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [===>                ]"
+      ELSEIF(tempreal<25.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [====>               ]"
+      ELSEIF(tempreal<30.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=====>              ]"
+      ELSEIF(tempreal<35.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [======>             ]"
+      ELSEIF(tempreal<40.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=======>            ]"
+      ELSEIF(tempreal<45.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [========>           ]"
+      ELSEIF(tempreal<50.d0) THEN
+        temp = TRIM(ADJUSTL(temp2))//"% [=========>          ]"
+      ELSE
+        temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
+      ENDIF
+    ENDIF
+    !Display the progress bar
+    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//" "//TRIM(temp)
+    IF( NINT(reals(1)) == NINT(reals(2)) ) THEN
+      WRITE(*,*) ""
     ENDIF
   ENDIF
 CASE(11)
@@ -1561,6 +1618,26 @@ CASE(2125)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
   msg = "..> Atomen wurden vertauschen."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2127)
+  !strings(1) = roll axis: x, y or z
+  !reals(1) = roll angle in degrees
+  WRITE(msg,"(f16.2)") reals(1)
+  msg = ">>> Rolling the system by "//TRIM(ADJUSTL(msg)) &
+      & //"° around "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2128)
+  msg = "..> System was successfully rolled."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2129)
+  !strings(1) = torsion axis: x, y or z
+  !reals(1) = torsion angle in degrees
+  WRITE(msg,"(f16.2)") reals(1)
+  msg = ">>> Applying a torsion of "//TRIM(ADJUSTL(msg)) &
+      & //"° around "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2130)
+  msg = "..> Torsion was successfully applied."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES

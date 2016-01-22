@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 June 2015                                     *
+!* Last modification: P. Hirel - 18 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,7 +83,6 @@ REAL(dp):: dx, dy,dz    !line/grid step along X, Y
 REAL(dp):: Lx, Ly,Lz    !line length along <axis> / grid length along X, Y (A)
 REAL(dp):: prefactor
 REAL(dp):: snumber      !atomic number of an atom
-REAL(dp):: progress     !progress of the computation
 REAL(dp):: x, y, z      !coordinates along the <axis> / in the grid
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system
@@ -275,9 +274,7 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
   DO i=1,SIZE(P,1)
     IF( SIZE(P,1)>100000 ) THEN
       !If there are many atoms, display a fancy progress bar
-      !progress = 100.d0*DBLE((j-1)*Ny+k)/DBLE(Nx*Ny)
-      progress = 100.d0*DBLE(i)/DBLE(SIZE(P,1))
-      CALL ATOMSK_MSG(10,(/""/),(/progress/))
+      CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
     ENDIF
     !
     DO j=1,Nx
@@ -314,8 +311,7 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       !
       IF( SIZE(P,1)>10000 ) THEN
         !If there are many atoms, display a fancy progress bar
-        progress = 100.d0*DBLE(i)/DBLE(SIZE(P,1))
-        CALL ATOMSK_MSG(10,(/""/),(/progress/))
+        CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
       ENDIF
       !
       prefactor = PropPoint(i) * A
@@ -365,8 +361,6 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       ENDDO
     ENDIF
   ENDDO
-  PRINT*, z
-  PRINT*, z
   !
   !
 ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
@@ -379,8 +373,7 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
       IF( SIZE(P,1)>1000 ) THEN
         !If there are many atoms, display a fancy progress bar
-        progress = 100.d0*DBLE(i)/DBLE(SIZE(P,1))
-        CALL ATOMSK_MSG(10,(/""/),(/progress/))
+        CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
       ENDIF
       !
       prefactor = PropPoint(i) * A

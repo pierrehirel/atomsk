@@ -21,7 +21,7 @@ MODULE aio
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 12 Jan. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -98,11 +98,13 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 msg = "XYZ"
 CALL ATOMSK_MSG(4050,(/listfile,msg,outputfile/),(/0.d0/))
 !
-DO i=1,SIZE(outfileformats)
-  IF(outfileformats(i)=='xyz')  output_xyz = .TRUE.
-  IF(outfileformats(i)=='exyz') output_exyz = .TRUE.
-  IF(outfileformats(i)=='xsf')  output_xsf = .TRUE.
-ENDDO
+IF( ALLOCATED(outfileformats) .AND. SIZE(outfileformats) > 0 ) THEN
+  DO i=1,SIZE(outfileformats)
+    IF(outfileformats(i)=='xyz')  output_xyz = .TRUE.
+    IF(outfileformats(i)=='exyz') output_exyz = .TRUE.
+    IF(outfileformats(i)=='xsf')  output_xsf = .TRUE.
+  ENDDO
+ENDIF
 !
 !
 !

@@ -33,11 +33,12 @@ MODULE spacegroups
 !* return a success-code, such that the calling routines may identify problems.   *
 !* None of the routines writes messages to an I/O unit.                           *
 !**********************************************************************************
-!* NOTE ON COMPILATION:                                                           *
-!* Compiling this module with gfortran the flag "-ftree-pre" causes a             *
-!* compiler internal error. I was unable to determine which routine caused that.  *
-!* The flag "-free-pre" is activated for "-O2" and higher.                        *
-!* To solve this problem, compile with "-O1", or with "-fno-tree-pre".            *
+!* NOTE ON COMPILATION (P. Hirel, Jan.2016):                                      *
+!* Compiling this module with gfortran 4.4 and the flag "-ftree-pre" results in   *
+!* a huge workload of RAM, and eventually a compiler internal error.              *
+!* I was unable to determine which routine caused that. The flag "-free-pre"      *
+!* is activated for "-O2" and higher, therefore to solve this problem             *
+!* please compile with "-O1" or with "-fno-tree-pre".                             *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
