@@ -4,13 +4,13 @@ MODULE messages_DE
 !*  MESSAGES_DE                                                                   *
 !**********************************************************************************
 !* This module contains the GERMAN                                                *
-!* version of the messages displayed by the atomsk program.                       *
+!* version of the messages displayed by the Atomsk program.                       *
 !**********************************************************************************
 !* (C) July 2015 - Juri Barthel                                                   *
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 22 Jan. 2016                                     *
+!* Last modification: P. Hirel - 09 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -279,6 +279,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-remove-property" .OR. helpsection=="-rmprop") THEN
   WRITE(*,*) "..> Entferne eine oder alle Hilfseigenschaften:"
   WRITE(*,*) "          -rmprop <property>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-roll" .OR. helpsection=="-bend") THEN
+  WRITE(*,*) "..> Roll the system around an axis:"
+  WRITE(*,*) "          -roll <x|y|z> <angle> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
@@ -1623,8 +1628,8 @@ CASE(2127)
   !strings(1) = roll axis: x, y or z
   !reals(1) = roll angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rolling the system by "//TRIM(ADJUSTL(msg)) &
-      & //"° around "//TRIM(strings(1))
+  msg = ">>> Rolling the "//TRIM(ADJUSTL(strings(1)))//" direction by " // &
+      & TRIM(ADJUSTL(msg))//"° around the "//TRIM(strings(2))//" axis."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2128)
   msg = "..> System was successfully rolled."
@@ -2104,6 +2109,8 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "        Im interaktiven Modus muessen Anweisungen mit einem"// &
       & " (-) Symbol beginnen."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "MODI: Modi koennen nicht benutzen werden in den Command-Line Interpreter."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4024)
   msg = "<?> In welches Format soll konvertiert werden?"

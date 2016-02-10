@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Jan. 2016                                     *
+!* Last modification: P. Hirel - 09 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -640,7 +640,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:5).NE.'above' .AND. temp(1:5)=='below' ) GOTO 120
+    IF( temp(1:5).NE.'above' .AND. temp(1:5).NE.'below' ) GOTO 120
     !read cut distance
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
@@ -904,43 +904,39 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-roll') THEN
+  ELSEIF(clarg=='-roll' .OR. clarg=="-bend") THEN
     ioptions = ioptions+1
-    options_array(ioptions) = TRIM(clarg)
-    !read the axis of rolling (x, y or z) and the angle
+    options_array(ioptions) = "-roll"
+    !read the direction (x, y or z)
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp2
-    temp = TRIM(ADJUSTL(temp))
-    temp2 = TRIM(ADJUSTL(temp2))
-    j=SCAN(temp,"°")
-    IF(j>0) THEN
-      temp(j:j) = " "
-    ENDIF
-    j=SCAN(temp2,"°")
-    IF(j>0) THEN
-      temp2(j:j) = " "
-    ENDIF
-    !User may have entered "-roll axis angle" or "-roll angle axis"
-    !detect which is which and save "-roll axis angle" in options_array
     IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
       & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') THEN
-      IF( temp2(1:1).NE.'x' .AND. temp2(1:1).NE.'y' .AND. temp2(1:1).NE.'z' .AND.  &
-      & temp2(1:1).NE.'X' .AND. temp2(1:1).NE.'Y' .AND. temp2(1:1).NE.'Z') THEN
-        !No axis detected => error
-        GOTO 120
-      ELSE
-        !Axis is in temp2
-        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)//' '//TRIM(temp)
-        READ(temp,*,END=120,ERR=120) tempreal
-      ENDIF
-      !
-    ELSE
-      !Axis is in temp
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp2)
-      READ(temp2,*,END=120,ERR=120) tempreal
+      !No axis detected => error
+      GOTO 120
     ENDIF
+    !read the angle (degrees)
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp2
+    j=SCAN(temp2,"°")
+    IF(j>0) THEN
+      temp2 = temp2(1:j-1)
+    ENDIF
+    READ(temp2,*,END=120,ERR=120) tempreal
+    !read the axis of rolling (x, y or z)
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp3
+    IF( temp3(1:1).NE.'x' .AND. temp3(1:1).NE.'y' .AND. temp3(1:1).NE.'z' .AND.  &
+      & temp3(1:1).NE.'X' .AND. temp3(1:1).NE.'Y' .AND. temp3(1:1).NE.'Z') THEN
+      !No axis detected => error
+      GOTO 120
+    ENDIF
+    !temp and temp3 must *not* be the same direction
+    IF( TRIM(ADJUSTL(temp))==TRIM(ADJUSTL(temp3)) ) THEN
+      GOTO 120
+    ENDIF
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '// &
+                            & TRIM(temp)//' '//TRIM(temp2)//' '//TRIM(temp3)
   !
   ELSEIF(clarg=='-rotate' .OR. clarg=='-rot') THEN
     ioptions = ioptions+1
@@ -954,11 +950,11 @@ DO WHILE(i<SIZE(cla))
     temp2 = TRIM(ADJUSTL(temp2))
     j=SCAN(temp,"°")
     IF(j>0) THEN
-      temp(j:j) = " "
+      temp = temp(1:j-1)
     ENDIF
     j=SCAN(temp2,"°")
     IF(j>0) THEN
-      temp2(j:j) = " "
+      temp2 = temp2(1:j-1)
     ENDIF
     !User may have entered "-rotate axis angle" or "-rotate angle axis"
     !detect which is which and save "-rotate axis angle" in options_array
@@ -1337,11 +1333,11 @@ DO WHILE(i<SIZE(cla))
     temp2 = TRIM(ADJUSTL(temp2))
     j=SCAN(temp,"°")
     IF(j>0) THEN
-      temp(j:j) = " "
+      temp = temp(1:j-1)
     ENDIF
     j=SCAN(temp2,"°")
     IF(j>0) THEN
-      temp2(j:j) = " "
+      temp2 = temp2(1:j-1)
     ENDIF
     !User may have entered "-torsion axis angle" or "-torsion angle axis"
     !detect which is which and save "-torsion axis angle" in options_array

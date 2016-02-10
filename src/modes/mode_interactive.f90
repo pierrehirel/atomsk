@@ -4,13 +4,13 @@ MODULE mode_interactive
 !*  MODE_INTERACTIVE                                                              *
 !**********************************************************************************
 !* This module offers a command-line interpreter (CLI) where the user can type    *
-!* commands that make calls to various routines of atomsk.                        *
+!* commands that make calls to various routines of Atomsk.                        *
 !**********************************************************************************
 !* (C) May 2010 - Pierre Hirel                                                    *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 08 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -478,6 +478,9 @@ DO
         !
         !
         !
+      CASE("all-in-one","average","centrosymmetry","density","difference","electric-dipoles","edm", &
+          &"electric-polarization", "interpolate","list","merge","nye","polycrystal","rdf","unwrap")
+        WRITE(*,*) " This mode in not available when running Atomsk interactively."
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

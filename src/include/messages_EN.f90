@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Jan. 2016                                     *
+!* Last modification: P. Hirel - 08 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -321,6 +321,11 @@ IF(helpsection=="options" .OR. helpsection=="-remove-shell" .OR. helpsection=="-
   &helpsection=="-remove-shells" .OR. helpsection=="-rmshells" ) THEN
   WRITE(*,*) "..> Remove shells from atoms of given species, or on all atoms :"
   WRITE(*,*) "          -rmshells <species|all>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-roll" .OR. helpsection=="-bend") THEN
+  WRITE(*,*) "..> Roll the system around an axis:"
+  WRITE(*,*) "          -roll <x|y|z> <angle> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
@@ -802,6 +807,11 @@ CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string
   msg = "/!\ WARNING: invalid symmetry operation string '"// &
       & TRIM(strings(1))//"', skipping..."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1799)
+  msg = "/!\ WARNING: the data file had an unknown format. Atomsk tried to extract"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            atomic data from it, but it may be wrong. Tread carefully!"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !1800-1899: ERROR MESSAGES
@@ -1668,11 +1678,12 @@ CASE(2126)
   msg = "..> Atoms were swapped."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2127)
-  !strings(1) = roll axis: x, y or z
+  !strings(1) = rolled direction: x, y or z
+  !strings(2) = roll axis: x, y or z
   !reals(1) = roll angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rolling the system by "//TRIM(ADJUSTL(msg)) &
-      & //"° around "//TRIM(strings(1))
+  msg = ">>> Rolling the "//TRIM(ADJUSTL(strings(1)))//" direction by " // &
+      & TRIM(ADJUSTL(msg))//"° around the "//TRIM(strings(2))//" axis."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2128)
   msg = "..> System was successfully rolled."
@@ -1828,6 +1839,12 @@ CASE(2754)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2755)
   msg = "/!\ WARNING: the factor is zero, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2756)
+  !strings(1) = direction
+  msg = "/!\ WARNING: supercell is quite large along the "//TRIM(ADJUSTL(strings(1)))//" direction!"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Are you sure you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -2124,6 +2141,8 @@ CASE(4023)
   msg = "        enter 'help options' to display the available options."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "        In interactive mode options must be called without the leading minus sign (-)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "MODES: modes cannot be used in this command-line interpreter."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4024)
   msg = "<?> To which format do you want to convert it?"

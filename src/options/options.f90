@@ -629,8 +629,8 @@ DO ioptions=1,SIZE(options_array)
     CALL RMSHELLS_XYZ(P,S,rmshells_prop,SELECT)
   !
   CASE('-roll')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
-    CALL ROLL_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT)
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, shift_dir, rot_angle, rot_axis
+    CALL ROLL_XYZ(H,P,S,AUXNAMES,AUX,shift_dir,rot_angle,rot_axis,SELECT)
   !
   CASE('-rot', '-rotate')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle

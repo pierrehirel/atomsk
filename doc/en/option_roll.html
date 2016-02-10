@@ -15,20 +15,22 @@
 
 <h4>Syntax</h4>
 
-<p><code>-roll &#60;axis&#62; &#60;&theta;&#62;</code></p>
+<p><code>-roll &#60;direction&#62; &#60;&theta;&#62; &#60;axis&#62;</code></p>
 
 
 <h4>Description</h4>
 
 <p>This option allows to "roll" the system, i.e. bend it in the form of a circle, around a cartesian axis.</p>
 
-<p>The user has to provide the axis of rotation (has to be x, y or z -referring to cartesian axes), and the angle of rotation &theta; (in degrees). An angle &theta;=0° means no bending, while &theta;=360° means rolling the system to form a tube.</p>
+<p>The user has to provide the direction that will be bent (has to be x, y or z -referring to cartesian axes), the angle of rotation &theta; (in degrees), and the axis of rotation (x, y or z). The &#60;direction&#62; and the &#60;axis&#62; must be normal to each other (i.e. they must be different).</p>
 
-<p>For large angles it is recommended that the system is pseudo-2D, i.e. very thin in one direction normal to the &#60;axis&#62;.</p>
+<p>An angle &theta;=0° means no bending (i.e. no transformation), while &theta;=360° means rolling the system to form a tube. The axis of the tube is aligned with the given &#60;axis&#62;, and its radius is <em>R</em>=(180 <em>L</em>)/(2&pi;&theta;), where <em>L</em> is the length of the box along the given &#60;direction&#62;. Beware that the larger the angle &theta;, the smaller the radius. For large angles it is recommended that the system is pseudo-2D, i.e. very thin, in the plane formed by the &#60;direction&#62; and the &#60;axis&#62;.</p>
 
 <p>If forces (fx,fy,fz) or velocities (vx,vy,vz) exist as auxiliary properties, then they will be rotated accordingly.</p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rotation will be applied only to selected atoms, and the box <em>will not</em> be rotated. This can result in some atoms being out of the box, which can be fixed thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+<p>This option modifies the box dimensions. Along the Cartesian direction that is normal to both the &#60;direction&#62; and &#60;axis&#62;, the box dimension is increased by <em>R</em>[1-cos(&theta;)] so that the rolled system fits in the box.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only the selected atoms will be rolled. This can result in some atoms being out of the box, which can be fixed thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
 <p>This option does not change the dimensions of the cell, nor the elastic tensor if it is defined.</p>
 
@@ -44,11 +46,11 @@
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -roll Z 10 final.xyz</code>
+<li><code class="command">atomsk initial.cfg -roll X 10 Z final.xyz</code>
 <p>This will bend the system to form an angle of 10 degrees around Z.</p></li>
 
-<li><code class="command">atomsk initial.cfg -roll Y 360 final.xyz</code>
-<p>This will roll the system so that it forms a closed cylinder along the Y axis.</p></li>
+<li><code class="command">atomsk unitcell.cfg -duplicate 20 20 1 -roll X 360 Y final.xyz</code>
+<p>This will read the file <code>unitcell.cfg</code>, <a href="./option_duplicate.html">duplicate it</a> to form a pseudo-2D sheet in the XY plane, and roll the X direction of the system so that it forms a closed cylinder along the Y axis.</p></li>
 
 </ul>
 

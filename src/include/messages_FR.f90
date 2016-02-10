@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Jan. 2016                                     *
+!* Last modification: P. Hirel - 09 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -321,6 +321,11 @@ IF(helpsection=="options" .OR. helpsection=="-remove-shell" .OR. helpsection=="-
   &helpsection=="-remove-shells" .OR. helpsection=="-rmshells" ) THEN
   WRITE(*,*) "..> Supprimer les coquilles sur une espèce chimique, ou sur tous les atomes :"
   WRITE(*,*) "          -rmshells <espèce|all>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-roll" .OR. helpsection=="-bend") THEN
+  WRITE(*,*) "..> Enrouler le système autour d'un axe:"
+  WRITE(*,*) "          -roll <x|y|z> <angle> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
@@ -1731,8 +1736,8 @@ CASE(2127)
   !strings(1) = roll axis: x, y or z
   !reals(1) = roll angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Enroulement du système d'un angle de "//TRIM(ADJUSTL(msg)) &
-      & //"° autour de "//TRIM(strings(1))
+  msg = ">>> Enroulement de la direction "//TRIM(ADJUSTL(strings(1)))//" d'un angle de " // &
+      & TRIM(ADJUSTL(msg))//"° autour de l'axe "//TRIM(strings(2))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2128)
   msg = "..> Le système a bien été enroulé."
@@ -2181,6 +2186,8 @@ CASE(4023)
   msg = "         entrez 'help options' pour afficher les options disponibles."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "         En mode interactif les options doivent être appelées sans le signe moins (-)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "MODES : les modes ne peuvent pas être utilisés dans cet interpréteur."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4024)
   msg = "<?> Vers quel format souhaitez-vous le convertir ?"
