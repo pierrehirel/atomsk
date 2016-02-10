@@ -15,40 +15,43 @@
 
 <h4>Syntax</h4>
 
-<p><code>-roll &#60;axe&#62; &#60;&theta;&#62;</code></p>
+<p><code>-roll &#60;direction&#62; &#60;&theta;&#62; &#60;axe&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet d'« enrouler » le système, c'est-à-dire le plier pour former un arc de cercle, autour d'un axe cartésien.</p>
+<p>Cette option permet d'enrouler le système, c'est-à-dire le plier pour former un arc de cercle, autour d'un axe cartésien.</p>
 
-<p>The user has to provide the axis of rotation (has to be x, y or z -referring to cartesian axes), and the angle of rotation &theta; (in degrees). An angle &theta;=0° means no bending, while &theta;=360° means rolling the system to form a tube.</p>
+<p>Les paramètres à fournir sont la &#60;direction&#62; à enrouler (qui doit être x, y ou z), l'angle de rotation &theta; (en degrés), et l'&#60;axe&#62; de rotation (x, y or z). La &#60;direction&#62; et l'&#60;axe&#62; doivent être perpendiculaires (autrement dit ils doivent êtres différents).</p>
 
-<p>For large angles it is recommended that the system is pseudo-2D, i.e. very thin in one direction normal to the &#60;axis&#62;.</p>
+<p>Avec un angle égal à &theta;=0° le système n'est pas courbé (il n'est pas du tout transformé), tandis que &theta;=360° revient à enrouler le système pour former un tube ou un cylindre (voir la <strong>Fig. 1</strong>). L'axe du tube est aligné avec l'&#60;axe&#62; donné, et son rayon est <em>R</em>=(180 <em>L</em>)/(2&pi;&theta;), où <em>L</em> est la longueur de la boîte dans la &#60;direction&#62; donnée. Prenez garde que plus l'angle &theta; est large, plus le rayon est petit. Pour les angles très larges il est recommandé que le système soit pseudo-2D, c'est-à-dire très fin dans le plan formé par la &#60;direction&#62; et l'&#60;axe&#62;.</p>
 
-<p>If forces (fx,fy,fz) or velocities (vx,vy,vz) exist as auxiliary properties, then they will be rotated accordingly.</p>
+<p>Cette option modifie les dimensions de la boîte. Le long de la direction Cartésienne normale à la &#60;direction&#62; et à l'&#60;axe&#62;, la dimensio de la boîte est augmentée de <em>R</em>[1-cos(&theta;)] de sorte à contenir le système enroulé.</p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rotation will be applied only to selected atoms, and the box <em>will not</em> be rotated. This can result in some atoms being out of the box, which can be fixed thanks to the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la transformation ne sera appliquée qu'aux atomes sélectionnés.</p>
 
-<p>This option does not change the dimensions of the cell, nor the elastic tensor if it is defined.</p>
+<hr>
+<object type="img/svg+xml" data="../img/opt_roll.svg"><img src="../img/opt_roll.png" alt="" /></object>
+<p><strong>Fig. 1</strong> - <em>Illustration de l'option "-roll", avec &#60;direction&#62;=X et &#60;axe&#62;=Z. À gauche : système initial. Milieu : système courbé avec un petit angle &theta;. À droite : système totalement enroulé avec un angle &theta;=360°.</em></p>
+<hr>
 
 
 
 
-<h4>Défaut</h4>
+<h4>Default</h4>
 
 <p>Par défaut le système n'est pas enroulé.</p>
 
 
 
-<h4>Exemples</h4>
+<h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -roll Z 10 final.xyz</code>
+<li><code class="command">atomsk initial.cfg -roll X 10 Z final.xyz</code>
 <p>This will bend the system to form an angle of 10 degrees around Z.</p></li>
 
-<li><code class="command">atomsk initial.cfg -roll Y 360 final.xyz</code>
-<p>This will roll the system so that it forms a closed cylinder along the Y axis.</p></li>
+<li><code class="command">atomsk unitcell.cfg -duplicate 20 20 1 -roll X 360 Y final.xyz</code>
+<p>This will read the file <code>unitcell.cfg</code>, <a href="./option_duplicate.html">duplicate it</a> to form a pseudo-2D sheet in the XY plane, and roll the X direction of the system so that it forms a closed cylinder along the Y axis.</p></li>
 
 </ul>
 

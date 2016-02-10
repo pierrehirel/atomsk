@@ -28,6 +28,12 @@ beta 0.9 (in development)
 
 
 
+beta 0.8.4 (10 Feb. 2015)
+-------------------------
+- fixed a bug that prevented to use the option "-cut" with the keyword "below". Thanks to Vasiliy Krasnikov, South-Ural State University, Chelyabinsk, Russia, for pointing out this bug.
+- fixed a bug that prevented to use the option "-fix" with the keywords "above" and "below".
+
+
 beta 0.8.3 (22 Sept. 2015)
 --------------------------
 - fixed a bug in mode "--polycrystal" where it was not possible to construct a 2-D polycrystal when the seed had at least one dimension greater than 20 A. Thanks to Jianyang Wu, Xiamen University, China, for pointing out this bug.

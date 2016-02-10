@@ -11,6 +11,7 @@ export
 # 
 FORTRAN=gfortran
 FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -static -fPIC
+LAPACK=-llapack -lblas
 
 # Goto main Makefile
 include Makefile

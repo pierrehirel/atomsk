@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Feb. 2016                                     *
+!* Last modification: P. Hirel - 10 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -793,7 +793,7 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    IF(temp(1:5)=='above' .AND. temp(1:5)=='below') THEN
+    IF(temp(1:5)=='above' .OR. temp(1:5)=='below') THEN
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !read fix distance
       i=i+1
