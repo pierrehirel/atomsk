@@ -587,7 +587,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:5).NE.'above' .AND. temp(1:5)=='below' ) GOTO 120
+    IF( temp(1:5).NE.'above' .AND. temp(1:5).NE.'below' ) GOTO 120
     !read cut distance
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
@@ -735,12 +735,12 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
       & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z' .AND.  &
-      & temp(1:3).NE.'all' ) GOTO 120
+      & temp(1:3).NE.'all' .AND. temp(1:3).NE.'ALL' ) GOTO 120
     !read 'above' or 'below'
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    IF(temp(1:5)=='above' .AND. temp(1:5)=='below') THEN
+    IF(temp(1:5)=='above' .OR. temp(1:5)=='below') THEN
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !read fix distance
       i=i+1
