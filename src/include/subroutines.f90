@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Sept. 2014                                    *
+!* Last modification: P. Hirel - 07 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1080,26 +1080,43 @@ IMPLICIT NONE
 LOGICAL,INTENT(OUT):: isreduced  !does A contain reduced coordinates?
 INTEGER:: i
 REAL(dp):: mi, M, A, D, S  !statistics
-REAL(dp),DIMENSION(3):: cm
+REAL(dp),DIMENSION(3):: cm !center of "mass"
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array
 !
- cm(:) = 0.d0
-!We read the columns of array and compute the normal deviation of all values
-!- if array has one, two or three columns we read them
-!- if array has four or more columns we read only the 3 first columns
-DO i=1, MIN( SIZE(array,2),3 )
-  !Compute the statistics on coordinates in this column
-  CALL DO_STATS(array(:,i),mi,M,A,D,S)
-  !Save deviation on atom positions
-  cm(i) = S
-ENDDO
-!
-!If deviation is smaller than 1 in all
-!directions, then it is reduced coordinates
-IF( cm(1)<=0.9d0 .AND. cm(2)<=0.9d0 .AND. cm(3)<=0.9d0 ) THEN
-  isreduced = .TRUE.
+IF( SIZE(array,1) > 4 ) THEN
+  cm(:) = 0.d0
+  !We read the columns of array and compute the normal deviation of all values
+  !- if array has one, two or three columns we read them
+  !- if array has four or more columns we read only the 3 first columns
+  DO i=1, MIN( SIZE(array,2),3 )
+    !Compute the statistics on coordinates in this column
+    CALL DO_STATS(array(:,i),mi,M,A,D,S)
+    !Save deviation on atom positions
+    cm(i) = S
+  ENDDO
+  !
+  !If deviation is smaller than 1 in all
+  !directions, then it is reduced coordinates
+  IF( cm(1)<=0.9d0 .AND. cm(2)<=0.9d0 .AND. cm(3)<=0.9d0 ) THEN
+    isreduced = .TRUE.
+  ELSE
+    isreduced = .FALSE.
+  ENDIF
+  !
 ELSE
-  isreduced = .FALSE.
+  !Small number of atoms => the method above may produce wrong results
+  !if an atom is placed at the origin. E.g. in a unit cell containing
+  !only two atoms and one is at (0,0,0) and the other at (1.3,1.3,1.3),
+  !the standard deviation will be smaller than 1, thus wrongly leading
+  !to reduced coordinates. Therefore when the number of atoms is small
+  !another method is used.
+  isreduced = .TRUE.
+  DO i=2,SIZE(array,1)
+    IF( VECLENGTH( array(i,1:3)-array(1,1:3) ) > 1.25d0 ) THEN
+      isreduced = .FALSE.
+    ENDIF
+  ENDDO
+  !
 ENDIF
 !
 END SUBROUTINE FIND_IF_REDUCED
