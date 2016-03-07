@@ -771,13 +771,18 @@ IF( cubic .AND. VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0
     !period along a <110> direction is actually 1/2<110>
     !period along a <112> direction is actually 1/2<112>
     DO i=1,3
-      IF( DABS(ORIENT(i,1))==DABS(ORIENT(i,2)) .AND. DABS(ORIENT(i,3))==0.d0 .OR.           &
-        & DABS(ORIENT(i,1))==DABS(ORIENT(i,3)) .AND. DABS(ORIENT(i,2))==0.d0 .OR.           &
-        & DABS(ORIENT(i,2))==DABS(ORIENT(i,3)) .AND. DABS(ORIENT(i,1))==0.d0       ) THEN
+      IF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
+        & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
+        & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
         uv(i,i) = uv(i,i)/2.d0
-      ELSEIF( DABS(ORIENT(i,1))==DABS(ORIENT(i,2)) .AND. DABS(ORIENT(i,3))==2.d0*DABS(ORIENT(i,1)) .OR.           &
-            & DABS(ORIENT(i,1))==DABS(ORIENT(i,3)) .AND. DABS(ORIENT(i,2))==2.d0*DABS(ORIENT(i,1)) .OR.           &
-            & DABS(ORIENT(i,2))==DABS(ORIENT(i,3)) .AND. DABS(ORIENT(i,1))==2.d0*DABS(ORIENT(i,2))       ) THEN
+      ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2)))    .AND.             &
+            & NINT(DABS(ORIENT(i,3)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
+            & .OR.                                                                  &
+            & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
+            & NINT(DABS(ORIENT(i,2)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
+            & .OR.                                                                  &
+            & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
+            & NINT(DABS(ORIENT(i,1)))==NINT(2.d0*DABS(ORIENT(i,2)))       ) THEN
         uv(i,i) = uv(i,i)/2.d0
       ENDIF
     ENDDO

@@ -11,7 +11,7 @@ MODULE in_cfg
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 Nov. 2014                                     *
+!* Last modification: P. Hirel - 02 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -244,6 +244,7 @@ DO WHILE(snumber==0.d0)
         READ(temp(strlength+1:strlength2-1),*) auxiliary
         strlength = SCAN(temp,'=')
         READ(temp(strlength+1:),'(a128)') AUXNAMES(auxiliary+1)
+        AUXNAMES(auxiliary+1) = TRIM(ADJUSTL(AUXNAMES(auxiliary+1)))
       ENDIF
     !
     ELSEIF( temp(1:9)=="Transform" .OR. temp(1:3)=="eta" ) THEN

@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Feb. 2016                                     *
+!* Last modification: P. Hirel - 22 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2647,6 +2647,22 @@ CASE(4823)
 CASE(4824)
   !strings(1) = name of unknown command
   msg = "X!X ERROR: unknown command: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4825)
+  msg = "X!X ERROR: Atomsk cannot run within itself!"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          You have entered 'atomsk' without any arguments, or you have clicked"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          the executable from a menu, therefore Atomsk is running in interactive mode."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Only a limited subset of commands are available in interactive mode, please"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          refer to the documentation. In order to use Atomsk with command-line arguments,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          you must first run a command shell, and then run your command."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4826)
+  msg = "X!X ERROR: this mode is not available in interactive mode, please refer to the documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

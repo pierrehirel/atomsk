@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2015                                     *
+!* Last modification: P. Hirel - 02 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1025,22 +1025,36 @@ REAL(dp),DIMENSION(3):: cm
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array
 !
  cm(:) = 0.d0
-!We read the columns of array and compute the normal deviation of all values
-!- if array has one, two or three columns we read them
-!- if array has four or more columns we read only the 3 first columns
-DO i=1, MIN( SIZE(array,2),3 )
-  !Compute the statistics on coordinates in this column
-  CALL DO_STATS(array(:,i),mi,M,A,D,S)
-  !Save deviation on atom positions
-  cm(i) = S
-ENDDO
-!
-!If deviation is smaller than 1 in all
-!directions, then it is reduced coordinates
-IF( cm(1)<=0.9d0 .AND. cm(2)<=0.9d0 .AND. cm(3)<=0.9d0 ) THEN
-  isreduced = .TRUE.
+IF( SIZE(array,1) > 3 ) THEN
+  !We read the columns of array and compute the normal deviation of all values
+  !- if array has one, two or three columns we read them
+  !- if array has four or more columns we read only the 3 first columns
+  DO i=1, MIN( SIZE(array,2),3 )
+    !Compute the statistics on coordinates in this column
+    CALL DO_STATS(array(:,i),mi,M,A,D,S)
+    !Save deviation on atom positions
+    cm(i) = S
+  ENDDO
+  !
+  !If deviation is smaller than 1 in all
+  !directions, then it is reduced coordinates
+  IF( cm(1)<=0.9d0 .AND. cm(2)<=0.9d0 .AND. cm(3)<=0.9d0 ) THEN
+    isreduced = .TRUE.
+  ELSE
+    isreduced = .FALSE.
+  ENDIF
+  !
 ELSE
-  isreduced = .FALSE.
+  ! 3 atoms or fewer in the system
+  !Sum their vectors and divide by number of atoms
+  cm(1) = SUM( array(:,1) ) / DBLE(SIZE(array,1))
+  cm(2) = SUM( array(:,2) ) / DBLE(SIZE(array,1))
+  cm(3) = SUM( array(:,3) ) / DBLE(SIZE(array,1))
+  IF( cm(1)>1.1d0 .AND. cm(2)>1.1d0 .AND. cm(3)>1.1d0 ) THEN
+    isreduced = .FALSE.
+  ELSE
+    isreduced = .TRUE.
+  ENDIF
 ENDIF
 !
 END SUBROUTINE FIND_IF_REDUCED

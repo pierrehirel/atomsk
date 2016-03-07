@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Feb. 2016                                     *
+!* Last modification: P. Hirel - 22 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2697,6 +2697,22 @@ CASE(4823)
 CASE(4824)
   !strings(1) = name of unknown command
   msg = "X!X ERREUR : commande inconnue : "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4825)
+  msg = "X!X ERREUR : Atomsk ne peut pas s'exécuter à l'intérieur de lui-même !"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Vous avez entré 'atomsk' sans argument, ou vous avez cliqué sur l'exécutable"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          depuis un menu, et donc Atomsk s'est exécuté en mode interactif."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Seul un nombre limité de commandes sont disponibles en mode interactif, veuillez"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          vous référer à la documentation. Pour utiliser Atomsk avec des arguments, vous devez"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          d'abord lancer une invite de commandes, et ensuite entrer votre commande."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4826)
+  msg = "X!X ERREUR : ce mode n'est pas disponible en mode interactif, veuillez vous référer à la documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

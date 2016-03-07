@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Dec. 2015                                     *
+!* Last modification: P. Hirel - 02 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -267,6 +267,12 @@ IF( ALLOCATED(AUXNAMES) .OR. ALLOCATED(AUX) ) THEN
   IF( SIZE(AUXNAMES)<=0 .OR. SIZE(AUX,1)<=0 .OR. SIZE(AUX,2)<=0 ) THEN
     IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
     IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  ENDIF
+  !Verify that names of auxiliary properties are left-aligned
+  IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+    DO i=1,SIZE(AUXNAMES)
+      AUXNAMES(i) = TRIM(ADJUSTL(AUXNAMES(i)))
+    ENDDO
   ENDIF
 ENDIF
 !

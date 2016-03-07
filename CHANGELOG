@@ -10,7 +10,7 @@ beta 0.9 (in development)
 - new option "-roll" allows to roll a system into a tube around an axis.
 - new option "-swap" allows to exchange the indices of two atoms.
 - new option "-torsion" allows to apply torsion along a Cartesian axis.
-- added support for reading and writing files in CEL format. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this file format.
+- added support for reading and writing files in CEL format, used by Dr. Probe. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this file format.
 - added support for reading and writing files in JEMS format.
 - enhanced support for CIF format. Symmetry operations are now taken into account. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
 - enhanced support for Quantum Espresso files. When writing such files the user's environment is now taken into account. When reading QE output files (in mode "--one-in-all"), when cell parameters are in Bohrs and atom positions in Angströms, the latter are now converted into Bohrs (instead of converting cell parameters into angströms).

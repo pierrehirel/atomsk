@@ -478,11 +478,6 @@ DO
         !
         !
         !
-      CASE("all-in-one","average","centrosymmetry","density","difference","electric-dipoles","edm", &
-          &"electric-polarization", "interpolate","list","merge","nye","polycrystal","rdf","unwrap")
-        WRITE(*,*) " This mode in not available when running Atomsk interactively."
-      !
-      !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!         MISC.  COMMANDS
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -491,7 +486,12 @@ DO
         WRITE(*,*) TRIM(ADJUSTL(command))//", "//TRIM(ADJUSTL(username))//"."
         !
       CASE("atomsk","Atomsk","ATOMSK")
-        CALL DISPLAY_HEADER()
+        !CALL DISPLAY_HEADER()
+        CALL ATOMSK_MSG(4825,(/""/),(/0.d0/))
+        !
+      CASE("all-in-one","average","centrosymmetry","density","difference","electric-dipoles","edm", &
+          &"electric-polarization", "interpolate","list","merge","nye","polycrystal","rdf","unwrap")
+        CALL ATOMSK_MSG(4826,(/""/),(/0.d0/))
         !
       CASE("1337")
         WRITE(*,*) "U R 1337 :-)"
