@@ -14,7 +14,7 @@ MODULE in_lmp_c
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 July 2015                                     *
+!* Last modification: P. Hirel - 09 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,6 +111,7 @@ DO WHILE(.NOT.finished)
     IF(temp2(1:15)=='NUMBER OF ATOMS') THEN
       READ(30,*,END=820,ERR=820) NP
       ALLOCATE(P(NP,4))
+      P(:,:) = 0.d0
     ELSEIF(temp2(1:10)=='BOX BOUNDS') THEN
       IF( temp2(12:19)=='xy xz yz' ) THEN
         !If the box is triclinic we read the bounding box and tilt factors
@@ -294,9 +295,24 @@ DO WHILE(.NOT.finished)
           READ(acol(xcol),*,END=840,ERR=840) a
           READ(acol(ycol),*,END=840,ERR=840) b
           READ(acol(zcol),*,END=840,ERR=840) c
-          P(id,1) = a - xlo_bound
-          P(id,2) = b - ylo_bound
-          P(id,3) = c - zlo_bound
+          !If reduced, convert to Cartesian coordinates
+          !Also, the box was shifted so that the lower bounds are at (0,0,0)
+          !=> shift atoms to keep their relative positions to the box
+          IF( reduced(1) ) THEN
+            P(id,1) = a*H(1,1) + b*H(2,1) + c*H(3,1) - xlo_bound
+          ELSE
+            P(id,1) = a - xlo_bound
+          ENDIF
+          IF( reduced(2) ) THEN
+            P(id,2) = a*H(1,2) + b*H(2,2) + c*H(3,2) - ylo_bound
+          ELSE
+            P(id,2) = b - ylo_bound
+          ENDIF
+          IF( reduced(3) ) THEN
+            P(id,3) = a*H(1,3) + b*H(2,3) + c*H(3,3) - zlo_bound
+          ELSE
+            P(id,3) = c - zlo_bound
+          ENDIF
           !
           !Read element if present, otherwise type = element
           IF( elecol.NE.0 ) THEN
@@ -373,10 +389,7 @@ DO WHILE(.NOT.finished)
   ENDIF
 ENDDO
 !
-!Convert coordinates to cartesian if they are fractional
-IF( reduced(1) .AND. reduced(2) .AND. reduced(3) ) THEN
-  CALL FRAC2CART(P,H)
-ENDIF
+!
 GOTO 1000
 !
 !

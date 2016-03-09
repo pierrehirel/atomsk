@@ -28,6 +28,12 @@ beta 0.9 (in development)
 
 
 
+beta 0.8.5 (7 March 2016)
+-------------------------
+- fixed a bug where the detection of Cartesian or reduced coordinates would fail when the number of atoms was very small (typically unit cells containing only one or two atoms). Thanks to Jérôme Dequeker, UMET, Lille, France, for pointing out this bug.
+- fixed a bug in mode "--create" where the number of atoms in oriented unit cells would be incorrect for some values of the lattice parameter. Thanks to J. Amodeo, MATEIS, Lyon, France, for pointing out this bug.
+
+
 beta 0.8.4 (10 Feb. 2015)
 -------------------------
 - fixed a bug that prevented to use the option "-cut" with the keyword "below". Thanks to Vasiliy Krasnikov, South-Ural State University, Chelyabinsk, Russia, for pointing out this bug.

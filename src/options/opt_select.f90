@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 Jan. 2016                                     *
+!* Last modification: P. Hirel - 08 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1115,9 +1115,10 @@ CASE("list")
   CALL CHECKFILE(region_geom,"read")
   OPEN(UNIT=30,FILE=region_geom,FORM='FORMATTED')
   DO
-    READ(30,'(a128)',ERR=280,END=280) temp
+    READ(30,'(a128)',ERR=281,END=281) temp
     temp = ADJUSTL(temp)
     IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
+      READ(temp,*,ERR=280,END=280) i
       IF( i>0 .AND. i<=SIZE(P,1) ) THEN
         IF( .NOT. ALLOCATED(SELECT) ) THEN
           ALLOCATE( SELECT(SIZE(P,1)) )
@@ -1129,11 +1130,12 @@ CASE("list")
       ELSE
         !Atom index is out-of-bounds
         nwarn = nwarn+1
-        CALL ATOMSK_MSG(2742,(/""/),(/DBLE(atomindices(i))/))
+        CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
       ENDIF
     ENDIF
+    280 CONTINUE
   ENDDO
-  280 CONTINUE
+  281 CONTINUE
   CLOSE(30)
   !
   !

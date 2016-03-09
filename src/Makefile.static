@@ -9,7 +9,7 @@
 export
 
 # 
-FORTRAN=gfortran
+FORTRAN=gfortran -z muldefs
 FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -static -fPIC
 LAPACK=-llapack -lblas
 

@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 March 2016                                    *
+!* Last modification: P. Hirel - 08 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1024,8 +1024,8 @@ REAL(dp):: mi, M, A, D, S  !statistics
 REAL(dp),DIMENSION(3):: cm
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array
 !
- cm(:) = 0.d0
-IF( SIZE(array,1) > 3 ) THEN
+IF( SIZE(array,1) > 4 ) THEN
+  cm(:) = 0.d0
   !We read the columns of array and compute the normal deviation of all values
   !- if array has one, two or three columns we read them
   !- if array has four or more columns we read only the 3 first columns
@@ -1045,16 +1045,19 @@ IF( SIZE(array,1) > 3 ) THEN
   ENDIF
   !
 ELSE
-  ! 3 atoms or fewer in the system
-  !Sum their vectors and divide by number of atoms
-  cm(1) = SUM( array(:,1) ) / DBLE(SIZE(array,1))
-  cm(2) = SUM( array(:,2) ) / DBLE(SIZE(array,1))
-  cm(3) = SUM( array(:,3) ) / DBLE(SIZE(array,1))
-  IF( cm(1)>1.1d0 .AND. cm(2)>1.1d0 .AND. cm(3)>1.1d0 ) THEN
-    isreduced = .FALSE.
-  ELSE
-    isreduced = .TRUE.
-  ENDIF
+  !Small number of atoms => the method above may produce wrong results
+  !if an atom is placed at the origin. E.g. in a unit cell containing
+  !only two atoms and one is at (0,0,0) and the other at (1.3,1.3,1.3),
+  !the standard deviation will be smaller than 1, thus wrongly leading
+  !to reduced coordinates. Therefore when the number of atoms is small
+  !another method is used.
+  isreduced = .TRUE.
+  DO i=2,SIZE(array,1)
+    IF( VECLENGTH( array(i,1:3)-array(1,1:3) ) > 1.25d0 ) THEN
+      isreduced = .FALSE.
+    ENDIF
+  ENDDO
+  !
 ENDIF
 !
 END SUBROUTINE FIND_IF_REDUCED
