@@ -2,10 +2,15 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+beta 0.8.6 (9 March 2016)
+-------------------------
+- fixed a bug in the reading of LAMMPS custom files (*.lmc) when it contained reduced coordinates and the lower bounds of the box were not at the origin. Thanks to Yann Even and Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.
+
+
 beta 0.8.5 (7 March 2016)
 -------------------------
 - fixed a bug where the detection of Cartesian or reduced coordinates would fail when the number of atoms was very small (typically unit cells containing only one or two atoms). Thanks to Jérôme Dequeker, UMET, Univ. Lille 1, France, for pointing out this bug.
-- fixed a bug where 
+- fixed a bug in mode "--create" where the number of atoms in oriented unit cells would be incorrect for some values of the lattice parameter. Thanks to Yann Even and Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.
 
 
 beta 0.8.4 (10 Feb. 2016)

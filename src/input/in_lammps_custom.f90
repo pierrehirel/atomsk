@@ -14,7 +14,7 @@ MODULE in_lmp_c
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 May 2014                                      *
+!* Last modification: P. Hirel - 09 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,6 +111,7 @@ DO WHILE(.NOT.finished)
     IF(temp2(1:15)=='NUMBER OF ATOMS') THEN
       READ(30,*,END=820,ERR=820) NP
       ALLOCATE(P(NP,4))
+      P(:,:) = 0.d0
     ELSEIF(temp2(1:10)=='BOX BOUNDS') THEN
       IF( temp2(12:19)=='xy xz yz' ) THEN
         !If the box is triclinic we read the bounding box and tilt factors
@@ -287,90 +288,108 @@ DO WHILE(.NOT.finished)
         ELSE
           id = i
         ENDIF
-        READ(acol(xcol),*,END=840,ERR=840) a
-        READ(acol(ycol),*,END=840,ERR=840) b
-        READ(acol(zcol),*,END=840,ERR=840) c
-        P(id,1) = a - xlo_bound
-        P(id,2) = b - ylo_bound
-        P(id,3) = c - zlo_bound
-        !
-        !Read element if present, otherwise type = element
-        IF( elecol.NE.0 ) THEN
-          !Could be actual element name or a number
-          !Try to pass the string, see if it is an element name
-          CALL ATOMNUMBER(acol(elecol),testreal)
-          IF( DABS(testreal)<1.d-12 ) THEN
-            !String was not an element name => try a real
-            READ( acol(elecol),*,END=170,ERR=170 ) testreal
-            !It succeeded => store it in P(id,4)
-            GOTO 180
-            170 CONTINUE
-            !It failed, it was not a real number => ignore it, use atom type
-            READ(acol(typecol),*,END=840,ERR=840) testreal
-          ENDIF
-          !
-        ELSEIF( typecol.NE.0 ) THEN
-          !No 'element' column => use atom type as atomic number
-          READ(acol(typecol),*,END=840,ERR=840) testreal
-          !
+        IF( id<=0 .OR. id>SIZE(P,1) ) THEN
+          nwarn=nwarn+1
+          CALL ATOMSK_MSG(2742,(/""/),(/DBLE(id)/))
         ELSE
-          !No atom type or element in dump file
-          !=> we cannot guess elements, all atoms will be hydrogen
-          testreal = 1.d0
-        ENDIF
-        180 CONTINUE
-        P(id,4) = testreal
-        !
-        !Read auxiliary properties (if any)
-        IF(ALLOCATED(AUX)) THEN
-          sizeaux = 0
-          IF( typecol.NE.0 ) THEN
-            READ(acol(typecol),*,END=840,ERR=840) a
-            AUX(id,1) = a
-            sizeaux = 1
+          READ(acol(xcol),*,END=840,ERR=840) a
+          READ(acol(ycol),*,END=840,ERR=840) b
+          READ(acol(zcol),*,END=840,ERR=840) c
+          !If reduced, convert to Cartesian coordinates
+          !Also, the box was shifted so that the lower bounds are at (0,0,0)
+          !=> shift atoms to keep their relative positions to the box
+          IF( reduced(1) ) THEN
+            P(id,1) = a*H(1,1) + b*H(2,1) + c*H(3,1) - xlo_bound
+          ELSE
+            P(id,1) = a - xlo_bound
           ENDIF
-          IF( vx.NE.0 .AND. vy.NE.0 .AND. vz.NE.0 ) THEN
-            READ(acol(vx),*,END=840,ERR=840) a
-            READ(acol(vy),*,END=840,ERR=840) b
-            READ(acol(vz),*,END=840,ERR=840) c
-            AUX(id,sizeaux+1) = a
-            AUX(id,sizeaux+2) = b
-            AUX(id,sizeaux+3) = c
-            sizeaux = sizeaux+3
+          IF( reduced(2) ) THEN
+            P(id,2) = a*H(1,2) + b*H(2,2) + c*H(3,2) - ylo_bound
+          ELSE
+            P(id,2) = b - ylo_bound
           ENDIF
-          IF( fx.NE.0 .AND. fy.NE.0 .AND. fz.NE.0 ) THEN
-            READ(acol(fx),*,END=840,ERR=840) a
-            READ(acol(fy),*,END=840,ERR=840) b
-            READ(acol(fz),*,END=840,ERR=840) c
-            AUX(id,sizeaux+1) = a
-            AUX(id,sizeaux+2) = b
-            AUX(id,sizeaux+3) = c
-            sizeaux = sizeaux+3
+          IF( reduced(3) ) THEN
+            P(id,3) = a*H(1,3) + b*H(2,3) + c*H(3,3) - zlo_bound
+          ELSE
+            P(id,3) = c - zlo_bound
           ENDIF
-          IF( q.NE.0 ) THEN
-            READ(acol(q),*,END=840,ERR=840) a
-            AUX(id,sizeaux+1) = a
-            sizeaux = sizeaux+1
-          ENDIF
-          DO j=1,Ncol
-            IF( LEN_TRIM(namecol(j)).NE.0 ) THEN
-              READ(acol(j),*,END=840,ERR=840) a
-              sizeaux = sizeaux+1
-              AUX(id,sizeaux) = a
+          !
+          !Read element if present, otherwise type = element
+          IF( elecol.NE.0 ) THEN
+            !Could be actual element name or a number
+            !Try to pass the string, see if it is an element name
+            CALL ATOMNUMBER(acol(elecol),testreal)
+            IF( DABS(testreal)<1.d-12 ) THEN
+              !String was not an element name => try a real
+              READ( acol(elecol),*,END=170,ERR=170 ) testreal
+              !It succeeded => store it in P(id,4)
+              GOTO 180
+              170 CONTINUE
+              !It failed, it was not a real number => ignore it, use atom type
+              READ(acol(typecol),*,END=840,ERR=840) testreal
             ENDIF
-          ENDDO
+            !
+          ELSEIF( typecol.NE.0 ) THEN
+            !No 'element' column => use atom type as atomic number
+            READ(acol(typecol),*,END=840,ERR=840) testreal
+            !
+          ELSE
+            !No atom type or element in dump file
+            !=> we cannot guess elements, all atoms will be hydrogen
+            testreal = 1.d0
+          ENDIF
+          180 CONTINUE
+          P(id,4) = testreal
+          !
+          !Read auxiliary properties (if any)
+          IF(ALLOCATED(AUX)) THEN
+            sizeaux = 0
+            IF( typecol.NE.0 ) THEN
+              READ(acol(typecol),*,END=840,ERR=840) a
+              AUX(id,1) = a
+              sizeaux = 1
+            ENDIF
+            IF( vx.NE.0 .AND. vy.NE.0 .AND. vz.NE.0 ) THEN
+              READ(acol(vx),*,END=840,ERR=840) a
+              READ(acol(vy),*,END=840,ERR=840) b
+              READ(acol(vz),*,END=840,ERR=840) c
+              AUX(id,sizeaux+1) = a
+              AUX(id,sizeaux+2) = b
+              AUX(id,sizeaux+3) = c
+              sizeaux = sizeaux+3
+            ENDIF
+            IF( fx.NE.0 .AND. fy.NE.0 .AND. fz.NE.0 ) THEN
+              READ(acol(fx),*,END=840,ERR=840) a
+              READ(acol(fy),*,END=840,ERR=840) b
+              READ(acol(fz),*,END=840,ERR=840) c
+              AUX(id,sizeaux+1) = a
+              AUX(id,sizeaux+2) = b
+              AUX(id,sizeaux+3) = c
+              sizeaux = sizeaux+3
+            ENDIF
+            IF( q.NE.0 ) THEN
+              READ(acol(q),*,END=840,ERR=840) a
+              AUX(id,sizeaux+1) = a
+              sizeaux = sizeaux+1
+            ENDIF
+            DO j=1,Ncol
+              IF( LEN_TRIM(namecol(j)).NE.0 ) THEN
+                READ(acol(j),*,END=840,ERR=840) a
+                sizeaux = sizeaux+1
+                AUX(id,sizeaux) = a
+              ENDIF
+            ENDDO
+          ENDIF
+          !
         ENDIF
         !
-      ENDDO
+      ENDDO !i
       finished = .TRUE.
     ENDIF
   ENDIF
 ENDDO
 !
-!Convert coordinates to cartesian if they are fractional
-IF( reduced(1) .AND. reduced(2) .AND. reduced(3) ) THEN
-  CALL FRAC2CART(P,H)
-ENDIF
+!
 GOTO 1000
 !
 !
