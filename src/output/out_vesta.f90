@@ -153,7 +153,7 @@ WRITE(40,'(a)') "  0.000000   0.000000   0.000000   0.000000   0.000000   0.0000
 !
 !
 !Write atom positions
-a=0.d0
+a=1.d0
 WRITE(40,'(a5)') "STRUC"
 DO i=1,SIZE(P,1)
   CALL ATOMSPECIES(P(i,4),species)
