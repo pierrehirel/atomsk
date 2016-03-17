@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Jan. 2016                                     *
+!* Last modification: P. Hirel - 17 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -80,6 +80,7 @@ USE out_pdb
 USE out_qe_pw
 USE out_siesta_xv
 USE out_vasp_poscar
+USE out_vesta
 USE out_xmd
 USE out_xsf
 USE out_xyz
@@ -430,6 +431,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_QEPW(H,P,comment,AUXNAMES,AUX,outputfile)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('vesta','VESTA')
+    CALL NAME_OUTFILE(prefix,outputfile,'vesta')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_VESTA(H,P,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

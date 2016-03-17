@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Nov. 2015                                     *
+!* Last modification: P. Hirel - 17 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,8 +61,8 @@ INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
 REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, isdd, isdlp, isgin, isimd
-REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isxsf
-REAL(dp):: isxv,isxmd, isxyz, isexyz, issxyz
+REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isvesta
+REAL(dp):: isxsf, isxv,isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
 REAL(dp):: certainty
@@ -94,6 +94,7 @@ ispdb=0.d0       !Protein Data Bank format
 isposcar = 0.d0  !VASP POSCAR format
 isqepw = 0.d0    !Quantum Espresso PWscf format
 isqeout = 0.d0   !Quantum Espresso PWscf output format
+isvesta = 0.d0   !VESTA format
 isxmd = 0.d0     !XMD format
 isxsf = 0.d0     !xCrySDen format
 isxv = 0.d0      !SIESTA XV format
@@ -166,6 +167,8 @@ IF( strlength > 0 ) THEN
     ispdb = ispdb+0.6d0
   CASE('pw','PW')
     isqepw = isqepw+0.15d0
+  CASE('vesta')
+    isvesta = isvesta+0.6d0
   CASE('xmd','XMD')
     isxmd = isxmd+0.6d0
   CASE('xsf','XSF')
@@ -451,6 +454,20 @@ IF(fileexists) THEN
     ELSEIF(test(1:13)=='Program PWSCF') THEN
       isqeout = isqeout+1.d0
     !
+    !Search for patterns corresponding to VESTA format
+    ELSEIF(test(1:13)=='#VESTA_FORMAT') THEN
+      isvesta = isvesta+0.6d0
+    ELSEIF(test(1:5)=='TRANM') THEN
+      isvesta = isvesta+0.1d0
+    ELSEIF(test(1:7)=='LTRANSL') THEN
+      isvesta = isvesta+0.1d0
+    ELSEIF(test(1:7)=='LORIENT') THEN
+      isvesta = isvesta+0.1d0
+    ELSEIF(test(1:7)=='LMATRIX') THEN
+      isvesta = isvesta+0.1d0
+    ELSEIF(test(1:7)=='LCELLP') THEN
+      isvesta = isvesta+0.1d0
+    !
     !Search for patterns corresponding to XMD format
     ELSEIF(test(1:9)=='POSITION ') THEN
       isxmd = isxmd+0.2d0
@@ -588,7 +605,7 @@ ENDIF   !If fileexists
 300 CONTINUE
 !Find the best score
 likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,isjems,islmp, &
-       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isxmd,isxsf, &
+       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isvesta,isxmd,isxsf, &
        &     isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
@@ -631,6 +648,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   QEPW ', isqepw
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   QEOUT ', isqeout
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   VESTA ', isvesta
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   XMD ', isxmd
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -693,6 +712,8 @@ ELSE
     infileformat = 'pw'
   ELSEIF(isqeout==likely) THEN
     infileformat = 'pwo'
+  ELSEIF(isvesta==likely) THEN
+    infileformat = 'vesta'
   ELSEIF(isxmd==likely) THEN
     infileformat = 'xmd'
   ELSEIF(isxyz==likely) THEN

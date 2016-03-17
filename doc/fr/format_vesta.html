@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format VESTA - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : VESTA</h2>
+
+<p><strong>Nom :</strong> fichier VESTA</p>
+
+<p><strong>Extension :</strong> vesta</p>
+
+<p><strong>Spécification :</strong> <a href="http://jp-minerals.org/vesta/en/doc.html">documentation de VESTA</a></p>
+
+<p><strong>Programmes de visualisation :</strong> <a href="http://jp-minerals.org/vesta/">VESTA</a></p>
+
+
+<h4>Restrictions</h4>
+
+<p>Atomsk peut lire les fichiers VESTA, mais ne prend pas en compte le groupe d'espace ni les opérations de symétrie.</p>
+
+<p>Lorsqu'il écrit un fichier VESTA, Atomsk ignore aussi les opérations de symétrie, c'est-à-dire que le groupe d'espace sera P1. Si les forces sont définies en tant que propriétés auxiliaires (<code>fx, fy, fz</code>), alors elles sont écrites comme vecteur après la position de chaque atome. Sinon, si les vitesses des atomes sont définies alors elles sont utilisées comme vecteurs. Sinon les vecteurs seront nuls pour tous les atomes.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg final.vesta</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et le convertira en <code>final.vesta</code>.</p></li>
+
+<li><code class="command">atomsk CONTCAR vesta</code>
+<p>Ceci va lire le fichier VASP <code>CONTCAR</code>, et le convertira en <code>CONTCAR.vesta</code>.</p></li>
+
+<li><code class="command">atomsk file.vesta lammps</code>
+<p>Ceci va lire le fichier VESTA <code>file.vesta</code>, et le convertira en <code>file.lmp</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

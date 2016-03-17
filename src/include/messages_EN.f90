@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Feb. 2016                                     *
+!* Last modification: P. Hirel - 16 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -431,6 +431,7 @@ WRITE(*,*) "    pdb (Protein Data Bank) |   yes  |  yes"
 WRITE(*,*) "    pos (POSCAR/VASP)       |   yes  |  yes"
 WRITE(*,*) "    pw (Quantum Espresso)   |   yes  |  yes"
 WRITE(*,*) "    pwout (QE output file)  |  yes(2)|   no"
+WRITE(*,*) "    vesta (VESTA file)      |   yes  |  yes"
 WRITE(*,*) "    xmd (XMD file)          |   yes  |  yes"
 WRITE(*,*) "    xsf (XCrySDen)          |   yes  |  yes"
 WRITE(*,*) "    xv (SIESTA format)      |   yes  |  yes"
@@ -2651,16 +2652,26 @@ CASE(4824)
 CASE(4825)
   msg = "X!X ERROR: Atomsk cannot run within itself!"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          You have entered 'atomsk' without any arguments, or you have clicked"
+  msg = "          You have entered 'atomsk' without any arguments, or you have clicked the"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          the executable from a menu, therefore Atomsk is running in interactive mode."
+  msg = "          executable from a menu, therefore Atomsk is currently running in interactive mode"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          Only a limited subset of commands are available in interactive mode, please"
+  msg = "          where only a limited subset of commands are available, please refer to the documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          refer to the documentation. In order to use Atomsk with command-line arguments,"
+  msg = "          In order to use Atomsk with command-line arguments, you must first run"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          you must first run a command shell, and then run your command."
+  msg = "          a command shell, and then type in your command."
   CALL DISPLAY_MSG(1,msg,logfile)
+#if defined(WINDOWS)
+  msg = "          In a Microsoft Windows system, follow these steps:"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          1. Open Power Shell from the Windows menu."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          2. Run atomsk.exe with the arguments, for instance:"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = '             "C:\Program Files\Atomsk\atomsk.exe" initial.xsf final.cfg'
+  CALL DISPLAY_MSG(1,msg,logfile)
+#endif
 CASE(4826)
   msg = "X!X ERROR: this mode is not available in interactive mode, please refer to the documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2758,7 +2769,7 @@ IF(values(2)==1 .AND. values(3)<=10) THEN
 !
 !14 March (3/14): Pi day
 ELSEIF(values(2)==3 .AND. values(3)==14) THEN
-  msg = "               π"
+  WRITE(msg,'(a8,f51.48)') "    π = ", pi
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !1 April

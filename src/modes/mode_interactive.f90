@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Feb. 2016                                     *
+!* Last modification: P. Hirel - 14 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -140,7 +140,8 @@ DO
   nerr=0  !do not exit program upon errors
   !
   !The Atomsk prompt!
-  WRITE(*,'(a8)',ADVANCE='NO') "atomsk> "
+  WRITE(temp,*) TRIM(ADJUSTL(username))//"@atomsk> "
+  WRITE(*,'(a)',ADVANCE='NO') TRIM(temp)//" "
   !
   !Read the instruction given by the user
   READ(*,'(a4096)',ERR=500,END=500) instruction

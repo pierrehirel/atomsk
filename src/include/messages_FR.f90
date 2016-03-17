@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Feb. 2016                                     *
+!* Last modification: P. Hirel - 16 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -420,18 +420,19 @@ WRITE(*,*) "    cfg (Atomeye)           |   oui  |  oui"
 WRITE(*,*) "    cif (Cryst.Info.File)   |   oui  |  oui"
 WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
-WRITE(*,*) "    gin (GULP input)        |   oui  |  oui"
-WRITE(*,*) "    imd (IMD input)         |   oui  |  oui"
-WRITE(*,*) "    jems (JEMS input)       |   oui  |  oui"
+WRITE(*,*) "    gin (fichier GULP)      |   oui  |  oui"
+WRITE(*,*) "    imd (fichier IMD)       |   oui  |  oui"
+WRITE(*,*) "    jems (fichier JEMS)     |   oui  |  oui"
 WRITE(*,*) "    lmc (LAMMPS output)     |   oui  |  non"
 WRITE(*,*) "    lmp (LAMMPS data)       |   oui  |  oui"
-WRITE(*,*) "    mol (MOLDY format)      |   oui  |  oui"
+WRITE(*,*) "    mol (fichier MOLDY)     |   oui  |  oui"
 WRITE(*,*) "    pdb (Protein Data Bank) |   oui  |  oui"
 WRITE(*,*) "    pos (POSCAR/VASP)       |   oui  |  oui"
 WRITE(*,*) "    pw (Quantum Espresso)   |   oui  |  oui"
-WRITE(*,*) "    pwout (QE output file)  |  oui(2)|  non"
+WRITE(*,*) "    pwout (sortie QE)       |  oui(2)|  non"
+WRITE(*,*) "    vesta (fichier VESTA)   |   yes  |  yes"
 WRITE(*,*) "    xsf (XCrySDen)          |   oui  |  oui"
-WRITE(*,*) "    xv (SIESTA format)      |   oui  |  oui"
+WRITE(*,*) "    xv (fichier SIESTA)     |   oui  |  oui"
 WRITE(*,*) "    xyz/exyz/sxyz           |   oui  |  oui"
 WRITE(*,*) "        (1) Mode ddplot seulement."
 WRITE(*,*) "        (2) Mode one-in-all seulement."
@@ -2703,14 +2704,24 @@ CASE(4825)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          Vous avez entré 'atomsk' sans argument, ou vous avez cliqué sur l'exécutable"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          depuis un menu, et donc Atomsk s'est exécuté en mode interactif."
+  msg = "          depuis un menu, et donc Atomsk s'est exécuté en mode interactif, où seul un"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          Seul un nombre limité de commandes sont disponibles en mode interactif, veuillez"
+  msg = "          nombre limité de commandes sont disponibles, veuillez vous référer à la documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          vous référer à la documentation. Pour utiliser Atomsk avec des arguments, vous devez"
+  msg = "          Pour utiliser Atomsk avec des arguments, vous devez d'abord lancer une"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          d'abord lancer une invite de commandes, et ensuite entrer votre commande."
+  msg = "          invite de commandes, et ensuite y taper votre commande."
   CALL DISPLAY_MSG(1,msg,logfile)
+#if defined(WINDOWS)
+  msg = "          Sur un système Microsoft Windows, suivez les étapes suivantes :"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          1. Ouvrez Power Shell depuis le menu Windows."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          2. Exécutez atomsk.exe avec les arguments, par exemple :"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = '             "C:\Program Files\Atomsk\atomsk.exe" initial.xsf final.cfg'
+  CALL DISPLAY_MSG(1,msg,logfile)
+#endif
 CASE(4826)
   msg = "X!X ERREUR : ce mode n'est pas disponible en mode interactif, veuillez vous référer à la documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2802,7 +2813,7 @@ IF(values(2)==1 .AND. values(3)<=10) THEN
 !
 !14 Mars (3/14) : jour du nombre pi
 ELSEIF(values(2)==3 .AND. values(3)==14) THEN
-  msg = "               π"
+  WRITE(msg,'(a8,f51.48)') "    π = ", pi
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !1 Avril

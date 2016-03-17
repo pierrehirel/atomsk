@@ -36,7 +36,7 @@ MODULE readin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 March 2016                                    *
+!* Last modification: P. Hirel - 17 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,6 +79,7 @@ USE in_pdb
 USE in_qe_pw
 USE in_siesta_xv
 USE in_vasp_poscar
+USE in_vesta
 USE in_xmd
 USE in_xyz
 USE in_xsf
@@ -189,6 +190,8 @@ CASE('pos')
   CALL READ_POSCAR(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('pw')
   CALL READ_QEPW(inputfile,H,P,comment,AUXNAMES,AUX)
+CASE('vesta')
+  CALL READ_VESTA(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('xmd')
   CALL READ_XMD(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('xsf')
