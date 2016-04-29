@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 March 2016                                    *
+!* Last modification: P. Hirel - 29 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -374,8 +374,9 @@ IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-su
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
-  WRITE(*,*) "..> Swap two atoms:"
+  WRITE(*,*) "..> Swap two atoms or Cartesian axis:"
   WRITE(*,*) "          -swap <id1> <id2>"
+  WRITE(*,*) "          -swap <x|y|z> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-torsion") THEN
@@ -1669,14 +1670,17 @@ CASE(2124)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2125)
-  !reals(1) = index of first atom
-  !reals(2) = index of second atom
-  WRITE(temp,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = ">>> Swapping atoms #"//TRIM(ADJUSTL(temp))//" and #"//TRIM(ADJUSTL(temp2))
+  !strings(1) = Cartesian axis, or integer
+  !strings(2) = same type as strings(1)
+  SELECT CASE(strings(1))
+  CASE('x','X','y','Y','z','Z')
+    msg = ">>> Swapping Cartesian axes "//TRIM(ADJUSTL(strings(1)))//" and "//TRIM(ADJUSTL(strings(2)))//"."
+  CASE DEFAULT
+    msg = ">>> Swapping atoms #"//TRIM(ADJUSTL(strings(1)))//" and #"//TRIM(ADJUSTL(strings(2)))//"."
+  END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
-  msg = "..> Atoms were swapped."
+  msg = "..> Swap successful."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2127)
   !strings(1) = rolled direction: x, y or z
@@ -1698,6 +1702,20 @@ CASE(2129)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2130)
   msg = "..> Torsion was successfully applied."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2131)
+  !strings(1) = space group name or number
+  msg = ">>> Applying symmetry operations of space group: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2132)
+  !reals(1) = space group number
+  WRITE(temp,"(i5)") NINT(reals(1))
+  msg = "..> Space group number: "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2133)
+  !reals(1) = new number of atoms
+  WRITE(temp,"(i16)") NINT(reals(1))
+  msg = "..> Symmetry operations were successfully applied, new number of atoms: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
@@ -1846,6 +1864,12 @@ CASE(2756)
   msg = "/!\ WARNING: supercell is quite large along the "//TRIM(ADJUSTL(strings(1)))//" direction!"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Are you sure you know what you are doing?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2757)
+  msg = "/!\ WARNING: the indices are the same, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2758)
+  msg = "/!\ WARNING: no operation to apply, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -2665,7 +2689,7 @@ CASE(4825)
 #if defined(WINDOWS)
   msg = "          In a Microsoft Windows system, follow these steps:"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          1. Open Power Shell from the Windows menu."
+  msg = "          1. Open the Windows menu, go to Accessories, and run Windows Power Shell."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          2. Run atomsk.exe with the arguments, for instance:"
   CALL DISPLAY_MSG(1,msg,logfile)

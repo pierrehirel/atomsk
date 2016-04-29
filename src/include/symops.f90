@@ -16,7 +16,7 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 09 Aug. 2015                                     *
+!* Last modification: P. Hirel - 29 April 2016                                    *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !*     SUBROUTINE SYMOPS_INIT initializes the array symops_trf to identity        *
@@ -110,10 +110,10 @@ END SUBROUTINE SYMOPS_INIT
 !
 !
 !
-SUBROUTINE SYMOPS_APPLY(H,P,AUXNAMES,AUX,dmindist,nchk)
+SUBROUTINE SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,dmindist,nchk)
 !
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE::P,AUX
+REAL(dp),DIMENSION(:,:),ALLOCATABLE::P, S, AUX
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 REAL(DP),INTENT(IN) :: dmindist ! minimum atom distance
 INTEGER,INTENT(OUT) :: nchk ! success code: 0=failure, 1=success
@@ -121,12 +121,12 @@ INTEGER,INTENT(OUT) :: nchk ! success code: 0=failure, 1=success
 CHARACTER(LEN=128) :: temp, msg ! strings
 INTEGER::i,j,isym,occ,idup,j3
 INTEGER::n1,n2
-INTEGER::MP,NP,Naux,Nsym
+INTEGER::MP,NP,NS,Naux,Nsym
 REAL(dp)::a,b,c,alpha,beta,gamma
 REAL(dp)::trf(symops_nltrf),rtmp,rfdif(3),rdif(3),rdist,p1(3),p2(3),ds
 REAL(dp)::socc1,socc2,soccs
 INTEGER,DIMENSION(:),ALLOCATABLE::SUSE ! intermediate array for new data
-REAL(dp),DIMENSION(:,:),ALLOCATABLE::S1,S2,SAUX1,SAUX2 ! intermediate arrays for new data 
+REAL(dp),DIMENSION(:,:),ALLOCATABLE::S1,S2,R1,R2,SAUX1,SAUX2 ! intermediate arrays for new data 
 REAL(dp),DIMENSION(3,3):: G ! inverse of H
 !
 msg = 'entering SYMOPS_APPLY'
@@ -134,6 +134,8 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Initial checks.
 nchk=0
+NP=0
+NS=0
 IF (.NOT.ALLOCATED(P)) RETURN ! Just exit, since there are no atoms.
 IF (.NOT.ALLOCATED(symops_trf)) RETURN ! Just exit, since no symmetries are defined.
 !
@@ -148,6 +150,12 @@ IF (NP<=0) RETURN ! Just exit, since there are no atoms
 WRITE(msg,*) NP
 msg = '- input number of atoms: '//TRIM(ADJUSTL(msg))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+  NS=SIZE(S,1)
+  WRITE(msg,*) NS
+  msg = '- input number of shells: '//TRIM(ADJUSTL(msg))
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
 WRITE(msg,*) Nsym
 msg = '- number of symmetry operations: '//TRIM(ADJUSTL(msg))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -182,6 +190,16 @@ S1(1:n1,1:3)=MODULO(S1(1:n1,1:3),1.0) ! wrap into [0,1[
 S2=0.d0 ! reset S2
 S2(1:n1,1:MP)=S1(1:n1,1:MP) ! fill first half of S2 with S1
 
+IF( NS>0 ) THEN
+  !Deal with shells (in sense of ionic core-shell model)
+  ALLOCATE(R1(n1,MP),R2(n2,MP))
+  R1=S
+  CALL CART2FRAC(R1,H) ! transform to fractional coordinates
+  R1(1:n1,1:3)=MODULO(R1(1:n1,1:3),1.0) ! wrap into [0,1[
+  R2=0.d0
+  R2(1:n1,1:MP)=R1(1:n1,1:MP) ! fill first half of R2 with R1
+ENDIF
+
 SUSE=0 ! reset SUSE
 SUSE(1:n1)=1 ! mark the copied content of P to be used
 IF (Naux>0) THEN ! there are auciliaries ... 
@@ -206,7 +224,12 @@ DO isym=1,Nsym ! apply each symmetry op. ...
       S2(i+n1,j) = MODULO( rtmp, 1.d0 )
     ENDDO
     IF (MP>3) S2(i+n1,4:MP) = S1(i,4:MP) ! copy the rest of the data row (at 4 we have the atomic numbers)
-    IF (Naux>0) SAUX2(i+n1,1:Naux) = SAUX1(i,1:Naux) ! ... and copy the aux data
+    IF (NS>0) THEN
+      R2(i+n1,4:MP) = R1(i,4:MP)
+    ENDIF
+    IF (Naux>0) THEN
+      SAUX2(i+n1,1:Naux) = SAUX1(i,1:Naux) ! ... and copy the aux data
+    ENDIF
     !
     ! Now that we have a new atomic site, we should check if this atom is
     ! a duplicate, which is absolutely identical to one of the old atoms.
@@ -254,8 +277,10 @@ DO isym=1,Nsym ! apply each symmetry op. ...
   ! Update number of atoms n1
   n1 = SUM(SUSE)
   IF (ALLOCATED(S1)) DEALLOCATE(S1)
+  IF ( NS>0 .AND. ALLOCATED(R1) ) DEALLOCATE(R1)
   IF (Naux>0 .AND. ALLOCATED(SAUX1)) DEALLOCATE(SAUX1)
   ALLOCATE(S1(1:n1,1:MP))
+  IF (NS>0) ALLOCATE(R1(1:n1,1:MP))
   IF (Naux>0) ALLOCATE(SAUX1(1:n1,1:Naux))
   ! Transfer the usable data from S2 to the new S1
   j = 0
@@ -263,18 +288,29 @@ DO isym=1,Nsym ! apply each symmetry op. ...
     IF (SUSE(i)==0) CYCLE ! skip unused atoms
     j = j + 1 ! raise atom list index
     S1(j,1:MP) = S2(i,1:MP) ! positions and species
-    IF (Naux>0) SAUX1(j,1:Naux) = SAUX2(i,1:Naux) ! auxiliaries
+    IF (NS>0) THEN
+      R1(j,1:MP) = R2(i,1:MP) ! positions and species
+    ENDIF
+    IF (Naux>0) THEN ! auxiliaries
+      SAUX1(j,1:Naux) = SAUX2(i,1:Naux)
+    ENDIF
   ENDDO
   ! Update the secondary array set
   n2 = 2*n1 ! possible number of new atoms
   IF (ALLOCATED(S2)) DEALLOCATE(S2)
   IF (ALLOCATED(SUSE)) DEALLOCATE(SUSE)
+  IF ( NS>0 .AND. ALLOCATED(R2) ) DEALLOCATE(R2)
   IF (Naux>0 .AND. ALLOCATED(SAUX2)) DEALLOCATE(SAUX2)
   ALLOCATE(S2(1:n2,1:MP),SUSE(1:n2)) ! new S2 and SUSE
   S2 = 0.d0
   SUSE = 0
   S2(1:n1,1:MP) = S1(1:n1,1:MP) ! copy S1
   SUSE(1:n1) = 1 ! mark S1 as usable
+  IF (NS>0) THEN
+    ALLOCATE(R2(1:n2,1:MP))
+    R2 = 0.d0
+    R2(1:n1,1:MP) = R1(1:n1,1:MP) ! copy R1
+  ENDIF
   IF (Naux>0) THEN
     ALLOCATE(SAUX2(1:n2,1:Naux)) ! new SAUX2
     SAUX2 = 0.d0
@@ -290,16 +326,26 @@ NP = n1 ! set new number of atoms
 ALLOCATE(P(1:NP,1:MP))
 P = S1 ! set new atomic site data
 CALL FRAC2CART(P,H) ! transform P to cartesian coordinates
+IF (NS>0) THEN
+  IF(ALLOCATED(S)) DEALLOCATE(S)
+  NS = n1 ! set new number of atoms
+  ALLOCATE(S(1:NP,1:MP))
+  S = R1 ! set new atomic site data
+  CALL FRAC2CART(S,H) ! transform P to cartesian coordinates
+ENDIF
 IF (Naux>0) THEN
   ALLOCATE(AUX(1:NP,1:Naux))
   AUX = SAUX1 ! set new auxiliary data
 ENDIF
 ! Clean up the heap.
-IF (ALLOCATED(S1)) DEALLOCATE(S2)
+IF (ALLOCATED(S1)) DEALLOCATE(S1)
+IF (ALLOCATED(S2)) DEALLOCATE(S2)
+IF (ALLOCATED(R1)) DEALLOCATE(R1)
+IF (ALLOCATED(R2)) DEALLOCATE(R2)
 IF (ALLOCATED(SUSE)) DEALLOCATE(SUSE)
 IF (Naux>0 .AND. ALLOCATED(SAUX2)) DEALLOCATE(SAUX2)
-WRITE(msg,*) NP
-msg = '- output number of atoms: '//TRIM(ADJUSTL(msg))
+WRITE(msg,*) NP, NS
+msg = '- output number of atoms, shells: '//TRIM(ADJUSTL(msg))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 nchk=1
 !
@@ -745,6 +791,105 @@ GOTO 1000
 1000 CONTINUE
 !
 END SUBROUTINE SYMOPS_SET_SGNUM
+!
+!
+!
+SUBROUTINE SG_APPLY_SYMOPS(sgroup,H,P,S,AUXNAMES,AUX)
+! Applies the symmetry operations of the given space group
+! The string "sgroup" may contain a group number, or a
+! Hermann-Mauguin symbol appropriately formatted for routine "SG_NAMGETNUM"
+CHARACTER(LEN=*),INTENT(IN):: sgroup  !Hermann-Mauguin symbol or number of space group
+CHARACTER(LEN=128):: msg
+CHARACTER(LEN=sg_soplen),DIMENSION(:),ALLOCATABLE:: strsymops
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of auxiliary properties
+INTEGER:: i, k
+INTEGER:: nsymnum, nchk
+INTEGER:: sgroupnum  !space group number
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of atoms, shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties of atoms/shells
+!
+IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
+!
+! Determine if "sgroup" contains an integer number
+READ(sgroup,*,ERR=10,END=10) sgroupnum
+! Success => go directly to 200
+GOTO 20
+10 CONTINUE
+! There was an error => sgroup does not contain an integer
+! It should contain a Hermann-Mauguin symbol
+! Try to read it
+CALL SG_NAMGETNUM(TRIM(ADJUSTL(sgroup)),sgroupnum)
+CALL ATOMSK_MSG(2132,(/""/),(/DBLE(sgroupnum)/))
+!
+20 CONTINUE
+! Now, sgroupnum is the space group number
+WRITE(msg,*) 'space group number = ', sgroupnum
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+IF( sgroupnum <= 0 .OR. sgroupnum > 230 ) THEN
+  ! Invalid space group number
+  nerr = nerr+1
+  CALL ATOMSK_MSG(809,(/TRIM(sgroup)/),(/0.d0/))
+  RETURN
+ENDIF
+!
+! Determine the number of symmetry operations
+CALL SG_NUMGETSYMNUM(sgroupnum,nsymnum,nchk)
+WRITE(msg,*) 'number of symmetry operations = ', nsymnum
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+! Determine symmetry operations
+CALL SG_NUMGETSYMOPS(sgroupnum,strsymops,nsymnum,nchk)
+!
+IF( verbosity==4 ) THEN
+  !Print symmetry operations
+  WRITE(msg,*) "Symmetry operations (strsymops):"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,SIZE(strsymops)
+    WRITE(msg,'(i3,2X,a32)') i, TRIM( ADJUSTL(strsymops(i)) )
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDDO
+ENDIF
+!
+! Allocate the transformation list "symops_trf"
+ALLOCATE(symops_trf(symops_nltrf,nsymnum))
+!
+! Initialize transformation list (=fill it with zeros)
+CALL SYMOPS_INIT()
+!
+! Fill transformation list
+IF( nsymnum>0 ) THEN
+  DO i=1,SIZE(strsymops)
+    CALL SYMOPS_SET_STR(strsymops(i),i,k)
+  ENDDO
+ELSE
+  CALL ATOMSK_MSG(2758,(/""/),(/0.d0/))
+ENDIF
+!
+IF( verbosity==4 ) THEN
+  !Print symmetry operations
+  WRITE(msg,*) "Contents of symops_trf:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  IF( ALLOCATED(symops_trf) ) THEN
+    DO i=1,SIZE(symops_trf,1)
+      !PRINT*, symops_trf(i,:)
+      WRITE(msg,'(i3,2X,20(f6.2,1X))') i, symops_trf(i,:)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
+  ENDIF
+ENDIF
+!
+! Apply symmetry operations (stored in symops_trf) to the current system
+IF( nsymnum>0 .AND. ALLOCATED(symops_trf) ) THEN
+  CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,0.5d0,i)
+ELSE
+  CALL ATOMSK_MSG(2758,(/""/),(/0.d0/))
+ENDIF
+!
+IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
+!
+END SUBROUTINE SG_APPLY_SYMOPS
 !
 !
 !

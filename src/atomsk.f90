@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 July 2015                                     *
+!* Last modification: P. Hirel - 31 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -228,6 +228,8 @@ ELSE
       ignore = .TRUE.
     ELSEIF(clarg=='-overwrite' .OR. clarg=='-ow') THEN
       overw = .TRUE.
+    ELSEIF(clarg=='-verbose' .OR. clarg=='--verbose') THEN
+      verbosity = 4
     ELSEIF(clarg=='-verbosity' .OR. clarg=='-v') THEN
       i=i+1
       CALL GETARG(i,clarg)

@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 July 2015                                     *
+!* Last modification: P. Hirel - 31 March 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -273,34 +273,36 @@ DO i=1,SIZE(P,1)
       ENDIF
     ENDDO
     !
-  CASE DEFAULT
+  CASE(2,3)
     !Complex compound
     Nneigh = 0
     IF( aentries(1,2)/aentries(2,2) <= 1.d0 .AND. aentries(SIZE(aentries,1),2) > 2.d0*aentries(1,2) ) THEN
-      !It is a material of formula ABCx with x>2 (for instance perovskite ABO3)
+      !It is a material of formula AxBy, or AxByCz with x>2 (for instance perovskite ABO3)
       !=> Keep only neighbors of different species as the central atom
       !   *and* that are approx. at the same distance as the 1st neighbor
       DO j=1,SIZE(PosList,1)
         !NINT(PosList(:,5)) is the actual index of atom
-        IF( NINT(P(i,4))==NINT(aentries(3,1)) ) THEN
+       ! IF( NINT(P(i,4))==NINT(aentries(3,1)) ) THEN
           !Central atom i is of type C => keep only neighbors that are not C
-          IF( NINT(P(NINT(PosList(j,5)),4)).NE.NINT(aentries(3,1)) .AND.     &
-            & PosList(j,4) < 1.25d0*SUM(PosList(1:4,4))/4.d0             ) THEN
+!           IF( NINT(P(NINT(PosList(j,5)),4)).NE.NINT(aentries(3,1)) .AND.     &
+!             & PosList(j,4) < 1.25d0*SUM(PosList(1:4,4))/4.d0             ) THEN
+          IF( NINT(P(NINT(PosList(j,5)),4)).NE.NINT(P(i,4)) .AND.     &
+            & PosList(j,4) < 1.5d0*SUM(PosList(1:4,4))/4.d0             ) THEN
             Nneigh = Nneigh+1
             sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
           ELSE
             PosList(j,:) = 0.d0
           ENDIF
-        ELSE
-          !Central atom i is A or B => keep only neighbors of type C
-          IF( NINT(P(NINT(PosList(j,5)),4))==NINT(aentries(3,1)) .AND.      &
-            & PosList(j,4) < 1.4d0*SUM(PosList(1:4,4))/4.d0             ) THEN
-            Nneigh = Nneigh+1
-            sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
-          ELSE
-            PosList(j,:) = 0.d0
-          ENDIF
-        ENDIF
+!         ELSE
+!           !Central atom i is A or B => keep only neighbors of type C
+!           IF( NINT(P(NINT(PosList(j,5)),4))==NINT(aentries(3,1)) .AND.      &
+!             & PosList(j,4) < 1.4d0*SUM(PosList(1:4,4))/4.d0             ) THEN
+!             Nneigh = Nneigh+1
+!             sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
+!           ELSE
+!             PosList(j,:) = 0.d0
+!           ENDIF
+!         ENDIF
       ENDDO
     ELSE
       !It is another complex material ABCx with x<2
@@ -362,14 +364,17 @@ DO i=1,SIZE(P,1)
         pairs(ipairs,1) = j
         !
         !Among the remaining atoms, find the one that minimizes D = |dj + dk|²
+        ! *AND* that is of the same species
         Dmin = 1.d12
         DO k=j+1,MIN(Nneigh,Mdefault)
-          IF( .NOT. ANY(pairs(:,:)==k) ) THEN
-            !Atom #k was not paired with another atom yet
-            distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
-            IF( distance < Dmin ) THEN
-              Dmin = distance
-              ktemp = k
+          IF( NINT(P(k,4)) == NINT(P(j,4)) ) THEN
+            IF( .NOT. ANY(pairs(:,:)==k) ) THEN
+              !Atom #k was not paired with another atom yet
+              distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
+              IF( distance < Dmin ) THEN
+                Dmin = distance
+                ktemp = k
+              ENDIF
             ENDIF
           ENDIF
         ENDDO

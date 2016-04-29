@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Jan. 2016                                     *
+!* Last modification: P. Hirel - 28 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -89,6 +89,7 @@ USE select
 USE shear
 USE shift
 USE sort
+USE spacegroup
 USE stress
 USE substitute
 USE swap
@@ -234,7 +235,7 @@ REAL(dp):: stress                !value of applied stress (GPa)
 CHARACTER(LEN=3):: sp1, sp2
 !
 !Variables relative to Option: swap
-INTEGER,DIMENSION(2):: swap_id  !indices of atoms to swap
+CHARACTER(LEN=16),DIMENSION(2):: swap_id  !Cartesian axes or indices of atoms to swap
 !
 !Variables relative to Option: unit
 CHARACTER(LEN=128):: unit1, unit2
@@ -869,6 +870,10 @@ DO ioptions=1,SIZE(options_array)
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sortcol, sortorder
     CALL SORT_XYZ(P,S,AUXNAMES,AUX,SELECT,sortcol,sortorder)
   !
+  CASE('-spacegroup')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
+    CALL SPACEGROUP_XYZ(H,P,S,AUXNAMES,AUX,SELECT,temp)
+  !
   CASE('-stress')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, stress_in
     stress_in = ADJUSTL(stress_in)
@@ -886,7 +891,7 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-swap')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, swap_id(1), swap_id(2)
-    CALL SWAP_XYZ(P,S,AUX,swap_id)
+    CALL SWAP_XYZ(H,P,S,AUX,swap_id)
   !
   CASE('-torsion')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle

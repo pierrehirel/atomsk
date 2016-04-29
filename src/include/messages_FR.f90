@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 March 2016                                    *
+!* Last modification: P. Hirel - 28 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -373,8 +373,9 @@ IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-su
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
-  WRITE(*,*) "..> Échanger les indices de deux atomes :"
+  WRITE(*,*) "..> Échanger les indices de deux atomes ou des axes cartésiens :"
   WRITE(*,*) "          -swap <id1> <id2>"
+  WRITE(*,*) "          -swap <x|y|z> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-torsion") THEN
@@ -1724,14 +1725,17 @@ CASE(2124)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2125)
-  !reals(1) = index of first atom
-  !reals(2) = index of second atom
-  WRITE(temp,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = ">>> Échange des atomes #"//TRIM(ADJUSTL(temp))//" et #"//TRIM(ADJUSTL(temp2))
+  !strings(1) = Cartesian axis, or integer
+  !strings(2) = same type as strings(1)
+  SELECT CASE(strings(1))
+  CASE('x','X','y','Y','z','Z')
+    msg = ">>> Échange des axes cartésiens "//TRIM(ADJUSTL(strings(1)))//" et "//TRIM(ADJUSTL(strings(2)))//"."
+  CASE DEFAULT
+    msg = ">>> Échange des atomes #"//TRIM(ADJUSTL(strings(1)))//" et #"//TRIM(ADJUSTL(strings(2)))//"."
+  END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
-  msg = "..> Les atomes ont été échangés."
+  msg = "..> Échange réussi."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2127)
   !strings(1) = roll axis: x, y or z
@@ -1752,6 +1756,19 @@ CASE(2129)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2130)
   msg = "..> La torsion a bien été appliquée."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2131)
+  !strings(1) = space group name or number
+  msg = ">>> Application des opérations de symétrie du groupe d'espace : "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2132)
+  !reals(1) = space group number
+  WRITE(temp,"(i5)") NINT(reals(1))
+  msg = "..> Numéro du groupe d'espace : "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2133)
+  !reals(1) = new number of atoms
+  msg = "..> Les opérations de symétrie ont bien été appliquées, nouveau nombre d'atomes : "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
@@ -1895,6 +1912,18 @@ CASE(2754)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2755)
   msg = "/!\ ALERTE : le facteur est égal à zéro, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2756)
+  !strings(1) = direction
+  msg = "/!\ ALERTE : la boîte semble très large suivant la direction "//TRIM(ADJUSTL(strings(1)))//" !"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Êtes-vous sûr de savoir ce que vous faites ?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2757)
+  msg = "/!\ ALERTE : les indices sont identiques, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2758)
+  msg = "/!\ ALERTE : aucune opération à appliquer, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -2715,7 +2744,7 @@ CASE(4825)
 #if defined(WINDOWS)
   msg = "          Sur un système Microsoft Windows, suivez les étapes suivantes :"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          1. Ouvrez Power Shell depuis le menu Windows."
+  msg = "          1. Ouvrez le menu Windows, allez dans Accessoires, et lancez Windows Power Shell."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          2. Exécutez atomsk.exe avec les arguments, par exemple :"
   CALL DISPLAY_MSG(1,msg,logfile)

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 March 2016                                    *
+!* Last modification: P. Hirel - 29 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1282,6 +1282,16 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( temp.NE.'up' .AND. temp.NE.'down' .AND. temp.NE.'pack') GOTO 120
   !
+  ELSEIF(clarg=='-spacegroup' .OR. clarg=='-space-group' .OR. clarg=='-sgroup' &
+        &.OR. clarg=='-sg') THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = '-spacegroup'
+    !Read space group number or name
+    i=i+1
+    READ(cla(i),'(a128)',END=400,ERR=400) temp
+    temp = ADJUSTL(temp)
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+  !
   ELSEIF(clarg=='-stress') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
@@ -1315,13 +1325,31 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='-swap') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
+    !Read first value to swap (must be X,Y,Z or an integer)
     i=i+1
-    READ(cla(i),*,END=400,ERR=400) m
-    WRITE(temp,*) m
+    READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    m = 0
+    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') THEN
+      !It *must* be an integer
+      READ(temp,*,END=400,ERR=400) m
+    ENDIF
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !Read second value to swap
     i=i+1
-    READ(cla(i),*,END=400,ERR=400) m
-    WRITE(temp,*) m
+    READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( m.NE.0 ) THEN
+      !the second value must also be an integer
+      READ(temp,*,END=400,ERR=400) m
+    ELSE
+      !the second value must be X,Y or Z
+      IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+        & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') THEN
+        GOTO 120
+      ENDIF
+    ENDIF
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-torsion') THEN

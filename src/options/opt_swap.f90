@@ -3,14 +3,14 @@ MODULE swap
 !**********************************************************************************
 !*  SWAP                                                                          *
 !**********************************************************************************
-!* This module reads cartesian coordinates from an array and                      *
-!* swaps atoms of given indices.                                                  *
+!* This module reads cartesian coordinates from an array and swaps atoms          *
+!* of given indices, or swaps the two given Cartesian axes.                       *
 !**********************************************************************************
 !* (C) August 2015 - Pierre Hirel                                                 *
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Aug. 2015                                     *
+!* Last modification: P. Hirel - 05 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,62 +36,124 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE SWAP_XYZ(P,S,AUX,swap_id)
+SUBROUTINE SWAP_XYZ(H,P,S,AUX,swap_id)
 !
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=128):: msg
 INTEGER:: i
-INTEGER,DIMENSION(2),INTENT(IN):: swap_id  !indices of atoms to swap
+INTEGER,DIMENSION(2):: id   !indices of axis or atoms to swap
+CHARACTER(LEN=16),DIMENSION(2),INTENT(IN):: swap_id  !Cartesian axes or indices of atoms to swap
 REAL(dp),DIMENSION(4):: Vtemp
 REAL(dp),DIMENSION(:),ALLOCATABLE:: AUXtemp  !auxiliary properties (temporary)
+REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties
 !
 !
 !Initialize variables
 i = 0
+id(:)=0
 !
 !
 msg = 'Entering SWAP_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL ATOMSK_MSG( 2125, (/""/),(/DBLE(swap_id(1)),DBLE(swap_id(2))/) )
+CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/0.d0/) )
 !
-!If indices of atoms are out of bounds, abort
-DO i=1,2
-  IF( swap_id(i)<=0 .OR. swap_id(i)>SIZE(P,1) ) THEN
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(2742,(/''/),(/DBLE(swap_id(i))/))
-    GOTO 1000
+IF( swap_id(1) == swap_id(2) ) THEN
+  !There is nothing to exchange => slip
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG( 2757, (/""/),(/0.d0/) )
+  GOTO 1000
+ENDIF
+!
+SELECT CASE(swap_id(1))
+!
+CASE('X','x','Y','y','Z','z')
+  !Two Cartesian axes must be swapped
+  !
+  IF( swap_id(1)=="X" .OR. swap_id(1)=="x" ) THEN
+    id(1) = 1
+  ELSEIF( swap_id(1)=="Y" .OR. swap_id(1)=="y" ) THEN
+    id(1) = 2
+  ELSE
+    id(1) = 3
   ENDIF
-ENDDO
-!
-!
-!Save position of first atom
-Vtemp(:) = P(swap_id(1),:)
-!
-!Swap atoms
-P(swap_id(1),:) = P(swap_id(2),:)
-P(swap_id(2),:) = Vtemp(:)
-!
-!
-!Swap shell positions (if any)
-IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-  Vtemp(:) = S(swap_id(1),:)
-  S(swap_id(1),:) = S(swap_id(2),:)
-  S(swap_id(2),:) = Vtemp(:)
-ENDIF
-!
-!Swap auxiliary properties (if any)
-IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(P,1) ) THEN
-  ALLOCATE( AUXtemp( SIZE(AUX,2) ) )
-  AUXtemp(:) = AUX(swap_id(1),:)
-  AUX(swap_id(1),:) = AUX(swap_id(2),:)
-  AUX(swap_id(2),:) = AUXtemp(:)
-  DEALLOCATE(AUXtemp)
-ENDIF
+  !
+  SELECT CASE(swap_id(2))
+  CASE('X','x','Y','y','Z','z')
+    IF( swap_id(2)=="X" .OR. swap_id(2)=="x" ) THEN
+      id(2) = 1
+    ELSEIF( swap_id(2)=="Y" .OR. swap_id(2)=="y" ) THEN
+      id(2) = 2
+    ELSE
+      id(2) = 3
+    ENDIF
+    !
+    !Swap the two axes
+    Vtemp(1:3) = H(id(1),1:3)
+    H(id(1),id(1)) = H(id(2),id(2))
+    H(id(1),id(2)) = H(id(2),id(1))
+    H(id(2),id(1)) = Vtemp(id(2))
+    H(id(2),id(2)) = Vtemp(id(1))
+    !
+    !Swap coordinates of each atom
+    DO i=1,SIZE(P,1)
+      Vtemp(:) = P(i,:)
+      P(i,id(1)) = Vtemp(id(2))
+      P(i,id(2)) = Vtemp(id(1))
+    ENDDO
+    !
+  CASE DEFAULT
+    !swap_id2 is not a Cartesian axis => big problem!
+    !(this should have been dealt with before and not happen here,
+    !however if for some reason it does happen let's ensure a smooth escape)
+    nerr=nerr+1
+  END SELECT
+  !
+  !
+CASE DEFAULT
+  !Two atoms must be swapped
+  !Read indices of atoms to swap
+  !(at this point swap_id(:) *must* contain integer numbers)
+  READ(swap_id(1),*,ERR=800,END=800) id(1)
+  READ(swap_id(2),*,ERR=800,END=800) id(2)
+  !
+  !If indices of atoms are out of bounds, abort
+  DO i=1,2
+    IF( id(i)<=0 .OR. id(i)>SIZE(P,1) ) THEN
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(2742,(/''/),(/DBLE(id(i))/))
+      GOTO 1000
+    ENDIF
+  ENDDO
+  !
+  !Save position of first atom
+  Vtemp(:) = P(id(1),:)
+  !
+  !Swap atoms
+  P(id(1),:) = P(id(2),:)
+  P(id(2),:) = Vtemp(:)
+  !
+  !Swap shell positions (if any)
+  IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+    Vtemp(:) = S(id(1),:)
+    S(id(1),:) = S(id(2),:)
+    S(id(2),:) = Vtemp(:)
+  ENDIF
+  !
+  !Swap auxiliary properties (if any)
+  IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(P,1) ) THEN
+    ALLOCATE( AUXtemp( SIZE(AUX,2) ) )
+    AUXtemp(:) = AUX(id(1),:)
+    AUX(id(1),:) = AUX(id(2),:)
+    AUX(id(2),:) = AUXtemp(:)
+    DEALLOCATE(AUXtemp)
+  ENDIF
+  !
+END SELECT
 !
 !
 CALL ATOMSK_MSG(2126,(/''/),(/0.d0/))

@@ -8,7 +8,7 @@
 
 export
 
-# 
+# Define compiler flags for static compilation
 FORTRAN=gfortran -z muldefs
 FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -static -fPIC
 LAPACK=-llapack -lblas

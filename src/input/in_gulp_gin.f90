@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Dec. 2015                                     *
+!* Last modification: P. Hirel - 29 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,12 +62,14 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4):: coord, ptype
+CHARACTER(LEN=128):: sgroup  !Hermann-Mauguin symbol or number of space group
 CHARACTER(LEN=128):: coord1, coord2, coord3
 CHARACTER(LEN=128):: test, test2, test3, temp, temp2
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=sg_soplen),DIMENSION(:),ALLOCATABLE:: strsymops
 LOGICAL:: chargesC, chargesS  !are charges of cores/shells defined in the "species" section?
 LOGICAL:: knowcol  !do we know the number of columns on each line?
 LOGICAL:: velocities !are velocities present?
@@ -79,6 +81,7 @@ INTEGER:: i, j, k
 INTEGER:: icoordtemp1, icoordtemp3
 INTEGER:: Ncol, icol  !number of columns for each core (or shell), index of volumn
 INTEGER:: NP, NS  !number of cores, shells
+INTEGER:: nsymnum, nchk, sgroupnum
 INTEGER:: strlength
 REAL(dp):: alpha, beta, gamma
 REAL(dp):: Hx, Hy, Hz !Length of H(1,:), H(2,:) and H(3,:)
@@ -91,6 +94,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !Initialize variables
+sgroup = ''
 test=''
 tempcomment(:)=''
  coord = 'cart'
@@ -109,6 +113,7 @@ occ = 0
 q = 0
 qs = 0
 radius = 0
+sgroupnum = -10
 vx = 0
 vy = 0
 vz = 0
@@ -248,10 +253,38 @@ DO
     !
   ELSEIF( temp(1:10)=="spacegroup" ) THEN
     !Read the space group
-    READ(30,'(a128)',END=820,ERR=820) test
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(1704,(/""/),(/0.d0/))
+    READ(30,'(a128)',END=820,ERR=820) sgroup
+    !Check if it is an integer or not
+    READ(sgroup,*,ERR=22,END=22) sgroupnum
+    ! Success => go directly to 23
+    GOTO 23
+    22 CONTINUE
+    ! There was an error => sgroup does not contain an integer
+    ! It should contain a Hermann-Mauguin symbol
+    sgroup = ADJUSTL(sgroup)
+    ! In GULP format, the symbol may upper case letters and blanck spaces
+    ! Transform all that into a character chain that is valid for Atomsk routines
+    ! 1. Remove spaces if any
+    j = SCAN(TRIM(sgroup),' ')
+    DO WHILE( j>LEN_TRIM(sgroup) )
+      sgroup(j:) = sgroup(j+1:)
+      j = SCAN(TRIM(sgroup),' ')
+    ENDDO
+    ! 2. Replace upper case letters with lower case (except first letter)
+    sgroup(2:) = StrDnCase(sgroup(2:))
+    !
+    msg = "space group name: "//TRIM(sgroup)
+    !
+    ! Verify if it is a valid space group name
+    CALL SG_NAMGETNUM(TRIM(ADJUSTL(sgroup)),sgroupnum)
+    IF( sgroupnum <= 0 .OR. sgroupnum > 230 ) THEN
+      ! Invalid space group number
+      nerr = nerr+1
+      CALL ATOMSK_MSG(809,(/TRIM(sgroup)/),(/0.d0/))
+      GOTO 1000
+    ENDIF
   ENDIF
+  23 CONTINUE
 ENDDO
 21 FORMAT(a6,f9.5,a13,f9.5)
 !
@@ -909,9 +942,12 @@ IF( velocities .AND. vx>0 .AND. vy>0 .AND. vz>0 ) THEN
 ENDIF
 !
 550 CONTINUE
-!
-!Apply symmetry operations
-
+IF( sgroupnum > 0 .AND. sgroupnum <=230 ) THEN
+  ! Apply symmetry operations
+  CALL SG_APPLY_SYMOPS(sgroup,H,P,S,AUXNAMES,AUX)
+ELSE
+  
+ENDIF
 GOTO 1000
 !
 !

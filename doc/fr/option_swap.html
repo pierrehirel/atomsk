@@ -17,12 +17,23 @@
 
 <p><code>-swap &#60;id1&#62; &#60;id2&#62;</code></p>
 
+<p><code>-swap &#60;x|y|z&#62; &#60;x|y|z&#62;</code></p>
+
 
 <h4>Description</h4>
 
-<p>Cette options échange les positions des atomes ayant les deux indices donnés.</p>
+<p>Cette option échange les positions des deux atomes ayant les indices donnés, ou bien échange les axes cartésiens donnés.</p>
 
-<p>Si des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) et/ou des propriétés auxiliaires sont définies, alors elles seront aussi échangées.</p>
+<p>Échanger des atomes signifie que leurs positions sont échangées. Si des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) et/ou des propriétés auxiliaires sont définies, alors elles seront aussi échangées.</p>
+
+<p>Échanger des axes signifie que les deux vecteurs de boîte donnés sont échangés. Par exemple, échanger les axes X et Y résulte en la transformation suivante (où H désigne les anciens vecteurs et H' les nouveaux) :</p>
+
+<p><code>H'(1,1) = H(2,2)<br/>
+H'(1,2) = H(2,1)<br/>
+H'(2,1) = H(1,2)<br/>
+H'(2,2) = H(1,1)</code></p>
+
+<p>Les coordonnées des atomes sont aussi échangées (en suivant l'exemple ci-dessus, les coordonnées X et Y de chaque atome sont interchangées).</p>
 
 
 <h4>Défaut</h4>
@@ -36,6 +47,9 @@
 <ul>
 <li><code class="command">atomsk initial.cfg -swap 530 1065 final.xsf</code>
 <p>Ceci va lire le fichier <code>initial.cfg</code>, et échangera les atomes 530 et 1065. Le résultat final sera écrit dans le fichier <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -swap X Y final.xsf</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et échangera les deux premiers vecteurs de boîte. Le résultat final sera écrit dans le fichier <code>final.xsf</code>.</p></li>
 
 </ul>
 

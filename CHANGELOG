@@ -8,7 +8,8 @@ beta 0.9 (in development)
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
 - new option "-neutralize"
 - new option "-roll" allows to roll a system into a tube around an axis.
-- new option "-swap" allows to exchange the indices of two atoms.
+- new option "-spacegroup" allows to apply symmetry operations corresponding to a space group.
+- new option "-swap" allows to exchange the indices of two atoms, or two box dimensions.
 - new option "-torsion" allows to apply torsion along a Cartesian axis.
 - added support for reading and writing files in CEL format, used by Dr. Probe. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this file format.
 - added support for reading and writing files in JEMS format.

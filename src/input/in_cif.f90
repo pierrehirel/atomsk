@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 29 April 2016                                    *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -82,7 +82,7 @@ INTEGER:: strlength
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: snumber, sbiso
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !positions of atom cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
@@ -109,6 +109,7 @@ c=0.d0
 alpha=0.d0
 beta=0.d0
 gamma=0.d0
+IF (ALLOCATED(S)) DEALLOCATE(S)
 IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
 !
 msg = 'entering READ_CIF'
@@ -517,11 +518,9 @@ IF(isreduced) THEN
 ENDIF
 !Apply symmetry operations
 IF (Nsym>0.AND.ALLOCATED(symops_trf)) THEN
-  CALL SYMOPS_APPLY(H,P,AUXNAMES,AUX,0.5d0,i)
+  CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,0.5d0,i)
   NP=SIZE(P,1) ! update number of atom sites
 ENDIF
-!
-IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
 !
 GOTO 1000
 !

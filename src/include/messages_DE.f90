@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 17 March 2016                                    *
+!* Last modification: P. Hirel - 05 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -333,6 +333,7 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
   WRITE(*,*) "..> Vertauschen zwei Atomen:"
   WRITE(*,*) "          -swap <id1> <id2>"
+  WRITE(*,*) "          -swap <x|y|z> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-torsion") THEN
@@ -1616,11 +1617,14 @@ CASE(2124)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2125)
-  !reals(1) = index of first atom
-  !reals(2) = index of second atom
-  WRITE(temp,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = ">>> Tauschen die Atomen #"//TRIM(ADJUSTL(temp))//" und #"//TRIM(ADJUSTL(temp2))
+  !strings(1) = Cartesian axis, or integer
+  !strings(2) = same type as strings(1)
+  SELECT CASE(strings(1))
+  CASE('x','X','y','Y','z','Z')
+    msg = ">>> Tauschen die Achsen "//TRIM(ADJUSTL(strings(1)))//" und "//TRIM(ADJUSTL(strings(2)))//"."
+  CASE DEFAULT
+    msg = ">>> Tauschen die Atomen #"//TRIM(ADJUSTL(strings(1)))//" und #"//TRIM(ADJUSTL(strings(2)))//"."
+  END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
   msg = "..> Atomen wurden vertauschen."
@@ -1795,6 +1799,15 @@ CASE(2754)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2755)
   msg = "/!\ WARNUNG: Faktor ist Null. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2756)
+  !strings(1) = direction
+  msg = "/!\ WARNUNG: supercell is quite large along the "//TRIM(ADJUSTL(strings(1)))//" direction!"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Are you sure you know what you are doing?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2757)
+  msg = "/!\ WARNUNG: the indices are the same, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -2655,7 +2668,7 @@ CASE(4825)
 #if defined(WINDOWS)
   msg = "          In a Microsoft Windows system, follow these steps:"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          1. Open Power Shell from the Windows menu."
+  msg = "          1. Open the Windows menu, go to Accessories, and run Windows Power Shell."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          2. Run atomsk.exe with the arguments, for instance:"
   CALL DISPLAY_MSG(1,msg,logfile)

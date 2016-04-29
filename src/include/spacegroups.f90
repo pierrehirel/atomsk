@@ -12,7 +12,7 @@ MODULE spacegroups
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: J. Barthel - 04 Aug. 2015                                   *
+!* Last modification: P. Hirel - 29 April 2016                                    *
 !**********************************************************************************
 !* Notes on the model and on how to use it.                                       *
 !* The space group data can be accessed from its number 1 ... 230 and from its    *

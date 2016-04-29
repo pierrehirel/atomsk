@@ -66,6 +66,7 @@ G(:,:) = 0.d0
 fx=0
 fy=0
 fz=0
+occ=0
 !
 msg = 'entering WRITE_VESTA'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
