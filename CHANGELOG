@@ -6,7 +6,6 @@ beta 0.9 (in development)
 -------------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
-- new option "-neutralize"
 - new option "-roll" allows to roll a system into a tube around an axis.
 - new option "-spacegroup" allows to apply symmetry operations corresponding to a space group.
 - new option "-swap" allows to exchange the indices of two atoms, or two box dimensions.
@@ -23,6 +22,7 @@ beta 0.9 (in development)
 - new set of algorithms to apply symmetry operations and deal with space groups. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.
 - faster algorithm for neighbor search, based on cell decomposition. Thanks to Srinivasan Mahendran, UMET, Lille, France, for his help with the implementation of this feature.
 - fixed a bug that could cause the program to crash when reading GULP input files.
+- fixed a bug where atom coordinates would not be read correctly from LAMMPS data files (*.lmp) when they contained replica flags (i.e. three integer numbers) at the end of each line.
 - fixed a bug in mode "--all-in-one" that was causing a crash when no file format was specified.
 - fixed a bug in mode "--merge" where sometimes auxiliary properties would not be correctly handled.
 - fixed a bug in the displaying of progress bar that slowed down the program.

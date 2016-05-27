@@ -27,7 +27,7 @@
 
 <p>Pour écrire un fichier dans ce format il est recommandé de définir les taux d'occupation des sites, les paramètres vibrationnels, et les coefficients d'absorption, en tant que propriétés auxiliaires de chaque atome. Ils peuvent être définis par exemple avec l'<a href="./option_properties.html">option <code>-properties</code></a>. Si ces propriétés ne sont pas définies, alors Atomsk écrira dans le fichier les valeurs par défaut 1, 0, et 0,03, respectivement.<p>
 
-<p>Lors de la lecture d'un fichier au format JEMS, Atomsk n'applique pas les opérations de symétrie.</p>
+<p>Lors de la lecture d'un fichier au format JEMS, si un groupe d'espace est spécifié (dans une ligne commençant par le mot-clé "HMSymbol"), alors Atomsk applique immédiatement les opérations de symétrie associées à ce groupe.</p>
 
 <p>Notez que Atomsk ne réalise aucune conversion implicite des unités. Par défaut les fichiers JEMS utilisent le nanomètre comme unité de longueur (et nm<sup>2</sup> pour les vibrations thermiques), et Atomsk enregistre ces valeurs telles quelles sans les modifier. Il appartient à l'utilisateur de convertir explicitement ces valeurs s'il souhaite obtenir des &Aring; (ou toute autre unité), par exemple avec l'<a href="./option_unit.html">option <code>-unit</code></a>. De même, si des données sont lues en &Aring; (ou toute autre unité), il appartient à l'utilisateur de les convertir en nm avant d'écrire un fichier au format JEMS. Les exemples ci-dessous illustrent ces points.</p>
 

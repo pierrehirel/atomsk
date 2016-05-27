@@ -199,25 +199,33 @@ tar:
 
 # Install the program (only on UNIX and Linux systems)
 install:
+	@echo ""
+	@echo "  >>> Installation of Atomsk:"
 	@cp -rf ../etc/atomsk.conf /etc/
 	@mkdir -p $(BINPATH)
 	@cp -rf $(BIN) $(BINPATH)
-	@echo ">>> Program was successfuly installed in $(BINPATH)"
+	@echo "  ..> The program was successfuly installed in $(BINPATH)"
+	@echo "      To run it, enter 'atomsk' in a terminal."
 	@mkdir -p $(DOCPATH)/atomsk
 	@rm -rf $(DOCPATH)/atomsk/*
 	@cp -rf ../doc/* $(DOCPATH)/atomsk/
 	@chmod -R a+r $(DOCPATH)/atomsk/
-	@echo ">>> Html documentation is available from $(DOCPATH)/atomsk/index.html"
+	@echo "  ..> The html documentation was installed. You may read it by entering the"
+	@echo "      following address in your Web browser: ${DOCPATH}atomsk/index.html"
 	@mkdir -p $(MPATH)
 	@gzip -c ../man/atomsk >$(MPATH)/atomsk.1.gz
-	@echo ">>> The man page is available from $(DOCPATH)/atomsk/"
+	@echo "  ..> To read the manual, type 'man atomsk'."
 	@chmod +x ../tools/*.sh
 	@cp -f ../tools/*.sh $(BINPATH)
+	@echo ""
 
 
 # Uninstall the program from the system (only on UNIX and Linux systems)
 uninstall:
+	@echo ""
+	@echo "  >>> Removing Atomsk and its documentation from $(INSTPATH)"
 	@rm -rf $(BINPATH)/$(BIN)
 	@rm -rf $(DOCPATH)/atomsk
 	@rm -rf $(MPATH)/atomsk.1.gz
-	@echo ">>> Program atomsk was uninstalled from $(INSTPATH)."
+	@echo "      Uninstallation successfull."
+	@echo ""

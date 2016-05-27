@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option spacegroup - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : spacegroup</h2>
+
+<h4>Syntaxe</h4>
+
+<code>-spacegroup &#60;groupe&#62;</code>
+
+
+<h4>Description</h4>
+
+<p>Cette option applique les opérations de symétrie du groupe d'espace donné au système.</p>
+
+<p>Le &#60;groupe&#62; peut être soit le numéro du groupe d'espace, ou bien son symbole de Hermann-Mauguin (sans espace). Après l'application des opérations de symétrie, les atomes situés trop proches d'autres atomes sont supprimés.</p>
+
+<p>Notez que cette option change le nombre d'atomes dans le système (mais ne change pas les vecteurs de boîte).</p>
+
+
+<h4>Défaut</h4>
+
+<p>Les fichiers au format <a href="./format_cif.html">CIF</a>, au format <a href="./format_gin.html">GULP</a>, au format <a href="./format_jems.html">JEMS</a>, ou au format <a href="./format_vesta.html">VESTA</a>, peuvent contenir un numéro (ou symbole) d'un groupe d'espace. Lorsque c'est le cas, Atomsk applique les symétries de ce groupe d'espace immédiatement à la lecture de ces fichiers. Sinon, par défaut aucune opération de symétrie n'est appliquée.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -spacegroup Pnma final.xyz</code>
+<p>Avec cette commande, Atomsk lit le fichier "initial.cfg", applique les opérations de symétrie du groupe d'espace <em>Pnma</em>, et écrit le résultat final dans le fichier "final.xyz".</p></li>
+
+<li><code class="command">atomsk initial.cfg -spacegroup 42 final.xyz</code>
+<p>Ceci appliquera les opérations de symétrie du groupe d'espace numéro 42 (<em>Fmm2</em>).</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

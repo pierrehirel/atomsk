@@ -13,7 +13,7 @@ MODULE in_jems
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Nov. 2015                                     *
+!* Last modification: P. Hirel - 02 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -35,6 +35,7 @@ USE functions
 USE messages
 USE files
 USE subroutines
+USE symops
 !
 IMPLICIT NONE
 !
@@ -46,20 +47,25 @@ SUBROUTINE READ_JEMS(inputfile,H,P,comment,AUXNAMES,AUX)
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg, temp
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=128):: sgroup
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: isreduced
 INTEGER:: i, j, iaux
 INTEGER:: NP   ! number of atoms
+INTEGER:: NSym ! number of symmetry operations
+INTEGER:: sgroupnum
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3, dw, occ, absorption
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P   !Positions of atoms
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S   !Positions of shells (not used here)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX !auxiliary properties
 !
 !
 !Initialize variables
 NP=0
+sgroup=""
 a=0.d0
 b=0.d0
 c=0.d0
@@ -81,13 +87,17 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 OPEN(UNIT=30,FILE=inputfile,STATUS='UNKNOWN',ERR=800)
 REWIND(30)
 !
-!Parse the file a first time to count atoms
+!Parse the file a first time to count atoms and number of symmetry operations
 NP=0
+Nsym=0
 DO
   READ(30,'(a128)',ERR=200,END=200) temp
   temp = ADJUSTL(temp)
   IF( temp(1:5)=="atom|" ) THEN
     NP = NP+1
+  !
+  ELSEIF( temp(1:3)=="rps" ) THEN
+    Nsym=Nsym+1
   ENDIF
 ENDDO
 !
@@ -97,6 +107,12 @@ ENDDO
 WRITE(msg,*) 'Counted atoms, NP = ', NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 IF (NP<=0) GOTO 800 ! No atoms => error
+!
+IF( Nsym>0 ) THEN
+  IF(ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
+  ALLOCATE(symops_trf(12,Nsym))
+  symops_trf(:,:) = 0.d0
+ENDIF
 !
 ! Allocate the atom data P and auxiliary data AUX and AUXNAMES
 ALLOCATE(P(NP,4))
@@ -110,6 +126,7 @@ AUXNAMES(3) = 'absorption'
 !
 !Go back to beginning of file and store data
 REWIND(30)
+Nsym=0
 DO
   READ(30,'(a128)',ERR=300,END=300) temp
   temp = ADJUSTL(temp)
@@ -125,6 +142,31 @@ DO
     temp(j:j) = " "
     j=SCAN(temp,"|")
   ENDDO
+  !
+  IF( temp(1:8)=="HMSymbol" ) THEN
+    !This line contains the space group number
+    !Replace vertical bars by blank spaces
+    j=SCAN(temp,"|")
+    DO WHILE(j>0)
+      temp(j:j) = " "
+      j=SCAN(temp,"|")
+    ENDDO
+    !Read the space group number
+    READ(temp,*,ERR=300,END=300) msg, sgroup
+  ENDIF
+  !
+  IF( temp(1:3)=="rps" ) THEN
+    !This line contains a symmetry operation
+    Nsym=Nsym+1
+    !Replace vertical bars by blank spaces
+    j=SCAN(temp,"|")
+    DO WHILE(j>0)
+      temp(j:j) = " "
+      j=SCAN(temp,"|")
+    ENDDO
+    !Read the space group number
+    READ(temp,*,ERR=300,END=300) msg
+  ENDIF
   !
   IF( temp(1:8)=="lattice " ) THEN
     READ(temp(9:),*,ERR=800,END=800) j, P1
@@ -177,6 +219,11 @@ CALL FIND_IF_REDUCED(P,isreduced)
 !In case of reduced coordinates, convert them to cartesian
 IF(isreduced) THEN
   CALL FRAC2CART(P,H)
+ENDIF
+!Apply symmetry operations (if any)
+!(cf. /include/symops.f90)
+IF( LEN_TRIM(sgroup)>0 ) THEN
+  CALL SG_APPLY_SYMOPS(sgroup,H,P,S,AUXNAMES,AUX)
 ENDIF
 GOTO 1000
 !

@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 June 2015                                     *
+!* Last modification: P. Hirel - 11 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,8 +50,10 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary prope
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
 LOGICAL:: dobonds    !are there bonds in the file?
+LOGICAL:: flags      !are there replica flags at the end of each line?
 LOGICAL:: molecule   !is there a column "moleculeID" before the column "atom-type"?
 LOGICAL:: velocities !are velocities in the file?
+INTEGER:: flagx, flagy, flagz !replica flags at end of lines (optional)
 INTEGER:: i, id, j, k, Ncol
 INTEGER:: Naux  !number of auxiliary properties
 INTEGER:: NP, Nspieces !number of particles, of atomic spieces
@@ -71,6 +73,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !Initialize variables
 tempcomment(:)=''
 dobonds = .FALSE.
+flags = .FALSE.
 molecule = .FALSE.
 velocities = .FALSE.
 i = 0
@@ -199,6 +202,9 @@ DO i=1,NP
   IF( strlength>0 ) THEN
     temp(strlength:) = ' '
   ENDIF
+  flagx=0
+  flagy=0
+  flagz=0
   !
   IF(i==1) THEN
     !The number of columns is unknown, determine it
@@ -251,6 +257,23 @@ DO i=1,NP
     ELSE
       READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
     ENDIF
+    !
+    IF( Ncol>=6 ) THEN
+      !If there are at least 6 columns, determine if
+      !the last three columns contain replica flags (check for 3 integers)
+      flagx = NINT(column(Ncol-2))
+      flagy = NINT(column(Ncol-1))
+      flagz = NINT(column(Ncol))
+      IF( DABS(column(Ncol-2) - DBLE(flagx)) < 1.d-12 .AND.      &
+        & DABS(column(Ncol-1) - DBLE(flagy)) < 1.d-12 .AND.      &
+        & DABS(column(Ncol)   - DBLE(flagz)) < 1.d-12       ) THEN
+        !The 3 last columns are indeed 3 integers
+        flags = .TRUE.
+        WRITE(msg,*) 'Detected replica flags on first line: ', flagx, flagy, flagz
+        CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      ENDIF
+    ENDIF
+    220 CONTINUE
   ELSE
     !The number of columns Ncol is known => read coordinates
     !"atomtype" is the second column for styles "atomic", "charge"
@@ -259,6 +282,12 @@ DO i=1,NP
       READ(temp,*,ERR=800,END=800) id, molID, atomtype, (column(j), j=1,Ncol)
     ELSE
       READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+    ENDIF
+    !Read values of flags
+    IF( flags ) THEN
+      flagx = NINT(column(Ncol-2))
+      flagy = NINT(column(Ncol-1))
+      flagz = NINT(column(Ncol))
     ENDIF
   ENDIF
   !
@@ -271,9 +300,19 @@ DO i=1,NP
     !Set coordinates and spieces for this particle:
     !Coordinates are always the last three columns
     !except for styles "dipole" and "hybrid" which we ignore here
-    P(id,1) = column(Ncol-2)
-    P(id,2) = column(Ncol-1)
-    P(id,3) = column(Ncol)
+    IF( flags ) THEN
+      !Replica flags are in the last 3 columns
+      !Atom positions are in the 3 columns before that
+      !Use the flags to shift atoms by box vectors appropriately
+      P(id,1) = column(Ncol-5) + DBLE(flagx)*H(1,1) + DBLE(flagy)*H(2,1) + DBLE(flagz)*H(3,1)
+      P(id,2) = column(Ncol-4) + DBLE(flagx)*H(1,2) + DBLE(flagy)*H(2,2) + DBLE(flagz)*H(3,2)
+      P(id,3) = column(Ncol-3) + DBLE(flagx)*H(1,3) + DBLE(flagy)*H(2,3) + DBLE(flagz)*H(3,3)
+    ELSE
+      !Atom positions are in the last 3 columns
+      P(id,1) = column(Ncol-2)
+      P(id,2) = column(Ncol-1)
+      P(id,3) = column(Ncol)
+    ENDIF
     P(id,4) = DBLE(atomtype)
     AUX(id,1) = DBLE(atomtype)
     IF(molecule) THEN

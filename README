@@ -9,8 +9,13 @@ atomic systems, and convert from and to various file formats.
 
 QUICK START:
 ============
-For impatients: enter the src directory and type "make atomsk".
-For a thorough description of the program, open the file
+If you downloaded the binary version:
+Open a terminal in current directory and run: "sudo install.sh".
+
+If you downloaded the source code:
+Enter the src directory and type "make atomsk".
+
+To access the documentation, open the file
 "doc/index.html" in your web browser.
 
 CONTENT OF THIS PACKAGE:
@@ -24,6 +29,7 @@ examples/       Examples to test the program
 man/            Man page of the program
 src/            Source code of the program (Fortran95)
 tools/          Companion programs and scripts
+install.sh      Bash script to install Atomsk in GNU/Linux
 
 (C) P. Hirel 2010
 This program is distributed under the GNU/GPL

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 April 2016                                    *
+!* Last modification: P. Hirel - 27 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -766,12 +766,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-duplicate' .OR. clarg=='-dup' .OR. clarg=='-expand' .OR. clarg=='-e' .OR.  &
-        & clarg=='-replicate' ) THEN
-    IF( clarg=='-expand' .OR. clarg=='-e') THEN
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(2799,(/'-expand   ','-duplicate'/),(/0.d0/))
-    ENDIF
+  ELSEIF(clarg=='-duplicate' .OR. clarg=='-dup' .OR. clarg=='-replicate' ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = '-duplicate'
     DO m=1,3
@@ -1290,6 +1285,8 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a128)',END=400,ERR=400) temp
     temp = ADJUSTL(temp)
+    !If first letter is lower case, make it upper case
+    temp(1:1) = StrUpCase(temp(1:1))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-stress') THEN

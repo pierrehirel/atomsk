@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 April 2016                                    *
+!* Last modification: P. Hirel - 03 May 2016                                      *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -72,7 +72,7 @@ INTEGER:: at_biso
 INTEGER:: at_uiso
 INTEGER:: at_sp, at_x, at_y, at_z !position of atom species and coordinates in the line
 INTEGER:: sy_pxyz !position of symmetry operations string in the line
-INTEGER:: i, j, iaux, k
+INTEGER:: i, j, iaux, k, m, n
 INTEGER:: Naux !number of auxiliary properties
 INTEGER:: Ncol, NP, sp_NP
 INTEGER:: Nsym !number of symmetry operations
@@ -98,6 +98,7 @@ at_biso=0
 at_uiso=0
 sy_pxyz=0
 Naux=0
+Ncol=0
 NP=0
 Nsym=0
 occ=0
@@ -435,7 +436,34 @@ DO !Main reading loop
           ! line is found.
           DO
             ! Read lines !
-            READ(30,*,ERR=180,END=180) (columns(j),j=1,Ncol)
+            !NOTE: a CIF file may contain slash characters (e.g. in fractions like "1/2")
+            READ(30,'(a128)',ERR=180,END=180) temp
+            temp = ADJUSTL(temp)
+            j = SCAN(temp,"/")
+            DO WHILE (j>0)
+              READ(temp(j-1:j-1),*,ERR=180,END=180) m
+              READ(temp(j+1:j+1),*,ERR=180,END=180) n
+              IF( m==1 ) THEN
+                IF( n==2 ) THEN
+                  temp2 = "0.5"
+                ELSEIF( n==3 ) THEN
+                  temp2 = "0.333"
+                ELSE
+                  WRITE(temp2,'(f6.3)') DBLE(m)/DBLE(n)
+                ENDIF
+              ELSEIF( m==3 ) THEN
+                IF( n==2 ) THEN
+                  temp2 = "1.5"
+                ELSE
+                  WRITE(temp2,'(f6.3)') DBLE(m)/DBLE(n)
+                ENDIF
+              ELSE
+                WRITE(temp2,'(f6.3)') DBLE(m)/DBLE(n)
+              ENDIF
+              temp = temp(:j-2)//TRIM(ADJUSTL(temp2))//temp(j+2:)
+              j = SCAN(temp,"/")
+            ENDDO
+            READ(temp,'(a)',ERR=180,END=180) (columns(j),j=1,Ncol)
             ! Extract symmetry operation string !
             temp = ADJUSTL(columns(sy_pxyz))
             ! Check if this is really a symmetry operation string !
@@ -479,7 +507,34 @@ DO !Main reading loop
           ! Read Nsym lines and transform the symmetry strings to a transformation.
           DO i=1, Nsym
             ! Read line
-            READ(30,*,ERR=800,END=800) (columns(j),j=1,Ncol)
+            READ(30,'(a128)',ERR=800,END=800) temp
+            temp = ADJUSTL(temp)
+            j = SCAN(temp,"/")
+            DO WHILE (j>0)
+              READ(temp(j-1:j-1),*,ERR=800,END=800) m
+              READ(temp(j+1:j+1),*,ERR=800,END=800) n
+              IF( m==1 ) THEN
+                IF( n==2 ) THEN
+                  temp2 = "0.5"
+                ELSEIF( n==3 ) THEN
+                  temp2 = "0.333"
+                ELSE
+                  WRITE(temp2,'(f9.3)') DBLE(m)/DBLE(n)
+                ENDIF
+              ELSEIF( m==3 ) THEN
+                IF( n==2 ) THEN
+                  temp2 = "1.5"
+                ELSE
+                  WRITE(temp2,'(f9.3)') DBLE(m)/DBLE(n)
+                ENDIF
+              ELSE
+                WRITE(temp2,'(f9.3)') DBLE(m)/DBLE(n)
+              ENDIF
+              temp = temp(:j-2)//TRIM(ADJUSTL(temp2))//temp(j+2:)
+              j = SCAN(temp,"/")
+            ENDDO
+            READ(temp,'(a)',ERR=800,END=800) (columns(j),j=1,Ncol)
+            !READ(30,*,ERR=800,END=800) (columns(j),j=1,Ncol)
             ! Get symmetry operation string
             temp = ADJUSTL(columns(sy_pxyz))
             ! Translate the string to a transformation in the

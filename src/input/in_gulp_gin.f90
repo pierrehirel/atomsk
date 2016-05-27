@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 April 2016                                    *
+!* Last modification: P. Hirel - 26 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -113,7 +113,7 @@ occ = 0
 q = 0
 qs = 0
 radius = 0
-sgroupnum = -10
+sgroupnum = 0
 vx = 0
 vy = 0
 vz = 0
@@ -942,11 +942,16 @@ IF( velocities .AND. vx>0 .AND. vy>0 .AND. vz>0 ) THEN
 ENDIF
 !
 550 CONTINUE
-IF( sgroupnum > 0 .AND. sgroupnum <=230 ) THEN
-  ! Apply symmetry operations
-  CALL SG_APPLY_SYMOPS(sgroup,H,P,S,AUXNAMES,AUX)
-ELSE
-  
+IF( sgroupnum.NE.0 ) THEN
+  !A space group number was read
+  IF( sgroupnum > 0 .AND. sgroupnum <=230 ) THEN
+    ! Apply symmetry operations
+    CALL SG_APPLY_SYMOPS(sgroup,H,P,S,AUXNAMES,AUX)
+  ELSE
+    ! Invalid space group number
+    nerr = nerr+1
+    CALL ATOMSK_MSG(809,(/TRIM(sgroup)/),(/0.d0/))
+  ENDIF
 ENDIF
 GOTO 1000
 !

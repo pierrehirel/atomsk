@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 April 2016                                    *
+!* Last modification: P. Hirel - 02 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -359,6 +359,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-sort") THEN
   WRITE(*,*) "..> Ranger les atomes :"
   WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-spacegroup") THEN
+  WRITE(*,*) "..> Appliquer les opérations de symétrie d'un groupe d'espace donné:"
+  WRITE(*,*) "          -spacegroup <groupe>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-stress") THEN

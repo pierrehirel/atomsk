@@ -22,14 +22,14 @@
 
 <p>This option applies the symmetry operations of the given space group to the current system.</p>
 
-<p>The &#60;group&#62; can either be the space group number, or the Hermann-Mauguin symbol (without any blank space).</p>
+<p>The &#60;group&#62; can either be the space group number, or the Hermann-Mauguin symbol (without any blank space). After application of symmetry operations, atom duplicates are removed.</p>
 
 <p>Note that this option changes the number of atoms in the system (but does not change the box vectors).</p>
 
 
 <h4>Default</h4>
 
-<p>If files in the <a href="./format_cif.html">CIF</a> format contain symmetry operations or a space group, then the corresponding symmetry operations are applied. Otherwise, in other file formats no symmetry operation is applied by default.</p>
+<p>Files in the <a href="./format_cif.html">CIF</a> format, the <a href="./format_gin.html">GULP input file</a> format, or the <a href="./format_jems.html">JEMS</a> format, or the <a href="./format_vesta.html">VESTA</a> format, may contain a space group number (or Hermann-Mauguin symbol). When they do, Atomsk immediately applies the corresponding symmetry operations. Otherwise, no symmetry operation is applied by default.</p>
 
 
 <h4>Examples</h4>

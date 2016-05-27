@@ -16,7 +16,7 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 29 April 2016                                    *
+!* Last modification: P. Hirel - 03 May 2016                                      *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !*     SUBROUTINE SYMOPS_INIT initializes the array symops_trf to identity        *
@@ -873,8 +873,8 @@ IF( verbosity==4 ) THEN
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   IF( ALLOCATED(symops_trf) ) THEN
     DO i=1,SIZE(symops_trf,1)
-      !PRINT*, symops_trf(i,:)
-      WRITE(msg,'(i3,2X,20(f6.2,1X))') i, symops_trf(i,:)
+      k = MIN(12,SIZE(symops_trf,2))
+      WRITE(msg,'(i3,2X,20(f6.2,1X))') i, symops_trf(i,1:k)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
   ENDIF

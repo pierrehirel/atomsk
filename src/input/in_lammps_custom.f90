@@ -14,7 +14,7 @@ MODULE in_lmp_c
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 March 2016                                    *
+!* Last modification: P. Hirel - 26 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -91,6 +91,7 @@ q = 0
 finished = .FALSE.
 reduced(:) = .FALSE.
 H(:,:) = 0.d0
+IF(ALLOCATED(comment)) DEALLOCATE(comment)
 !
 !
 100 CONTINUE
@@ -108,7 +109,13 @@ DO WHILE(.NOT.finished)
   temp = TRIM(ADJUSTL(temp))
   IF(temp(1:5)=='ITEM:') THEN
     temp2 = TRIM(ADJUSTL(temp(6:)))
-    IF(temp2(1:15)=='NUMBER OF ATOMS') THEN
+    IF(temp2(1:8)=='TIMESTEP') THEN
+      !Read timestep and use it to generate a comment
+      READ(30,*,END=820,ERR=820) id
+      WRITE(msg,*) id
+      ALLOCATE(comment(1))
+      comment(1) = "# LAMMPS timestep "//TRIM(ADJUSTL(msg))
+    ELSEIF(temp2(1:15)=='NUMBER OF ATOMS') THEN
       READ(30,*,END=820,ERR=820) NP
       ALLOCATE(P(NP,4))
       P(:,:) = 0.d0

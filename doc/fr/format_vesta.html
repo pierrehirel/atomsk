@@ -24,7 +24,7 @@
 
 <h4>Restrictions</h4>
 
-<p>Atomsk peut lire les fichiers VESTA, mais ne prend pas en compte le groupe d'espace ni les opérations de symétrie.</p>
+<p>Atomsk peut lire les fichiers VESTA. Si le fichier contient des opérations de symétrie (après le mot-clé "SYMOP"), alors elles sont appliquées immédiatement.</p>
 
 <p>Lorsqu'il écrit un fichier VESTA, Atomsk ignore aussi les opérations de symétrie, c'est-à-dire que le groupe d'espace sera P1. Si les forces sont définies en tant que propriétés auxiliaires (<code>fx, fy, fz</code>), alors elles sont écrites comme vecteur après la position de chaque atome. Sinon, si les vitesses des atomes sont définies alors elles sont utilisées comme vecteurs. Sinon les vecteurs seront nuls pour tous les atomes.</p>
 

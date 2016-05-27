@@ -1,6 +1,4 @@
 TODO LIST
 =========
 
-- use module "spacegroup" (developped by Juri Barthel) to generate any structure from its space group.
-
 - use OpenMP to parallelize some parts of the code, like the loops for neighbor search, for computing the Nye tensor, for constructing Voronoi polycrystals, or for converting files in mode "--list". The code should auto-detect the number of cores on the user's machine, and by default use as many threads. A command-line parameter should allow the user to specify the max. number of threads to use (e.g. "-threads N").

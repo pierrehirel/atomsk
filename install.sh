@@ -8,44 +8,54 @@ BINPATH=/usr/local/bin/
 DOCPATH=/usr/local/share/doc/
 MPATH=/usr/local/share/man/man1/
 
-if [ -w ${BINPATH} ] ; then
+if [ ! -e 'atomsk' ] ; then
 
-  echo "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n)"
-  read answer
-
-  if [ "${answer}" = "y" ] ; then
-    # System configuration file
-    cp -rf ./etc/atomsk.conf /etc/
-
-    # atomsk binary
-    chmod +x atomsk
-    cp atomsk ${BINPATH}
-
-    # atomsk tools
-    chmod +x ./tools/*.sh
-    cp ./tools/* ${BINPATH}
-    echo ">>> Program was successfuly installed in ${BINPATH}"
-
-    # atomsk documentation
-    mkdir -p ${DOCPATH}/atomsk
-    rm -rf ${DOCPATH}/atomsk/*
-    cp -rf ./doc/* ${DOCPATH}/atomsk/
-    chmod -R a+r ${DOCPATH}/atomsk/
-    echo ">>> Html documentation is available from ${DOCPATH}atomsk/index.html"
-
-    # atomsk man page
-    mkdir -p ${MPATH}
-    gzip -c ./man/atomsk >${MPATH}/atomsk.1.gz
-  
-  
-  else
-  
-    echo ">>> Installation aborted."
-  
-  fi
+  echo "X!X ERROR: impossible to install 'atomsk', it does not exist in current directory."
 
 else
 
-  echo "X!X ERROR: this script must be run as root or with sudo."
+  if [ -w ${BINPATH} ] ; then
+
+    echo "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n)"
+    read answer
+
+    if [ "${answer}" = "y" ] ; then
+      # System configuration file
+      cp -rf ./etc/atomsk.conf /etc/
+
+      # atomsk binary
+      chmod +x atomsk
+      cp atomsk ${BINPATH}
+
+      # atomsk tools
+      chmod +x ./tools/*.sh
+      cp ./tools/* ${BINPATH}
+      echo ">>> The program was successfuly installed in ${BINPATH}"
+      echo "    To run it, enter 'atomsk' in a terminal."
+
+      # atomsk documentation
+      mkdir -p ${DOCPATH}/atomsk
+      rm -rf ${DOCPATH}/atomsk/*
+      cp -rf ./doc/* ${DOCPATH}/atomsk/
+      chmod -R a+r ${DOCPATH}/atomsk/
+      echo ">>> The html documentation was installed. You may read it by entering the"
+      echo "    following address in your Web browser: ${DOCPATH}atomsk/index.html"
+
+      # atomsk man page
+      mkdir -p ${MPATH}
+      gzip -c ./man/atomsk >${MPATH}/atomsk.1.gz
+    
+    
+    else
+    
+      echo ">>> Installation aborted."
+    
+    fi
+
+  else
+
+    echo "X!X ERROR: this script must be run as root or with sudo."
+
+  fi
 
 fi

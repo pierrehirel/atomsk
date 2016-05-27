@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 March 2016                                    *
+!* Last modification: P. Hirel - 27 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -105,15 +105,16 @@ ORIENT(:,:) = 0.d0
 optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
             &    "alignx          ", "bind-shells     ", "bs              ", "center          ", &
             &    "crack           ", "cut             ", "deform          ", "def             ", &
-            &    "dislocation     ", "disloc          ", "disturb         ", "expand          ", &
-            &    "e               ", "duplicate       ", "dup             ", "fix             ", &
-            &    "freeze          ", "fractional      ", "frac            ", "mirror          ", &
-            &    "orient          ", "properties      ", "prop            ", "rebox           ", &
-            &    "remove-atom     ", "rmatom          ", "remove-doubles  ", "rmd             ", &
-            &    "remove-property ", "rmprop          ", "remove-shells   ", "rmshells        ", &
-            &    "rotate          ", "rot             ", "select          ", "shear           ", &
-            &    "shift           ", "sort            ", "substitute      ", "sub             ", &
-            &    "unit            ", "unskew          ", "velocity        ", "wrap            "  &
+            &    "dislocation     ", "disloc          ", "disturb         ", "duplicate       ", &
+            &    "dup             ", "fix             ", "freeze          ", "fractional      ", &
+            &    "frac            ", "mirror          ", "orient          ", "properties      ", &
+            &    "prop            ", "rebox           ", "remove-atom     ", "rmatom          ", &
+            &    "remove-doubles  ", "rmd             ", "remove-property ", "rmprop          ", &
+            &    "remove-shells   ", "roll            ", "rmshells        ", "rotate          ", &
+            &    "rot             ", "select          ", "shear           ", "shift           ", &
+            &    "sort            ", "substitute      ", "sub             ", "swap            ", &
+            &    "torsion         ", "unit            ", "unskew          ", "velocity        ", &
+            &    "wrap            "  &
             &/)
 !
 !Get user name: this is environment-dependent
@@ -188,6 +189,8 @@ DO
         READ(instruction,*) command, temp
         IF(temp=="fr") THEN
           lang = "fr"
+        ELSEIF(temp=="de") THEN
+          lang = "de"
         ELSE
           lang = "en"
         ENDIF
@@ -225,6 +228,9 @@ DO
         !
       CASE("ls","dir")
         CALL SYSTEM(system_ls)
+        !
+      CASE("pwd","PWD")
+        CALL SYSTEM("pwd")
         !
       CASE("exit","quit","bye")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
