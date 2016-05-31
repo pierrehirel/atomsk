@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Aug. 2015                                     *
+!* Last modification: P. Hirel - 31 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -654,202 +654,226 @@ END SELECT
 !
 300 CONTINUE
 !Orient the system so that the cartesian axes are X=ORIENT(1,:); Y=ORIENT(2,:); Z=ORIENT(3,:)
-IF( cubic .AND. VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
-  comment(1) = TRIM(comment(1))//' oriented'
-  DO i=1,3
-    IF(i==1) comment(1) = TRIM(comment(1))//' X=['
-    IF(i==2) comment(1) = TRIM(comment(1))//' Y=['
-    IF(i==3) comment(1) = TRIM(comment(1))//' Z=['
-    DO j=1,3
-      WRITE(msg,*) NINT(ORIENT(i,j))
-      comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
-      IF(j==3) comment(1) = TRIM(comment(1))//']'
+IF( cubic ) THEN
+  IF( VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 &
+    & .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
+    comment(1) = TRIM(comment(1))//' oriented'
+    DO i=1,3
+      IF(i==1) comment(1) = TRIM(comment(1))//' X=['
+      IF(i==2) comment(1) = TRIM(comment(1))//' Y=['
+      IF(i==3) comment(1) = TRIM(comment(1))//' Z=['
+      DO j=1,3
+        WRITE(msg,*) NINT(ORIENT(i,j))
+        comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
+        IF(j==3) comment(1) = TRIM(comment(1))//']'
+      ENDDO
     ENDDO
-  ENDDO
-  !
-  WRITE(msg,*) "orienting the system:"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') ORIENT(1,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') ORIENT(2,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') ORIENT(3,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Set lminmax = 10 * largest value in ORIENT
-  lminmax = 10 * NINT(MAXVAL(DABS(ORIENT(:,:))))
-  !
-  !Check that vectors of ORIENT are orthogonal
-  orthovec(:) = .FALSE.
-  IF( ANGVEC(ORIENT(1,:),ORIENT(2,:))-90.d0<1.d-6 ) orthovec(1)=.TRUE.
-  IF( ANGVEC(ORIENT(2,:),ORIENT(3,:))-90.d0<1.d-6 ) orthovec(2)=.TRUE.
-  IF( ANGVEC(ORIENT(3,:),ORIENT(1,:))-90.d0<1.d-6 ) orthovec(3)=.TRUE.
-  WRITE(msg,*) "orthovec: ", orthovec(:)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  IF( ANY(.NOT.orthovec) ) THEN
-    CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
-    nerr = nerr+1
-    GOTO 1000
-  ENDIF
-  !
-  !Compute the interplanar spacings that correspond to the new orientation
-  !For a cubic system the interplanar spacing along a Miller axis hkl is defined by:
-  !   d_hkl = a² / sqrt( h² + k² + l² )
-  ips(:,:) = 0.d0
-  DO i=1,3
-    ips(i,i) = create_a0(1) / DSQRT( ORIENT(i,1)**2 + ORIENT(i,2)**2 + ORIENT(i,3)**2 )
-  ENDDO
-  WRITE(msg,*) "interplanar spacings along X, Y, Z:"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') VECLENGTH(ips(1,:)), VECLENGTH(ips(2,:)), VECLENGTH(ips(3,:))
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Unit cell is oriented so that H(1,:)//[100], H(2,:)//[010], H(3,:)//[001]
-  !=> express the vectors H(:,:) and atom positions P(:,:) in the new base ORIENT
-  !Normalize the vectors in ORIENT, save them to ORIENTN
-  DO i=1,3
-    ORIENTN(i,:) = ORIENT(i,:)/VECLENGTH(ORIENT(i,:))
-  ENDDO
-  !Convert atom positions to reduced coordinates
-  CALL CART2FRAC(P,H)
-  !Rotate vectors in H(:,:)
-  DO i=1,3
-    H1 = H(i,1)
-    H2 = H(i,2)
-    H3 = H(i,3)
-    H(i,1) = H1*ORIENTN(1,1) + H2*ORIENTN(1,2) + H3*ORIENTN(1,3)
-    H(i,2) = H1*ORIENTN(2,1) + H2*ORIENTN(2,2) + H3*ORIENTN(2,3)
-    H(i,3) = H1*ORIENTN(3,1) + H2*ORIENTN(3,2) + H3*ORIENTN(3,3)
-  ENDDO
-  !Convert atom positions back to cartesian coordinates
-  CALL FRAC2CART(P,H)
-  WRITE(msg,*) "oriented H(:,:):"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(1,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(2,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(3,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !The unit cell is *not* defined by the interplanar spacing, but by a repetition vector
-  !=> find the shortest repetition vectors
-  !   they must be a multiple of the ips(:) and a linear combination of the H(:,:)
-  uv(:,:) = HUGE(1.d0)
-  DO i=1,3
-    !multiply ips(i,i) by m and check it against a linear combination of H(:,:)
-    DO m=1,10
+    !
+    WRITE(msg,*) "orienting the system:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') ORIENT(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') ORIENT(2,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') ORIENT(3,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !Set lminmax = 10 * largest value in ORIENT
+    lminmax = 10 * NINT(MAXVAL(DABS(ORIENT(:,:))))
+    !
+    !Check that vectors of ORIENT are orthogonal
+    orthovec(:) = .FALSE.
+    IF( DABS( ANGVEC(ORIENT(1,:),ORIENT(2,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(1)=.TRUE.
+    IF( DABS( ANGVEC(ORIENT(2,:),ORIENT(3,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(2)=.TRUE.
+    IF( DABS( ANGVEC(ORIENT(3,:),ORIENT(1,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(3)=.TRUE.
+    WRITE(msg,*) "orthovec: ", orthovec(:)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    IF( ANY(.NOT.orthovec) ) THEN
+      CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    !
+    !Compute the interplanar spacings that correspond to the new orientation
+    !For a cubic system the interplanar spacing along a Miller axis hkl is defined by:
+    !   d_hkl = a² / sqrt( h² + k² + l² )
+    ips(:,:) = 0.d0
+    DO i=1,3
+      ips(i,i) = create_a0(1) / DSQRT( ORIENT(i,1)**2 + ORIENT(i,2)**2 + ORIENT(i,3)**2 )
+    ENDDO
+    WRITE(msg,*) "interplanar spacings along X, Y, Z:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') VECLENGTH(ips(1,:)), VECLENGTH(ips(2,:)), VECLENGTH(ips(3,:))
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !Unit cell is oriented so that H(1,:)//[100], H(2,:)//[010], H(3,:)//[001]
+    !=> express the vectors H(:,:) and atom positions P(:,:) in the new base ORIENT
+    !Normalize the vectors in ORIENT, save them to ORIENTN
+    DO i=1,3
+      ORIENTN(i,:) = ORIENT(i,:)/VECLENGTH(ORIENT(i,:))
+    ENDDO
+    !Convert atom positions to reduced coordinates
+    CALL CART2FRAC(P,H)
+    !Rotate vectors in H(:,:)
+    DO i=1,3
+      H1 = H(i,1)
+      H2 = H(i,2)
+      H3 = H(i,3)
+      H(i,1) = H1*ORIENTN(1,1) + H2*ORIENTN(1,2) + H3*ORIENTN(1,3)
+      H(i,2) = H1*ORIENTN(2,1) + H2*ORIENTN(2,2) + H3*ORIENTN(2,3)
+      H(i,3) = H1*ORIENTN(3,1) + H2*ORIENTN(3,2) + H3*ORIENTN(3,3)
+    ENDDO
+    !Convert atom positions back to cartesian coordinates
+    CALL FRAC2CART(P,H)
+    WRITE(msg,*) "oriented H(:,:):"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') H(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') H(2,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') H(3,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !The unit cell is *not* defined by the interplanar spacing, but by a repetition vector
+    !=> find the shortest repetition vectors
+    !   they must be a multiple of the ips(:) and a linear combination of the H(:,:)
+    uv(:,:) = HUGE(1.d0)
+    DO i=1,3
+      !multiply ips(i,i) by m and check it against a linear combination of H(:,:)
+      DO m=1,10
+        DO l=-lminmax,lminmax
+          DO k=-lminmax,lminmax
+            DO j=-lminmax,lminmax
+              !Compute the difference between current m*ips(i,i) and current linear combination of H(:,:)
+              x = VECLENGTH( DBLE(m)*ips(i,:) + DBLE(j)*H(1,:) + DBLE(k)*H(2,:) + DBLE(l)*H(3,:) )
+              IF( x < 1.d-6 .AND. DBLE(m)*ips(i,i)<uv(i,i) ) THEN
+                !We have found a suitable vector, and it is shorter than the previous one
+                !=> save it to uv(i,i)
+                uv(i,i) = DBLE(m)*ips(i,i)
+              ENDIF
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDDO
+      320 CONTINUE
+    ENDDO
+    !
+    !Correct for some special orientations to find the minimal repetition unit
+    SELECT CASE(create_struc)
+    CASE('bcc','BCC')
+      !in bcc structure, period along a <111> direction is actually 1/2<111>
+      DO i=1,3
+        IF( DABS(ORIENT(i,1))==DABS(ORIENT(i,2)) .AND. DABS(ORIENT(i,1))==DABS(ORIENT(i,3)) ) THEN
+          uv(i,i) = uv(i,i)/2.d0
+        ENDIF
+      ENDDO
+      !
+    CASE('fcc','FCC','diamond','dia','zincblende','zb','rocksalt','rs')
+      !in fcc, diamond/zb, and rocksalt structures,
+      !period along a <110> direction is actually 1/2<110>
+      !period along a <112> direction is actually 1/2<112>
+      DO i=1,3
+        IF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
+          & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
+          & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
+          uv(i,i) = uv(i,i)/2.d0
+        ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2)))    .AND.             &
+              & NINT(DABS(ORIENT(i,3)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
+              & .OR.                                                                  &
+              & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
+              & NINT(DABS(ORIENT(i,2)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
+              & .OR.                                                                  &
+              & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
+              & NINT(DABS(ORIENT(i,1)))==NINT(2.d0*DABS(ORIENT(i,2)))       ) THEN
+          uv(i,i) = uv(i,i)/2.d0
+        ENDIF
+      ENDDO
+      !
+    CASE DEFAULT
+      !
+    END SELECT
+    !
+    !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
+    !and store it in Q(:,:)
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    ALLOCATE( Q(1000,4) )    !assuming there are less than 1,000 atoms in the unit cell...
+    Q(:,:) = 0.d0
+    NP=0
+    !
+    !Loop over all replica in a wide range
+    DO i=1,SIZE(P,1)
       DO l=-lminmax,lminmax
         DO k=-lminmax,lminmax
           DO j=-lminmax,lminmax
-            !Compute the difference between current m*ips(i,i) and current linear combination of H(:,:)
-            x = VECLENGTH( DBLE(m)*ips(i,:) + DBLE(j)*H(1,:) + DBLE(k)*H(2,:) + DBLE(l)*H(3,:) )
-            IF( x < 1.d-6 .AND. DBLE(m)*ips(i,i)<uv(i,i) ) THEN
-              !We have found a suitable vector, and it is shorter than the previous one
-              !=> save it to uv(i,i)
-              uv(i,i) = DBLE(m)*ips(i,i)
+            !Compute cartesian position of this replica
+            tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
+            tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
+            tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
+            tempP(4) = P(i,4)
+            IF( tempP(1)>=-1.d-12 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
+              & tempP(2)>=-1.d-12 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
+              & tempP(3)>=-1.d-12 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
+              !This replica is inside the new cell, mark it as new
+              new = .TRUE.
+              !Verify that its position is different from all previous atoms
+              DO m=1,NP
+                IF( DABS( VECLENGTH(tempP(1:3)-Q(m,1:3)) )<1.d-6 ) THEN
+                  new = .FALSE.
+                ENDIF
+              ENDDO
+              !
+              IF( new ) THEN
+                NP = NP+1
+                IF(NP>SIZE(Q,1)) THEN
+                  nerr = nerr+1
+                  GOTO 1000
+                ENDIF
+                Q(NP,:) = tempP(:)
+              ENDIF
             ENDIF
           ENDDO
         ENDDO
       ENDDO
     ENDDO
-    320 CONTINUE
-  ENDDO
-  !
-  !Correct for some special orientations to find the minimal repetition unit
-  SELECT CASE(create_struc)
-  CASE('bcc','BCC')
-    !in bcc structure, period along a <111> direction is actually 1/2<111>
+    !
+    !Replace old P with the new Q
+    IF(ALLOCATED(P)) DEALLOCATE(P)
+    ALLOCATE(P(NP,4))
+    DO i=1,NP
+      P(i,:) = Q(i,:)
+    ENDDO
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    WRITE(msg,*) "new NP in oriented cell:", NP
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !Replace old H with the new (oriented) cell vectors
+    H(:,:) = 0.d0
     DO i=1,3
-      IF( DABS(ORIENT(i,1))==DABS(ORIENT(i,2)) .AND. DABS(ORIENT(i,1))==DABS(ORIENT(i,3)) ) THEN
-        uv(i,i) = uv(i,i)/2.d0
-      ENDIF
+      H(i,i) = uv(i,i)
     ENDDO
+    WRITE(msg,*) "new cell vectors:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') H(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') H(2,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') H(3,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
-  CASE('fcc','FCC','diamond','dia','zincblende','zb','rocksalt','rs')
-    !in fcc, diamond/zb, and rocksalt structures,
-    !period along a <110> direction is actually 1/2<110>
-    !period along a <112> direction is actually 1/2<112>
-    DO i=1,3
-      IF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
-        & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
-        & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
-        uv(i,i) = uv(i,i)/2.d0
-      ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2)))    .AND.             &
-            & NINT(DABS(ORIENT(i,3)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
-            & .OR.                                                                  &
-            & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
-            & NINT(DABS(ORIENT(i,2)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
-            & .OR.                                                                  &
-            & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
-            & NINT(DABS(ORIENT(i,1)))==NINT(2.d0*DABS(ORIENT(i,2)))       ) THEN
-        uv(i,i) = uv(i,i)/2.d0
-      ENDIF
-    ENDDO
-    !
-  CASE DEFAULT
-    !
-  END SELECT
+  ELSE
+    comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
+  ENDIF  !end if oriented
   !
-  !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
-  !and store it in Q(:,:)
-  IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  ALLOCATE( Q(1000,4) )    !assuming there are less than 1,000 atoms in the unit cell...
-  Q(:,:) = 0.d0
-  NP=0
-  !
-  !Loop over all replica in a wide range
-  DO i=1,SIZE(P,1)
-    DO l=-lminmax,lminmax
-      DO k=-lminmax,lminmax
-        DO j=-lminmax,lminmax
-          !Compute cartesian position of this replica
-          tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
-          tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
-          tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
-          tempP(4) = P(i,4)
-          IF( tempP(1)>=0.d0 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
-            & tempP(2)>=0.d0 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
-            & tempP(3)>=0.d0 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
-            !This replica is inside the new cell => keep it
-            NP = NP+1
-            IF(NP>SIZE(Q,1)) THEN
-              nerr = nerr+1
-              GOTO 1000
-            ENDIF
-            Q(NP,:) = tempP(:)
-          ENDIF
-        ENDDO
-      ENDDO
-    ENDDO
-  ENDDO
-  !
-  !Replace old P with the new Q
-  IF(ALLOCATED(P)) DEALLOCATE(P)
-  ALLOCATE(P(NP,4))
-  DO i=1,NP
-    P(i,:) = Q(i,:)
-  ENDDO
-  IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  WRITE(msg,*) "new NP in oriented cell:", NP
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Replace old H with the new (oriented) cell vectors
-  H(:,:) = 0.d0
-  DO i=1,3
-    H(i,i) = uv(i,i)
-  ENDDO
-  WRITE(msg,*) "new cell vectors:"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(1,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(2,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(3,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-ELSEIF( cubic ) THEN
-  comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
+ELSE
+  !The lattice is not cubic
+  IF( VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 &
+    & .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
+    !The user asked for a crystal orientation, but the lattice is not cubic
+    !=> write error message and exit
+    CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
+    nerr = nerr+1
+    GOTO 1000
+  ENDIF
 ENDIF
 !
  comment(1) = TRIM(comment(1))//'.'

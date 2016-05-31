@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 May 2016                                      *
+!* Last modification: P. Hirel - 31 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1631,7 +1631,23 @@ CASE(2113)
   msg = "..> La distribution de vitesses a été écrite dans le fichier : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2114)
-  msg = ">>> Perturbation des positions des atomes..."
+  !reals(1) = max. displacement of an atom along X
+  !reals(2) = max. displacement of an atom along Y
+  !reals(3) = max. displacement of an atom along Z
+  msg = ">>> Perturbation des positions des atomes,"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( DABS(reals(1)-reals(2))<1.d-12 .AND. DABS(reals(1)-reals(3))<1.d-12 ) THEN
+    !All values are equal
+    WRITE(msg,'(f24.3)') reals(1)
+    msg = "..> déplacement maximal : "//TRIM(ADJUSTL(msg))//" A."
+  ELSE
+    !Values are different along each direction
+    WRITE(temp,'(f24.3)') reals(1)
+    WRITE(temp2,'(f24.3)') reals(2)
+    WRITE(temp3,'(f24.3)') reals(3)
+    msg = "..> déplacement maximal : dx="//TRIM(ADJUSTL(temp))//", dy=" &
+        & //TRIM(ADJUSTL(temp2))//", dz="//TRIM(ADJUSTL(temp3))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2115)
   msg = "..> Les atomes ont été déplacés."
@@ -2758,6 +2774,9 @@ CASE(4825)
 #endif
 CASE(4826)
   msg = "X!X ERREUR : ce mode n'est pas disponible en mode interactif, veuillez vous référer à la documentation."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4827)
+  msg = "X!X ERREUR : impossible de créer le système avec l'orientation donnée, car il s'agit d'un réseau non-cubique."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

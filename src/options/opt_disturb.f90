@@ -10,7 +10,7 @@ MODULE disturb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Dec. 2013                                     *
+!* Last modification: P. Hirel - 31 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE DISTURB_XYZ(dxmax,P,SELECT)
+SUBROUTINE DISTURB_XYZ(dmax,P,SELECT)
 !
 !
 IMPLICIT NONE
@@ -46,7 +46,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: i, j
 INTEGER:: NP
 REAL(dp):: drift  !total displacement along a direction
-REAL(dp),INTENT(IN):: dxmax  !maximum displacement of an atom along a cartesian direction
+REAL(dp),DIMENSION(3),INTENT(IN):: dmax  !maximum displacement of an atom along each cartesian direction
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P  !atom positions
 !
@@ -58,11 +58,11 @@ i = 0
 msg = 'Entering DISTURB_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL ATOMSK_MSG( 2114, (/''/), (/ dxmax /) )
+CALL ATOMSK_MSG( 2114, (/''/), (/ dmax(1),dmax(2),dmax(3) /) )
 !
 !
 !If maximum displacement is zero then skip
-IF( dxmax==0.d0 ) THEN
+IF( DABS(dmax(1))<1.d-12 .AND. DABS(dmax(2))<1.d-12 .AND. DABS(dmax(3))<1.d-12 ) THEN
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2751,(/''/),(/0.d0/))
   GOTO 1000
@@ -87,7 +87,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 CALL GEN_NRANDNUMBERS(3*NP,randarray)
 !randarray now contains 3N random real numbers uniformly distributed between 0.d0 and 1.d0
 !Scale it so that it is between -dxmax and +dxmax
-randarray(:) = ( randarray(:) - 0.5d0 ) * 2.d0 * dxmax
+randarray(:) = ( randarray(:) - 0.5d0 ) * 2.d0
 !randarray(1:SIZE(P,1)) contains displacements along X
 !randarray(SIZE(P,1)+1,2*SIZE(P,1)) contains displacements along Y
 !randarray(2*SIZE(P,1)+1,3*SIZE(P,1)) contains displacements along Z
@@ -95,10 +95,10 @@ randarray(:) = ( randarray(:) - 0.5d0 ) * 2.d0 * dxmax
 !Adjust them so that total displacement in each direction is zero.
 DO i=1,3 !x,y,z
   !Compute global drift along that direction
-  drift = SUM( randarray( (i-1)*NP+1 : i*NP) )
+  drift = SUM( randarray( (i-1)*NP+1 : i*NP) ) * dmax(i)
   !Apply correction
   DO j=1,NP
-    randarray((i-1)*NP+j) = randarray((i-1)*NP+j) - drift/DBLE(SIZE(randarray))
+    randarray((i-1)*NP+j) = randarray((i-1)*NP+j) * dmax(i) - drift/DBLE(SIZE(randarray))
   ENDDO
 ENDDO
 WRITE(msg,*) 'SIZE randarray = ', SIZE(randarray)

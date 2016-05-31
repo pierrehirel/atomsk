@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 05 April 2016                                    *
+!* Last modification: P. Hirel - 31 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1503,10 +1503,23 @@ CASE(2113)
       & TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2114)
-  !reals(1) = max. displacement of an atom along a cartesian direction
-  WRITE(msg,'(f24.3)') reals(1)
-  msg = ">>> Zufaellige Verschiebung der Atome, max. Distanz"// &
-      & TRIM(ADJUSTL(msg))//" A."
+  !reals(1) = max. displacement of an atom along X
+  !reals(2) = max. displacement of an atom along Y
+  !reals(3) = max. displacement of an atom along Z
+  msg = ">>> Zufaellige Verschiebung der Atome,"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( DABS(reals(1)-reals(2))<1.d-12 .AND. DABS(reals(1)-reals(3))<1.d-12 ) THEN
+    !All values are equal
+    WRITE(msg,'(f24.3)') reals(1)
+    msg = "..> maximum Distanz: "//TRIM(ADJUSTL(msg))//" A."
+  ELSE
+    !Values are different along each direction
+    WRITE(temp,'(f24.3)') reals(1)
+    WRITE(temp2,'(f24.3)') reals(2)
+    WRITE(temp3,'(f24.3)') reals(3)
+    msg = "..> max. Distanz: dx="//TRIM(ADJUSTL(temp))//", dy=" &
+        & //TRIM(ADJUSTL(temp2))//", dz="//TRIM(ADJUSTL(temp3))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2115)
   msg = "..> Atome wurden aus ihrer Gleichgewichtslage verschoben."
@@ -2677,6 +2690,9 @@ CASE(4825)
 #endif
 CASE(4826)
   msg = "X!X ERROR: this mode is not available in interactive mode, please refer to the documentation."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4827)
+  msg = "X!X ERROR: unable to create lattice with specified orientation, because lattice is not cubic."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

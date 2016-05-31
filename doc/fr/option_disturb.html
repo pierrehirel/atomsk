@@ -17,10 +17,12 @@
 
 <p><code>-disturb &#60;d<sub>max</sub>&#62;</code></p>
 
+<p><code>-disturb &#60;d<sub>x</sub>&#62; &#60;d<sub>y</sub>&#62; &#60;d<sub>z</sub>&#62; </code></p>
+
 
 <h4>Description</h4>
 
-<p>Cette option applique un vecteur de translation aléatoire à chaque atome, le déplacement maximal suivant un axe cartésien étant &#60;d<sub>max</sub>&#62;.</p>
+<p>Cette option applique un vecteur de translation aléatoire à chaque atome, le déplacement maximal étant &#60;d<sub>max</sub>&#62;. Alternativement, il est possible de fournir le déplacement maximal suivant chaque direction cartésienne.</p>
 
 <p>Les déplacements appliqués suivent une loi normale de distribution. Ils sont ajustés de sorte qu'il n'y a pas de translation globale du système.</p>
 
@@ -46,6 +48,9 @@
 
 <li><code class="command">atomsk initial.xsf -disturb 250.0 -wrap amorphe.cfg</code>
 <p>Ceci va lire le fichier <code>initial.xsf</code> et déplacera les atomes d'un maximum de 250 &Aring;. Puis les atomes ayant quitté la boîte seront replacés dans la boîte. Les positions finales seront écrites dans le fichier <code>amorphe.cfg</code>.</p></li>
+
+<li><code class="command">atomsk relaxed.xsf -disturb 1.2 1.2 0 perturbe.cfg</code>
+<p>Ceci va lire le fichier <code>initial.xsf</code> et déplacera les atomes d'un maximum de 1.2 &Aring; suivant X et Y. Les atomes ne seront pas déplacés selon Z. Les positions finales seront écrites dans le fichier <code>perturbe.cfg</code>.</p></li>
 
 </ul>
 

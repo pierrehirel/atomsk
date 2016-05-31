@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 May 2016                                      *
+!* Last modification: P. Hirel - 31 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -163,7 +163,7 @@ REAL(dp):: nu, pos1, pos2
 REAL(dp),DIMENSION(3):: b !Burgers vector
 !
 !Variables relative to Option: disturb
-REAL(dp):: dist_dxmax  !maximum translation vector
+REAL(dp),DIMENSION(3):: dist_dmax  !maximum translation vector along each Cartesian direction
 !
 !Variables relative to Option: duplicate
 INTEGER, DIMENSION(3):: dupmatrix  !number of times the system must be
@@ -526,8 +526,8 @@ DO ioptions=1,SIZE(options_array)
     CALL DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos1,pos2,SELECT,AUXNAMES,AUX,C_tensor)
   !
   CASE('-disturb')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dxmax
-    CALL DISTURB_XYZ(dist_dxmax,P,SELECT)
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dmax(1), dist_dmax(2), dist_dmax(3)
+    CALL DISTURB_XYZ(dist_dmax,P,SELECT)
   !
   CASE('-duplicate', '-dup', '-e', '-expand')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &

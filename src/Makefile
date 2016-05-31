@@ -137,6 +137,10 @@ all: atomsk
 atomsk: modes
 	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 -I $(OBJ) $(LAPACK)
 	@echo "\o/ Compilation was successful!"
+	@echo ""
+	@echo "<i> To install Atomsk system-wide, you may now run:"
+	@echo "      sudo make install"
+	@echo ""
 
 # Compile modes modules
 modes: aux

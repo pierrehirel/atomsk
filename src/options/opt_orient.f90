@@ -11,7 +11,7 @@ MODULE ORIENT
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Sept. 2013                                    *
+!* Last modification: P. Hirel - 30 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -129,9 +129,9 @@ ENDDO
 !
 !Check that vectors of end matrix form the same angles as vectors in initial matrix
 orthovec(:) = .FALSE.
-IF( ANGVEC(Hstart(1,:),Hstart(2,:))-ANGVEC(Hend(1,:),Hend(2,:))<1.d-6 ) orthovec(1)=.TRUE.
-IF( ANGVEC(Hstart(2,:),Hstart(3,:))-ANGVEC(Hend(2,:),Hend(3,:))<1.d-6 ) orthovec(2)=.TRUE.
-IF( ANGVEC(Hstart(3,:),Hstart(1,:))-ANGVEC(Hend(3,:),Hend(1,:))<1.d-6 ) orthovec(3)=.TRUE.
+IF( DABS( ANGVEC(Hstart(1,:),Hstart(2,:))-ANGVEC(Hend(1,:),Hend(2,:)) ) < 1.d-6 ) orthovec(1)=.TRUE.
+IF( DABS( ANGVEC(Hstart(2,:),Hstart(3,:))-ANGVEC(Hend(2,:),Hend(3,:)) ) < 1.d-6 ) orthovec(2)=.TRUE.
+IF( DABS( ANGVEC(Hstart(3,:),Hstart(1,:))-ANGVEC(Hend(3,:),Hend(1,:)) ) < 1.d-6 ) orthovec(3)=.TRUE.
 WRITE(msg,*) "orthovec: ", orthovec(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF( ANY(.NOT.orthovec) ) THEN

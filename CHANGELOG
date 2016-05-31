@@ -16,6 +16,7 @@ beta 0.9 (in development)
 - enhanced support for CIF format. Symmetry operations are now taken into account. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
 - enhanced support for Quantum Espresso files. When writing such files the user's environment is now taken into account. When reading QE output files (in mode "--one-in-all"), when cell parameters are in Bohrs and atom positions in Angströms, the latter are now converted into Bohrs (instead of converting cell parameters into angströms).
 - in mode "--create", added possibility to generate wurtzite lattices.
+- in option "-disturb", added possibility to provide different values for displacements along X, Y and Z Cartesian axes.
 - in option "-select", added possibility to read a list of atom indices from a file. Also added the possibility to select atoms according to a finite-element grid.
 - in option "-unit", added possibility to scale any coordinate or property by a given factor.
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
@@ -24,6 +25,7 @@ beta 0.9 (in development)
 - fixed a bug that could cause the program to crash when reading GULP input files.
 - fixed a bug where atom coordinates would not be read correctly from LAMMPS data files (*.lmp) when they contained replica flags (i.e. three integer numbers) at the end of each line.
 - fixed a bug in mode "--all-in-one" that was causing a crash when no file format was specified.
+- fixed a bug in mode "--create" where atoms would sometimes be missing when creating lattices with some orientations.
 - fixed a bug in mode "--merge" where sometimes auxiliary properties would not be correctly handled.
 - fixed a bug in the displaying of progress bar that slowed down the program.
 - l10n: added the German translations of the messages. Thanks to Juri Barthel, RWTH Aachen, Germany, for translating Atomsk.

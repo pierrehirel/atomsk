@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 May 2016                                      *
+!* Last modification: P. Hirel - 31 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -761,10 +761,31 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='-disturb') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
-    !read the maximum displacement along a cartesian axis
+    !read the maximum displacement along X
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
+    READ(temp,*,END=120,ERR=120) tempreal
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !try to read the maximum displacement along Y
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp2
+    !Verify that it is a real number
+    READ(temp2,*,END=101,ERR=101) tempreal
+    !No error? It was the max. displacement along Y, save it
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
+    !Proceed with max. disp. along Z
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp2
+    READ(temp2,*,END=101,ERR=101) tempreal
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
+    !We are done reading the 3 real numbers
+    GOTO 110
+    101 CONTINUE
+    !There was an error while trying to real max. displacement along Y
+    !=> user gave only one value, that will apply in all directions X, Y and Z
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp)
+    !Go one step back
+    i=i-1
   !
   ELSEIF(clarg=='-duplicate' .OR. clarg=='-dup' .OR. clarg=='-replicate' ) THEN
     ioptions = ioptions+1

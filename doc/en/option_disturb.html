@@ -17,10 +17,12 @@
 
 <p><code>-disturb &#60;d<sub>max</sub>&#62;</code></p>
 
+<p><code>-disturb &#60;d<sub>x</sub>&#62; &#60;d<sub>y</sub>&#62; &#60;d<sub>z</sub>&#62; </code></p>
+
 
 <h4>Description</h4>
 
-<p>This option applies a random translation vector to each atom, the maximum displacement along a cartesian direction being &#60;d<sub>max</sub>&#62;.</p>
+<p>This option applies a random translation vector to each atom, the maximum displacement being &#60;d<sub>max</sub>&#62;. Alternatively, the maximum displacement can be set separately along each Cartesian directions.</p>
 
 <p>The applied displacements follow a normal distribution function. They are adjusted so that there is no global translation of the system.</p>
 
@@ -45,6 +47,9 @@
 
 <li><code class="command">atomsk initial.xsf -disturb 250.0 -wrap amorphous.cfg</code>
 <p>This will read the file <code>initial.xsf</code> and randomly move atoms for a maximum of 250 &Aring;. Then the atoms that are out of the box will be wrapped back into the box. The resulting positions will be written to <code>amorphous.cfg</code>.</p></li>
+
+<li><code class="command">atomsk relaxed.xsf -disturb 1.2 1.2 0 disturbed.cfg</code>
+<p>This will read the file <code>relaxed.xsf</code> and randomly move atoms, for a maximum of 1.2 &Aring; along X and Y. Atoms will not be displaced along the Z direction. The new atom positions will be written to <code>disturbed.cfg</code>.</p></li>
 
 </ul>
 
