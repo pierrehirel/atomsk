@@ -2,6 +2,11 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+beta 0.8.7 (6 June 2016)
+------------------------
+- fixed a bug in mode "--create", where an fcc lattice oriented with a vector of type <112> would have missing atoms. Thanks to Yann Even and Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.
+
+
 beta 0.8.6 (9 March 2016)
 -------------------------
 - fixed a bug in the reading of LAMMPS custom files (*.lmc) when it contained reduced coordinates and the lower bounds of the box were not at the origin. Thanks to Yann Even and Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.

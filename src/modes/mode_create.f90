@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 March 2016                                    *
+!* Last modification: P. Hirel - 06 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -655,16 +655,17 @@ IF( cubic .AND. VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0
   !
   !Check that vectors of ORIENT are orthogonal
   orthovec(:) = .FALSE.
-  IF( ANGVEC(ORIENT(1,:),ORIENT(2,:))-90.d0<1.d-6 ) orthovec(1)=.TRUE.
-  IF( ANGVEC(ORIENT(2,:),ORIENT(3,:))-90.d0<1.d-6 ) orthovec(2)=.TRUE.
-  IF( ANGVEC(ORIENT(3,:),ORIENT(1,:))-90.d0<1.d-6 ) orthovec(3)=.TRUE.
-  WRITE(msg,*) "orthovec: ", orthovec(:)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  IF( ANY(.NOT.orthovec) ) THEN
-    CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
-    nerr = nerr+1
-    GOTO 1000
-  ENDIF
+    orthovec(:) = .FALSE.
+    IF( DABS( ANGVEC(ORIENT(1,:),ORIENT(2,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(1)=.TRUE.
+    IF( DABS( ANGVEC(ORIENT(2,:),ORIENT(3,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(2)=.TRUE.
+    IF( DABS( ANGVEC(ORIENT(3,:),ORIENT(1,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(3)=.TRUE.
+    WRITE(msg,*) "orthovec: ", orthovec(:)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    IF( ANY(.NOT.orthovec) ) THEN
+      CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
   !
   !Compute the interplanar spacings that correspond to the new orientation
   !For a cubic system the interplanar spacing along a Miller axis hkl is defined by:
@@ -773,21 +774,32 @@ IF( cubic .AND. VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0
       DO k=-lminmax,lminmax
         DO j=-lminmax,lminmax
           !Compute cartesian position of this replica
-          tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
-          tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
-          tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
-          tempP(4) = P(i,4)
-          IF( tempP(1)>=0.d0 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
-            & tempP(2)>=0.d0 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
-            & tempP(3)>=0.d0 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
-            !This replica is inside the new cell => keep it
-            NP = NP+1
-            IF(NP>SIZE(Q,1)) THEN
-              nerr = nerr+1
-              GOTO 1000
+            !Compute cartesian position of this replica
+            tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
+            tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
+            tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
+            tempP(4) = P(i,4)
+            IF( tempP(1)>=-1.d-12 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
+              & tempP(2)>=-1.d-12 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
+              & tempP(3)>=-1.d-12 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
+              !This replica is inside the new cell, mark it as new
+              new = .TRUE.
+              !Verify that its position is different from all previous atoms
+              DO m=1,NP
+                IF( DABS( VECLENGTH(tempP(1:3)-Q(m,1:3)) )<1.d-6 ) THEN
+                  new = .FALSE.
+                ENDIF
+              ENDDO
+              !
+              IF( new ) THEN
+                NP = NP+1
+                IF(NP>SIZE(Q,1)) THEN
+                  nerr = nerr+1
+                  GOTO 1000
+                ENDIF
+                Q(NP,:) = tempP(:)
+              ENDIF
             ENDIF
-            Q(NP,:) = tempP(:)
-          ENDIF
         ENDDO
       ENDDO
     ENDDO
