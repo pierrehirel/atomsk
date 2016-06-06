@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER=0.9-dev
+VER="Beta 0.9-dev"
 
 # Name of the final binary
 BIN=atomsk
@@ -204,7 +204,7 @@ tar:
 # Install the program (only on UNIX and Linux systems)
 install:
 	@echo ""
-	@echo "  >>> Installation of Atomsk:"
+	@echo "  >>> Installation of Atomsk version $(VER):"
 	@cp -rf ../etc/atomsk.conf /etc/
 	@mkdir -p $(BINPATH)
 	@cp -rf $(BIN) $(BINPATH)

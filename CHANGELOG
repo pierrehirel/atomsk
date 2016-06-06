@@ -2,7 +2,7 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-beta 0.9 (in development)
+Beta 0.9 (in development)
 -------------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
@@ -32,35 +32,40 @@ beta 0.9 (in development)
 
 
 
-beta 0.8.5 (7 March 2016)
+Beta 0.8.6 (9 March 2016)
+-------------------------
+- fixed a bug in the reading of LAMMPS custom files (*.lmc) when it contained reduced coordinates and the lower bounds of the box were not at the origin. Thanks to Yann Even and Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.
+
+
+Beta 0.8.5 (7 March 2016)
 -------------------------
 - fixed a bug where the detection of Cartesian or reduced coordinates would fail when the number of atoms was very small (typically unit cells containing only one or two atoms). Thanks to Jérôme Dequeker, UMET, Lille, France, for pointing out this bug.
 - fixed a bug in mode "--create" where the number of atoms in oriented unit cells would be incorrect for some values of the lattice parameter. Thanks to J. Amodeo, MATEIS, Lyon, France, for pointing out this bug.
 
 
-beta 0.8.4 (10 Feb. 2015)
+Beta 0.8.4 (10 Feb. 2015)
 -------------------------
 - fixed a bug that prevented to use the option "-cut" with the keyword "below". Thanks to Vasiliy Krasnikov, South-Ural State University, Chelyabinsk, Russia, for pointing out this bug.
 - fixed a bug that prevented to use the option "-fix" with the keywords "above" and "below".
 
 
-beta 0.8.3 (22 Sept. 2015)
+Beta 0.8.3 (22 Sept. 2015)
 --------------------------
 - fixed a bug in mode "--polycrystal" where it was not possible to construct a 2-D polycrystal when the seed had at least one dimension greater than 20 A. Thanks to Jianyang Wu, Xiamen University, China, for pointing out this bug.
 
 
-beta 0.8.2 (14 June 2015)
+Beta 0.8.2 (14 June 2015)
 -------------------------
 - fixed a bug that caused a crash when reading LAMMPS data files that contained fewer atoms than declared.
 
 
-beta 0.8.1 (09 April 2015)
+Beta 0.8.1 (09 April 2015)
 --------------------------
 - in mode "--create", added possibility to generate L12 lattices. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for proposing this feature.
 - fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to Anirban Pal, Rensselaer Polytechnic Institute, New York, USA, for reporting this bug.
 
 
-beta 0.8 (05 Jan. 2015)
+Beta 0.8 (05 Jan. 2015)
 -----------------------
 - many changes make this version incompatible with branch 0.7. Source files were re-organized. The main Makefile was modified (simplified), new Makefiles were added in sub-directories for better dependency support. Also fixed many issues with the compilation on Microsoft(R) Windows(R) systems.
 - from now on, both 32-bits and 64-bits static binaries will be available for GNU/Linux platforms.
@@ -109,33 +114,33 @@ beta 0.8 (05 Jan. 2015)
 
 
 
-beta 0.7.6 (28 March 2014)
+Beta 0.7.6 (28 March 2014)
 --------------------------
 - fixed a major issue that was slowing down the writing of files in the following formats: CIF, IMD, LAMMPS data files, MBPP, Quantum Espresso Pwscf files, Siesta, VASP POSCAR files, and XYZ files. Writing files in these formats should be much faster, especially for large systems.
 - fixed a minor bug in the reading of comments from Atomeye CFG files.
 
 
-beta 0.7.5 (15 March 2014)
+Beta 0.7.5 (15 March 2014)
 --------------------------
 - fixed a bug that prevented to read some atoms in some CIF files. Thanks to Pietro Bonfa', Uni. Parma, Italy, for pointing out this bug.
 - fixed a bug that prevented to read some CFG files.
 - fixed a bug that prevented to read some LAMMPS custom files (*.lmc).
 
 
-beta 0.7.4 (20 Feb. 2014)
+Beta 0.7.4 (20 Feb. 2014)
 -------------------------
 - fixed a bug where the force on the first atom would always be zero when reading a file in XSF format.
 - fixed a bug where atoms would not be properly removed if they were at the exact same position in option "-remove-doubles". Thanks to Sebastian Ritterbex, UMET, Lille, France, for pointing out this bug.
 
 
-beta 0.7.3 (01 Feb. 2014)
+Beta 0.7.3 (01 Feb. 2014)
 -------------------------
 - fixed a bug where Quantum Espresso PWscf files (*.pw) would not always be read correctly. Thanks to Jaroslaw Czernek, IMC, Prague, Czech Republic, for pointing out this bug.
 - fixed a bug when the user answered "yes" when prompted for atom sorting when writing POSCAR files: atoms would be sorted but not their auxiliary properties. Thanks to Dario Marrocchelli, MIT, Boston, USA, for pointing out this bug.
 - fixed a bug that was causing a crash when the program prompted which file to use as an input and the user would enter something else than an integer.
 
 
-beta 0.7.2 (16 Nov. 2013)
+Beta 0.7.2 (16 Nov. 2013)
 -------------------------
 - fixed a bug where oriented unit cells would not always be properly created in mode "--create", when running a 32-bits version of the program. Thanks to Philippe Carrez, UMET, Lille, France, for pointing out this bug.
 - fixed a bug that could cause a segfault in mode "--merge" when files contained auxiliary properties.
@@ -143,7 +148,7 @@ beta 0.7.2 (16 Nov. 2013)
 - fixed a bug where atoms would not be sorted when writing a VASP POSCAR file, when the program was run in French. Thanks to Nils Garvik, UMET, Lille, France, for pointing out this bug.
 
 
-beta 0.7.1 (08 June 2013)
+Beta 0.7.1 (08 June 2013)
 -------------------------
 - added possibility to create rocksalt lattices in mode "--create".
 - in mode "--difference" the step for the histogram is now equal to the maximum value of the displacements divided by 20, or if the latter is greater than 1 A, it is reset to 1 A. The cumulated number of atoms is also computed.
@@ -154,7 +159,7 @@ beta 0.7.1 (08 June 2013)
 - fixed several bugs that occured when reading Quantum Espresso output files (*.out) in mode "--one-in-all".
 
 
-beta 0.7 (06 April 2013)
+Beta 0.7 (06 April 2013)
 ------------------------
 - name changed from "pikashu" to "atomsk".
 - many changes make the branch 0.7 incompatible with branch 0.6.
@@ -196,12 +201,12 @@ beta 0.7 (06 April 2013)
 CHANGELOG FOR PIKASHU
 =====================
 
-beta 0.6.5 (06 July 2012)
+Beta 0.6.5 (06 July 2012)
 -------------------------
 - fixed a bug where reduced coordinates would not be detected in some cases.
 
 
-beta 0.6.4 (17 June 2012)
+Beta 0.6.4 (17 June 2012)
 -------------------------
 - mode "--create" now allows to create a basic hexagonal close-packed (hcp) structure.
 - mode "--diff" now also outputs a CFG file containing displacements as auxiliary property.
@@ -212,7 +217,7 @@ beta 0.6.4 (17 June 2012)
 - fixed bugs in the neighbor search algorithms that occured when searching for neighbors in non-orthogonal cells. Performance was also improved, with gains up to 30%.
 
 
-beta 0.6.3 (22 May 2012)
+Beta 0.6.3 (22 May 2012)
 ------------------------
 - new option "-crack" allows to insert a crack in the system.
 - new option "-remove-random-atoms" allows to remove atoms at random from the system.
@@ -225,7 +230,7 @@ beta 0.6.3 (22 May 2012)
 - improved some scripts in /tools/.
 
 
-beta 0.6.2 (01 March 2012)
+Beta 0.6.2 (01 March 2012)
 --------------------------
 - new mode "--electronic-polarization" allows to compute the polarization of ions in the framework of an ionic core-shell model.
 - new option "-bind-shells" allows to re-associate shells with their core in the framework of an ionic core-shell model.
@@ -234,7 +239,7 @@ beta 0.6.2 (01 March 2012)
 - in GNU/Linux environments, the locale environment variable is now used to set up the default language of pikashu (the language defined in ~/.pikashu will still override it).
 
 
-beta 0.6.1 (22 Feb. 2012)
+Beta 0.6.1 (22 Feb. 2012)
 -------------------------
 - new mode "--all-in-one" allows to read many snapshots and store them in a unique file in XYZ and/or animated XSF formats.
 - new option "-remove-atom" allows to remove one atom according to its index, or all atoms of a given species.
@@ -247,7 +252,7 @@ beta 0.6.1 (22 Feb. 2012)
 - fixed bugs that would generate strange output file names when an input file had no extension.
 
 
-beta 0.6 (01 Dec. 2011)
+Beta 0.6 (01 Dec. 2011)
 -----------------------
 - many changes make the branch 0.6 incompatible with branch 0.5.
 - introduces dependency to LAPACK 3.3.0 (or higher).
@@ -278,19 +283,19 @@ beta 0.6 (01 Dec. 2011)
 
 
 
-beta 0.5.2 (20 Apr. 2011)
+Beta 0.5.2 (20 Apr. 2011)
 -------------------------
 - fixed bug that occured when inserting a dislocation of "edge" type.
 
 
-beta 0.5.1 (18 Apr. 2011)
+Beta 0.5.1 (18 Apr. 2011)
 -------------------------
 - added the possibility to pack atoms in the option "-sort".
 - fixed bugs that occured when writing POSCAR files. The program now checks if atom species are contiguous and, if they are not, proposes to sort them (same as "-sort species pack"), as this is required by VASP to link species with their pseudopotential.
 - fixed a bug when reading GULP input files (gin or res) that contained atomic species concatenated with numbers (e.g. "O1", "O2", etc.). pikashu can now read such a format.
 
 
-beta 0.5 (30 Mar. 2011)
+Beta 0.5 (30 Mar. 2011)
 -----------------------
 - changed the usage for modes. They must now be called with double minus signs, e.g. "--create" or "--list". Alternatively one can use a one-letter form with only one minus sign and one capital letter (e.g. "-C" or "-L"). This is to better differentiate them from options, and also better detect the number of options in a command-line. However this change makes the current version incompatible with the previous branch 0.4.x.
 - added support of both reading and writing of IMD file format.
@@ -299,7 +304,7 @@ beta 0.5 (30 Mar. 2011)
 - the "molecular" variant of XSF files (using the keyword "ATOMS") can now be read. Since no supercell parameters are specified in this variant, pikashu will try to define a bounding box.
 - the "standard" CFG format can now be read (as well as the extended CFG format).
 - added option "-remove-doubles" to remove duplicate atoms (i.e. those that are at the same position as another one).
-- option "-H" was removed to avoid confusion with modes. Instead the option "-properties" must be used, which reads a file containing system properties including supercell parameters either in conventional notation (a b c alpha beta gamma) or in vector notation.
+- option "-H" was removed to avoid confusion with modes. Instead the option "-properties" must be used, which reads a file containing system properties including supercell parameters either in conventional notation (a b c alpha Beta gamma) or in vector notation.
 - added the possibility to save some parameters in a config file in the home directory of the user (~/.pikashu). The program looks for this file, and if it exists it reads the default parameters (see readconf.f90). These parameters are replaced if different ones are used in the command-line. This is documented in "doc/progbe_configfile.html".
 - the syntax of the mode "create" was changed. Also, this mode now allows to create nanotubes.
 - program is less verbose about reading the input file(s).
@@ -310,7 +315,7 @@ beta 0.5 (30 Mar. 2011)
 
 
 
-beta 0.4.4 (13 Dec. 2010)
+Beta 0.4.4 (13 Dec. 2010)
 -------------------------
 - new subroutines cart2frac and frac2cart added to "subroutines.f90". They are now used by several input and output modules (in_cfg...).
 - major changes in xyz_differences.f90: bugs were present when "wrapping" displacement vectors into the bounding box. Displacements vectors are now calculated from reduced coordinates, bound to be between -0.5 and 0.5, and converted back to cartesian coordinates.
@@ -327,7 +332,7 @@ beta 0.4.4 (13 Dec. 2010)
 - added the option "region" to select atoms inside or outside a region (which for now can be a box or a sphere). Several changes were made to various options, so that they apply only to the selected atoms.
 
 
-beta 0.4.3 (08 Nov. 2010)
+Beta 0.4.3 (08 Nov. 2010)
 -------------------------
 - bug corrections for mode list.
 - replaced several 'X' in formats by '1X' to comply to Fortran 95 standard and make the compilation with g95 possible.
@@ -338,7 +343,7 @@ beta 0.4.3 (08 Nov. 2010)
 - corrected bugs in the reading of POSCAR files.
 
 
-beta 0.4.2 (29 Oct. 2010)
+Beta 0.4.2 (29 Oct. 2010)
 -------------------------
 - corrected several bugs in in_cfg.f90 that were leading to errors when reading CFG files containing a lot of spacing between keywords and numerical values (for instance "A =                   1.0"). Now this should not happen as long as the line is less than 128 characters long.
 - can now read some custom formats from LAMMPS; this has to be improved in the future
@@ -349,7 +354,7 @@ beta 0.4.2 (29 Oct. 2010)
 - corrected a bug in cut_cell that did not properly set the size of array P, which could result in segfault.
 
 
-beta 0.4.1 (20 Oct. 2010)
+Beta 0.4.1 (20 Oct. 2010)
 -------------------------
 - fixed a bug in the reading of GIN files.
 - fixed a bug in the reading of BOP files.
@@ -362,7 +367,7 @@ beta 0.4.1 (20 Oct. 2010)
 - code cleanup: options are now sorted in alphabetical order in many modules for better clarity.
 
 
-beta 0.4 (15 Oct.2010)
+Beta 0.4 (15 Oct.2010)
 ----------------------
 - removed a lot of disk I/O: the temporary file 'pikashu.xyz' is no longer used. Now the atomic positions are loaded into memory (by in_* modules) and transformed into memory (by opt_* modules) before being written to output file(s). This concerns almost all modules.
 - fixed bugs in difference mode.
@@ -376,7 +381,7 @@ beta 0.4 (15 Oct.2010)
 - changed the welcome message.
 
 
-beta 0.3 (28 July 2010)
+Beta 0.3 (28 July 2010)
 -----------------------
 - added mode "difference".
 - added option "alignx".
@@ -385,7 +390,7 @@ beta 0.3 (28 July 2010)
 - LAMMPS data files can be output (*.lmp).
 
 
-beta 0.2 (1 June 2010)
+Beta 0.2 (1 June 2010)
 ----------------------
 - added mode "list".
 - added mode "ddplot".
@@ -394,7 +399,7 @@ beta 0.2 (1 June 2010)
 - can now write GIN as output.
 
 
-beta 0.1 (27 Apr. 2010)
+Beta 0.1 (27 Apr. 2010)
 -----------------------
 - supports XYZ, XSF, CFG, GIN.
 - options expand, cut, shift.
