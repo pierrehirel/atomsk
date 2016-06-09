@@ -9,7 +9,7 @@ MODULE atoms
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 July 2015                                     *
+!* Last modification: P. Hirel - 09 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -293,12 +293,18 @@ CASE('Rg')
       snumber=111.d0
 CASE('Cn')
       snumber=112.d0
-CASE('Uu')
+CASE('Nh')
       snumber=113.d0
 CASE('Fl')
       snumber=114.d0
+CASE('Mc')
+      snumber=115.d0
 CASE('Lv')
       snumber=116.d0
+CASE('Ts')
+      snumber=117.d0
+CASE('Og')
+      snumber=118.d0
 !
 CASE DEFAULT
   !If the species is not recognized
@@ -570,8 +576,14 @@ CASE('Uu')
       smass=284.d0
 CASE('Fl')
       smass=289.d0
+CASE('Mc')
+      snumber=288.d0
 CASE('Lv')
-      smass=293.d0
+      snumber=293.d0
+CASE('Ts')
+      snumber=294.d0
+CASE('Og')
+      snumber=294.d0
 !
 CASE DEFAULT
   !If the species is not recognized
@@ -840,11 +852,17 @@ CASE(111)
 CASE(112)
       species='Cn'
 CASE(113)
-      species='Uu'
+      species='Nh'
 CASE(114)
       species='Fl'
+CASE(115)
+      species='Mc'
 CASE(116)
       species='Lv'
+CASE(117)
+      species='Ts'
+CASE(118)
+      species='Og'
 !
 CASE DEFAULT
   species='XX'

@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Sept. 2015                                    *
+!* Last modification: P. Hirel - 09 June 2016                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -200,18 +200,33 @@ DO
       H(1,1) = P1
       H(2,2) = P2
       H(3,3) = P3
-      IF( SIZE(Puc,1)<100 .OR. ANY(H(:,:)<20.d0) ) THEN
-        !The user provided a small cell (<100 atoms), or asked for a final cell with a small dimension (<20A)
-        !=> If the final box is smaller than 2 times the unit cell along one dimension,
-        !   then consider that it is a 2-D system and use 2-D Voronoi construction
+      IF( VECLENGTH(H(1,:))<15.d0 .OR. VECLENGTH(H(2,:))<15.d0 .OR.   &
+        & VECLENGTH(H(3,:))<15.d0                                     ) THEN
+        !The user asked for a final cell with at least one small dimension (<15A)
+        !=> Look along which dimension the final box is "small"
+        twodim=0
+        m=0
+        n=0
         DO i=1,3
-          IF( H(i,i)<2.1d0*VECLENGTH(Huc(i,:)) ) THEN
+          IF( VECLENGTH(H(i,:)) < 15.d0 ) THEN
             !The final box is "small" along this dimension
-            twodim = i
-            !Make sure that the final box dimension matches the unit cell length
-            H(i,i) = Huc(i,i)
+            m=m+1
+            n=i
           ENDIF
         ENDDO
+        !
+        IF( m>0 ) THEN
+          !The final box is small in at least one dimension
+          IF( m==1 ) THEN
+            !The final box is small in only one dimension => pseudo-2D system
+            twodim = n
+            !Make sure that the final box dimension matches the seed dimension in that direction
+            H(n,n) = Huc(n,n)
+          ELSE
+            !m>1 => Final box is small in many directions, consider it is a 3D system
+            twodim = 0
+          ENDIF
+        ENDIF
       ENDIF
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -755,32 +770,23 @@ NPgrains(:) = 0
 !Construct template supercell Pt(:,:)
 !By default the template grain fills the whole box
 !This template grain will be cut later to construct each grain
-IF( VECLENGTH(Huc(1,:)) < VECLENGTH(H(1,:)) .OR.  &
-  & VECLENGTH(Huc(1,:)) < VECLENGTH(H(2,:)) .OR.  &
-  & VECLENGTH(Huc(1,:)) < VECLENGTH(H(3,:)) .OR.  &
-  & VECLENGTH(Huc(2,:)) < VECLENGTH(H(1,:)) .OR.  &
-  & VECLENGTH(Huc(2,:)) < VECLENGTH(H(2,:)) .OR.  &
-  & VECLENGTH(Huc(2,:)) < VECLENGTH(H(3,:)) .OR.  &
-  & VECLENGTH(Huc(3,:)) < VECLENGTH(H(1,:)) .OR.  &
-  & VECLENGTH(Huc(3,:)) < VECLENGTH(H(2,:)) .OR.  &
-  & VECLENGTH(Huc(3,:)) < VECLENGTH(H(3,:))       ) THEN
-  !
-  DO i=1,3
-    expandmatrix(i) = CEILING( 1.1d0*MAX( VECLENGTH(H(1,:))/Huc(i,i) , &
-                    & VECLENGTH(H(2,:))/Huc(i,i) , VECLENGTH(H(3,:))/Huc(i,i) ) )
-  ENDDO
-  !If the number of grains is small, the template grain may not be large enough
-  IF( Nnodes<=6 ) THEN
-    DO i=1,3
-      expandmatrix(i) = NINT( 1.5d0*DBLE(expandmatrix(i)) )
-    ENDDO
+expandmatrix(:) = 1
+DO i=1,3
+  IF( VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(1,:)) .OR.  &
+    & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
+    & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
+    !
+    m = CEILING( 1.1d0*MAX( VECLENGTH(H(1,:))/Huc(i,i) , &
+               & VECLENGTH(H(2,:))/Huc(i,i) , VECLENGTH(H(3,:))/Huc(i,i) ) )
+    !If the number of grains is small, the template grain may not be large enough
+    IF( Nnodes<=6 ) THEN
+      m = NINT( 1.5d0*DBLE(m) )
+    ENDIF
+    IF(m==2) m=3
+    expandmatrix(i) = m
   ENDIF
-  !
-ELSE
-  !All dimensions of the seed provided by the user are larger
-  !than any dimension of the box => don't expand it
-  expandmatrix(:) = 1
-ENDIF
+ENDDO
+!
 !If the system is 2-D, do not expand along the shortest axis
 IF( twodim>0 ) THEN
   expandmatrix(twodim) = 1
