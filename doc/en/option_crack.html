@@ -28,7 +28,7 @@
   <li><strong>crackmode</strong>: mode of the crack, must be I (opening), II (in-plane shear) or III (out-of-plane shear).</li>
   <li><strong>cracktype</strong>: must be "stress" or "strain", decides if the crack is built assuming plane stress or plane strain, respectively.</li>
   <li><strong><em>K<sub>s</sub></em></strong>: stress intensity factor (in GPa.&Aring;<sup>1/2</sup>).</li>
-  <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordinates of the crack in the plane normal to the crack tip line (see <code>crackline</code>), by order of permutation X, Y, Z (e.g. if <code>crackline=Y</code> then p<sub>1</sub> will be the position along Z and p<sub>2</sub> the position along X).</li>
+  <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordinates of the crack in the plane normal to the crack tip line (see <code>crackline</code>), by order of permutation X, Y, Z (e.g. if <code>crackline=Y</code> then p<sub>1</sub> is the position along Z and p<sub>2</sub> the position along X).</li>
   <li><strong>crackline</strong>: direction of the line of the crack tip, must be x, y or z.</li>
   <li><strong>crackplane</strong>: direction normal to the plane of cut (also normal to the surfaces forming the crack lips), must be x, y or z, and must be different from <code>crackline</code>.</li>
   <li><strong>&mu;</strong>: shear modulus of the material (in GPa).</li>
@@ -50,7 +50,7 @@
 
 <p>where x<sub>3</sub> is the direction of &#60;crackline&#62; and x<sub>2</sub> the normal to the plane of cut (i.e. x2=&#60;crackplane&#62;), <code><em>r</em></code> is the distance of the atom to the crack tip, and <code>&theta;</code> is the angle between the &#60;crackplane&#62; and the segment formed by the atom and the crack tip. In addition for a mode I crack the box is elongated along x2 by <code>(<em>K<sub>s</sub></em>/&mu;)&radic;<span style="text-decoration:overline">pos2/2&pi;</span>(&kappa;+1)</code>.</p>
 
-<p>For a <strong>mode II crack</strong> (in-plane shear crack) the displacements will be:</p>
+<p>For a <strong>mode II crack</strong> (in-plane shear crack) the displacements are:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 <code>u<sub>x1</sub> = (<em>K<sub>s</sub></em>/2&mu;) &radic;<span style="text-decoration:overline"><em>r</em>/2&pi;</span> sin(&theta;/2) [&kappa; + 1 + 2cos<sup>2</sup>(&theta;/2)] </code></p>
@@ -71,7 +71,7 @@
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 <code>u = u<sub>modeI</sub> + u<sub>modeII</sub> + u<sub>modeIII</sub> </code></p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the displacements described above will be applied only to selected atoms.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the displacements described above are applied only to selected atoms.</p>
 
 
 <h4>Default</h4>

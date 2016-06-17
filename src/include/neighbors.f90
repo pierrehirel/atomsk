@@ -137,7 +137,7 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
     d_border(i) = MAX( 0.1d0 , R/VECLENGTH(H(i,:)) )
   ENDDO
   !
-  DO i=1,SIZE(A,1)
+  DO i=1,SIZE(A,1)-1
     !Save fractional coordinate of atom i in Vfrac
     Vfrac(1,:) = A(i,1:3)
     CALL CART2FRAC(Vfrac,H)

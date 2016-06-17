@@ -24,9 +24,9 @@
 
 <p>This option can be used to define explicitely some properties of the system.</p>
 
-<p>The &#60;file&#62; is a text file that must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored. If a property is specified several times, then the last one will overwrite all previous ones.</p>
+<p>The &#60;file&#62; is a text file that must contain keywords followed by appropriate values. Empty lines, and lines starting with the hash symbol (&#35;), are ignored. If a property is specified several times, then the last one overwrites all previous ones.</p>
 
-<p><em>Per-atom properties</em> are defined for each atom, e.g. the atom displacements or velocities. If they are auxiliary properties (i.e. properties that do not apply to atom positions, like velocities, electric charges...), then they will be written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
+<p><em>Per-atom properties</em> are defined for each atom, e.g. the atom displacements or velocities. If they are auxiliary properties (i.e. properties that do not modify atom positions like velocities, electric charges...), then they are written to some file formats, see <a href="./formats.html">this page</a>. <em>System-wide properties</em> do not apply to each atom individually but to the system as a whole, like the supercell parameters or the elastic tensor. They may affect options called afterwards and/or output files.</p>
 
 <p>Below is the list of valid <strong>per-atom properties</strong>, which apply to atoms:</p>
 
@@ -37,21 +37,21 @@
             &#60;id1&#62; &#60;ux1&#62; &#60;uy1&#62; &#60;uz1&#62; [&#60;sx1&#62; &#60;sy1&#62; &#60;sz1&#62;]<br/>
             &#60;id2&#62; &#60;ux2&#62; &#60;uy2&#62; &#60;uz2&#62; [&#60;sx2&#62; &#60;sy2&#62; &#60;sz2&#62;]<br/>
             ...</code></p>
-  <p>The displacements can be given for all atoms, or only some of them. If shells are present, but no displacement is specified for them, then they will be displaced by the same vector as their core. The displacement vectors will be immediately applied to the atom positions (and shells, if any).</p></li>
+  <p>The displacements can be given for all atoms, or only some of them. If shells are present, but no displacement is specified for them, then they are displaced by the same vector as their core. The displacement vectors are immediately applied to the atom positions (and shells, if any).</p></li>
   
   <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but Atomsk will work with whatever number is given). In case of an ionic core-shell model the charge Q of the core and the charge q of the shell can be given:<br/>
       <p><code>charge<br/>
             &#60;species1&#62; &#60;Q<sub>1</sub>&#62; [&#60;q<sub>1</sub>&#62;]<br/>
             &#60;species2&#62; &#60;Q<sub>2</sub>&#62; [&#60;q<sub>2</sub>&#62;]<br/>
             ...</code></p>
-  <p>All atoms of the &#60;species1&#62; will be given the charge Q<sub>1</sub> (and their shells the charge q<sub>1</sub> if defined). If charges were defined before, they will be replaced by those read with this option. These charges are used for instance in the <a href="./mode_edm.html">mode <code>--edm</code></a>, or to compute the <a href="./mode_epola.html">electronic polarization</a>.</p></li>
+  <p>All atoms of the &#60;species1&#62; will be given the charge Q<sub>1</sub> (and their shells the charge q<sub>1</sub> if defined). If charges were defined before, they are replaced by those read with this option. These charges are used for instance in the <a href="./mode_edm.html">mode <code>--edm</code></a>, or to compute the <a href="./mode_epola.html">electronic polarization</a>.</p></li>
   
   <li><strong>Atom types</strong> can be defined using the keyword "type":<br/>
       <p><code>type<br/>
             &#60;species1&#62; &#60;type1&#62;<br/>
             &#60;species2&#62; &#60;type2&#62;<br/>
             ...</code></p>
-  <p>This option will associate each &#60;species&#62; with the corresponding &#60;type&#62;. Note that the &#60;type&#62; is defined as an auxiliary property for each atom, and used when writing files for programs that use "atom types" instead of atom species (e.g. <a href="./format_lmp.html">LAMMPS data files</a> or <a href="./format_imd.html">IMD files</a>).</p>
+  <p>This option associates each &#60;species&#62; with the corresponding &#60;type&#62;. Note that the &#60;type&#62; is defined as an auxiliary property for each atom, and used when writing files for programs that use "atom types" instead of atom species (e.g. <a href="./format_lmp.html">LAMMPS data files</a> or <a href="./format_imd.html">IMD files</a>).</p>
   
   <p>For the opposite operation (i.e. replace atom types by atom species) you may want to use the <a href="./option_substitute.html">option <code>-substitute</code></a>.</p></li>
   
@@ -67,12 +67,12 @@
             &#60;id1&#62; &#60;value1&#62;<br/>
             &#60;id2&#62; &#60;value2&#62;<br/>
             ...</code></p>
-  <p>With this, the &#60;property&#62; of atom &#60;id1&#62; will take the &#60;value1&#62;, and so on. Alternatively it is also possible to assign the same value to all atoms of a given species, by giving an atomic symbol instead of an atom index:</p>
+  <p>With this, the &#60;property&#62; of atom &#60;id1&#62; takes the &#60;value1&#62;, and so on. Alternatively it is also possible to assign the same value to all atoms of a given species, by giving an atomic symbol instead of an atom index:</p>
       <p><code>auxiliary &#60;property&#62;<br/>
             &#60;species1&#62; &#60;value1&#62;<br/>
             &#60;species2&#62; &#60;value2&#62;<br/>
             ...</code></p>
-  <p>This way, the &#60;property&#62; will take the &#60;value1&#62; for all atoms of the &#60;species1&#62;. The list can contain values for all atoms, or only for some atoms. Atoms for which no value is given will keep their value if the &#60;property&#62; was previously defined for them, or else will be assigned a zero value.</p></li>
+  <p>This way, the &#60;property&#62; takes the &#60;value1&#62; for all atoms of the &#60;species1&#62;. The list can contain values for all atoms, or only for some atoms. Atoms for which no value is given will keep their value if the &#60;property&#62; was previously defined for them, or else will be assigned a zero value.</p></li>
 </ul>
 
 <br/>
@@ -96,7 +96,7 @@
             (<em>hkl</em>)<sub>Y</sub><br/>
             (<em>hkl</em>)<sub>Z</sub></code></p>
 
-      <p>These values do <em>not</em> rotate the system but define the current crystal orientation, no matter what it was before (and without verifying if it is correct or not). If the elastic tensor was defined before the crystal orientation (see below) then it will be rotated to match this orientation.</p></li>
+      <p>These values do <em>not</em> rotate the system but define the current crystal orientation, no matter what it was before (and without verifying if it is correct or not). If the elastic tensor was defined before the crystal orientation (see below) then it is rotated to match this orientation.</p></li>
   
   <li><p><strong>Elastic (or stiffness) tensor</strong> can be specified using the keyword "elastic" followed by the values (6x6 array) of the elastic constants in GPa:</p>
       <p><code>elastic<br/>
@@ -109,9 +109,9 @@
             C<sub>11</sub> C<sub>22</sub> C<sub>33</sub><br/>
             C<sub>23</sub> C<sub>31</sub> C<sub>12</sub><br/>
             C<sub>44</sub> C<sub>55</sub> C<sub>66</sub><br/></code></p>
-      <p>Beware: when it is read by Atomsk, the elastic tensor is always assumed to correspond to the current orientation of the system. The elastic tensor is read without taking any previous definition of the crystallographic orientation into account. In other words the <em>C<sub>ij</sub>'</em> coefficients must always be provided. On the contrary if the crystal orientation is defined or changed <em>after</em> reading the elastic tensor, then the elastic tensor will be rotated accordingly.</p>
+      <p>Beware: when it is read by Atomsk, the elastic tensor is always assumed to correspond to the current orientation of the system. The elastic tensor is read without taking any previous definition of the crystallographic orientation into account. In other words the <em>C<sub>ij</sub>'</em> coefficients must always be provided. On the contrary if the crystal orientation is defined or changed <em>after</em> reading the elastic tensor, then the elastic tensor is rotated accordingly.</p>
       
-      <p>Similarly, if a rotation option (such as <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> or <a href="./option_orient.html"><code>-orient</code></a>) is used <em>before</em> the elastic tensor is defined with the present option, then the elastic tensor is assumed to correspond to the rotated system. If a rotation option is called <em>after</em> the present option, then the elastic tensor will be transformed accordingly.</p>
+      <p>Similarly, if a rotation option (such as <a href="./option_alignx.html"><code>-alignx</code></a>, <a href="./option_rotate.html"><code>-rotate</code></a> or <a href="./option_orient.html"><code>-orient</code></a>) is used <em>before</em> the elastic tensor is defined with the present option, then the elastic tensor is assumed to correspond to the rotated system. If a rotation option is called <em>after</em> the present option, then the elastic tensor is transformed accordingly.</p>
       
       <p>These elastic constants are used in the <a href="./option_stress.html">option <code>-stress</code></a>, and in the <a href="./option_disloc.html">option <code>-dislocation</code></a> by triggering the use of anisotropic elasticity for building dislocations.</p></li>
   
@@ -126,7 +126,7 @@
             S<sub>11</sub> S<sub>22</sub> S<sub>33</sub><br/>
             S<sub>23</sub> S<sub>31</sub> S<sub>12</sub><br/>
             S<sub>44</sub> S<sub>55</sub> S<sub>66</sub><br/></code></p>
-      <p>The compliance tensor will immediately be inverted to obtain the elastic tensor. Then the transformations of the elastic tensor explained above apply.</p></li>
+      <p>The compliance tensor is immediately inverted to obtain the elastic tensor. Then the transformations of the elastic tensor explained above apply.</p></li>
 
 </ul>
 

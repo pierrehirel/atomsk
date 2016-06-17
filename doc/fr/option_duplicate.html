@@ -32,7 +32,7 @@
   <li><strong>Nz</strong> : nombre de répétitions du système suivant <code>Hz</code>.</li>
 </ul>
 
-<p>Si toutes les valeurs sont égales à 1 alors le système reste identique. Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système.</p>
+<p>Si toutes les valeurs sont égales à 1 alors le système reste identique (puisqu'il est multiplié par un dans toutes les directions). Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système. Si une valeur négative est fournie, alors le système est inversé selon cet axe, puis il est dupliqué en direction des coordonnées négatives.</p>
 
 <p>Dans le fichier de sortie, les répliques du système original sont ajoutées à la suite des positions originelles. Pour modifier l'ordre dans lequel les atomes apparaissent il est possible d'employer l'<a href="./option_sort.html">option <code>-sort</code></a>.</p>
 
@@ -53,11 +53,11 @@
 <li><code class="command">atomsk cellule_elementaire.cfg -duplicate 2 2 4 supercellule.xyz</code>
 <p>Ceci lira le fichier <code>cellule_elementaire.cfg</code>, l'étendra pour former une supercellule de taille 2x2x4, et écrira le système final dans <code>supercellule.xyz</code>.</p></li>
 
-<li><code class="command">atomsk supercell.xyz unitcell.cfg -dup 2 2 4</code>
-<p>Identique à l'exemple précédent. Notez que l'enchaînement "<code>-dup 2 2 4</code>" ne doit pas être cassé, en revanche les noms des fichiers d'entrée et de sortie peuvent apparaître dans n'importe quel ordre.</p></li>
-
 <li><code class="command">atomsk initial.xyz -dup 6 4 0 final.cfg</code>
 <p>Ceci va dupliquer le système six fois suivant X, quatre fois suivant Y, et une fois suivant Z. Notez que le "0" suivant la direction Z a la même signification que "1", c'est-à-dire que le système n'est pas dupliqué mais apparait quand même une fois suivant cette direction.</p></li>
+
+<li><code class="command">atomsk initial.cfg -dup -3 1 1 final.cfg</code>
+<p>Le système sera dupliqué -3 fois selon X, c'est-à-dire que les coordonnées seront inversées suivant X, puis copiées trois fois dans la direction des X négatifs.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

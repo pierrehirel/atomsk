@@ -24,16 +24,16 @@
 <p>This option applies simple shear strain to the system, by tilting an axis by a certain amount along a direction. The following values have to be provided:</p>
 
 <ul>
-  <li><strong>surface normal:</strong> the direction that will be tilted (must be "x", "y" or "z"); the shear vector will be contained in the surface normal to this axis.</li>
+  <li><strong>surface normal:</strong> the direction to be tilted (must be "x", "y" or "z"); the shear vector will be contained in the surface normal to this axis.</li>
   <li><strong>shear amp:</strong> the amplitude of the tilt vector (in &Aring;), or the shear (if the symbol &#37; is used); it can be positive or negative.</li>
   <li><strong>shear direction:</strong> direction of the shear vector (must be "x", "y" or "z").</li>
 </ul>
 
-<p>For instance, if <code>&#60;surface normal&#62;=Y</code>, <code>&#60;shear amp&#62;=0.1 &Aring;</code> and <code>&#60;shear direction&#62;=X</code>, then the Y axis defined by <code>[H(2,1) H(2,2) H(2,3)]</code> will be tilted so that it becomes <code>[H(2,1)+0.1 H(2,2) H(2,3)]</code>. The X coordinates of atoms are also sheared accordingly.</p>
+<p>For instance, if <code>&#60;surface normal&#62;=Y</code>, <code>&#60;shear amp&#62;=0.1 &Aring;</code> and <code>&#60;shear direction&#62;=X</code>, then the Y axis defined by <code>[H(2,1) H(2,2) H(2,3)]</code> is tilted so that it becomes <code>[H(2,1)+0.1 H(2,2) H(2,3)]</code>. The X coordinates of atoms are also sheared accordingly.</p>
 
 <p>Considering the height of the supercell along the <code>&#60;surface normal&#62;</code> is <code>&#60;h&#62;</code>, the angle &theta; by which the <code>&#60;surface normal&#62;</code> is tilted is defined as: <code>tan &theta; = &#60;shear amp&#62;/&#60;h&#62;</code>.</p>
 
-<p>Note that if <code>&#60;surface normal&#62; = &#60;shear direction&#62;</code> then it will result in <em>normal strain</em> rather than shear strain. For normal strain you may consider using the <a href="./option_deform.html">option <code>-deform</code></a> instead.</p>
+<p>Note that if <code>&#60;surface normal&#62; = &#60;shear direction&#62;</code> then it results in <em>normal strain</em> rather than shear strain. For normal strain you may consider using the <a href="./option_deform.html">option <code>-deform</code></a> instead.</p>
 
 
 <h4>Default</h4>

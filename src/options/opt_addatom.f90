@@ -10,7 +10,7 @@ MODULE addatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Nov. 2015                                     *
+!* Last modification: P. Hirel - 16 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,6 +47,7 @@ CHARACTER(LEN=2),INTENT(IN):: addatom_species !species of atom(s) to add
 CHARACTER(LEN=8),INTENT(IN):: addatom_type    !"at" or "near" or "random"
 CHARACTER(LEN=128):: msg
 LOGICAL:: exceeds100 !does the number of neighbors exceed 100?
+LOGICAL:: hasShells  !does this type of atom have shells?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: atomindex
 INTEGER:: NP !number of particles
@@ -55,7 +56,7 @@ INTEGER:: addedatoms !number of atoms added
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist  !list of indices of neighbors
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
 REAL(dp):: distance, distance2, dmax
-REAL(dp):: snumber !atomic number
+REAL(dp):: snumber !atomic number of the new atoms
 REAL(dp):: x, y, z
 REAL(dp),DIMENSION(3),INTENT(IN):: addatom_prop  !properties of atom(s) to add
                                                  !if addatom_type=="at", position x,y,z of new atom
@@ -74,6 +75,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList             !positions of neighbor
 !
 species = ''
 exceeds100 = .FALSE.
+hasShells = .FALSE.
 i = 0
 NP = 0
 addedatoms = 0
@@ -113,6 +115,11 @@ CASE("at","AT","@")
   ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
   DO i=1,SIZE(P,1)
     newP(i,:) = P(i,:)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      IF( NINT(S(i,4))==NINT(snumber) ) THEN
+        hasShells = .TRUE.
+      ENDIF
+    ENDIF
   ENDDO
   newP(SIZE(newP,1),1) = addatom_prop(1)
   newP(SIZE(newP,1),2) = addatom_prop(2)
@@ -182,6 +189,11 @@ CASE("near","NEAR")
   ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
   DO i=1,SIZE(P,1)
     newP(i,:) = P(i,:)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      IF( NINT(S(i,4))==NINT(snumber) ) THEN
+        hasShells = .TRUE.
+      ENDIF
+    ENDIF
   ENDDO
   newP(SIZE(newP,1),1) = x
   newP(SIZE(newP,1),2) = y
@@ -253,6 +265,13 @@ CASE("random","RANDOM","rand","RAND")
     !
     IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
     IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
+    !
+    !Determine if this type of atoms has shells
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      IF( NINT(S(i,4))==NINT(snumber) ) THEN
+        hasShells = .TRUE.
+      ENDIF
+    ENDIF
   ENDDO
   !
   !
@@ -268,18 +287,32 @@ IF( addedatoms>0 ) THEN
   ALLOCATE(P(SIZE(newP,1),4))
   P(:,:) = 0.d0
   IF(ALLOCATED(S)) THEN
+    IF(ALLOCATED(newS)) DEALLOCATE(newS)
+    ALLOCATE(newS(SIZE(newP,1),4))
+    newS(:,:) = 0.d0
+    DO i=1,SIZE(S,1)
+      newS(i,:) = S(i,:)
+    ENDDO
     DEALLOCATE(S)
-    ALLOCATE(S(SIZE(newP,1),4))
-    S(:,:) = 0.d0
+    ALLOCATE(S(SIZE(P,1),4))
+    S(:,:) = newS(:,:)
+    DEALLOCATE(newS)
   ENDIF
   IF(ALLOCATED(AUX)) THEN
     DEALLOCATE(AUX)
     ALLOCATE( AUX( SIZE(newP,1),SIZE(newAUX,2) ) )
     AUX(:,:) = 0.d0
   ENDIF
-  DO i=1,SIZE(newP,1)
+  !
+  DO i=1,SIZE(P,1)
     P(i,:) = newP(i,:)
-    IF(ALLOCATED(S)) S(i,:) = newS(i,:)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      IF( i>SIZE(S,1)-addedatoms .AND. hasShells ) THEN
+        !Other atoms of this type have shells
+        !=> also add shells to new atoms
+        S(i,1:4) = P(i,1:4)
+      ENDIF
+    ENDIF
     IF(ALLOCATED(AUX)) AUX(i,:) = newAUX(i,:)
   ENDDO
 ENDIF

@@ -31,11 +31,11 @@
   <li><strong>&sigma;</strong>: value of the applied stress, in GPa. Use a positive value for tension, or a negative value for compression</li>
 </ul>
 
-<p>If the stress component is "p" then an isostatic pressure will be applied, and &#60;&sigma;&#62; will actually be the value of the pressure. In other words the applied stress will be &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&#60;&sigma;&#62;, with all deviatoric stresses being zero.</p>
+<p>If the stress component is "p" then an isostatic pressure is applied, and &#60;&sigma;&#62; is actually be the value of the pressure. In other words the applied stress will be &sigma;<sub>xx</sub> = &sigma;<sub>yy</sub> = &sigma;<sub>zz</sub> = -&#60;&sigma;&#62;, with all deviatoric stresses being zero.</p>
 
 <p>Alternatively the stress components can be read from a &#60;file&#62;. The &#60;file&#62; must be a text file containing the keyword "Voigt" (without quotation marks) followed on the next line by the three first Voigt components of stress &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, and on yet another line the last three components &sigma;<sub>yx</sub>, &sigma;<sub>zx</sub>, &sigma;<sub>zy</sub>. Alternatively the &#60;file&#62; can contain the keyword "stress" (without quotation marks) followed by the full 3x3 stress tensor (on three separate lines, three components per line).</p>
 
-<p>From the given stress tensor, the system will be deformed according to Hooke's law: <strong>&epsilon;</strong><sub>i</sub> = C<sub>ij</sub> <strong>&sigma;</strong><sub>j</sub> .</p>
+<p>From the given stress tensor, the system is deformed according to Hooke's law: <strong>&epsilon;</strong><sub>i</sub> = C<sub>ij</sub> <strong>&sigma;</strong><sub>j</sub> .</p>
 
 <p>In order to apply a deformation one can use the <a href="./option_deform.html">option <code>-deform</code></a> or the <a href="./option_shear.html">option <code>-shear</code></a>.</p>
 

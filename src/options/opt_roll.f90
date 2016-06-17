@@ -11,7 +11,7 @@ MODULE roll
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Jan. 2016                                     *
+!* Last modification: P. Hirel - 16 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -132,7 +132,6 @@ ENDDO
 !
 !Modify supercell vectors along a3 to fit the bent system
 !If angle > pi then the box dimension will be increased by 2*radius
-PRINT*, angle, pi
 H(a2,a2) = H(a2,a2) + radius* ( 1.d0 - DCOS(MIN(angle,pi)) )
 !
 !

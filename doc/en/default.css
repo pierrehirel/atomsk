@@ -46,6 +46,10 @@ a.showLink
  color: black;
 }
 
+th.ftype
+{background-color: silver;
+}
+
 .command
 {display:block;
  color: white;

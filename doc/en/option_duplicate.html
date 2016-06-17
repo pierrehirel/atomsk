@@ -32,13 +32,13 @@
   <li><strong>Nz</strong>: number of times the system is repeated along <code>Hz</code>.</li>
 </ul>
 
-<p>If all values are equal to 1 then the system will remain the same. Any value equal to 0 is automatically replaced by 1, as a zero dimension would wipe out the whole system.</p>
+<p>If all values are equal to 1 then the system remains the same (since it is multiplied one time along all directions). Any value equal to 0 is automatically replaced by 1, as a zero dimension would wipe out the whole system. If a negative value is provided, then the system is mirrored along that axis, and then expanded in the direction of negative coordinates.</p>
 
 <p>The replicas of the original system are appened to the original system. To change the order of atoms one can use the <a href="./option_sort.html">option <code>-sort</code></a>.</p>
 
-<p>If original atoms possess auxiliary properties, the duplicate atoms will have the same auxiliary properties.</p>
+<p>If original atoms possess auxiliary properties, the duplicate atoms have the same auxiliary properties.</p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms will be duplicated.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms are duplicated.</p>
 
 
 <h4>Default</h4>
@@ -53,11 +53,11 @@
 <li><code class="command">atomsk unitcell.cfg -duplicate 2 2 4 supercell.xyz</code>
 <p>This will create a 2x2x4 supercell from <code>unitcell.cfg</code>, and output it to <code>supercell.xyz</code>.</p></li>
 
-<li><code class="command">atomsk supercell.xyz unitcell.cfg -dup 2 2 4</code>
-<p>Same as previous example. Note that the statement "<code>-dup 2 2 4</code>" cannot be broken, but intput and output file names can be specified before or after it.</p></li>
-
 <li><code class="command">atomsk initial.xyz -dup 6 4 0 final.cfg</code>
 <p>This will duplicate the system six times along X, four times along Y, and one time along Z. Note that the "0" along the Z direction has the same meaning as "1", i.e. the system is not duplicated but still appears once along that direction.</p></li>
+
+<li><code class="command">atomsk initial.cfg -dup -3 1 1 final.cfg</code>
+<p>The system will be duplicated -3 times along X, i.e. it will be mirrored along the X direction, and then copied 3 times in the direction of negative X coordinates.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

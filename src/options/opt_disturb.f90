@@ -10,7 +10,7 @@ MODULE disturb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 14 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE DISTURB_XYZ(dmax,P,SELECT)
+SUBROUTINE DISTURB_XYZ(dmax,P,S,SELECT)
 !
 !
 IMPLICIT NONE
@@ -48,7 +48,7 @@ INTEGER:: NP
 REAL(dp):: drift  !total displacement along a direction
 REAL(dp),DIMENSION(3),INTENT(IN):: dmax  !maximum displacement of an atom along each cartesian direction
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
-REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P  !atom positions
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of cores, shells
 !
 !
 !Initialize variables
@@ -113,6 +113,11 @@ DO i=1,SIZE(P,1)
     P(i,1) = P(i,1) + randarray(j)
     P(i,2) = P(i,2) + randarray(NP+j)
     P(i,3) = P(i,3) + randarray(2*NP+j)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      S(i,1) = S(i,1) + randarray(j)
+      S(i,2) = S(i,2) + randarray(NP+j)
+      S(i,3) = S(i,3) + randarray(2*NP+j)
+    ENDIF
   ENDIF
 ENDDO
 !

@@ -577,13 +577,13 @@ CASE('Uu')
 CASE('Fl')
       smass=289.d0
 CASE('Mc')
-      snumber=288.d0
+      smass=288.d0
 CASE('Lv')
-      snumber=293.d0
+      smass=293.d0
 CASE('Ts')
-      snumber=294.d0
+      smass=294.d0
 CASE('Og')
-      snumber=294.d0
+      smass=294.d0
 !
 CASE DEFAULT
   !If the species is not recognized

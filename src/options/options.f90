@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 14 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -527,15 +527,11 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-disturb')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dmax(1), dist_dmax(2), dist_dmax(3)
-    CALL DISTURB_XYZ(dist_dmax,P,SELECT)
+    CALL DISTURB_XYZ(dist_dmax,P,S,SELECT)
   !
   CASE('-duplicate', '-dup', '-e', '-expand')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
         & dupmatrix(1), dupmatrix(2), dupmatrix(3)
-    !If expansion is zero along a direction, correct it
-    DO i=1,3
-      IF(dupmatrix(i)<=0) dupmatrix(i)=1
-    ENDDO
     CALL DUPLICATECELL(H,P,S,dupmatrix,SELECT,AUX)
   !
   CASE('-fix', '-freeze')

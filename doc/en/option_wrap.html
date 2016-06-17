@@ -22,9 +22,9 @@
 
 <p>This option wraps atoms back into the bounding box, using periodic boundary conditions. In other words, all atoms that are not in the simulation box (defined by the simulation box vectors <code>H</code>) are translated by one or several box vectors until they end up inside of the simulation box.</p>
 
-<p>If some atoms have shells (in the sense of an ionic core-shell model) then the shells will be translated by the same vector as their associated core, so that the vector between core and shell remains the same. That means that even if all the cores are replaced inside the box, some shells may end up outside of the box.</p>
+<p>If some atoms have shells (in the sense of an ionic core-shell model) then the shells are translated by the same vector as their associated core, so that the vector between core and shell remains the same. That means that even if all the cores are replaced inside the box, some shells may end up outside of the box.</p>
 
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms will be wrapped.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then only selected atoms are wrapped.</p>
 
 
 
