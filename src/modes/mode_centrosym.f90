@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 March 2016                                    *
+!* Last modification: P. Hirel - 06 July 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -70,6 +70,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: c             !column in AUX that will contain the central symmetry parameters c(i)
 INTEGER:: i, ipairs, j, k, ktemp
 INTEGER:: Mdefault      !most common number of neighbors
+INTEGER,PARAMETER:: Nmax=14 !maximum number of neighbors for any lattice
 INTEGER:: Nneigh        !number of neighbors of an atom
 INTEGER:: Nspecies      !number of species in the system
 INTEGER:: percent
@@ -94,7 +95,10 @@ REAL(dp),DIMENSION(:),POINTER:: PropPoint !pointer to the property whose density
 Nspecies = 0
 !
 !
-!CALL ATOMSK_MSG(4066,(/property/),(/DBLE(den_type),Sigma/))
+msg = 'ENTERING CENTRO_SYM...'
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+CALL ATOMSK_MSG(4069,(/inputfile/),(/0.d0/))
 !
 !
 100 CONTINUE
@@ -153,9 +157,10 @@ IF( SIZE(aentries,1)==1 ) THEN
   !No ambiguity, it is a unary system
   Nspecies = 1
 ELSEIF( SIZE(aentries,1)==2 ) THEN
+  Nspecies = 2
   !It may be a unary system with just a few solute atoms
   !Check if a species is a minority
-  IF( aentries(1,2) > 2.9d0*aentries(2,2) .OR. aentries(2,2) > 2.9d0*aentries(1,2) ) THEN
+  IF( aentries(1,2) > 5.d0*aentries(2,2) .OR. aentries(2,2) > 5.d0*aentries(1,2) ) THEN
     !One of the species is a minority => consider that it is a unary system
     Nspecies = 1
   ELSE
@@ -163,13 +168,27 @@ ELSEIF( SIZE(aentries,1)==2 ) THEN
     Nspecies = 2
   ENDIF
 ELSEIF( SIZE(aentries,1)==3 ) THEN
+  Nspecies = 3
   !It may be a unary system with just a few solute atoms
-  !Check if a species is a minority
-  IF( aentries(1,2) > 2.9d0*aentries(2,2) .OR. aentries(2,2) > 2.9d0*aentries(1,2) .OR.  &
-    & aentries(1,2) > 2.9d0*aentries(3,2) .OR. aentries(3,2) > 2.9d0*aentries(1,2) .OR.  &
-    & aentries(2,2) > 2.9d0*aentries(3,2) .OR. aentries(3,2) > 2.9d0*aentries(2,2)      ) THEN
-    !One or two of the species are a minority => find which one
-    Nspecies = 3
+  !Check which species is (or are) a minority
+  IF( aentries(1,2) > 3.9d0*aentries(2,2) .AND. aentries(1,2) > 3.9d0*aentries(3,2) ) THEN
+    !Species #1 is a majority compared to #2 and #3 => consider that it is a unary system
+    Nspecies = 1
+  ELSEIF( aentries(2,2) > 3.9d0*aentries(1,2) .AND. aentries(2,2) > 3.9d0*aentries(3,2) ) THEN
+    !Species #2 is a majority compared to #1 and #3 => consider that it is a unary system
+    Nspecies = 1
+  ELSEIF( aentries(3,2) > 3.9d0*aentries(1,2) .AND. aentries(3,2) > 3.9d0*aentries(2,2) ) THEN
+    !Species #3 is a majority compared to #1 and #2 => consider that it is a binary system
+    Nspecies = 1
+  ELSEIF( aentries(1,2) > 3.9d0*aentries(3,2) .AND. aentries(2,2) > 3.9d0*aentries(3,2) ) THEN
+    !Species #3 is a minority compared to #1 and #2 => consider that it is a binary system
+    Nspecies = 2
+  ELSEIF( aentries(1,2) > 3.9d0*aentries(2,2) .AND. aentries(3,2) > 3.9d0*aentries(2,2) ) THEN
+    !Species #2 is a minority compared to #1 and #3 => consider that it is a binary system
+    Nspecies = 2
+  ELSEIF( aentries(2,2) > 3.9d0*aentries(1,2) .AND. aentries(3,2) > 3.9d0*aentries(1,2) ) THEN
+    !Species #1 is a minority compared to #2 and #3 => consider that it is a binary system
+    Nspecies = 2
   ELSE
     !No minority species => it is a ternary material
     Nspecies = 3
@@ -239,17 +258,11 @@ ENDIF
 WRITE(msg,*) "Most common number of neighbors: ", Mdefault
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-!We will need a table containing pairs of atoms
-ALLOCATE( pairs(Mdefault/2,2) )
-ALLOCATE( pairs_distances(Mdefault/2) )
-!
 DO i=1,SIZE(P,1)
   !i is the index of the central atom
   !Initialize variables and arrays for atom #i
   ipairs = 0
   Nneigh = 0
-  pairs(:,:) = 0
-  pairs_distances(:) = 0.d0
   sum_dj = 0.d0
   !
   !Get the positions of neighbors of atom #i
@@ -261,62 +274,42 @@ DO i=1,SIZE(P,1)
   !Select which neighbors to keep: that depends on the type of compound
   SELECT CASE(Nspecies)
   CASE(1)
-    !Unary compound => follow the recipe of Kelchner et al.
-    !keep only neighbors j that are approx. at the same distance as the four 1st neighbors
+    !Unary compound, e.g. fcc metal (Al, Cu, Ni...) or bcc metal (Fe, W...)
+    !=> follow the recipe of Kelchner et al.
+    !keep only neighbors j that are approx. at the same distance as the eight first neighbors
     Nneigh = 0
-    DO j=1,SIZE(PosList,1)
-      IF( PosList(j,4) < 1.4d0*SUM(PosList(1:4,4))/4.d0 ) THEN
+    DO j=1,MIN(Nmax,SIZE(PosList,1))
+      IF( PosList(j,4) < 1.3d0*SUM(PosList(1:8,4))/8.d0 ) THEN
         Nneigh = Nneigh+1
         sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
       ELSE
+        !This neighbor is too far => remove it from list of neighbors
         PosList(j,:) = 0.d0
       ENDIF
     ENDDO
     !
   CASE(2,3)
-    !Complex compound
+    !Complex compound of formula AxByCz, e.g. NaCl, Al2O3, Ni3Al, SrTiO3, etc.
+    !=> Consider only neighbors of same species as first neighbor
     Nneigh = 0
-    IF( aentries(1,2)/aentries(2,2) <= 1.d0 .AND. aentries(SIZE(aentries,1),2) > 2.d0*aentries(1,2) ) THEN
-      !It is a material of formula AxBy, or AxByCz with x>2 (for instance perovskite ABO3)
-      !=> Keep only neighbors of different species as the central atom
-      !   *and* that are approx. at the same distance as the 1st neighbor
-      DO j=1,SIZE(PosList,1)
-        !NINT(PosList(:,5)) is the actual index of atom
-       ! IF( NINT(P(i,4))==NINT(aentries(3,1)) ) THEN
-          !Central atom i is of type C => keep only neighbors that are not C
-!           IF( NINT(P(NINT(PosList(j,5)),4)).NE.NINT(aentries(3,1)) .AND.     &
-!             & PosList(j,4) < 1.25d0*SUM(PosList(1:4,4))/4.d0             ) THEN
-          IF( NINT(P(NINT(PosList(j,5)),4)).NE.NINT(P(i,4)) .AND.     &
-            & PosList(j,4) < 1.5d0*SUM(PosList(1:4,4))/4.d0             ) THEN
-            Nneigh = Nneigh+1
-            sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
-          ELSE
-            PosList(j,:) = 0.d0
-          ENDIF
-!         ELSE
-!           !Central atom i is A or B => keep only neighbors of type C
-!           IF( NINT(P(NINT(PosList(j,5)),4))==NINT(aentries(3,1)) .AND.      &
-!             & PosList(j,4) < 1.4d0*SUM(PosList(1:4,4))/4.d0             ) THEN
-!             Nneigh = Nneigh+1
-!             sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
-!           ELSE
-!             PosList(j,:) = 0.d0
-!           ENDIF
-!         ENDIF
-      ENDDO
-    ELSE
-      !It is another complex material ABCx with x<2
-      DO j=1,SIZE(PosList,1)
-        !NINT(PosList(:,5)) is the actual index of atom
-        IF( NINT(P(NINT(PosList(j,5)),4)).NE.NINT(P(i,4)) &
-          & .AND. PosList(j,4) < 1.4d0*SUM(PosList(1:4,4))/4.d0 ) THEN
+    DO j=1,MIN(Nmax,SIZE(PosList,1))  !Loop on all neighbors
+      !NINT(PosList(j,5)) is the actual index of atom
+      IF( NINT(P(NINT(PosList(j,5)),4))==NINT(P(NINT(PosList(1,5)),4)) ) THEN
+        !This neighbor's species is the same as the first neighbor
+        IF( PosList(j,4) < 1.3d0*SUM(PosList(1:8,4))/8.d0 ) THEN
+          !This neighbor's distance is similar to that of the eight first neighbors
           Nneigh = Nneigh+1
           sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
         ELSE
+          !This neighbor is too far => remove it from list of neighbors
           PosList(j,:) = 0.d0
         ENDIF
-      ENDDO
-    ENDIF
+      ELSE
+        !This neighbor's species is different from the first neighbor
+        !=> remove it from list of neighbors
+        PosList(j,:) = 0.d0
+      ENDIF
+    ENDDO
     !Make the PosList more compact by removing zeros
     DO j=2,SIZE(PosList,1)
       IF( NINT(PosList(j,5))==0 ) THEN
@@ -326,9 +319,10 @@ DO i=1,SIZE(P,1)
       ENDIF
     ENDDO
     !
-  !CASE DEFAULT
+  CASE DEFAULT
     !Even more complex compound!!
   END SELECT
+  !
   !
   !We must make pairs of atoms => Nneigh has to be an even number
   IF( MOD(Nneigh,2) .NE. 0 ) THEN
@@ -344,7 +338,7 @@ DO i=1,SIZE(P,1)
     WRITE(pbar,*) Nneigh
     WRITE(msg,*) "Number of neighbors of atom # "//TRIM(ADJUSTL(msg))//": "//TRIM(ADJUSTL(pbar))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO j=1,20 !MAX(12,Nneigh)
+    DO j=1,MIN(20,Nneigh)
       WRITE(msg,'(i5,a3,3f9.3,a3,2f9.3)') j, " | ", PosList(j,1:3), " | ", PosList(j,4), P(NINT(PosList(j,5)),4)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
@@ -356,18 +350,28 @@ DO i=1,SIZE(P,1)
   !
   IF( Nneigh >= 2 ) THEN
     !Atom #i has many neighbors, we can work with that
+    !
+    !We will need a table containing pairs of atoms
+    ALLOCATE( pairs(Nneigh/2,2) )
+    pairs(:,:) = 0
+    ALLOCATE( pairs_distances(Nneigh/2) )
+    pairs_distances(:) = 0.d0
+    !
     !Find atoms j and k that are opposite
+    ipairs=0
     DO j=1,MIN(Nneigh,Mdefault)
       IF( .NOT. ANY(pairs(:,:)==j) ) THEN
         !We have the first member of a new pair
         ipairs = ipairs+1
         pairs(ipairs,1) = j
         !
-        !Among the remaining atoms, find the one that minimizes D = |dj + dk|²
-        ! *AND* that is of the same species
+        !Among the remaining atoms, find the atom #k that minimizes D = |dj + dk|²
+        ! *AND* that is of the same species as atom #j
         Dmin = 1.d12
+        ktemp = 0
         DO k=j+1,MIN(Nneigh,Mdefault)
-          IF( NINT(P(k,4)) == NINT(P(j,4)) ) THEN
+          IF( NINT(PosList(k,4)) == NINT(PosList(j,4)) ) THEN
+            !Atom #k is of same species as atom #j
             IF( .NOT. ANY(pairs(:,:)==k) ) THEN
               !Atom #k was not paired with another atom yet
               distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
@@ -376,11 +380,19 @@ DO i=1,SIZE(P,1)
                 ktemp = k
               ENDIF
             ENDIF
+          ELSE
+            !Species of atom #k is different from atom #j
           ENDIF
         ENDDO
         !Now atom #ktemp is the best match to atom #j
-        pairs(ipairs,2) = ktemp
-        pairs_distances(ipairs) = Dmin
+        IF( ktemp>0 ) THEN
+          pairs(ipairs,2) = ktemp
+          pairs_distances(ipairs) = Dmin
+        ELSE
+          !No suitable atom was found to pair atom #j => remove this entry
+          pairs(ipairs,:) = 0
+          ipairs = ipairs-1
+        ENDIF
       ENDIF
     ENDDO
     !
@@ -388,8 +400,10 @@ DO i=1,SIZE(P,1)
       WRITE(msg,*) i
       WRITE(msg,*) "Pairs of atoms around atom # "//TRIM(ADJUSTL(msg))//" :"
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      WRITE(msg,*) "   i    j   distance "
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO j=1,SIZE(pairs,1)
-        WRITE(msg,'(2i5,f9.3)') pairs(j,1), pairs(j,2), pairs_distances(j)
+        WRITE(msg,'(2i5,f12.3)') pairs(j,1), pairs(j,2), pairs_distances(j)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
     ENDIF
@@ -405,13 +419,16 @@ DO i=1,SIZE(P,1)
     AUX(i,c) = 0.d0
   ENDIF
   !
+  IF(ALLOCATED(pairs)) DEALLOCATE(pairs)
+  IF(ALLOCATED(pairs_distances)) DEALLOCATE(pairs_distances)
+  !
   WRITE(msg,*) i
   WRITE(msg,*) "c("//TRIM(ADJUSTL(msg))//") = ", AUX(i,c)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   IF( AUX(i,c) > 1.d0 .OR. AUX(i,c)<0.d0 ) THEN
     !Something went wrong in the calculation!
-    WRITE(*,*) "/!\ WARNING: auxiliary property is out-of-bound: ", AUX(i,c)
+    WRITE(*,*) "/!\ WARNING: auxiliary property out-of-bound for atom: ", i, AUX(i,c)
     AUX(i,c) = 0.d0
   ENDIF
 ENDDO

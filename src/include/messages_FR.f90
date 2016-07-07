@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 30 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -458,18 +458,17 @@ END SUBROUTINE DISPLAY_HELP_FR
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE_FR(VALUES,formula,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE_FR(VALUES,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
-CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)') &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = TRIM(ADJUSTL(formula))//' - Fichier généré avec Atomsk par '//TRIM(ADJUSTL(username))//' le '//TRIM(ADJUSTL(msg))
+msg = 'Fichier généré avec Atomsk par '//TRIM(ADJUSTL(username))//' le '//TRIM(ADJUSTL(msg))
 !
 END SUBROUTINE ATOMSK_CREATE_DATE_FR
 !
@@ -822,9 +821,15 @@ CASE(1800)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1801)
   !strings(1) = file name
+  !reals(1) = line number
   msg = "X!X ERREUR : il y a eu des erreurs en lisant le fichier : " &
       & //TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+  IF( NINT(reals(1))>0 ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "          L'erreur semble se trouver à la ligne # "//TRIM(ADJUSTL(temp))
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(1802)
   !strings(1) = bad array
   msg = "X!X ERREUR : problème de dimension dans la matrice "//TRIM(strings(1))//"."
@@ -2498,6 +2503,10 @@ CASE(4068)
   WRITE(msg,*) NINT(reals(1))
   msg = "..> La densité a bien été calculée."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4069)
+  !strings(1) = name of file
+  msg = ">>> Calcul du paramètre de symétrie centrale pour : "//TRIM(ADJUSTL(strings(1)))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "
@@ -2748,6 +2757,8 @@ CASE(4823)
 CASE(4824)
   !strings(1) = name of unknown command
   msg = "X!X ERREUR : commande inconnue : "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Tapez 'help' pour afficher la liste des commandes disponibles."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4825)
   msg = "X!X ERREUR : Atomsk ne peut pas s'exécuter à l'intérieur de lui-même !"

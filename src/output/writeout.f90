@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 May 2016                                      *
+!* Last modification: P. Hirel - 30 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -206,9 +206,9 @@ IF(i==1) THEN
   IF(.NOT.ALLOCATED(comment)) ALLOCATE(comment(1))
   CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
   !Generate compound formula
-  CALL COMPFORMULA(P,AUXNAMES,AUX,formula,smass_tot)
+  !CALL COMPFORMULA(P,AUXNAMES,AUX,formula,smass_tot)
   !Generate message for the comment
-  CALL CREATE_DATE(VALUES,"",username,comment(1))
+  CALL CREATE_DATE(VALUES,username,comment(1))
 ENDIF
 !
 !Make sure that each comment line starts with a hash sign (#)

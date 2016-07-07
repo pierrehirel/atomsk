@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 30 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -412,18 +412,17 @@ END SUBROUTINE DISPLAY_HELP_DE
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE_DE(VALUES,formula,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE_DE(VALUES,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
-CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)') &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = TRIM(ADJUSTL(formula))//' - Datei mit Atomsk von '//TRIM(ADJUSTL(username))//' am '//TRIM(ADJUSTL(msg))//" generiert."
+msg = 'Datei mit Atomsk von '//TRIM(ADJUSTL(username))//' am '//TRIM(ADJUSTL(msg))//" generiert."
 !
 END SUBROUTINE ATOMSK_CREATE_DATE_DE
 !
@@ -776,9 +775,15 @@ CASE(1800)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1801)
   !strings(1) = file name
+  !reals(1) = line number
   msg = "X!X FEHLER beim Lesen aus der Datei: " &
       & //TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+  IF( NINT(reals(1))>0 ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "          Error appears to be at line # "//TRIM(ADJUSTL(temp))
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(1802)
   !strings(1) = bad array
   msg = "X!X FEHLER: inkonsistente Feldgroesse in "//TRIM(strings(1))//"."
@@ -2392,6 +2397,23 @@ CASE(4065)
   WRITE(temp,*) NINT(reals(1))
   msg = ">>> Atompositionen wurden ueber "//TRIM(ADJUSTL(temp))// &
       & " Konfigurationen gemittelt."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4066)
+  msg = ">>> Running in mode density."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4067)
+  !strings(1) = property
+  !reals(1) = dimension (1, 2 or 3)
+  WRITE(temp,*) NINT(reals(1))
+  msg = ">>> Computing the "//TRIM(ADJUSTL(temp))//"-D density of "//TRIM(ADJUSTL(strings(1)))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4068)
+  WRITE(msg,*) NINT(reals(1))
+  msg = "..> Density was successfully computed."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4069)
+  !strings(1) = name of file
+  msg = ">>> Computing the central symmetry parameter for: "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"

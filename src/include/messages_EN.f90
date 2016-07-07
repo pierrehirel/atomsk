@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 30 May 2016                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -460,18 +460,17 @@ END SUBROUTINE DISPLAY_HELP_EN
 ! ATOMSK_CREATE_DATE
 ! This routine 
 !********************************************************
-SUBROUTINE ATOMSK_CREATE_DATE(VALUES,formula,username,msg)
+SUBROUTINE ATOMSK_CREATE_DATE(VALUES,username,msg)
 !
 IMPLICIT NONE
 CHARACTER(LEN=128),INTENT(IN):: username
 INTEGER,DIMENSION(8),INTENT(IN):: VALUES
-CHARACTER(LEN=128),INTENT(IN):: formula
 CHARACTER(LEN=128),INTENT(OUT):: msg
 !
 WRITE(msg,'(i4,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2,a1,i2.2)')  &
   & VALUES(1), "-", VALUES(2),"-", VALUES(3)," ", VALUES(5), ":", VALUES(6), ":", VALUES(7)
 !
-msg = TRIM(ADJUSTL(formula))//' - File generated with Atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
+msg = 'File generated with Atomsk by '//TRIM(ADJUSTL(username))//' on '//TRIM(ADJUSTL(msg))
 !
 END SUBROUTINE ATOMSK_CREATE_DATE
 !
@@ -831,9 +830,15 @@ CASE(1800)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1801)
   !strings(1) = file name
+  !reals(1) = line number
   msg = "X!X ERROR: there were errors while reading the file: " &
       & //TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+  IF( NINT(reals(1))>0 ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "          Error appears to be at line # "//TRIM(ADJUSTL(temp))
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(1802)
   !strings(1) = bad array
   msg = "X!X ERROR: inconsistent array size in "//TRIM(strings(1))//"."
@@ -2447,6 +2452,10 @@ CASE(4068)
   WRITE(msg,*) NINT(reals(1))
   msg = "..> Density was successfully computed."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4069)
+  !strings(1) = name of file
+  msg = ">>> Computing the central symmetry parameter for: "//TRIM(ADJUSTL(strings(1)))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"
   WRITE(*,'(a39)',ADVANCE='NO') " Lattice type (sc,bcc,fcc,dia,rs,per): "
@@ -2691,6 +2700,8 @@ CASE(4823)
 CASE(4824)
   !strings(1) = name of unknown command
   msg = "X!X ERROR: unknown command: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "    Type 'help' for a list of available commands."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4825)
   msg = "X!X ERROR: Atomsk cannot run within itself!"

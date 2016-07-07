@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Jan. 2016                                     *
+!* Last modification: P. Hirel - 21 June 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -286,14 +286,13 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
         distance = x - P(i,a1)
         DenGrid1(j) = DenGrid1(j) + prefactor * DEXP( -(distance**2) / (2.d0*Sigma**2) )
         !
-        !If atom is close to a border, add the contribution of its periodic images
-        IF( P(i,a1)<cutoff ) THEN
-          distance = DABS(x - (P(i,a1) + H(a1,a1)))
-          DenGrid1(j) = DenGrid1(j) + prefactor * DEXP( -(distance**2) / (2.d0*Sigma**2) )
-        ELSEIF( P(i,a1)>H(a1,a1)-cutoff ) THEN
-          distance = DABS(x - (P(i,a1) - H(a1,a1)))
-          DenGrid1(j) = DenGrid1(j) + prefactor * DEXP( -(distance**2) / (2.d0*Sigma**2) )
-        ENDIF
+        !Add the contribution of periodic images
+        DO m=-1,1
+          IF( m.NE.0 ) THEN
+            distance = DABS( x - (P(i,a1)+DBLE(m)*H(a1,a1)) )
+            DenGrid1(j) = DenGrid1(j) + prefactor * DEXP( -(distance**2) / (2.d0*Sigma**2) )
+          ENDIF
+        ENDDO
         !
       ENDIF
     ENDDO
@@ -316,12 +315,6 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       !
       prefactor = PropPoint(i) * A
       !
-      border = .FALSE.
-      IF( P(i,a1)<cutoff .OR. P(i,a1)>H(a1,a1)-cutoff .OR.         &
-        & P(i,a2)<cutoff .OR. P(i,a2)>H(a2,a2)-cutoff     ) THEN
-        border = .TRUE.
-      ENDIF
-      !
       DO j=1,Nx
         x = DBLE(j)*dx
         DO k=1,Ny
@@ -330,17 +323,15 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
           distance = DSQRT( (x-P(i,a1))**2 + (y-P(i,a2))**2 )
           DenGrid2(j,k) = DenGrid2(j,k) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
           !
-          !If atom is close to a border, add the contribution of its periodic images
-          IF( border ) THEN
-            DO m=-NINT(cutoff/H(a1,a1))-1,NINT(cutoff/H(a1,a1))+1
-              DO n=-NINT(cutoff/H(a2,a2))-1,NINT(cutoff/H(a2,a2))+1
-                IF( .NOT. (m==0 .AND. n==0) ) THEN
-                  distance = DSQRT( (x-(P(i,a1)+DBLE(m)*H(a1,a1)))**2 + (y-(P(i,a2)+DBLE(n)*H(a2,a2)))**2 )
-                  DenGrid2(j,k) = DenGrid2(j,k) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-                ENDIF
-              ENDDO
+          !Add the contribution of its periodic images
+          DO m=-1,1
+            DO n=-1,1
+              IF( m.NE.0 .OR. n.NE.0 ) THEN
+                distance = DSQRT( (x-(P(i,a1)+DBLE(m)*H(a1,a1)))**2 + (y-(P(i,a2)+DBLE(n)*H(a2,a2)))**2 )
+                DenGrid2(j,k) = DenGrid2(j,k) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
+              ENDIF
             ENDDO
-          ENDIF
+          ENDDO
           !
         ENDDO !loop on k
       ENDDO !loop on j
@@ -352,14 +343,10 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
   z = 0.d0
   DO j=1,Nx
     x = DBLE(j)*dx
-    IF( x>MINVAL(P(:,1))+25.d0 .AND. x<MAXVAL(P(:,1))-25.d0 ) THEN
-      DO k=1,Ny
-        y = DBLE(k)*dy
-        IF( y>MINVAL(P(:,2))+25.d0 .AND. y<MAXVAL(P(:,2))-25.d0 ) THEN
-          z = z + DenGrid2(j,k)*dx*dy
-        ENDIF
-      ENDDO
-    ENDIF
+    DO k=1,Ny
+      y = DBLE(k)*dy
+      z = z + DenGrid2(j,k)*dx*dy
+    ENDDO
   ENDDO
   !
   !
@@ -395,28 +382,20 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
             distance = DSQRT( (x-P(i,a1))**2 + (y-P(i,a2))**2 + (z-P(i,a3))**2 )
             DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor * DEXP( -distance**2 / (2.d0*Sigma**2) )
             !
-            !If atom is close to a border, add the contribution of its periodic images
-            IF( P(i,a1)<cutoff ) THEN
-              distance = x - (P(i,a1) + H(a1,a1))
-                DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-            ELSEIF( P(i,a1)>H(a1,a1)-cutoff ) THEN
-              distance = x - (P(i,a1) - H(a1,a1))
-              DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-            ENDIF
-            IF( P(i,a2)<cutoff ) THEN
-              distance = x - (P(i,a2) + H(a2,a2))
-              DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-            ELSEIF( P(i,a2)>H(a2,a2)-cutoff ) THEN
-              distance = x - (P(i,a2) - H(a2,a2))
-              DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-            ENDIF
-            IF( P(i,a3)<cutoff ) THEN
-              distance = x - (P(i,a3) + H(a3,a3))
-              DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-            ELSEIF( P(i,a3)>H(a3,a3)-cutoff ) THEN
-              distance = x - (P(i,a3) - H(a3,a3))
-              DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
-            ENDIF
+            !Add the contribution of periodic images
+            DO m=-1,1
+              DO n=-1,1
+                DO o=-1,1
+                  IF( m.NE.0 .OR. n.NE.0 .OR. o.NE.0 ) THEN
+                    distance = DSQRT( (x-(P(i,a1)+DBLE(m)*H(a1,a1)))**2 + &
+                             &        (y-(P(i,a2)+DBLE(n)*H(a2,a2)))**2 + &
+                             &        (z-(P(i,a3)+DBLE(o)*H(a3,a3)))**2   )
+                    DenGrid3(j,k,l) = DenGrid3(j,k,l) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
+                  ENDIF
+                ENDDO
+              ENDDO
+            ENDDO
+            !
           ENDDO
         ENDDO
       ENDDO
@@ -554,58 +533,6 @@ ELSE
 ENDIF
 CLOSE(30)
 CALL ATOMSK_MSG(4039,(/TRIM(outputfile)/),(/0.d0/))
-!
-!
-IF( den_type==2 ) THEN
-  ! Write gnuplot script for easy visualization
-  outputfile = TRIM(ADJUSTL(prefix))//"_"//TRIM(ADJUSTL(property))//"_density.gp"
-  !
-  IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
-  OPEN(UNIT=31,FILE=outputfile,STATUS="UNKNOWN",FORM="FORMATTED")
-  !
-  WRITE(31,*) "#!/usr/bin/gnuplot"
-  WRITE(31,*) ""
-  WRITE(31,*) "### This script aims at displaying the 2-D density plot computed by atomsk."
-  WRITE(31,*) "### You may just type:"
-  WRITE(31,*) "###    gnuplot "//TRIM(ADJUSTL(outputfile))
-  WRITE(31,*) ""
-  WRITE(31,*) "set encoding iso_8859_1"
-  WRITE(31,*) ""
-  WRITE(31,*) "### Uncomment the 2 following lines to produce an EPS file"
-  WRITE(31,*) "#set terminal postscript eps enhanced"
-  WRITE(31,*) "#set output 'density.eps'"
-  WRITE(31,*) ""
-  WRITE(31,*) "### Graph parameters"
-  WRITE(31,*) "set hidden3d"
-  WRITE(31,*) "set view 0,0"
-  WRITE(31,*) "set pm3d "
-  WRITE(31,*) "set samples 40"
-  WRITE(31,*) "set isosamples 40"
-  WRITE(31,*) "set title 'Density of "//TRIM(ADJUSTL(property))//" computed with atomsk'"
-  WRITE(31,*) "set xlabel 'X' font 'Helvetica,20'"
-  WRITE(31,*) "set ylabel 'Y' font 'Helvetica,20'"
-  WRITE(31,*) "#set zlabel 'density' font 'Helvetica,20'"
-  WRITE(31,*) "set ytics offset 0.0,-0.8"
-  WRITE(31,*) "#set palette gray"
-  WRITE(31,*) "set palette rgb 33,13,10"
-  WRITE(31,*) "set xyplane 0"
-  WRITE(msg,'(f18.3)') MINVAL(P(:,a1))
-  WRITE(temp,'(f18.3)') MAXVAL(P(:,a1))
-  WRITE(31,*) "set xrange ["//TRIM(ADJUSTL(msg))//":"//TRIM(ADJUSTL(temp))//"]"
-  WRITE(msg,'(f18.3)') MINVAL(P(:,a2))
-  WRITE(temp,'(f18.3)') MAXVAL(P(:,a2))
-  WRITE(31,*) "set yrange ["//TRIM(ADJUSTL(msg))//":"//TRIM(ADJUSTL(temp))//"]"
-  WRITE(msg,'(f18.3)') MAX ( DABS(MINVAL(DenGrid2(:,:))) , MAXVAL(DenGrid2(:,:)) )
-  WRITE(31,*) "set cbrange [-"//TRIM(ADJUSTL(msg))//":"//TRIM(ADJUSTL(msg))//"]"
-  WRITE(31,*) ""
-  WRITE(31,*) "### The plot itself"
-  WRITE(31,*) "splot '"//TRIM(ADJUSTL(prefix))//"_"//TRIM(ADJUSTL(property))//"_density.dat' using 1:2:3 with pm3d"
-  WRITE(31,*) ""
-  WRITE(31,*) "pause -1"
-  !
-  CLOSE(31)
-  CALL ATOMSK_MSG(4039,(/TRIM(outputfile)/),(/0.d0/))
-ENDIF
 !
 !
 !Clear atomic data

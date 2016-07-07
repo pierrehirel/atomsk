@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 June 2016                                     *
+!* Last modification: P. Hirel - 27 June 2016                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -78,6 +78,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER:: grainID       !position of the auxiliary property "grainID" in AUX
 INTEGER:: i, j
+INTEGER:: linenumber    !line number when reading a file
 INTEGER:: m, n, o
 INTEGER:: maxvertex   !max. number of vertices to look for
 INTEGER:: NP   !total number of atoms in the final system
@@ -186,15 +187,17 @@ Hset=.FALSE.
 paramnode = .FALSE.
 paramrand = .FALSE.
 paramlatt = .FALSE.
+linenumber = 0
 DO
   READ(31,'(a)',END=210,ERR=210) line
   line = TRIM(ADJUSTL(line))
+  linenumber = linenumber+1
   !
   !Ignore empty lines and lines starting with #
   IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
     IF( line(1:3)=="box" ) THEN
       !Read size of the final box
-      READ(line(4:),*,END=800,ERR=800) P1, P2, P3
+      READ(line(4:),*,END=830,ERR=830) P1, P2, P3
       !Set final box vectors
       H(:,:) = 0.d0
       H(1,1) = P1
@@ -316,10 +319,12 @@ ALLOCATE(vorient(Nnodes,3,3))
 vorient(:,:,:) = 0.d0
 !
 REWIND(31)
+linenumber = 0
 Nnodes = 0
 DO
   READ(31,'(a)',END=250,ERR=250) line
   line = TRIM(ADJUSTL(line))
+  linenumber = linenumber+1
   !Ignore empty lines and lines starting with #
   IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
     !
@@ -488,18 +493,18 @@ DO
       i=SCAN(line,' ')
       temp = line(:i)
       CALL BOX2DBLE( H(1,:),temp,vnodes(Nnodes,1),status )
-      IF( status>0 ) GOTO 810
+      IF( status>0 ) GOTO 830
       line = TRIM(ADJUSTL(line(i+1:)))
       i=SCAN(line,' ')
       temp = line(:i)
       CALL BOX2DBLE( H(2,:),temp,vnodes(Nnodes,2),status )
-      IF( status>0 ) GOTO 810
+      IF( status>0 ) GOTO 830
       line = TRIM(ADJUSTL(line(i+1:)))
       i=SCAN(line,' ')
       temp = line(:i)
       CALL BOX2DBLE( H(3,:),temp,vnodes(Nnodes,3),status )
       line = TRIM(ADJUSTL(line(i+1:)))
-      IF( status>0 ) GOTO 810
+      IF( status>0 ) GOTO 830
       !
       !Read crystallographic orientation of that grain
       !(can be explicitely given as Miller indices, or random)
@@ -546,7 +551,7 @@ DO
         !
       ELSE
         !The user provides 3 angles or 3 Miller indices
-        READ(line,*,END=800,ERR=800) or1, or2, or3
+        READ(line,*,END=830,ERR=830) or1, or2, or3
         miller=.TRUE.
         IF( SCAN(or1,"[")>0 .OR. SCAN(or2,"[")>0 .OR. SCAN(or3,"[")>0 .OR.          &
           & SCAN(or1,"_")>0 .OR. SCAN(or2,"_")>0 .OR. SCAN(or3,"_")>0 ) THEN
@@ -584,15 +589,15 @@ DO
           !Read the three angles from or1, or2, or3
           j=SCAN(or1,"°")
           IF(j>0) or1(j:j)=" "
-          READ(or1,*,END=800,ERR=800) P1
+          READ(or1,*,END=830,ERR=830) P1
           P1 = DEG2RAD(P1)
           j=SCAN(or2,"°")
           IF(j>0) or2(j:j)=" "
-          READ(or2,*,END=800,ERR=800) P2
+          READ(or2,*,END=830,ERR=830) P2
           P2 = DEG2RAD(P2)
           j=SCAN(or3,"°")
           IF(j>0) or3(j:j)=" "
-          READ(or3,*,END=800,ERR=800) P3
+          READ(or3,*,END=830,ERR=830) P3
           P3 = DEG2RAD(P3)
           !Construct the rotation matrix around X
           rotmat(:,:) = 0.d0
@@ -629,7 +634,7 @@ DO
         GOTO 820
       ENDIF
       !Read total number of grains
-      READ(line(7:),*,END=800,ERR=800) Nnodes
+      READ(line(7:),*,END=830,ERR=830) Nnodes
       IF(Nnodes<1) GOTO 800
       !Generate a list of 6*Nnodes random numbers
       CALL GEN_NRANDNUMBERS( 6*Nnodes , randarray )
@@ -1235,6 +1240,11 @@ GOTO 1000
 820 CONTINUE
 nerr=nerr+1
 CALL ATOMSK_MSG(4820,(/TRIM(temp)/),(/0.d0/))
+GOTO 1000
+!
+830 CONTINUE
+nerr=nerr+1
+CALL ATOMSK_MSG(1801,(/TRIM(vfile)/),(/DBLE(linenumber)/))
 GOTO 1000
 !
 !

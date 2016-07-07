@@ -50,6 +50,11 @@ th.ftype
 {background-color: silver;
 }
 
+li.clist strong
+{display: inline-block;
+ min-width: 160px;
+}
+
 .command
 {display:block;
  color: white;
