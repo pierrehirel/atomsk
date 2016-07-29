@@ -30,9 +30,9 @@ s2=$(echo "0.5/$boxxB" | bc -l)
 atomsk --create fcc $a Al orient [110] [1-11] [1-1-2] Al_unitcell.xsf
 
 # Build top half crystal: compressed along X
-atomsk Al_unitcell.xsf -e $boxxT $boxy $boxz -deform x $s1 0.0 Al_top.xsf
+atomsk Al_unitcell.xsf -dup $boxxT $boxy $boxz -deform x $s1 0.0 Al_top.xsf
 # Build bottom half crystal: elongated by $a/2 along X
-atomsk Al_unitcell.xsf -e $boxxB $boxy $boxz -deform x $s2 0.0 Al_bottom.xsf
+atomsk Al_unitcell.xsf -dup $boxxB $boxy $boxz -deform x $s2 0.0 Al_bottom.xsf
 
 # System with dislocation: merge top and bottom along Y
 atomsk --merge y 2 Al_bottom.xsf Al_top.xsf Al.cfg lmp exyz

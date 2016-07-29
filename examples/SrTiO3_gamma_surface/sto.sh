@@ -20,6 +20,14 @@ export LC_NUMERIC=C
 
 # Define command aliases
 lammps="lmp_local"
+if [ "$(which $lammps)" = "" ]; then
+  # Try with a different name
+  lammps="lammps"
+  if [ "$(which $lammps)" = "" ]; then
+    printf "X!X ERROR: LAMMPS executable not found or undefined.\n"
+    exit
+  fi
+fi
 
 # Check for additional files in current directory and for executables
 if [ ! -e "sto.lin" ]; then
@@ -34,13 +42,8 @@ if [ "$(which lmp_atom2charge.sh)" = "" ]; then
   printf "X!X ERROR: script lmp_atom2charge.sh not found or undefined.\n"
   exit
 fi
-if [ "$(which $lammps)" = "" ]; then
-  printf "X!X ERROR: LAMMPS executable not found or undefined.\n"
-  exit
-fi
 if [ ! -e $(which gnuplot) ]; then
   printf "/!\ WARNING: gnuplot executable not found, no graph will be produced.\n"
-  exit
 fi
 
 # Output files
@@ -57,11 +60,11 @@ printf "#tauY \t Etot_NoRelax(J/m²) \t Etot_ionRelaxed(J/m²) \n" > $Gamma_110
 # Structural parameters
 alat=3.9051     #lattice constant a0 of STO (A) (Thomas potential)
 S=$(echo "2.0*$alat*$alat*sqrt(2.0)" | bc -l)  #surface of stacking faults
-supersize=4    #Number of times the cell is repeated along Z
+supersize=8    #Number of times the cell is repeated along Z
 # Number of steps along X=[001] and Y=[110] directions
 # These numbers can be increased to improve accuracy
-stepX=8
-stepY=12
+stepX=10
+stepY=16
 
 # Use a loop to produce the different stacking faults and compute their energy
 
@@ -78,7 +81,7 @@ for ((i=0;i<=$stepX;i++)) do
 
     # Use atomsk to create the system with stacking fault:
     # Create unit cell oriented X=[001], Y=[110], Z=[1-10]
-    # Expand it along Z to form a supercell
+    # Duplicate it along Z to form a supercell
     # Use the option '-shift' to build the stacking faults
     # Also use the option '-wrap' to ensure all atoms are in the box
     # Output each structure in LAMMPS data format (*.lmp)
@@ -134,7 +137,7 @@ for ((i=0;i<=$stepX;i++)) do
 
 done
 
-echo ">>> Plotting graph in EPS file 'gamma.eps' with gnuplot..."
+echo ">>> Plotting graph in EPS file 'gamma.eps'..."
 gnuplot sto.gp
 
 echo "\o/ Finished."

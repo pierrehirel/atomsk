@@ -44,9 +44,9 @@ atomsk --create bcc $alat Fe orient [121] [-101] [1-11] \
        -duplicate $NX $NY $NZ \
        -prop Fe_prop.txt \
        -disloc $dx $dy screw z y $b 0.0 \
+       -select out cylinder Z $dx $dy $radius \
+       -fix all above -100.0 x \
        Fe_dislo.xsf cfg bop
-#       -select out cylinder z $dX $dY $radius \
-#       -fix all above -100.0 x \
 
 ### Note: dislocation stresses and fixed atoms can be visualized
 ###       with Atomeye: see auxiliary properties in "Fe_dislo.cfg"

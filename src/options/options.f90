@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 June 2016                                     *
+!* Last modification: P. Hirel - 19 July 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -607,7 +607,7 @@ DO ioptions=1,SIZE(options_array)
   CASE('-rebox')
     CALL DETERMINE_H(H,P)
   !
-  CASE('-remove-atom', '-rmatom')
+  CASE('-remove-atom', '-remove-atoms', '-rmatom', '-rmatoms')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rmatom_prop
     CALL RMATOM_XYZ(P,S,AUX,rmatom_prop,SELECT)
   !

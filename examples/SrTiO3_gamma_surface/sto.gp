@@ -14,7 +14,7 @@ set samples 40
 set isosamples 40
 set hidden3d
 set view 60,300
-set title "GSF energy density of (1-10) SrTiO3\nLAMMPS, Thomas potential"
+set title "GSF energy density of (1@^{/=18-}10) SrTiO_3\n \n LAMMPS, Thomas potential"
 set xlabel "[001]" font "Helvetica,20"
 set ylabel "[110]" font "Helvetica,20"
 set label 1 "{/Symbol g} (J/m^{2})" font "Helvetica,20" at graph 1.6, graph 2.1

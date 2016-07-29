@@ -748,7 +748,9 @@ IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
 ENDIF
 !
 !Compute boxmax = maximum distance from one end of the box to another
-boxmax = 1.05d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
+boxmax = 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
+WRITE(msg,*) "Max. distance for neighbor search:", boxmax
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
 !
