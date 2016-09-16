@@ -15,7 +15,7 @@ if [ -w ${BINPATH} ] ; then
 
   if [ "${answer}" = "y" ] ; then
     # System configuration file
-    rm -rf ./etc/atomsk.conf /etc/
+    rm -f ./etc/atomsk.conf
 
     # atomsk binary
     rm -f ${BINPATH}/atomsk
@@ -30,7 +30,7 @@ if [ -w ${BINPATH} ] ; then
     rm -f ${BINPATH}/qepw_bohr.sh
 
     # atomsk documentation
-    rm -rf ${DOCPATH}/atomsk
+    rm -rf ${DOCPATH}/atomsk/
 
     # atomsk man page
     rm -f ${MPATH}/atomsk.1.gz
