@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 30 June 2016                                     *
+!* Last modification: P. Hirel - 28 Sep. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -190,6 +190,21 @@ IF(helpsection=="options") THEN
   WRITE(*,*) ""
 ENDIF
 !
+IF(helpsection=="options" .OR. helpsection=="-add-atom" .OR. helpsection=="-add-atoms" .OR. &
+  &helpsection=="-addatom" .OR. helpsection=="-addatoms" ) THEN
+  WRITE(*,*) "..> Add new atoms to the system:"
+  WRITE(*,*) "          -add-atom <species> at <x> <y> <z>"
+  WRITE(*,*) "          -add-atom <species> relative <index> <x> <y> <z>"
+  WRITE(*,*) "          -add-atom <species> near <index>"
+  WRITE(*,*) "          -add-atom <species> random <N>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-add-shells".OR. helpsection=="-as" &
+  & .OR. helpsection=="-create-shells".OR. helpsection=="-cs") THEN
+  WRITE(*,*) "..> Create shells for some or all atoms:"
+  WRITE(*,*) "          -add-shells <all|species>"
+ENDIF
+!
 IF(helpsection=="options" .OR. helpsection=="-alignx") THEN
   WRITE(*,*) "..> Lege den ersten Zellenvektor auf die X Achse:"
   WRITE(*,*) "          -alignx"
@@ -198,6 +213,12 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-bs") THEN
   WRITE(*,*) "..> Weise Ionenhuellen den entsprechenden Kernen zu:"
   WRITE(*,*) "          -bind-shells"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-center") THEN
+  WRITE(*,*) "..> Place an atom or the center of mass of the system at the center of the box:"
+  WRITE(*,*) "          -center <index>"
+  WRITE(*,*) "          -center com"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-crack") THEN

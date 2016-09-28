@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 July 2016                                     *
+!* Last modification: P. Hirel - 28 Sep. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -127,8 +127,9 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUXdummy !auxiliary properties of ato
 !Variables relative to Option: add-atom
 CHARACTER(LEN=2):: addatom_species !species of atom(s) to add
 CHARACTER(LEN=8):: addatom_type    !"at" or "near" or "random"
-REAL(dp),DIMENSION(3):: addatom_prop  !properties of atom(s) to add
+REAL(dp),DIMENSION(4):: addatom_prop  !properties of atom(s) to add
                                       !if addatom_type=="at", position x,y,z of new atom
+                                      !if addatom_type=="relative", index of atom and x,y,z
                                       !if addatom_type=="near", index of atom
                                       !if addatom-type=="random", number of atoms to add
 !
@@ -335,6 +336,28 @@ DO ioptions=1,SIZE(options_array)
         GOTO 810
       ENDIF
       CALL BOX2DBLE( H(:,3) , treal(3) , addatom_prop(3) , status )
+      IF(status>0) THEN
+        temp = treal(3)
+        GOTO 810
+      ENDIF
+    ELSEIF( addatom_type=="relative" .OR. addatom_type=="rel" ) THEN
+      !Read index of atom near which the new atom must be added
+      !and relative coordinates x, y, z of atom to add
+      !Can be real numbers or fractional coordinates with the keyword "box"
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, addatom_species, &
+        & addatom_type, j, treal(1), treal(2), treal(3)
+      addatom_prop(1) = DBLE(j)
+      CALL BOX2DBLE( H(:,1) , treal(1) , addatom_prop(2) , status )
+      IF(status>0) THEN
+        temp = treal(1)
+        GOTO 810
+      ENDIF
+      CALL BOX2DBLE( H(:,2) , treal(2) , addatom_prop(3) , status )
+      IF(status>0) THEN
+        temp = treal(2)
+        GOTO 810
+      ENDIF
+      CALL BOX2DBLE( H(:,3) , treal(3) , addatom_prop(4) , status )
       IF(status>0) THEN
         temp = treal(3)
         GOTO 810

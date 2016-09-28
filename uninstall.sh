@@ -15,7 +15,7 @@ if [ -w ${BINPATH} ] ; then
 
   if [ "${answer}" = "y" ] ; then
     # System configuration file
-    rm -f ./etc/atomsk.conf
+    rm -f /etc/atomsk.conf
 
     # atomsk binary
     rm -f ${BINPATH}/atomsk

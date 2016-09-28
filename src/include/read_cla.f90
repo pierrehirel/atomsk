@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 28 Sep. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -496,7 +496,8 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     IF( .NOT.( temp(1:2)=="at" .OR. temp(1:2)=="AT" .OR. temp(1:1)=="@" .OR.  &
       &        temp(1:4)=="near" .OR. temp(1:4)=="NEAR" .OR.                  &
-      &        temp(1:6)=="random" .OR. temp(1:6)=="RANDOM"                   &
+      &        temp(1:6)=="random" .OR. temp(1:6)=="RANDOM" .OR.              &
+      &        temp(1:8)=="relative" .OR. temp(1:3)=="rel"                    &
       &      ) ) THEN
       GOTO 400
     ENDIF
@@ -505,6 +506,31 @@ DO WHILE(i<SIZE(cla))
     !Read parameters
     SELECT CASE(temp2)
     CASE("at","AT","@")
+      !Read coordinate x of atom to add
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !Read coordinate y of atom to add
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !Read coordinate z of atom to add
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !
+    CASE("relative","rel")
+      !Read index of atom near which the new atom must be added
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !Read coordinate x of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp

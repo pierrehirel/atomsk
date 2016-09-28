@@ -17,6 +17,8 @@
 
 <p><code>-add-atom &#60;species&#62; at &#60;x&#62; &#60;y&#62; &#60;z&#62;</code></p>
 
+<p><code>-add-atom &#60;species&#62; relative &#60;index&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62;</code></p>
+
 <p><code>-add-atom &#60;species&#62; near &#60;index&#62;</code></p>
 
 <p><code>-add-atom &#60;species&#62; random &#60;N&#62;</code></p>
@@ -27,6 +29,8 @@
 <p>This option adds one or more new atom(s) of the given &#60;species&#62; in the system.</p>
 
 <p>When using the keyword <strong>at</strong>, a new atom is inserted exactly at the given location. The positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</p>
+
+<p>When using the keyword <strong>relative</strong>, the new atom is placed relatively to the atom of the given &#60;index&#62; at the given position (x,y,z).</p>
 
 <p>When using the keyword <strong>near &#60;index&#62;</strong> (where &#60;index&#62; is an integer), a new atom is inserted near the atom with the given &#60;index&#62;. The new atom will be inserted in the tetrahedral site formed by the atom with the given &#60;index&#62; and its three nearest neighbors.</p>
 

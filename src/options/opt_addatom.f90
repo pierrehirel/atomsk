@@ -10,7 +10,7 @@ MODULE addatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 June 2016                                     *
+!* Last modification: P. Hirel - 28 Sep. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,8 +58,9 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
 REAL(dp):: distance, distance2, dmax
 REAL(dp):: snumber !atomic number of the new atoms
 REAL(dp):: x, y, z
-REAL(dp),DIMENSION(3),INTENT(IN):: addatom_prop  !properties of atom(s) to add
+REAL(dp),DIMENSION(4),INTENT(IN):: addatom_prop  !properties of atom(s) to add
                                                  !if addatom_type=="at", position x,y,z of new atom
+                                                 !if addatom_type=="relative", index of atom and x,y,z
                                                  !if addatom_type=="near", index of atom
                                                  !if addatom-type=="random", number of atoms to add
 REAL(dp),DIMENSION(3):: V !a vector
@@ -124,6 +125,33 @@ CASE("at","AT","@")
   newP(SIZE(newP,1),1) = addatom_prop(1)
   newP(SIZE(newP,1),2) = addatom_prop(2)
   newP(SIZE(newP,1),3) = addatom_prop(3)
+  newP(SIZE(newP,1),4) = snumber
+  addedatoms = 1
+  !
+  !
+CASE("relative","rel")
+  !A new atom must be added near atom with the index addatom_prop(1)
+  !Get index of atom
+  atomindex = NINT(addatom_prop(1))
+  !
+  !Place atom at the given vector relatively to given atom
+  x = P(atomindex,1) + addatom_prop(2)
+  y = P(atomindex,2) + addatom_prop(3)
+  z = P(atomindex,3) + addatom_prop(4)
+  !
+  !Save position of new atom in newP
+  ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
+  DO i=1,SIZE(P,1)
+    newP(i,:) = P(i,:)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      IF( NINT(S(i,4))==NINT(snumber) ) THEN
+        hasShells = .TRUE.
+      ENDIF
+    ENDIF
+  ENDDO
+  newP(SIZE(newP,1),1) = x
+  newP(SIZE(newP,1),2) = y
+  newP(SIZE(newP,1),3) = z
   newP(SIZE(newP,1),4) = snumber
   addedatoms = 1
   !
