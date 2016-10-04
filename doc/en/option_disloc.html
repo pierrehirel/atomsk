@@ -15,39 +15,37 @@
 
 <h4>Syntax</h4>
 
-<p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; &#60;disloctype&#62; &#60;dislocline&#62; &#60;dislocplane&#62; &#60;b1&#62; [&#60;b2&#62; &#60;b3&#62;] &#60;&nu;&#62;</code></p>
+<p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; screw &#60;&xi;&#62; &#60;n&#62; &#60;b&#62;</code></p>
 
-<p><code>-disloc &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; &#60;disloctype&#62; &#60;dislocline&#62; &#60;dislocplane&#62; &#60;b1&#62; [&#60;b2&#62; &#60;b3&#62;] &#60;&nu;&#62;</code></p>
+<p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; &#60;edge|edge2&#62; &#60;&xi;&#62; &#60;n&#62; &#60;b&#62; &#60;&nu;&#62;</code></p>
+
+<p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; mixed &#60;&xi;&#62; &#60;n&#62; &#60;b<sub>1</sub>&#62; &#60;b<sub>2</sub>&#62; &#60;b<sub>3</sub>&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to insert a straight edge or screw dislocation in the system. The equations used by this option can be found e.g. in J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
+<p>This option allows to insert a straight dislocation line into the system, using the displacements predicted by the theory of dislocations. The equations used by this option can be found e.g. in J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
 
-<p>The user has to provide the following parameters:</p>
+<p>The user must provide the following parameters:</p>
 
 <ul>
-  <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordinates of the dislocation in the plane normal to the dislocation line (see <code>dislocline</code>), by order of permutation X, Y, Z (e.g. if <code>dislocline=Y</code> then p<sub>1</sub> is the position along Z and p<sub>2</sub> the position along X).</li>
-  <li><strong>disloctype</strong>: type of dislocation, must be "screw", "edge", or "edge2"; when using anisotropic elasticity, can be "mixed" (see below).</li>
-  <li><strong>dislocline</strong>: direction of dislocation line, must be x, y or z.</li>
-  <li><strong>dislocplane</strong>: direction normal to the plane of cut, must be x, y or z, and must be different from <code>dislocline</code>.</li>
-  <li><strong>b1, b2, b3</strong>: components of the Burgers vector (in &Aring;); for dislocations of type "edge", "edge2" and "screw" only one value must be given; for type "mixed" the 3 components must be provided.</li>
-  <li><strong>&nu;</strong>: Poisson ratio of the material; it is very important to specify a correct value if you build an edge dislocation (for screw dislocations it is not used and can be set to any arbitrary value).</li>
+  <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordinates of the dislocation in the plane normal to the dislocation line (see &xi; below), by order of permutation X, Y, Z: if &xi;=Z then p<sub>1</sub> is the position along X, and p<sub>2</sub> the position along Y; if &xi;=Y then p<sub>1</sub> is along Z and p<sub>2</sub> along X; if &xi;=X then p<sub>1</sub> is along Y and p<sub>2</sub> along Z. The positions &#60;p<sub>1</sub>&#62; and &#60;p<sub>2</sub>&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</li>
+  <li><strong>screw|edge|edge2|mixed</strong>: character of the dislocation, must be "screw", "edge", or "edge2". The character "mixed" can be used only when using anisotropic elasticity (see below).</li>
+  <li><strong>&xi;</strong>: direction of the dislocation line, must be x, y or z.</li>
+  <li><strong>n</strong>: direction normal to the plane of cut, must be x, y or z, and must be different from &xi;.</li>
+  <li><strong>b</strong>: norm of the Burgers vector (in &Aring;). For dislocations of type "edge", "edge2" and "screw", only one value must be given. For the type "mixed", the three components b<sub>1</sub>, b<sub>2</sub>, b<sub>3</sub> must be provided.</li>
+  <li><strong>&nu;</strong>: Poisson ratio of the material ; it must be provided for dislocations of character "edge" or "edge2". For dislocations of type "screw" or "mixed", it must be omitted.</li>
 </ul>
 
-<p>The positions &#60;p<sub>1</sub>&#62; and &#60;p<sub>2</sub>&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</p>
+<p>By default, the dislocation is introduced using the <strong>isotropic elastic solutions</strong>.</p>
 
-<hr>
-<object type="img/svg+xml" data="../img/opt_disloc.svg"><img src="../img/opt_disloc.png" alt="" /></object>
-<p><strong>Fig. 1</strong> - <em>The two possible ways to construct an edge dislocation with this option. When the parameter <code>disloctype</code> is set to "</em>edge<em>", a new half-plane of atoms is introduced in the system (symbolized in orange). When it is set to "</em>edge2<em>", no new atom is introduced, but the insertion of the dislocation results in the formation of a step at one border of the cell. In both cases the boundaries are distorted, and cannot be 3-D periodic anymore.</em></p>
-<hr>
+<p>For a <strong>screw dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is aligned with <strong>&xi;</strong>. The total number of atoms as well as the cell vectors are unchanged. Each atom is displaced by a vector u<sub>x<sub>3</sub></sub> parallel to the dislocation line &xi;, and proportional to the norm of the Burgers vector <strong><em>b</em></strong>, according to the theory of elasticity:</p>
 
-<p><strong>Edge dislocations</strong> can be constructed in two different ways that can be selected by setting the parameter <code>disloctype</code> to "edge" or "edge2", as illustrated in <strong>Fig. 1</strong>. The first method, used when the parameter <code>disloctype</code> is set to <strong>edge</strong>, consists in inserting a row of new atoms in the system, and then applying atomic displacements corresponding to the elastic field of an edge dislocation. Subsequently the supercell vector in the direction of the Burgers vector is elongated by 2/3 of the Burgers vector -it is recommended to check it afterwards. Because this method changes the total number of atoms and the volume of the supercell, the comparison between the final and initial systems is made irrelevant. With the second method, used when the parameter <code>disloctype</code> is set to <strong>edge2</strong>, the edge dislocation is constructed by conserving the total number of atoms in the system (also conserving the supercell vectors). 
-This method results in the presence of a step at one edge of the supercell, possibly messing up the boundary conditions.</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>x<sub>3</sub></sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</code></p>
 
-<p>For <strong>screw dislocations</strong> the total number of atoms as well as the cell vectors are unchanged.</p>
+<p>where (x<sub>1</sub>,x<sub>2</sub>) is the position of the atom in the plane normal to the dislocation line &xi;.</p>
 
-<p>By default the dislocations are introduced using the <strong>isotropic elastic solutions</strong>, i.e. the displacements applied to the atoms are, for an edge dislocation:</p>
+<p>For an <strong>edge dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is normal to <strong>&xi;</strong> (so that <strong><em>b</em>.<em>&xi;</em></strong>=0), and contained inside the plane normal to &#60;n&#62;. The displacements applied to atoms are:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
 <code>u<sub>x1</sub> = (<em>b</em>/2&pi;) [ atan(x<sub>2</sub>/x<sub>1</sub>) + x<sub>1</sub>x<sub>2</sub>/(2(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code> <br/>
@@ -55,13 +53,17 @@ This method results in the presence of a step at one edge of the supercell, poss
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>x2</sub> = (-<em>b</em>/2&pi;) [ (1-2&nu;)ln(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>))/(4(1-&nu;)) + (x<sub>1</sub><sup>2</sup>-x<sub>2</sub><sup>2</sup>)/(4(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code>
 </p>
 
-<p>and for a screw dislocation:</p>
+<p>where &nu; is the Poisson ratio of the material, and must be provided. With this option, an edge dislocation can be constructed in two different ways, here named "edge" or "edge2", as illustrated in <strong>Fig. 1</strong>. The first method, associated with the keyword <strong>edge</strong>, consists in inserting a row of new atoms in the system, and then applying atomic displacements corresponding to the elastic field of an edge dislocation. Subsequently the supercell vector in the direction of the Burgers vector is elongated by 2/3 of the Burgers vector -it is recommended to check it afterwards. Because this method changes the total number of atoms and the volume of the supercell, the comparison between the final and initial systems is made irrelevant. With the second method, associated with the keyword <strong>edge2</strong>, the edge dislocation is constructed by conserving the total number of atoms in the system (also conserving the supercell vectors). 
+This method results in the presence of a step at one edge of the supercell, possibly messing up the boundary conditions.</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>x<sub>3</sub></sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</code></p>
+<hr>
+<object type="img/svg+xml" data="../img/opt_disloc.svg"><img src="../img/opt_disloc.png" alt="" /></object>
+<p><strong>Fig. 1</strong> - <em>The two possible ways to construct an edge dislocation with this option. When using the keyword "</em>edge<em>", a new half-plane of atoms is introduced in the system (symbolized in orange). When using "</em>edge2<em>", no new atom is introduced, but the insertion of the dislocation results in the formation of a step at one border of the cell. In both cases the boundaries are distorted, and cannot be 3-D periodic anymore.</em></p>
+<hr>
 
-<p>where x<sub>3</sub> is the direction of &#60;dislocline&#62;, and x<sub>2</sub> the normal to the plane of cut. The theoretical dislocation stresses (from the continuum theory) are also computed, however since the shear modulus &mu; is unknown the stresses are normalized to it, i.e. all stresses are calculated with &mu;=1 (in other words the quantity computed is actually &sigma;/&mu;). The six Voigt components &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, &sigma;<sub>xy</sub>, &sigma;<sub>yz</sub> and &sigma;<sub>xz</sub> are saved as auxiliary properties for each atom. If several dislocations are introduced in the system then the corresponding theoretical stresses are summed. Note that they can be written only to some files formats, like CFG (see <a href="./formats.html">this page</a> for a list of formats that support writing of auxiliary properties).</p>
+<p>After displacing atoms, Atomsk also computes the theoretical dislocation stresses (from the continuum theory). Since the shear modulus &mu; is unknown to this option, the stresses are normalized to it, i.e. all stresses are calculated with &mu;=1 (in other words the quantity computed is actually &sigma;/&mu;). The six Voigt components &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, &sigma;<sub>xy</sub>, &sigma;<sub>yz</sub> and &sigma;<sub>xz</sub> are saved as auxiliary properties for each atom. If several dislocations are introduced in the system then the corresponding theoretical stresses are summed. Note that they can be written only to some files formats, like CFG (see <a href="./formats.html">this page</a> for a list of formats that support writing of auxiliary properties).</p>
 
-<p>The use of <strong>anisotropic elasticity</strong> is automatically triggered when the elastic tensor is defined before calling the present option, e.g. through the <a href="./option_properties.html">option <code>-properties</code></a> (see specifications of this option for details on the rotation of the elastic tensor). When using anisotropic elasticity a value of &nu; must still be given, but is not used (it can be set to zero or any arbitrary value). In addition to the dislocation types described above, a mixed dislocation can be built by setting <code>disloctype</code> to "mixed", after what the three components of the Burgers vector must be given. The equations of anisotropic elasticity are solved to determine the coefficients <em>A<sub>k</sub>(n)</em>, <em>D(n)</em>, <em>P(n)</em> and <em>B<sub>ijk</sub>(n)</em>, and the anisotropic displacements are applied:</p>
+<p>The use of <strong>anisotropic elasticity</strong> is automatically triggered when the elastic tensor is defined before calling the present option, e.g. through the <a href="./option_properties.html">option <code>-properties</code></a> (see specifications of this option for details on the rotation of the elastic tensor). The dislocation can have a character "screw", "edge" or "edge2", as described above. In addition, it is also possible to create a dislocation of mixed character. In this case, the three components of the Burgers vector b<sub>1</sub>, b<sub>2</sub>, b<sub>3</sub> must be given. Then, the equations of anisotropic elasticity are solved to determine the coefficients <em>A<sub>k</sub>(n)</em>, <em>D(n)</em>, <em>P(n)</em> and <em>B<sub>ijk</sub>(n)</em>, and the anisotropic displacements are applied:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>k</sub> = </code>&real;{<code> (-2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>A<sub>k</sub>(n) D(n)</em> ln(x<sub>1</sub>+<em>P(n)</em>x<sub>2</sub>) </code>}, k=1,3</code></p>
 
@@ -73,7 +75,9 @@ This method results in the presence of a step at one edge of the supercell, poss
 
 <p>If the system contains shells (in the sense of an ionic core-shell model), then each shell is displaced by the same vector as its associated core.</p>
 
-<p>Beware that Atomsk does not "automagically" find nor adjust the Burgers vector of the dislocation, so a very precise value of <code>b</code> must be provided. Neither does the program find the optimal position for the dislocation center: a position <code>(p<sub>1</sub>,p<sub>2</sub>)</code> that exactly matches an atom position may result in unrealistic displacements, so you may have to play around with these coordinates to obtain proper results. As always, don't trust a program blindly -check your system before running any simulation, especially when building systems with dislocation(s).</p>
+<p><strong>Important remarks:</strong> Atomsk does not "automagically" find nor adjust the Burgers vector of the dislocation, therefore a very precise value of <code>b</code> must be provided. Neither does the program find the optimal position for the dislocation center: a position <code>(p<sub>1</sub>,p<sub>2</sub>)</code> that exactly matches an atom position may result in unrealistic displacements, so you may have to play around with these coordinates to obtain proper results. As always, don't trust a program blindly -check your system before running any simulation, especially when building systems with dislocation(s).</p>
+
+<p>After applying this option, some atoms may end up out of the box. If you want to wrap these atoms back into the simulation cell you may consider using the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the displacements described above are applied only to selected atoms.</p>
 
@@ -88,10 +92,10 @@ This method results in the presence of a step at one edge of the supercell, poss
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -dislocation 0.5*BOX 0.5*BOX screw z y 3.2 0.0 final.xyz</code>
-<p>This will read <code>initial.cfg</code> and insert a screw dislocation of Burgers vector 3.2 &Aring; lying along Z, in the middle of the box along X (because p<sub>1</sub>=0.5*BOX) and also in the middle along Y (because p<sub>2</sub>=0.5*BOX). The result will be output to <code>final.xyz</code>. Note that a value of the Poisson ratio must be provided although it is not used (it is arbitrarily set to 0.0 here)</p></li>
+<li><code class="command">atomsk initial.cfg -dislocation 0.5*BOX 0.5*BOX screw z y 3.2 final.xyz</code>
+<p>This will read <code>initial.cfg</code>, and displace atoms so as to insert a screw dislocation of Burgers vector 3.2 &Aring; lying along &xi;=Z, in a plane normal to Y. The position (p<sub>1</sub>,p<sub>2</sub>) is given in the plane normal to Z, i.e. in the (XY) plane: the dislocation is placed at the middle of the box along X (because p<sub>1</sub>=0.5*BOX) and also in the middle along Y (because p<sub>2</sub>=0.5*BOX). The result will be output to <code>final.xyz</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -disloc 0.25*BOX 0.5*BOX screw z y 3.2 0.0 -disloc 0.75*BOX 0.5*BOX screw z y -3.2 0.0 final.xyz</code>
+<li><code class="command">atomsk initial.cfg -disloc 0.25*BOX 0.5*BOX screw z y 3.2 -disloc 0.75*BOX 0.5*BOX screw z y -3.2 final.xyz</code>
 <p>This will read <code>initial.cfg</code> and insert two screw dislocations of opposite Burgers vectors, the first one at (0.25;0.5) and the second one at (0.75;0.5). The result will be output to <code>final.xyz</code>.</p></li>
 
 <li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.xsf</code>
@@ -114,8 +118,8 @@ orientation<br/>
 1-10<br/>
 001<br/></code></p>
 </div>
-<code class="command">atomsk initial.xyz -prop ctensor.txt -disloc 0.5*BOX 0.5*BOX screw y x 2.8 0.0 dislocation.cfg</code>
-<p>Assume we want to build a dislocation in a slab of iron with crystallographic orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]. The original system (<code>initial.xyz</code>) has that orientation. In this example the <a href="./option_properties.html">option <code>-properties</code></a> is used to read the elastic tensor and the system orientation from the file <code>ctensor.txt</code>, therefore the anisotropic elasticity will be used to construct the dislocation. This is usually the most convenient way to use anisotropic elasticity for building a dislocation. Note that in the option <code>-dislocation</code> the Poisson ratio must be provided although it is not used (it is arbitrarily set to 0.0 here).</p></li>
+<code class="command">atomsk initial.xyz -prop ctensor.txt -disloc 0.5*BOX 0.5*BOX screw y x 2.8 dislocation.cfg</code>
+<p>Assume we want to build a dislocation in a slab of iron with crystallographic orientation X=[110], Y=[1<span class="over">1</span>0], Z=[001]. The original system (<code>initial.xyz</code>) has that orientation. In this example the <a href="./option_properties.html">option <code>-properties</code></a> is used to read the elastic tensor and the system orientation from the file <code>ctensor.txt</code>, therefore the anisotropic elasticity will be used to construct the dislocation. This is usually the most convenient way to use anisotropic elasticity for building a dislocation.</p></li>
 
 <li><div class="txtfile">
 <h5>ctensor.txt</h5>
@@ -125,7 +129,7 @@ elastic Voigt<br/>
 145.00 145.00 145.00<br/>
 116.10 116.10 116.10<br/></code></p>
 </div>
-<code class="command">atomsk initial.xyz -orient 110 1-10 001 100 010 001 -prop ctensor.txt -orient 100 010 001 110 1-10 001 -disloc 0.5*BOX 0.5*BOX screw y x 2.8 0.0 dislocation.cfg</code>
+<code class="command">atomsk initial.xyz -orient 110 1-10 001 100 010 001 -prop ctensor.txt -orient 100 010 001 110 1-10 001 -disloc 0.5*BOX 0.5*BOX screw y x 2.8 dislocation.cfg</code>
 <p>This example illustrates another way of doing the same thing as the previous example. The original system (<code>initial.xyz</code> which is oriented X=[110], Y=[1<span class="over">1</span>0], Z=[001]) is first rotated thanks to the <a href="./option_orient.html">option <code>-orient</code></a> so that the [100] crystal direction lies along X, [010] along Y and [001] along Z. Then the elastic tensor, which corresponds to that orientation, is read. Then the system is rotated back to its original orientation (this could also be done by using the <a href="./option_alignx.html">option <code>-alignx</code></a> instead), which also rotates the elastic tensor accordingly. Finally the dislocation can be introduced.</p></li>
 
 <li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Al_110dislocations</code>" contains a bash script that builds two edge dislocations with opposite Burgers vectors in a slab of aluminium, using isotropic elasticity. The folder "<code>Fe_disloc_screw111_anisotropy</code>" shows how to build a 1/2&#60;111&#62; screw dislocation in iron using anisotropic elasticity.</p></li>

@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Sep. 2016                                     *
+!* Last modification: P. Hirel - 03 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -454,17 +454,22 @@ DO ioptions=1,SIZE(options_array)
     CALL DEFORM_XYZ(H,P,S,def_dir,def_strain,def_poisson,SELECT)
   !
   CASE('-disloc', '-dislocation')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & treal(9), treal(10), disloctype
+    nu = 0.d0
+    !First, get disloctype
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10), disloctype
+    !Depending on type, read further parameters
     IF( disloctype=="mixed" ) THEN
+      !Read the three components of Burgers vector
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-          & treal(9), treal(10), disloctype, dislocline, dislocplane, b(1), b(2), b(3), nu
+          & treal(9), treal(10), disloctype, dislocline, dislocplane, b(1), b(2), b(3)
     ELSE
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-          & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal, nu
-      !Determine the complete Burgers vector b(:)
+      !Only the norm of the Burgers vector is given
+      !Construct the complete Burgers vector b(:)
       b(:) = 0.d0
       IF(disloctype=="screw") THEN
+        !don't attempt to read nu
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+            & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal
         !only one component is given, the one along dislocline
         SELECT CASE(dislocline)
         CASE("x","X")
@@ -475,6 +480,9 @@ DO ioptions=1,SIZE(options_array)
           b(3) = tempreal
         END SELECT
       ELSEIF(disloctype(1:4)=="edge") THEN
+        !Edge character => read nu
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+            & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal, nu
         !only one component is given, normal to dislocline and plane of cut
         SELECT CASE(dislocline)
         CASE("x","X")

@@ -15,7 +15,7 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-shear &#60;normale&#62; &#60;amplitude&#62; &#60;direction&#62;</code></p>
+<p><code>-shear &#60;n&#62; &#60;A&#62; &#60;s&#62;</code></p>
 
 
 
@@ -24,16 +24,16 @@
 <p>Cette option applique un cisaillement simple au système, en inclinant un axe suivant une direction donnée. Les paramètres associés à cette option sont :</p>
 
 <ul>
-  <li><strong>normale :</strong> l'axe qui sera incliné (doit être "x", "y" ou "z") ; le vecteur d'inclinaison sera contenu dans le plan normal à cet axe.</li>
-  <li><strong>amplitude :</strong> l'amplitude du vecteur d'inclinaison (en &Aring;), ou valeur de déformation (si le symbole &#37; est utilisé) ; elle peut être positive ou négative.</li>
-  <li><strong>direction :</strong> direction du vecteur d'inclinaison ("x", "y" ou "z").</li>
+  <li><strong>n :</strong> axe normal au plan de cisaillement, doit être x, y ou z.</li>
+  <li><strong>A :</strong> amplitude du cisaillement (en &Aring;), ou valeur de déformation (si le symbole &#37; est utilisé) ; elle peut être positive ou négative.</li>
+  <li><strong>s :</strong> direction du cisaillement, doit être x, y ou z, et doit être différent de &#60;n&#62;.</li>
 </ul>
 
-<p>Par exemple, si <code>&#60;normale&#62;=Y</code>, <code>&#60;amplitude&#62;=0.1 &Aring;</code> et <code>&#60;direction&#62;=X</code>, alors le second vecteur de boîte <code>[H(2,1) H(2,2) H(2,3)]</code> sera incliné pour devenir <code>[H(2,1)+0.1 H(2,2) H(2,3)]</code>. Les coordonnées des atomes sont aussi ajustées en conséquence.</p>
+<p>Par exemple, si &#60;n&#62;=Y, &#60;A&#62;=0.1 &Aring;, et &#60;s&#62;=X, alors l'axe Y sera incliné de 0,1 &Aring; suivant X. Les coordonnées des atomes sont aussi ajustées en conséquence.</p>
 
-<p>Si la hauteur de boîte suivant la <code>&#60;normale&#62;</code> est <code>&#60;h&#62;</code>, l'angle &theta; duquel la <code>&#60;normale&#62;</code> est inclinée est définie par : <code>tan &theta; = &#60;shear amp&#62;/&#60;h&#62;</code>.</p>
+<p>Si la hauteur de boîte suivant la direction &#60;n&#62; est <em>h</em>, alors l'angle &theta; duquel la direction &#60;n&#62; est inclinée est définie par : tan(&theta;) = &#60;A&#62;/<em>h</em>.</p>
 
-<p>Notez que si <code>&#60;normale&#62; = &#60;direction&#62;</code> alors une <em>déformation normale</em> sera appliquée, et non un cisaillement. Pour une déformation normale il est préférable d'employer l'<a href="./option_deform.html">option <code>-deform</code></a>.</p>
+<p>Notez que si &#60;n&#62; = &#60;s&#62; alors une <em>déformation normale</em> sera appliquée, et non un cisaillement. Pour une déformation normale il est préférable d'employer l'<a href="./option_deform.html">option <code>-deform</code></a>.</p>
 
 
 <h4>Défaut</h4>

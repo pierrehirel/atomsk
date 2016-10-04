@@ -22,11 +22,19 @@
 
 <p>Cette option permet d'enrouler le système, c'est-à-dire le plier pour former un arc de cercle, autour d'un axe cartésien.</p>
 
-<p>Les paramètres à fournir sont la &#60;direction&#62; à enrouler (qui doit être x, y ou z), l'angle de rotation &theta; (en degrés), et l'&#60;axe&#62; de rotation (x, y or z). La &#60;direction&#62; et l'&#60;axe&#62; doivent être perpendiculaires (autrement dit ils doivent êtres différents).</p>
+<p>Les paramètres à fournir sont les suivants :</p>
+
+<ul>
+  <li><strong>direction :</strong> la direction à enrouler, doit être x, y ou z.</li>
+  <li><strong>&theta; :</strong> angle de rotation (en degrés).</li>
+  <li><strong>axe :</strong> axe de rotation, ou axe du cylindre, il doit être x, y or z, et doit être normal à la &#60;direction&#62; donnée (autrement dit, ils doivent être différents).</li>
+</ul>
 
 <p>Avec un angle égal à &theta;=0° le système n'est pas courbé (il n'est pas du tout transformé), tandis que &theta;=360° revient à enrouler le système pour former un tube ou un cylindre (voir la <strong>Fig. 1</strong>). L'axe du tube est aligné avec l'&#60;axe&#62; donné, et son rayon est <em>R</em>=(180 <em>L</em>)/(2&pi;&theta;), où <em>L</em> est la longueur de la boîte dans la &#60;direction&#62; donnée. Prenez garde que plus l'angle &theta; est large, plus le rayon est petit. Pour les angles très larges il est recommandé que le système soit pseudo-2D, c'est-à-dire très fin dans le plan formé par la &#60;direction&#62; et l'&#60;axe&#62;.</p>
 
 <p>Cette option modifie les dimensions de la boîte. Le long de la direction Cartésienne normale à la &#60;direction&#62; et à l'&#60;axe&#62;, la dimensio de la boîte est augmentée de <em>R</em>[1-cos(&theta;)] de sorte à contenir le système enroulé.</p>
+
+<p>Notez que si vous utilisez un angle &theta; plus grand que 360°, alors le système fera plus d'un tour sur lui-même, ce qui peut provoquer l'enchevêtrement de certains atomes.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la transformation ne sera appliquée qu'aux atomes sélectionnés.</p>
 
@@ -48,10 +56,10 @@
 
 <ul>
 <li><code class="command">atomsk initial.cfg -roll X 10 Z final.xyz</code>
-<p>This will bend the system to form an angle of 10 degrees around Z.</p></li>
+<p>Ceci va enrouler l'axe X du système autour de l'axe Z, d'un angle de 10 degrés.</p></li>
 
 <li><code class="command">atomsk unitcell.cfg -duplicate 20 20 1 -roll X 360 Y final.xyz</code>
-<p>This will read the file <code>unitcell.cfg</code>, <a href="./option_duplicate.html">duplicate it</a> to form a pseudo-2D sheet in the XY plane, and roll the X direction of the system so that it forms a closed cylinder along the Y axis.</p></li>
+<p>Cette commande va lire le fichier <code>unitcell.cfg</code>, <a href="./option_duplicate.html">dupliquer le système</a> pour former un système pseudo-2D dans le plan XY, et enroulera la direction X de façon à former un cylindre fermé autour de l'axe Y.</p></li>
 
 </ul>
 

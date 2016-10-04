@@ -76,10 +76,12 @@ Options apply some transformations to the system. If several options are called 
 .TP
 .B -add-atom <species> at <x> <y> <z>
 .TP
+.B -add-atom <species> relative <index> <x> <y> <z>
+.TP
 .B -add-atom <species> near <index>
 .TP
 .B -add-atom <species> random <N>
-Adds an atom at the given position, or near the atom with the given index, or N atoms at random positions.
+Adds an atom at the given position, or at a vector (x,y,z) relative to the atom of the given index, or near the atom with the given index, or N atoms at random positions.
 .TP
 .B -add-shells <species>
 Creates shells (in the sense of a shell model) for the <species>. <species> can be set to "all".
@@ -102,8 +104,12 @@ Removes all atoms that are above or below the plane defined by its <normal>.
 .B -deform <direction> <ε> <ν>
 Applies normal strain.
 .TP
-.B -dislocation <pos1> <pos2> <disloctype> <dislocline> <dislocplane> <b> <ν>
-Introduces a straight edge or screw dislocation line in the system.
+.B -dislocation <pos1> <pos2> <edge|edge2> <xi> <n> <b> <ν>
+.TP
+.B -dislocation <pos1> <pos2> screw <xi> <n> <b>
+.TP
+.B -dislocation <pos1> <pos2> mixed <xi> <n> <b1> <b2> <b3>
+Introduces a straight dislocation line of the given character, aligned along <xi> and in the plane normal to <n>.
 .TP
 .B -disturb <dmax>
 Apply a random displacement (maximum dmax) to all atoms.
@@ -151,35 +157,51 @@ Rotates the system around a cartesian <axis>.
 .TP
 .B -select invert
 .TP
+.B -select <species>
+.TP
 .B -select <index>
 .TP
-.B -select <species>
+.B -select list <file>
 .TP
 .B -select random <N> <species>
 .TP
-.B -select prop <property> <values>
+.B -select <above|below> <d> <dir>
 .TP
-.B -select <above|below> <x1> <dir>
+.B -select <in|out> <box> <x1> <y1> <z1> <x2> <y2> <z2>
+.TP
+.B -select <in|out> <sphere> <x> <y> <z> <R>
+.TP
+.B -select <in|out> <cylinder> <axis> <x1> <x2> <R>
+.TP
+.B -select prop <property> <value1:value2>
 .TP
 .B -select <N> <species> neighbor <index>
 .TP
-.B -select <in|out> <geometry> <x1> <y1> [<z1>] <x2> [<y2> <z2>]
+.B -select grid <file>
 Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
 .TP
 .B -shear <surface normal> <shear amp> <shear direction>
 Applies shear strain to the system.
 .TP
+.B -shift <tauX> <tauY> <tauZ>
+.TP
 .B -shift <above|below> <d> <normal> <tauX> <tauY> <tauZ>
-Shifts some atoms.
+Shifts some or all atoms by the given vector.
 .TP
 .B -sort <property> <order>
 Sorts the atoms according to one <property>. <order> can be "up", "down", or "pack".
+.TP
+.B -spacegroup <group>
+Applies the symmetry operations of the given space group.
 .TP
 .B -stress <xx|yy|zz|xy|xz|yz|p> <value>
 Applies stress to the system. The elastic tensor must be defined with the option "-properties".
 .TP
 .B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
 Substitutes atoms of a given species by another.
+.TP
+.B -torsion <axis> <angle>
+Applies a torsion around the given axis of the given angle.
 .TP
 .B -unit <property> <factor>
 .TP
@@ -334,8 +356,8 @@ The program will convert "file.xsf" to "file.cfg".
 .B atomsk initial.xsf final cfg xyz lmp
 The program will convert "initial.xsf" to "final.cfg", "final.xyz" and "final.lmp".
 .TP
-.B atomsk unitcell.xsf -e 4 4 6 supercell.xsf
-The program will read "unitcell.xsf", expand it to form a 2x2x4 supercell, and the final result will be output into "supercell.xsf".
+.B atomsk unitcell.xsf -duplicate 4 4 6 supercell.xsf
+The program will read "unitcell.xsf", duplicate it to form a 2x2x4 supercell, and the final result will be output into "supercell.xsf".
 .TP
 .B atomsk --create fcc 4.02 Al aluminium.xsf
 This will create a unit cell of fcc aluminium and output the result in "aluminium.xsf".
