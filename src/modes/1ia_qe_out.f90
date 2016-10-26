@@ -21,7 +21,7 @@ MODULE oia_qeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Dec. 2015                                     *
+!* Last modification: P. Hirel - 26 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,7 +83,7 @@ ibrav = 0
 NP = 0
 Nsnap = 0
 Nsys = 0
-snap = 0
+snap = -1  !so that snap index will start at 0
 alat = 0.d0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
@@ -244,41 +244,9 @@ DO  !loop on all snapshots
       H(:,:) = alat*H(:,:)
       cell_defined = .TRUE.
       !
-    ELSEIF( test(1:7)=="site n." ) THEN
-      !Initial atom positions (in alat units) follow, with the format:
-      !   1           H   tau(   1) = (   0.5000000   0.0000000   0.7071068  )
-      IF( INDEX(test,"(alat units)")>0 ) THEN
-        atpos_units = "a"
-      ENDIF
-      !
-      CALL ATOMSK_MSG(4041,(/''/),(/DBLE(snap)/))
-      !
-      DO i=1,SIZE(P,1)
-        READ(30,'(a128)',ERR=500,END=500) test
-        test = TRIM(ADJUSTL(test))
-        READ(test,*,ERR=500,END=500) j, species
-        CALL ATOMNUMBER(species,P(j,4))
-        strlength = SCAN(test,"=")
-        test = test(strlength:)
-        strlength = SCAN(test,"(")
-        strlength2 = SCAN(test,")")
-        test = test(strlength+1:strlength2-1)
-        READ(test,*) P(j,1), P(j,2), P(j,3)
-        IF(atpos_units=="a") THEN
-          P(j,1:3) = alat*P(j,1:3)
-        ENDIF
-      ENDDO
-      !
-      IF(atpos_units=="a") THEN
-        atpos_units = cell_units
-      ENDIF
-      !
-      !Finished reading this snapshot: exit the loop
-      Nsnap = Nsnap+1
-      GOTO 300
-      !
     ELSEIF( test(1:16)=="ATOMIC_POSITIONS" ) THEN
-      !
+      !Atom positions follow, with the format:
+      !  H       4.5000000   1.5000000   6.5000000
       CALL ATOMSK_MSG(4041,(/''/),(/DBLE(snap)/))
       !
       !Check if positions are in reduced coordinates
@@ -340,12 +308,17 @@ DO  !loop on all snapshots
     !A new cell was defined
     IF(cell_units=="B" .AND. atpos_units=="A") THEN
       !Atom coordinates are in angstroms while cell vectors are in Bohrs
-      ! => convert atom positions into Bohrs for consistency
+      !=> convert cell into angströms for consistency
       nwarn=nwarn+1
       CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
-      DO i=1,SIZE(P,1)
-        P(i,1:3) = P(i,1:3) / (1.d10*a_bohr)
-      ENDDO
+      H(:,:) = 1.d10*a_bohr * H(:,:)
+      
+      ! => convert atom positions into Bohrs for consistency
+!       nwarn=nwarn+1
+!       CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
+!       DO i=1,SIZE(P,1)
+!         P(i,1:3) = P(i,1:3) / (1.d10*a_bohr)
+!       ENDDO
     ENDIF
   ENDIF
   !

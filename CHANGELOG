@@ -14,12 +14,13 @@ Beta 0.9 (in development)
 - added support for reading and writing files in JEMS format.
 - added support for reading and writing files in VESTA format.
 - enhanced support for CIF format. Symmetry operations are now taken into account. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
-- enhanced support for Quantum Espresso files. When writing such files the user's environment is now taken into account. When reading QE output files (in mode "--one-in-all"), when cell parameters are in Bohrs and atom positions in Angströms, the latter are now converted into Bohrs (instead of converting cell parameters into angströms).
+- enhanced support for Quantum Espresso files. When writing such files, the user's environment (in particular the variable $ESPRESSO_PSEUDO) is now taken into account.
 - in mode "--create", added possibility to generate wurtzite lattices.
 - in option "-add-atom", if atoms of the same species as the new atom(s) have shells, then the new atoms are also created with shells. Also, this options now allows to place a new atom relatively to an existing atom.
 - in option "-dislocation", the Poisson ratio must be given only for dislocations of edge character. It must be omitted for dislocations of screw or mixed characters.
 - in option "-disturb", added possibility to provide different values for displacements along X, Y and Z Cartesian axes.
 - in option "-duplicate", added possibility to provide negative values that correspond to mirroring the system and then duplicating it along negative values.
+- in option "-rotate", added possibility to perform the rotation around the center of mass of the system or of the selection.
 - in option "-select", added possibility to read a list of atom indices from a file. Also added the possibility to select atoms according to a finite-element grid.
 - in option "-unit", added possibility to scale any coordinate or property by a given factor.
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.

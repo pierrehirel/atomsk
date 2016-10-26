@@ -151,6 +151,8 @@ Removes one or all auxiliary properties.
 Removes the shells from ions with the given species, or all ions.
 .TP
 .B -rotate <axis> <angle>
+.TP
+.B -rotate com <axis> <angle>
 Rotates the system around a cartesian <axis>.
 .TP
 .B -select all

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Oct. 2016                                     *
+!* Last modification: P. Hirel - 25 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -991,9 +991,16 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='-rotate' .OR. clarg=='-rot') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
-    !read the axis of rotation (x, y or z) and the angle of rotation
+    !Check if first
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( temp(1:3)=="com" ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' com '
+      !read the axis of rotation (x, y or z) and the angle of rotation
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+    ENDIF
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp2
     temp = TRIM(ADJUSTL(temp))

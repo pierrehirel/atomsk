@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Oct. 2016                                     *
+!* Last modification: P. Hirel - 25 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -661,8 +661,17 @@ DO ioptions=1,SIZE(options_array)
     CALL ROLL_XYZ(H,P,S,AUXNAMES,AUX,shift_dir,rot_angle,rot_axis,SELECT)
   !
   CASE('-rot', '-rotate')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
-    CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT,C_tensor)
+    j=0
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
+    temp=TRIM(ADJUSTL(temp))
+    IF( temp(1:3)=="com" ) THEN
+      j=1
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, rot_axis, rot_angle
+    ELSE
+      j=0
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
+    ENDIF
+    CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,j,rot_axis,rot_angle,SELECT,C_tensor)
   !
   CASE('-select')
     !READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side

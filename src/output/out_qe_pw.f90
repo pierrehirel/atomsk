@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Dec. 2015                                     *
+!* Last modification: P. Hirel - 18 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,6 +116,11 @@ CALL GET_ENVIRONMENT_VARIABLE('ESPRESSO_PSEUDO',pseudo_dir)
 IF( LEN_TRIM(pseudo_dir)<=0 ) THEN
   CALL GET_ENVIRONMENT_VARIABLE('HOME',msg)
   pseudo_dir = TRIM(ADJUSTL(msg))//"/espresso/pseudo/"
+ENDIF
+!Last character should be a slash
+j=LEN_TRIM(pseudo_dir)
+IF( pseudo_dir(j:j) .NE. "/" ) THEN
+  pseudo_dir = TRIM(pseudo_dir)//"/"
 ENDIF
 !Verify if the pseudo_dir actually exists
 temp = TRIM(ADJUSTL(pseudo_dir))//".atomsk.tmp"

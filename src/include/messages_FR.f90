@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Oct. 2016                                     *
+!* Last modification: P. Hirel - 25 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -333,7 +333,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Tourner le système autour d'un axe :"
-  WRITE(*,*) "          -rot <x|y|z> <angle>"
+  WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-select") THEN

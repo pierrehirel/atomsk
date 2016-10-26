@@ -17,10 +17,10 @@ if [ -w ${BINPATH} ] ; then
     # System configuration file
     rm -f /etc/atomsk.conf
 
-    # atomsk binary
+    # Atomsk binary
     rm -f ${BINPATH}/atomsk
 
-    # atomsk tools
+    # Atomsk tools
     rm -f ${BINPATH}/cfg_setA.sh
     rm -f ${BINPATH}/dat_mulvec.sh
     rm -f ${BINPATH}/dat_rm0.sh
@@ -29,10 +29,10 @@ if [ -w ${BINPATH} ] ; then
     rm -f ${BINPATH}/lmp_ortho2tri.sh
     rm -f ${BINPATH}/qepw_bohr.sh
 
-    # atomsk documentation
+    # Atomsk documentation
     rm -rf ${DOCPATH}/atomsk/
 
-    # atomsk man page
+    # Atomsk man page
     rm -f ${MPATH}/atomsk.1.gz
 
     echo ">>> Program was successfuly removed."

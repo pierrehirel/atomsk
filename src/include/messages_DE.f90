@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 04 Oct. 2016                                     *
+!* Last modification: P. Hirel - 25 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -311,7 +311,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Rotiere das System um eine Achse:"
-  WRITE(*,*) "          -rot <x|y|z> <angle>"
+  WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-select") THEN

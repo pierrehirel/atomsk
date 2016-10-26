@@ -10,7 +10,7 @@ MPATH=/usr/local/share/man/man1/
 
 if [ ! -e 'atomsk' ] ; then
 
-  echo "X!X ERROR: impossible to install 'atomsk', it does not exist in current directory."
+  echo "X!X ERROR: the program 'atomsk' does not exist in current directory."
 
 else
 
@@ -23,17 +23,17 @@ else
       # System configuration file
       cp -rf ./etc/atomsk.conf /etc/
 
-      # atomsk binary
+      # Atomsk binary
       chmod +x atomsk
       cp atomsk ${BINPATH}
 
-      # atomsk tools
+      # Atomsk tools
       chmod +x ./tools/*.sh
       cp ./tools/* ${BINPATH}
       echo ">>> The program was successfuly installed in ${BINPATH}"
       echo "    To run it, enter 'atomsk' in a terminal."
 
-      # atomsk documentation
+      # Atomsk documentation
       mkdir -p ${DOCPATH}/atomsk
       rm -rf ${DOCPATH}/atomsk/*
       cp -rf ./doc/* ${DOCPATH}/atomsk/
@@ -41,7 +41,7 @@ else
       echo ">>> The html documentation was installed. You may read it by entering the"
       echo "    following address in your Web browser: ${DOCPATH}atomsk/index.html"
 
-      # atomsk man page
+      # Atomsk man page
       mkdir -p ${MPATH}
       gzip -c ./man/atomsk >${MPATH}/atomsk.1.gz
     

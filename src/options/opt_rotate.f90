@@ -10,7 +10,7 @@ MODULE rotate
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 10 Feb. 2014                                     *
+!* Last modification: P. Hirel - 25 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,20 +36,25 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE ROTATE_XYZ(H,P,S,AUXNAMES,AUX,rot_axis,rot_angle,SELECT,C_tensor)
+SUBROUTINE ROTATE_XYZ(H,P,S,AUXNAMES,AUX,com,rot_axis,rot_angle,SELECT,C_tensor)
 !
 !
 IMPLICIT NONE
 CHARACTER(LEN=1),INTENT(IN):: rot_axis  ! cartesian x, y or z axis
+CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 INTEGER:: a1, a2, a3
+INTEGER,INTENT(IN):: com  !=1 if rotation around the system center of mass, 0 otherwise
 INTEGER:: i
 INTEGER,DIMENSION(3):: Fxyz, Vxyz !columns of AUX containing forces, velocities
 LOGICAL:: velocities, forces
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp):: H2, H3
 REAL(dp):: rot_angle      !angle in degrees
+REAL(dp):: smass          !mass of an atom
+REAL(dp):: totmass        !mass of all (or selected) atoms
+REAL(dp),DIMENSION(3):: Vcom !position of center of rotation
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: rot_matrix
 REAL(dp),DIMENSION(9,9),INTENT(INOUT):: C_tensor  !elastic tensor
@@ -64,6 +69,7 @@ Fxyz(:)=0
 Vxyz(:)=0
 H2 = 0.d0
 H3 = 0.d0
+Vcom(:) = 0.d0
 rot_matrix(:,:) = 0.d0
 DO i=1,3
   rot_matrix(i,i) = 1.d0
@@ -72,7 +78,7 @@ ENDDO
 msg = 'Entering ROTATE_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL ATOMSK_MSG(2081,(/rot_axis/),(/rot_angle/))
+CALL ATOMSK_MSG(2081,(/rot_axis/),(/rot_angle,DBLE(com)/))
 !
 !If angle is more than 360°, reduce it
 DO WHILE(DABS(rot_angle)>=360.d0)
@@ -84,6 +90,21 @@ IF( DABS(rot_angle)<=1.d-12) THEN
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2734,(/''/),(/0.d0/))
   GOTO 1000
+ENDIF
+!
+!If rotation around center of mass, compute position of COM
+IF( com .NE. 0 ) THEN
+  totmass = 0.d0
+  Vcom(:) = 0.d0
+  DO i=1,SIZE(P,1)
+    IF( .NOT.(ALLOCATED(SELECT)) .OR. SELECT(i) ) THEN
+      CALL ATOMSPECIES(P(i,4),species)
+      CALL ATOMMASS(species,smass)
+      Vcom(:) = Vcom(:) + smass*P(i,1:3)
+      totmass = totmass + smass
+    ENDIF
+  ENDDO
+  Vcom(:) = Vcom(:) / totmass
 ENDIF
 !
 !convert the angle into radians
@@ -164,16 +185,16 @@ ENDIF
 !P(a1) is untouched and we rotate only atoms that are selected in SELECT
 DO i=1,SIZE(P,1)
   IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-    H2 = P(i,a2)
-    H3 = P(i,a3)
-    P(i,a2) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-    P(i,a3) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+    H2 = P(i,a2) - Vcom(a2)
+    H3 = P(i,a3) - Vcom(a3)
+    P(i,a2) = Vcom(a2) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+    P(i,a3) = Vcom(a3) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
     !Same with shell if they exist
     IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
-      H2 = S(i,a2)
-      H3 = S(i,a3)
-      S(i,a2) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      S(i,a3) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      H2 = S(i,a2) - Vcom(a2)
+      H3 = S(i,a3) - Vcom(a3)
+      S(i,a2) = Vcom(a2) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+      S(i,a3) = Vcom(a3) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
     ENDIF
     !Same with forces if they exist
     IF( forces ) THEN
@@ -192,7 +213,7 @@ DO i=1,SIZE(P,1)
   ENDIF
 ENDDO
 !
-IF( .NOT.ALLOCATED(SELECT) ) THEN
+IF( .NOT.ALLOCATED(SELECT) .AND. com==0 ) THEN
   !Rotate the base vectors of the system (only if no selection is defined)
   !The H(:,a1) are left untouched
   H2 = H(a1,a2)
