@@ -10,7 +10,7 @@ MODULE rmatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -249,6 +249,8 @@ ELSEIF( method==3 ) THEN
   !
   !
 ELSE
+  !Unable to determine which atoms to remove
+  nerr=nerr+1
   CALL ATOMSK_MSG(2812,(/''/),(/0.d0/))
   GOTO 1000
 ENDIF

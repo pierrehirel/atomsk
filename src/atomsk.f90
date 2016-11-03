@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 March 2016                                    *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -390,7 +390,6 @@ ENDIF
 !
 500 CONTINUE
 !Terminating program
-CALL ATOMSK_MSG(1,(/''/),(/0.d0/))
 !
 !
 !
@@ -406,7 +405,8 @@ time_total = 86400.d0*DBLE(VALUESf(3)) + &
            & DBLE(VALUESf(7)) + 1.d-3*DBLE(VALUESf(8))
 CALL CPU_TIME(cpu_t2)
  cpu_t2 = cpu_t2 - cpu_t1
-CALL ATOMSK_MSG(2,(/''/),(/time_total, cpu_t2/))
+!CALL ATOMSK_MSG(2,(/''/),(/time_total, cpu_t2/))
+CALL ATOMSK_MSG(1,(/''/),(/time_total, cpu_t2/))
 !
 !
 1100 CONTINUE

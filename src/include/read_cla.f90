@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Oct. 2016                                     *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1446,7 +1446,7 @@ DO WHILE(i<SIZE(cla))
       READ(temp2,*,END=120,ERR=120) tempreal
     ENDIF
   !
-  ELSEIF(clarg=='-unit' .OR. clarg=='-u') THEN
+  ELSEIF(clarg=='-unit' .OR. clarg=='-units' .OR. clarg=='-u') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     i=i+1

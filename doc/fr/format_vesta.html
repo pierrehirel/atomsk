@@ -24,9 +24,11 @@
 
 <h4>Restrictions</h4>
 
-<p>Atomsk peut lire les fichiers VESTA. Si le fichier contient des opérations de symétrie (après le mot-clé "SYMOP"), alors elles sont appliquées immédiatement.</p>
+<p>Atomsk peut lire les fichiers VESTA. Si des vecteurs sont définis (après le mot-clé "VECTR"), alors leurs composantes sont enregistrées comme propriétés auxiliaires sous les noms vecx, vecy, vecz. Si le fichier contient des opérations de symétrie (après le mot-clé "SYMOP"), alors elles sont appliquées immédiatement.</p>
 
-<p>Lorsqu'il écrit un fichier VESTA, Atomsk ignore aussi les opérations de symétrie, c'est-à-dire que le groupe d'espace sera P1. Si les forces sont définies en tant que propriétés auxiliaires (<code>fx, fy, fz</code>), alors elles sont écrites comme vecteur après la position de chaque atome. Sinon, si les vitesses des atomes sont définies alors elles sont utilisées comme vecteurs. Sinon les vecteurs seront nuls pour tous les atomes.</p>
+<p>Lorsqu'il écrit un fichier VESTA, Atomsk ignore aussi les opérations de symétrie, c'est-à-dire que le groupe d'espace sera P1. Si, parmi les propriétés auxiliaires, il en existe trois portant le même préfixe suivi de x, y, z (par exemple les forces fx, fy, fz, ou bien les vitesses vx, vy, vz), alors elles seront écrites en tant que vecteurs dans le fichier VESTA, afin que ce dernier puisse les afficher comme vecteurs. Notez que si les composantes ont des valeurs très petites ou très élevées, alors les flèches seront quasiment invisibles ou bien démesurément grandes dans VESTA, ce qui peut être corrigé en redimensionnant les composantes grâce à l'<a href="./option_unit.html">option <code>-unit</code></a>.
+
+Si les forces sont définies en tant que propriétés auxiliaires (<code>fx, fy, fz</code>), alors elles sont écrites comme vecteur après la position de chaque atome. Sinon, si les vitesses des atomes sont définies alors elles sont utilisées comme vecteurs. Sinon les vecteurs seront nuls pour tous les atomes.</p>
 
 
 

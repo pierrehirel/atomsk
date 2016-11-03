@@ -12,7 +12,7 @@ MODULE out_vesta
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 March 2016                                    *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,10 +47,10 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
-LOGICAL:: forces !are there forces or not?
+LOGICAL:: vectors !are there vectors to display or not?
 LOGICAL:: isreduced  !are coordinates already reduced?
-INTEGER:: fx, fy, fz, occ !index for forces and occupancies in AUX
-INTEGER:: i
+INTEGER:: vx, vy, vz, occ !index for vector and occupancies in AUX
+INTEGER:: i, j, k
 REAL(dp):: a, b, c, alpha, beta, gamma   !supercell (conventional notation)
 REAL(dp):: P1, P2, P3
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
@@ -60,12 +60,12 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
 !Initialize variables
-forces = .FALSE.
+vectors = .FALSE.
 isreduced = .FALSE.
 G(:,:) = 0.d0
-fx=0
-fy=0
-fz=0
+vx=0
+vy=0
+vz=0
 occ=0
 !
 msg = 'entering WRITE_VESTA'
@@ -83,32 +83,42 @@ IF( .NOT.isreduced ) THEN
   CALL INVMAT(H,G)
 ENDIF
 !
-!Check if forces are present in auxiliary properties
-!NOTE: if forces are not found, use velocities
-!      If velocities are not found, all atoms will have zero vectors
+!Check if a vector quantity is present in auxiliary properties
+!NOTE: 
 IF(ALLOCATED(AUXNAMES)) THEN
+  temp = ""
   DO i=1,SIZE(AUXNAMES)
     IF( TRIM(ADJUSTL(AUXNAMES(i)))=='occ') THEN
       occ = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='fx') THEN
-      fx = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='fy') THEN
-      fy = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='fz') THEN
-      fz = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vx') THEN
-      fx = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vy') THEN
-      fy = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vz') THEN
-      fz = i
+    ENDIF
+    !
+    IF( .NOT.vectors ) THEN
+      k = SCAN(AUXNAMES(i),"x")
+      IF( k>0 ) THEN
+        vx = i
+        temp = AUXNAMES(i)
+        temp = ADJUSTL(temp(1:k-1))
+        DO j=i+1,SIZE(AUXNAMES)
+          IF( TRIM(ADJUSTL(AUXNAMES(j)))==TRIM(temp)//'y' ) THEN
+            vy = j
+          ELSEIF( TRIM(ADJUSTL(AUXNAMES(j)))==TRIM(temp)//'z') THEN
+            vz = j
+          ENDIF
+        ENDDO
+      ENDIF
+      !
+      IF( vx>0 .AND. vy>0 .AND. vz>0 ) THEN
+        vectors = .TRUE.
+      ELSE
+        vectors = .FALSE.
+        vx=0
+        vy=0
+        vz=0
+      ENDIF
     ENDIF
   ENDDO
-  IF( fx.NE.0 .AND. fy.NE.0 .AND. fz.NE.0 ) THEN
-    forces = .TRUE.
-  ENDIF
 ENDIF
-WRITE(temp,*) 'forces: ', forces
+WRITE(temp,*) 'vectors found: ', vectors
 CALL ATOMSK_MSG(999,(/temp/),(/0.d0/))
 !
 !
@@ -175,15 +185,28 @@ DO i=1,SIZE(P,1)
     a = AUX(i,occ)
   ENDIF
   WRITE(40,110) i, species, species, a, TRIM(ADJUSTL(temp))//"    1a       1"
-  IF( forces ) THEN
-    WRITE(40,'(24X,3f12.8,a6)') AUX(i,fx), AUX(i,fy), AUX(i,fz), "  0.00"
-  ELSE
-    WRITE(40,*) "                            0.000000   0.000000   0.000000  0.00"
-  ENDIF
+  WRITE(40,*) "                            0.000000   0.000000   0.000000  0.00"
 ENDDO
+WRITE(40,'(a)') "  0 0 0 0 0 0 0"
 110 FORMAT(i6,2X,a2,2X,a2,2X,f12.8,2X,a)
 !
-WRITE(40,'(a)') "  0 0 0 0 0 0 0"
+!
+IF( vectors ) THEN
+  !Write the vector coordinates
+  WRITE(40,'(a5)') "VECTR"
+  DO i=1,SIZE(AUX,1)
+    WRITE(40,'(i7,3f12.8,a3)') i, AUX(i,vx), AUX(i,vy), AUX(i,vz), "  0"
+    WRITE(40,*) i, " 0    0    0    0"
+    WRITE(40,*) " 0 0 0 0 0"
+  ENDDO
+  WRITE(40,'(a)') " 0 0 0 0 0"
+  !Write vector properties
+  WRITE(40,'(a5)') "VECTT"
+  DO i=1,SIZE(AUX,1)
+    WRITE(40,'(i7,a21)') i, "  0.500 255   0   0 0"
+  ENDDO
+  WRITE(40,'(a)') " 0 0 0 0 0"
+ENDIF
 !
 !
 !

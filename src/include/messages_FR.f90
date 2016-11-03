@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Oct. 2016                                     *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -525,14 +525,36 @@ SELECT CASE(imsg)
 CASE(1)
   !Message at program termination
   !nerr and nwarn are global variables
-  msg = "\o/ Le programme s'est bien terminé !"
+  !reals(1) = total time
+  !reals(2) = CPU time
+  msg = "\o/ Le programme s'est terminé avec succès !"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(temp,*) nwarn
-  temp = ADJUSTL(temp)
-  WRITE(temp2,*) nerr
-  temp2 = ADJUSTL(temp2)
-  WRITE(msg,*) "   Alertes : "//TRIM(temp)//" ; Erreurs : "//TRIM(temp2)
+  WRITE(temp,"(f30.3)") reals(1)
+  WRITE(temp2,"(f30.3)") reals(2)
+  WRITE(msg,*) "   Temps total : "//TRIM(ADJUSTL(temp))//         &
+           & " s.; temps CPU : "//TRIM(ADJUSTL(temp2))//" s."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( nwarn>0 .OR. nerr>0 ) THEN
+    !In case of warning or error, display a big box
+    msg = " _________________________________________"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    IF( nwarn>0 ) THEN
+      WRITE(temp,*) nwarn
+      temp = ADJUSTL(temp)
+      msg = "|  /!\ ALERTES : "//TRIM(temp)
+      msg = msg(1:42)//"|"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+    IF( nerr>0 ) THEN
+      WRITE(temp,*) nerr
+      temp = ADJUSTL(temp)
+      msg = "|  X!X ERREURS : "//TRIM(temp)
+      msg = msg(1:42)//"|"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+    msg = "|_________________________________________|"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   !
 CASE(2)
   !Message giving the elasped time
@@ -806,7 +828,7 @@ CASE(1705)
 CASE(1706)
   msg = "/!\ ALERTE : les paramètres de boîte sont en Bohrs, alors que les positions atomiques sont en angströms."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Les positions des atomes seront converties en Bohrs pour rétablir la cohérence."
+  msg = "            Les vecteurs de boîte seront converties en angströms pour rétablir la cohérence."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string

@@ -9,7 +9,7 @@ MODULE display_messages
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Nov. 2013                                     *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -95,15 +95,23 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 !
 !Print a nice message
-msg = "       o---o                     O"
+msg = " _________________________________________"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "      o---o|   _____________     |"
+msg = "|      o---o                     O        |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "      |   |o    A T O M S K     ,0;-o"
+msg = "|     o---o|   _____________     |        |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "      o---o                   o'   'O"
+msg = "|     |   |o    A T O M S K     ,0;-o     |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-CALL DISPLAY_COPYRIGHT()
+msg = "|     o---o                   o'   'O     |"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "|   Version "//TRIM(ADJUSTL(version))
+msg = msg(1:42)//"|"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "|   (C) 2010 Pierre Hirel                 |"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "|_________________________________________|"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 END SUBROUTINE DISPLAY_HEADER
 !

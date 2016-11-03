@@ -270,7 +270,7 @@ IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
           IF(iloop>100) EXIT
         ENDDO
         !
-        DO WHILE( tilt(i)<=-0.5d0*K(j,j) )
+        DO WHILE( tilt(i)<-0.5d0*K(j,j) )
           tilt(i) = tilt(i)+K(j,j)
           iloop=iloop+1
           IF(iloop>200) EXIT

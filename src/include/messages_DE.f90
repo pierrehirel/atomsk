@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 25 Oct. 2016                                     *
+!* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -499,14 +499,36 @@ SELECT CASE(imsg)
 CASE(1)
   !Message at program termination
   !nerr and nwarn are global variables
+  !reals(1) = total time
+  !reals(2) = CPU time
   msg = "\o/ Programm erfolgreich beendet!"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(temp,*) nwarn
-  temp = ADJUSTL(temp)
-  WRITE(temp2,*) nerr
-  temp2 = ADJUSTL(temp2)
-  WRITE(msg,*) "   Warnungen: "//TRIM(temp)//" ; Fehler: "//TRIM(temp2)
+  WRITE(temp,"(f30.3)") reals(1)
+  WRITE(temp2,"(f30.3)") reals(2)
+  WRITE(msg,*) "   Gesamtzeit: "//TRIM(ADJUSTL(temp))//         &
+           & " s.; CPU zeit: "//TRIM(ADJUSTL(temp2))//" s."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( nwarn>0 .OR. nerr>0 ) THEN
+    !In case of warning or error, display a big box
+    msg = " _________________________________________"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    IF( nwarn>0 ) THEN
+      WRITE(temp,*) nwarn
+      temp = ADJUSTL(temp)
+      msg = "|  /!\ WARNUNGEN: "//TRIM(temp)
+      msg = msg(1:42)//"|"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+    IF( nerr>0 ) THEN
+      WRITE(temp,*) nerr
+      temp = ADJUSTL(temp)
+      msg = "|  X!X FEHLER:    "//TRIM(temp)
+      msg = msg(1:42)//"|"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+    msg = "|_________________________________________|"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   !
 CASE(2)
   !Message giving the elasped time
@@ -780,7 +802,7 @@ CASE(1705)
 CASE(1706)
   msg = "/!\ WARNUNG: Zell-Dimensionen in Bohrs, aber atomare Positionen in Angstroems."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "             Atomare Positionen werden in Bohr konvertiert."
+  msg = "             Zellenvektoren werden in Angstroems konvertiert."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1707) ! invalid symmetry operation string input.
   !strings(1) = failed symmetry operation string
