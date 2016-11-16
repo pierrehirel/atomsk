@@ -27,9 +27,9 @@
 <p>The translational vectors used to repeat the system are the base vectors of the original cell, noted <code>Hx</code>, <code>Hy</code> and <code>Hz</code>. The command-line parameters must be integers and, if they need any explanation at all:</p>
 
 <ul>
-  <li><strong>Nx</strong>: number of times the system is repeated along <code>Hx</code>.</li>
-  <li><strong>Ny</strong>: number of times the system is repeated along <code>Hy</code>.</li>
-  <li><strong>Nz</strong>: number of times the system is repeated along <code>Hz</code>.</li>
+  <li><strong>Nx</strong>: number of times the system is repeated along the first box vector <code>Hx</code>.</li>
+  <li><strong>Ny</strong>: number of times the system is repeated along the second box vector <code>Hy</code>.</li>
+  <li><strong>Nz</strong>: number of times the system is repeated along the third box vector <code>Hz</code>.</li>
 </ul>
 
 <p>If all values are equal to 1 then the system remains the same (since it is multiplied one time along all directions). Any value equal to 0 is automatically replaced by 1, as a zero dimension would wipe out the whole system. If a negative value is provided, then the system is mirrored along that axis, and then expanded in the direction of negative coordinates.</p>

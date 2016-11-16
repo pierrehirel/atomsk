@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" >
 <head>
-    <title>Mode joindre - Atomsk - Pierre Hirel</title>
+    <title>Mode merge - Atomsk - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,24 +11,22 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Mode : joindre</h2>
+<h2>Mode : merge</h2>
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --merge [&#60;direction&#62;] &#60;N&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
-
-<p><code>atomsk -M [&#60;direction&#62;] &#60;N&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --merge [x|y|z] &#60;N&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
 
 <p>Ce mode permet de joindre plusieurs systèmes en un seul, soit en réunissant les atomes des différents systèmes dans la même boîte, soit en juxtaposant les systèmes suivant une direction donnée. Le résultat est écrit dans le &#60;fichiersortie&#62;, aux &#60;formats&#62; donnés.</p>
 
-<p>L'entier &#60;N&#62; indique combien de systèmes seront joints. Il doit être suivi des noms des fichiers contenant ces systèmes, de &#60;fichier1&#62; à &#60;fichierN&#62;.</p>
+<p>L'entier &#60;N&#62; indique combien de systèmes seront joints. Il est obligatoire, et doit être suivi du bon nombre de fichiers d'entrée, de &#60;fichier1&#62; à &#60;fichierN&#62;.</p>
 
-<p>La &#60;direction&#62; est un paramètre optionnel. Par défaut, s'il n'est pas utilisé, les vecteurs de boîte du &#60;fichier1&#62; sont utilisés, et les atomes de tous les systèmes sont intégrés à cette boîte.</p>
+<p>La direction [x|y|z] est un paramètre optionnel. S'il est absent, alors tous les systèmes sont ajoutés dans la boîte du premier système (c'est-à-dire le &#60;fichier1&#62;). Autrement dit, le système final est l'union de tous les systèmes. Les vecteurs de la boîte finale sont égaux aux vecteurs de boîte du premier système &#60;fichier1&#62;.</p>
 
-<p>Lorsque le paramètre &#60;direction&#62; est utilisé, il doit valoir 'x', 'y' ou 'z'. Il indique que les systèmes doivent être accolés côte à côte suivant la direction donnée. Par exemple si &#60;direction&#62;=Y alors les boîtes des différents systèmes seront juxtaposées suivant la direction  <code>H(2,:)</code> du &#60;fichier1&#62;. Bien sûr une telle construction n'a de sens que si tous les systèmes ont des géométries similaires, c-à-d. que leur dimension suivant la &#60;direction&#62; peut prendre n'importe quelle valeur, mais les dimensions dans les deux autres dimensions doivent être les mêmes pour tous les systèmes à joindre. Le résultat final peut être farfelu si, par exemple, un système trilclinique est joint à un système orthorhombique.</p>
+<p>Lorsqu'une direction est donnée, elle doit valoir 'x', 'y' ou 'z'. Dans ce cas, les systèmes sont empilés dans la direction donnée. Dans cette direction, la dimension de la boîte finale est le somme des dimensions de toutes les boîtes ; dans les directions perpendiculaires, la boîte finale a les mêmes dimensions que le premier système &#60;fichier1&#62;. Bien sûr une telle construction n'a de sens que si tous les systèmes ont des dimensions égales (ou similaires). Sinon, le résultat final risque d'être incohérent (par exemple si vous essayez d'empiler des boîtes tricliniques et rectangulaires de géométries et tailles variées).</p>
 
 <p>Attention : Atomsk n'ajuste pas les positions atomiques, et ne trouve pas "automagiquement" les interfaces optimales ni quoi que ce soit de ce genre. Il appartient à l'utilisateur de vérifier les orientations cristallographiques et les géométries de ses systèmes avant de les joindre. Pour rapidement redéfinir les vecteurs de boîte après avoir joint des systèmes il est possible d'utiliser l'<a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 
@@ -44,10 +42,10 @@
 <p>Ceci réunira les atomes des systèmes contenus dans <code>aluminium_bas.cfg</code> et <code>fer_haut.xsf</code> dans la même boîte (la boîte définie dans <code>aluminium_bas.cfg</code>), et écrira le résultat final dans <code>interface.xyz</code> et <code>interface.xsf</code>.</p></li>
 
 <li><code class="command">atomsk --merge z 3 un.cfg deux.xsf trois.cfg final.xsf</code>
-<p>Ceci accolera les systèmes <code>un.cfg</code>, <code>deux.xsf</code> et <code>trois.cfg</code> suivant l'axe Z, et écrira le résultat dans <code>final.xsf</code>.</p></li>
+<p>Ceci empilera les systèmes <code>un.cfg</code>, <code>deux.xsf</code> et <code>trois.cfg</code> suivant l'axe Z, et écrira le résultat dans <code>final.xsf</code>.</p></li>
 
 <li><code class="command">atomsk --merge x 4 fichier.cfg fichier.cfg fichier.cfg fichier.cfg final.xsf</code>
-<p>Ceci copiera le système <code>fichier.cfg</code> quatre fois suivant l'axe X.</p></li>
+<p>Ceci empilera le système <code>fichier.cfg</code> quatre fois suivant l'axe X. Cette opération est équivalent au fait de <a href="./option_duplicate.html">dupliquer</a> le système quatre fois suivant X (c'est-à-dire "-duplicate 4 1 1").</p></li>
 
 <li><p>D'autres exemples se trouvent dans le dossier "examples" fourni avec le programme. Le dossier "<code>Cu_Fe_interface</code>" contient un script bash qui construit une interface entre deux systèmes : du cuivre cfc et du fer cubique centré.</p></li>
 </ul>

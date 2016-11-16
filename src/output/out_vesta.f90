@@ -84,7 +84,6 @@ IF( .NOT.isreduced ) THEN
 ENDIF
 !
 !Check if a vector quantity is present in auxiliary properties
-!NOTE: 
 IF(ALLOCATED(AUXNAMES)) THEN
   temp = ""
   DO i=1,SIZE(AUXNAMES)
@@ -195,7 +194,7 @@ IF( vectors ) THEN
   !Write the vector coordinates
   WRITE(40,'(a5)') "VECTR"
   DO i=1,SIZE(AUX,1)
-    WRITE(40,'(i7,3f12.8,a3)') i, AUX(i,vx), AUX(i,vy), AUX(i,vz), "  0"
+    WRITE(40,'(i7,3(1X,f12.8),a3)') i, AUX(i,vx), AUX(i,vy), AUX(i,vz), "  0"
     WRITE(40,*) i, " 0    0    0    0"
     WRITE(40,*) " 0 0 0 0 0"
   ENDDO

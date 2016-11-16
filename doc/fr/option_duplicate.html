@@ -27,9 +27,9 @@
 <p>Les vecteurs de translation utilisés pour répéter le système sont ceux lus depuis le fichier d'entrée, notés <code>Hx</code>, <code>Hy</code> et <code>Hz</code>. Les paramètres associés avec cette option sont :</p>
 
 <ul>
-  <li><strong>Nx</strong> : nombre de répétitions du système suivant <code>Hx</code>.</li>
-  <li><strong>Ny</strong> : nombre de répétitions du système suivant <code>Hy</code>.</li>
-  <li><strong>Nz</strong> : nombre de répétitions du système suivant <code>Hz</code>.</li>
+  <li><strong>Nx</strong> : nombre de répétitions du système suivant le premier vecteur de boîte <code>Hx</code>.</li>
+  <li><strong>Ny</strong> : nombre de répétitions du système suivant le second vecteur de boîte <code>Hy</code>.</li>
+  <li><strong>Nz</strong> : nombre de répétitions du système suivant le troisième vecteur de boîte <code>Hz</code>.</li>
 </ul>
 
 <p>Si toutes les valeurs sont égales à 1 alors le système reste identique (puisqu'il est multiplié par un dans toutes les directions). Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système. Si une valeur négative est fournie, alors le système est inversé selon cet axe, puis il est dupliqué en direction des coordonnées négatives.</p>

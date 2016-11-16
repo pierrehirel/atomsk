@@ -15,20 +15,18 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --merge [&#60;merge_dir&#62;] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
-
-<p><code>atomsk -M [&#60;merge_dir&#62;] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --merge [x|y|z] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
 
 <p>This mode merges several systems into one, either by gathering atoms from different systems into the same box or by juxtaposing several systems along an axis. The results are output in the specified &#60;outputfile&#62; and &#60;formats&#62;.</p>
 
-<p>The integer &#60;N&#62; indicates how many systems must be merged. It must be followed by the files names &#60;file1&#62; to &#60;fileN&#62;.</p>
+<p>The integer &#60;N&#62; indicates how many systems must be merged. It is mandatory, and must be followed by the corresponding number of files names &#60;file1&#62; to &#60;fileN&#62;.</p>
 
-<p>&#60;merge_dir&#62; is an optional parameter. By default, when it is not used, the final supercell parameters are the ones read from the &#60;file1&#62;, and atom positions read from all files are assumed to be in that same supercell.</p>
+<p>The direction [x|y|z] is an optional parameter. By default, when it is omitted, all atoms are merged into the box of the first system of the list (i.e. in the system &#60;file1&#62;). In other words, the final supercell is the union of all input systems. The final supercell vectors are equal to the box vectors of the first system.</p>
 
-<p>When used, the optional parameter &#60;merge_dir&#62; must be 'x', 'y' or 'z', and indicates if the systems must be concatenated along a particular direction. For instance if &#60;merge_dir&#62;=Y then the supercells of all the systems will be juxtaposed along the direction <code>H(2,:)</code> of the &#60;file1&#62;. Of course this makes sense only if all systems have the same geometry, i.e. the dimension along &#60;merge_dir&#62; can be anything but the supercells parameters along the other two directions must be the same for all systems. The result may not make any sense when trying to concatenate a triclinic box with an orthorhombic, for instance.</p>
+<p>When a direction is provided, it must be 'x', 'y' or 'z'. In this case, the systems are stacked on top of each other along the given direction. Along that given direction, the dimension of the final box is the sum of the dimensions of all stacked systems; in the other directions, the final box has the same size as the first system &#60;file1&#62;. Of course, this makes sense only if all systems have equal (or similar) dimensions normal to the given direction. Otherwise, the final result may not make much sense (e.g. when trying to stack rectangular and triclinic boxes of various shapes and sizes).</p>
 
 <p>Beware that Atomsk does not "automagically" shift atomic positions, find the optimum interfaces or whatsoever. It is up to you to build, for instance, one system in one half of the supercell, the other system in the other half, and then use this mode to merge them. For quickly redefining the dimensions of the final system one can use the <a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 
@@ -44,10 +42,10 @@
 <p>This will merge all atoms <code>fccal_bottom.cfg</code> and <code>bcciron_top.xsf</code> in the same box (the one defined in <code>fccal_bottom.cfg</code>), and output the result in <code>interface.xyz</code> and <code>interface.xsf</code>.</p></li>
 
 <li><code class="command">atomsk --merge z 3 one.cfg two.xsf three.cfg final.xsf</code>
-<p>This will concatenate the three systems <code>one.cfg</code>, <code>two.xsf</code> and <code>three.cfg</code> along the Z axis, and output the result in <code>final.xsf</code>.</p></li>
+<p>This will stack the three systems <code>one.cfg</code>, <code>two.xsf</code> and <code>three.cfg</code> along the Cartesian Z direction, and output the result in <code>final.xsf</code>.</p></li>
 
 <li><code class="command">atomsk --merge x 4 file.cfg file.cfg file.cfg file.cfg final.xsf</code>
-<p>This will concatenate the file <code>file.cfg</code> four times along X.</p></li>
+<p>This will stack the file <code>file.cfg</code> four times along X. This operation is equivalent to <a href="./option_duplicate.html">duplicating</a> the system four times along X (i.e. "-duplicate 4 1 1").</p></li>
 
 <li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Cu_Fe_interface</code>" contains a bash script that builds two slabs, one of fcc copper and one of bcc iron, and merges them to form an interface.</p></li>
 </ul>

@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER="Beta 0.9-dev"
+VER="Beta0.9-dev"
 
 # Name of the final binary
 BIN=atomsk
@@ -86,8 +86,8 @@ ifndef MPATH
   MPATH=$(INSTPATH)/share/man/man1
 endif
 
-# Name for the tar.gz archive (do NOT add extension)
-ARCNAME=atomsk_b$(VER)
+# Name for the tar.gz archive (do NOT add extension like .tar.gz)
+ARCNAME=atomsk_$(VER)
 
 # Define folders where objects are found
 VPATH=$(OBJ)

@@ -2192,7 +2192,9 @@ CASE(4022)
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
-  msg = "Available commands:"
+  msg = "Atomsk is currently running in INTERACTIVE MODE."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "Only the following commands are available:"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "help              Display this help"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

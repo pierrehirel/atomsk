@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Dec. 2015                                     *
+!* Last modification: P. Hirel - 09 Nov. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -347,14 +347,14 @@ DO
           H(:,:) = celldm(1)*H(:,:)
         ENDIF
         cell_units='B'
-      ELSEIF( msg(1:3)=="ang" ) THEN
+      ELSEIF( msg(1:3)=='ang' ) THEN
         !Cell dimensions are in Angströms
         cell_units='A'
       ENDIF
     ENDIF
     !
   ELSEIF( temp(1:16)=='ATOMIC_POSITIONS' .OR. temp(1:16)=='atomic_positions' ) THEN
-    msg = ADJUSTL(temp(18:))
+    msg = ADJUSTL(temp(17:))
     DO i=1,SIZE(P,1)
       IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
         READ(30,*,END=800,ERR=800) species, P(i,1), P(i,2), P(i,3), AUX(i,fixx), AUX(i,fixy), AUX(i,fixz)
@@ -372,14 +372,13 @@ DO
     ELSEIF( msg(1:4)=='alat' .OR. msg(1:4)=='ALAT' .OR. LEN_TRIM(msg)==0 ) THEN
       P(:,1:3) = celldm(1)*P(:,1:3)
       atpos_units=cell_units
-    ELSEIF( msg(1:3)=="ang" ) THEN
+    ELSEIF( msg(1:3)=='ang' ) THEN
       !Atom positions are in Angströms
       atpos_units='A'
     ENDIF
     !
     !
-  ELSEIF( temp(1:16)=='ATOMIC_POSITIONS' .OR. temp(1:16)=='atomic_positions' ) THEN
-    msg = ADJUSTL(temp(18:))
+  ELSEIF( temp(1:13)=='ATOMIC_FORCES' .OR. temp(1:16)=='atomic_forces' ) THEN
     DO i=1,SIZE(AUX,1)
       READ(30,*,END=800,ERR=800) species, AUX(i,fx), AUX(i,fy), AUX(i,fz)
     ENDDO
@@ -401,12 +400,10 @@ CLOSE(30)
 !
 IF( cell_units=="B" .AND. atpos_units=="A" ) THEN
   !Atom coordinates are in angstroms while cell vectors are in Bohrs
-  ! => convert atom positions into Bohrs for consistency
+  ! => convert cell vectors into angströms for consistency
   nwarn=nwarn+1
   CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
-  DO i=1,SIZE(P,1)
-    P(i,1:3) = P(i,1:3) / (1.d10*a_bohr)
-  ENDDO
+  H(:,:) = H(:,:) * 1.d10*a_bohr
 ENDIF
 !
 !

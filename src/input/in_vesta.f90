@@ -11,7 +11,7 @@ MODULE in_vesta
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 10 Nov. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,6 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg, temp, temp2
-CHARACTER(LEN=128):: sgroup
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 LOGICAL:: fileexists  !does a file already exist?
@@ -63,11 +62,11 @@ REAL(dp),DIMENSION(12):: symops_line !line of symmetry operations list
 !
 !
 !Initialize variables
-sgroup = ""
 vectors = .FALSE.
 i = 0
 NP = 0
 Nsym = 0
+sgroupnum = 0
 H(:,:) = 0.d0
 ALLOCATE(comment(1))
  comment = ""
@@ -84,7 +83,6 @@ REWIND(30)
 DO
   READ(30,'(a128)',END=200,ERR=200) temp
   temp = ADJUSTL(temp)
-  !PRINT*, temp
   !
   IF( temp(1:5)=="TITLE" ) THEN
     READ(30,'(a128)',END=110,ERR=110) comment(1)
@@ -101,17 +99,21 @@ DO
     !
   ELSEIF( temp(1:5)=="STRUC" ) THEN
     !Count atoms
-    temp="1"
-    DO WHILE( SCAN(temp,'.123456789') > 0 )
-      !First line contains index of atom
-      READ(30,'(a128)',END=800,ERR=800) temp
-      temp = ADJUSTL(temp)
+    NP=0
+    !Read very first line after "STRUC"
+    READ(30,'(a128)',END=800,ERR=800) temp
+    temp = ADJUSTL(temp)
+    DO WHILE( SCAN(temp,'.123456789') > 0 .AND. temp(1:3).NE."0 0")
+      !Each atom is described by two lines
+      !First line starts with index of atom
       READ(temp,*,END=110,ERR=110) i
       IF( i>NP ) NP=i
-      !Second line contains zeros
+      !Second line contains zeros (ignored here)
       READ(30,'(a128)',END=110,ERR=110) temp2
+      !Read line of next atom (or end of atoms)
+      READ(30,'(a128)',END=110,ERR=110) temp
+      temp = ADJUSTL(temp)
     ENDDO
-    BACKSPACE(30)
     !
   ELSEIF( temp(1:5)=="VECTR" ) THEN
     !Vectors are defined in this file
@@ -120,7 +122,7 @@ DO
   ELSEIF( temp(1:5)=="GROUP" ) THEN
     !Read space group number in following line
     READ(30,'(a128)',END=801,ERR=801) temp
-    READ(temp,*) sgroup
+    READ(temp,*,END=801,ERR=801) sgroupnum
     !
   ELSEIF( temp(1:5)=="SYMOP" ) THEN
     !Count symmetry operations
@@ -174,7 +176,6 @@ DO
   !
   IF( temp(1:5)=="STRUC" ) THEN
     !Read atomic data
-    temp="1"
     DO j=1,SIZE(P,1)
       !Each atom has two lines of data
       !First line contains atom index, species, name, occupancy, position, others
@@ -197,7 +198,7 @@ DO
       !
       220 CONTINUE
     ENDDO
-    290 CONTINUE
+    230 CONTINUE
     !
   ELSEIF( temp(1:5)=="VECTR" ) THEN
     !This contains vectors: read and store them
@@ -205,21 +206,25 @@ DO
     DO WHILE( j>0 )
       !Each vector has three lines of data
       !First line contains vector index j and coordinates
-      READ(30,'(a128)',END=300,ERR=300) temp
+      READ(30,'(a128)',END=290,ERR=290) temp
       temp = ADJUSTL(temp)
-      READ(temp,*,END=300,ERR=300) j, P1, P2, P3
+      READ(temp,*,END=290,ERR=290) j, P1, P2, P3
       IF( j>0 ) THEN
+        !This is a valid vector => read second and third lines
         !Second line contains index i of atom owning that vector
-        READ(30,'(a128)',END=800,ERR=800) temp
+        READ(30,'(a128)',END=290,ERR=290) temp
         temp = ADJUSTL(temp)
-        READ(temp,*,END=800,ERR=800) i
+        READ(temp,*,END=290,ERR=290) i
         IF( i>0 .AND. i<=SIZE(AUX,1) ) THEN
           AUX(i,2) = P1
           AUX(i,3) = P2
           AUX(i,4) = P3
         ENDIF
-        !Third line contains zeros
-        READ(30,'(a128)',END=800,ERR=800) temp2
+        !Third line contains zeros, read it but ignore its content
+        READ(30,'(a128)',END=290,ERR=290) temp
+      ELSE
+        !We read a line starting with a 0
+        GOTO 290
       ENDIF
     ENDDO
     !
@@ -237,6 +242,8 @@ DO
     !
   ENDIF
   !
+  290 CONTINUE
+  !
 ENDDO
 !
 !
@@ -246,7 +253,7 @@ ENDDO
 CALL FRAC2CART(P,H)
 !Apply symmetry operations (if any)
 !(cf. /include/symops.f90)
-IF( Nsym>0 ) THEN
+IF( Nsym>0 .AND. sgroupnum>1 ) THEN
   CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,1.d0,j)
   IF(ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
 ENDIF

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 09 Nov. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -383,7 +383,8 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='bop' .OR. clarg=="BOP") THEN
     Nout = Nout+1
     tempout(Nout) = 'bop'
-  ELSEIF(clarg=='cfg' .OR. clarg=='CFG' .OR. clarg=='atomeye' .OR. clarg=='Atomeye' .OR. clarg=='ATOMEYE') THEN
+  ELSEIF( clarg=='cfg' .OR. clarg=='CFG' .OR. clarg=='atomeye' .OR. clarg=='Atomeye' .OR. &
+        & clarg=='ATOMEYE' .OR. clarg=='QSTEM' .OR. clarg=='qstem' .OR. clarg=='Qstem' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'cfg'
   ELSEIF(clarg=='cel' .OR. clarg=='CEL' .OR. clarg=='drprobe' .OR. clarg=='DrProbe') THEN

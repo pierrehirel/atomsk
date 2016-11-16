@@ -24,9 +24,9 @@
 
 <h4>Description</h4>
 
-<p>This option allows to insert a straight dislocation line into the system, using the displacements predicted by the theory of dislocations. The equations used by this option can be found e.g. in J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
+<p>This option allows to insert a straight dislocation line into the system, using the displacements predicted by the theory of dislocations. Either isotropic or anisotropic solutions can be used (see below). The equations used by this option can be found e.g. in J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
 
-<p>The user must provide the following parameters:</p>
+<p>The user must provide the following parameters (see <strong>Fig. 1</strong>):</p>
 
 <ul>
   <li><strong>p<sub>1</sub>, p<sub>2</sub></strong>: coordinates of the dislocation in the plane normal to the dislocation line (see &xi; below), by order of permutation X, Y, Z: if &xi;=Z then p<sub>1</sub> is the position along X, and p<sub>2</sub> the position along Y; if &xi;=Y then p<sub>1</sub> is along Z and p<sub>2</sub> along X; if &xi;=X then p<sub>1</sub> is along Y and p<sub>2</sub> along Z. The positions &#60;p<sub>1</sub>&#62; and &#60;p<sub>2</sub>&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>).</li>
@@ -37,28 +37,34 @@
   <li><strong>&nu;</strong>: Poisson ratio of the material ; it must be provided for dislocations of character "edge" or "edge2". For dislocations of type "screw" or "mixed", it must be omitted.</li>
 </ul>
 
+<hr>
+<object type="img/svg+xml" data="../img/opt_disloc_1.svg"><img src="../img/opt_disloc_1.png" alt="" /></object>
+<p><strong>Fig. 1</strong> - <em>Illustration of the parameters of the option "-dislocation". &xi; is the direction of the dislocation line (x, y or z). p<sub>1</sub> and p<sub>2</sub> are the coordinates of the dislocation in the plane normal to &xi;, and <em><strong>b</strong></em> is the Burgers vector.</em></p>
+<hr>
+
+
 <p>By default, the dislocation is introduced using the <strong>isotropic elastic solutions</strong>.</p>
 
-<p>For a <strong>screw dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is aligned with <strong>&xi;</strong>. The total number of atoms as well as the cell vectors are unchanged. Each atom is displaced by a vector u<sub>x<sub>3</sub></sub> parallel to the dislocation line &xi;, and proportional to the norm of the Burgers vector <strong><em>b</em></strong>, according to the theory of elasticity:</p>
+<p>For a <strong>screw dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is aligned with <strong>&xi;</strong>. The total number of atoms as well as the cell vectors are unchanged. Each atom is displaced by a distance u<sub>3</sub> parallel to the dislocation line &xi;, and proportional to the norm of the Burgers vector <strong><em>b</em></strong>, according to the theory of elasticity:</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>x<sub>3</sub></sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</code></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>3</sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</code></p>
 
 <p>where (x<sub>1</sub>,x<sub>2</sub>) is the position of the atom in the plane normal to the dislocation line &xi;.</p>
 
-<p>For an <strong>edge dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is normal to <strong>&xi;</strong> (so that <strong><em>b</em>.<em>&xi;</em></strong>=0), and contained inside the plane normal to &#60;n&#62;. The displacements applied to atoms are:</p>
+<p>For an <strong>edge dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is normal to <strong>&xi;</strong> (so that <strong><em>b</em>.<em>&xi;</em></strong>=0), and contained inside the plane normal to &#60;n&#62;. In this case, the displacements applied to atoms are contained in the plane normal to &xi;:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-<code>u<sub>x1</sub> = (<em>b</em>/2&pi;) [ atan(x<sub>2</sub>/x<sub>1</sub>) + x<sub>1</sub>x<sub>2</sub>/(2(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code> <br/>
+<code>u<sub>1</sub> = (<em>b</em>/2&pi;) [ atan(x<sub>2</sub>/x<sub>1</sub>) + x<sub>1</sub>x<sub>2</sub>/(2(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code> <br/>
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>x2</sub> = (-<em>b</em>/2&pi;) [ (1-2&nu;)ln(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>))/(4(1-&nu;)) + (x<sub>1</sub><sup>2</sup>-x<sub>2</sub><sup>2</sup>)/(4(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>2</sub> = (-<em>b</em>/2&pi;) [ (1-2&nu;)ln(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>))/(4(1-&nu;)) + (x<sub>1</sub><sup>2</sup>-x<sub>2</sub><sup>2</sup>)/(4(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code>
 </p>
 
-<p>where &nu; is the Poisson ratio of the material, and must be provided. With this option, an edge dislocation can be constructed in two different ways, here named "edge" or "edge2", as illustrated in <strong>Fig. 1</strong>. The first method, associated with the keyword <strong>edge</strong>, consists in inserting a row of new atoms in the system, and then applying atomic displacements corresponding to the elastic field of an edge dislocation. Subsequently the supercell vector in the direction of the Burgers vector is elongated by 2/3 of the Burgers vector -it is recommended to check it afterwards. Because this method changes the total number of atoms and the volume of the supercell, the comparison between the final and initial systems is made irrelevant. With the second method, associated with the keyword <strong>edge2</strong>, the edge dislocation is constructed by conserving the total number of atoms in the system (also conserving the supercell vectors). 
+<p>where &nu; is the Poisson ratio of the material, and must be provided. With this option, an edge dislocation can be constructed in two different ways, here named "edge" or "edge2", as illustrated in <strong>Fig. 2</strong>. The first method, associated with the keyword <strong>edge</strong>, consists in inserting a row of new atoms in the system, and then applying atomic displacements corresponding to the elastic field of an edge dislocation. Subsequently the supercell vector in the direction of the Burgers vector is elongated by 2/3 of the Burgers vector -it is recommended to check it afterwards. Because this method changes the total number of atoms and the volume of the supercell, the comparison between the final and initial systems is made irrelevant. With the second method, associated with the keyword <strong>edge2</strong>, the edge dislocation is constructed by conserving the total number of atoms in the system (also conserving the supercell vectors). 
 This method results in the presence of a step at one edge of the supercell, possibly messing up the boundary conditions.</p>
 
 <hr>
 <object type="img/svg+xml" data="../img/opt_disloc.svg"><img src="../img/opt_disloc.png" alt="" /></object>
-<p><strong>Fig. 1</strong> - <em>The two possible ways to construct an edge dislocation with this option. When using the keyword "</em>edge<em>", a new half-plane of atoms is introduced in the system (symbolized in orange). When using "</em>edge2<em>", no new atom is introduced, but the insertion of the dislocation results in the formation of a step at one border of the cell. In both cases the boundaries are distorted, and cannot be 3-D periodic anymore.</em></p>
+<p><strong>Fig. 2</strong> - <em>The two possible ways to construct an edge dislocation with this option. When using the keyword "</em>edge<em>", a new half-plane of atoms is introduced in the system (symbolized in orange). When using "</em>edge2<em>", no new atom is introduced, but the insertion of the dislocation results in the formation of a step at one border of the cell. In both cases the boundaries are distorted, and cannot be 3-D periodic anymore.</em></p>
 <hr>
 
 <p>After displacing atoms, Atomsk also computes the theoretical dislocation stresses (from the continuum theory). Since the shear modulus &mu; is unknown to this option, the stresses are normalized to it, i.e. all stresses are calculated with &mu;=1 (in other words the quantity computed is actually &sigma;/&mu;). The six Voigt components &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, &sigma;<sub>xy</sub>, &sigma;<sub>yz</sub> and &sigma;<sub>xz</sub> are saved as auxiliary properties for each atom. If several dislocations are introduced in the system then the corresponding theoretical stresses are summed. Note that they can be written only to some files formats, like CFG (see <a href="./formats.html">this page</a> for a list of formats that support writing of auxiliary properties).</p>
