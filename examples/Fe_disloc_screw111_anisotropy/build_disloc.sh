@@ -43,7 +43,7 @@ radius=50.0
 atomsk --create bcc $alat Fe orient [121] [-101] [1-11] \
        -duplicate $NX $NY $NZ \
        -prop Fe_prop.txt \
-       -disloc $dx $dy screw z y $b 0.0 \
+       -disloc $dx $dy screw z y $b \
        -select out cylinder Z $dx $dy $radius \
        -fix all above -100.0 x \
        Fe_dislo.xsf cfg bop

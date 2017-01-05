@@ -34,7 +34,7 @@
 <p><code>
 &amp;CONTROL<br/>
   title = '&#60;commentaire&#62;'<br/>
-  pseudo_dir = '$ESPRESSO_PSEUDO'<br/>
+  pseudo_dir = '/votre/chemin/vers/les/pseudopotentiels'<br/>
   calculation = 'scf'<br/>
 /<br/>
 <br/>
@@ -87,9 +87,11 @@ ATOMIC_FORCES<br/>
 
 <p>Un tel fichier est juste un brouillon et devra être édité, il n'est PAS suffisant pour une simulation.</p>
 
-<p>Premièrement, le chemin vers les pseudopotentiels (suivant le mot-clé "pseudo_dir") correspondra à la variable d'environnement "$ESPRESSO_PSEUDO" si celle-ci est définie; sinon il sera mis à la valeur par défaut "$HOME/espresso/pseudo". Il appartient à l'utilisateur de vérifier que ce chemin est correct.</p>
+<p>Premièrement, le chemin vers les pseudopotentiels (suivant le mot-clé "pseudo_dir") correspond à la variable d'environnement "$ESPRESSO_PSEUDO". Si celle-ci n'est pas définie, alors "pseudo_dir" a la valeur par défaut "$HOME/espresso/pseudo". Il appartient à l'utilisateur de vérifier que ce chemin est correct.</p>
 
-<p>Deuxièmement, pour remplir la section "ATOMIC_SPECIES", Atomsk cherche des fichiers de pseudopotentiels dans le dossier "pseudo_dir" défini auparavant. Pour chaque élément présent dans le système, Atomsk utilise le nom du premier fichier correspondant à cet élément. Par exemple si plusieurs fichiers de pseudopotentiels pour l'oxygène se trouvent dans ce dossier (nommés "O.*"), alors le nom du premier fichier sera utilisé. Si aucun fichier n'est trouvé dans ce dossier, un nom de fichier fictif sera utilisé (contenant la chaîne de caractère "fixme"). Il appartient à l'utilisateur de vérifier que ces noms de fichiers correspondent à ses besoins.</p>
+<p>Deuxièmement, pour remplir la section "ATOMIC_SPECIES", Atomsk cherche des fichiers de pseudopotentiels dans le dossier "pseudo_dir" défini auparavant. Pour chaque élément présent dans le système, Atomsk utilise le nom du premier fichier correspondant à cet élément. Cela signifie que, si le chemin "pseudo_dir" est bien défini et qu'il ne contient qu'un seul fichier de pseudopotentiel pour chaque élément (le pseudopotentiel que vous souhaitez utiliser), alors les noms de fichiers de pseudopotentiels seront déjà correctement définis dans le fichier *.pw écrit par Atomsk. Si le dossier contient plusieurs fichiers de pseudopotentiels pour le même élément, alors le nom du premier fichier sera utilisé (ce qui n'est peut-être pas ce que vous souhaitez). Si aucun fichier n'est trouvé dans ce dossier, un nom de fichier fictif sera utilisé, contenant la chaîne de caractère "fixme". Dans tous les cas, il appartient à l'utilisateur de vérifier que les noms de fichiers de pseudopotentiels sont corrects et correspondent à ses besoins.</p>
+
+<p>Troisièmement, les paramètres du calcul sont définis à certaines valeurs par défaut : calculation='scf', ecutwfc=20, grille de points <em>k</em> 2x2x2, et ainsi de suite. <strong>Ces valeurs sont arbitraires et ne doivent pas être utilisées telles quelles !</strong> Il appartient à l'utilisateur d'utiliser des valeurs qui correspondent à ses besoins.</p>
 
 <p>Enfin, si les forces sur les atomes sont définies, alors elles seront écrites dans la section "ATOMIC_FORCES". Sinon cette section n'apparaîtra pas.</p>
 

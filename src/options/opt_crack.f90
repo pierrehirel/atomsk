@@ -15,7 +15,7 @@ MODULE crack
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Sept. 2013                                    *
+!* Last modification: P. Hirel - 05 Jan. 2017                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* CRACK_XYZ           main subroutine - introduces a crack                       *
@@ -293,9 +293,9 @@ IF(.NOT.ALLOCATED(AUX)) THEN
   AUXNAMES(sig1) = "sigma_"//dir1//dir1
   AUXNAMES(sig2) = "sigma_"//dir2//dir2
   AUXNAMES(sig3) = "sigma_"//dir3//dir3
-  AUXNAMES(sig4) = "sigma_"//dir1//dir2
-  AUXNAMES(sig5) = "sigma_"//dir2//dir3
-  AUXNAMES(sig6) = "sigma_"//dir1//dir3
+  AUXNAMES(sig4) = "sigma_"//dir2//dir3
+  AUXNAMES(sig5) = "sigma_"//dir1//dir3
+  AUXNAMES(sig6) = "sigma_"//dir1//dir2
 ELSE
   !Auxiliary property already exist
   !Check if it already contains the sigma
@@ -306,14 +306,14 @@ ELSE
       sig2=i
     ELSEIF( AUXNAMES(i)=="sigma_"//dir3//dir3) THEN
       sig3=i
-    ELSEIF( AUXNAMES(i)=="sigma_"//dir1//dir2 .OR.      &
-          & AUXNAMES(i)=="sigma_"//dir2//dir1      ) THEN
-      sig4=i
     ELSEIF( AUXNAMES(i)=="sigma_"//dir2//dir3 .OR.      &
           & AUXNAMES(i)=="sigma_"//dir3//dir2      ) THEN
-      sig5=i
+      sig4=i
     ELSEIF( AUXNAMES(i)=="sigma_"//dir1//dir3 .OR.      &
           & AUXNAMES(i)=="sigma_"//dir3//dir1      ) THEN
+      sig5=i
+    ELSEIF( AUXNAMES(i)=="sigma_"//dir1//dir2 .OR.      &
+          & AUXNAMES(i)=="sigma_"//dir2//dir1      ) THEN
       sig6=i
     ENDIF
   ENDDO
@@ -348,9 +348,9 @@ ELSE
     AUXNAMES(sig1) = "sigma_"//dir1//dir1
     AUXNAMES(sig2) = "sigma_"//dir2//dir2
     AUXNAMES(sig3) = "sigma_"//dir3//dir3
-    AUXNAMES(sig4) = "sigma_"//dir1//dir2
-    AUXNAMES(sig5) = "sigma_"//dir2//dir3
-    AUXNAMES(sig6) = "sigma_"//dir1//dir3
+    AUXNAMES(sig4) = "sigma_"//dir2//dir3
+    AUXNAMES(sig5) = "sigma_"//dir1//dir3
+    AUXNAMES(sig6) = "sigma_"//dir1//dir2
   ENDIF
 ENDIF
 !
@@ -382,7 +382,7 @@ IF(crackmode=="I") THEN
                  & DSIN(theta/2.d0)*DCOS(3.d0*theta/2.d0)
       AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
       AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-      AUX(i,sig4) = AUX(i,sig4) + sigma(1,2)
+      AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
       IF( cracktype=="strain" ) THEN
         AUX(i,sig3) = AUX(i,sig3) + nu*sigma(1,1)*sigma(2,2)
       ENDIF
@@ -416,7 +416,7 @@ ELSEIF(crackmode=="II") THEN
                  & ( 1.d0 - DSIN(theta/2.d0)*DSIN(3.d0*theta/2.d0))
       AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
       AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-      AUX(i,sig4) = AUX(i,sig4) + sigma(1,2)
+      AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
       IF( cracktype=="strain" ) THEN
         AUX(i,sig3) = AUX(i,sig3) + nu*sigma(1,1)*sigma(2,2)
       ENDIF
@@ -443,8 +443,8 @@ ELSEIF(crackmode=="III") THEN
     IF(DABS(R)>1.d-6) THEN
       sigma(2,3) = crackK/(DSQRT(2.d0*pi*R))*DCOS(theta/2.d0)
       sigma(1,3) = -1.d0*crackK/(DSQRT(2.d0*pi*R))*DSIN(theta/2.d0)
-      AUX(i,sig5) = AUX(i,sig5) + sigma(2,3)
-      AUX(i,sig6) = AUX(i,sig6) + sigma(1,3)
+      AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
+      AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
     ENDIF
   ENDDO
 !

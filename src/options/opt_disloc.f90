@@ -22,7 +22,7 @@ MODULE dislocation
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 April 2015                                    *
+!* Last modification: P. Hirel - 05 Jan. 2017                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* DISLOC_XYZ          main subroutine - introduces a dislocation                 *
@@ -612,9 +612,9 @@ IF(.NOT.ALLOCATED(AUX)) THEN
   AUXNAMES(sig1) = "sigma_"//dir1//dir1
   AUXNAMES(sig2) = "sigma_"//dir2//dir2
   AUXNAMES(sig3) = "sigma_"//dir3//dir3
-  AUXNAMES(sig4) = "sigma_"//dir1//dir2
-  AUXNAMES(sig5) = "sigma_"//dir2//dir3
-  AUXNAMES(sig6) = "sigma_"//dir1//dir3
+  AUXNAMES(sig4) = "sigma_"//dir2//dir3
+  AUXNAMES(sig5) = "sigma_"//dir1//dir3
+  AUXNAMES(sig6) = "sigma_"//dir1//dir2
 ELSE
   !Auxiliary property already exist
   !Check if it already contains the sigma
@@ -625,14 +625,14 @@ ELSE
       sig2=i
     ELSEIF( AUXNAMES(i)=="sigma_"//dir3//dir3) THEN
       sig3=i
-    ELSEIF( AUXNAMES(i)=="sigma_"//dir1//dir2 .OR.      &
-          & AUXNAMES(i)=="sigma_"//dir2//dir1      ) THEN
-      sig4=i
     ELSEIF( AUXNAMES(i)=="sigma_"//dir2//dir3 .OR.      &
           & AUXNAMES(i)=="sigma_"//dir3//dir2      ) THEN
-      sig5=i
+      sig4=i
     ELSEIF( AUXNAMES(i)=="sigma_"//dir1//dir3 .OR.      &
           & AUXNAMES(i)=="sigma_"//dir3//dir1      ) THEN
+      sig5=i
+    ELSEIF( AUXNAMES(i)=="sigma_"//dir1//dir2 .OR.      &
+          & AUXNAMES(i)=="sigma_"//dir2//dir1      ) THEN
       sig6=i
     ENDIF
   ENDDO
@@ -667,9 +667,9 @@ ELSE
     AUXNAMES(sig1) = "sigma_"//dir1//dir1
     AUXNAMES(sig2) = "sigma_"//dir2//dir2
     AUXNAMES(sig3) = "sigma_"//dir3//dir3
-    AUXNAMES(sig4) = "sigma_"//dir1//dir2
-    AUXNAMES(sig5) = "sigma_"//dir2//dir3
-    AUXNAMES(sig6) = "sigma_"//dir1//dir3
+    AUXNAMES(sig4) = "sigma_"//dir2//dir3
+    AUXNAMES(sig5) = "sigma_"//dir1//dir3
+    AUXNAMES(sig6) = "sigma_"//dir1//dir2
   ENDIF
 ENDIF
 !
@@ -688,8 +688,8 @@ IF(.NOT.aniso) THEN
       IF(DABS(tempreal)>1.d-6) THEN
         sigma(2,3) = -1.d0*bsign*VECLENGTH(b)/(2.d0*pi) * (P(u,a2)-pos2)/tempreal
         sigma(1,3) = bsign*VECLENGTH(b)/(2.d0*pi) * (P(u,a1)-pos1)/tempreal
-        AUX(u,sig5) = AUX(u,sig5) + sigma(2,3)
-        AUX(u,sig6) = AUX(u,sig6) + sigma(1,3)
+        AUX(u,sig4) = AUX(u,sig4) + sigma(2,3)
+        AUX(u,sig5) = AUX(u,sig5) + sigma(1,3)
       ENDIF
     ENDDO
   !
@@ -714,8 +714,8 @@ IF(.NOT.aniso) THEN
                     & / (tempreal**2)
         AUX(u,sig1) = AUX(u,sig1) + sigma(1,1)
         AUX(u,sig2) = AUX(u,sig2) + sigma(2,2)
-        AUX(u,sig4) = AUX(u,sig4) + sigma(1,2)
         AUX(u,sig3) = AUX(u,sig3) + nu*( sigma(1,1) + sigma(2,2) )
+        AUX(u,sig6) = AUX(u,sig6) + sigma(1,2)
       ENDIF
     ENDDO
   ENDIF
@@ -744,9 +744,9 @@ ELSE
     AUX(u,sig1) = AUX(u,sig1) + sigma(1,1)
     AUX(u,sig2) = AUX(u,sig2) + sigma(2,2)
     AUX(u,sig3) = AUX(u,sig3) + sigma(3,3)
-    AUX(u,sig4) = AUX(u,sig4) + sigma(1,2)
-    AUX(u,sig5) = AUX(u,sig5) + sigma(2,3)
-    AUX(u,sig6) = AUX(u,sig6) + sigma(3,1)
+    AUX(u,sig4) = AUX(u,sig4) + sigma(2,3)
+    AUX(u,sig5) = AUX(u,sig5) + sigma(1,3)
+    AUX(u,sig6) = AUX(u,sig6) + sigma(1,2)
   ENDDO !end loop on all atoms
   !
   !Now compute the factor Kfactor = Kb²

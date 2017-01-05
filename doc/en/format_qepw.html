@@ -88,9 +88,11 @@ ATOMIC_FORCES<br/>
 
 <p>That file is just a draft and will have to be edited, it is NOT fully set for a simulation.</p>
 
-<p>First, the paths to the pseudopotentials (i.e. "pseudo_dir") corresponds to the environment variable "$ESPRESSO_PSEUDO" if it is set; otherwise it is set to the default value "$HOME/espresso/pseudo/". It is up to the user to check that this path is correct.</p>
+<p>First, the path to the pseudopotentials (i.e. "pseudo_dir") corresponds to the environment variable "$ESPRESSO_PSEUDO". If this variable is undefined, then "pseudo_dir" is set to the default value "$HOME/espresso/pseudo/". It is up to the user to check that this path is correct.</p>
 
-<p>Second, to fill the section "ATOMIC_SPECIES", Atomsk looks for pseudopotential files in the folder "pseudo_dir" as defined above. For each chemical element present in the system, Atomsk uses the first file whose name starts with that element symbol. For instance if that folder contains several pseudopotentials for oxygen (named "O.*"), the name of the first file will be used. If no pseudopotential is found for a given element, a dummy name will be written, containing the string "fixme". It is up to the user to verify that these file names suit his purposes.</p>
+<p>Second, to fill the section "ATOMIC_SPECIES", Atomsk looks for pseudopotential files in the folder "pseudo_dir" as defined above. For each chemical element present in the system, Atomsk uses the first file whose name starts with that element symbol. That means that, if the path "pseudo_dir" is correctly specified, and it contains only one file for each chemical element, then this file name is written in the *.pw file by Atomsk. If that folder contains several pseudopotentials for the same element, then the name of the first file will be used (this may not be what you want). If no pseudopotential is found for a given element, a dummy name will be written, containing the string "fixme". In any case, it is up to the user to verify that these file names are correct and suit his purposes.</p>
+
+<p>Third, the parameters for the DFT calculation are set to some default values: calculation='scf', ecutwfc=20, <em>k</em>-points grid 2x2x2, and so on. <strong>These values are arbitrary and should not be used as such!</strong> It is up to the user to modify these parameters and use values that correspond to his purposes.</p>
 
 <p>Finally, if atom forces are defined then they will be written in the section "ATOMIC_FORCES". Otherwise this section will not exist.</p>
 

@@ -2,8 +2,8 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-Beta 0.9 (in development)
--------------------------
+Master branch (to be Beta 0.9)
+------------------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
 - new option "-roll" allows to roll a system into a tube around an axis.
@@ -17,6 +17,7 @@ Beta 0.9 (in development)
 - enhanced support for Quantum Espresso files. When writing such files, the user's environment (in particular the variable $ESPRESSO_PSEUDO) is now taken into account.
 - in mode "--create", added possibility to generate wurtzite lattices.
 - in option "-add-atom", if atoms of the same species as the new atom(s) have shells, then the new atoms are also created with shells. Also, this options now allows to place a new atom relatively to an existing atom.
+- in options "-crack" and "-dislocation", made the indexing of theoretical stresses consistent with the Voigt notation, i.e. sigma_11, sigma_22, sigma_33, sigma_23, sigma_13, sigma_12.
 - in option "-dislocation", the Poisson ratio must be given only for dislocations of edge character. It must be omitted for dislocations of screw or mixed characters.
 - in option "-disturb", added possibility to provide different values for displacements along X, Y and Z Cartesian axes.
 - in option "-duplicate", added possibility to provide negative values that correspond to mirroring the system and then duplicating it along negative values.
