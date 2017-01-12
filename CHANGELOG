@@ -2,6 +2,12 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+beta 0.8.8 (12 Jan. 2016)
+-------------------------
+- fixed a bug where atom indices could not be written past 100 million in LAMMPS data files. Now it can write up to the limit of integers (about 2 millions).
+- fixed a bug where option "-unskew" did not work, because result was not saved to the array H.
+
+
 beta 0.8.7 (6 June 2016)
 ------------------------
 - fixed a bug in mode "--create", where an fcc lattice oriented with a vector of type <112> would have missing atoms. Thanks to Yann Even and Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.

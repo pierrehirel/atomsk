@@ -14,7 +14,7 @@ MODULE unskew
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Sept. 2013                                    *
+!* Last modification: P. Hirel - 12 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -112,7 +112,7 @@ DO i=1,6
     DO WHILE( tilt(i)<=-0.5d0*H(j,j) )
       tilt(i) = tilt(i)+H(j,j)
       iloop=iloop+1
-      IF(iloop>200) EXIT
+      IF(iloop>100) EXIT
     ENDDO
     !
     IF(iloop>100) THEN
@@ -126,6 +126,13 @@ DO i=1,6
     !
   ENDIF
 ENDDO
+!!Save final tilts into H(:,:)
+H(2,1) = tilt(1)
+H(3,1) = tilt(2)
+H(3,2) = tilt(3)
+H(1,2) = tilt(4)
+H(1,3) = tilt(5)
+H(2,3) = tilt(6)
 !
 CALL ATOMSK_MSG(2104,(/''/),(/DBLE(Nunskewed)/))
 !

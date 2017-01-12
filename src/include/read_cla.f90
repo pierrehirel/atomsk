@@ -280,6 +280,9 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
+  ELSEIF(clarg=='--normal') THEN
+    !nothing special to do, this is normal mode
+    !
   ELSEIF(clarg=='--nye') THEN
     mode = 'nye'
     i=i+1
