@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 May 2016                                      *
+!* Last modification: P. Hirel - 09 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,6 +49,7 @@ CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
+LOGICAL:: allidzero  !are all atom id equal to zero?
 LOGICAL:: dobonds    !are there bonds in the file?
 LOGICAL:: flags      !are there replica flags at the end of each line?
 LOGICAL:: molecule   !is there a column "moleculeID" before the column "atom-type"?
@@ -72,6 +73,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !Initialize variables
 tempcomment(:)=''
+allidzero = .TRUE.
 dobonds = .FALSE.
 flags = .FALSE.
 molecule = .FALSE.
@@ -194,6 +196,9 @@ CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
 WRITE(msg,*) 'Reading atom coordinates...'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 i=0
+id=0
+k=0
+allidzero = .TRUE.
 DO i=1,NP
   READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
@@ -258,6 +263,13 @@ DO i=1,NP
       READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
     ENDIF
     !
+    IF( id==0 ) THEN
+      id = 1
+    ELSE
+      !All atom id are not zero
+      allidzero = .FALSE.
+    ENDIF
+    !
     IF( Ncol>=6 ) THEN
       !If there are at least 6 columns, determine if
       !the last three columns contain replica flags (check for 3 integers)
@@ -274,15 +286,34 @@ DO i=1,NP
       ENDIF
     ENDIF
     220 CONTINUE
+    !
   ELSE
     !The number of columns Ncol is known => read coordinates
     !"atomtype" is the second column for styles "atomic", "charge"
     !which are the only ones we consider here
     IF( molecule ) THEN
-      READ(temp,*,ERR=800,END=800) id, molID, atomtype, (column(j), j=1,Ncol)
+      READ(temp,*,ERR=800,END=800) k, molID, atomtype, (column(j), j=1,Ncol)
     ELSE
-      READ(temp,*,ERR=800,END=800) id, atomtype, (column(j), j=1,Ncol)
+      READ(temp,*,ERR=800,END=800) k, atomtype, (column(j), j=1,Ncol)
     ENDIF
+    !
+    !Check that the particle id (here read as "k") is within the bounds
+    IF( k==0 ) THEN
+      IF( allidzero ) THEN
+        !So far, all atoms encountered have an id equal to zero
+        !Just increment the id automatically
+        id = id+1
+      ELSE
+        !All atom id are not zero (at least one previous atom had a non-zero id)
+        !=> this particular atom is out of bounds (warning will be displayed later)
+        id = k
+      ENDIF
+    ELSE
+      !k is not zero => this atom id is not zero
+      id = k
+      allidzero = .FALSE.
+    ENDIF
+    !
     !Read values of flags
     IF( flags ) THEN
       flagx = NINT(column(Ncol-2))
@@ -291,12 +322,13 @@ DO i=1,NP
     ENDIF
   ENDIF
   !
-  !Check that the particle id is within the bounds
+  !
   IF( id<=0 .OR. id>SIZE(P,1) ) THEN
+    !Atom out of bounds, cannot write out of array P, skip this atom
     nwarn=nwarn+1
     CALL ATOMSK_MSG(2742,(/""/),(/DBLE(id)/))
-  ELSE
     !
+  ELSE
     !Set coordinates and spieces for this particle:
     !Coordinates are always the last three columns
     !except for styles "dipole" and "hybrid" which we ignore here

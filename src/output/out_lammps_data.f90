@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 Nov. 2015                                     *
+!* Last modification: P. Hirel - 11 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -273,7 +273,7 @@ IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
         DO WHILE( tilt(i)<-0.5d0*K(j,j) )
           tilt(i) = tilt(i)+K(j,j)
           iloop=iloop+1
-          IF(iloop>200) EXIT
+          IF(iloop>100) EXIT
         ENDDO
         !
         IF(iloop>100) THEN
@@ -326,7 +326,11 @@ ENDIF
 molID = 0
 Nspecies = 0
 !Write atom positions
-WRITE(40,'(a5)') 'Atoms'
+IF (q>0 ) THEN
+  WRITE(40,'(a5)') 'Atoms # charge'
+ELSE
+  WRITE(40,'(a5)') 'Atoms'
+ENDIF
 WRITE(40,*) ''
 !
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
@@ -470,9 +474,9 @@ ELSE
   ENDIF
   !
 ENDIF
-210 FORMAT(i8,2X,i3,2X,f7.3,2X,3(f16.8,1X))
-211 FORMAT(i8,2X,i3,2X,3(f16.8,1X))
-212 FORMAT(i8,2X,i3,2X,i3,2X,f7.3,2X,3(f16.8,1X))
+210 FORMAT(i10,2X,i3,2X,f7.3,2X,3(f16.8,1X))
+211 FORMAT(i10,2X,i3,2X,3(f16.8,1X))
+212 FORMAT(i10,2X,i3,2X,i3,2X,f7.3,2X,3(f16.8,1X))
 !
 !Write velocities
 IF( velocities ) THEN
@@ -480,7 +484,7 @@ IF( velocities ) THEN
   WRITE(40,'(a10)') 'Velocities'
   WRITE(40,*) ''
   DO i=1,SIZE(Ppoint(:,1))
-    WRITE(40,'(i8,2X,3(f16.8,1X))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
+    WRITE(40,'(i10,2X,3(f16.8,1X))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
   ENDDO
 ENDIF
 !

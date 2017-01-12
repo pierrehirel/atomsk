@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Nov. 2016                                     *
+!* Last modification: P. Hirel - 09 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -326,6 +326,9 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),*,ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
+    !
+  ELSEIF(clarg=='--normal') THEN
+    !nothing special to do, this is normal mode
     !
   ELSEIF(clarg=='--nye') THEN
     mode = 'nye'

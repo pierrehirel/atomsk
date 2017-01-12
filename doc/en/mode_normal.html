@@ -15,26 +15,30 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk &#60;inputfile&#62; &#60;outputfile&#62; [options]</code></p>
+<p><code>atomsk &#60;inputfile&#62; [options] &#60;outputfile&#62;</code></p>
 
-<p><code>atomsk &#60;inputfile&#62; &#60;formats&#62; [options]</code></p>
+<p><code>atomsk &#60;inputfile&#62; [options] &#60;formats&#62;</code></p>
 
-<p><code>atomsk &#60;inputfile&#62; &#60;prefix&#62; &#60;formats&#62; [options]</code></p>
+<p><code>atomsk &#60;inputfile&#62; [options] &#60;prefix&#62; &#60;formats&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This will read the &#60;inputfile&#62; and convert it to &#60;outputfile&#62;.</p>
+<p>This mode is the default. In this mode, Atomsk reads one &#60;inputfile&#62;, applies options if any, and writes the final result into one or several &#60;outputfile&#62;.</p>
 
-<p>If the &#60;outputfile&#62; has a recognisable extension (e.g. .xyz or .cfg) then Atomsk will convert it to the corresponding format.</p>
+<p>If an &#60;outputfile&#62; name is given with a recognisable extension (for instance "file.xyz", or "system.cfg"), then Atomsk will write it into the appropriate format.</p>
 
-<p>Instead of specifying an output file name, one can also specify one or several &#60;format&#62; among <a href="./formats.html">those supported by Atomsk</a>. The program will then use the input file name and replace its extension with the one appropriate for each &#60;format&#62;.</p>
+<p>If no output file name is given, but one or several &#60;format&#62; are given (among <a href="./formats.html">those supported by Atomsk</a>), then Atomsk will use the name of the input file, and replace its extension with the one appropriate for each &#60;format&#62;.</p>
 
-<p>If a &#60;prefix&#62; (i.e. a file name with no extension) and one or several &#60;formats&#62; are specified, then the program will use the prefix to produce all the output files according to the &#60;formats&#62;.</p>
+<p>If a &#60;prefix&#62; is given (i.e. a file name with no extension), followed by one or several &#60;formats&#62;, then Atomsk will use the prefix to produce all the output files according to the &#60;formats&#62;.</p>
 
-<p>If you want to convert all the files in a directory, do NOT use a star (for instance <code>atomsk * cfg</code> to convert all files to CFG), because this will not be recognized. I recommend that you create a file list (for instance <code>ls * &#62;list.lst</code>), and then run atomsk in <a href="./mode_filelist.html">File list</a> mode.</p>
+<p>Atomsk checks for the existence of the files given in the command-line. If only one file exists, then Atomsk considers it as the input file, and considers the other file name as the output file, regardless of the ordering of the file names in the command. If both files exist, then Atomsk prompts which one should be used as input file, and asks if the output file should be overwritten. If you wish to avoid these questions, it is recommended to delete the output file(s) before running Atomsk, and/or to use the <a href="./progbe_ig.html">option <code>-ignore</code></a> or the <a href="./progbe_ow.html">option <code>-overwrite</code></a>.</p>
 
-<p>In addition to the conversion, you can transform atomic positions by using one or several <a href="./options.html">options</a>.</p>
+<p>Using options is not mandatory. If the command-line contains one or several options, then they are applied sequentially, in the order specified in the command line, after reading the intput file, and before writing the output file. Please refer to the <a href="./options.html">documentation about options</a>.</p>
+
+<p>Note that in this mode, Atomsk accepts only one input file name, and one output file name (and possibly one or several formats). If more than two file names are specified, only the first two names are used, and other file names are ignored. As a result, you should never use a wildcard (i.e. the star symbol *) to specify file names, like "atomsk *.xyz cfg". If you wish to convert many input files, please use the mode <a href="./mode_filelist.html">File list</a>.</p>
+
+<p>Note that contrary to other modes, you do not have to write "<code>--normal</code>" to use the normal mode, since it is the default mode.</p>
 
 
 <h4>Examples</h4>
