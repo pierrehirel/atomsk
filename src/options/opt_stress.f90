@@ -10,7 +10,7 @@ MODULE stress
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Oct. 2014                                     *
+!* Last modification: P. Hirel - 24 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,11 +87,11 @@ CASE('y','yy','Y','YY')
   vstress(2) = stress
 CASE('z','zz','Z','ZZ')
   vstress(3) = stress
-CASE('xy','XY','yx','YX')
+CASE('yz','YZ','zy','ZY')
   vstress(4) = stress
 CASE('xz','XZ','zx','ZX')
   vstress(5) = stress
-CASE('yz','YZ','zy','ZY')
+CASE('xy','XY','yx','YX')
   vstress(6) = stress
 CASE('p','P')
   !"stress" is actually the value of isostatic pressure
@@ -119,9 +119,9 @@ CASE DEFAULT
     vstress(1) = mstress(1,1)
     vstress(2) = mstress(2,2)
     vstress(3) = mstress(3,3)
-    vstress(4) = mstress(1,2)
+    vstress(4) = mstress(2,3)
     vstress(5) = mstress(1,3)
-    vstress(6) = mstress(2,3)
+    vstress(6) = mstress(1,2)
   ELSE
     !unable to read file
     CLOSE(31)
@@ -156,15 +156,15 @@ ENDDO
 !
 !Translate that into the full deformation tensor
 !NOTE: we make the deformation tensor a lower triangular matrix,
-!     e.g. instead of having meps(1,2) = meps(2,1) = veps(4)/2
-!     we use meps(2,1) = veps(4) and meps(1,2)=0.
+!     e.g. instead of having meps(2,3) = meps(3,2) = veps(4)/2
+!     we use meps(3,2) = veps(4) and meps(2,3)=0.
 meps(:,:) = 0.d0
 meps(1,1) = 1.d0 + veps(1)
 meps(2,2) = 1.d0 + veps(2)
 meps(3,3) = 1.d0 + veps(3)
-meps(2,1) = veps(4)
+meps(3,2) = veps(4)
 meps(3,1) = veps(5)
-meps(3,2) = veps(6)
+meps(2,1) = veps(6)
 !
 IF(verbosity==4) THEN
   msg = 'Deformation tensor:'
