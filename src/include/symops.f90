@@ -16,33 +16,31 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 03 May 2016                                      *
+!* Last modification: P. Hirel - 30 Jan. 2017                                     *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
-!*     SUBROUTINE SYMOPS_INIT initializes the array symops_trf to identity        *
+!* SYMOPS_INIT    initializes the array symops_trf to identity                    *
 !*                operartions. Since we leave the allocation of the array to      *
 !*                other routines, and keep the array for public access accross    *
 !*                the program, this routine is a pure initialization routine.     *
 !*                Note:  The allocation state of symops_trf will be checked,      *
 !*                but not altered. No error message will occur if not allocated.  *
-!*     SUBROUTINE SYMOPS_APPLY applies the currently defined symmetry operations  *
+!* SYMOPS_APPLY   applies the currently defined symmetry operations               *
 !*                from the array "symops_trf" to the passed arrays P and AUX.     *
 !*                P(:,1:3) are assumed to be cartesian atom coordinates.          *
 !*                Note: P and AUX may be re-allocated at the end of this routine  *
 !*                since the number of atoms may have increased. Update size       *
 !*                variables in the calling routine after calling SYMOPS_APPLY!    *
-!*     SUBROUTINE SYMOPS_CHECK_STR checks if a string defines a symmetry          *
-!*                operation.                                                      *
-!*     SUBROUTINE SYMOPS_SET_STR translates a string symmetry operation to        *
-!*                numbers defining linear transformations and stores these        *
-!*                numbers in the module symops.                                   *
-!*     SUBROUTINE SYMOPS_PARSE_STR_LINTRF translates a 1D operation string to     *
-!*                linear transformation parameters by parsing the string.         *
-!*     SUBROUTINE SYMOPS_SET_SGNAME sets symmetry operations for a spacegroup     *
-!*                given by the space group Hermann-Mauguin symbol.                *
-!*     SUBROUTINE SYMOPS_SET_SGNUM sets symmetry operations for a spacegroup      *
-!*                given by the space group number (1 - 230).                      *
-!* REMARK: SUBROUTINE SYMOPS_PARSE_STR_LINTRF is a recursive routine.             *
+!* SYMOPS_CHECK_STR checks if a string defines a symmetry operation               *
+!* SYMOPS_SET_STR translates a string symmetry operation to numbers defining      *
+!*                linear transformations and stores these numbers in symops       *
+!* SYMOPS_PARSE_STR_LINTRF translates a 1D operation string to linear             *
+!*                transformation parameters by parsing the string.                *
+!* SYMOPS_SET_SGNAME sets symmetry operations for a spacegroup given by the       *
+!*                space group Hermann-Mauguin symbol.                             *
+!* SYMOPS_SET_SGNUM sets symmetry operations for a spacegroup given by the        *
+!*                space group number (1 - 230).                                   *
+!* Remark: SYMOPS_PARSE_STR_LINTRF is a recursive routine.                        *
 !*                Use the respective compiler option to enable recursice routines *
 !*                (ifort: /recursive)                                             *
 !**********************************************************************************

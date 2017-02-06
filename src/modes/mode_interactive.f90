@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 May 2016                                      *
+!* Last modification: P. Hirel - 24 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -186,7 +186,7 @@ DO
         overw = .TRUE.
         !
       CASE("language","lang")
-        READ(instruction,*) command, temp
+        READ(instruction,*,ERR=400,END=400) command, temp
         IF(temp=="fr") THEN
           lang = "fr"
         ELSEIF(temp=="de") THEN
@@ -514,21 +514,26 @@ DO
         CALL GEN_NRANDNUMBERS(2,randarray)
         !randarray contains 2 random numbers between 0 and 1
         !First number decides the form of the question
-        IF( randarray(1)<=0.33 ) THEN
+        IF( randarray(1)<=0.5 ) THEN
+          !Given an atom species, user must guess its atomic number
           !Use second random number to pick up an atom species
           snumber = DBLE( NINT( randarray(2)*100.d0 ) )
           CALL ATOMSPECIES(snumber,species)
           question = species
           WRITE(solution,*) NINT(snumber)
           solution = ADJUSTL(solution)
-          temp=""
-          DO WHILE( temp.NE.solution .AND. try<maxtries )
+          i=0
+          DO WHILE( i.NE.NINT(snumber) .AND. try<maxtries )
             !Ask for the atomic number of that atom
-            CALL ATOMSK_MSG(4301,(/question/),(/1.d0,DBLE(try)/))
+            CALL ATOMSK_MSG(4301,(/question/),(/1.d0,DBLE(try),DBLE(i)-snumber/))
             READ(*,*) temp
-            IF(temp.NE.solution) try=try+1
+            !Try to read a number from that string
+            READ(temp,*,ERR=300,END=300) i
+            300 CONTINUE
+            IF(i.NE.snumber) try=try+1
           ENDDO
-        ELSEIF( randarray(1)<=0.66 ) THEN
+        ELSEIF( randarray(1)<=0.75 ) THEN
+          !Given an atomic number, user must guess its species
           !Use second random number to pick up an atom species
           snumber = DBLE( NINT( randarray(2)*100.d0 ) )
           CALL ATOMSPECIES(snumber,species)
@@ -543,6 +548,7 @@ DO
             IF(temp.NE.solution) try=try+1
           ENDDO
         ELSE
+          !User must guess the next species in periodic table
           !Use second random number to pick up an atom species
           snumber = DBLE( NINT( randarray(2)*100.d0 ) )
           CALL ATOMSPECIES(snumber,species)

@@ -266,14 +266,17 @@ IF(SIZE(P(:,1))>500000) THEN
   CALL ATOMSK_MSG(3,(/''/),(/0.d0/))
 ENDIF
 !
-WRITE(msg,*) 'Sorting...'
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Sort atoms: algorithms are in "subroutines.f90"
 SELECT CASE(sortorder)
 CASE('up','down')
-  CALL BUBBLESORT(ArrayToSort,sortnum,sortorder)
+  WRITE(msg,*) 'Calling QUICKSORT...'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !CALL BUBBLESORT(ArrayToSort,sortnum,sortorder)
+  CALL QUICKSORT(ArrayToSort,sortnum,sortorder)
 CASE('pack')
+  WRITE(msg,*) 'Calling PACKSORT...'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   CALL PACKSORT(ArrayToSort,sortnum)
 CASE DEFAULT
 END SELECT

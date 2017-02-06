@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 02 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -699,6 +699,12 @@ CASE(703)
   !strings(1) = name of command line argument
   msg = "/!\ ALERTE : argument inconnu dans la ligne de commande : "//TRIM(strings(1))
   nwarn = nwarn+1
+CASE(704)
+  !strings(1) = name of file that will be ignored
+  msg = "/!\ ALERTE : trop de noms de fichiers parmi les arguments."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "            Le fichier suivant sera ignoré : "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(750)
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2554,15 +2560,22 @@ CASE(4300)
   msg = " Répondez à la question suivante, vous avez "//TRIM(ADJUSTL(temp))//" essais."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4301)
-  !strings(1)
-  !reals(1) = 
-  !reals(2) = 
+  !strings(1) = answer
+  !reals(1) = type of quizz (1=guess atomic number; 2=guess atom species; 3=guess next atom)
+  !reals(2) = number of tries
+  !reals(3) = user's answer - actual solution (quizz type 1 only)
+  msg=""
   IF( NINT(reals(2))>0 ) THEN
     msg = " FAUX !"
-  ELSE
-    msg = ""
   ENDIF
   IF( NINT(reals(1))==1 ) THEN
+    IF( NINT(reals(2))>0 ) THEN
+      IF( reals(3) > 0.d0 ) THEN
+        msg = TRIM(msg)//" C'est moins."
+      ELSEIF( reals(3) < 0.d0 ) THEN
+        msg = TRIM(msg)//" C'est plus."
+      ENDIF
+    ENDIF
     msg = TRIM(msg)//" Quel est le numéro atomique de l'atome : "//TRIM(ADJUSTL(strings(1)))//" ?"
   ELSEIF( NINT(reals(1))==2 ) THEN
     msg = TRIM(msg)//" Quel atome a pour numéro atomique "//TRIM(ADJUSTL(strings(1)))//" ?"
@@ -2815,6 +2828,9 @@ CASE(4826)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
   msg = "X!X ERREUR : impossible de créer le système avec l'orientation donnée, car il s'agit d'un réseau non-cubique."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4900)
+  msg = "X!X ERREUR : un seul mode peut être utilisé à la fois."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

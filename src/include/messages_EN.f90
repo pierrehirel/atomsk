@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 02 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -701,6 +701,12 @@ CASE(702)
 CASE(703)
   !strings(1) = name of command line argument
   msg = "/!\ WARNING: Unrecognized command-line argument: "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(704)
+  !strings(1) = name of file that will be ignored
+  msg = "/!\ WARNING: too many file names passed as arguments."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "            The following file will be ignored: "//TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(750)
   msg = ""
@@ -2503,15 +2509,22 @@ CASE(4300)
   msg = " Answer the following question, you have "//TRIM(ADJUSTL(temp))//" tries."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4301)
-  !strings(1)
-  !reals(1) = 
-  !reals(2) = 
+  !strings(1) = answer
+  !reals(1) = type of quizz (1=guess atomic number; 2=guess atom species; 3=guess next atom)
+  !reals(2) = number of tries
+  !reals(3) = user's answer - actual solution (quizz type 1 only)
+  msg=""
   IF( NINT(reals(2))>0 ) THEN
     msg = " WRONG!"
-  ELSE
-    msg = ""
   ENDIF
   IF( NINT(reals(1))==1 ) THEN
+    IF( NINT(reals(2))>0 ) THEN
+      IF( reals(3) > 0.d0 ) THEN
+        msg = TRIM(msg)//" It's less."
+      ELSEIF( reals(3) < 0.d0 ) THEN
+        msg = TRIM(msg)//" It's more."
+      ENDIF
+    ENDIF
     msg = TRIM(msg)//" What is the atomic number of the atom: "//TRIM(ADJUSTL(strings(1)))//"?"
   ELSEIF( NINT(reals(1))==2 ) THEN
     msg = TRIM(msg)//" Which atom has the atomic number "//TRIM(ADJUSTL(strings(1)))//"?"
@@ -2758,6 +2771,9 @@ CASE(4826)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
   msg = "X!X ERROR: unable to create lattice with specified orientation, because lattice is not cubic."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4900)
+  msg = "X!X ERROR: only one mode can be used at a time."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

@@ -12,7 +12,7 @@ MODULE in_pdb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 Feb. 2014                                     *
+!* Last modification: P. Hirel - 02 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,6 +69,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !Initialize variables
+TN(:) = 0.d0
+UN = 0.d0
 ORIGXN(:,:) = 0.d0
 SCALEN(:,:) = 0.d0
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
@@ -188,15 +190,25 @@ DO
     READ(pdbline(39:46),*,ERR=801,END=801) P2
     READ(pdbline(47:54),*,ERR=801,END=801) P3
     !
-    !Transform atom coordinates
-    P(i,1) = P1*ORIGXN(1,1) + P2*ORIGXN(1,2) + P3*ORIGXN(1,3) + TN(1)
-    P(i,2) = P1*ORIGXN(2,1) + P2*ORIGXN(2,2) + P3*ORIGXN(2,3) + TN(2)
-    P(i,3) = P1*ORIGXN(3,1) + P2*ORIGXN(3,2) + P3*ORIGXN(3,3) + TN(3)
+    IF( VECLENGTH(ORIGXN(1,:))>1.d-8 .AND.  &
+      & VECLENGTH(ORIGXN(2,:))>1.d-8 .AND.  &
+      & VECLENGTH(ORIGXN(3,:))>1.d-8        ) THEN
+      !Transform atom coordinates
+      P(i,1) = P1*ORIGXN(1,1) + P2*ORIGXN(1,2) + P3*ORIGXN(1,3) + TN(1)
+      P(i,2) = P1*ORIGXN(2,1) + P2*ORIGXN(2,2) + P3*ORIGXN(2,3) + TN(2)
+      P(i,3) = P1*ORIGXN(3,1) + P2*ORIGXN(3,2) + P3*ORIGXN(3,3) + TN(3)
+    ELSE
+      !Coordinates must be Cartesian => save them as-is
+      P(i,1) = P1
+      P(i,2) = P2
+      P(i,3) = P3
+    ENDIF
     !
     !Read atom occupancy. This may be missing
     IF( LEN_TRIM(pdbline(55:60))>0 ) THEN
-      READ(pdbline(55:60),*,ERR=801,END=801) AUX(i,occupancy)
+      READ(pdbline(55:60),*,ERR=150,END=150) AUX(i,occupancy)
     ENDIF
+    150 CONTINUE
     !
     !READ(pdbline(61:66),*,ERR=801,END=801) atom_tempFactor
     !
@@ -210,11 +222,12 @@ DO
     !
     !Read atom charge. This may be missing
     IF( LEN_TRIM(pdbline(79:79))>0 ) THEN
-      READ(pdbline(79:79),*,ERR=801,END=801) AUX(i,q)
+      READ(pdbline(79:79),*,ERR=160,END=160) AUX(i,q)
       IF( pdbline(80:80)=="-" ) THEN
         AUX(i,q) = -1.d0*AUX(i,q)
       ENDIF
     ENDIF
+    160 CONTINUE
     !
   ELSEIF( pdbline(1:4)=='END ' ) THEN
     !End of structure or PDB file: exit loop

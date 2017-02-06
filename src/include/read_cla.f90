@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Jan. 2017                                     *
+!* Last modification: P. Hirel - 02 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1494,18 +1494,23 @@ DO WHILE(i<SIZE(cla))
     GOTO 1000
   !
   !If it is none of the above, we assume it is some file name
-  ELSEIF( LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 ) THEN
+  ELSE !IF( LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 ) THEN
     IF(pfiles(1)=='') THEN
       WRITE(pfiles(1),*) TRIM(clarg)
     ELSEIF(pfiles(2)=='') THEN
       WRITE(pfiles(2),*) TRIM(clarg)
+    ELSE
+      !More than two file names => display warning
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(704,(/TRIM(clarg)/),(/0.d0/))
     ENDIF
   !
   !
   !And the rest we do not understand => display a warning
-  ELSE
-    nwarn = nwarn+1
-    CALL ATOMSK_MSG(703,(/TRIM(clarg)/),(/0.d0/))
+!   ELSE
+!     nwarn = nwarn+1
+!     CALL ATOMSK_MSG(703,(/TRIM(clarg)/),(/0.d0/))
+  !
   ENDIF
   !
   110 CONTINUE

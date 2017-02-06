@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2016                                    *
+!* Last modification: P. Hirel - 06 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,6 +34,7 @@ MODULE subroutines
 !* GEN_NRANDNUMBERS    generate a list of N random real numbers in [0.0,1.0]      *
 !* GEN_NRANDGAUSS      generate a list of N numbers with gaussian distribution    *
 !* BUBBLESORT          sorts an array by increasing or decreasing values          *
+!* QUICKSORT           sorts an array by increasing or decreasing values          *
 !* PACKSORT            sorts an array by packing identical values together        *
 !* DO_STATS            do some statistics on a 1-dimensional array                *
 !* CHECK_ORTHOVEC      checks if two vectors are normal to each other             *
@@ -455,47 +456,162 @@ END SUBROUTINE GEN_NRANDGAUSS
 ! decreasing values of its column 'col'.
 ! It uses the so-called "bubble-sort" algorithm.
 ! IMPORTANT NOTE: this algorithm swaps entire columns
-! of an array, up to N*(N-1) times (N=number of columns),
-! so you may find it highly unefficient for very
-! large arrays.
+! of an array, up to N*(N-1) times (N=number of lines),
+! i.e. it scales as N². For very large arrays, use
+! the QUICKSORT algorithm below.
 !********************************************************
 SUBROUTINE BUBBLESORT(A,col,order)
 !
 IMPLICIT NONE
-CHARACTER(LEN=4):: order  !up or down
+CHARACTER(LEN=4),INTENT(IN):: order  !up or down
+LOGICAL:: sorted
 INTEGER:: i, j
-INTEGER:: col
+INTEGER:: imin, imax, step
+INTEGER,INTENT(IN):: col             !index of column to sort
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
 REAL(dp),DIMENSION(SIZE(A,2)) :: col_value
 !
  col_value(:) = 0.d0
 !
 IF(order=='up') THEN
-  DO j=1,SIZE(A,1)
-    DO i=j+1,SIZE(A,1)
-      !If element i is smaller than element j, we swap them
-      IF( A(i,col) < A(j,col) ) THEN
-        col_value(:) = A(i,:)
-        A(i,:) = A(j,:)
-        A(j,:) = col_value(:)
-      ENDIF
-    ENDDO
-  ENDDO
-!
+  imin = 1
+  imax = SIZE(A,1)
+  step = 1
 ELSE
-  DO j=1,SIZE(A,1)
-    DO i=j+1,SIZE(A,1)
-      !If element i is greater than element j, we swap them
-      IF( A(i,col) > A(j,col) ) THEN
-        col_value(:) = A(i,:)
-        A(i,:) = A(j,:)
-        A(j,:) = col_value(:)
-      ENDIF
-    ENDDO
-  ENDDO
+  imin = SIZE(A,1)
+  imax = 1
+  step = -1
 ENDIF
 !
+DO j=imin,imax,step
+  sorted = .TRUE.
+  DO i=j+step,imax
+    !If element i is smaller than element j, we swap them
+    IF( A(i,col) < A(j,col) ) THEN
+      col_value(:) = A(i,:)
+      A(i,:) = A(j,:)
+      A(j,:) = col_value(:)
+      sorted = .FALSE.
+    ENDIF
+  ENDDO
+  IF(sorted) RETURN
+ENDDO
+!
 END SUBROUTINE BUBBLESORT
+!
+!
+!********************************************************
+! QUICKSORT
+! This subroutine sorts a MxN array by increasing or
+! decreasing values of its column 'col'.
+! It uses the so-called "quick-sort" algorithm, which
+! scales as N*log(N) where N is the number of lines.
+! NOTE: this algorithm actually counts two subroutines:
+!      QUICKSORT (which is recursive), and
+!      QS_PARTITION below.
+!********************************************************
+RECURSIVE SUBROUTINE QUICKSORT(A,col,order)
+!
+IMPLICIT NONE
+CHARACTER(LEN=4),INTENT(IN):: order  !up or down
+INTEGER,INTENT(IN):: col             !index of column to sort
+INTEGER:: iq
+REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
+!
+IF( SIZE(A,1) > 1 ) THEN
+  CALL QS_PARTITION(A,col,order,iq)
+  CALL QUICKSORT(A(:iq-1,:),col,order)
+  CALL QUICKSORT(A(iq:,:),col,order)
+ENDIF
+!
+END SUBROUTINE QUICKSORT
+!
+!********************************************************
+!
+SUBROUTINE QS_PARTITION(A,col,order,marker)
+!
+IMPLICIT NONE
+CHARACTER(LEN=4),INTENT(IN):: order  !up or down
+REAL(dp),INTENT(INOUT),DIMENSION(:,:):: A
+INTEGER,INTENT(OUT):: marker
+INTEGER,INTENT(IN):: col             !index of column to sort
+INTEGER:: i, j
+REAL(dp),DIMENSION(SIZE(A,2)):: tempreal
+REAL(dp):: pivot      !value of pivot point
+!
+pivot = A(1,col)
+i = 0
+j = SIZE(A,1)+1
+!
+IF(order=='up') THEN
+  DO
+    j = j-1
+    DO
+      IF( A(j,col) <= pivot ) THEN
+        EXIT
+      ENDIF
+      j = j-1
+    ENDDO
+    !
+    i = i+1
+    DO
+      IF( A(i,col) >= pivot ) THEN
+        EXIT
+      ENDIF
+      i = i+1
+    ENDDO
+    !
+    IF( i < j ) THEN
+      ! Exchange A(i,:) and A(j,:)
+      tempreal(:) = A(i,:)
+      A(i,:) = A(j,:)
+      A(j,:) = tempreal(:)
+    ELSEIF( i==j ) THEN
+      marker = i+1
+      RETURN
+    ELSE
+      marker = i
+      RETURN
+    ENDIF
+    !
+  ENDDO
+  !
+ELSE  !i.e. if order != 'up'
+  DO
+    j = j-1
+    DO
+      IF( A(j,col) >= pivot ) THEN
+        EXIT
+      ENDIF
+      j = j-1
+    ENDDO
+    !
+    i = i+1
+    DO
+      IF( A(i,col) <= pivot ) THEN
+        EXIT
+      ENDIF
+      i = i+1
+    ENDDO
+    !
+    IF( i > j ) THEN
+      ! Exchange A(i,:) and A(j,:)
+      tempreal(:) = A(i,:)
+      A(i,:) = A(j,:)
+      A(j,:) = tempreal(:)
+    ELSEIF( i==j ) THEN
+      marker = i+1
+      RETURN
+    ELSE
+      marker = i
+      RETURN
+    ENDIF
+    !
+  ENDDO
+  !
+ENDIF  
+!
+END SUBROUTINE QS_PARTITION
 !
 !
 !********************************************************

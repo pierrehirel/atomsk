@@ -12,7 +12,7 @@ MODULE spacegroups
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 29 April 2016                                    *
+!* Last modification: P. Hirel - 30 Jan. 2017                                     *
 !**********************************************************************************
 !* Notes on the model and on how to use it.                                       *
 !* The space group data can be accessed from its number 1 ... 230 and from its    *
@@ -32,6 +32,21 @@ MODULE spacegroups
 !* The module should never cause access violations. Each data access routine will *
 !* return a success-code, such that the calling routines may identify problems.   *
 !* None of the routines writes messages to an I/O unit.                           *
+!**********************************************************************************
+!* SG_NUMGETNAME     returns the space group (sg) Hermann-Mauguin (H-M) symbol,   *
+!*                   given the space group number.                                *
+!* SG_NUMGETPATN     returns the Patterson sg number, given the sg number         *
+!* SG_NUMGETSYMNUM   returns the number of sym. operations, given the sg number   *
+!* SG_NUMGETSYMOP    returns the sym.op. string number, given the sg number       *
+!* SG_NUMGETSYMOPS   returns the list of all sym.op. strings given the sg number  *
+!* SG_NAMGETNUM      returns the sg number given the H-M symbol                   *
+!* SG_NAMGETPATN     returns the Patterson sg number given the H-M symbol         *
+!* SG_NAMGETSYMNUM   returns the number of sym.op. given the H-M symbol           *
+!* SG_NAMGETSYMOP    returns the sym.op. string number given the H-M symbol       *
+!* SG_NAMGETSYMOPS   returns the list of all sym.op. strings given the H-M symbol *
+!* SG_ISREADY        reports initialization status                                *
+!* SG_UNINIT         un-initialize module (deallocate all arrays)                 *
+!* SG_INIT           initialize module                                            *
 !**********************************************************************************
 !* NOTE ON COMPILATION (P. Hirel, Jan.2016):                                      *
 !* Compiling this module with gfortran 4.4 and the flag "-ftree-pre" results in   *

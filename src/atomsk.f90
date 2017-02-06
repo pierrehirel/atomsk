@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 02 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -81,6 +81,7 @@ CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: cla, cla_new  !command-line argum
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
 LOGICAL:: fileexists, logopened
 INTEGER:: i, j, m, n, ioptions
+INTEGER:: Nmodes   !number of modes in command-line
 INTEGER:: strlength
 INTEGER,DIMENSION(8):: valuesi, valuesf !initial and final time
 REAL(dp):: time_total
@@ -109,6 +110,7 @@ pfiles(:) = ''
 strlength=0
 nwarn = 0
 nerr = 0
+Nmodes = 0
 j=0
 !
 !Set default parameters of the program
@@ -163,19 +165,24 @@ verbosity = 1
   !Detect environment language
   CALL GET_ENVIRONMENT_VARIABLE('LANG',clarg)
   !
+  !Check if it is a recognizable language, otherwise default to English
+  IF( INDEX(clarg,'fr').NE.0 .OR. INDEX(clarg,'FR').NE.0 ) THEN
+    lang = 'fr'
+  ELSEIF( INDEX(clarg,'de').NE.0 .OR. INDEX(clarg,'DE').NE.0 ) THEN
+    lang = 'de'
+  ELSE
+    lang = 'en'
+  ENDIF
+  !
   !Get user name
   CALL GET_ENVIRONMENT_VARIABLE('USER',username)
+  !
+  !Display a warning if user is root
+  IF( username=="root" ) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(750,(/""/),(/0.d0/))
+  ENDIF
 #endif
-!
-!At this point, clarg may contain the language environment variable
-!Check if it is a recognizable language, otherwise use English
-IF( INDEX(clarg,'fr').NE.0 .OR. INDEX(clarg,'FR').NE.0 ) THEN
-  lang = 'fr'
-ELSEIF( INDEX(clarg,'de').NE.0 .OR. INDEX(clarg,'DE').NE.0 ) THEN
-  lang = 'de'
-ELSE
-  lang = 'en'
-ENDIF
 !
 !
 !Read the user's config file (if it exists)
@@ -309,6 +316,12 @@ ELSE
       !If it starts with a double dash sign, it is probably a mode => do NOT run in interactive mode
       ELSEIF(clarg(1:2)=='--') THEN
         mode=""
+        Nmodes = Nmodes+1
+        !If several modes are present in command-line, display error and exit program
+        IF( Nmodes>1) THEN
+          CALL ATOMSK_MSG(4900,(/''/),(/0.d0/))
+          GOTO 1000
+        ENDIF
       !
       !If it was none of the above but starts with a dash sign
       !then it is most probably an option
@@ -359,12 +372,6 @@ options_array(:) = ''
 !Print a nice message
 CALL DISPLAY_HEADER()
 CALL DATE_MSG()
-!
-!Display a warning if user is root
-IF( username=="root" ) THEN
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(750,(/""/),(/0.d0/))
-ENDIF
 !
 !
 !!Read command-line options and try to understand them

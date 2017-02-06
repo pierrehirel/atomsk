@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 02 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -672,6 +672,12 @@ CASE(702)
 CASE(703)
   !strings(1) = name of command line argument
   msg = "/!\ WARNUNG: Nicht erkannte Befehlszeilenargument: "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(704)
+  !strings(1) = name of file that will be ignored
+  msg = "/!\ WARNING: too many file names passed as arguments."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "            The following file will be ignored: "//TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(750)
   msg = ""
@@ -2760,6 +2766,9 @@ CASE(4826)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
   msg = "X!X ERROR: unable to create lattice with specified orientation, because lattice is not cubic."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4900)
+  msg = "X!X ERROR: only one mode can be used at a time."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

@@ -9,7 +9,7 @@ MODULE atoms
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 June 2016                                     *
+!* Last modification: P. Hirel - 30 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -53,7 +53,7 @@ REAL(dp),INTENT(OUT):: snumber
 !
 SELECT CASE(species)
 ! n=1
-CASE('H')
+CASE('H','D')
       snumber=1.d0
 CASE('He')
       snumber=2.d0
@@ -334,6 +334,8 @@ SELECT CASE(species)
 ! n=1
 CASE('H')
       smass=1.008d0
+CASE('D')
+      smass=2.014101777d0
 CASE('He')
       smass=4.002602d0
 !
