@@ -594,7 +594,7 @@ ELSE  !i.e. if order != 'up'
       i = i+1
     ENDDO
     !
-    IF( i > j ) THEN
+    IF( i < j ) THEN
       ! Exchange A(i,:) and A(j,:)
       tempreal(:) = A(i,:)
       A(i,:) = A(j,:)
