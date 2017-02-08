@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 May 2016                                      *
+!* Last modification: P. Hirel - 08 Feb. 2017                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -62,12 +62,13 @@ SUBROUTINE READ_CIF(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
+CHARACTER(LEN=128):: chemical_name, chemical_formula
 CHARACTER(LEN=128):: msg, temp, temp2
 CHARACTER(LEN=32),DIMENSION(32):: columns !contents of columns
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: atpos_done, symops_done, isreduced
-INTEGER:: at_occ
+INTEGER:: at_occ     !atom site occupancy
 INTEGER:: at_biso
 INTEGER:: at_uiso
 INTEGER:: at_sp, at_x, at_y, at_z !position of atom species and coordinates in the line
@@ -87,6 +88,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !Initialize variables
+ chemical_name = ""
+ chemical_formula = ""
 atpos_done=.FALSE.
 symops_done=.FALSE.
 at_sp=0
@@ -170,6 +173,18 @@ DO !Main reading loop
     READ(temp(18:strlength-1),*,ERR=800,END=800) gamma
     gamma = DEG2RAD(gamma)
   !
+  ELSEIF( temp(1:25)=='_chemical_name_systematic' ) THEN
+    temp = TRIM(ADJUSTL(temp(26:)))
+    !Remove the quotes if any
+    strlength=SCAN(temp,"'")
+    DO WHILE(strlength>0)
+      temp(strlength:strlength)=" "
+      strlength=SCAN(temp,"'")
+    ENDDO
+    temp = ADJUSTL(temp)
+    !
+    chemical_name = TRIM(temp)
+  !
   ELSEIF( temp(1:21)=='_chemical_formula_sum' ) THEN
     !
     ! Note: In order to support symmetry operations, where the number
@@ -205,6 +220,8 @@ DO !Main reading loop
       strlength=SCAN(temp,"'")
     ENDDO
     temp = ADJUSTL(temp)
+    !
+    chemical_formula = TRIM(temp)
     !
     WRITE(msg,*) 'Found chemical formula: ', TRIM(temp)
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -389,7 +406,7 @@ DO !Main reading loop
         !
       ENDIF ! atomic positions found.
       !
-    ELSEIF( temp(1:9)=="_symmetry" .AND. .NOT.symops_done) THEN
+    ELSEIF( (temp(1:9)=="_symmetry" .OR. temp(1:12)=="_space_group") .AND. .NOT.symops_done) THEN
       !This is a loop over symmetry data and we still need to read it.
       ! - continue reading the header
       ! - count number of columns (Ncol) until reaching the actual data
@@ -424,6 +441,8 @@ DO !Main reading loop
         !
         !
         IF (.NOT.ALLOCATED(symops_trf)) THEN 
+          WRITE(msg,*) 'symops_trf unallocated, counting number of symmetry operations'
+          CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
           ! The array symsops_trf is not declared, thus the number
           ! of symmetry operations is unknown.
           ! Determine the number of symmetry operations now!
@@ -436,8 +455,38 @@ DO !Main reading loop
           ! line is found.
           DO
             ! Read lines !
-            !NOTE: a CIF file may contain slash characters (e.g. in fractions like "1/2")
             READ(30,'(a128)',ERR=180,END=180) temp
+            !NOTE: a CIF file may contain symmetry operations within quotes,
+            ! and with spaces after commas, e.g. '-y, x-y, z'
+            j = SCAN(temp,"'")   !position of (eventual) first quote sign
+            DO WHILE (j>0)
+              temp(j:j) = " "
+              temp = ADJUSTL(temp)
+              j = SCAN(temp,"'")  !position of the second quote sign
+              !Remove spaces inside the quotes
+              k = SCAN(temp(1:j)," ")
+              DO WHILE(k>0)
+                temp = temp(1:k-1)//TRIM(temp(k+1:))
+                j = SCAN(temp,"'")
+                k = SCAN(temp(1:j)," ")
+              ENDDO
+              j = SCAN(temp,"'")
+            ENDDO
+            j = SCAN(temp,'"')   !position of (eventual) first quote sign
+            DO WHILE (j>0)
+              temp(j:j) = " "
+              temp = ADJUSTL(temp)
+              j = SCAN(temp,'"')  !position of the second quote sign
+              !Remove spaces inside the quotes
+              k = SCAN(temp(1:j)," ")
+              DO WHILE(k>0)
+                temp = temp(1:k-1)//TRIM(temp(k+1:))
+                j = SCAN(temp,'"')
+                k = SCAN(temp(1:j)," ")
+              ENDDO
+              j = SCAN(temp,'"')
+            ENDDO
+            !NOTE: a CIF file may contain slash characters (e.g. in fractions like "1/2")
             temp = ADJUSTL(temp)
             j = SCAN(temp,"/")
             DO WHILE (j>0)
@@ -463,9 +512,16 @@ DO !Main reading loop
               temp = temp(:j-2)//TRIM(ADJUSTL(temp2))//temp(j+2:)
               j = SCAN(temp,"/")
             ENDDO
-            READ(temp,'(a)',ERR=180,END=180) (columns(j),j=1,Ncol)
+            !Read the content of each column
+            !READ(temp,*,ERR=178,END=178) (columns(j),j=1,Ncol)
+            DO j=1,Ncol
+              k = SCAN(temp," ")
+              columns(j) = ADJUSTL(temp(1:k-1))
+              temp = ADJUSTL(temp(k:))
+            ENDDO
             ! Extract symmetry operation string !
-            temp = ADJUSTL(columns(sy_pxyz))
+            temp = columns(sy_pxyz)
+            temp = ADJUSTL(temp)
             ! Check if this is really a symmetry operation string !
             CALL SYMOPS_CHECK_STR(TRIM(temp),k)
             ! If not, exit here !
@@ -489,7 +545,7 @@ DO !Main reading loop
             ! There are symmetry operations to load.
             ! Allocate the transformation array in the symmetry operation module!
             ALLOCATE(symops_trf(symops_nltrf,Nsym))
-            symops_trf = 0.d0
+            symops_trf(:,:) = 0.d0
             REWIND(30) !Set file pointer back to start.
                        ! -> reads everything again, except that
                        !    this time symops_trf is already allocated.
@@ -497,6 +553,8 @@ DO !Main reading loop
           !
         ELSE !
           !
+          WRITE(msg,*) 'symops_trf allocated, converting strings into symmetry operations'
+          CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
           ! Number of symmetry operations Nsym is known and symops_trf is allocated.
           ! Clear the transformation table and read the data in now!
           !
@@ -509,6 +567,36 @@ DO !Main reading loop
             ! Read line
             READ(30,'(a128)',ERR=800,END=800) temp
             temp = ADJUSTL(temp)
+            !Remove quotes
+            j = SCAN(temp,"'")   !position of (eventual) first quote sign
+            DO WHILE (j>0)
+              temp(j:j) = " "
+              temp = ADJUSTL(temp)
+              j = SCAN(temp,"'")  !position of the second quote sign
+              !Remove spaces inside the quotes
+              k = SCAN(temp(1:j)," ")
+              DO WHILE(k>0)
+                temp = temp(1:k-1)//TRIM(temp(k+1:))
+                j = SCAN(temp,"'")
+                k = SCAN(temp(1:j)," ")
+              ENDDO
+              j = SCAN(temp,"'")
+            ENDDO
+            j = SCAN(temp,'"')   !position of (eventual) first quote sign
+            DO WHILE (j>0)
+              temp(j:j) = " "
+              temp = ADJUSTL(temp)
+              j = SCAN(temp,'"')  !position of the second quote sign
+              !Remove spaces inside the quotes
+              k = SCAN(temp(1:j)," ")
+              DO WHILE(k>0)
+                temp = temp(1:k-1)//TRIM(temp(k+1:))
+                j = SCAN(temp,'"')
+                k = SCAN(temp(1:j)," ")
+              ENDDO
+              j = SCAN(temp,'"')
+            ENDDO
+            !Replace divisions by actual numerical values
             j = SCAN(temp,"/")
             DO WHILE (j>0)
               READ(temp(j-1:j-1),*,ERR=800,END=800) m
@@ -533,7 +621,12 @@ DO !Main reading loop
               temp = temp(:j-2)//TRIM(ADJUSTL(temp2))//temp(j+2:)
               j = SCAN(temp,"/")
             ENDDO
-            READ(temp,'(a)',ERR=800,END=800) (columns(j),j=1,Ncol)
+            !READ(temp,'(a)',ERR=800,END=800) (columns(j),j=1,Ncol)
+            DO j=1,Ncol
+              k = SCAN(temp," ")
+              columns(j) = ADJUSTL(temp(1:k-1))
+              temp = ADJUSTL(temp(k:))
+            ENDDO
             !READ(30,*,ERR=800,END=800) (columns(j),j=1,Ncol)
             ! Get symmetry operation string
             temp = ADJUSTL(columns(sy_pxyz))
@@ -573,9 +666,14 @@ IF(isreduced) THEN
 ENDIF
 !Apply symmetry operations
 IF (Nsym>0.AND.ALLOCATED(symops_trf)) THEN
+  CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
   CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,0.5d0,i)
   NP=SIZE(P,1) ! update number of atom sites
 ENDIF
+!Create a nice comment based on chemical name and formula
+IF (ALLOCATED(comment)) DEALLOCATE(comment)
+ALLOCATE(comment(1))
+ comment(1) = TRIM(chemical_name)//" - "//TRIM(chemical_formula)
 !
 GOTO 1000
 !

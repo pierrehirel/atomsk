@@ -44,7 +44,7 @@ Master branch (to be Beta 0.9)
 
 beta 0.8.8 (12 Jan. 2016)
 -------------------------
-- fixed a bug where atom indices could not be written past 100 millions in LAMMPS data files. Now it can write up to the limit of integers (about 2 millions).
+- fixed a bug where atom indices could not be written past 100 millions in LAMMPS data files. Now it can write up to the limit of integers (about 2 billions).
 - fixed a bug where option "-unskew" did not work, because result was not saved to the array H.
 
 

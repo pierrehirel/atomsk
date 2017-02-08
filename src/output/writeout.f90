@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 June 2016                                     *
+!* Last modification: P. Hirel - 07 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -275,6 +275,10 @@ ENDIF
 ! by calling the module corresponding to the output format
 ! Output to several formats is possible
 CALL ATOMSK_MSG(3000,(/TRIM(outputfile)/),(/DBLE(SIZE(P,1))/))
+!
+IF(SIZE(P(:,1))>10000000) THEN
+  CALL ATOMSK_MSG(3,(/''/),(/0.d0/))
+ENDIF
 !
 !
 DO i=1,SIZE(outfileformats)

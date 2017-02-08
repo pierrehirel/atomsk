@@ -772,6 +772,9 @@ CASE(1002)
 CASE(1003)
   msg = "..> POTCAR Datei erkannt, entnehme Atomsorten..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(1004)
+  msg = "..> Applying symmetry operations..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !1700-1799: WARNUNG MESSAGES
 CASE(1700)

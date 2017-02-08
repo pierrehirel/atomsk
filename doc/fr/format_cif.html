@@ -25,7 +25,7 @@
 
 <p>Le format CIF est un standard pour la description de structures crystallographiques. Il est donc conçu pour intégrer de nombreuses informations comme le nom du composé chimique, son groupe de symétrie, ainsi que les détails de l'expérience de diffraction comme la température, la longueur d'onde, etc. Un fichier CIF peut même contenir un article complet paru ou à paraître dans un journal international.</p>
 
-<p>Lorsqu'il lit un fichier CIF Atomsk ignore la plupart de ces informations. Seuls les paramètres de maille et les positions des atomes sont lus depuis le fichier CIF.</p>
+<p>Lorsqu'il lit un fichier CIF, Atomsk enregistre les vecteurs de boîte et les positions des atomes. Si des opérations de symétrie sont définies dans le fichier, alors elles sont appliquées immédiatement. Si le taux d'occupation des sites et les paramètres de déplacement (Biso ou Uiso) sont définis, alors ils sont enregistrés comme propriétés auxiliaires. Toute autre information est ignorée.</p>
 
 <p>Lorsqu'il écrit un fichier au format CIF, Atomsk écrit seulement les paramètres de maille et les positions des atomes.</p>
 

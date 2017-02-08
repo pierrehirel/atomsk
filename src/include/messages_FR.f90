@@ -799,6 +799,9 @@ CASE(1002)
 CASE(1003)
   msg = "..> Fichier POTCAR trouvé, lecture des espèces atomiques..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(1004)
+  msg = "..> Application des opérations de symétrie..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !1700-1799: WARNING MESSAGES
 CASE(1700)
