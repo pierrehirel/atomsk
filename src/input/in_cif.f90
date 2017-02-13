@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Feb. 2017                                     *
+!* Last modification: P. Hirel - 13 Feb. 2017                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -291,7 +291,7 @@ DO !Main reading loop
           DO
             !Read lines 
             READ(30,*,ERR=170,END=170) (columns(j),j=1,Ncol)
-            !Get rid of parethesis
+            !Get rid of parenthesis
             strlength = SCAN(columns(at_x),'(')
             IF(strlength>0) columns(at_x) = columns(at_x)(1:strlength-1)
             strlength = SCAN(columns(at_y),'(')
@@ -379,7 +379,7 @@ DO !Main reading loop
             IF(ALLOCATED(AUX)) THEN
               ! Naux is never used in this scope, prev. version: Naux=1
               IF(occ>0) THEN
-                !Get rid of parethesis
+                !Get rid of parenthesis
                 strlength = SCAN(columns(at_occ),'(')
                 IF(strlength>0) columns(at_occ) = columns(at_occ)(1:strlength-1)
                 READ(columns(at_occ),*,ERR=800,END=800) AUX(i,occ)
@@ -673,7 +673,12 @@ ENDIF
 !Create a nice comment based on chemical name and formula
 IF (ALLOCATED(comment)) DEALLOCATE(comment)
 ALLOCATE(comment(1))
- comment(1) = TRIM(chemical_name)//" - "//TRIM(chemical_formula)
+ comment(1) = ""
+IF( LEN_TRIM(chemical_name) > 0 ) THEN
+  comment(1) = TRIM(chemical_name)//" -"
+ENDIF
+ comment(1) = TRIM(comment(1))//" "//TRIM(chemical_formula)
+ comment(1) = ADJUSTL(comment(1))
 !
 GOTO 1000
 !

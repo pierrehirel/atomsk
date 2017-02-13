@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Feb. 2017                                     *
+!* Last modification: P. Hirel - 09 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2787,7 +2787,7 @@ CASE(4820)
   msg = "X!X ERREUR : les dimensions de la supercellule n'ont pas été définis, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4821)
-  msg = "X!X ERREUR : le numbre d'atomes dépasse la taille du tableau alloué."
+  msg = "X!X ERREUR : le nombre d'atomes dépasse la taille du tableau alloué."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4822)
   msg = "X!X ERREUR : aucun fichier à traiter, abandon."

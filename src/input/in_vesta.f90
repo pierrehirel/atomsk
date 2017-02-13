@@ -11,7 +11,7 @@ MODULE in_vesta
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 10 Nov. 2016                                     *
+!* Last modification: P. Hirel - 09 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -254,6 +254,7 @@ CALL FRAC2CART(P,H)
 !Apply symmetry operations (if any)
 !(cf. /include/symops.f90)
 IF( Nsym>0 .AND. sgroupnum>1 ) THEN
+  CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
   CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,1.d0,j)
   IF(ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
 ENDIF

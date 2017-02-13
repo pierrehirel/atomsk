@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 31 May 2016                                      *
+!* Last modification: P. Hirel - 08 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -663,8 +663,13 @@ IF( cubic ) THEN
       IF(i==2) comment(1) = TRIM(comment(1))//' Y=['
       IF(i==3) comment(1) = TRIM(comment(1))//' Z=['
       DO j=1,3
-        WRITE(msg,*) NINT(ORIENT(i,j))
-        comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
+        m = NINT(ORIENT(i,j))
+        WRITE(msg,*) m
+        IF( ABS(m)<10 ) THEN
+          comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
+        ELSE
+          comment(1) = TRIM(comment(1))//" "//TRIM(ADJUSTL(msg))
+        ENDIF
         IF(j==3) comment(1) = TRIM(comment(1))//']'
       ENDDO
     ENDDO
@@ -734,31 +739,21 @@ IF( cubic ) THEN
     WRITE(msg,'(3f16.6)') H(3,:)
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
-    !The unit cell is *not* defined by the interplanar spacing, but by a repetition vector
-    !=> find the shortest repetition vectors
-    !   they must be a multiple of the ips(:) and a linear combination of the H(:,:)
-    uv(:,:) = HUGE(1.d0)
-    DO i=1,3
-      !multiply ips(i,i) by m and check it against a linear combination of H(:,:)
-      DO m=1,10
-        DO l=-lminmax,lminmax
-          DO k=-lminmax,lminmax
-            DO j=-lminmax,lminmax
-              !Compute the difference between current m*ips(i,i) and current linear combination of H(:,:)
-              x = VECLENGTH( DBLE(m)*ips(i,:) + DBLE(j)*H(1,:) + DBLE(k)*H(2,:) + DBLE(l)*H(3,:) )
-              IF( x < 1.d-6 .AND. DBLE(m)*ips(i,i)<uv(i,i) ) THEN
-                !We have found a suitable vector, and it is shorter than the previous one
-                !=> save it to uv(i,i)
-                uv(i,i) = DBLE(m)*ips(i,i)
-              ENDIF
-            ENDDO
-          ENDDO
-        ENDDO
-      ENDDO
-      320 CONTINUE
-    ENDDO
+    !The oriented unit cell vectors are defined by the Miller indices
+    uv(:,:) = 0.d0
+    uv(1,1) = ORIENT(1,1)*H(1,1) + ORIENT(1,2)*H(2,1) + ORIENT(1,3)*H(3,1)
+    uv(2,2) = ORIENT(2,1)*H(1,2) + ORIENT(2,2)*H(2,2) + ORIENT(2,3)*H(3,2)
+    uv(3,3) = ORIENT(3,1)*H(1,3) + ORIENT(3,2)*H(2,3) + ORIENT(3,3)*H(3,3)
+    WRITE(msg,*) "Oriented unit cell vectors:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') uv(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') uv(2,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') uv(3,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
-    !Correct for some special orientations to find the minimal repetition unit
+    !Correct cell length for some special orientations to find the minimal repetition unit
     SELECT CASE(create_struc)
     CASE('bcc','BCC')
       !in bcc structure, period along a <111> direction is actually 1/2<111>
@@ -795,12 +790,19 @@ IF( cubic ) THEN
     !
     !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
     !and store it in Q(:,:)
+    WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !Estimate new number of particles NP by comparing volumes of old and new unit cells
+    NP = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+       & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 10
+    WRITE(msg,*) "Estimated new number of atoms : ", NP
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     IF(ALLOCATED(Q)) DEALLOCATE(Q)
-    ALLOCATE( Q(1000,4) )    !assuming there are less than 1,000 atoms in the unit cell...
+    ALLOCATE( Q(NP,4) )
     Q(:,:) = 0.d0
-    NP=0
     !
     !Loop over all replica in a wide range
+    NP = 0
     DO i=1,SIZE(P,1)
       DO l=-lminmax,lminmax
         DO k=-lminmax,lminmax
@@ -826,6 +828,7 @@ IF( cubic ) THEN
                 NP = NP+1
                 IF(NP>SIZE(Q,1)) THEN
                   nerr = nerr+1
+                  CALL ATOMSK_MSG(4821,(/""/),(/0.d0/))
                   GOTO 1000
                 ENDIF
                 Q(NP,:) = tempP(:)

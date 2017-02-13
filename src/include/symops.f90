@@ -16,7 +16,7 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 30 Jan. 2017                                     *
+!* Last modification: P. Hirel - 13 Feb. 2017                                     *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !* SYMOPS_INIT    initializes the array symops_trf to identity                    *
@@ -515,7 +515,7 @@ CALL ATOMSK_MSG(1707,(/TRIM(temp)/),(/0.d0/))
 nwarn = nwarn+1
 GOTO 1000
 850 CONTINUE
-msg = 'Unable to store transformation in symops module. skipping'
+!Unable to store transformation in symops module => error message
 CALL ATOMSK_MSG(1707,(/msg/),(/0.d0/))
 !
 1000 CONTINUE
@@ -527,14 +527,16 @@ END SUBROUTINE SYMOPS_SET_STR
 !
 RECURSIVE SUBROUTINE SYMOPS_PARSE_STR_LINTRF(instr,shift,slope,nchk)
 !
-CHARACTER(LEN=*),INTENT(IN):: instr
-REAL(dp),INTENT(OUT)::shift,slope(3)
+CHARACTER(LEN=*),INTENT(IN):: instr        !the string to parse
+REAL(dp),INTENT(OUT):: shift               !Shift along X, Y, Z
+REAL(dp),DIMENSION(3),INTENT(OUT):: slope  !Multiplication factor along X, Y, Z
 INTEGER,INTENT(OUT)::nchk
 !
 INTEGER:: i,j,l
 CHARACTER(LEN=128):: temp,msg
 INTEGER:: ichan, k1, k2
-REAL(dp):: rtmp, sh1, sh2, sl1(3), sl2(3)
+REAL(dp):: rtmp, sh1, sh2
+REAL(dp),DIMENSION(3):: sl1, sl2
 !
 nchk=0
 shift=0.d0
@@ -542,10 +544,10 @@ slope=0.d0
 temp=ADJUSTL(instr)
 l=LEN_TRIM(temp)
 !
-!msg = 'entering SYMOPS_PARSE_STR_LINTRF'
-!CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!msg = "- parsing '"//temp(1:l)//"'..."
-!CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+msg = 'entering SYMOPS_PARSE_STR_LINTRF'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+msg = "- parsing '"//temp(1:l)//"'..."
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 IF (l<=2) GOTO 400 ! TRIVIAL CASE: numbers or characters, no operation
 !
@@ -554,6 +556,8 @@ IF (l<=2) GOTO 400 ! TRIVIAL CASE: numbers or characters, no operation
 j=INDEX(temp(1:l),'+')
 IF (j>1) GOTO 500
 j=INDEX(temp(1:l),'-')
+IF (j>1) GOTO 520
+j=INDEX(temp(1:l),'-',BACK=.TRUE.) !necessary if first character is "-", e.g. "-z-0.5"
 IF (j>1) GOTO 520
 j=INDEX(temp(1:l),'*')
 IF (j>1) GOTO 540
@@ -565,6 +569,8 @@ IF (j>1) GOTO 560
 !
 400 CONTINUE ! TRIVIAL CASE: single numbers or single characters, no operation
 !                          ! Solve it here !
+msg = "- assuming TRIVIAL CASE: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ! Determine the output channel: shift=0, x=1, y=2, z=3
 ichan=0
 j=0
@@ -590,8 +596,10 @@ GOTO 800
 !
 500 CONTINUE ! ADDITION CASE       : operation '+' with two substrings
 !            ! Bifurcate here !
-call SYMOPS_PARSE_STR_LINTRF(temp(1:j-1),sh1,sl1,k1)
-call SYMOPS_PARSE_STR_LINTRF(temp(j+1:l),sh2,sl2,k2)
+msg = "- assuming ADDITION: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(1:j-1)),sh1,sl1,k1)
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(j+1:l)),sh2,sl2,k2)
 IF (k1==0 .OR. k2==0) GOTO 802
 ! Combine
 shift = sh1+sh2
@@ -600,8 +608,10 @@ GOTO 800
 !
 520 CONTINUE ! SUBTRACTION CASE    : operation '-' with two substrings
 !            ! Bifurcate here !
-call SYMOPS_PARSE_STR_LINTRF(temp(1:j-1),sh1,sl1,k1)
-call SYMOPS_PARSE_STR_LINTRF(temp(j+1:l),sh2,sl2,k2)
+msg = "- assuming SUBTRACTION: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(1:j-1)),sh1,sl1,k1)
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(j+1:l)),sh2,sl2,k2)
 IF (k1==0 .OR. k2==0) GOTO 802
 ! Combine
 shift = sh1-sh2
@@ -610,8 +620,10 @@ GOTO 800
 !
 540 CONTINUE ! MULTIPLICATION CASE : operation '*' with two substrings
 !            ! Bifurcate here !
-call SYMOPS_PARSE_STR_LINTRF(temp(1:j-1),sh1,sl1,k1)
-call SYMOPS_PARSE_STR_LINTRF(temp(j+1:l),sh2,sl2,k2)
+msg = "- assuming MULTIPLICATION: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(1:j-1)),sh1,sl1,k1)
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(j+1:l)),sh2,sl2,k2)
 IF (k1==0 .OR. k2==0) GOTO 802
 ! Combine: Possible scenarios
 ! 1) S1=A,M1=0, S2=0,M2=X -> S=0, M=A*X -> S=S1*S2, M=S1*M2+S2*M1
@@ -625,8 +637,10 @@ GOTO 800
 !
 560 CONTINUE ! DIVISION CASE       : operation '/' with two substrings
 !            ! Bifurcate here !
-call SYMOPS_PARSE_STR_LINTRF(temp(1:j-1),sh1,sl1,k1)
-call SYMOPS_PARSE_STR_LINTRF(temp(j+1:l),sh2,sl2,k2)
+msg = "- assuming DIVISION: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(1:j-1)),sh1,sl1,k1)
+call SYMOPS_PARSE_STR_LINTRF(ADJUSTL(temp(j+1:l)),sh2,sl2,k2)
 IF (k1==0 .OR. k2==0) GOTO 802
 ! Combine: Possible scenarios
 ! 1) S1=0,M1=X, S2=A,M2=0 -> S=0, M=X/A -> S=S1/S2, M=M1/S2
@@ -643,16 +657,21 @@ GOTO 800
 800 CONTINUE ! success
 nchk = 1
 ! debug out
-!WRITE(msg,'(F8.3," + ",F8.3,"*x + ",F8.3,"*y + ",F8.3,"*z")') &
-!     &    shift, slope(1), slope(2), slope(3)
-!msg = "- transformation: "//TRIM(ADJUSTL(msg))
-!CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,'(F8.3," + ",F8.3,"*x + ",F8.3,"*y + ",F8.3,"*z")') &
+     &    shift, slope(1), slope(2), slope(3)
+CALL ATOMSK_MSG(999,(/"Op.string"//msg/),(/0.d0/))
+msg = "- transformation: "//TRIM(ADJUSTL(msg))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 GOTO 1000
 801 CONTINUE ! error, failed to convert to number
+msg = "- FAILED TO CONVERT: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 CALL ATOMSK_MSG(808,(/temp(1:l)/),(/0.d0/))
 nerr = nerr+1
 GOTO 1000
 802 CONTINUE ! error, failed to convert operation
+msg = "- FAILED TO CONVERT: "//TRIM(temp(1:l))
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 CALL ATOMSK_MSG(1813,(/temp(1:l)/),(/0.d0/))
 nerr = nerr+1
 GOTO 1000
