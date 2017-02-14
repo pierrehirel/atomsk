@@ -15,7 +15,7 @@ Master branch (to be Beta 0.9)
 - added support for reading and writing files in VESTA format.
 - enhanced support for CIF format. Symmetry operations are now taken into account. Thanks to Juri Barthel, RWTH Aachen, Germany, for improving support of this file format.
 - enhanced support for Quantum Espresso files. When writing such files, the user's environment (in particular the variable $ESPRESSO_PSEUDO) is now taken into account.
-- in mode "--create", added possibility to generate wurtzite lattices.
+- in mode "--create", added possibility to generate wurtzite lattices. Also fixed a bug that prevented to create oriented lattices with very large Miller index.
 - in option "-add-atom", if atoms of the same species as the new atom(s) have shells, then the new atoms are also created with shells. Also, this options now allows to place a new atom relatively to an existing atom.
 - in options "-crack" and "-dislocation", made the indexing of theoretical stresses consistent with the Voigt notation, i.e. sigma_11, sigma_22, sigma_33, sigma_23, sigma_13, sigma_12.
 - in option "-dislocation", the Poisson ratio must be given only for dislocations of edge character. It must be omitted for dislocations of screw or mixed characters.
@@ -32,7 +32,7 @@ Master branch (to be Beta 0.9)
 - atom symbol 'D' is now recognized as deuterium.
 - fixed a bug that could cause the program to crash when reading GULP input files.
 - fixed a bug where atom coordinates would not be read correctly from LAMMPS data files (*.lmp) when they contained replica flags (i.e. three integer numbers) at the end of each line.
-- fixed a bug when reading PDB files, where all atom positions would be zero if no box size was defined.
+- fixed several bugs affecting reading and writing of PDB files.
 - fixed a bug in mode "--all-in-one" that was causing a crash when no file format was specified.
 - fixed a bug in mode "--create" where atoms would sometimes be missing when creating lattices with some orientations.
 - fixed a bug in mode "--merge" where sometimes auxiliary properties would not be correctly handled.

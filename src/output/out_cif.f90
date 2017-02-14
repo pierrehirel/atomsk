@@ -15,7 +15,7 @@ MODULE out_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Nov. 2015                                     *
+!* Last modification: P. Hirel - 14 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -94,7 +94,7 @@ CALL INT2MONTH(VALUES(2),month,smonth)
 WRITE(msg,'(i2,a2,i4)') VALUES(3), ", ", VALUES(1)
 WRITE(temp,*) "_audit_creation_date      '"//TRIM(smonth)//" "//TRIM(ADJUSTL(msg))//"'"
 WRITE(40,'(a)') TRIM(ADJUSTL(temp))
-WRITE(40,'(a)') "_audit_creation_method    Draft CIF file generated with Atomsk"
+WRITE(40,'(a)') "_audit_creation_method    'Draft CIF file generated with Atomsk'"
 !
 !
 !Find number of atoms for each species
@@ -130,6 +130,14 @@ WRITE(40,'(a)') "_chemical_formula_weight         "//TRIM(ADJUSTL(msg))
 WRITE(40,'(a)') "_chemical_compound_source         ?"
 WRITE(40,'(a)') "_chemical_absolute_configuration  ?"
 !
+!
+!Write space group information
+!NOTE: here space group P1 is always assumed
+WRITE(40,*) ""
+WRITE(40,'(a)') "_space_group_IT_number           1"
+WRITE(40,'(a)') "_symmetry_cell_setting           triclinic"
+WRITE(40,'(a)') "_symmetry_space_group_name_Hall  'P 1'"
+WRITE(40,'(a)') "_symmetry_space_group_name_H-M   'P 1'"
 !
 !Write cell vectors (conventional notation, angles in degrees)
 WRITE(40,*) ""

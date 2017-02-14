@@ -14,7 +14,7 @@ MODULE out_pdb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 14 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,8 +117,8 @@ OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 !so we have to look for characters 2:7.
 !If a keyword cannot be found in comment(:) then produce dummy lines.
 !
-!Header
-pdbline = 'HEADER '//comment(1)(1:73)
+!Header (remove leading # from comment)
+pdbline = 'HEADER   '//comment(1)(2:73)
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='HEADER' ) THEN
@@ -129,8 +129,8 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
 ENDIF
 WRITE(40,'(a80)') pdbline
 !
-!Title
-pdbline = 'TITLE  '//comment(1)(1:73)
+!Title (remove leading # from comment)
+pdbline = 'TITLE    '//comment(1)(2:73)
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='TITLE' ) THEN
@@ -261,7 +261,8 @@ WRITE(40,'(a6)') 'SEQRES'
 !  ===  CRYSTALLOGRAPHIC  ===
 !Supercell parameters
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
-WRITE(pdbline,601) 'CRYST1', a, b, c, alpha, beta, gamma, 'P 1       ', 1
+
+WRITE(pdbline,601) 'CRYST1', a, b, c, RAD2DEG(alpha), RAD2DEG(beta), RAD2DEG(gamma), 'P 1       ', 1
 WRITE(40,'(a80)') pdbline
 !
 !
@@ -299,7 +300,7 @@ DO i=1,SIZE(P,1)
   IF(occ>0) THEN
     atom_occupancy = AUX(i,occ)
   ELSE
-    atom_occupancy = 0.d0
+    atom_occupancy = 1.d0
   ENDIF
   !
   !Set atom temperature factor
@@ -323,8 +324,21 @@ DO i=1,SIZE(P,1)
   atom_element=ADJUSTR(atom_element)
   !
   !Write line to file
-  WRITE(pdbline,600) 'ATOM  ', i, atom_name, atom_altLoc, atom_resName, atom_chainID, atom_resSeq, atom_iCode, &
-                & P(i,1), P(i,2), P(i,3), atom_occupancy, atom_tempFactor, atom_element, atom_charge
+  pdbline(1:6) = "ATOM  "
+  WRITE(pdbline(7:11),'(i5)') i
+  pdbline(13:16) = TRIM(atom_name)
+  pdbline(17:17) = atom_altLoc
+  pdbline(18:20) = TRIM(atom_resName)
+  pdbline(22:22) = atom_chainID
+  WRITE(pdbline(23:26),'(i4)') atom_resSeq
+  pdbline(27:27) = atom_iCode
+  WRITE(pdbline(31:38),'(f8.3)') P(i,1)
+  WRITE(pdbline(39:46),'(f8.3)') P(i,2)
+  WRITE(pdbline(47:54),'(f8.3)') P(i,3)
+  WRITE(pdbline(55:60),'(f6.2)') atom_occupancy
+  WRITE(pdbline(61:66),'(f6.2)') atom_tempFactor
+  pdbline(77:78) = ADJUSTR(atom_element)
+  WRITE(pdbline(79:80),'(a2)') atom_charge
   WRITE(40,'(a80)') pdbline
 ENDDO
 WRITE(pdbline,'(a6)') 'TER   '

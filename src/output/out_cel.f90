@@ -13,7 +13,7 @@ MODULE out_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 14 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,7 +44,6 @@ CONTAINS
 !
 SUBROUTINE WRITE_CEL(H,P,comment,AUXNAMES,AUX,outputfile)
 !
-REAL(dp),PARAMETER :: r2d = 180.d0/pi
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=5):: zone
@@ -121,7 +120,7 @@ WRITE(40,'(a)') comment(1)
 !
 !Write cell vectors (conventional notation, size in nm, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
-WRITE(temp,'(6(f8.4,2X))') a,b,c,alpha*r2d,beta*r2d,gamma*r2d
+WRITE(temp,'(6(f8.4,2X))') a, b, c, RAD2DEG(alpha), RAD2DEG(beta), RAD2DEG(gamma)
 WRITE(40,'(a)') " 0  "//TRIM(ADJUSTL(temp))
 !
 !

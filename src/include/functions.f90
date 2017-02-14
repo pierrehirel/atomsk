@@ -10,7 +10,7 @@ MODULE functions
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Dec. 2015                                     *
+!* Last modification: P. Hirel - 14 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,6 +37,7 @@ MODULE functions
 !* GCD                 calculates the greatest common divisor of two integers     *
 !* ANGVEC              calculates angle between 2 vectors                         *
 !* DEG2RAD             converts angles from degrees to radians                    *
+!* RAD2DEG             converts angles from radians to degrees                    *
 !* CROSS_PRODUCT       calculates the cross product of two vectors                *
 !* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
 !* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
@@ -362,6 +363,22 @@ angrad = angdeg*pi/180.d0
 RETURN
 !
 END FUNCTION DEG2RAD
+!
+!
+!********************************************************
+!  RAD2DEG
+!  This function converts angles from radians to degrees
+!********************************************************
+FUNCTION RAD2DEG(angrad) RESULT(angdeg)
+!
+IMPLICIT NONE
+REAL(dp):: angdeg, angrad
+!
+angdeg = angrad*180.d0 / pi
+!
+RETURN
+!
+END FUNCTION RAD2DEG
 !
 !
 !********************************************************
