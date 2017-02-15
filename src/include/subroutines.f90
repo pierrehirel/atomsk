@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 Feb. 2017                                     *
+!* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,6 +36,7 @@ MODULE subroutines
 !* BUBBLESORT          sorts an array by increasing or decreasing values          *
 !* QUICKSORT           sorts an array by increasing or decreasing values          *
 !* PACKSORT            sorts an array by packing identical values together        *
+!* IDSORT              sorts an array according to the provided list of index     *
 !* DO_STATS            do some statistics on a 1-dimensional array                *
 !* CHECK_ORTHOVEC      checks if two vectors are normal to each other             *
 !* INVMAT              inverts a NxN matrix                                       *
@@ -454,48 +455,76 @@ END SUBROUTINE GEN_NRANDGAUSS
 ! BUBBLESORT
 ! This subroutine sorts a MxN array by increasing or
 ! decreasing values of its column 'col'.
+! It also returns the list of index after the sorting.
 ! It uses the so-called "bubble-sort" algorithm.
 ! IMPORTANT NOTE: this algorithm swaps entire columns
 ! of an array, up to N*(N-1) times (N=number of lines),
 ! i.e. it scales as N². For very large arrays, use
 ! the QUICKSORT algorithm below.
 !********************************************************
-SUBROUTINE BUBBLESORT(A,col,order)
+SUBROUTINE BUBBLESORT(A,col,order,newindex)
 !
 IMPLICIT NONE
 CHARACTER(LEN=4),INTENT(IN):: order  !up or down
 LOGICAL:: sorted
-INTEGER:: i, j
-INTEGER:: imin, imax, step
+INTEGER:: i, j, k
+INTEGER:: Ninvert  !number of inversions
 INTEGER,INTENT(IN):: col             !index of column to sort
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
 REAL(dp),DIMENSION(SIZE(A,2)) :: col_value
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
 !
+Ninvert = 0
  col_value(:) = 0.d0
 !
-IF(order=='up') THEN
-  imin = 1
-  imax = SIZE(A,1)
-  step = 1
-ELSE
-  imin = SIZE(A,1)
-  imax = 1
-  step = -1
+IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
+ALLOCATE( newindex(SIZE(A,1)) )
+DO i=1,SIZE(newindex)
+  newindex(i) = i
+ENDDO
+!
+IF(order=='down') THEN
+  DO j=1,SIZE(A,1)-1
+    DO i=j+1,SIZE(A,1)
+      !If element i is greater than element j, swap them
+      IF( A(i,col) > A(j,col) ) THEN
+        col_value(:) = A(i,:)
+        A(i,:) = A(j,:)
+        A(j,:) = col_value(:)
+        !Save new indexes
+        k = newindex(i)
+        newindex(i) = newindex(j)
+        newindex(j) = k
+        Ninvert = Ninvert+1
+      ENDIF
+    ENDDO
+    !If no inversion was performed after loop on i, the list is fully sorted
+    IF(sorted) EXIT
+  ENDDO
+  !
+ELSE  !i.e. if order is "up"
+  DO j=1,SIZE(A,1)-1
+    DO i=j+1,SIZE(A,1)
+      !If element i is smaller than element j, swap them
+      IF( A(i,col) < A(j,col) ) THEN
+        col_value(:) = A(i,:)
+        A(i,:) = A(j,:)
+        A(j,:) = col_value(:)
+        !Save new indexes
+        k = newindex(i)
+        newindex(i) = newindex(j)
+        newindex(j) = k
+        !We performed an inversion => list is not sorted
+        sorted = .FALSE.
+        Ninvert = Ninvert+1
+      ENDIF
+    ENDDO
+    !If no inversion was performed after loop on i, the list is fully sorted
+    !IF(sorted) EXIT
+  ENDDO
 ENDIF
 !
-DO j=imin,imax,step
-  sorted = .TRUE.
-  DO i=j+step,imax
-    !If element i is smaller than element j, we swap them
-    IF( A(i,col) < A(j,col) ) THEN
-      col_value(:) = A(i,:)
-      A(i,:) = A(j,:)
-      A(j,:) = col_value(:)
-      sorted = .FALSE.
-    ENDIF
-  ENDDO
-  IF(sorted) RETURN
-ENDDO
+PRINT*, "Number of inversions: ", Ninvert
 !
 END SUBROUTINE BUBBLESORT
 !
@@ -504,38 +533,62 @@ END SUBROUTINE BUBBLESORT
 ! QUICKSORT
 ! This subroutine sorts a MxN array by increasing or
 ! decreasing values of its column 'col'.
+! It also returns the list of index after the sorting.
 ! It uses the so-called "quick-sort" algorithm, which
 ! scales as N*log(N) where N is the number of lines.
-! NOTE: this algorithm actually counts two subroutines:
-!      QUICKSORT (which is recursive), and
+! NOTE: this algorithm actually counts three subroutines:
+!      QUICKSORT (the one that you should CALL),
+!      QSORT (which is recursive), and
 !      QS_PARTITION below.
 !********************************************************
-RECURSIVE SUBROUTINE QUICKSORT(A,col,order)
+SUBROUTINE QUICKSORT(A,col,order,newindex)
+!
+IMPLICIT NONE
+CHARACTER(LEN=4),INTENT(IN):: order  !up or down
+INTEGER,INTENT(IN):: col             !index of column to sort
+INTEGER:: i
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
+REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
+!
+IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
+ALLOCATE( newindex(SIZE(A,1)) )
+DO i=1,SIZE(newindex)
+  newindex(i) = i
+ENDDO
+!
+CALL QSORT(A,col,order,newindex)
+!
+END SUBROUTINE QUICKSORT
+!
+!********************************************************
+RECURSIVE SUBROUTINE QSORT(A,col,order,newindex)
 !
 IMPLICIT NONE
 CHARACTER(LEN=4),INTENT(IN):: order  !up or down
 INTEGER,INTENT(IN):: col             !index of column to sort
 INTEGER:: iq
+INTEGER,DIMENSION(:):: newindex !list of sorted indexes
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
 !
 IF( SIZE(A,1) > 1 ) THEN
-  CALL QS_PARTITION(A,col,order,iq)
-  CALL QUICKSORT(A(:iq-1,:),col,order)
-  CALL QUICKSORT(A(iq:,:),col,order)
+  CALL QS_PARTITION(A,col,order,iq,newindex)
+  CALL QSORT(A(:iq-1,:),col,order,newindex(:iq-1))
+  CALL QSORT(A(iq:,:),col,order,newindex(iq:))
 ENDIF
 !
-END SUBROUTINE QUICKSORT
+END SUBROUTINE QSORT
 !
 !********************************************************
 !
-SUBROUTINE QS_PARTITION(A,col,order,marker)
+SUBROUTINE QS_PARTITION(A,col,order,marker,newindex)
 !
 IMPLICIT NONE
 CHARACTER(LEN=4),INTENT(IN):: order  !up or down
 REAL(dp),INTENT(INOUT),DIMENSION(:,:):: A
 INTEGER,INTENT(OUT):: marker
 INTEGER,INTENT(IN):: col             !index of column to sort
-INTEGER:: i, j
+INTEGER:: i, j, k
+INTEGER,DIMENSION(:):: newindex !list of sorted indexes
 REAL(dp),DIMENSION(SIZE(A,2)):: tempreal
 REAL(dp):: pivot      !value of pivot point
 !
@@ -566,6 +619,9 @@ IF(order=='up') THEN
       tempreal(:) = A(i,:)
       A(i,:) = A(j,:)
       A(j,:) = tempreal(:)
+      k = newindex(i)
+      newindex(i) = newindex(j)
+      newindex(j) = k
     ELSEIF( i==j ) THEN
       marker = i+1
       RETURN
@@ -599,6 +655,9 @@ ELSE  !i.e. if order != 'up'
       tempreal(:) = A(i,:)
       A(i,:) = A(j,:)
       A(j,:) = tempreal(:)
+      k = newindex(i)
+      newindex(i) = newindex(j)
+      newindex(j) = k
     ELSEIF( i==j ) THEN
       marker = i+1
       RETURN
@@ -623,35 +682,45 @@ END SUBROUTINE QS_PARTITION
 ! are given, this subroutine will pack identical
 ! values so the result is:
 !      2 2 2 2 4 4 4 3 3 3 1 1 1
+! It also returns the list of index after the sorting.
 !********************************************************
-SUBROUTINE PACKSORT(A,col)
+SUBROUTINE PACKSORT(A,col,newindex)
 !
 IMPLICIT NONE
-INTEGER:: i, j, k
+INTEGER:: i, j, k, l
 INTEGER:: col, last
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-REAL(dp),DIMENSION(SIZE(A(1,:))):: Atemp
+REAL(dp),DIMENSION(SIZE(A,2)):: Atemp
 !
-IF(col>SIZE(A(1,:))) col = SIZE(A(1,:))
+IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
+ALLOCATE( newindex(SIZE(A,1)) )
+DO i=1,SIZE(newindex)
+  newindex(i) = i
+ENDDO
 !
-DO i=1,SIZE(A(:,1))
+IF(col>SIZE(A,2)) col = SIZE(A,2)
+!
+DO i=1,SIZE(A,1)
   last=i
-  DO j=i+1,SIZE(A(:,1))
+  DO j=i+1,SIZE(A,1)
     IF( A(j,col)==A(i,col) ) THEN
       !Only consider A(j)==A(i)
       IF(j==last+1) THEN
         !If the two values are contiguous just go on
         last=j
       ELSE
-        !If the value is elsewhere in the array,
-        !pack it with the others
+        !If the value is further down in the array, pack it with the others
         Atemp(:) = A(j,:)
-        k=j
+        l = newindex(j)
+        !Shift all previous values in the array
         DO k=j,last+1,-1
           A(k,:) = A(k-1,:)
+          newindex(k) = newindex(k-1)
         ENDDO
         last=last+1
         A(last,:) = Atemp(:)
+        newindex(last) = l
       ENDIF
     ENDIF
   ENDDO
@@ -659,6 +728,29 @@ ENDDO
 
 !
 END SUBROUTINE PACKSORT
+!
+!
+!********************************************************
+! IDSORT
+! This subroutine takes a list of index and an 2-dim.
+! array A as input, and re-shuffles array A according
+! to the index list.
+!********************************************************
+SUBROUTINE IDSORT(idlist,A)
+!
+INTEGER:: i
+INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of sorted indexes
+REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
+REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Atemp
+!
+DO i=1,SIZE(idlist)
+  !Exchange entries in A with index i and idlist(i)
+  Atemp(i,:) = A(idlist(i),:)
+ENDDO
+!
+A(:,:) = Atemp(:,:)
+!
+END SUBROUTINE IDSORT
 !
 !
 !********************************************************
@@ -733,7 +825,6 @@ REAL(dp),DIMENSION(:,:),INTENT(IN):: M
 REAL(dp),DIMENSION(:,:),INTENT(OUT):: G
 INTEGER,INTENT(OUT),OPTIONAL:: status
 INTEGER:: i
-INTEGER:: LWORK !for LAPACK routine DGETRI
 INTEGER,DIMENSION(SIZE(M,1)):: IPIV !for LAPACK routine DGETRI
 REAL(dp):: det
 REAL(dp),DIMENSION(SIZE(M,1)):: WORK !for LAPACK routine DGETRI

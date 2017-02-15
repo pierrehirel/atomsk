@@ -22,7 +22,7 @@ MODULE dislocation
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Jan. 2017                                     *
+!* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* DISLOC_XYZ          main subroutine - introduces a dislocation                 *
@@ -940,6 +940,7 @@ REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !Elastic tensor
 CHARACTER(LEN=128):: msg
 INTEGER:: i, j, k, l, n, p, q, r
 INTEGER,DIMENSION(6):: IPIV !for LAPACK routine DGESV
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 REAL(dp),PARAMETER:: Ak_threshold=1.d-14 !threshold for normalization of the A_k(n)
                                       !This is because of numerical precision,
                                       !to avoid division by ridiculously small numbers.
@@ -1111,7 +1112,7 @@ ENDDO
 !
 !The aik_roots(:,:) are now the 6 complex roots
 !Sort them by increasing values of real parts
-CALL BUBBLESORT(aik_roots,1,'up  ')
+CALL BUBBLESORT(aik_roots,1,'up  ',newindex)
 !
 IF(verbosity==4) THEN
   !Some debug messages

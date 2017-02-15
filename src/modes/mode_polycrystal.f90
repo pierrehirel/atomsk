@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 June 2016                                     *
+!* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -88,6 +88,7 @@ INTEGER:: Nnodes, Nvertices !number of nodes, of vertices
 INTEGER:: status
 INTEGER,DIMENSION(:),ALLOCATABLE:: NPgrains  !number of atoms in each grain
 INTEGER,DIMENSION(3):: expandmatrix
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: vnodesNeighList  !list of neighbours for nodes
 REAL(dp):: boxmax      !max. distance from one end of the box to another
 REAL(dp):: distance, distance2    !distance between two points
@@ -977,7 +978,7 @@ DO inode=1,Nnodes
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Sort vertices by increasing distance
-  CALL BUBBLESORT(vvertex,4,"up  ")
+  CALL BUBBLESORT(vvertex,4,"up  ",newindex)
   !
   !All neighboring vertices will not be used, only the maxvertex first ones
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes

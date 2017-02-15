@@ -10,7 +10,7 @@ MODULE addatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Sep. 2016                                     *
+!* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -53,6 +53,7 @@ INTEGER:: atomindex
 INTEGER:: NP !number of particles
 INTEGER:: i, j, k, m, n
 INTEGER:: addedatoms !number of atoms added
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist  !list of indices of neighbors
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
 REAL(dp):: distance, distance2, dmax
@@ -277,7 +278,7 @@ CASE("random","RANDOM","rand","RAND")
     IF( SIZE(PosList,1) >= 4 ) THEN
       !Atom #m+n has more than 4 neighbors => try to adjust its position
       !Sort neighbors by increasing distance
-      CALL BUBBLESORT(PosList,4,'up  ')
+      CALL BUBBLESORT(PosList,4,'up  ',newindex)
       !Determine the equidistance of the 4 nearest atoms
       x = SUM( PosList(1:4,1) ) / 4.d0
       y = SUM( PosList(1:4,2) ) / 4.d0

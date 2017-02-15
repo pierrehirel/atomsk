@@ -13,7 +13,7 @@ MODULE mode_nye
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     philippe.carrez@univ-lille1.fr                                             *
-!* Last modification: P. Hirel - 18 Jan. 2016                                     *
+!* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -70,6 +70,7 @@ INTEGER:: ok
 INTEGER:: Q_matrix_rank, INFO, LWORK
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
 INTEGER,DIMENSION(:),ALLOCATABLE:: TAB_PQ
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList1, NeighList2  !list of neighbors for systems 1 and 2
 REAL(dp):: alpha, alpha_tmp !angles between two vectors
 REAL(dp):: NeighFactor !%of tolerance in the radius for neighbor search
@@ -200,7 +201,7 @@ DO iat=1,SIZE(Pfirst,1)
     !Now PosList1(:,:) contains the cartesian positions of all neighbors in the radius,
     !their distance to the atom #iat, and their indices.
     !Sort them by increasing distance:
-    CALL BUBBLESORT(PosList1,4,'up  ')
+    CALL BUBBLESORT(PosList1,4,'up  ',newindex)
     !
     !Keep only the first neighbors, save them in V_NN
     !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
@@ -256,7 +257,7 @@ DO iat=1,SIZE(Pfirst,1)
       !Now PosList2(:,:) contains the cartesian positions of all neighbors in the radius,
       !and their distance to tha atom #i.
       !Sort them by increasing distance:
-      CALL BUBBLESORT(PosList2,4,'up  ')
+      CALL BUBBLESORT(PosList2,4,'up  ',newindex)
       !Keep only the first neighbors, save them in V_NN
       !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
       Nneighbors=0
@@ -563,7 +564,7 @@ DO iat=1,SIZE(Pfirst,1)
     !Now PosList1(:,:) contains the cartesian positions of all neighbors in the radius,
     !their distance to the atom #iat, and their indices.
     !Sort them by increasing distance:
-    CALL BUBBLESORT(PosList1,4,'up  ')
+    CALL BUBBLESORT(PosList1,4,'up  ',newindex)
     !Keep only the first neighbors, save them in V_NN
     !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
     Nneighbors=0
@@ -634,7 +635,7 @@ DO iat=1,SIZE(Pfirst,1)
       !Now PosList2(:,:) contains the cartesian positions of all neighbors in the radius,
       !their distance to the atom #iat, and their indices.
       !Sort them by increasing distance:
-      CALL BUBBLESORT(PosList2,4,'up  ')
+      CALL BUBBLESORT(PosList2,4,'up  ',newindex)
       !Keep only the first neighbors, save them in V_NN
       !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
       Nneighbors=0

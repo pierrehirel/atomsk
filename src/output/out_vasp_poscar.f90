@@ -55,6 +55,7 @@ LOGICAL:: fixedatoms  !are some atoms fixed?
 LOGICAL:: isreduced
 INTEGER:: i, j, last
 INTEGER:: fixx, fixy, fixz  !are atoms fixed along X, Y, Z? (0=no, 1=yes)
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 LOGICAL:: contiguous   !are atom with same species contiguous? must they be packed?
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
@@ -122,7 +123,7 @@ ENDIF
 !
 IF(.NOT.contiguous) THEN
   !If species are not contiguous then rearrange them
-  !Note that the arrays P and AUX must remained untouched
+  !Note that the arrays P and AUX must remain untouched
   !Therefore the columns fixx, fixy, fixz of AUX are copied into Q for sorting
   IF( fixedatoms ) THEN
     ALLOCATE( Q( SIZE(P,1), 7 ) )
@@ -136,7 +137,7 @@ IF(.NOT.contiguous) THEN
   ENDIF
   !
   !Sort atoms (and aux. prop.) to pack atoms with the same species
-  CALL PACKSORT(Q,4)
+  CALL PACKSORT(Q,4,newindex)
   Ppoint=>Q
   !
   IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)>0 ) THEN

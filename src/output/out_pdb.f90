@@ -55,12 +55,11 @@ CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: isreduced
-INTEGER:: atom_serial, atom_resSeq
+INTEGER:: atom_resSeq
 INTEGER:: i, j
 INTEGER:: q, occ  !position of properties in AUX: atom charge (q), occupancy
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: atom_occupancy, atom_tempFactor
-REAL(dp):: smass
 REAL(dp),DIMENSION(3):: TN, UN
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIGXN, SCALEN   !Origin and scale matrices

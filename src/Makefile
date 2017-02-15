@@ -56,7 +56,7 @@ ifndef FORTRAN
   FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
   
   # DEBUGGING FLAGS
-  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall
+  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall -fcheck=all
 endif
 
 ifndef LAPACK

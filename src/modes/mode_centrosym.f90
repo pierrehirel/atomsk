@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 July 2016                                     *
+!* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -75,6 +75,7 @@ INTEGER:: Nneigh        !number of neighbors of an atom
 INTEGER:: Nspecies      !number of species in the system
 INTEGER:: percent
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: pairs  !indexes of pairs of atoms
 REAL(dp):: distance, dmin
 REAL(dp):: snumber      !atomic number of an atom
@@ -149,7 +150,7 @@ WRITE(msg,*) "Number of different species:", SIZE(aentries,1)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF( SIZE(aentries,1)>1 ) THEN
   !Sort them by increasing number of atoms
-  CALL BUBBLESORT(aentries(:,:),2,'up  ')
+  CALL BUBBLESORT(aentries(:,:),2,'up  ',newindex)
 ENDIF
 !
 ! Determine what type of system it is: unary, binary, ternary, other
@@ -269,7 +270,7 @@ DO i=1,SIZE(P,1)
   CALL NEIGHBOR_POS(H,P,P(i,1:3),NeighList(i,:),8.d0,PosList)
   !
   !Sort neighbors by increasing distance
-  CALL BUBBLESORT(PosList(:,:),4,'up  ')
+  CALL BUBBLESORT(PosList(:,:),4,'up  ',newindex)
   !
   !Select which neighbors to keep: that depends on the type of compound
   SELECT CASE(Nspecies)

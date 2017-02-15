@@ -23,7 +23,7 @@ Master branch (to be Beta 0.9)
 - in option "-duplicate", added possibility to provide negative values that correspond to mirroring the system and then duplicating it along negative values.
 - in option "-rotate", added possibility to perform the rotation around the center of mass of the system or of the selection.
 - in option "-select", added possibility to read a list of atom indices from a file. Also added the possibility to select atoms according to a finite-element grid.
-- option "sort" now uses QUICKSORT algorithm, which should be much faster especially when the number of atoms is very large. WARNING: although this option still sorts atoms according to the property requested by the user, the exact sorting of atoms may differ from the previous algorithm.
+- large overhaul of the option "sort". This option does not duplicate arrays anymore, which makes it more memory-efficient. In addition, it now uses QUICKSORT algorithm, which should be much faster especially when the number of atoms is very large. WARNING: although this option still sorts atoms according to the property requested by the user, the exact sorting of atoms may differ from the previous algorithm.
 - in option "-unit", added possibility to scale any coordinate or property by a given factor.
 - added support for ionic core-shell models in LAMMPS data and custom files. Also added support for 2-D systems in these file formats.
 - new set of algorithms to apply symmetry operations and deal with space groups. Thanks to Juri Barthel, RWTH Aachen, Germany, for implementing this feature.
