@@ -85,7 +85,8 @@ CASE('species','s','S','x','X','y','Y','z','Z')
   SELECT CASE(sortorder)
   CASE('up','down')
     !Sort P by increasing or decreasing values
-    CALL QUICKSORT(P,sortnum,sortorder,newindex)
+    CALL BUBBLESORT(P,sortnum,sortorder,newindex)
+    !CALL QUICKSORT(P,sortnum,sortorder,newindex)
   CASE('pack')
     !Pack identical values of P together
     CALL PACKSORT(P,sortnum,newindex)

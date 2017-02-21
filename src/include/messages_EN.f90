@@ -1775,6 +1775,24 @@ CASE(2133)
   WRITE(temp,"(i16)") NINT(reals(1))
   msg = "..> Symmetry operations were successfully applied, new number of atoms: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2140)
+  !reals(1) = min. separation distance
+  !reals(2) = separate atoms by this amount
+  WRITE(temp,"(f16.2)") reals(1)
+  WRITE(temp2,"(f16.2)") reals(2)
+  msg = ">>> Separating atoms closer than "//TRIM(ADJUSTL(temp))//" A by a distance of "//TRIM(ADJUSTL(temp2))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2141)
+  !reals(1) = number of pairs of atoms that were separated
+  IF( reals(1) < 1.d-3 ) THEN
+    msg = "..> No atoms were separated."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> One pair of atoms was separated."
+  ELSE
+    WRITE(temp,"(i16)") NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" pairs of atoms were separated."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)

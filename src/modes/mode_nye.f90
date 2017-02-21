@@ -13,7 +13,7 @@ MODULE mode_nye
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     philippe.carrez@univ-lille1.fr                                             *
-!* Last modification: P. Hirel - 15 Feb. 2017                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -195,7 +195,7 @@ DO iat=1,SIZE(Pfirst,1)
   ENDIF
   !
   !Search for neighbors of atom #iat in the first system
-  CALL NEIGHBOR_POS(Hfirst,Pfirst(:,:),Pfirst(iat,1:3),NeighList1(iat,:),radius,PosList1)
+  CALL NEIGHBOR_POS(Hfirst,Pfirst(:,:),Pfirst(iat,1:3),NeighList1(iat,:),ALLOCATED(NeighList1),radius,PosList1)
   !
   IF( SIZE(PosList1,1)>=3 ) THEN
     !Now PosList1(:,:) contains the cartesian positions of all neighbors in the radius,
@@ -250,7 +250,7 @@ DO iat=1,SIZE(Pfirst,1)
     DEALLOCATE(V_NN)
     !
     !Now search neighbors of atom #iat in second system
-    CALL NEIGHBOR_POS(Hsecond,Psecond,Psecond(iat,1:3),NeighList2(iat,:),radius,PosList2)
+    CALL NEIGHBOR_POS(Hsecond,Psecond,Psecond(iat,1:3),NeighList2(iat,:),ALLOCATED(NeighList2),radius,PosList2)
     IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
     !
     IF( SIZE(PosList2,1)>=3 ) THEN
@@ -557,7 +557,7 @@ DO iat=1,SIZE(Pfirst,1)
   A_tensor(:,:,:)=0.d0
   !
   !Search neighbors of atom #iat in first system
-  CALL NEIGHBOR_POS(Hfirst,Pfirst,Pfirst(iat,1:3),NeighList1(iat,:),radius,PosList1)
+  CALL NEIGHBOR_POS(Hfirst,Pfirst,Pfirst(iat,1:3),NeighList1(iat,:),ALLOCATED(NeighList1),radius,PosList1)
   IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
   !
   IF( SIZE(PosList1,1)>=3 ) THEN
@@ -628,7 +628,7 @@ DO iat=1,SIZE(Pfirst,1)
     !
     !
     !Search neighbors of atom #iat in second system
-    CALL NEIGHBOR_POS(Hsecond,Psecond,Psecond(iat,1:3),NeighList2(iat,:),radius,PosList2)
+    CALL NEIGHBOR_POS(Hsecond,Psecond,Psecond(iat,1:3),NeighList2(iat,:),ALLOCATED(NeighList2),radius,PosList2)
     IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
     !
     IF( SIZE(PosList2,1)>=3 ) THEN

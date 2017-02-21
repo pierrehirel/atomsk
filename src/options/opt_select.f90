@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2016                                    *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1408,7 +1408,7 @@ CASE('grid')
           DO Ngrid=1,SIZE(GRID,1)
             IF( DABS(GRID(Ngrid,4)) > 0.1d0 ) THEN
               !Find neighbor elements of element #Ngrid
-              CALL NEIGHBOR_POS(H,GRID,GRID(Ngrid,1:3),NeighList(Ngrid,:),distance,PosList)
+              CALL NEIGHBOR_POS(H,GRID,GRID(Ngrid,1:3),NeighList(Ngrid,:),ALLOCATED(NeighList),distance,PosList)
               !
               IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
                 !PosList(:,1:3) positions of neighbors
@@ -1455,7 +1455,7 @@ CASE('grid')
           DO Ngrid=1,SIZE(GRID,1)
             IF( DABS(GRID(Ngrid,4)) < 0.1d0 ) THEN
               !Find neighbor elements of element #Ngrid
-              CALL NEIGHBOR_POS(H,GRID,GRID(Ngrid,1:3),NeighList(Ngrid,:),distance,PosList)
+              CALL NEIGHBOR_POS(H,GRID,GRID(Ngrid,1:3),NeighList(Ngrid,:),ALLOCATED(NeighList),distance,PosList)
               !
               IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
                 !PosList(:,1:3) positions of neighbors

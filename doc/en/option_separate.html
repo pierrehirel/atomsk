@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option separate - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: separate</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-separate &#60;distance&#62; &#60;shift&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option separates atoms that are too close to one another.</p>
+
+<p>When two atoms are found closer than the specified &#60;distance&#62;, they are both pulled apart from each other by the given &#60;shift&#62;. The direction of the shift is along the vector joining the two atoms.</p>
+
+<p>If the two atoms share exactly the same position (i.e. if their joining vector has a naught length), then the two atoms are moved along the Cartesian vector [1,1,1] (note that this has nothing to do with the crystal orientation).</p>
+
+<p>The comparison of distances is based only on cores. If shells are present, both core and shell are moved by the same vector.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the neighbor search is performed on all atoms, but only selected atoms are shifted.</p>
+
+
+
+<h4>Default</h4>
+
+<p>By default atoms are not separated.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -separate 0.5 0.2 final.xyz</code>
+<p>This will detect atoms that are closer than 0.5 &Aring;, and move each of them by 0.2 &Aring; apart from the other.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

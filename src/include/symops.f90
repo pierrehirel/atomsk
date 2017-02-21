@@ -16,11 +16,11 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 13 Feb. 2017                                     *
+!* Last modification: P. Hirel - 20 Feb. 2017                                     *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !* SYMOPS_INIT    initializes the array symops_trf to identity                    *
-!*                operartions. Since we leave the allocation of the array to      *
+!*                operations. Since we leave the allocation of the array to       *
 !*                other routines, and keep the array for public access accross    *
 !*                the program, this routine is a pure initialization routine.     *
 !*                Note:  The allocation state of symops_trf will be checked,      *
@@ -40,6 +40,7 @@ MODULE symops
 !*                space group Hermann-Mauguin symbol.                             *
 !* SYMOPS_SET_SGNUM sets symmetry operations for a spacegroup given by the        *
 !*                space group number (1 - 230).                                   *
+!* SG_APPLY_SYMOPS applies the symmetry operations of the given space group.      *
 !* Remark: SYMOPS_PARSE_STR_LINTRF is a recursive routine.                        *
 !*                Use the respective compiler option to enable recursice routines *
 !*                (ifort: /recursive)                                             *
@@ -127,7 +128,7 @@ INTEGER,DIMENSION(:),ALLOCATABLE::SUSE ! intermediate array for new data
 REAL(dp),DIMENSION(:,:),ALLOCATABLE::S1,S2,R1,R2,SAUX1,SAUX2 ! intermediate arrays for new data 
 REAL(dp),DIMENSION(3,3):: G ! inverse of H
 !
-msg = 'entering SYMOPS_APPLY'
+WRITE(msg,*) 'entering SYMOPS_APPLY, Nsym = ', Nsym
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Initial checks.
@@ -141,22 +142,26 @@ IF (.NOT.ALLOCATED(symops_trf)) RETURN ! Just exit, since no symmetries are defi
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 CALL INVMAT(H,G)
 Nsym=SIZE(symops_trf,2)
-IF (Nsym<=0) RETURN ! Just exit, since no symmetries are defined.
 NP=SIZE(P,1)
-MP=SIZE(P,2) 
-IF (NP<=0) RETURN ! Just exit, since there are no atoms
-WRITE(msg,*) NP
-msg = '- input number of atoms: '//TRIM(ADJUSTL(msg))
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+MP=SIZE(P,2)
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   NS=SIZE(S,1)
+ENDIF
+!
+IF( verbosity==4 ) THEN
+  WRITE(msg,*) NP
+  msg = '- input number of atoms: '//TRIM(ADJUSTL(msg))
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   WRITE(msg,*) NS
   msg = '- input number of shells: '//TRIM(ADJUSTL(msg))
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
-WRITE(msg,*) Nsym
-msg = '- number of symmetry operations: '//TRIM(ADJUSTL(msg))
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+IF( Nsym<=0 .OR. NP<=0 ) THEN
+  !No atom or no symmetry operation to apply => exit
+  RETURN
+ENDIF
+!
 Naux=0
 idup=0
 IF (ALLOCATED(AUX)) Naux=SIZE(AUX,1) ! Get number of auxiliary data
@@ -209,7 +214,9 @@ ENDIF
 !
 DO isym=1,Nsym ! apply each symmetry op. ...
   !Get current transformation parameters
-  trf = symops_trf(:,isym)
+  trf(:) = symops_trf(:,isym)
+  WRITE(msg,'(a9,i3,a3,96e9.3)') "Sym.op. #", isym, " : ", trf(:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !Apply this transformation from S1 to S2
   DO i=1,n1 ! ... to each of the current positions
     ! get current atomic position in fractional coordinates
@@ -424,7 +431,7 @@ SUBROUTINE SYMOPS_SET_STR(instr,irow,nchk)
 ! This routine transforms instr to linear transformation parameters
 ! of the form M.(x,y,z)+S, where S is a 3D shift vector and and M
 ! is a 3x3 tranformation matrix.
-! The values of S and M a stored in sequence (S,M) in the array
+! The values of S and M are stored in sequence (S,M) in the array
 ! symops_trf(:,irow) of the module symops (link 'symops.f90'!).
 ! symops_trf must be preallocated and initialized.
 ! 'instr' should be of the form 'x-y, y+1/2, -z/2', which would result
@@ -449,8 +456,8 @@ trf(4)  = 1.d0
 trf(8)  = 1.d0
 trf(12) = 1.d0
 substr=""
-c1=0
-c2=0
+ c1=0
+ c2=0
 i=0
 j=0
 k=0
@@ -463,12 +470,12 @@ IF (SIZE(symops_trf,2)<irow) GOTO 850
 ! The minimum valid string is 'x,y,z'.
 IF (l<5) GOTO 801 ! warn & report invalid CIF symmetry operation string.
 !
-msg = 'entering SYMOPS_SET_STR'
+msg = 'entering SYMOPS_SET_STR: '//TRIM(instr)
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 ! Determine the two comma positions
-c1=INDEX(temp(1:l),",",BACK=.FALSE.)
-c2=INDEX(temp(1:l),",",BACK=.TRUE.)
+ c1=INDEX(temp(1:l),",",BACK=.FALSE.)
+ c2=INDEX(temp(1:l),",",BACK=.TRUE.)
 ! There should be two commas in the string. The first comma should be at
 ! a position >1, such that the first substring fits in before it. The
 ! second comma should come at least 2 characters beyond the first comma,

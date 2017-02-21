@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 13 Feb. 2017                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -62,16 +62,21 @@ SUBROUTINE READ_CIF(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
+CHARACTER(LEN=64):: j_name, j_volume, j_page1, j_page2, j_year  !article information
 CHARACTER(LEN=128):: chemical_name, chemical_formula
 CHARACTER(LEN=128):: msg, temp, temp2
 CHARACTER(LEN=32),DIMENSION(32):: columns !contents of columns
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
+CHARACTER(LEN=1),DIMENSION(:),ALLOCATABLE:: Wyckoff_letters
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: symop_list  !list of symmetry operations
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 LOGICAL:: atpos_done, symops_done, isreduced
 INTEGER:: at_occ     !atom site occupancy
 INTEGER:: at_biso
 INTEGER:: at_uiso
+INTEGER:: at_Wyckoff
 INTEGER:: at_sp, at_x, at_y, at_z !position of atom species and coordinates in the line
+INTEGER:: sgnumber, originchoice !space group number and origin choice
 INTEGER:: sy_pxyz !position of symmetry operations string in the line
 INTEGER:: i, j, iaux, k, m, n
 INTEGER:: Naux !number of auxiliary properties
@@ -83,13 +88,19 @@ INTEGER:: strlength
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: snumber, sbiso
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !positions of atom cores, shells
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P   !positions of atoms
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S               !positions of shells (remains unallocated in this module)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX !auxiliary properties
 !
 !
 !Initialize variables
  chemical_name = ""
  chemical_formula = ""
+j_name = ""
+j_volume = ""
+j_page1 = ""
+j_page2 = ""
+j_year = ""
 atpos_done=.FALSE.
 symops_done=.FALSE.
 at_sp=0
@@ -99,6 +110,8 @@ at_z=0
 at_occ=0
 at_biso=0
 at_uiso=0
+at_Wyckoff=0
+sgnumber=0
 sy_pxyz=0
 Naux=0
 Ncol=0
@@ -115,6 +128,7 @@ beta=0.d0
 gamma=0.d0
 IF (ALLOCATED(S)) DEALLOCATE(S)
 IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
+IF (ALLOCATED(Wyckoff_letters)) DEALLOCATE(Wyckoff_letters)
 !
 msg = 'entering READ_CIF'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -134,47 +148,103 @@ DO !Main reading loop
   !
   !Parse cif content for main keywords
   !
-  IF( temp(1:14)=='_cell_length_a' ) THEN
+  IF( temp(1:18)=='_journal_name_full' ) THEN
+    !Read journal name
+    j_name = ADJUSTL(temp(19:))
+    !Remove quotes if any
+    strlength = SCAN(j_name,"'")
+    DO WHILE (strlength>0)
+      j_name(strlength:strlength) = " "
+      strlength = SCAN(j_name,"'")
+    ENDDO
+    strlength = SCAN(j_name,'"')
+    DO WHILE (strlength>0)
+      j_name(strlength:strlength) = " "
+      strlength = SCAN(j_name,'"')
+    ENDDO
+  !
+  ELSEIF( temp(1:15)=='_journal_volume' ) THEN
+    !Read journal volume
+    j_volume = ADJUSTL(temp(16:))
+  !
+  ELSEIF( temp(1:19)=='_journal_page_first' ) THEN
+    !Read journal page
+    j_page1 = ADJUSTL(temp(20:))
+  !
+  ELSEIF( temp(1:18)=='_journal_page_last' ) THEN
+    !Read journal page
+    j_page2 = ADJUSTL(temp(19:))
+  !
+  ELSEIF( temp(1:13)=='_journal_year' ) THEN
+    !Read journal page
+    j_year = ADJUSTL(temp(14:))
+  !
+  ELSEIF( temp(1:14)=='_cell_length_a' ) THEN
     !Read cell length a. It may be followed by precision in brackets
-    strlength = SCAN(temp,'(')
-    IF(strlength<=0) strlength=LEN(temp)
-    READ(temp(15:strlength-1),*,ERR=800,END=800) a
+    IF( NINT(a)==0 ) THEN
+      strlength = SCAN(temp,'(')
+      IF(strlength<=0) strlength=LEN(temp)
+      READ(temp(15:strlength-1),*,ERR=800,END=800) a
+    ENDIF
   !
   ELSEIF( temp(1:14)=='_cell_length_b' ) THEN
     !Read cell length b. It may be followed by precision in brackets
-    strlength = SCAN(temp,'(')
-    IF(strlength<=0) strlength=LEN(temp)
-    READ(temp(15:strlength-1),*,ERR=800,END=800) b
+    IF( NINT(b)==0 ) THEN
+      strlength = SCAN(temp,'(')
+      IF(strlength<=0) strlength=LEN(temp)
+      READ(temp(15:strlength-1),*,ERR=800,END=800) b
+    ENDIF
   !
   ELSEIF( temp(1:14)=='_cell_length_c' ) THEN
     !Read cell length c. It may be followed by precision in brackets
-    strlength = SCAN(temp,'(')
-    IF(strlength<=0) strlength=LEN(temp)
-    READ(temp(15:strlength-1),*,ERR=800,END=800) c
+    IF( NINT(c)==0 ) THEN
+      strlength = SCAN(temp,'(')
+      IF(strlength<=0) strlength=LEN(temp)
+      READ(temp(15:strlength-1),*,ERR=800,END=800) c
+    ENDIF
   !
   ELSEIF( temp(1:17)=='_cell_angle_alpha' ) THEN
     !Read cell angle alpha. It may be followed by precision in brackets
-    strlength = SCAN(temp,'(')
-    IF(strlength<=0) strlength=LEN(temp)
-    READ(temp(18:strlength-1),*,ERR=800,END=800) alpha
-    alpha = DEG2RAD(alpha)
+    IF( NINT(alpha)==0 ) THEN
+      strlength = SCAN(temp,'(')
+      IF(strlength<=0) strlength=LEN(temp)
+      READ(temp(18:strlength-1),*,ERR=800,END=800) alpha
+      alpha = DEG2RAD(alpha)
+    ENDIF
   !
   ELSEIF( temp(1:16)=='_cell_angle_beta' ) THEN
     !Read cell angle beta. It may be followed by precision in brackets
-    strlength = SCAN(temp,'(')
-    IF(strlength<=0) strlength=LEN(temp)
-    READ(temp(17:strlength-1),*,ERR=800,END=800) beta
-    beta = DEG2RAD(beta)
+    IF( NINT(beta)==0 ) THEN
+      strlength = SCAN(temp,'(')
+      IF(strlength<=0) strlength=LEN(temp)
+      READ(temp(17:strlength-1),*,ERR=800,END=800) beta
+      beta = DEG2RAD(beta)
+    ENDIF
   !
   ELSEIF( temp(1:17)=='_cell_angle_gamma' ) THEN
     !Read cell angle gamma. It may be followed by precision in brackets
-    strlength = SCAN(temp,'(')
-    IF(strlength<=0) strlength=LEN(temp)
-    READ(temp(18:strlength-1),*,ERR=800,END=800) gamma
-    gamma = DEG2RAD(gamma)
+    IF( NINT(gamma)==0 ) THEN
+      strlength = SCAN(temp,'(')
+      IF(strlength<=0) strlength=LEN(temp)
+      READ(temp(18:strlength-1),*,ERR=800,END=800) gamma
+      gamma = DEG2RAD(gamma)
+    ENDIF
   !
   ELSEIF( temp(1:25)=='_chemical_name_systematic' ) THEN
-    temp = TRIM(ADJUSTL(temp(26:)))
+    IF( LEN_TRIM(chemical_name) == 0 ) THEN
+      temp = TRIM(ADJUSTL(temp(26:)))
+      !Remove the quotes if any
+      strlength=SCAN(temp,"'")
+      DO WHILE(strlength>0)
+        temp(strlength:strlength)=" "
+        strlength=SCAN(temp,"'")
+      ENDDO
+      temp = ADJUSTL(temp)
+      chemical_name = TRIM(temp)
+    ENDIF
+  !
+  ELSEIF( temp(1:22)=='_chemical_name_mineral' ) THEN
+    temp = TRIM(ADJUSTL(temp(23:)))
     !Remove the quotes if any
     strlength=SCAN(temp,"'")
     DO WHILE(strlength>0)
@@ -182,35 +252,11 @@ DO !Main reading loop
       strlength=SCAN(temp,"'")
     ENDDO
     temp = ADJUSTL(temp)
-    !
     chemical_name = TRIM(temp)
   !
   ELSEIF( temp(1:21)=='_chemical_formula_sum' ) THEN
-    !
-    ! Note: In order to support symmetry operations, where the number
-    !       of listed atomic sites may differ from the chemical formula,
-    !       I have removed (commented out) the code, which determines
-    !       the number of atoms to read from the chemical formula.
-    !       The new code will still read and report the chemical
-    !       formula, but will not determine NP and will not allocate P
-    !       at this point.
-    !       Instead, the number of listed atoms is always determined
-    !       from the "_atom" loops below, which will be read twice. On
-    !       the first run, it will determine NP and allocate P, while on
-    !       the second run, it will read the atomic site data into P.
-    !       At the end, the symmetry operations are applied.
-    !       As a further consistency check, we could move this code
-    !       to the end of the reading routine, in order to check whether
-    !       the composition obtained after reading the "_atom" list and
-    !       applying the symmetry operations corresponds to the chemical
-    !       formula. However, I have not done this.
-    !
-    !       J. Barthel, 2015-07-31
-    !
-    !Read the number of atoms from the formula
     !The formula should be element symbols followed by numbers
     !and separated by blank spaces, e.g. 'C4 H16 O'.
-    !
     !Remove the keyword "_chemical_formula_sum"
     temp = TRIM(ADJUSTL(temp(22:)))
     !Remove the quotes if any
@@ -225,6 +271,40 @@ DO !Main reading loop
     !
     WRITE(msg,*) 'Found chemical formula: ', TRIM(temp)
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !
+  ELSEIF( temp(1:27)=='_symmetry_Int_Tables_number' ) THEN
+    !Read space group number
+    READ(temp(28:),*,ERR=190,END=190) sgnumber
+    !Verify that it is a valid space group number; otherwise reset it to zero
+    IF( sgnumber <1 .OR. sgnumber > 230 ) THEN
+      sgnumber = 0
+    ENDIF
+    !
+    !
+  ELSEIF( temp(1:22)=='_space_group_IT_number' ) THEN
+    !Read space group number
+    READ(temp(23:),*,ERR=190,END=190) sgnumber
+    !Verify that it is a valid space group number; otherwise reset it to zero
+    IF( sgnumber <1 .OR. sgnumber > 230 ) THEN
+      sgnumber = 0
+    ENDIF
+    !
+    !
+  ELSEIF( temp(1:30)=='_symmetry_space_group_name_H-M' ) THEN
+    !Read Hermann-Mauguin symbol (only if space group number was not already found)
+    IF( sgnumber==0 ) THEN
+      temp2 = ADJUSTL(temp(31:))
+      !Remove quotes if any
+      strlength=SCAN(temp2,"'")
+      DO WHILE(strlength>0)
+        temp2(strlength:strlength) = " "
+        strlength=SCAN(temp2,"'")
+      ENDDO
+      temp2 = ADJUSTL(temp2)
+      !Transform H-M symbol into a space group number
+      CALL SG_NAMGETNUM(temp2,sgnumber)
+    ENDIF
     !
     !
   ELSEIF( temp(1:5)=="loop_" ) THEN
@@ -254,6 +334,8 @@ DO !Main reading loop
         ELSEIF( temp=="_atom_site_occupancy" ) THEN
           at_occ = Ncol
           Naux=Naux+1
+        ELSEIF( temp=="_atom_site_Wyckoff_symbol" ) THEN
+          at_Wyckoff = Ncol
         ELSEIF( temp=="_atom_site_B_iso_or_equiv" ) THEN
           ! a well defined CIF file contains either biso or uiso,
           ! not both at the same time.
@@ -290,7 +372,8 @@ DO !Main reading loop
           NP=0
           DO
             !Read lines 
-            READ(30,*,ERR=170,END=170) (columns(j),j=1,Ncol)
+            READ(30,'(a128)',ERR=170,END=170) temp
+            READ(temp,*,ERR=170,END=170) (columns(j),j=1,Ncol)
             !Get rid of parenthesis
             strlength = SCAN(columns(at_x),'(')
             IF(strlength>0) columns(at_x) = columns(at_x)(1:strlength-1)
@@ -304,7 +387,7 @@ DO !Main reading loop
             temp = ADJUSTL(temp)
             species = temp(1:2)
             CALL ATOMNUMBER(species,snumber)
-            IF( snumber<=0.d0 ) THEN
+            IF( NINT(snumber) <= 0 ) THEN
               species = temp(1:1)
               CALL ATOMNUMBER(species,snumber)
             ENDIF
@@ -322,6 +405,13 @@ DO !Main reading loop
           IF(NP>0) THEN
             ALLOCATE(P(NP,4))
             P(:,:) = 0.d0
+            IF( at_Wyckoff > 0 ) THEN
+              WRITE(msg,*) 'Detected Wyckoff letter in column # ', at_Wyckoff
+              CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+              IF( ALLOCATED(Wyckoff_letters) ) DEALLOCATE(Wyckoff_letters)
+              ALLOCATE(Wyckoff_letters(NP))
+              Wyckoff_letters(:) = " "
+            ENDIF
             REWIND(30) !Set file pointer back to start.
                        ! -> reads everything again, except that
                        !    this time P is already allocated
@@ -367,6 +457,15 @@ DO !Main reading loop
             READ(columns(at_y),*,ERR=800,END=800) P(i,2)
             READ(columns(at_z),*,ERR=800,END=800) P(i,3)
             READ(columns(at_sp),*,ERR=800,END=800) temp
+            IF( at_Wyckoff > 0 ) THEN
+              READ(columns(at_Wyckoff),*,ERR=175,END=175) Wyckoff_letters(i)
+            ENDIF
+            175 CONTINUE
+            !Get rid of trailing charge
+            strlength = SCAN(temp,'+')
+            IF(strlength>0) temp = temp(1:strlength-1)
+            strlength = SCAN(temp,'-')
+            IF(strlength>0) temp = temp(1:strlength-1)
             temp = ADJUSTL(temp)
             species = temp(1:2)
             CALL ATOMNUMBER(species,P(i,4))
@@ -374,6 +473,7 @@ DO !Main reading loop
               species = temp(1:1)
               CALL ATOMNUMBER(species,P(i,4))
             ENDIF
+            !
             !
             !Store auxiliary properties if any
             IF(ALLOCATED(AUX)) THEN
@@ -388,13 +488,19 @@ DO !Main reading loop
                 !Get rid of parethesis
                 strlength = SCAN(columns(at_biso),'(')
                 IF(strlength>0) columns(at_biso) = columns(at_biso)(1:strlength-1)
-                READ(columns(at_biso),*,ERR=800,END=800) sbiso ! read to a temp variable
-                IF(at_uiso==1) THEN
-                  ! translate from Uiso to Biso
-                  AUX(i,biso) = sbiso * 0.789568352d+2 ! * 8 * Pi**2
+                strlength = SCAN(columns(at_biso),'?')
+                IF(strlength>0) THEN
+                  !No biso specified, set it to zero by default
+                  AUX(i,biso) = 0.d0
                 ELSE
-                  ! transfer Biso directly
-                  AUX(i,biso) = sbiso
+                  READ(columns(at_biso),*,ERR=800,END=800) sbiso ! read to a temp variable
+                  IF(at_uiso==1) THEN
+                    ! translate from Uiso to Biso
+                    AUX(i,biso) = sbiso * 0.789568352d+2 ! * 8 * Pi**2
+                  ELSE
+                    ! transfer Biso directly
+                    AUX(i,biso) = sbiso
+                  ENDIF
                 ENDIF
               ENDIF
             ENDIF
@@ -606,12 +712,16 @@ DO !Main reading loop
                   temp2 = "0.5"
                 ELSEIF( n==3 ) THEN
                   temp2 = "0.333"
+                ELSEIF( n==4 ) THEN
+                  temp2 = "0.25"
                 ELSE
                   WRITE(temp2,'(f9.3)') DBLE(m)/DBLE(n)
                 ENDIF
               ELSEIF( m==3 ) THEN
                 IF( n==2 ) THEN
                   temp2 = "1.5"
+                ELSEIF( n==4 ) THEN
+                  temp2 = "0.75"
                 ELSE
                   WRITE(temp2,'(f9.3)') DBLE(m)/DBLE(n)
                 ENDIF
@@ -646,7 +756,9 @@ DO !Main reading loop
       !
     ENDIF !if "_atom" elseif "_symmetry"
     !
-  ENDIF ! end of main keyword parser
+  ENDIF ! end of main keyword parser "_loop"
+  !
+  190 CONTINUE
   !
 ENDDO ! end of main reading loop
 !
@@ -664,15 +776,39 @@ CALL FIND_IF_REDUCED(P,isreduced)
 IF(isreduced) THEN
   CALL FRAC2CART(P,H)
 ENDIF
+!
 !Apply symmetry operations
-IF (Nsym>0.AND.ALLOCATED(symops_trf)) THEN
+IF ( Nsym>0 .AND. ALLOCATED(symops_trf) ) THEN
+  !Symmetry operations were detected after "_symmetry_equiv_pos_as_xyz"
+  !Apply them
   CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
   CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,0.5d0,i)
-  NP=SIZE(P,1) ! update number of atom sites
+  DEALLOCATE(symops_trf)
+  !
+ELSE
+  !No symmetry operation was defined, but a group symmetry was
+  !Apply symmetry operations of that symmetry group
+  IF( sgnumber > 1 .AND. sgnumber <= 230 ) THEN
+    ALLOCATE(symops_trf(sgnumber,SIZE(symop_list)))
+    !Initialize symmetry operations
+    CALL SYMOPS_INIT()
+    !Apply symmetry operations
+    WRITE(msg,'(i3)') sgnumber
+    CALL SG_APPLY_SYMOPS(msg,H,P,S,AUXNAMES,AUX)  
+  ENDIF
+  !
 ENDIF
-!Create a nice comment based on chemical name and formula
+!
+!Generate comments based on information gathered in the CIF file
 IF (ALLOCATED(comment)) DEALLOCATE(comment)
-ALLOCATE(comment(1))
+IF( LEN_TRIM(j_name)>0 ) THEN
+  !Save journal name and references in second line of comment(:)
+  ALLOCATE(comment(2))
+  comment(2) = TRIM(j_name)//" "//TRIM(j_volume)//" ("//TRIM(j_year)//") "//TRIM(j_page1)//"-"//TRIM(j_page2)
+ELSE
+  ALLOCATE(comment(1))
+ENDIF
+!In first line of comment(:), create a nice comment based on chemical name and formula
  comment(1) = ""
 IF( LEN_TRIM(chemical_name) > 0 ) THEN
   comment(1) = TRIM(chemical_name)//" -"

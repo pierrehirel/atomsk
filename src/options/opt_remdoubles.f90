@@ -10,7 +10,7 @@ MODULE remdoubles
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 Nov. 2015                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,6 +60,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX            !auxiliary properties of
 !
 !Initialize variables
 i = 0
+Nremoved = 0
 distance = 0.d0
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
@@ -82,12 +83,11 @@ CALL NEIGHBOR_LIST(H,P,rmd_radius,NeighList)
 !
 !Find atoms that must be removed
 !For now, atoms to be removed are marked by setting their P(i,4) to zero
-Nremoved = 0
 DO i=1,SIZE(P,1)-1  !Loop on all atoms
   IF( P(i,4)>0.1d0 ) THEN  !Ignore atoms that were already eliminated
     !
     !Find positions of neighbours of P(i,:) that are closer than rmd_radius
-    CALL NEIGHBOR_POS(H,P(:,:),P(i,1:3),NeighList(i,:),rmd_radius,PosList)
+    CALL NEIGHBOR_POS(H,P(:,:),P(i,1:3),NeighList(i,:),ALLOCATED(NeighList),rmd_radius,PosList)
     !Now PosList(:,:) contains the cartesian positions of all neighbors in the rmd_radius,
     !their distance to the atom #i, and their indices.
     !
@@ -105,16 +105,18 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
           ENDIF
         ENDIF
       ENDDO
-      DEALLOCATE(PosList)
     ENDIF
     !
   ENDIF
+  IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
 ENDDO
 !
 !
 WRITE(msg,*) 'Nremoved: ', Nremoved
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
+!
+!Atoms were marked for termination, now eliminate them for good
 IF(Nremoved>0) THEN
   IF( Nremoved < SIZE(P,1) ) THEN
     !Remaining atom positions will be stored in Q

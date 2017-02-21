@@ -273,7 +273,7 @@ CASE("random","RANDOM","rand","RAND")
     !CALL FIND_NNN(H,newP(1:m,:),(/x,y,z/),4,V_NN,Nlist,exceeds100)
     !
     !Generate list of positions of neighbors of atom #n
-    CALL NEIGHBOR_POS(H,newP,(/x,y,z/),NeighList(m+n,:),6.d0,PosList)
+    CALL NEIGHBOR_POS(H,newP,(/x,y,z/),NeighList(m+n,:),ALLOCATED(NeighList),6.d0,PosList)
     !
     IF( SIZE(PosList,1) >= 4 ) THEN
       !Atom #m+n has more than 4 neighbors => try to adjust its position

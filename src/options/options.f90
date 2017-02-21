@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Oct. 2016                                     *
+!* Last modification: P. Hirel - 20 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -86,6 +86,7 @@ USE rmshells
 USE roll
 USE rotate
 USE select
+USE separate
 USE shear
 USE shift
 USE sort
@@ -212,6 +213,10 @@ CHARACTER(LEN=4096):: region_geom  !geometry of the region: "box" or "sphere"
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
+!
+!Variables relative to Option: separate
+REAL(dp):: sep_radius  !atoms closer than this distance will be pulled apart
+REAL(dp):: sep_dist    !atoms will be pulled apart by this distance
 !
 !Variables relative to Option: shear
 CHARACTER(LEN=1):: shear_dir  !direction of applied shear strain (X, Y or Z)
@@ -839,6 +844,10 @@ DO ioptions=1,SIZE(options_array)
     ENDIF
     IF(nerr.NE.0) GOTO 1000
     CALL SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
+  !
+  CASE('-separate','sep')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, sep_radius, sep_dist
+    CALL SEPARATE_XYZ(H,P,S,sep_radius,sep_dist,SELECT)
   !
   CASE('-shear')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &

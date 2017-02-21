@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Feb. 2017                                     *
+!* Last modification: P. Hirel - 20 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1248,6 +1248,20 @@ DO WHILE(i<SIZE(cla))
       options_array(ioptions)(j:j) = ':'
       j = SCAN(options_array(ioptions),'/')
     ENDDO
+  !
+  ELSEIF(clarg=='-separate' .OR. clarg=='-sep') THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
+    !Read the max. distance
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    READ(temp,*,END=120,ERR=120) tempreal
+    !Read the separation distance
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    READ(temp,*,END=120,ERR=120) tempreal
   !
   ELSEIF(clarg=='-shear') THEN
     ioptions = ioptions+1

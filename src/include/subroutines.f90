@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Feb. 2017                                     *
+!* Last modification: P. Hirel - 20 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -468,13 +468,11 @@ IMPLICIT NONE
 CHARACTER(LEN=4),INTENT(IN):: order  !up or down
 LOGICAL:: sorted
 INTEGER:: i, j, k
-INTEGER:: Ninvert  !number of inversions
 INTEGER,INTENT(IN):: col             !index of column to sort
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
 REAL(dp),DIMENSION(SIZE(A,2)) :: col_value
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
 !
-Ninvert = 0
  col_value(:) = 0.d0
 !
 IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
@@ -484,18 +482,20 @@ DO i=1,SIZE(newindex)
 ENDDO
 !
 IF(order=='down') THEN
-  DO j=1,SIZE(A,1)-1
-    DO i=j+1,SIZE(A,1)
-      !If element i is greater than element j, swap them
-      IF( A(i,col) > A(j,col) ) THEN
+  DO j=SIZE(A,1)-1,2,-1
+    sorted = .TRUE.
+    DO i=1,j-1
+      !If element i+1 is greater than element i, swap them
+      IF( A(i+1,col) > A(i,col) ) THEN
         col_value(:) = A(i,:)
-        A(i,:) = A(j,:)
-        A(j,:) = col_value(:)
+        A(i,:) = A(i+1,:)
+        A(i+1,:) = col_value(:)
         !Save new indexes
         k = newindex(i)
-        newindex(i) = newindex(j)
-        newindex(j) = k
-        Ninvert = Ninvert+1
+        newindex(i) = newindex(i+1)
+        newindex(i+1) = k
+        !We performed an inversion => list is not sorted
+        sorted = .FALSE.
       ENDIF
     ENDDO
     !If no inversion was performed after loop on i, the list is fully sorted
@@ -503,28 +503,27 @@ IF(order=='down') THEN
   ENDDO
   !
 ELSE  !i.e. if order is "up"
-  DO j=1,SIZE(A,1)-1
-    DO i=j+1,SIZE(A,1)
-      !If element i is smaller than element j, swap them
-      IF( A(i,col) < A(j,col) ) THEN
+  DO j=SIZE(A,1)-1,2,-1
+    sorted = .TRUE.
+    DO i=1,j-1
+      !If element i+1 is smaller than element i, swap them
+      IF( A(i+1,col) < A(i,col) ) THEN
         col_value(:) = A(i,:)
-        A(i,:) = A(j,:)
-        A(j,:) = col_value(:)
+        A(i,:) = A(i+1,:)
+        A(i+1,:) = col_value(:)
         !Save new indexes
         k = newindex(i)
-        newindex(i) = newindex(j)
-        newindex(j) = k
+        newindex(i) = newindex(i+1)
+        newindex(i+1) = k
         !We performed an inversion => list is not sorted
         sorted = .FALSE.
-        Ninvert = Ninvert+1
       ENDIF
     ENDDO
     !If no inversion was performed after loop on i, the list is fully sorted
-    !IF(sorted) EXIT
+    IF(sorted) EXIT
   ENDDO
 ENDIF
 !
-PRINT*, "Number of inversions: ", Ninvert
 !
 END SUBROUTINE BUBBLESORT
 !

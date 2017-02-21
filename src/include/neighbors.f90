@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Nov. 2015                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,6 +73,8 @@ CONTAINS
 !      simplistic Verlet search is performed, which
 !      scales as N². Otherwise a cell-list
 !      algorithm is used, which scales as N.
+! NOTE5: if no neighbor is found, then the array
+!      NeighList is returned as UNALLOCATED.
 !********************************************************
 SUBROUTINE NEIGHBOR_LIST(H,A,R,NeighList)
 !
@@ -518,10 +520,11 @@ END SUBROUTINE NEIGHBOR_LIST
 ! NOTE: as for the subroutine NEIGHBOR_LIST, atom
 !      coordinates are assumed to be wrapped.
 !********************************************************
-SUBROUTINE NEIGHBOR_POS(H,A,V,NeighList,radius,PosList)
+SUBROUTINE NEIGHBOR_POS(H,A,V,NeighList,Use_NeighList,radius,PosList)
 !
 IMPLICIT NONE
 LOGICAL:: selfneighbor  !is central atom a neighbor of itself? (because of PBC)
+LOGICAL,INTENT(IN):: Use_NeighList !use provided neighbor list?
 INTEGER:: i, m, n, o
 INTEGER:: Nm, Nn, No !number of replicas to search along X, Y, Z
 INTEGER:: Nneighbors
@@ -537,35 +540,36 @@ REAL(dp),DIMENSION(:,:),INTENT(IN):: A !positions of all atoms
 !
 selfneighbor=.FALSE.
 IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
-IF(SIZE(NeighList)<=0) RETURN
 !
-Nm = MAX( 1 , CEILING(radius/VECLENGTH(H(1,:)))+1 )
-Nn = MAX( 1 , CEILING(radius/VECLENGTH(H(2,:)))+1 )
-No = MAX( 1 , CEILING(radius/VECLENGTH(H(3,:)))+1 )
+Nm = MAX( 1 , CEILING(radius/VECLENGTH(H(1,:))) +1 )
+Nn = MAX( 1 , CEILING(radius/VECLENGTH(H(2,:))) +1 )
+No = MAX( 1 , CEILING(radius/VECLENGTH(H(3,:))) +1 )
 !
 Nneighbors=0
-i=1
-DO WHILE( i<=SIZE(NeighList) .AND. NeighList(i)>0 )
-  !NeighList(i) is the index of a neighboring atom
-  !Find which periodic image(s) are actually neighbors
-  DO o=-No,No
-    DO n=-Nn,Nn
-      DO m=-Nm,Nm
-        !Position of the periodic image of neighbor #i
-        P1 = A(NeighList(i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-        P2 = A(NeighList(i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-        P3 = A(NeighList(i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-        vector = (/ P1 , P2 , P3 /)
-        !This image is a neighbor if distance is smaller than radius
-        distance = VECLENGTH( vector(:) - V(:) )
-        IF( distance>1.d-12 .AND. distance <= radius ) THEN
-          Nneighbors = Nneighbors+1
-        ENDIF
+IF( Use_NeighList ) THEN
+  i=1
+  DO WHILE( i<=SIZE(NeighList) .AND. NeighList(i)>0 )
+    !NeighList(i) is the index of a neighboring atom
+    !Find which periodic image(s) are actually neighbors
+    DO o=-No,No
+      DO n=-Nn,Nn
+        DO m=-Nm,Nm
+          !Position of the periodic image of neighbor #i
+          P1 = A(NeighList(i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+          P2 = A(NeighList(i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+          P3 = A(NeighList(i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+          vector = (/ P1 , P2 , P3 /)
+          !This image is a neighbor if distance is smaller than radius
+          distance = VECLENGTH( vector(:) - V(:) )
+          IF( distance>1.d-12 .AND. distance <= radius ) THEN
+            Nneighbors = Nneighbors+1
+          ENDIF
+        ENDDO
       ENDDO
     ENDDO
+    i=i+1
   ENDDO
-  i=i+1
-ENDDO
+ENDIF
 !
 DO o=-No,No
   DO n=-Nn,Nn
@@ -590,29 +594,31 @@ IF( Nneighbors>0 ) THEN
   PosList(:,:) = 0.d0
   !
   Nneighbors=0
-  i=1
-  DO WHILE( i<=SIZE(NeighList) .AND. NeighList(i)>0 )
-    DO o=-No,No
-      DO n=-Nn,Nn
-        DO m=-Nm,Nm
-          !Position of the periodic image of neighbor #i
-          P1 = A(NeighList(i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-          P2 = A(NeighList(i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-          P3 = A(NeighList(i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-          vector = (/ P1 , P2 , P3 /)
-          !This image is a neighbor if distance is smaller than radius
-          distance = VECLENGTH( vector(:) - V(:) )
-          IF( distance>1.d-12 .AND. distance <= radius ) THEN
-            Nneighbors = Nneighbors+1
-            PosList(Nneighbors,1:3) = vector(:)
-            PosList(Nneighbors,4) = distance
-            PosList(Nneighbors,5) = DBLE(NeighList(i))
-          ENDIF
+  IF( Use_NeighList ) THEN
+    i=1
+    DO WHILE( i<=SIZE(NeighList) .AND. NeighList(i)>0 )
+      DO o=-No,No
+        DO n=-Nn,Nn
+          DO m=-Nm,Nm
+            !Position of the periodic image of neighbor #i
+            P1 = A(NeighList(i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+            P2 = A(NeighList(i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+            P3 = A(NeighList(i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+            vector = (/ P1 , P2 , P3 /)
+            !This image is a neighbor if distance is smaller than radius
+            distance = VECLENGTH( vector(:) - V(:) )
+            IF( distance>1.d-12 .AND. distance <= radius ) THEN
+              Nneighbors = Nneighbors+1
+              PosList(Nneighbors,1:3) = vector(:)
+              PosList(Nneighbors,4) = distance
+              PosList(Nneighbors,5) = DBLE(NeighList(i))
+            ENDIF
+          ENDDO
         ENDDO
       ENDDO
+      i=i+1
     ENDDO
-    i=i+1
-  ENDDO
+  ENDIF
   !
   IF( selfneighbor ) THEN
     DO o=-No,No

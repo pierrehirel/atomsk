@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option separate - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option : separate</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-separate &#60;distance&#62; &#60;décalage&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option sépare les atomes qui sont trop proches les uns des autres.</p>
+
+<p>Lorsque la distance séparant deux atomes est plus petite que la &#60;distance&#62; spécifiée, chacun est séparé de l'autre du &#60;décalage&#62; donné. Le décalage se fait suivant la même direction que le vecteur joignant les deux atomes.</p>
+
+<p>Si les deux atomes ont exactement la même position (donc, si le vecteur les joignant est nul), alors les deux atomes sont déplacés suivant la direction Cartésienne [1,1,1] (notez que cela n'a rien à voir avec l'orientation du cristal).</p>
+
+<p>La comparaison des distances n'est effectuée que sur les noyaux atomiques. Si des coquilles sont présentes (dans le cadre d'un modèle ionique c&oelig;ur-coquille), alors les coquilles sont déplacées du même vecteur que les c&oelig;urs.</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors la recherche de voisins sera effectuée sur tous les atomes, mais seuls des atomes sélectionnés seront déplacés.</p>
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut les atomes ne sont pas séparés.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -separate 0.5 0.2 final.xyz</code>
+<p>Ceci va détecter les paires d'atomes séparées de moins de 0,5 &Aring;, et éloignera chaque atome de 0.2 &Aring; de son voisin.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

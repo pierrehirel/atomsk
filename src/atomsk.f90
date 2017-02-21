@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Feb. 2017                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -241,7 +241,6 @@ ELSE
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) verbosity
-      verbosity = 4
     ELSEIF(clarg=='-vv') THEN
       i=i+1
       verbosity = 3

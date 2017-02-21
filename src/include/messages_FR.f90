@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Feb. 2017                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1507,17 +1507,17 @@ CASE(2092)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2093)
-  msg = ">>> Replacement des atomes dans la boîte..."
+  msg = ">>> Collecte des atomes à replacer dans la boîte..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2094)
   !reals(1) = number of atoms wrapped
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 atome a été replacé."
+    msg = "..> 1 atome a été replacé dans la boîte."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(msg,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été replacés."
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été replacés dans la boîte."
   ELSE
-    msg = "..> Aucun atome n'a été replacé."
+    msg = "..> Aucun atome n'a été déplacé."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2095)
