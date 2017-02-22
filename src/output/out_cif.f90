@@ -15,7 +15,7 @@ MODULE out_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Feb. 2017                                     *
+!* Last modification: P. Hirel - 22 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,7 +58,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 INTEGER:: i, iaux
 INTEGER:: Naux
 INTEGER:: occ
-INTEGER:: biso
+INTEGER:: biso, uiso
 INTEGER,DIMENSION(8):: values
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3
@@ -79,6 +79,7 @@ IF (ALLOCATED(AUX).AND.ALLOCATED(AUXNAMES)) THEN ! Get number of auxiliary prope
 ENDIF
 occ = 0
 biso = 0
+uiso = 0
 !
 msg = 'entering WRITE_CIF'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -122,11 +123,11 @@ ENDDO
 WRITE(40,*) ""
 WRITE(40,'(a)') "_chemical_name_common             ?"
 WRITE(40,'(a)') "_chemical_melting_point           ?"
-WRITE(40,'(a)') "_chemical_formula_iupac          '"//TRIM(ADJUSTL(msg))//"'"
-WRITE(40,'(a)') "_chemical_formula_moiety         '"//TRIM(ADJUSTL(msg))//"'"
-WRITE(40,'(a)') "_chemical_formula_sum            '"//TRIM(ADJUSTL(msg))//"'"
+WRITE(40,'(a)') "_chemical_formula_iupac           '"//TRIM(ADJUSTL(msg))//"'"
+WRITE(40,'(a)') "_chemical_formula_moiety          '"//TRIM(ADJUSTL(msg))//"'"
+WRITE(40,'(a)') "_chemical_formula_sum             '"//TRIM(ADJUSTL(msg))//"'"
 WRITE(msg,'(f16.3)') smass_tot
-WRITE(40,'(a)') "_chemical_formula_weight         "//TRIM(ADJUSTL(msg))
+WRITE(40,'(a)') "_chemical_formula_weight          "//TRIM(ADJUSTL(msg))
 WRITE(40,'(a)') "_chemical_compound_source         ?"
 WRITE(40,'(a)') "_chemical_absolute_configuration  ?"
 !
@@ -134,29 +135,29 @@ WRITE(40,'(a)') "_chemical_absolute_configuration  ?"
 !Write space group information
 !NOTE: here space group P1 is always assumed
 WRITE(40,*) ""
-WRITE(40,'(a)') "_space_group_IT_number           1"
-WRITE(40,'(a)') "_symmetry_cell_setting           triclinic"
-WRITE(40,'(a)') "_symmetry_space_group_name_Hall  'P 1'"
-WRITE(40,'(a)') "_symmetry_space_group_name_H-M   'P 1'"
+WRITE(40,'(a)') "_space_group_IT_number            1"
+WRITE(40,'(a)') "_symmetry_cell_setting            triclinic"
+WRITE(40,'(a)') "_symmetry_space_group_name_Hall   'P 1'"
+WRITE(40,'(a)') "_symmetry_space_group_name_H-M    'P 1'"
 !
 !Write cell vectors (conventional notation, angles in degrees)
 WRITE(40,*) ""
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(temp,'(f16.4)') a
-WRITE(40,'(a)') '_cell_length_a '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_length_a                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') b
-WRITE(40,'(a)') '_cell_length_b '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_length_b                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') c
-WRITE(40,'(a)') '_cell_length_c '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_length_c                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') alpha*180.d0/pi
-WRITE(40,'(a)') '_cell_angle_alpha '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_angle_alpha                 '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') beta*180.d0/pi
-WRITE(40,'(a)') '_cell_angle_beta '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_angle_beta                  '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') gamma*180.d0/pi
-WRITE(40,'(a)') '_cell_angle_gamma '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_angle_gamma                 '//TRIM(ADJUSTL(temp))
 CALL VOLUME_PARA(H,Vcell)
 WRITE(temp,'(f16.4)') Vcell
-WRITE(40,'(a)') '_cell_volume '//TRIM(ADJUSTL(temp))
+WRITE(40,'(a)') '_cell_volume                      '//TRIM(ADJUSTL(temp))
 !
 !
 !Write atom positions
@@ -176,6 +177,10 @@ IF (Naux>0) THEN
       WRITE(40,'(a33)') " _atom_site_thermal_displace_type"
       WRITE(40,'(a26)') " _atom_site_B_iso_or_equiv"
       biso = iaux
+    ELSEIF(TRIM(AUXNAMES(iaux))=="uiso" .AND. biso==0 ) THEN
+      WRITE(40,'(a33)') " _atom_site_thermal_displace_type"
+      WRITE(40,'(a26)') " _atom_site_B_iso_or_equiv"
+      uiso = iaux
     ENDIF
   ENDDO
 ENDIF
@@ -197,6 +202,8 @@ DO i=1,SIZE(P,1)
       IF (iaux==occ) WRITE(temp,*) TRIM(ADJUSTL(temp))//' '//        &
                                  & TRIM(ADJUSTL(tempaux))
       IF (iaux==biso) WRITE(temp,*) TRIM(ADJUSTL(temp))//' Biso '//  &
+                                  & TRIM(ADJUSTL(tempaux))
+      IF (iaux==uiso) WRITE(temp,*) TRIM(ADJUSTL(temp))//' Uiso '//  &
                                   & TRIM(ADJUSTL(tempaux))
     ENDDO
   ENDIF

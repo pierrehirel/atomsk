@@ -27,7 +27,21 @@
 
 <p>Lorsqu'il lit un fichier CIF, Atomsk enregistre les vecteurs de boîte et les positions des atomes. Si des opérations de symétrie sont définies dans le fichier, alors elles sont appliquées immédiatement. Si le taux d'occupation des sites et les paramètres de déplacement (Biso ou Uiso) sont définis, alors ils sont enregistrés comme propriétés auxiliaires. Toute autre information est ignorée.</p>
 
-<p>Lorsqu'il écrit un fichier au format CIF, Atomsk écrit seulement les paramètres de maille et les positions des atomes.</p>
+<p>Notez que dans un fichier CIF, deux atomes peuvent partager exactement la même position, mais avec des taux d'occupation différents. Atomsk enregistre cette information telle quelle, autrement dit il enregistre les positions des atomes (même si elles sont identiques), et il enregistre leurs taux d'occupation comme propriétés auxiliaires. Ainsi, si ces données sont écrites dans un format de fichier qui supporte les occupations partielles, ces informations sont conservées. En revanche, si elles sont écrites dans un format de fichier qui ne supporte pas les occupations partielles, alors ces informations sont perdues, et le fichier de sortie contiendra deux atomes à la même position, ce qui n'est pas physique. Il appartient à l'utilisateur de vérifier la cohérence de ces données, et d'appliquer les corrections nécessaires après l'ouverture du fichier CIF. Par exemple, il est possible de supprimer les atomes qui se chevauchent grâce à l'<a href="./option_rmd.html">option <code>-remove-doubles</code></a>.</p>
+
+<p>Lorsqu'il écrit un fichier au format CIF, Atomsk écrit les paramètres de maille et les positions des atomes. Si des taux d'occupation sont définis, ils sont écrits. Si des paramètres de déplacement (Biso ou Uiso) sont définis, alors ils sont également écrits.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk mon_systeme.cif vesta</code>
+<p>Atomsk va lire le fichier <code>mon_systeme.cif</code>, et le convertira en <code>mon_systeme.vesta</code> pour être visualisé avec VESTA.</p></li>
+
+<li><code class="command">atomsk input.cif lammps</code>
+<p>Ceci va lire le fichier <code>input.cif</code>, et le convertira en fichier de données pour LAMMPS nommé <code>input.lmp</code>. Notez que si le fichier CIF contient des atomes avec des occupations partielles, ils apparaîtront dans le fichier LAMMPS comme des atomes se trouvant à la même position, ce qui n'est peut-être pas souhaitable.</p></li>
+</ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 

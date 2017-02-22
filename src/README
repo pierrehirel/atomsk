@@ -1,0 +1,39 @@
+
+Atomsk/src
+==========
+ 
+This folder contains the source code of Atomsk.
+ 
+The source code is divided into several sub-folders.
+
+/include/
+This folder contains global variables, informations about atoms, messages,
+general functions and subroutines (including e.g. neighbor search), and so on.
+Routines in this folder are self-sufficient and do not depend on routines in
+other folders (although some may depend on LAPACK).
+They form the base of the program.
+
+/input/
+The input folder contains routines that read atomic input files from the disk,
+and load the data into memory (RAM).
+They depend only on the routines contained in the /include/ folder.
+
+/output/
+The output folder contains routines that write the data contained in the
+memory (RAM) into output files on the disk.
+They depend only on the routines contained in the /include/ folder.
+
+/options/
+The options folder contains routines that transform the atomic data
+that is contained in the memory (RAM).
+They depend only on the routines contained in the /include/ folder.
+
+/modes/
+The modes folder contains routines that perform particular operations,
+like merging two or more atomic systems, or compute a particular property.
+They depend on routines contained in /include/, /input/, /output/, and /options/.
+ 
+atomsk.f90
+This source file is the main program.
+It depends on routines contained in all folders:
+/include/, /input/, /output/, /options/, and /modes/.

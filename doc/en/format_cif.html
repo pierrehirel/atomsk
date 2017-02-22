@@ -27,15 +27,20 @@
 
 <p>When reading a CIF file, Atomsk reads the cell parameters and the atom positions. If symmetry operations are defined (following the keyword "_symmetry") then they are applied immediately. If site occupancies and atom displacement parameters (Uiso or Biso) are defined, then they are saved as auxiliary properties. Other informations are ignored.</p>
 
-<p>When writing data to the CIF format, Atomsk only writes the cell parameters and atom positions.</p>
+<p>Beware that in a CIF file, two atoms can share the exact same position, but with partial occupancies. Atomsk saves this data as-is, i.e. it saves the positions of atoms (even if they are identical), and its saves their occupancies as auxiliary properties. This way, if this data is output to a file format that supports partial occupancies, the information is preserved. However, if such data is output to a file format that does not support partial occupancy, then this information is lost, and the output file will contain two atoms at the exact same position, which is not physical. It is up to the user to check the consistency of the data, and make corrections after reading the CIF file if necessary. For instance, to remove overlapping atoms it is possible to use the <a href="./option_rmd.html">option <code>-remove-doubles</code></a>.</p>
+
+<p>When writing data to the CIF format, Atomsk writes the cell parameters and atom positions. If site occupancies are defined, then they are written. If thermal displacement parameters (Biso or Uiso) are defined, then they are also written.</p>
 
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk my_system.cif cfg</code>
-<p>This will read the file <code>my_system.cif</code>, and convert it to <code>my_system.cfg</code>.</p></li>
+<li><code class="command">atomsk my_system.cif vesta</code>
+<p>This will read the file <code>my_system.cif</code>, and convert it to <code>my_system.vesta</code> for visualization with VESTA.</p></li>
+
+<li><code class="command">atomsk input.cif lammps</code>
+<p>This will read the file <code>input.cif</code>, and convert it to a LAMMPS data file <code>input.lmp</code>. Beware that if the CIF file contains overlapping atoms with partial occupancies, they will appear as overlapping atoms in the LAMMPS data file, which may not be desirable.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

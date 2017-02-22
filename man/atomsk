@@ -182,6 +182,9 @@ Rotates the system around a cartesian <axis>.
 .B -select grid <file>
 Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
 .TP
+.B -separate <distance> <shift>
+Separate atoms that are closer to each other than the <distance>.
+.TP
 .B -shear <surface normal> <shear amp> <shear direction>
 Applies shear strain to the system.
 .TP
@@ -268,6 +271,9 @@ VASP format.
 .B PW
 Quantum Espresso PWscf format.
 .TP
+.B vesta
+VESTA file.
+.TP
 .B xmd
 XMD file.
 .TP
@@ -330,6 +336,9 @@ VASP format.
 .B PW
 Quantum Espresso PWscf format.
 .TP
+.B vesta
+VESTA file.
+.TP
 .B xmd
 XMD file.
 .TP
@@ -378,7 +387,7 @@ http://atomsk.univ-lille1.fr/
 .P
 Dr. Pierre Hirel (pierre.hirel@univ-lille1.fr)
 .P
-UMET, Bat. C6, Université de Lille 1 (France)
+Univ. Lille 1, UMR CNRS 8702 - UMET, 59650 Villeneuve d'Ascq, France
 
 
 

@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Feb. 2017                                     *
+!* Last modification: P. Hirel - 22 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -347,6 +347,11 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-separate") THEN
+  WRITE(*,*) "..> Separate atoms that are too close:"
+  WRITE(*,*) "          -separate <distance> <shift>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-shear") THEN
@@ -2160,6 +2165,13 @@ CASE(3713) ! missing absorption data
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3714)
   msg = "/!\ WARNING: some atoms have an invalid type."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3715)
+  msg = "/!\ WARNING: data contains partial occupancies, which are"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            not supported by some output format(s)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Some atoms may overlap in the output file(s), which is not physical."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

@@ -80,13 +80,14 @@ INTEGER:: sgnumber, originchoice !space group number and origin choice
 INTEGER:: sy_pxyz !position of symmetry operations string in the line
 INTEGER:: i, j, iaux, k, m, n
 INTEGER:: Naux !number of auxiliary properties
-INTEGER:: Ncol, NP, sp_NP
+INTEGER:: Ncol, NP, sp_NP, q
 INTEGER:: Nsym !number of symmetry operations
 INTEGER:: occ  !index of occupancies in AUXNAMES
 INTEGER:: biso !index of Biso in AUXNAMES
 INTEGER:: strlength
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: snumber, sbiso
+REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P   !positions of atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S               !positions of shells (remains unallocated in this module)
@@ -120,6 +121,7 @@ Nsym=0
 occ=0
 biso=0
 sp_NP=9
+q=0
 a=0.d0
 b=0.d0
 c=0.d0
@@ -312,7 +314,7 @@ DO !Main reading loop
     !Check if it is a loop over atom positions or symmetry operations
     READ(30,'(a128)',ERR=200,END=200) temp
     temp = ADJUSTL(temp)
-    IF( temp(1:5)=="_atom" .AND. .NOT.atpos_done) THEN
+    IF( temp(1:10)=="_atom_site" .AND. .NOT.atpos_done) THEN
       !It is a loop over atoms and we still need to read it:
       !continue reading the header,
       !count number of columns (Ncol) until reaching the actual atom positions
@@ -358,6 +360,16 @@ DO !Main reading loop
       !Check if this "_atom_" loop contains all required data
       IF( at_sp.NE.0 .AND. at_x.NE.0 .AND. at_y.NE.0 .AND. at_z.NE.0 ) THEN
         !This section indeed contains atom species and positions
+        !Check if this string contains the charge of the atom
+        strlength = SCAN(temp,'+')
+        IF( strlength>0 ) THEN
+          q = 1
+        ELSE
+          strlength = SCAN(temp,'-')
+          IF( strlength>0 ) THEN
+            q = 1
+          ENDIF
+        ENDIF
         !Go back one line
         BACKSPACE(30)
         !
@@ -422,23 +434,34 @@ DO !Main reading loop
           !
         ELSE
           !P is allocated => we can proceed with atom positions and auxiliary properties
+          Naux = 0
+          IF( at_occ>0 ) THEN
+            Naux = Naux+1
+            occ = Naux
+          ENDIF
+          IF( at_biso>0 ) THEN
+            Naux = Naux+1
+            biso = Naux
+          END IF
+          IF( q>0 ) THEN
+            Naux = Naux+1
+            q = Naux
+          ENDIF
           WRITE(msg,*) 'Naux = ', Naux
           CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
           IF(Naux>0) THEN
             ALLOCATE( AUX(SIZE(P,1),Naux) )
             AUX(:,:) = 0.d0
             ALLOCATE( AUXNAMES(Naux) )
-            ! keep Naux in the new version, prev. version: Naux=1
-            iaux = 1
+            AUXNAMES(:) = ""
             IF( at_occ>0 ) THEN
-              occ = iaux
-              iaux = iaux+1
               AUXNAMES(occ) = "occ"
             ENDIF
             IF( at_biso>0 ) THEN
-              biso = iaux
-              iaux = iaux+1
               AUXNAMES(biso) = "biso"
+            END IF
+            IF( q>0 ) THEN
+              AUXNAMES(q) = "q"
             END IF
           ENDIF
           !
@@ -461,18 +484,47 @@ DO !Main reading loop
               READ(columns(at_Wyckoff),*,ERR=175,END=175) Wyckoff_letters(i)
             ENDIF
             175 CONTINUE
-            !Get rid of trailing charge
-            strlength = SCAN(temp,'+')
-            IF(strlength>0) temp = temp(1:strlength-1)
-            strlength = SCAN(temp,'-')
-            IF(strlength>0) temp = temp(1:strlength-1)
-            temp = ADJUSTL(temp)
+            !Store atomic species
             species = temp(1:2)
             CALL ATOMNUMBER(species,P(i,4))
             IF( P(i,4)<=0.d0 ) THEN
               species = temp(1:1)
               CALL ATOMNUMBER(species,P(i,4))
+              IF( q>0 .AND. q<=SIZE(AUX,1) ) THEN
+                !Try to read the charge of this atom
+                !(note: if this fails the atom will still have a charge equal to zero)
+                temp = ADJUSTL(temp(2:))
+                strlength = SCAN(temp,'+')
+                IF( strlength>0 ) THEN
+                  READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
+                  AUX(i,q) = tempreal
+                ELSE
+                  strlength = SCAN(temp,'-')
+                  IF( strlength>0 ) THEN
+                    READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
+                    AUX(i,q) = -1.d0*tempreal
+                  ENDIF
+                ENDIF
+              ENDIF
+            ELSE !i.e. P(i,4)>0
+              IF( q>0 .AND. q<=SIZE(AUX,1) ) THEN
+                !Try to read the charge of this atom
+                !(note: if this fails the atom will still have a charge equal to zero)
+                temp = ADJUSTL(temp(3:))
+                strlength = SCAN(temp,'+')
+                IF( strlength>0 ) THEN
+                  READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
+                  AUX(i,q) = tempreal
+                ELSE
+                  strlength = SCAN(temp,'-')
+                  IF( strlength>0 ) THEN
+                    READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
+                    AUX(i,q) = -1.d0*tempreal
+                  ENDIF
+                ENDIF
+              ENDIF
             ENDIF
+            176 CONTINUE
             !
             !
             !Store auxiliary properties if any
@@ -496,7 +548,7 @@ DO !Main reading loop
                   READ(columns(at_biso),*,ERR=800,END=800) sbiso ! read to a temp variable
                   IF(at_uiso==1) THEN
                     ! translate from Uiso to Biso
-                    AUX(i,biso) = sbiso * 0.789568352d+2 ! * 8 * Pi**2
+                    AUX(i,biso) = sbiso * 8.d0 * pi*pi   ! * 0.789568352d+2
                   ELSE
                     ! transfer Biso directly
                     AUX(i,biso) = sbiso
@@ -754,7 +806,7 @@ DO !Main reading loop
         !
       ENDIF ! symmetry data reading
       !
-    ENDIF !if "_atom" elseif "_symmetry"
+    ENDIF !if "_atom_site" elseif "_symmetry" elseif "atom_type"
     !
   ENDIF ! end of main keyword parser "_loop"
   !
@@ -767,7 +819,16 @@ ENDDO ! end of main reading loop
 !
 200 CONTINUE
 CLOSE(30)
-IF(.NOT.atpos_done) GOTO 800
+IF( NINT(a)==0 .AND. NINT(b)==0 .AND. NINT(c)==0 ) THEN
+  !No cell parameters were found
+  CALL ATOMSK_MSG(1809,(/""/),(/0.d0/))
+  GOTO 1000
+ENDIF
+IF( .NOT.atpos_done .OR. .NOT.ALLOCATED(P) ) THEN
+  !No atoms in this file
+  CALL ATOMSK_MSG(1810,(/""/),(/0.d0/))
+  GOTO 1000
+ENDIF
 !Save cell vectors in H(:,:)
 CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
 !Find out if coordinates are reduced or cartesian

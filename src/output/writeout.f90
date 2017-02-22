@@ -252,6 +252,7 @@ ENDIF
 !Check that the array outfileformats does not contain twice the same output format
 !If so, just replace duplicates by blanks
 IF(SIZE(outfileformats)>1) THEN
+  outfileformats(:) = ADJUSTL(outfileformats(:))
   DO i=1,SIZE(outfileformats)-1
     DO j=i+1,SIZE(outfileformats)
       IF(outfileformats(j) == outfileformats(i) ) THEN
@@ -271,10 +272,60 @@ ENDIF
 !
 !
 200 CONTINUE
-!!Then, write output file
+!!Then, write output file(s)
 ! by calling the module corresponding to the output format
 ! Output to several formats is possible
 CALL ATOMSK_MSG(3000,(/TRIM(outputfile)/),(/DBLE(SIZE(P,1))/))
+!
+!If AUX contains data about partial occupancies, then we must make sure
+!that all the current output file formats support it. Otherwise, the output file
+!will contain atoms at the exact same position, and no information about their occupancy,
+!which may not be desirable. Atomsk will go with it, but a warning will be displayed
+IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+  j = 0
+  DO i=1,SIZE(AUXNAMES)
+    IF( AUXNAMES(i) == "occ" ) THEN
+      !Occupancies are present
+      j = i
+    ENDIF
+  ENDDO
+  !
+  IF( j>0 ) THEN
+    fileexists = .FALSE.
+    !Check if user wants to write to a file format that doesn't support partial occupancies
+    DO i=1,SIZE(outfileformats)
+      IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
+        SELECT CASE( outfileformats(i) )
+        CASE('cel','cif','gin','jems','pdb','vesta')
+          !Those file formats do support partial occupancies
+        CASE DEFAULT
+          !Other file formats don't
+          fileexists = .TRUE.
+        END SELECT
+      ENDIF
+    ENDDO
+    !
+    IF( fileexists ) THEN
+      !User wants to write info about partial occupancies, but some output file formats don't support it
+      !This is not a problem if all occupancies equal 1, but it is a problem otherwise
+      !=> Check if some values of partial occupancies are different from 1
+      fileexists = .FALSE.
+      DO i=1,SIZE(AUX,1)
+        IF( DABS( AUX(i,j) - 1.d0 ) > 1.d-9 ) THEN
+          !This value is different from 1
+          fileexists = .TRUE.
+        ENDIF
+      ENDDO
+      !
+      IF( fileexists ) THEN
+        !Some occupancies are different from 1 => potential problem, display a warning
+        CALL ATOMSK_MSG(3715,(/""/),(/0.d0/))
+      ENDIF
+      !
+    ENDIF
+    !
+  ENDIF
+ENDIF
 !
 IF(SIZE(P(:,1))>10000000) THEN
   CALL ATOMSK_MSG(3,(/''/),(/0.d0/))

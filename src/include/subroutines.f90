@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 Feb. 2017                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -482,7 +482,7 @@ DO i=1,SIZE(newindex)
 ENDDO
 !
 IF(order=='down') THEN
-  DO j=SIZE(A,1)-1,2,-1
+  DO j=SIZE(A,1),2,-1
     sorted = .TRUE.
     DO i=1,j-1
       !If element i+1 is greater than element i, swap them
@@ -503,7 +503,7 @@ IF(order=='down') THEN
   ENDDO
   !
 ELSE  !i.e. if order is "up"
-  DO j=SIZE(A,1)-1,2,-1
+  DO j=SIZE(A,1),2,-1
     sorted = .TRUE.
     DO i=1,j-1
       !If element i+1 is smaller than element i, swap them

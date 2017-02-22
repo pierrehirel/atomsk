@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 22 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -347,6 +347,11 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-separate") THEN
+  WRITE(*,*) "..> Séparer les atomes qui sont trop proches:"
+  WRITE(*,*) "          -separate <distance> <décalage>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-shear") THEN
@@ -2195,6 +2200,16 @@ CASE(3712) ! missing thermal vibration data
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3713) ! missing absorption data
   msg = "/!\ ALERTE : les facteurs d'absorption sont manquants, ils seront fixés à 0.03 pour tous les atomes."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3714)
+  msg = "/!\ ALERTE : certains atomes ont un type non valide."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3715)
+  msg = "/!\ ALERTE : les données contiennent des occupations partielles,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            que certains formats de sortie ne supportent pas."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Certains atomes risquent de se chevaucher dans les fichiers de sortie."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

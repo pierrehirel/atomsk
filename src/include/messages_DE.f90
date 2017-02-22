@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 02 Feb. 2017                                     *
+!* Last modification: P. Hirel - 22 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -325,6 +325,11 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-separate") THEN
+  WRITE(*,*) "..> Separate atoms that are too close:"
+  WRITE(*,*) "          -separate <distance> <shift>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-shear") THEN
@@ -2105,6 +2110,16 @@ CASE(3712) ! missing occupancy data for cel file output
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3713) ! missing absorption data
   msg = "/!\ WARNUNG: absorption factors are missing, they will be set to 0.03 for all atoms."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3714)
+  msg = "/!\ WARNING: some atoms have an invalid type."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3715)
+  msg = "/!\ WARNING: data contains partial occupancies, which are"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            not supported by some output format(s)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Some atoms may overlap in the output file(s), which is not physical."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES

@@ -10,7 +10,7 @@ MODULE sort
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Feb. 2017                                     *
+!* Last modification: P. Hirel - 21 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -85,8 +85,7 @@ CASE('species','s','S','x','X','y','Y','z','Z')
   SELECT CASE(sortorder)
   CASE('up','down')
     !Sort P by increasing or decreasing values
-    CALL BUBBLESORT(P,sortnum,sortorder,newindex)
-    !CALL QUICKSORT(P,sortnum,sortorder,newindex)
+    CALL QUICKSORT(P,sortnum,sortorder,newindex)
   CASE('pack')
     !Pack identical values of P together
     CALL PACKSORT(P,sortnum,newindex)
