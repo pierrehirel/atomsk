@@ -11,7 +11,7 @@ MODULE in_vesta
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Feb. 2017                                     *
+!* Last modification: P. Hirel - 22 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -48,8 +48,9 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 LOGICAL:: fileexists  !does a file already exist?
 LOGICAL:: vectors     !are vectors defined in the file?
 INTEGER:: i, j
-INTEGER:: NP  !number of atoms
-INTEGER:: Nsym  !number of symmetry operations
+INTEGER:: Ncomment    !number of comment lines
+INTEGER:: NP          !number of atoms
+INTEGER:: Nsym        !number of symmetry operations
 INTEGER:: sgroupnum  !space group number
 REAL(dp):: a, b, c, alpha, beta, gamma   !supercell (conventional notation)
 REAL(dp):: occ    !site occupancy
@@ -64,12 +65,11 @@ REAL(dp),DIMENSION(12):: symops_line !line of symmetry operations list
 !Initialize variables
 vectors = .FALSE.
 i = 0
+Ncomment = 0
 NP = 0
 Nsym = 0
 sgroupnum = 0
 H(:,:) = 0.d0
-ALLOCATE(comment(1))
- comment = ""
 !
 !
 100 CONTINUE
@@ -85,8 +85,11 @@ DO
   temp = ADJUSTL(temp)
   !
   IF( temp(1:5)=="TITLE" ) THEN
-    READ(30,'(a128)',END=110,ERR=110) comment(1)
-    comment(1) = ADJUSTL(comment(1))
+    !Count number of comment lines
+    DO WHILE( LEN_TRIM(temp)>0 )
+      READ(30,'(a128)',END=110,ERR=110) temp
+      IF( LEN_TRIM(temp)>0 ) Ncomment = Ncomment+1
+    ENDDO
   !
   ELSEIF( temp(1:5)=="CELLP" ) THEN
     READ(30,'(a128)',END=801,ERR=801) temp
@@ -174,7 +177,15 @@ DO
   READ(30,'(a128)',END=300,ERR=300) temp
   temp = ADJUSTL(temp)
   !
-  IF( temp(1:5)=="STRUC" ) THEN
+  IF( temp(1:5)=="TITLE" ) THEN
+    ALLOCATE( comment(Ncomment) )
+    comment(:) = ""
+    DO j=1,SIZE(comment)
+      READ(30,'(a128)',END=290,ERR=290) comment(j)
+      comment(j) = ADJUSTL(comment(j))
+    ENDDO
+  !
+  ELSEIF( temp(1:5)=="STRUC" ) THEN
     !Read atomic data
     DO j=1,SIZE(P,1)
       !Each atom has two lines of data

@@ -131,7 +131,9 @@ WRITE(40,*) ""
 WRITE(40,'(a7)') "CRYSTAL"
 WRITE(40,*) ""
 WRITE(40,'(a5)') "TITLE"
-WRITE(40,'(a)') TRIM(comment(1))
+DO i=1,SIZE(comment)
+  WRITE(40,'(a)') TRIM(comment(i))
+ENDDO
 WRITE(40,*) ""
 WRITE(40,'(a5)') "GROUP"
 WRITE(40,'(a7)') "1 1 P 1"

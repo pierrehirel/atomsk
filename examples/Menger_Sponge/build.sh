@@ -27,7 +27,7 @@ n=2
 # You may play with the max. value of i, but know
 # that the number of atoms increases EXPONENTIALLY with imax!
 # Sponges of successive sizes are saved in files named "sponge_$i.cfg"
-for ((i=1;i<=5;i++)) ; do
+for ((i=1;i<=4;i++)) ; do
 
   atomsk $f1                         \
          -dup $n $n $n               \

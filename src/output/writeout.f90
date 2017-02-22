@@ -319,6 +319,7 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
       !
       IF( fileexists ) THEN
         !Some occupancies are different from 1 => potential problem, display a warning
+        nwarn = nwarn+1
         CALL ATOMSK_MSG(3715,(/""/),(/0.d0/))
       ENDIF
       !
