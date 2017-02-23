@@ -215,7 +215,7 @@ install:
 	@cp -rf ../doc/* $(DOCPATH)/atomsk/
 	@chmod -R a+r $(DOCPATH)/atomsk/
 	@echo "  ..> The html documentation was installed. You may read it by entering the"
-	@echo "      following address in your Web browser: ${DOCPATH}atomsk/index.html"
+	@echo "      following address in your Web browser: ${DOCPATH}/atomsk/index.html"
 	@mkdir -p $(MPATH)
 	@gzip -c ../man/atomsk >$(MPATH)/atomsk.1.gz
 	@echo "  ..> To read the manual, type 'man atomsk'."

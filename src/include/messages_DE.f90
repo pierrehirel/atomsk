@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 22 Feb. 2017                                     *
+!* Last modification: P. Hirel - 23 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -192,7 +192,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-add-atom" .OR. helpsection=="-add-atoms" .OR. &
   &helpsection=="-addatom" .OR. helpsection=="-addatoms" ) THEN
-  WRITE(*,*) "..> Add new atoms to the system:"
+  WRITE(*,*) "..> Fügen Sie dem System neue Atome hinzu:"
   WRITE(*,*) "          -add-atom <species> at <x> <y> <z>"
   WRITE(*,*) "          -add-atom <species> relative <index> <x> <y> <z>"
   WRITE(*,*) "          -add-atom <species> near <index>"
@@ -201,7 +201,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-add-shells".OR. helpsection=="-as" &
   & .OR. helpsection=="-create-shells".OR. helpsection=="-cs") THEN
-  WRITE(*,*) "..> Create shells for some or all atoms:"
+  WRITE(*,*) "..> Erstellen Sie Shells für einige oder alle Atome:"
   WRITE(*,*) "          -add-shells <all|species>"
 ENDIF
 !
@@ -216,7 +216,7 @@ IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-b
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
-  WRITE(*,*) "..> Place an atom or the center of mass of the system at the center of the box:"
+  WRITE(*,*) "..> Legen Sie ein Atom oder der Masseschwerpunkt des Systems in der Mitte der Box:"
   WRITE(*,*) "          -center <index>"
   WRITE(*,*) "          -center com"
 ENDIF
@@ -305,7 +305,7 @@ IF(helpsection=="options" .OR. helpsection=="-remove-property" .OR. helpsection=
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-roll" .OR. helpsection=="-bend") THEN
-  WRITE(*,*) "..> Roll the system around an axis:"
+  WRITE(*,*) "..> Rollen das System um eine Achse:"
   WRITE(*,*) "          -roll <x|y|z> <angle> <x|y|z>"
 ENDIF
 !
@@ -328,7 +328,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-separate") THEN
-  WRITE(*,*) "..> Separate atoms that are too close:"
+  WRITE(*,*) "..> Separate Atome, die zu nahe sind:"
   WRITE(*,*) "          -separate <distance> <shift>"
 ENDIF
 !
@@ -365,7 +365,7 @@ IF(helpsection=="options" .OR. helpsection=="-swap") THEN
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-torsion") THEN
-  WRITE(*,*) "..> Apply torsion around an axis:"
+  WRITE(*,*) "..> Torsion um eine Achse auftragen:"
   WRITE(*,*) "          -torsion <x|y|z> <angle>"
 ENDIF
 !
@@ -680,9 +680,9 @@ CASE(703)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(704)
   !strings(1) = name of file that will be ignored
-  msg = "/!\ WARNING: too many file names passed as arguments."
+  msg = "/!\ WARNUNG: zu viele Dateinamen wurden als Argumente übergeben."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "            The following file will be ignored: "//TRIM(strings(1))
+  msg = "            Die folgende Datei wird ignoriert: "//TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(750)
   msg = ""
@@ -1710,21 +1710,21 @@ CASE(2127)
   !strings(1) = roll axis: x, y or z
   !reals(1) = roll angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rolling the "//TRIM(ADJUSTL(strings(1)))//" direction by " // &
-      & TRIM(ADJUSTL(msg))//"° around the "//TRIM(strings(2))//" axis."
+  msg = ">>> Rollen die "//TRIM(ADJUSTL(strings(1)))//" Richtung um " // &
+      & TRIM(ADJUSTL(msg))//"° um die "//TRIM(strings(2))//" Achse."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2128)
-  msg = "..> System was successfully rolled."
+  msg = "..> System wurde erfolgreich gerollt."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2129)
   !strings(1) = torsion axis: x, y or z
   !reals(1) = torsion angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Applying a torsion of "//TRIM(ADJUSTL(msg)) &
-      & //"° around "//TRIM(strings(1))
+  msg = ">>> Torsion von "//TRIM(ADJUSTL(msg)) &
+      & //"° um die "//TRIM(strings(1))//" Achse anwenden..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2130)
-  msg = "..> Torsion was successfully applied."
+  msg = "..> Torsion wurde erfolgreich angewendet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES
@@ -2112,14 +2112,14 @@ CASE(3713) ! missing absorption data
   msg = "/!\ WARNUNG: absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3714)
-  msg = "/!\ WARNING: some atoms have an invalid type."
+  msg = "/!\ WARNUNG: einige Atome haben einen ungültigen Typ."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3715)
-  msg = "/!\ WARNING: data contains partial occupancies, which are"
+  msg = "/!\ WARNUNG: Daten enthalten Besetzungen, die nicht"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            not supported by some output format(s)."
+  msg = "            von einigen Ausgabeformaten unterstützt werden."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Some atoms may overlap in the output file(s), which is not physical."
+  msg = "            Einige Atome können sich in der Ausgabedatei überlappen, die nicht physisch ist."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES
@@ -2468,21 +2468,21 @@ CASE(4065)
       & " Konfigurationen gemittelt."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4066)
-  msg = ">>> Running in mode density."
+  msg = ">>> Laufen in der Modus density."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4067)
   !strings(1) = property
   !reals(1) = dimension (1, 2 or 3)
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Computing the "//TRIM(ADJUSTL(temp))//"-D density of "//TRIM(ADJUSTL(strings(1)))//"..."
+  msg = ">>> Berechnen der "//TRIM(ADJUSTL(temp))//"-D Dichte der "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4068)
   WRITE(msg,*) NINT(reals(1))
-  msg = "..> Density was successfully computed."
+  msg = "..> Dichte wurde erfolgreich berechnet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4069)
   !strings(1) = name of file
-  msg = ">>> Computing the central symmetry parameter for: "//TRIM(ADJUSTL(strings(1)))//"..."
+  msg = ">>> Berechnen des zentralen Symmetrieparameters für die Datei: "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"
@@ -2757,36 +2757,36 @@ CASE(4824)
   msg = "X!X FEHLER: Unbekanntes Kommando: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4825)
-  msg = "X!X ERROR: Atomsk cannot run within itself!"
+  msg = "X!X FEHLER: Atomsk kann nicht in sich laufen!"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          You have entered 'atomsk' without any arguments, or you have clicked the"
+  msg = "          Sie haben 'Atomsk' ohne Argumente eingegeben, oder Sie haben aus einem Menü "
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          executable from a menu, therefore Atomsk is currently running in interactive mode"
+  msg = "           auf die ausführbare Datei geklickt, daher läuft Atomsk derzeit im interaktiven Modus,"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          where only a limited subset of commands are available, please refer to the documentation."
+  msg = "          wo nur eine begrenzte Untermenge von Befehlen verfügbar ist. Bitte beachten Sie die Dokumentation."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          In order to use Atomsk with command-line arguments, you must first run"
+  msg = "          Um Atomsk mit Kommandozeilenargumenten zu verwenden, musst du zuerst"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          a command shell, and then type in your command."
+  msg = "          eine Kommando-Shell ausführen und dann deinen Befehl eingeben."
   CALL DISPLAY_MSG(1,msg,logfile)
 #if defined(WINDOWS)
-  msg = "          In a Microsoft Windows system, follow these steps:"
+  msg = "          Gehen Sie in einem Microsoft Windows-System folgendermaßen vor:"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          1. Open the Windows menu, go to Accessories, and run Windows Power Shell."
+  msg = "          1. Öffnen Sie das Windows-Menü, gehen Sie zu Zubehör und führen Sie Windows Powershell aus."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          2. Run atomsk.exe with the arguments, for instance:"
+  msg = "          2. Führen Sie atomsk.exe mit den Argumenten aus, zum Beispiel:"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = '             "C:\Program Files\Atomsk\atomsk.exe" initial.xsf final.cfg'
+  msg = '             & "C:\Program Files\Atomsk\atomsk.exe" initial.xsf final.cfg'
   CALL DISPLAY_MSG(1,msg,logfile)
 #endif
 CASE(4826)
-  msg = "X!X ERROR: this mode is not available in interactive mode, please refer to the documentation."
+  msg = "X!X FEHLER: Dieser Modus ist im interaktiven Modus nicht verfügbar. Bitte beachten Sie die Dokumentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
-  msg = "X!X ERROR: unable to create lattice with specified orientation, because lattice is not cubic."
+  msg = "X!X FEHLER: Unmöglich, Gitter mit vorgegebener Orientierung zu schaffen, weil Gitter nicht kubisch ist."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
-  msg = "X!X ERROR: only one mode can be used at a time."
+  msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

@@ -38,6 +38,7 @@ Master branch (to be Beta 0.9)
 - fixed a bug in mode "--create" where atoms would sometimes be missing when creating lattices with some orientations.
 - fixed a bug in mode "--merge" where sometimes auxiliary properties would not be correctly handled.
 - fixed a bug in option "-disturb" where the shells were not displaced along with their core.
+- fixed a bug in option "-stresses" where the Voigt stress components were not interpreted correctly. Thanks to Anirban Pal, Rensselaer Polytechnic Institute, Troy (NY), USA, for reporting this bug.
 - fixed a bug in the displaying of progress bar that slowed down the program.
 - l10n: added the German translations of the messages. Thanks to Juri Barthel, RWTH Aachen, Germany, for translating Atomsk.
 
@@ -84,7 +85,7 @@ Beta 0.8.2 (14 June 2015)
 Beta 0.8.1 (09 April 2015)
 --------------------------
 - in mode "--create", added possibility to generate L12 lattices. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for proposing this feature.
-- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to Anirban Pal, Rensselaer Polytechnic Institute, New York, USA, for reporting this bug.
+- fixed a bug in option "-dislocation" that prevented to read the Burgers vector when the type was "edge2". Thanks to Anirban Pal, Rensselaer Polytechnic Institute, Troy (NY), USA, for reporting this bug.
 
 
 Beta 0.8 (05 Jan. 2015)

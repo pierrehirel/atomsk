@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Feb. 2017                                     *
+!* Last modification: P. Hirel - 23 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2838,7 +2838,7 @@ CASE(4825)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          2. Exécutez atomsk.exe avec les arguments, par exemple :"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = '             "C:\Program Files\Atomsk\atomsk.exe" initial.xsf final.cfg'
+  msg = '             & "C:\Program Files\Atomsk\atomsk.exe" initial.xsf final.cfg'
   CALL DISPLAY_MSG(1,msg,logfile)
 #endif
 CASE(4826)
