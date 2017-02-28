@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Jan. 2017                                     *
+!* Last modification: P. Hirel - 28 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -119,7 +119,7 @@ WRITE(temp,*) SIZE(P,1)
 NPdigits = LEN_TRIM(ADJUSTL(temp))
 !
 !If shells are present (ionic core-shell model), count number of shells and number of bonds
-IF( ALLOCATED(S) .AND. SIZE(S)>0 ) THEN
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !count how many species have shells
   CALL FIND_NSP( S(:,4) , aentriesS )
   Nshells = 0
@@ -133,6 +133,9 @@ IF( ALLOCATED(S) .AND. SIZE(S)>0 ) THEN
   !Update total number of atom types
   Ntypes = Ntypes + Nshelltypes
 ENDIF
+!
+WRITE(msg,*) "Found NP, Nshells, Ntypes = ", SIZE(P,1), Nshells, Ntypes
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Check if auxiliary properties relevant to LAMMPS data files are present
 IF( ALLOCATED(AUXNAMES) ) THEN
@@ -196,7 +199,7 @@ IF( DABS(H(1,2))>1.d-12 .OR. DABS(H(1,3))>1.d-12 .OR. DABS(H(2,3))>1.d-12 ) THEN
   IF(answer==langyes .OR. answer==langBigYes) THEN
     !The following does the same as option "-alignx"
     !Copy P to R
-    ALLOCATE( R( SIZE(P(:,1)), SIZE(P(1,:)) ) )
+    ALLOCATE( R( SIZE(P,1), SIZE(P,2) ) )
     R=P
     !
     !Convert to fractional coordinates
@@ -327,7 +330,7 @@ molID = 0
 Nspecies = 0
 !Write atom positions
 IF (q>0 ) THEN
-  WRITE(40,'(a5)') 'Atoms # charge'
+  WRITE(40,'(a14)') 'Atoms # charge'
 ELSE
   WRITE(40,'(a5)') 'Atoms'
 ENDIF
@@ -367,9 +370,12 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     ENDIF
     WRITE(40,212) j, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
     !
+    PRINT*, S(i,4), P(i,4)
     IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
       !Write shell info immediately after its core
-      !NOTE: i is not the correct shell index!
+      !NOTE: i the index of core in P(:,:) AND the index of its shell in S(:,:)
+      !     But i cannot be used as "atom-ID" in LAMMPS data file!
+      !     Increment j and use it as "atom-ID" here
       j=j+1
       IF( qs>0 ) THEN
         Qshell = AUX(i,qs)
@@ -390,7 +396,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     ENDIF
   ENDDO
   !
-  !(2) Write bond pairs with format "ID type atom1 atom2"
+  !(2) Write bond pairs with format "bondID bondtype atom1 atom2"
   !    ID   = bond number (1-Nbonds)
   !    type = bond type (1-Nbondtype)
   !    atom1,atom2 = IDs of 1st,2nd atoms in bond

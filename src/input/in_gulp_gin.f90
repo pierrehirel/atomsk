@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 May 2016                                      *
+!* Last modification: P. Hirel - 28 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -71,7 +71,8 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=sg_soplen),DIMENSION(:),ALLOCATABLE:: strsymops
 LOGICAL:: chargesC, chargesS  !are charges of cores/shells defined in the "species" section?
-LOGICAL:: knowcol  !do we know the number of columns on each line?
+LOGICAL:: knowcol      !do we know the number of columns on each line?
+LOGICAL:: shellsafter  !are shell positions after all core positions?
 LOGICAL:: velocities !are velocities present?
 INTEGER:: fixx, fixy, fixz !columns in AUX where the fixes are defined
 INTEGER:: q, qs  !columns in AUX where charges of cores/shells are defined
@@ -101,6 +102,7 @@ tempcomment(:)=''
  chargesC = .FALSE.
  chargesS = .FALSE.
 knowcol=.FALSE.
+shellsafter = .FALSE.
 velocities = .FALSE.
 Ncol = 0
 icol = 0
@@ -397,7 +399,7 @@ species = ''
 !
 i=0  !Counter for cores
 j=0  !Counter for shells
-DO WHILE(i<NP .OR. j<NS)
+DO WHILE(i<NP .OR. j<NP)
   strlength = 0
   READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
@@ -438,22 +440,26 @@ DO WHILE(i<NP .OR. j<NS)
       strlength = INDEX(temp,'core')+5
     ELSEIF(TRIM(ADJUSTL(test2))=='shel') THEN
       ptype = 'shel'
-      IF(j==0) THEN
-        !This is the first shell that is read
-        !Sometimes in GIN files the shell positions are written
-        !after all cores, which makes it difficult to find which shell
-        !corresponds to which core. Here we attempt to find the first
-        !core that has the same atom species as this first shell.
+      IF( i>=NP .AND. j<1 ) THEN
+        !All cores were read, but no shell yet, this is the first
+        !=> all shells positions are after all core positions
+        shellsafter = .TRUE.
+      ENDIF
+      IF( shellsafter ) THEN
+        !This makes it difficult to find which shell
+        !corresponds to which core. Here we attempt to find the next
+        !core that has the same atom species as this shell.
         !This assumes that the following sequence of shells will
         !match the sequence of cores.
-        DO k=1,NP
+        DO k=j,NP
           IF( DABS(snumber-P(k,4))<0.1d0 ) THEN
             j=k
             EXIT
           ENDIF
         ENDDO
       ELSE
-        j=j+1
+        !Just assume that current shell corresponds to current core
+        j=i
       ENDIF
       !Save the line in "temp2" for later
       strlength = INDEX(temp,'shel')+5
@@ -468,7 +474,7 @@ DO WHILE(i<NP .OR. j<NS)
     temp2 = temp(strlength:)
     !
     !
-    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', TRIM(temp2)
+    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', species, TRIM(temp2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     IF(coord=='cart') THEN

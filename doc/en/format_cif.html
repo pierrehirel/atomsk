@@ -25,11 +25,11 @@
 
 <p>The Crystallographic Information File (cif) format is a standard file format for crystallographic structures. As such it is intended to contain many informations about the structure, like chemical name, diffraction experiment details like temperature, measured density of the sample, symmetry group of the crystal, etc. A CIF file can even contain a full-length article about the structure, for the purpose of publication into some journals.</p>
 
-<p>When reading a CIF file, Atomsk reads the cell parameters and the atom positions. If symmetry operations are defined (following the keyword "_symmetry") then they are applied immediately. If site occupancies and atom displacement parameters (Uiso or Biso) are defined, then they are saved as auxiliary properties. Other informations are ignored.</p>
+<p>When reading a CIF file, Atomsk reads the cell parameters and the atom positions. If symmetry operations are defined (following the keyword "_symmetry") then they are applied immediately. If site occupancies and atom displacement parameters (Uiso or Biso) are defined, then they are saved as auxiliary properties. Finally, if electric charge are defined for ion (e.g. "O2-"), then they are also saved as auxiliary properties. Other informations are ignored.</p>
 
 <p>Beware that in a CIF file, two atoms can share the exact same position, but with partial occupancies. Atomsk saves this data as-is, i.e. it saves the positions of atoms (even if they are identical), and its saves their occupancies as auxiliary properties. This way, if this data is output to a file format that supports partial occupancies, the information is preserved. However, if such data is output to a file format that does not support partial occupancy, then this information is lost, and the output file will contain two atoms at the exact same position, which is not physical. It is up to the user to check the consistency of the data, and make corrections after reading the CIF file if necessary. For instance, to remove overlapping atoms it is possible to use the <a href="./option_rmd.html">option <code>-remove-doubles</code></a>.</p>
 
-<p>When writing data to the CIF format, Atomsk writes the cell parameters and atom positions. If site occupancies are defined, then they are written. If thermal displacement parameters (Biso or Uiso) are defined, then they are also written.</p>
+<p>When writing data to the CIF format, Atomsk writes the cell parameters and atom positions. If site occupancies are defined, then they are written. If thermal displacement parameters (Biso or Uiso) are defined, then they are also written. If electric charges are defined, they are also written.</p>
 
 
 

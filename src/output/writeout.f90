@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 Feb. 2017                                     *
+!* Last modification: P. Hirel - 27 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -277,6 +277,33 @@ ENDIF
 ! Output to several formats is possible
 CALL ATOMSK_MSG(3000,(/TRIM(outputfile)/),(/DBLE(SIZE(P,1))/))
 !
+!If shells exist (ionic core-shell model), then we must make sure
+!that all the current output file formats support it. Otherwise, the output file
+!will contain only the positions of the cores, but the shells will be lost.
+!Atomsk will go with it, but a warning will be displayed
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+  fileexists = .FALSE.
+  !Check if user wants to write to a file format that doesn't support shells
+  DO i=1,SIZE(outfileformats)
+    IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
+      SELECT CASE( outfileformats(i) )
+      CASE('atsk','ATSK','dlp','DLP','gin','GIN','lmp','LMP')
+        !Those file formats do support partial occupancies
+      CASE DEFAULT
+        !Other file formats don't
+        fileexists = .TRUE.
+      END SELECT
+    ENDIF
+  ENDDO
+  !
+  IF( fileexists ) THEN
+    !User wants to write shell positions, but some output file formats don't support it
+    !Display a warning
+    nwarn = nwarn+1
+    CALL ATOMSK_MSG(3716,(/""/),(/0.d0/))
+  ENDIF
+ENDIF
+!
 !If AUX contains data about partial occupancies, then we must make sure
 !that all the current output file formats support it. Otherwise, the output file
 !will contain atoms at the exact same position, and no information about their occupancy,
@@ -296,7 +323,7 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     DO i=1,SIZE(outfileformats)
       IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
         SELECT CASE( outfileformats(i) )
-        CASE('cel','cif','gin','jems','pdb','vesta')
+        CASE('atsk','ATSK','cel','CEL','cfg','CFG','cif','CIF','gin','GIN','jems','pdb','vesta')
           !Those file formats do support partial occupancies
         CASE DEFAULT
           !Other file formats don't

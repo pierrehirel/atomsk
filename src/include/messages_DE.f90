@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 23 Feb. 2017                                     *
+!* Last modification: P. Hirel - 28 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2120,6 +2120,13 @@ CASE(3715)
   msg = "            von einigen Ausgabeformaten unterstützt werden."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Einige Atome können sich in der Ausgabedatei überlappen, die nicht physisch ist."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3716)
+  msg = "/!\ WARNUNG: Daten enthalten Shells, die nicht"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            von einigen Ausgabeformaten unterstützt werden."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Shells werden in einer Ausgabedatei verloren gehen."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES

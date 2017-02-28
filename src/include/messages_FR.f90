@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Feb. 2017                                     *
+!* Last modification: P. Hirel - 28 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2210,6 +2210,13 @@ CASE(3715)
   msg = "            que certains formats de sortie ne supportent pas."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Certains atomes risquent de se chevaucher dans les fichiers de sortie."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3716)
+  msg = "/!\ ALERTE : les données contiennent les positions de coquilles (shells),"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            que certains formats de sortie ne supportent pas."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Les coquilles seront perdues dans certains fichiers de sortie."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

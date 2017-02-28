@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 27 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -213,7 +213,7 @@ ELSE
     !
     !Catch special keywords: 'version', 'help', 'license'
     !they print something and then exit the program
-    IF(clarg=='--version' .OR. clarg=='-V') THEN
+    IF(clarg=='--version' .OR. clarg=='-version' .OR. clarg=='-V') THEN
       CALL DISPLAY_COPYRIGHT()
       GOTO 1100
     ELSEIF(clarg=='--help' .OR. clarg=='help') THEN

@@ -57,8 +57,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxi
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 INTEGER:: i, iaux
 INTEGER:: Naux
-INTEGER:: occ
-INTEGER:: biso, uiso
+INTEGER:: occ, q, biso, uiso !index of occupancies, electric charge, Biso, in AUX
 INTEGER,DIMENSION(8):: values
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3
@@ -173,6 +172,8 @@ IF (Naux>0) THEN
     IF (TRIM(AUXNAMES(iaux))=="occ") THEN
       WRITE(40,'(a21)') " _atom_site_occupancy"
       occ = iaux
+    ELSEIF(TRIM(AUXNAMES(iaux))=="q") THEN
+      q = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="biso") THEN
       WRITE(40,'(a33)') " _atom_site_thermal_displace_type"
       WRITE(40,'(a26)') " _atom_site_B_iso_or_equiv"
@@ -187,6 +188,20 @@ ENDIF
 DO i=1,SIZE(P,1)
   ! Get species string
   CALL ATOMSPECIES(P(i,4),species)
+  month = species
+  IF( q>0 .AND. q<=SIZE(AUX,2) ) THEN
+    !Electric charge defined => append it to species name
+    IF( DBLE(NINT(AUX(i,q))) - AUX(i,q) < 1.d-12 ) THEN
+      WRITE(temp,'(i9)') NINT(DABS( AUX(i,q) ))
+    ELSE
+      WRITE(temp,'(f9.3)') DABS( AUX(i,q) )
+    ENDIF
+    IF( q<0 ) THEN
+      month = TRIM(ADJUSTL(month))//TRIM(ADJUSTL(temp))//"-"
+    ELSE
+      month = TRIM(ADJUSTL(month))//TRIM(ADJUSTL(temp))//"+"
+    ENDIF
+  ENDIF
   ! Prepare string with fractional x,y,z atom position in the cell
   P1 = P(i,1)
   P2 = P(i,2)
@@ -208,7 +223,7 @@ DO i=1,SIZE(P,1)
     ENDDO
   ENDIF
   ! combine the strings
-  WRITE(temp,*) species//' '//TRIM(ADJUSTL(temp))
+  WRITE(temp,*) TRIM(ADJUSTL(month))//'  '//TRIM(ADJUSTL(temp))
   ! write to file
   WRITE(40,'(a)') TRIM(ADJUSTL(temp(1:80)))
 ENDDO

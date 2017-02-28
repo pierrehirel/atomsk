@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Feb. 2017                                     *
+!* Last modification: P. Hirel - 28 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2172,6 +2172,13 @@ CASE(3715)
   msg = "            not supported by some output format(s)."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Some atoms may overlap in the output file(s), which is not physical."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3716)
+  msg = "/!\ WARNING: data contains ionic shells, which are"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            not supported by some output format(s)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Shells will be lost in some output file(s)."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES
