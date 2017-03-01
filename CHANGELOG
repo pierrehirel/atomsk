@@ -2,8 +2,8 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-Master branch (to be Beta 0.9)
-------------------------------
+Beta 0.9 (1 March 2017)
+-----------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
 - new option "-roll" allows to roll a system into a tube around an axis.
@@ -44,7 +44,7 @@ Master branch (to be Beta 0.9)
 
 
 
-beta 0.8.8 (12 Jan. 2016)
+Beta 0.8.8 (12 Jan. 2017)
 -------------------------
 - fixed a bug where atom indices could not be written past 100 millions in LAMMPS data files. Now it can write up to the limit of integers (about 2 billions).
 - fixed a bug where option "-unskew" did not work, because result was not saved to the array H.
