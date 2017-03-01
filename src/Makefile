@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER="Beta0.9-dev"
+VER="master-devel"
 
 # Name of the final binary
 BIN=atomsk
@@ -56,7 +56,7 @@ ifndef FORTRAN
   FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
   
   # DEBUGGING FLAGS
-  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall -fcheck=all
+  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall
 endif
 
 ifndef LAPACK

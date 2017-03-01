@@ -10,7 +10,7 @@ MODULE unit
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Nov. 2015                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,7 +45,6 @@ CHARACTER(LEN=16),DIMENSION(4):: units
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128):: property  !name of property that must be rescaled
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
-LOGICAL:: isreduced
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: i, j
 INTEGER:: transform  !0=atom coordinates; 1=atom velocities
@@ -90,8 +89,8 @@ IF( i==0 .AND. j==0 ) THEN
   !Neither u1 nor u2 are numbers, they must be both strings containing a unit
   !=> atom coordinates will be transformed
   transform = 0
-  units(1) = u1
-  units(2) = u2
+  units(1) = ADJUSTL(u1)
+  units(2) = ADJUSTL(u2)
   !
 ELSEIF( i>0 .AND. j>0 ) THEN
   !atom velocitites will be transformed

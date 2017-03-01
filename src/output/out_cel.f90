@@ -13,7 +13,7 @@ MODULE out_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 14 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,7 +60,6 @@ INTEGER:: Naux, NP
 INTEGER,DIMENSION(8):: values
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3, PO, PB
-REAL(dp):: smass_tot !mass of the compound
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: G   !Invert of H
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P

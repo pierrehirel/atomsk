@@ -9,7 +9,7 @@ MODULE mode_list
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Sept. 2014                                    *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,11 +43,9 @@ SUBROUTINE LIST_XYZ(filelist,options_array,outputfile,outfileformats)
 !Declare variables
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: filelist
-CHARACTER(LEN=3):: infileformat
 CHARACTER(LEN=5):: curr_outfileformat !output file format for one file
 CHARACTER(LEN=5):: list_outfileformat !output file format that applies to the whole list
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of output file formats
-CHARACTER(LEN=128):: temp
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
@@ -57,7 +55,6 @@ LOGICAL:: ignorefile  !should this file be ignored?
 INTEGER:: i, j
 INTEGER:: Nfiles, Nignored !number of files converted, ignored
 INTEGER:: strlength
-REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 !
 !Initialize
 Nfiles = 0

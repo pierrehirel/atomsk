@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Nov. 2016                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,6 +83,7 @@ fixy=0
 fixz=0
 Naux=0
 NP=0
+i=0
 a = 0.d0
 b = 0.d0
  c = 0.d0

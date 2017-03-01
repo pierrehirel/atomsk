@@ -12,7 +12,7 @@ MODULE in_pdb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,23 +43,16 @@ CONTAINS
 SUBROUTINE READ_PDB(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=1):: atom_altLoc, atom_chainID, atom_iCode
-CHARACTER(LEN=2):: atom_element, atom_charge
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=1):: atom_resName
-CHARACTER(LEN=4):: atom_name
 CHARACTER(LEN=128):: pdbline     !a bit longer than the size of a line
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
-LOGICAL:: isreduced
-INTEGER:: atom_serial, atom_resSeq
 INTEGER:: i, j
 INTEGER:: occupancy, q !index of properties in AUX
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
-REAL(dp):: atom_occupancy, atom_tempFactor
 REAL(dp):: P1, P2, P3
-REAL(dp):: smass
 REAL(dp),DIMENSION(3):: TN, UN
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIGXN, SCALEN   !Origin and scale matrices

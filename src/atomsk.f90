@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,6 +111,7 @@ strlength=0
 nwarn = 0
 nerr = 0
 Nmodes = 0
+ioptions = 0
 j=0
 !
 !Set default parameters of the program

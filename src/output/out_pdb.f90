@@ -14,7 +14,7 @@ MODULE out_pdb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,7 +117,7 @@ OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 !If a keyword cannot be found in comment(:) then produce dummy lines.
 !
 !Header (remove leading # from comment)
-pdbline = 'HEADER   '//comment(1)(2:73)
+pdbline = 'HEADER   '//comment(1)(2:72)
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='HEADER' ) THEN
@@ -129,7 +129,7 @@ ENDIF
 WRITE(40,'(a80)') pdbline
 !
 !Title (remove leading # from comment)
-pdbline = 'TITLE    '//comment(1)(2:73)
+pdbline = 'TITLE    '//comment(1)(2:72)
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='TITLE' ) THEN
@@ -362,7 +362,7 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !The standard line formats of PDB files
 !ATOM
-600 FORMAT(a6,i5,1X,a4,a1,a3,1X,a1,i4,a1,3X,3f8.3,2f6.2,2X,2a2)
+!600 FORMAT(a6,i5,1X,a4,a1,a3,1X,a1,i4,a1,3X,3f8.3,2f6.2,2X,2a2)
 !CRYST1
 601 FORMAT(a6,3f9.3,3f7.2,1X,a10,i3)
 !

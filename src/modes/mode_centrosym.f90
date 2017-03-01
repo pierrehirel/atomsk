@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,10 +58,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=*),INTENT(IN):: prefix
 !
-CHARACTER(LEN=2):: species
-CHARACTER(LEN=27):: pbar
-CHARACTER(LEN=128):: msg
-CHARACTER(LEN=4096):: outputfile
+CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of output file formats
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -73,14 +70,10 @@ INTEGER:: Mdefault      !most common number of neighbors
 INTEGER,PARAMETER:: Nmax=14 !maximum number of neighbors for any lattice
 INTEGER:: Nneigh        !number of neighbors of an atom
 INTEGER:: Nspecies      !number of species in the system
-INTEGER:: percent
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: pairs  !indexes of pairs of atoms
 REAL(dp):: distance, dmin
-REAL(dp):: snumber      !atomic number of an atom
-REAL(dp):: progress     !progress of the computation
-REAL(dp):: d_1N         !distance to first neighbor
 REAL(dp):: sum_dj       !sum of |d_j|²
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system (mode create)
@@ -89,7 +82,6 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries    !array containing result
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, newAUX !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S     !positions of atoms, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList
-REAL(dp),DIMENSION(:),POINTER:: PropPoint !pointer to the property whose density must be computed
 !
 !
 !Initialize variables
@@ -336,8 +328,8 @@ DO i=1,SIZE(P,1)
   IF( verbosity==4 ) THEN
     !Some debug messages
     WRITE(msg,*) i
-    WRITE(pbar,*) Nneigh
-    WRITE(msg,*) "Number of neighbors of atom # "//TRIM(ADJUSTL(msg))//": "//TRIM(ADJUSTL(pbar))
+    WRITE(temp,*) Nneigh
+    WRITE(msg,*) "Number of neighbors of atom # "//TRIM(ADJUSTL(msg))//": "//TRIM(ADJUSTL(temp))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO j=1,MIN(20,Nneigh)
       WRITE(msg,'(i5,a3,3f9.3,a3,2f9.3)') j, " | ", PosList(j,1:3), " | ", PosList(j,4), P(NINT(PosList(j,5)),4)

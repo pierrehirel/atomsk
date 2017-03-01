@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 Jan. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,7 +46,6 @@ IMPLICIT NONE
 CHARACTER(LEN=1):: answer
 CHARACTER(LEN=2):: species, species2 !atom species
 CHARACTER(LEN=2),DIMENSION(20):: create_species !chemical species of atoms (mode create)
-CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection

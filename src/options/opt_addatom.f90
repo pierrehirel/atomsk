@@ -10,7 +10,7 @@ MODULE addatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,7 +67,6 @@ REAL(dp),DIMENSION(4),INTENT(IN):: addatom_prop  !properties of atom(s) to add
 REAL(dp),DIMENSION(3):: V !a vector
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !array for storing random numbers
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !vectors of supercell
-REAL(dp),DIMENSION(4,3):: atomsite  !positions of the 4 atoms forming the interstitial site
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of atoms, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newS          !positions of atoms, shells (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX   !auxiliary properties

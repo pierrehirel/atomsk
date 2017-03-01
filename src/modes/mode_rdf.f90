@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Jan. 2016                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,7 +54,6 @@ SUBROUTINE RDF_XYZ(listfile,rdf_maxR,rdf_dr,options_array)
 IMPLICIT NONE
 !Input
 CHARACTER(LEN=*),INTENT(IN):: listfile  !file containing the names of files to analyze
-CHARACTER(LEN=27):: pbar
 REAL(dp),INTENT(IN):: rdf_maxR            !maximum radius for RDF
 REAL(dp),INTENT(IN):: rdf_dr              !width of the "skin"
 !
@@ -65,7 +64,6 @@ CHARACTER(LEN=4096):: inputfile           !name of a file to analyze
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties (not used)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
-LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL:: fileexists !does the file exist?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: atompair
@@ -76,11 +74,9 @@ INTEGER:: Nfiles     !number of files analyzed
 INTEGER:: Nneighbors !number of neighbors in the skin
 INTEGER:: Nspecies   !number of different atom species in the system
 INTEGER:: rdf_Nsteps !number of "skins" for RDF
-INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours (not used here)
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !list of neighbours
 REAL(dp):: average_dens !average density of the system
 REAL(dp):: distance     !distance between 2 atoms
-REAL(dp):: progress     !progress of the computation
 REAL(dp):: rdf_norm     !normalization factor
 REAL(dp):: rdf_radius   !radius of the sphere
 REAL(dp):: sp1number, sp2number  !atomic number of atoms of type #1, type #2

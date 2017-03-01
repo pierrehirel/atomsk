@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 July 2016                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,7 +47,6 @@ SUBROUTINE WRITE_POSCAR(H,P,comment,AUXNAMES,AUX,outputfile)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=1):: answer
-CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment

@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 June 2016                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,14 +60,12 @@ INTEGER,INTENT(IN):: den_type       !type of density to output: 1, 2 or 3 (for 1
 REAL(dp),INTENT(IN):: Sigma         !square root of variance
 !
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=27):: pbar
-CHARACTER(LEN=128):: msg, temp
+CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of output file formats
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-LOGICAL:: border     !is an atom close to a border?
 LOGICAL:: peak, dip  !is it a peak/dip in the density?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1, a2, a3
@@ -75,12 +73,10 @@ INTEGER:: i, j, k, l, m, n, o
 INTEGER:: jmin, jmax, kmin, kmax, lmin, lmax
 INTEGER:: Ninter, Nvac  !Number of detected interstitials, vacancies
 INTEGER:: Nx, Ny, Nz    !number of points in the grid
-INTEGER:: percent
 REAL(dp):: A
 REAL(dp):: cutoff       !cut-off for Gaussian functions (to speed up calculation)
 REAL(dp):: distance
 REAL(dp):: dx, dy,dz    !line/grid step along X, Y
-REAL(dp):: Lx, Ly,Lz    !line length along <axis> / grid length along X, Y (A)
 REAL(dp):: prefactor
 REAL(dp):: snumber      !atomic number of an atom
 REAL(dp):: x, y, z      !coordinates along the <axis> / in the grid
@@ -224,7 +220,7 @@ IF( property=="mass" ) THEN
 ELSE
   !Check if "property" is an atom species
   IF( LEN_TRIM(property) <= 2 ) THEN
-    species = property
+    species = ADJUSTL(property)
     CALL ATOMNUMBER(species,snumber)
     IF( snumber.NE.0.d0 ) THEN
       !It is indeed an atomic number => compute the density of these atoms only

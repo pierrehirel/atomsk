@@ -11,7 +11,7 @@ MODULE in_vesta
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,7 +45,6 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg, temp, temp2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
-LOGICAL:: fileexists  !does a file already exist?
 LOGICAL:: vectors     !are vectors defined in the file?
 INTEGER:: i, j
 INTEGER:: Ncomment    !number of comment lines

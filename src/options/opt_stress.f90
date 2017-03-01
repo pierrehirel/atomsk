@@ -10,7 +10,7 @@ MODULE stress
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 Jan. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,12 +42,9 @@ SUBROUTINE STRESS_XYZ(H,P,S,stress_in,stress,C_tensor)
 IMPLICIT NONE
 CHARACTER(LEN=4096),INTENT(IN):: stress_in  !Voigt stress component, or name of file
 REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor !elastic tensor
-CHARACTER(LEN=2):: stress_dir  !Voigt stress component: x, y, z, xy, zx, zy
 CHARACTER(LEN=128):: msg
-LOGICAL:: fileexists
 INTEGER:: i, j
 REAL(dp),INTENT(IN):: stress  !value of applied stress (GPa)
-REAL(dp):: P1, P2, P3
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of atoms, shells
 REAL(dp),DIMENSION(6):: veps     !deformation (Voigt notation)

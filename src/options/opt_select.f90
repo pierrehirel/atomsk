@@ -11,7 +11,7 @@ MODULE select
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,7 +59,6 @@ LOGICAL:: toselect !atomindices(:) contains atoms to select? (if FALSE, atoms to
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
 INTEGER:: a1, a2, a3
 INTEGER:: atomrank, atomrank2  !rank of atom to be selected
-INTEGER:: clock
 INTEGER:: gridformat !format of the file (for select grid)
 INTEGER:: i, j, k, l, m, n
 INTEGER:: Ngrid    !number of elements in the grid
@@ -70,7 +69,6 @@ INTEGER:: sp_N     !number of atoms of the given species that exist in P
 INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be selected
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !the neighbor list
-INTEGER,DIMENSION(:),ALLOCATABLE:: seed !seed for generating random numbers
 REAL(dp):: distance  !distance of an atom to the center of the sphere
 REAL(dp):: snumber   !atomic number
 REAL(dp):: tempreal
@@ -686,8 +684,8 @@ CASE('random','rand','random%','rand%')
   ALLOCATE( SELECT( SIZE(P,1) ) )
   SELECT(:) = .FALSE.
   snumber = 0.d0
-  rand_N  = region_1(1)
-  rand_sp = region_geom
+  rand_N  = NINT(region_1(1))
+  rand_sp = ADJUSTL(region_geom)
   !Check if rand_sp contains an atom species
   IF( LEN_TRIM(rand_sp)<=2 ) THEN
     species = TRIM(ADJUSTL(rand_sp))

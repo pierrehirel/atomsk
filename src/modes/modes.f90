@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Sept. 2015                                    *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -84,7 +84,6 @@ CHARACTER(LEN=*),DIMENSION(5),INTENT(IN):: pfiles !pfiles(1)=file1
                                                   !pfiles(4)=filesecond
                                                   !pfiles(5)=listfile
 CHARACTER(LEN=1):: axis !an axis: x, y or z
-CHARACTER(LEN=1):: answer !"y" or "n"
 CHARACTER(LEN=2):: Pspecies  !species forming polyhedra (mode EDM)
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=5):: outfileformat
@@ -704,7 +703,7 @@ CASE('diff')
   IF(strlength.NE.0) THEN
     test = file2(1:strlength-1)
   ELSE
-    test = file2
+    test = ADJUSTL(file2)
   ENDIF
   !
   !Calculate the difference between the two sets of positions
@@ -760,7 +759,7 @@ CASE('edm')
   IF(strlength.NE.0) THEN
     test = file1(1:strlength-1)
   ELSE
-    test = file1
+    test = ADJUSTL(file1)
   ENDIF
   !
   !Apply options
@@ -812,7 +811,7 @@ CASE('PE')
   IF(strlength.NE.0) THEN
     test = file1(1:strlength-1)
   ELSE
-    test = file1
+    test = ADJUSTL(file1)
   ENDIF
   !
   !Apply options
@@ -882,7 +881,7 @@ CASE('density')
   IF(strlength.NE.0) THEN
     test = file1(1:strlength-1)
   ELSE
-    test = file1
+    test = ADJUSTL(file1)
   ENDIF
   !
   !Check if user asked for wrapping of atoms

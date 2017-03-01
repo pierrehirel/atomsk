@@ -13,7 +13,7 @@ MODULE in_jems
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 May 2016                                      *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -51,10 +51,9 @@ CHARACTER(LEN=128):: sgroup
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: isreduced
-INTEGER:: i, j, iaux
+INTEGER:: j
 INTEGER:: NP   ! number of atoms
 INTEGER:: NSym ! number of symmetry operations
-INTEGER:: sgroupnum
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3, dw, occ, absorption
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell

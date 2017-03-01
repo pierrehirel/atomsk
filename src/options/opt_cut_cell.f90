@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Nov. 2014                                     *
+!* Last modification: P. Hirel - 02 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,7 @@ CHARACTER(LEN=5):: cut_dir   !above or below (or empty)
 CHARACTER(LEN=16),INTENT(IN):: cutdir   !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
-INTEGER:: a1, a2, a3
+INTEGER:: a1
 INTEGER:: i, j, NPcut, NP
 REAL(dp),INTENT(IN):: cutdistance
 REAL(dp):: tempreal

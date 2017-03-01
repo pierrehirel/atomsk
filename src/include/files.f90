@@ -10,7 +10,7 @@ MODULE files
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Oct. 2014                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -213,7 +213,6 @@ SUBROUTINE FIND_INOUT(inputfile,outputfile)
 !
 IMPLICIT NONE
 CHARACTER(LEN=1):: answer
-CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: test
 CHARACTER(LEN=4096),INTENT(INOUT):: inputfile,outputfile
 LOGICAL:: fileexists

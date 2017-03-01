@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -100,7 +100,7 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to w
 CHARACTER(LEN=8):: date
 CHARACTER(LEN=10):: time
 CHARACTER(LEN=128):: msg
-CHARACTER(LEN=128):: formula, username
+CHARACTER(LEN=128):: username
 CHARACTER(LEN=*):: prefix
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN),OPTIONAL:: AUXNAMES !names of auxiliary properties
@@ -108,7 +108,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,OPTIONAL:: comment
 LOGICAL:: fileexists
 INTEGER:: i, j
 INTEGER,DIMENSION(8):: values
-REAL(dp):: smass_tot
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P          !positions of atoms (or ionic cores)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),OPTIONAL:: S !positions of ionic shells

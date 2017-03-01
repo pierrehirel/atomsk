@@ -13,7 +13,7 @@ MODULE in_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 05 Oct. 2015                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,12 +45,11 @@ SUBROUTINE READ_CEL(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=128):: msg, temp, temp2
-CHARACTER(LEN=32),DIMENSION(32):: columns !contents of columns
+CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: isreduced
-INTEGER:: i, j, iaux
+INTEGER:: i
 INTEGER:: Naux !number of auxiliary properties
 INTEGER:: Ncol, NP ! number of columns and number of atoms
 INTEGER:: occ  !index of occupancies in AUXNAMES

@@ -398,9 +398,9 @@ DO
         !Atomsk saves it with th format "atom1 atom2 type" in array BONDS
         READ(30,*,ERR=500,END=500) id, (column(j), j=1,3)
         IF( id>0 .AND. id<=SIZE(BONDS) ) THEN
-          BONDS(id,1) = column(2)
-          BONDS(id,2) = column(3)
-          BONDS(id,3) = column(1)
+          BONDS(id,1) = NINT(column(2))
+          BONDS(id,2) = NINT(column(3))
+          BONDS(id,3) = NINT(column(1))
         ELSE
           !id is out-of-bounds
         ENDIF

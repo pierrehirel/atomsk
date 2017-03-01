@@ -11,7 +11,7 @@ MODULE velocity
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 May 2014                                      *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,11 +46,9 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
-INTEGER:: clock         !system clock
 INTEGER:: i, j, k
 INTEGER:: NP         !Number of atoms which velocity must be set
 INTEGER:: vx, vy, vz !columns in AUX where atom velocities are stored
-INTEGER,DIMENSION(:),ALLOCATABLE:: seed !seed for generating random numbers
 REAL(dp):: mass          !mass of an atom
 REAL(dp):: mi, M, A, D, S  !for statistics
 REAL(dp),INTENT(IN):: T  !target temperature (K)

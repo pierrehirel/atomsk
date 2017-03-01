@@ -10,7 +10,7 @@ MODULE sort
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,7 +45,7 @@ CHARACTER(LEN=16):: sortcol    !property to be sorted: x, y, z or s, or any name
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
-INTEGER:: i, j
+INTEGER:: i
 INTEGER:: sortnum   !index of column to sort
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX    !auxiliary properties of atoms

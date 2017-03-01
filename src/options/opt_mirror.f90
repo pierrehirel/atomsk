@@ -12,7 +12,7 @@ MODULE mirror
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 May 2014                                      *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,7 +45,7 @@ CHARACTER(LEN=16),INTENT(IN):: mirror_dir   !x, y, z, or crystallographic direct
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of auxiliary properties
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT   !mask for atom list
-INTEGER:: a1, a2, a3
+INTEGER:: a1
 INTEGER:: i, j
 INTEGER:: fx, fy, fz, vx, vy, vz  !columns for forces and velocities in AUX
 REAL(dp),INTENT(IN):: mirror_d

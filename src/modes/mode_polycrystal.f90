@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -91,7 +91,7 @@ INTEGER,DIMENSION(3):: expandmatrix
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: vnodesNeighList  !list of neighbours for nodes
 REAL(dp):: boxmax      !max. distance from one end of the box to another
-REAL(dp):: distance, distance2    !distance between two points
+REAL(dp):: distance    !distance between two points
 REAL(dp):: maxdnodes   !maximum distance between 2 nodes
 REAL(dp):: P1, P2, P3  !temporary position
 REAL(dp):: Volume, Vmin, Vmax, Vstep  !min, max. volume occupied by a grain, step for grain size distribution
@@ -110,7 +110,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc, Suc  !positions of atoms, shells in u
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pt, St    !positions of atoms, shells in template supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S      !positions of atoms, shells in final supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T      !positions of atoms, shells in a grain
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newQ, newS !positions of atoms, shells (temporary)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newS !positions of atoms, shells (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXuc     !auxiliary properties of atoms in the unit cell (seed)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX_Q     !auxiliary properties of atoms in a grain
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX       !auxiliary properties of atoms in the final supercell
@@ -810,7 +810,7 @@ IF( m > 1.d8 ) THEN
     expandmatrix(:) = 0.8d0 * expandmatrix(:)
   ELSE
     !There are not many grains => do not reduce too much
-    expandmatrix(:) = 0.8d0 * expandmatrix(:)
+    expandmatrix(:) = NINT( 0.8d0 * expandmatrix(:) )
   ENDIF
 ENDIF
 !

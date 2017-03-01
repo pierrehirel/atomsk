@@ -10,7 +10,7 @@ MODULE disturb
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 June 2016                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,7 +40,6 @@ SUBROUTINE DISTURB_XYZ(dmax,P,S,SELECT)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: i, j

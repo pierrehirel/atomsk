@@ -21,7 +21,7 @@ MODULE oia_qeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 26 Oct. 2016                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -63,11 +63,11 @@ CHARACTER(LEN=4096):: out_prefix, outputfile, outfileformat
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
-LOGICAL:: atoms, isreduced
+LOGICAL:: isreduced
 LOGICAL:: cell_defined
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: ibrav  !index of Bravais lattice
-INTEGER:: i, j, NP, Nsnap, snap, strlength, strlength2
+INTEGER:: i, NP, Nsnap, snap, strlength, strlength2
 INTEGER:: Nsys  !number of systems converted
 REAL(dp):: alat  !lattice constant
 REAL(dp),DIMENSION(6):: celldm

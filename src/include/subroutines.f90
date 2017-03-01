@@ -1422,7 +1422,7 @@ IF (NS>0) THEN
   !Remember the index of each species in aentries
   !     but only for those species which are on atom sites
   DO i=1, NS
-    j = aentries(i,1)
+    j = NINT(aentries(i,1))
     IF (j>0.AND.aentries(i,2)>0.0d+0) ispecies(j) = i
   ENDDO
   !Erase atom species counts in aentries

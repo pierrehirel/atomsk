@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -76,9 +76,9 @@ INTEGER:: at_biso
 INTEGER:: at_uiso
 INTEGER:: at_Wyckoff
 INTEGER:: at_sp, at_x, at_y, at_z !position of atom species and coordinates in the line
-INTEGER:: sgnumber, originchoice !space group number and origin choice
+INTEGER:: sgnumber  !space group number
 INTEGER:: sy_pxyz !position of symmetry operations string in the line
-INTEGER:: i, j, iaux, k, m, n
+INTEGER:: i, j, k, m, n
 INTEGER:: Naux !number of auxiliary properties
 INTEGER:: Ncol, NP, sp_NP, q
 INTEGER:: Nsym !number of symmetry operations

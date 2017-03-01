@@ -13,7 +13,7 @@ MODULE mode_nye
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     philippe.carrez@univ-lille1.fr                                             *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -56,8 +56,6 @@ SUBROUTINE NYE_TENSOR(filefirst,filesecond,options_array,prefix,outfileformats)
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: filefirst, filesecond, prefix
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(IN):: outfileformats !list of output file formats
-CHARACTER(LEN=27):: pbar
-CHARACTER(LEN=128):: temp, temp2
 CHARACTER(LEN=4096):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE :: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE :: AUXNAMES !names of auxiliary properties

@@ -13,7 +13,7 @@ MODULE out_jems
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Oct. 2015                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,21 +47,15 @@ SUBROUTINE WRITE_JEMS(H,P,comment,AUXNAMES,AUX,outputfile)
 REAL(dp),PARAMETER :: r2d = 180.d0/pi
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=5):: zone
-CHARACTER(LEN=8):: date
-CHARACTER(LEN=10):: time
-CHARACTER(LEN=16):: month, smonth
 CHARACTER(LEN=128):: temp1, temp2, temp3
 CHARACTER(LEN=1096):: msg, tempi, temp, tempabs, tempocc, tempdw
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 INTEGER:: i, iaux
 INTEGER:: absorption, occ, dw
-INTEGER:: Naux, NP
-INTEGER,DIMENSION(8):: values
+INTEGER:: NP
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3, PA, PO, PB
-REAL(dp):: snumber
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: G   !Invert of H
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P

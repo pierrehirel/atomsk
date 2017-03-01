@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Feb. 2017                                     *
+!* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,7 +69,6 @@ CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
-CHARACTER(LEN=sg_soplen),DIMENSION(:),ALLOCATABLE:: strsymops
 LOGICAL:: chargesC, chargesS  !are charges of cores/shells defined in the "species" section?
 LOGICAL:: knowcol      !do we know the number of columns on each line?
 LOGICAL:: shellsafter  !are shell positions after all core positions?
@@ -82,7 +81,7 @@ INTEGER:: i, j, k
 INTEGER:: icoordtemp1, icoordtemp3
 INTEGER:: Ncol, icol  !number of columns for each core (or shell), index of volumn
 INTEGER:: NP, NS  !number of cores, shells
-INTEGER:: nsymnum, nchk, sgroupnum
+INTEGER:: sgroupnum
 INTEGER:: strlength
 REAL(dp):: alpha, beta, gamma
 REAL(dp):: Hx, Hy, Hz !Length of H(1,:), H(2,:) and H(3,:)
