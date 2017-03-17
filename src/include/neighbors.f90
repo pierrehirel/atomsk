@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 17 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -561,7 +561,7 @@ IF( Use_NeighList ) THEN
           vector = (/ P1 , P2 , P3 /)
           !This image is a neighbor if distance is smaller than radius
           distance = VECLENGTH( vector(:) - V(:) )
-          IF( distance>1.d-12 .AND. distance <= radius ) THEN
+          IF( distance <= radius ) THEN
             Nneighbors = Nneighbors+1
           ENDIF
         ENDDO
@@ -607,7 +607,7 @@ IF( Nneighbors>0 ) THEN
             vector = (/ P1 , P2 , P3 /)
             !This image is a neighbor if distance is smaller than radius
             distance = VECLENGTH( vector(:) - V(:) )
-            IF( distance>1.d-12 .AND. distance <= radius ) THEN
+            IF( distance <= radius ) THEN
               Nneighbors = Nneighbors+1
               PosList(Nneighbors,1:3) = vector(:)
               PosList(Nneighbors,4) = distance

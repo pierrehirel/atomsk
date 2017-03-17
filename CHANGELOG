@@ -2,6 +2,11 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+Beta 0.9.1 (17 March 2017)
+--------------------------
+- fixed a bug in neighbor search routines, where atoms at exact same positions would not be considered neighbors.
+
+
 Beta 0.9 (1 March 2017)
 -----------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
