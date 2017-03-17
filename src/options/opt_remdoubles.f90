@@ -7,10 +7,10 @@ MODULE remdoubles
 !* a given distance, and removes all of them but the first one.                   *
 !**********************************************************************************
 !* (C) March 2011 - Pierre Hirel                                                  *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 17 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,6 +79,20 @@ ENDIF
 !Construct neighbor list
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
 CALL NEIGHBOR_LIST(H,P,rmd_radius,NeighList)
+IF( verbosity>=4 ) THEN
+  !Some debug messages
+  IF( ALLOCATED(NeighList) ) THEN
+    WRITE(msg,*) "Neighbor list (only first 20 entries)"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    DO i=1,MIN(SIZE(NeighList,1),20)
+      WRITE(msg,'(i5,a3,20i5)') i, " | ", (NeighList(i,j), j=1,20)
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDDO
+  ELSE
+    WRITE(msg,*) "Neighbor list is empty"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
+ENDIF
 !
 !Find atoms that must be removed
 !For now, atoms to be removed are marked by setting their P(i,4) to zero
@@ -93,6 +107,8 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
     !If neighboring atoms are within the rmd_radius, mark them for elimination
     !(they will be effectively removed from the array later)
     IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
+      WRITE(msg,*) "Atom #", i, ": ", SIZE(PosList,1), "Neighbors found"
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
       DO j=1,SIZE(PosList,1)
         iat = NINT(PosList(j,5))  !index of current neighbor
         IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(iat) ) THEN  !remove only selected atoms
@@ -104,6 +120,9 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
           ENDIF
         ENDIF
       ENDDO
+    ELSE
+      WRITE(msg,*) "Atom #", i, ": no neighbor found"
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     ENDIF
     !
   ENDIF

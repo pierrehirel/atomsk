@@ -7,8 +7,8 @@ MODULE unitcell
 !* orientation, and finds the unit cell for that orientation.                     *
 !**********************************************************************************
 !* (C) April 2011 - Pierre Hirel                                                  *
-!*     IZBS, Karlsruher Institut fuer Technologie                                 *
-!*     Kaiserstr. 12, 76131 Karlsruhe, Germany                                    *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
 !* Last modification: P. Hirel - 12 July 2012                                     *
 !**********************************************************************************

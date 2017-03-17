@@ -10,8 +10,8 @@ MODULE mode_nye
 !* Equation numbers also refer to this reference.                                 *
 !**********************************************************************************
 !* (C) October 2013 - Philippe Carrez                                             *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     philippe.carrez@univ-lille1.fr                                             *
 !* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************

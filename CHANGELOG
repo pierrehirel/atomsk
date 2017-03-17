@@ -2,8 +2,14 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-Master branch (to be Beta 0.9)
-------------------------------
+Master (development)
+--------------------
+- fixed a bug in neighbor search routines, where atoms at exact same positions would not be considered neighbors.
+
+
+
+Beta 0.9 (1 March 2017)
+-----------------------
 - new mode "--density" allows to compute a 1-D, 2-D or 3-D density profile of a given property (mass, electric charge...).
 - new mode "--central-symmetry" allows to compute a central symmetry parameter.
 - new option "-roll" allows to roll a system into a tube around an axis.
@@ -28,7 +34,7 @@ Master branch (to be Beta 0.9)
 - in option "-duplicate", added possibility to provide negative values that correspond to mirroring the system and then duplicating it along negative values.
 - in option "-rotate", added possibility to perform the rotation around the center of mass of the system or of the selection.
 - in option "-select", added possibility to read a list of atom indices from a file. Also added the possibility to select atoms according to a finite-element grid.
-- large overhaul of the option "sort". This option does not duplicate arrays anymore, which makes it more memory-efficient. In addition, it now uses QUICKSORT algorithm, which should be much faster especially when the number of atoms is very large. WARNING: although this option still sorts atoms according to the property requested by the user, the exact sorting of atoms may differ from the previous BUBBLESORT algorithm.
+- large overhaul of the option "sort". This option does not duplicate arrays anymore, which makes it more memory-efficient. In addition, it now uses QUICKSORT algorithm, which should be much faster especially when the number of atoms is very large. WARNING: although this option still sorts atoms according to the property requested by the user, when atoms have equal values of the target property their ordering may differ from the previous BUBBLESORT algorithm.
 - in option "-unit", added possibility to scale any coordinate or property by a given factor.
 - added support for ionic core-shell models when writing LAMMPS data files. Also added support for 2-D systems in these file formats.
 - fixed a bug that could cause the program to crash when reading GULP input files.
@@ -44,7 +50,7 @@ Master branch (to be Beta 0.9)
 
 
 
-beta 0.8.8 (12 Jan. 2016)
+Beta 0.8.8 (12 Jan. 2017)
 -------------------------
 - fixed a bug where atom indices could not be written past 100 millions in LAMMPS data files. Now it can write up to the limit of integers (about 2 billions).
 - fixed a bug where option "-unskew" did not work, because result was not saved to the array H.

@@ -11,8 +11,8 @@ MODULE in_lmp_c
 !*    http://lammps.sandia.gov/doc/Section_howto.html#howto_12                    *
 !**********************************************************************************
 !* (C) Oct. 2010 - Pierre Hirel                                                   *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 26 May 2016                                      *
 !**********************************************************************************

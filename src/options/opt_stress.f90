@@ -7,8 +7,8 @@ MODULE stress
 !* The elastic tensor C_tensor must be provided.                                  *
 !**********************************************************************************
 !* (C) October 2014 - Pierre Hirel                                                *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************

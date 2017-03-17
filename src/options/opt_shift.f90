@@ -7,8 +7,8 @@ MODULE shift
 !* shifts atoms that are above (or below) a given plane.                          *
 !**********************************************************************************
 !* (C) March 2010 - Pierre Hirel                                                  *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 04 Aug. 2015                                     *
 !**********************************************************************************

@@ -8,8 +8,8 @@ MODULE in_dlp_cfg
 !*   http://www.cse.scitech.ac.uk/ccg/software/DL_POLY/MANUALS/USRMAN4.01.pdf     *
 !**********************************************************************************
 !* (C) May 2011 - Pierre Hirel                                                    *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 19 March 2014                                    *
 !**********************************************************************************

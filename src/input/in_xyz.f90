@@ -29,8 +29,8 @@ MODULE in_xyz
 !*          mass <species2> <smass2>                                              *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 11 April 2014                                    *
 !**********************************************************************************
