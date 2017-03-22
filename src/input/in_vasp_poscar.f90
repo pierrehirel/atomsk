@@ -19,7 +19,7 @@ MODULE in_vasp_poscar
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 22 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -250,11 +250,15 @@ GOTO 1000
 !
 !
 500 CONTINUE
+CLOSE(30)
+!
 !In case of fractional coordinates, convert them to cartesian
 IF(coord=='frac') THEN
   CALL FRAC2CART(P,H)
 ENDIF
-CLOSE(30)
+!
+!Once we are sure that all coordinates are Cartesian, multiply them by scaling factor
+P(:,1:3) = a0*P(:,1:3)
 !
 !
 !
