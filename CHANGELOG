@@ -4,8 +4,17 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
-- fixed a bug in neighbor search routines, where atoms at exact same positions would not be considered neighbors.
 
+
+Beta 0.9.2 (22 March 2017)
+--------------------------
+- fixed a bug when reading VASP POSCAR files, where the scaling factor was not properly applied. Thanks to Antoine Kraych, CEA, France, for pointing out this bug.
+- fixed a bug when reading CIF files, where symmetry operations were not parsed correctly if they started with "+".
+
+
+Beta 0.9.1 (17 March 2017)
+--------------------------
+- fixed a bug in neighbor search routines, where atoms at exact same positions would not be considered neighbors.
 
 
 Beta 0.9 (1 March 2017)

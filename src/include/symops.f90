@@ -16,7 +16,7 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 20 Feb. 2017                                     *
+!* Last modification: P. Hirel - 22 March 2017                                    *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !* SYMOPS_INIT    initializes the array symops_trf to identity                    *
@@ -557,6 +557,11 @@ msg = "- parsing '"//temp(1:l)//"'..."
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 IF (l<=2) GOTO 400 ! TRIVIAL CASE: numbers or characters, no operation
+!
+!If strings starts with a "+" sign, get rid of it
+IF(temp(1:1)=="+") THEN
+  temp = temp(2:)
+ENDIF
 !
 ! Check for basic operations: the operation character should be beyond
 ! position 1 of the string "temp". Store the position in "j".
