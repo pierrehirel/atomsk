@@ -912,7 +912,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-prop'.OR.clarg=='-properties'.OR.clarg="property") THEN
+  ELSEIF(clarg=='-prop'.OR.clarg=='-properties'.OR.clarg=="property") THEN
     ioptions = ioptions+1
     options_array(ioptions) = "-prop"
     !read the name of property file
