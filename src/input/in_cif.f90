@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 27 March 2017                                    *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -487,20 +487,28 @@ DO !Main reading loop
             !Store atomic species
             species = temp(1:2)
             CALL ATOMNUMBER(species,P(i,4))
-            IF( P(i,4)<=0.d0 ) THEN
+            IF( P(i,4)<=1.d-12 ) THEN
+              !Failed to read an atom species from the first two characters
+              !Try with only the first character
               species = temp(1:1)
               CALL ATOMNUMBER(species,P(i,4))
+              !At this point, if neither the first not the two first characters contain
+              !a recognizable chemical species, something is wrong and P(i,4) will be zero
               IF( q>0 .AND. q<=SIZE(AUX,1) ) THEN
                 !Try to read the charge of this atom
                 !(note: if this fails the atom will still have a charge equal to zero)
                 temp = ADJUSTL(temp(2:))
                 strlength = SCAN(temp,'+')
-                IF( strlength>0 ) THEN
+                IF( strlength==1 ) THEN
+                  AUX(i,q) = 1.d0
+                ELSEIF( strlength>1 ) THEN
                   READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
                   AUX(i,q) = tempreal
                 ELSE
                   strlength = SCAN(temp,'-')
-                  IF( strlength>0 ) THEN
+                  IF( strlength==1 ) THEN
+                    AUX(i,q) = -1.d0
+                  ELSEIF( strlength>1 ) THEN
                     READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
                     AUX(i,q) = -1.d0*tempreal
                   ENDIF
@@ -512,12 +520,16 @@ DO !Main reading loop
                 !(note: if this fails the atom will still have a charge equal to zero)
                 temp = ADJUSTL(temp(3:))
                 strlength = SCAN(temp,'+')
-                IF( strlength>0 ) THEN
+                IF( strlength==1 ) THEN
+                  AUX(i,q) = 1.d0
+                ELSEIF( strlength>1 ) THEN
                   READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
                   AUX(i,q) = tempreal
                 ELSE
                   strlength = SCAN(temp,'-')
-                  IF( strlength>0 ) THEN
+                  IF( strlength==1 ) THEN
+                    AUX(i,q) = -1.d0
+                  ELSEIF( strlength>1 ) THEN
                     READ(temp(1:strlength-1),*,ERR=176,END=176) tempreal
                     AUX(i,q) = -1.d0*tempreal
                   ENDIF

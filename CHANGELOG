@@ -4,6 +4,8 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- fixed a bug in the reading of CIF files, where the electric charge of ions was not always read correctly.
+- fixed a bug in the writing of CIF files, that caused a crash when no auxiliary property was defined.
 
 
 Beta 0.9.2 (22 March 2017)
