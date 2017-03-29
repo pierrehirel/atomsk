@@ -5,12 +5,15 @@ MODULE deterH
 !**********************************************************************************
 !* This module tries to determine the supercell vectors                           *
 !* when they were not found in the input file.                                    *
+!* WARNING: this option tries to provide a rectangular bounding box.              *
+!* It cannot be expected to be accuratefor any system, and especially not         *
+!* for non-rectangular systems (e.g. triclinic) or for molecules.                 *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Oct. 2013                                     *
+!* Last modification: P. Hirel - 29 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,7 +29,6 @@ MODULE deterH
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-! WARNING: for now, this works only for rectangular or parallelepipedic boxes
 !
 !
 CONTAINS
@@ -41,9 +43,11 @@ USE subroutines
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 INTEGER:: a2, a3
-INTEGER:: i, j
+INTEGER:: i, j, n
 INTEGER,DIMENSION(3):: Natoms  !number of atoms in each direction
-REAL(dp),PARAMETER:: tol=0.1d0
+REAL(dp),PARAMETER:: tol=0.3d0   !tolerance on atom positions (allow for small perturbations)
+REAL(dp):: maxd        !maximum distance between to atoms along a Cartesian direction
+REAL(dp):: maxP, minP  !maximum and minimum coordinates along an axis
 REAL(dp),DIMENSION(3):: baseunit !unit length in each direction
 REAL(dp),DIMENSION(4):: Pfirst
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
@@ -60,14 +64,13 @@ H(:,:) = 0.d0
 msg = 'Entering DETERMINE_H...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-!
-!
-200 CONTINUE
-!The atom with smallest X coordinate is used as a starting point
-Pfirst(:) = P(1,:)
-!
-!The we go along each axis and find atoms identical to Pfirst
-!(this works for parallelepipedic boxes only)
+!The idea is to start from the atom with the smallest coordinate,
+!and then along each Cartesian direction, find the periodicity at which
+!equivalent atoms are found. Then, the box vector is an integer number times
+!this periodicity.
+!NOTE: this works only for crystalline materials, and only for parallelepipedic boxes.
+!If no suitable period is found, then a surrounding box is still provided, but
+!it cannot be expected to be well suited for the system.
 DO j=1,3  !loop on x, y, z
   IF(j==1) THEN
     a2 = 2
@@ -80,11 +83,15 @@ DO j=1,3  !loop on x, y, z
     a3 = 2
   ENDIF
   !
+  !The atom with smallest coordinate along current direction is used as reference
+  n = MINLOC(P(:,j),1)
+  Pfirst(:) = P(n,:)
+  minP = Pfirst(j)
+  !
   DO i=2,SIZE(P,1)
     !Go along current direction j and find all atoms that
     !have the same coordinates in the other 2 directions
-    IF( P(i,a2)-Pfirst(a2)<=tol .AND. P(i,a3)-Pfirst(a3)<=tol              &
-      & .AND. P(i,4)==Pfirst(4)                               ) THEN
+    IF( DABS(P(i,a2)-Pfirst(a2))<=tol .AND. DABS(P(i,a3)-Pfirst(a3))<=tol ) THEN
       !Increase the number of atoms found in that direction
       Natoms(j) = Natoms(j)+1
       !Let baseunit = distance between first atom and
@@ -92,26 +99,39 @@ DO j=1,3  !loop on x, y, z
       IF( P(i,j)-Pfirst(j)>baseunit(j) ) THEN
         baseunit(j) = P(i,j)-Pfirst(j)
       ENDIF
+      IF( DABS(P(i,4)-Pfirst(4)) < 1.d-12 ) THEN
+        maxP = P(i,j)
+      ENDIF
     ENDIF
   ENDDO
-  !Normalize baseunit to the number of atoms found along direction j
-  !This should give the average distance between atoms along direction j
-  baseunit(j) = baseunit(j) / MAX( 1.d0 , DBLE(Natoms(j)+1) )
-ENDDO
-!
-!
-300 CONTINUE
-!The base vectors of H are the maximum coordinates + baseunit
-DO j=1,3
-  H(j,j) = MAXVAL(P(:,j)) - MINVAL(P(:,j)) + baseunit(j)
-  !Special case for mono-atomic slabs
-  IF( H(j,j)<1.0 ) THEN
-    H(j,j) = H(j,j)*2.d0
+  WRITE(msg,*) j, ' Period (A) = ', baseunit(j)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) j, ' Number of equivalent atoms found = ', Natoms(j)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !
+  IF( Natoms(j) > 1 ) THEN
+    !Normalize baseunit to the number of atoms found along direction j
+    !This should give the average distance between atoms along direction j
+    baseunit(j) = baseunit(j) / MAX( 1.d0 , DBLE(Natoms(j)) )
+    !
+    !The base vectors of H are the minimum coordinates + ( n*baseunit )
+    n = CEILING( (maxP-minP) / baseunit(j) )
+    H(j,j) = minP + n*baseunit(j)
+    WRITE(msg,*) ' Renormalized period = ', baseunit(j)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDIF
-  !Avoid zero or negative dimensions
-  IF( H(j,j)<=0.d0 ) THEN
-    H(j,j) = 2.d0
+  !
+  !Avoid extremely small or negative dimensions
+  !Moreover, box vector should be MAXVAL-MINVAL, plus or minus 5 A
+  ! if it is not the case then the previous determination was wrong
+  maxd = MAXVAL(P(:,j)) - MINVAL(P(:,j))
+  IF( H(j,j)<2.d0 .OR. DABS(H(j,j)-maxd)>=5.d0 ) THEN
+    WRITE(msg,*) ' Re-setting H = ', H(j,j)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    H(j,j) = maxd + 2.d0
   ENDIF
+  !
+  ! IF( 
 ENDDO
 !
 CALL ATOMSK_MSG(2095,(/''/),(/0.d0/))

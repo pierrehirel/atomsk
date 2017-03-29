@@ -4,8 +4,11 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- added support for symmetry operations when reading PDB files.
 - fixed a bug in the reading of CIF files, where the electric charge of ions was not always read correctly.
 - fixed a bug in the writing of CIF files, that caused a crash when no auxiliary property was defined.
+- fixed a bug in the writing of comments of VESTA files.
+- in option "-rebox", improved determination of box vectors. Warning: this options is still very inaccurate.
 
 
 Beta 0.9.2 (22 March 2017)

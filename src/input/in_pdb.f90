@@ -12,7 +12,7 @@ MODULE in_pdb
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 29 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,6 +34,7 @@ USE functions
 USE messages
 USE files
 USE subroutines
+USE symops
 !
 IMPLICIT NONE
 !
@@ -43,25 +44,31 @@ CONTAINS
 SUBROUTINE READ_PDB(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=2):: species
 CHARACTER(LEN=1):: atom_resName
+CHARACTER(LEN=2):: species
+CHARACTER(LEN=4):: atom_name
+CHARACTER(LEN=32):: symop  !a symmetry operation
 CHARACTER(LEN=128):: pdbline     !a bit longer than the size of a line
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
-INTEGER:: i, j
+INTEGER:: i, j, k, l
+INTEGER:: Nsym         !number of symmetry operations
 INTEGER:: occupancy, q !index of properties in AUX
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
 REAL(dp):: P1, P2, P3
 REAL(dp),DIMENSION(3):: TN, UN
-REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3),INTENT(OUT):: H    !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIGXN, SCALEN   !Origin and scale matrices
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P    !Atom positions
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S    !Shell positions (dummy array, not used here)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX  !auxiliary properties
 !
 !
 !Initialize variables
+Nsym = 0
+H(:,:) = 0.d0
 TN(:) = 0.d0
 UN = 0.d0
 ORIGXN(:,:) = 0.d0
@@ -74,7 +81,7 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ALLOCATE(AUXNAMES(2))
 occupancy=1
 q=2
-AUXNAMES(occupancy) = "occupancy"
+AUXNAMES(occupancy) = "occ"
 AUXNAMES(q) = "q"
 !
 !
@@ -93,7 +100,9 @@ DO
   ELSEIF( pdbline(1:6)=='HEADER' .OR. pdbline(1:6)=='TITLE ' .OR. pdbline(1:6)=='COMPND' .OR. pdbline(1:6)=='SOURCE' .OR. &
         & pdbline(1:6)=='KEYWDS' .OR. pdbline(1:6)=='EXPDTA' .OR. pdbline(1:6)=='AUTHOR' .OR. pdbline(1:6)=='REVDAT' .OR. &
         & pdbline(1:6)=='JRNL  ' .OR. pdbline(1:6)=='REMARK' .OR. pdbline(1:6)=='SEQRES') THEN
-    j=j+1
+    IF( pdbline(1:11) .NE. "REMARK 290" ) THEN
+      j=j+1
+    ENDIF
   ENDIF
 ENDDO
 !
@@ -128,9 +137,56 @@ DO
   IF( pdbline(1:6)=='HEADER' .OR. pdbline(1:6)=='TITLE ' .OR. pdbline(1:6)=='COMPND' .OR. pdbline(1:6)=='SOURCE' .OR. &
     & pdbline(1:6)=='KEYWDS' .OR. pdbline(1:6)=='EXPDTA' .OR. pdbline(1:6)=='AUTHOR' .OR. pdbline(1:6)=='REVDAT' .OR. &
     & pdbline(1:6)=='JRNL  ' .OR. pdbline(1:6)=='REMARK' .OR. pdbline(1:6)=='SEQRES') THEN
-    !Save this line as comment
-    j=j+1
-    comment(j) = pdbline
+    !
+    IF( pdbline(1:11)=='REMARK 290 ' ) THEN
+      !Special case: this section contains information about symmetry operations
+      !NOTE: on purpose, this information is LOST after reading the file
+      !     This is because Atomsk immediately applies symmetry operations,
+      !     making them irrelevant afterwards
+      IF( INDEX(pdbline,'NNNMMM') > 0 ) THEN
+        !Following lines contain symmetry operations
+        !Parse a first time to count symmetry operations
+        WRITE(msg,*) 'Reading symmetry operations...'
+        CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+        READ(30,'(a128)',ERR=200,END=200) pdbline
+        DO WHILE( LEN_TRIM(pdbline(25:45)) > 0 )
+          Nsym = Nsym+1
+          READ(30,'(a128)',ERR=200,END=200) pdbline
+        ENDDO
+        WRITE(msg,*) 'Detected symmetry operations: ', Nsym
+        CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+        IF( Nsym > 0 ) THEN
+          ! There are symmetry operations to load
+          ! Allocate the transformation array in the symmetry operation module!
+          ALLOCATE(symops_trf(symops_nltrf,Nsym))
+          symops_trf(:,:) = 0.d0
+          !Go back to beginning of symmetry operations
+          DO k=1,Nsym+1
+            BACKSPACE(30)
+          ENDDO
+          !Read symmetry operations and load them into 
+          CALL SYMOPS_INIT() ! initialize transformation list
+          DO k=1, Nsym
+            READ(30,'(a128)',ERR=200,END=200) pdbline
+            symop = TRIM(ADJUSTL(pdbline(25:45)))
+            !Transform into lower-case
+            symop = StrDnCase(symop)
+            WRITE(msg,*) 'PDB symmetry operation #', k, " : ", TRIM(ADJUSTL(symop))
+            CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+            CALL SYMOPS_SET_STR(TRIM(symop),k,l)
+            IF (l==0) THEN ! report interpretation error
+              CALL ATOMSK_MSG(812,(/TRIM(symop)/),(/0.d0/))
+              nerr = nerr+1
+            END IF
+          ENDDO
+        ENDIF
+      ENDIF
+      !
+    ELSE
+      !Save this line as comment
+      j=j+1
+      comment(j) = pdbline
+    ENDIF
     !
   ELSEIF( pdbline(1:6)=='CRYST1' ) THEN
     !Cell parameters
@@ -205,13 +261,62 @@ DO
     !
     !READ(pdbline(61:66),*,ERR=801,END=801) atom_tempFactor
     !
-    !Read atom species
-    READ(pdbline(77:78),*,ERR=801,END=801) species
-    !In PDB atom species is in capital letters, e.g. "AL" for aluminum, "CU" for copper, etc.
-    !Make sure to convert that to standard letter case, e.g. "Al", "Cu", etc.
-    species(1:1) = StrUpCase(species(1:1))
-    species(2:2) = StrDnCase(species(2:2))
-    CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+    IF( LEN_TRIM(pdbline(77:78)) > 0 ) THEN
+      !Read atom species
+      READ(pdbline(77:78),*,ERR=801,END=801) species
+      !In PDB atom species is in capital letters, e.g. "AL" for aluminum, "CU" for copper, etc.
+      !Make sure to convert that to standard letter case, e.g. "Al", "Cu", etc.
+      species(1:1) = StrUpCase(species(1:1))
+      species(2:2) = StrDnCase(species(2:2))
+      CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+    ELSE
+      !Atom species is missing in column 77:78
+      !Try to read atom species from atom_name (columns 13:16)
+      READ(pdbline(13:16),*,ERR=801,END=801) atom_name
+      atom_name = ADJUSTL(atom_name)
+      species = atom_name(1:2)
+      CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+      IF( P(i,4) < 1.d-12 ) THEN
+        !It failed, try with only first character
+        species = atom_name(1:1)
+        CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+      ENDIF
+      IF( P(i,4) < 1.d-12 ) THEN
+        !It failed, try with second and third character
+        species = atom_name(2:3)
+        CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+      ENDIF
+      IF( P(i,4) < 1.d-12 ) THEN
+        !It failed, try with only third character
+        species = atom_name(3:3)
+        CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+      ENDIF
+      IF( P(i,4) < 1.d-12 ) THEN
+        !Everything failed before
+        !Try to read atom species from residue name (columns 18:20)
+        READ(pdbline(18:20),*,ERR=801,END=801) atom_name
+        atom_name = ADJUSTL(atom_name)
+        species = atom_name(1:2)
+        CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+        IF( P(i,4) < 1.d-12 ) THEN
+          !It failed, try with only first character
+          species = atom_name(1:1)
+          CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+        ENDIF
+        IF( P(i,4) < 1.d-12 ) THEN
+          !It failed, try with second and third character
+          species = atom_name(2:3)
+          CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+        ENDIF
+        IF( P(i,4) < 1.d-12 ) THEN
+          !It failed, try with only third character
+          species = atom_name(3:3)
+          CALL ATOMNUMBER(ADJUSTL(species),P(i,4))
+        ENDIF
+      ENDIF
+      !At this point, if P(i,4) is still zero, there is nothing more we can try
+      !Atom species will remain undetermined
+    ENDIF
     !
     !Read atom charge. This may be missing
     IF( LEN_TRIM(pdbline(79:79))>0 ) THEN
@@ -222,9 +327,12 @@ DO
     ENDIF
     160 CONTINUE
     !
+    !
   ELSEIF( pdbline(1:4)=='END ' ) THEN
     !End of structure or PDB file: exit loop
     EXIT
+    !
+    !
   ENDIF
 ENDDO
 !
@@ -232,11 +340,19 @@ ENDDO
 !
 200 CONTINUE
 CLOSE(30)
-!If all cell vectors are set to 1, it means they are not set => set them to zero
+!If all cell vectors are set to 1, it means they are not set => reset them to zero
 IF( DABS(VECLENGTH(H(1,:)))-1.d0<1.d-12 .AND.         &
   & DABS(VECLENGTH(H(2,:)))-1.d0<1.d-12 .AND.         &
   & DABS(VECLENGTH(H(3,:)))-1.d0<1.d-12      ) THEN
   H(:,:) = 0.d0
+ENDIF
+!Apply symmetry operations
+IF ( Nsym>0 .AND. ALLOCATED(symops_trf) ) THEN
+  !Symmetry operations were detected in section "REMARK 290"
+  !Apply them
+  CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
+  CALL SYMOPS_APPLY(H,P,S,AUXNAMES,AUX,0.5d0,i)
+  DEALLOCATE(symops_trf)
 ENDIF
 GOTO 1000
 !

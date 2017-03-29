@@ -12,7 +12,7 @@ MODULE out_vesta
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 28 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -128,12 +128,30 @@ OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 !Write header of VESTA file
 WRITE(40,'(a27)') "#VESTA_FORMAT_VERSION 3.0.0"
 WRITE(40,*) ""
+IF( SIZE(comment) > 1 ) THEN
+  !Large number of comment lines => write a COMMENT section
+  WRITE(40,*) "<!-- COMMENT --"
+  DO i=1,SIZE(comment)
+    WRITE(40,'(a)') TRIM(comment(i))
+  ENDDO
+  WRITE(40,*) "-- END COMMENT -->"
+  WRITE(40,*) ""
+ENDIF
 WRITE(40,'(a7)') "CRYSTAL"
 WRITE(40,*) ""
 WRITE(40,'(a5)') "TITLE"
+!Search for an appropriate comment
 DO i=1,SIZE(comment)
-  WRITE(40,'(a)') TRIM(comment(i))
+  j = INDEX(comment(i),"TITLE")
+  IF( j > 0 ) THEN
+    WRITE(40,'(a)') TRIM(ADJUSTL(comment(i)(j+6:)))
+    EXIT
+  ENDIF
 ENDDO
+IF( j==0 ) THEN
+  !No title was written yet => juste use first comment
+  WRITE(40,'(a)') TRIM(comment(1))
+ENDIF
 WRITE(40,*) ""
 WRITE(40,'(a5)') "GROUP"
 WRITE(40,'(a7)') "1 1 P 1"
