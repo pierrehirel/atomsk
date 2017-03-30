@@ -11,7 +11,7 @@ MODULE in_vesta
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 30 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -84,6 +84,10 @@ DO
   temp = ADJUSTL(temp)
   !
   IF( temp(1:5)=="TITLE" ) THEN
+    IF( Ncomment>0 ) THEN
+      !There was already a TITLE before, i.e. this is a second crystal
+      GOTO 200
+    ENDIF
     !Count number of comment lines
     DO WHILE( LEN_TRIM(temp)>0 )
       READ(30,'(a128)',END=110,ERR=110) temp
@@ -177,6 +181,7 @@ DO
   temp = ADJUSTL(temp)
   !
   IF( temp(1:5)=="TITLE" ) THEN
+    IF( ALLOCATED(comment) ) GOTO 300
     ALLOCATE( comment(Ncomment) )
     comment(:) = ""
     DO j=1,SIZE(comment)
