@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Feb. 2017                                     *
+!* Last modification: P. Hirel - 03 April 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2946,6 +2946,11 @@ IF(values(2)==1 .AND. values(3)<=10) THEN
 !14 Mars (3/14) : jour du nombre pi
 ELSEIF(values(2)==3 .AND. values(3)==14) THEN
   WRITE(msg,'(a8,f51.48)') "    π = ", pi
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
+!31 March
+ELSEIF(values(2)==3 .AND. values(3)==31) THEN
+  msg = "  JOURNÉE MONDIALE DE LA SAUVEGARDE - N'oubliez pas de sauvegarder vos données !"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !1 Avril
