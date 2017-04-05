@@ -12,10 +12,10 @@ MODULE out_cif
 !*     http://www.iucr.org/resources/cif/                                         *
 !**********************************************************************************
 !* (C) Oct. 2012 - Pierre Hirel                                                   *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 27 March 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,9 +57,10 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxi
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 INTEGER:: i, iaux
 INTEGER:: Naux
-INTEGER:: occ, q, biso, uiso !index of occupancies, electric charge, Biso, in AUX
+INTEGER:: occ, q, qs, biso, uiso !index of occupancies, electric charge, Biso, in AUX
 INTEGER,DIMENSION(8):: values
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
+REAL(dp):: charge   !electric charge of an ion
 REAL(dp):: P1, P2, P3
 REAL(dp):: smass, smass_tot !mass of one element, of the compound
 REAL(dp):: Vcell  !supercell volume
@@ -71,15 +72,17 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
 !Initialize variables
-q = 1
-CALL INVMAT(H,G)
-Naux = 0
-IF (ALLOCATED(AUX).AND.ALLOCATED(AUXNAMES)) THEN ! Get number of auxiliary properties
-  Naux = SIZE(AUX,2) ! ? Redundant but maybe better MIN(SIZE(AUX,2),SIZE(AUXNAMES))
-ENDIF
+q = 0
+qs = 0
 occ = 0
 biso = 0
 uiso = 0
+Naux = 0
+!
+CALL INVMAT(H,G)
+IF (ALLOCATED(AUX) .AND. SIZE(AUX,2)==SIZE(AUXNAMES) ) THEN ! Get number of auxiliary properties
+  Naux = SIZE(AUX,2) ! ? Redundant but maybe better MIN(SIZE(AUX,2),SIZE(AUXNAMES))
+ENDIF
 !
 msg = 'entering WRITE_CIF'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -168,13 +171,15 @@ WRITE(40,'(a19)') " _atom_site_fract_x"
 WRITE(40,'(a19)') " _atom_site_fract_y"
 WRITE(40,'(a19)') " _atom_site_fract_z"
 IF (Naux>0) THEN
-  DO iaux=1, Naux
+  DO iaux=1,SIZE(AUXNAMES)
     ! write supported auxiliary propertie loop items
     IF (TRIM(AUXNAMES(iaux))=="occ") THEN
       WRITE(40,'(a21)') " _atom_site_occupancy"
       occ = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="q") THEN
       q = iaux
+    ELSEIF(TRIM(AUXNAMES(iaux))=="qs") THEN
+      qs = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="biso") THEN
       WRITE(40,'(a33)') " _atom_site_thermal_displace_type"
       WRITE(40,'(a26)') " _atom_site_B_iso_or_equiv"
@@ -192,15 +197,28 @@ DO i=1,SIZE(P,1)
   month = species
   IF( q>0 .AND. q<=SIZE(AUX,2) ) THEN
     !Electric charge defined => append it to species name
-    IF( DBLE(NINT(AUX(i,q))) - AUX(i,q) < 1.d-12 ) THEN
-      WRITE(temp,'(i9)') NINT(DABS( AUX(i,q) ))
-    ELSE
-      WRITE(temp,'(f9.3)') DABS( AUX(i,q) )
+    charge = AUX(i,q)
+    IF( qs>0 ) THEN
+      !There was a core-shell model, and AUX contains the charge of the shell
+      !Total charge of the ion is charge of core + charge of shell
+      charge = charge + AUX(i,qs)
     ENDIF
-    IF( q<0 ) THEN
-      month = TRIM(ADJUSTL(month))//TRIM(ADJUSTL(temp))//"-"
+    temp = ''
+    IF( DABS( DBLE(NINT(charge)) - charge ) < 1.d-12 ) THEN
+      !Charge is integer
+      IF( NINT(DABS(charge))>1 ) THEN
+        WRITE(temp,'(i9)') NINT(DABS( charge ))
+      ENDIF
     ELSE
+      !Charge is a real number
+      WRITE(temp,'(f9.3)') DABS( charge )
+    ENDIF
+    IF( charge<-1.d-12 ) THEN
+      month = TRIM(ADJUSTL(month))//TRIM(ADJUSTL(temp))//"-"
+    ELSEIF( charge>1.d-12 ) THEN
       month = TRIM(ADJUSTL(month))//TRIM(ADJUSTL(temp))//"+"
+    ELSE
+      month = TRIM(ADJUSTL(month))
     ENDIF
   ENDIF
   ! Prepare string with fractional x,y,z atom position in the cell
