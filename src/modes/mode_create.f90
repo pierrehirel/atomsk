@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Feb. 2017                                     *
+!* Last modification: P. Hirel - 14 April 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,7 +117,8 @@ END SELECT
 !
 !Determine if structure is cubic or not
 SELECT CASE(create_struc)
-CASE('sc','SC','fcc','FCC','L12','bcc','BCC','diamond','dia','zincblende','zb','ZB','perovskite','per','rocksalt','rs','RS')
+CASE('sc','SC','fcc','FCC','L12','bcc','BCC','diamond','dia','zincblende','zb','ZB', &
+    & 'perovskite','per','rocksalt','rs','RS','fluorite','fluorine')
   cubic = .TRUE.
 CASE DEFAULT
   cubic = .FALSE.
@@ -257,6 +258,72 @@ CASE('L12')
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//"3"//TRIM(create_species(2))
   comment(1) = 'L12 '//TRIM(ADJUSTL(comment(1)))
+!
+!
+CASE('fluorite','fluorine')
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(12,4))
+  !Set up atom positions
+  ! 4 for the fcc classical lattice
+  P(:,:) = 0.d0
+  P(1,1) = 0.5d0
+  P(1,2) = 0.5d0
+  P(2,2) = 0.5d0
+  P(2,3) = 0.5d0
+  P(3,1) = 0.5d0
+  P(3,3) = 0.5d0
+  ! the 4 atoms at z=0.25
+  P(5,1) = 0.25d0
+  P(5,2) = 0.25d0
+  P(5,3) = 0.25d0
+  P(6,1) = 0.75d0
+  P(6,2) = 0.25d0
+  P(6,3) = 0.25d0
+  P(7,1) = 0.25d0
+  P(7,2) = 0.75d0
+  P(7,3) = 0.25d0
+  P(8,1) = 0.75d0
+  P(8,2) = 0.75d0
+  P(8,3) = 0.25d0
+  ! the 4 atoms at z=0.75
+  P(9,1) = 0.25d0
+  P(9,2) = 0.25d0
+  P(9,3) = 0.75d0
+  P(10,1) = 0.75d0
+  P(10,2) = 0.25d0
+  P(10,3) = 0.75d0
+  P(11,1) = 0.25d0
+  P(11,2) = 0.75d0
+  P(11,3) = 0.75d0
+  P(12,1) = 0.75d0
+  P(12,2) = 0.75d0
+  P(12,3) = 0.75d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2,4) = P(1,4)
+  P(3,4) = P(1,4)
+  P(4,4) = P(1,4)
+  CALL ATOMNUMBER(create_species(2),P(5,4))
+  P(6,4) = P(5,4)
+  P(7,4) = P(5,4)
+  P(8,4) = P(5,4)
+  P(9,4) = P(5,4)
+  P(10,4) = P(5,4)
+  P(11,4) = P(5,4)
+  P(12,4) = P(5,4)
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
+  comment(1) = "Fluorite "//TRIM(ADJUSTL(comment(1)))
 !
 !
 CASE('hcp')

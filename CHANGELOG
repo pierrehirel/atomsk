@@ -4,6 +4,11 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.
+
+
+Beta 0.9.3 (05 April 2017)
+--------------------------
 - added support for symmetry operations when reading PDB files.
 - fixed a bug in the reading of CIF files, where the electric charge of ions was not always read correctly.
 - fixed a bug in the writing of CIF files, that caused a crash when no auxiliary property was defined.
@@ -84,7 +89,7 @@ Beta 0.8.6 (9 March 2016)
 Beta 0.8.5 (7 March 2016)
 -------------------------
 - fixed a bug where the detection of Cartesian or reduced coordinates would fail when the number of atoms was very small (typically unit cells containing only one or two atoms). Thanks to Jérôme Dequeker, UMET, Lille, France, for pointing out this bug.
-- fixed a bug in mode "--create" where the number of atoms in oriented unit cells would be incorrect for some values of the lattice parameter. Thanks to J. Amodeo, MATEIS, Lyon, France, for pointing out this bug.
+- fixed a bug in mode "--create" where the number of atoms in oriented unit cells would be incorrect for some values of the lattice parameter. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for pointing out this bug.
 
 
 Beta 0.8.4 (10 Feb. 2015)
