@@ -5,6 +5,7 @@ CHANGELOG FOR ATOMSK
 Master (development)
 --------------------
 - in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.
+- fixed a bug in the reading of LAMMPS data file that contain something after the keyword "Atoms".
 
 
 Beta 0.9.3 (05 April 2017)
