@@ -9,10 +9,10 @@ MODULE in_lmp_data
 !* each line, so this will not work for atom_style = dipole, ellipsoid, hybrid.   *
 !**********************************************************************************
 !* (C) November 2010 - Pierre Hirel                                               *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Jan. 2017                                     *
+!* Last modification: P. Hirel - 21 April 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -160,7 +160,7 @@ DO
     READ(temp,*,ERR=810,END=810) zlo, zhi
   ELSEIF(temp(strlength-7:)=='xy xz yz') THEN
     READ(temp,*,ERR=810,END=810) xy, xz, yz
-  ELSEIF(temp(strlength-4:)=='Atoms') THEN
+  ELSEIF(temp(1:5)=='Atoms') THEN
     READ(30,*)
     GOTO 200
   ENDIF
