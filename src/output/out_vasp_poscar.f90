@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 04 May 2017                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,9 +87,6 @@ ENDIF
 IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
   fixedatoms = .TRUE.
 ENDIF
-!
-!Check if coordinates are reduced
-CALL FIND_IF_REDUCED(P,isreduced)
 !
 !
 !
@@ -197,6 +194,9 @@ WRITE(40,'(20(i6,2X))') ( NINT(atypes(j,2)), j=1,SIZE(atypes(:,1)) )
 IF( fixx.NE.0 .OR. fixy.NE.0 .OR. fixz.NE.0 ) THEN
   WRITE(40,'(a18)') 'Selective dynamics'
 ENDIF
+!
+!Check if coordinates are reduced
+CALL FIND_IF_REDUCED(P,isreduced)
 !
 !Write atom coordinates
 IF(isreduced) THEN

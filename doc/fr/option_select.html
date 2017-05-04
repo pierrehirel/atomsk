@@ -92,7 +92,7 @@ de leur espèce chimique.</p>
   
   <li>Ou, le &#60;fichier&#62; peut contenir des lignes donnant la position (x,y,z) d'éléments de la grille (soit en &Aring; soit en coordonnées réduites), suivies par un nombre entier 0 ou 1. Ces éléments forment alors les n&oelig;uds d'un maillage de Voronoï, qui peut être régulier ou non.</li>
   
-  <li>Ou, le &#60;fichier&#62; peut contenir des lignes de 0 et 1 (contigus ou séparés par des espaces) formant une représentation 2-D d'une grille. Ceci peut être utile pour sélectionner des formes géométriques simples, comme des lettres.</li>
+  <li>Enfin, le &#60;fichier&#62; peut contenir des lignes de caractères ASCII formant une représentation 2-D d'une grille. Les espaces et le caractère 0 sont interprétés comme des 0 (représentant des endroits où les atomes ne sont pas sélectionnés), et tout autre caractère est interprété comme un 1 (marquant les endroits où les atomes sont sélectionnés). Ceci peut être utile pour sélectionner des formes géométriques simples, comme des lettres ou de l'art ASCII. Vous pouvez utiliser des programmes comme <a href="https://figlet.org/">figlet</a> pour convertir du texte en art ASCII, ou bien <a href="https://csl.name/jp2a/">jp2a</a> pour convertir une image JPG en un fichier texte. Ensuite, Atomsk peut utiliser de tels fichiers textes comme grilles pour sélectionner des atomes.</li>
 </ul>
 
 <p>Les deux premiers formats permettent de manipuler des grilles en 2-D ou en 3-D ; le dernier format, uniquement des grilles bidimensionnelles (voir les exemples ci-dessous). Cette option permet de sélectionner des formes complexes.</p>

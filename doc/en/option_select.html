@@ -92,7 +92,7 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
   
   <li>Or, the &#60;file&#62; may contain lines giving the positions (x,y,z) of elements of the grid (either in &Aring; or in reduced coordinates), followed by an integer number, 1 to select atoms inside that grid element, or 0 to un-select them. The elements of the grid may form a regular pattern, or have any arbitrary positions.</li>
   
-  <li>Or, the &#60;file&#62; may contain lines of 0 and 1 (either separated by blank spaces or contiguous), giving a visual representation of a 2-D grid (see examples below). This can be useful to select simple geometric forms, like letters.</li>
+  <li>Or, the &#60;file&#62; may contain lines of ASCII characters, giving a visual representation of a 2-D grid (see examples below). Any blank space or 0 is interpreted as a zero (i.e. atoms are not selected), and any other ASCII character as a 1 (i.e. atoms are selected). This can be useful to select simple geometric forms, like letters or an ASCII art. You may use tools like <a href="https://figlet.org/">figlet</a> to convert text into ASCII art, or <a href="https://csl.name/jp2a/">jp2a</a> to convert a JPG image into an ASCII text file. Then, Atomsk can use such text files as grids to select atoms.</li>
 </ul>
 
 <p>The two first formats allow to manipulate 2-D or 3-D grids; the last one only allows to generate 2-D grids (see examples below). This option can be used to select complex shapes.</p>

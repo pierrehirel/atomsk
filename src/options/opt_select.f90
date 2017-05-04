@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 27 April 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1167,69 +1167,73 @@ CASE('grid')
   Nperline=0
   k=0
   DO
-    READ(30,'(a128)',ERR=292,END=292) temp
+    READ(30,'(a128)',ERR=294,END=294) temp
+    Nperline=LEN_TRIM(temp)
     temp = ADJUSTL(temp)
-    IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
-      k=k+1
-      IF( k==1 ) THEN
-        !First line of data => determine the format of the file
-        !Look for symbols different from 0 and 1
-        IF( SCAN(temp,"23456789.") .NE. 0 ) THEN
-          !Try to read three integers
-          READ(temp,*,ERR=291,END=291) a1, a2, a3
-          !Success => we have NX=a1, NY=a2, NZ=a3
-          gridformat=1
-          IF( a1<=0 .OR. a2<=0 .OR. a3<=0 ) THEN
-            !cannot have a grid with zero dimension => abort
-            nerr=nerr+1
-            GOTO 1000
-          ENDIF
-          Ngrid = a1*a2*a3
-          GOTO 292
-          291 CONTINUE
-          !Failed to read 3 integers => it should be 3 real numbers + an integer
-          !Try to confirm (if it fails, then the file has a bad format, abort):
-          READ(temp,*,ERR=800,END=800) V1, V2, V3, i
-          !No error, the format is confirmed
-          gridformat = 2
-        ELSE
-          !There are no symbols different from 0 and 1
-          !=> the file should contain rows of 0 and 1
-          gridformat = 3
-          !Determine how many integers are in one line
-          !Strip all blank spaces
-          Nperline=0
-          j=SCAN(TRIM(temp)," ")
-          DO WHILE( j>0 )
-            temp = ADJUSTL( temp(:j-1)//ADJUSTL(temp(j+1:)) )
-            j=SCAN(TRIM(temp)," ")
-          ENDDO
-          !Number of characters is now simply the length of temp
-          Nperline = LEN_TRIM(temp)
-          Ngrid = Ngrid+Nperline
+    k=k+1
+    IF( k==1 ) THEN
+      !First line of data => determine the format of the file
+      !Look for symbols different from 0 and 1
+      IF( SCAN(temp,"23456789.") .NE. 0 ) THEN
+        !Try to read three integers
+        READ(temp,*,ERR=291,END=291) a1, a2, a3
+        !Success => we have NX=a1, NY=a2, NZ=a3
+        gridformat=1
+        IF( a1<=0 .OR. a2<=0 .OR. a3<=0 ) THEN
+          !cannot have a grid with zero dimension => abort
+          nerr=nerr+1
+          GOTO 1000
         ENDIF
-        !
-      ELSE
-        !Not first line of data => read line assuming same format
-        IF( gridformat==2 ) THEN
-          !Verify that 3 real numbers + 1 integer can be read
-          READ(temp,*,ERR=800,END=800) V1, V2, V3, i
-          Ngrid=Ngrid+1
-        ELSEIF( gridformat==3 ) THEN
-          Ngrid=Ngrid+Nperline
-        ENDIF
+        Ngrid = a1*a2*a3
+        GOTO 294
+        291 CONTINUE
+        !Failed to read 3 integers => it should be 3 real numbers + an integer
+        !Try to confirm (if it fails, then the file has a bad format, abort):
+        READ(temp,*,ERR=292,END=292) V1, V2, V3, i
+        !No error, the format is confirmed
+        gridformat = 2
+        GOTO 294
       ENDIF
       !
+      292 CONTINUE
+      !Failed to read 3 integers, and failed to read 3 real numbers
+      !=> assume 2-D grid made of random characters
+      gridformat = 3
+      !Determine max. length of a line and number of lines
+      a2=1        !one line was read already
+      DO
+        READ(30,'(a128)',ERR=293,END=293) temp
+        a2 = a2+1
+        IF( LEN_TRIM(temp) > Nperline ) THEN
+          Nperline = LEN_TRIM(temp)
+        ENDIF
+      ENDDO
+      293 CONTINUE
+      !Now we know the number of lines, and the number of elements per line
+      a1 = Nperline
+      a3 = 1
+      Ngrid = a1*a2
+      !
+    ELSE
+      !Not first line of data => read line assuming same format
+      IF( gridformat==2 ) THEN
+        !Verify that 3 real numbers + 1 integer can be read
+        READ(temp,*,ERR=800,END=800) V1, V2, V3, i
+        Ngrid=Ngrid+1
+      ELSEIF( gridformat==3 ) THEN
+        Ngrid=Ngrid+Nperline
+      ENDIF
     ENDIF
+    !
   ENDDO
-  292 CONTINUE
+  294 CONTINUE
   IF( verbosity==4 ) THEN
     IF( gridformat==1 ) THEN
       WRITE(msg,*) "Format of the grid file: (1) NX NY NZ + lines of 0 and 1"
     ELSEIF( gridformat==2 ) THEN
       WRITE(msg,*) "Format of the grid file: (2) lines of  x y z 1|0"
     ELSE
-      WRITE(msg,*) "Format of the grid file: (3) lines of 1|0 forming a 2-D pattern"
+      WRITE(msg,*) "Format of the grid file: (3) lines of ASCII characters forming a 2-D pattern"
     ENDIF
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     WRITE(msg,*) "Number of grid elements: ", Ngrid
@@ -1294,36 +1298,29 @@ CASE('grid')
       ENDDO
       !
     ELSEIF( gridformat==3 ) THEN
+      !Lines may contain arbitrary ASCII characters
+      !Blank spaces and 0 count as "0", any other character as "1"
       WRITE(msg,*) "Number of elements per line: ", Nperline
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      a1 = Nperline
-      a2 = 0  !will be incremented while reading the file
-      a3 = 1
-      Ngrid=0
+      Ngrid = 0
+      !Read lines, one at a time
       DO
         READ(30,'(a128)',ERR=295,END=295) temp
-        temp = ADJUSTL(temp)
-        IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
-          !Strip all blank spaces
-          j=SCAN(TRIM(temp)," ")
-          DO WHILE( j>0 )
-            temp = ADJUSTL( temp(:j-1)//ADJUSTL(temp(j+1:)) )
-            j=SCAN(TRIM(temp)," ")
-          ENDDO
-          !
-          a2=a2+1
-          DO i=1,Nperline
-            Ngrid=Ngrid+1
-            IF( Ngrid<=SIZE(GRID,1) ) THEN
-              READ(temp(i:i),'(i1)',ERR=800,END=800) j
-              IF( j==0 ) THEN
-                GRID(Ngrid,4) = 0.d0
-              ELSE
-                GRID(Ngrid,4) = 1.d0
-              ENDIF
+        !Parse line, one character at a time
+        !Note: it is assumed that all lines contain Nperline characters
+        !     Shorter lines will be completed with zeros if necessary
+        DO i=1,Nperline
+          Ngrid = Ngrid+1
+          IF( Ngrid<=SIZE(GRID,1) ) THEN
+            IF( temp(i:i)==" " .OR. temp(i:i)=="0" ) THEN
+              GRID(Ngrid,4) = 0.d0
+            ELSE
+              GRID(Ngrid,4) = 1.d0
             ENDIF
-          ENDDO
-        ENDIF
+          ELSE
+            EXIT
+          ENDIF
+        ENDDO
       ENDDO
     ENDIF
     295 CONTINUE

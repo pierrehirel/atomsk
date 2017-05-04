@@ -15,12 +15,10 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --create &#60;lattice&#62; &#60;a0&#62; [&#60;c0&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
-
-<p><code>atomsk -C &#60;lattice&#62; &#60;a0&#62; [&#60;c0&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] [options] [&#60;formats&#62;] &#60;outputfile&#62;</code></p>
+<p><code>atomsk --create &#60;lattice&#62; &#60;a0&#62; [&#60;c0&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] [options] &#60;outputfile&#62; [&#60;formats&#62;]</code></p>
 
 <p>Special syntax for nanotubes:</p>
-<p><code>atomsk -C nanotube &#60;a0&#62; &#60;m&#62; &#60;n&#62; &#60;sp1&#62; [&#60;sp2&#62;] [options] [&#60;formats&#62;] &#60;outputfile&#62;</code></p>
+<p><code>atomsk --create nanotube &#60;a0&#62; &#60;m&#62; &#60;n&#62; &#60;sp1&#62; [&#60;sp2&#62;] [options] &#60;outputfile&#62; [&#60;formats&#62;]</code></p>
 
 <h4>Description</h4>
 
@@ -87,22 +85,22 @@
 <li><code class="command">atomsk --create diamond 3.567 C diamond.cfg xsf</code>
 <p>This will create a unit cell diamond, and write it in the files <code>diamond.cfg</code> and <code>diamond.xsf</code>.</p></li>
 
-<li><code class="command">atomsk -C zb 5.65 Ga As gaas.cfg</code>
+<li><code class="command">atomsk --create zb 5.65 Ga As gaas.cfg</code>
 <p>This will create a unit cell of gallium arsenide (zincblende lattice), and write it in the file <code>gaas.cfg</code>.</p></li>
 
-<li><code class="command">atomsk xsf gin --create perovskite 3.86 Sr Ti O</code>
-<p>This will create a unit cell of cubic strontium titanate (lattice parameter=3.86 &Aring;), and write it in the files <code>SrTiO.xsf</code> and <code>SrTiO.gin</code>.</p></li>
+<li><code class="command">atomsk --create perovskite 3.86 Sr Ti O xsf gin</code>
+<p>This will create a unit cell of cubic strontium titanate (lattice parameter=3.86&nbsp;&Aring;), and write it in the files <code>SrTiO.xsf</code> and <code>SrTiO.gin</code>.</p></li>
 
-<li><code class="command">atomsk -C per 3.86 Sr Ti O orient [001] [110] [1-10] -duplicate 30 20 1 sto.xsf</code>
+<li><code class="command">atomsk --create per 3.86 Sr Ti O orient [001] [110] [1-10] -duplicate 30 20 1 sto.xsf</code>
 <p>This example uses the <a href="./option_duplicate.html">duplicate option</a>. It will create a unit cell of cubic strontium titanate oriented X=[001], Y=[110], Z=[1<span class="over">1</span>0], and then duplicate it to form a 30x20x1 supercell. The final result will be output in the file <code>sto.xsf</code>.</p></li>
 
-<li><code class="command">atomsk bn.xsf -C graphite 2.5 3.6 B N</code>
-<p>This example will create a unit cell of hexagonal boron nitride (which has the same lattice as graphite), with a=2.5 &Aring; and c=3.6 &Aring;. The final result will be output in the file <code>bn.xsf</code>.</p></li>
+<li><code class="command">atomsk --create graphite 2.5 3.6 B N bn.xsf</code>
+<p>This example will create a unit cell of hexagonal boron nitride (which has the same lattice as graphite), with a=2.5&nbsp;&Aring; and c=3.6&nbsp;&Aring;. The final result will be output in the file <code>bn.xsf</code>.</p></li>
 
-<li><code class="command">atomsk -C nanotube 2.5 8 8 C nanotube.xsf cfg</code>
+<li><code class="command">atomsk --create nanotube 2.5 8 8 C nanotube.xsf cfg</code>
 <p>This will create a carbon nanotube of armchair type with chiral indices (8,8). The final result will be output in the files <code>nanotube.xsf</code> and <code>nanotube.cfg</code>.</p></li>
 
-<li><code class="command">atomsk -C nanotube 2.8 10 0 B N xsf</code>
+<li><code class="command">atomsk --create nanotube 2.8 10 0 B N xsf</code>
 <p>This will create a boron nitride nanotube of zigzag type with chiral indices (10,0). The final result will be output in the file <code>BN.xsf</code>.</p></li>
 
 <li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Al_supercell</code>" contains a bash script showing how to create an aluminum system with two surface steps. The folder "<code>Si_supercell</code>" shows how to generate a crystal of aluminum with a particular orientation and a surface step.</p></li>

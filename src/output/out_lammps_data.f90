@@ -370,7 +370,6 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     ENDIF
     WRITE(40,212) j, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
     !
-    PRINT*, S(i,4), P(i,4)
     IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
       !Write shell info immediately after its core
       !NOTE: i the index of core in P(:,:) AND the index of its shell in S(:,:)
