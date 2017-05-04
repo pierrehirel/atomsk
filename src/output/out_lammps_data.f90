@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Feb. 2017                                     *
+!* Last modification: P. Hirel - 04 May 2017                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -370,7 +370,6 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     ENDIF
     WRITE(40,212) j, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
     !
-    PRINT*, S(i,4), P(i,4)
     IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
       !Write shell info immediately after its core
       !NOTE: i the index of core in P(:,:) AND the index of its shell in S(:,:)

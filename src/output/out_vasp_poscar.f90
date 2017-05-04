@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 04 May 2017                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,9 +87,6 @@ ENDIF
 IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
   fixedatoms = .TRUE.
 ENDIF
-!
-!Check if coordinates are reduced
-CALL FIND_IF_REDUCED(P,isreduced)
 !
 !
 !
@@ -198,12 +195,15 @@ IF( fixx.NE.0 .OR. fixy.NE.0 .OR. fixz.NE.0 ) THEN
   WRITE(40,'(a18)') 'Selective dynamics'
 ENDIF
 !
-!Write atom coordinates
+!Check if coordinates are reduced
+CALL FIND_IF_REDUCED(P,isreduced)
 IF(isreduced) THEN
   WRITE(40,'(a6)') 'Direct'
 ELSE
   WRITE(40,'(a9)') 'Cartesian'
 ENDIF
+!
+!Write atom coordinates
 DO i=1,SIZE(Ppoint,1)
   WRITE(msg,210) Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
   IF( fixedatoms ) THEN

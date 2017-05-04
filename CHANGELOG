@@ -1,6 +1,11 @@
 CHANGELOG FOR ATOMSK
 ====================
 
+Beta 0.9.4 (04 May 2017)
+------------------------
+- fixed a bug in the reading of LAMMPS data file that contain something after the keyword "Atoms".
+- fixed a bug in the reading of Quantum Espresso input files (*.pw). Thanks to Michael Wolloch, University of Modena and Reggio Emilia, Italy, for pointing out this bug.
+
 
 Beta 0.9.3 (05 April 2017)
 --------------------------
