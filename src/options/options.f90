@@ -572,7 +572,9 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-fix', '-freeze')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis
-    fix_dir = TRIM(ADJUSTL(options_array(ioptions)(7:)))
+    strlength = LEN_TRIM(fixaxis) + 6
+    fix_dir = TRIM(ADJUSTL(options_array(ioptions)(strlength:)))
+    PRINT*, "OPTION fix_dir = ", fix_dir
     IF( fix_dir(1:5)=='above' .OR. fix_dir(1:5)=='below' ) THEN
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis, fix_dir, treal(1), fixdir
       !Check if numbers contain a keyword like "BOX" or "INF"

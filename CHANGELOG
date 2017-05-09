@@ -6,6 +6,16 @@ Master (development)
 --------------------
 - in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.
 - in option "-grid", added possibility to provide a file containing any ASCII character; blank spaces are replaced by 0, any other character by 1.
+
+
+
+Beta 0.9.5 (09 May 2017)
+------------------------
+- fixed a bug in option "-fix", where atoms would be incorrectly frozen when using "all". Thanks to Ling-Ju Guo, National Center for Nanoscience and Technology, Beijing, China, for pointing out this bug.
+
+
+Beta 0.9.4 (04 May 2017)
+------------------------
 - fixed a bug in the reading of LAMMPS data file that contain something after the keyword "Atoms".
 - fixed a bug in the reading of Quantum Espresso input files (*.pw). Thanks to Michael Wolloch, University of Modena and Reggio Emilia, Italy, for pointing out this bug.
 
