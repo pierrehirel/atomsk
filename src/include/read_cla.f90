@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 Feb. 2017                                     *
+!* Last modification: P. Hirel - 09 May 2017                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -860,6 +860,9 @@ DO WHILE(i<SIZE(cla))
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
       temp = TRIM(ADJUSTL(temp))
+      IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+        & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z' .AND.  &
+        & temp(1:3).NE.'all' ) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     ELSE
       i=i-1

@@ -35,7 +35,7 @@ MODULE options
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 Feb. 2017                                     *
+!* Last modification: P. Hirel - 09 May 2017                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -572,7 +572,8 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-fix', '-freeze')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis
-    fix_dir = TRIM(ADJUSTL(options_array(ioptions)(7:)))
+    strlength = LEN_TRIM(fixaxis) + 6
+    fix_dir = TRIM(ADJUSTL(options_array(ioptions)(strlength:)))
     IF( fix_dir(1:5)=='above' .OR. fix_dir(1:5)=='below' ) THEN
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis, fix_dir, treal(1), fixdir
       !Check if numbers contain a keyword like "BOX" or "INF"

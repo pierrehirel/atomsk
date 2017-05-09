@@ -12,7 +12,7 @@ MODULE fix
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                    *
+!* Last modification: P. Hirel - 09 May 2017                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -71,7 +71,7 @@ NPfixed=0
 IF(ALLOCATED(newAUXNAMES)) DEALLOCATE(newAUXNAMES)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
-WRITE(msg,*) 'Entering FIX_XYZ: '
+WRITE(msg,*) 'Entering FIX_XYZ: ', fixaxis, fix_dir, fixdir
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 IF( fix_dir.NE.'above' .AND. fix_dir.NE.'below' ) THEN
@@ -146,7 +146,11 @@ AUXNAMES(fixz) = "fixz"
 !
 !
 200 CONTINUE
+WRITE(msg,*) 'fix_dir = ', fix_dir
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
+  WRITE(msg,*) 'fixdir = ', fixdir
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   SELECT CASE(fixdir)
   CASE("x","X","y","Y","z","Z")
     !Define the axes
@@ -167,8 +171,8 @@ IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
     ! *or* atoms that are selected inside the region
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        IF( fix_dir=='above' .AND. P(i,a1)>fixdistance .OR.        &
-          & fix_dir=='below' .AND. P(i,a1)<fixdistance      ) THEN
+        IF( (fix_dir=='above' .AND. P(i,a1)>fixdistance) .OR.        &
+          & (fix_dir=='below' .AND. P(i,a1)<fixdistance)      ) THEN
           !If atom is in the region of interest, fix it
           SELECT CASE(fixaxis)
           CASE("x","X")
@@ -214,8 +218,8 @@ IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
       !determine if atom is above or below the plane
       tempreal = VEC_PLANE( Vplane(1,:) , fixdistance , P(i,1:3) )
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        IF( fix_dir=='above' .AND. tempreal>0.d0 .OR.        &
-          & fix_dir=='below' .AND. tempreal<0.d0       ) THEN
+        IF( (fix_dir=='above' .AND. tempreal>0.d0) .OR.        &
+          & (fix_dir=='below' .AND. tempreal<0.d0)       ) THEN
           !If atom is in the region of interest, fix it
           SELECT CASE(fixaxis)
           CASE("x","X")
