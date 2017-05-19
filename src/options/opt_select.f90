@@ -46,7 +46,8 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
-CHARACTER(LEN=128):: msg, temp
+CHARACTER(LEN=128):: msg
+CHARACTER(LEN=4096):: temp
 CHARACTER(LEN=128):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh' or 'list'
 CHARACTER(LEN=4096):: region_geom !geometry of the region: "box" or "sphere". If "neighbors" then
                                   !neighbors of an atom must be searched. If region_side=="list" then
@@ -61,6 +62,7 @@ INTEGER:: a1, a2, a3
 INTEGER:: atomrank, atomrank2  !rank of atom to be selected
 INTEGER:: gridformat !format of the file (for select grid)
 INTEGER:: i, j, k, l, m, n
+INTEGER:: line
 INTEGER:: Ngrid    !number of elements in the grid
 INTEGER:: Nperline !number of grid element per line
 INTEGER:: Nselect  !number of atoms selected
@@ -1166,15 +1168,16 @@ CASE('grid')
   Ngrid=0
   Nperline=0
   k=0
+  line = 1
   DO
-    READ(30,'(a128)',ERR=294,END=294) temp
+    READ(30,'(a4096)',ERR=294,END=294) temp
     Nperline=LEN_TRIM(temp)
     temp = ADJUSTL(temp)
     k=k+1
     IF( k==1 ) THEN
       !First line of data => determine the format of the file
-      !Look for symbols different from 0 and 1
-      IF( SCAN(temp,"23456789.") .NE. 0 ) THEN
+      !Check if line contains only numbers
+      IF( SCAN(temp,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?,;:!§%*$£=+-^&~'#{}[]()<>/") == 0 ) THEN
         !Try to read three integers
         READ(temp,*,ERR=291,END=291) a1, a2, a3
         !Success => we have NX=a1, NY=a2, NZ=a3
@@ -1202,7 +1205,7 @@ CASE('grid')
       !Determine max. length of a line and number of lines
       a2=1        !one line was read already
       DO
-        READ(30,'(a128)',ERR=293,END=293) temp
+        READ(30,'(a4096)',ERR=293,END=293) temp
         a2 = a2+1
         IF( LEN_TRIM(temp) > Nperline ) THEN
           Nperline = LEN_TRIM(temp)
@@ -1218,7 +1221,7 @@ CASE('grid')
       !Not first line of data => read line assuming same format
       IF( gridformat==2 ) THEN
         !Verify that 3 real numbers + 1 integer can be read
-        READ(temp,*,ERR=800,END=800) V1, V2, V3, i
+        READ(temp,*,ERR=801,END=801) V1, V2, V3, i
         Ngrid=Ngrid+1
       ELSEIF( gridformat==3 ) THEN
         Ngrid=Ngrid+Nperline
@@ -1252,7 +1255,7 @@ CASE('grid')
     !
     IF( gridformat==1 ) THEN
       !First line contains NX, NY, NZ (it was already read, so there should not be any error)
-      READ(30,*,ERR=800,END=800) temp
+      READ(30,*,ERR=801,END=801) temp
       !Read lines of 0 and 1
       !Each new value corresponds to a new grid element
       !Note that in that case, positions of grid elements are not used
@@ -1286,11 +1289,11 @@ CASE('grid')
     ELSEIF( gridformat==2 ) THEN
       !Read position and status (0 or 1) of each grid element
       DO
-        READ(30,'(a128)',ERR=295,END=295) temp
+        READ(30,'(a4096)',ERR=295,END=295) temp
         temp = ADJUSTL(temp)
         IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
           Ngrid = Ngrid+1
-          READ(temp,*,ERR=800,END=800) GRID(Ngrid,1), GRID(Ngrid,2), GRID(Ngrid,3), GRID(Ngrid,4)
+          READ(temp,*,ERR=801,END=801) GRID(Ngrid,1), GRID(Ngrid,2), GRID(Ngrid,3), GRID(Ngrid,4)
           IF( GRID(Ngrid,4)>0.1d0 ) THEN
             Nselect=Nselect+1
           ENDIF
@@ -1305,7 +1308,7 @@ CASE('grid')
       Ngrid = 0
       !Read lines, one at a time
       DO
-        READ(30,'(a128)',ERR=295,END=295) temp
+        READ(30,'(a4096)',ERR=295,END=295) temp
         !Parse line, one character at a time
         !Note: it is assumed that all lines contain Nperline characters
         !     Shorter lines will be completed with zeros if necessary
@@ -1533,6 +1536,9 @@ GOTO 1000
 !
 800 CONTINUE
 CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
+nerr = nerr+1
+801 CONTINUE
+CALL ATOMSK_MSG(807,(/''/),(/DBLE(line)/))
 nerr = nerr+1
 !
 !
