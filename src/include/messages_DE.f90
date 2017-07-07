@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 28 Feb. 2017                                     *
+!* Last modification: P. Hirel - 07 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -321,7 +321,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder> <x1> <y1> <z1> <x2> [<y2> <z2>]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|torus> [<Achse>] <x1> <y1> <z1> <x2> [<y2> <z2>]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
@@ -1185,11 +1185,23 @@ CASE(2077)
       msg = "..> Achse entlang "//TRIM(strings(3))//"."
       CALL DISPLAY_MSG(verbosity,msg,logfile)
       WRITE(temp,"(f16.3)") reals(1)
-      msg = "..> Center: ("//TRIM(ADJUSTL(temp))
+      msg = "..> Mittelpunkt: ("//TRIM(ADJUSTL(temp))
       WRITE(temp,"(f16.3)") reals(2)
       msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//")"
       WRITE(temp,"(f16.3)") reals(4)
       msg = TRIM(msg)//"; Radius: "//TRIM(ADJUSTL(temp))//" A."
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ELSEIF(TRIM(strings(2))=="torus") THEN
+      WRITE(temp,"(f16.3)") reals(1)
+      msg = "..> Achse entlang "//TRIM(strings(3))//". Mittelpunkt: ("//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(2)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(3)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//")."
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+      WRITE(temp,"(f16.3)") reals(4)
+      WRITE(temp2,"(f16.3)") reals(5)
+      msg = "..> Main Radius: "//TRIM(ADJUSTL(temp))//" A; Secündar Radius: "//TRIM(ADJUSTL(temp2))//" A."
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
   ELSEIF( strings(1)=="prop" ) THEN

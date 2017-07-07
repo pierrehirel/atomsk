@@ -5,7 +5,7 @@ CHANGELOG FOR ATOMSK
 Master (development)
 --------------------
 - in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.
-- in option "-grid", added possibility to provide a file containing any ASCII character; blank spaces are replaced by 0, any other character by 1.
+- in option "-select", added possibility to provide a file containing any ASCII character; blank spaces are replaced by 0, any other character by 1. Also added possibility to select atoms inside or outside a torus.
 
 
 

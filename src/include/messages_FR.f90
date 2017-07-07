@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 April 2017                                    *
+!* Last modification: P. Hirel - 07 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -343,7 +343,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder> <x1> <y1> <z1> <x2> [<y2> <z2>]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|torus> [<axe>] <x1> <y1> <z1> <x2> [<y2> <z2>]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
@@ -1253,6 +1253,18 @@ CASE(2077)
       msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//")"
       WRITE(temp,"(f16.3)") reals(4)
       msg = TRIM(msg)//" ; Rayon : "//TRIM(ADJUSTL(temp))//" A."
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ELSEIF(TRIM(strings(2))=="torus") THEN
+      WRITE(temp,"(f16.3)") reals(1)
+      msg = "..> Axe suivant "//TRIM(strings(3))//". Centre : ("//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(2)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(3)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//")."
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+      WRITE(temp,"(f16.3)") reals(4)
+      WRITE(temp2,"(f16.3)") reals(5)
+      msg = "..> Rayon principal : "//TRIM(ADJUSTL(temp))//" A ; rayon secondaire : "//TRIM(ADJUSTL(temp2))//" A."
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
   ELSEIF( strings(1)=="prop" ) THEN

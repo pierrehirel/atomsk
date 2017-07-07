@@ -175,6 +175,8 @@ Rotates the system around a cartesian <axis>.
 .TP
 .B -select <in|out> <cylinder> <axis> <x1> <x2> <R>
 .TP
+.B -select <in|out> <torus> <axis> <x> <y> <z> <R> <r>
+.TP
 .B -select prop <property> <value1:value2>
 .TP
 .B -select <N> <species> neighbor <index>

@@ -37,6 +37,8 @@
 
 <p><code>-select &#60;in|out&#62; cylinder &#60;axis&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
 
+<p><code>-select &#60;in|out&#62; torus &#60;axis&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62; &#60;r&#62;</code></p>
+
 <p><code>-select prop &#60;property&#62; &#60;value1[:value2]&#62;</code></p>
 
 <p><code>-select &#60;NNN&#62; &#60;species&#62; neighbors &#60;index&#62;</code></p>
@@ -68,9 +70,10 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 
 <ul>
   <li><strong>in|out</strong>: decides if it is the inside or the outside of the region that is selected.</li>
-  <li><strong>x, y, z</strong>: for the box, coordinates of the first corner; for the sphere, coordinates of the center of the sphere; for the cylinder (only two values must be provided), the position of the center of the cylinder in the plane normal to the direction &#60;axis&#62; (see below).</li>
+  <li><strong>x, y, z</strong>: for the box, coordinates of the first corner; for the sphere or torus, coordinates of the center; for the cylinder (only two values must be provided), the position of the center of the cylinder in the plane normal to the direction &#60;axis&#62; (see below).</li>
   <li><strong>x', y', z'</strong>: for the box only, coordinates of the last corner.</li>
-  <li><strong>R</strong>: for the sphere and cylinder only, the radius (in &Aring;).</li>
+  <li><strong>R</strong>: for the sphere, cylinder or torus, the radius (in &Aring;).</li>
+  <li><strong>r</strong>: for the torus only, the secondary radius (in &Aring;).</li>
   <li><strong>axis</strong>: for the cylinder only, the main axis direction, must be "X", "Y" or "Z".</li>
 </ul>
 
@@ -79,6 +82,8 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
 <p>The <strong>sphere</strong> is defined by its center (x,y,z) and its radius R.</p>
 
 <p>The <strong>cylinder</strong> is defined by its center (x<sub>1</sub>,x<sub>2</sub>) in the plane normal to the direction &#60;axis&#62;, and its radius R. The directions x<sub>1</sub> and x<sub>2</sub> are decided after the direction &#60;axis&#62; by permutation X, Y, Z (e.g. if &#60;axis&#62;=Y then x<sub>1</sub> will be the position along the cartesian Z direction, and x<sub>2</sub> the position along X).</p>
+
+<p>The <strong>torus</strong> is defined by its normal axis (X, Y or Z), the position of its center (x,y, z), its main radius R, and its secondary radius r.</p>
 
 <p>The positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; are usually given in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). Note that these keywords can only be used for positions: the radius &#60;R&#62; of sphere or cylinder must always be given in &Aring;.</p>
 

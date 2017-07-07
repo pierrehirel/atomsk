@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 Feb. 2017                                     *
+!* Last modification: P. Hirel - 06 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -680,7 +680,6 @@ DO ioptions=1,SIZE(options_array)
     CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,j,rot_axis,rot_angle,SELECT,C_tensor)
   !
   CASE('-select')
-    !READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side
     region_side = ADJUSTL( options_array(ioptions)(8:) )
     i=SCAN(region_side," ")
     region_side = region_side(:i)
@@ -786,6 +785,17 @@ DO ioptions=1,SIZE(options_array)
         region_1(3) = 0.d0
         region_2(2) = 0.d0
         region_2(3) = 0.d0
+      ELSEIF(region_geom=='torus' .OR. region_geom=='pyramid') THEN
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, &
+            & region_geom, region_dir, treal(1), treal(2), treal(3), region_2(1), region_2(2)
+        !Check if numbers contain a keyword like "BOX" or "INF"
+        DO i=1,3
+          CALL BOX2DBLE( H(:,i) , treal(i) , region_1(i) , status )
+          IF(status>0) THEN
+            temp = treal(i)
+            GOTO 810
+          ENDIF
+        ENDDO
       ENDIF
     ELSEIF( region_side=="prop" .OR. region_side=="property" ) THEN
       !store property name in "region_geom"
@@ -980,19 +990,24 @@ DO ioptions=1,SIZE(options_array)
     !Write atoms positions to "atomsk.xyz"
     temp = 'atomsk.xyz'
     OPEN(UNIT=36,FILE=temp,STATUS="UNKNOWN",FORM="FORMATTED")
-    WRITE(36,*) SIZE(P,1)
-    msg = '#Debug file for Atomsk, after option: '//TRIM(optionname)
-    WRITE(36,*) TRIM(msg)
-    DO i=1, SIZE(P,1)
-      CALL ATOMSPECIES(P(i,4),species)
-      WRITE(36,'(a2,2X,3(f16.8,1X))') species, P(i,1:3)
-    ENDDO
-    WRITE(36,'(a4)') 'alat'
-    WRITE(36,'(a3)') '1.0'
-    WRITE(36,'(a9)') 'supercell'
-    WRITE(36,'(3f16.6)') H(1,:)
-    WRITE(36,'(3f16.6)') H(2,:)
-    WRITE(36,'(3f16.6)') H(3,:)
+    IF( ALLOCATED(P) ) THEN
+      WRITE(36,*) SIZE(P,1)
+      msg = '#Debug file for Atomsk, after option: '//TRIM(optionname)
+      WRITE(36,*) TRIM(msg)
+      DO i=1, SIZE(P,1)
+        CALL ATOMSPECIES(P(i,4),species)
+        WRITE(36,'(a2,2X,3(f16.8,1X))') species, P(i,1:3)
+      ENDDO
+      WRITE(36,'(a4)') 'alat'
+      WRITE(36,'(a3)') '1.0'
+      WRITE(36,'(a9)') 'supercell'
+      WRITE(36,'(3f16.6)') H(1,:)
+      WRITE(36,'(3f16.6)') H(2,:)
+      WRITE(36,'(3f16.6)') H(3,:)
+    ELSE
+      msg = '# ERROR: no atom remaining after option: '//TRIM(optionname)
+      WRITE(36,*) TRIM(msg)
+    ENDIF
     CLOSE(36)
     !
     !Write elastic tensor to logfile

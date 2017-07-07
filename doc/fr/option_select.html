@@ -37,6 +37,8 @@
 
 <p><code>-select &#60;in|out&#62; cylinder &#60;axe&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
 
+<p><code>-select &#60;in|out&#62; torus &#60;axe&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62; &#60;r&#62;</code></p>
+
 <p><code>-select prop &#60;propriété&#62; &#60;valeur1[:valeur2]&#62;</code></p>
 
 <p><code>-select &#60;NNN&#62; &#60;espèce&#62; neighbors &#60;indice&#62;</code></p>
@@ -67,9 +69,10 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 
 <ul>
   <li><strong>in|out</strong> : décide si ce sont les atomes à l'intérieur (in) ou à l'extérieur (out) de la région qui sont sélectionnés.</li>
-  <li><strong>x, y, z</strong> : pour la boîte ("box"), les coordonnées du premier coin ; pour la sphère ("sphere"), coordonnées du centre de la sphère ; pour le cylindre ("cylinder") seules deux coordonnées doivent être fournies, indiquant la position du centre du cylindre dans le plan normal à son &#60;axe&#62; (voir ci-dessous).</li>
+  <li><strong>x, y, z</strong> : pour la boîte ("box"), les coordonnées du premier coin ; pour la sphère ("sphere") et le tore ("torus"), coordonnées du centre ; pour le cylindre ("cylinder") seules deux coordonnées doivent être fournies, indiquant la position du centre du cylindre dans le plan normal à son &#60;axe&#62; (voir ci-dessous).</li>
   <li><strong>x', y', z'</strong> : seulement pour la boîte ("box"), coordonnées du dernier coin.</li>
-  <li><strong>R</strong> : seulement pour la sphère et le cylindre, leur rayon (en &Aring;).</li>
+  <li><strong>R</strong> : seulement pour la sphère, le cylindre, et le tore, leur rayon (en &Aring;).</li>
+  <li><strong>r</strong> : seulement pour le tore, son rayon secondaire (en &Aring;).</li>
   <li><strong>axe</strong> : seulement pour le cylindre, la direction de son axe principal, doit être "X", "Y" ou "Z".</li>
 </ul>
 
@@ -78,6 +81,8 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 <p>La <strong>sphère</strong> est définie par son centre (x,y,z) et son rayon R.</p>
 
 <p>Le <strong>cylindre</strong> est défini par son centre (x<sub>1</sub>,x<sub>2</sub>) dans le plan normal à son &#60;axe&#62;, et par son rayon R. Les directions x<sub>1</sub> and y<sub>2</sub> sont définies d'après la direction de l'&#60;axe&#62; par permutation X, Y, Z (par ex. si &#60;axe&#62;=Y alors x<sub>1</sub> sera la position selon l'axe cartésien Z, et x<sub>2</sub> la position suivant X).</p>
+
+<p>Le <strong>tore</strong> est défini par son axe (X, Y ou Z), sa position (x,y,z), son rayon principal R, et son rayon secondaire r.</p>
 
 <p>Les positions &#60;x&#62;, &#60;y&#62;, &#60;z&#62; sont généralement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). Notez que ces mots-clé ne peuvent être employés que pour les positions : le rayon &#60;R&#62; de la sphère ou du cylindre doit toujours être donné en &Aring;.</p>
 

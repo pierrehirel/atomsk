@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 May 2017                                      *
+!* Last modification: P. Hirel - 07 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1068,7 +1068,8 @@ DO WHILE(i<SIZE(cla))
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      IF( temp.NE.'box' .AND. temp.NE.'sphere' .AND. temp.NE.'cylinder') GOTO 120
+      !IF( temp.NE.'box' .AND. temp.NE.'sphere' .AND. temp.NE.'cylinder' .AND. &
+      !  & temp.NE.'prism' .AND. temp.NE.'torus' ) GOTO 120
       region_geom = temp(1:16)
       !Next parameters depend on the geometry
       IF(region_geom=='box') THEN
@@ -1147,7 +1148,7 @@ DO WHILE(i<SIZE(cla))
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         READ(temp,*,END=120,ERR=120) tempreal
       ELSEIF(region_geom=='cylinder') THEN
-        !read the axis of the cynlinder
+        !read the axis of the cylinder
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
         temp = TRIM(ADJUSTL(temp))
@@ -1177,6 +1178,46 @@ DO WHILE(i<SIZE(cla))
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         READ(temp,*,END=120,ERR=120) tempreal
+      ELSEIF(region_geom=='torus') THEN
+        !read the axis (normal to the torus plane / to the base of pyramid)
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        temp = TRIM(ADJUSTL(temp))
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+          & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+        !read the 3 coordinates of the center of the torus / of the base of pyramid
+        !X
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !Y
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !Z
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !read main radius of torus / side of pyramid base
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 ) GOTO 120
+        !read secondary radius of torus / height of pyramid
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 ) GOTO 120
+      ELSE
+        !Unrecognized shape => display error
+        GOTO 120
       ENDIF
       !
     ELSEIF( temp=='grid' ) THEN

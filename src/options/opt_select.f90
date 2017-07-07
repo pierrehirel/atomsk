@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 April 2017                                    *
+!* Last modification: P. Hirel - 07 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -560,8 +560,8 @@ CASE('in','out')
     ENDDO
   !
   !
-  CASE('prism')
-    !Define the axes: a3 is the direction of the main axis
+  CASE('torus')
+    !Define the axes: a3 is the direction normal to the torus plane
     SELECT CASE(region_dir)
     CASE("x","X")
       a1 = 2
@@ -580,43 +580,41 @@ CASE('in','out')
       nerr = nerr+1
       GOTO 1000
     END SELECT
-    !region_1(1:3) = position of the center of the base of the prism
-    !region_2(1) = number of faces of the prism (integer, must be >3)
-    !region_2(2) = "radius" of the base of the pyramid (=distance from center to an edge)
-    !region_2(3) = height of the prism
+    !region_1(1:3) = position of the center of the torus
+    !region_2(1) = main radius of torus
+    !region_2(2) = secondary radius of torus
     !
-    !Determine all vectors normal to the faces of the prism
-    ALLOCATE( facenormals(2+NINT(region_2(1)),3) )
-    facenormals(:,:) = 0.d0
-    !The first two vectors always correspond to the two bases of the prism
-    facenormals(1,a3) = 1.d0
-    facenormals(2,a3) = -1.d0
-    !For each face, the normal joins the center and 
-    DO i=3,NINT(region_2(1))+2
-      !Position of center
-      V1 = region_1(a1) + DBLE(i-3)/180.d0
-      V2 = 0
-      V3 = 0
-      facenormals(i,a1) = 0.d0
-      facenormals(i,a2) = 0.d0
-    ENDDO
-    !
-    !Select atoms that are in/out of the prism
+    !Select atoms that are in/out of the torus
     DO i=1,SIZE(P,1)
-      IF( P(i,a3) >= region_1(a3) .AND. P(i,a3) <= region_1(a3)+region_2(3) ) THEN
-        !The atom is within the planes defined by the bases of the prism
-        !Now check if it is inside the prism
-        !tempreal = VEC_PLANE( Vplane(1,:) , cutdistance , P(i,1:3) )
+      !Compute position of the torus in the direction of the atom
+      Vplane(1,a1) = P(i,a1) - region_1(a1)
+      Vplane(1,a2) = P(i,a2) - region_1(a2)
+      Vplane(1,a3) = 0.d0
+      IF( VECLENGTH(Vplane(1,:)) > 1.d-6 ) THEN
+        Vplane(1,:) = region_1(1:3) + Vplane(1,:) * region_2(1) / VECLENGTH(Vplane(1,:))
+      ENDIF
+      Vplane(1,a3) = region_1(a3)
+      distance = VECLENGTH( Vplane(1,:) - P(i,1:3) )
+      IF( distance < region_2(2) ) THEN
+        !The atom is inside the torus
         IF(region_side=='in') THEN
-          !...and if we want to select the inside of the prism, set to true
+          !...and we want to select the inside of the torus => set to true
           SELECT(i) = .TRUE.
           Nselect = Nselect+1
         ELSE
-          !...and if we want to select the outside of the prism, set to false
+          !...and we want to select the outside of the torus => set to false
           SELECT(i) = .FALSE.
         ENDIF
       ELSE
-        !The atom is outside the planes defined by the bases of the prism
+        !The atom is outside the torus
+        IF(region_side=='in') THEN
+          !...and we want to select the inside of the torus => set to false
+          SELECT(i) = .FALSE.
+        ELSE
+          !...and we want to select the outside of the torus => set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
       ENDIF
     ENDDO
     !
