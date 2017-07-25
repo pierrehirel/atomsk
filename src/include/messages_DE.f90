@@ -1741,6 +1741,43 @@ CASE(2129)
 CASE(2130)
   msg = "..> Torsion wurde erfolgreich angewendet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2131)
+  !strings(1) = space group name or number
+  msg = ">>> Applying symmetry operations of space group: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2132)
+  !reals(1) = space group number
+  WRITE(temp,"(i5)") NINT(reals(1))
+  msg = "..> Space group number: "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2133)
+  !reals(1) = new number of atoms
+  WRITE(temp,"(i16)") NINT(reals(1))
+  msg = "..> Symmetry operations were successfully applied, new number of atoms: "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2140)
+  !reals(1) = min. separation distance
+  !reals(2) = separate atoms by this amount
+  WRITE(temp,"(f16.2)") reals(1)
+  WRITE(temp2,"(f16.2)") reals(2)
+  msg = ">>> Separating atoms closer than "//TRIM(ADJUSTL(temp))//" A by a distance of "//TRIM(ADJUSTL(temp2))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2141)
+  !reals(1) = number of pairs of atoms that were separated
+  IF( reals(1) < 1.d-3 ) THEN
+    msg = "..> No atoms were separated."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> One pair of atoms was separated."
+  ELSE
+    WRITE(temp,"(i16)") NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" pairs of atoms were separated."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2142)
+  !reals(1) = number of triangles in STL file
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> STL file was read successfully ("//TRIM(ADJUSTL(temp))//" triangles)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES
 CASE(2700)

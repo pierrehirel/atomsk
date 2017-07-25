@@ -54,7 +54,7 @@ CHARACTER(LEN=128):: line, msg
 LOGICAL:: formatted  !is the file formatted?
 INTEGER(KIND=2):: ABC  !Attribute Byte Count (binary format)
 INTEGER(KIND=4):: N
-INTEGER:: i, j
+INTEGER:: i, j, k
 INTEGER:: Ntriangles  !number of triangles declared in STL file
 REAL(KIND=4):: tempreal
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: triangles !normal vector, and positions of vertices
@@ -74,15 +74,16 @@ line = ADJUSTL(line)
 IF( line(1:5) == "solid" ) THEN
   !99% chances that the file is formatted
   formatted = .TRUE.
-ELSE
-  !Good chances that the file is unformatted (binary)
-  !Try to detect non-ASCII characters to confirm
-  j=0
-  DO WHILE( j==0 .AND. formatted )
-    READ(32,IOSTAT=j) c
-    formatted = formatted .AND. ( IACHAR(c)<=127 )
-  ENDDO
 ENDIF
+!Try to detect non-ASCII characters to check if file is binary
+READ(32,'(a128)',END=800,ERR=800) line
+j=0
+k=1  !counter for lines. Reading the first 5 lines should be sufficient
+DO WHILE( j==0 .AND. formatted .AND. k<=5 )
+  READ(32,'(a1)',IOSTAT=j) c
+  formatted = formatted .AND. ( IACHAR(c)<=127 )
+  k=k+1
+ENDDO
 !
 !
 !

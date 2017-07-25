@@ -1815,7 +1815,7 @@ CASE(2141)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2142)
-  !strings(1) = file name
+  !reals(1) = number of triangles in STL file
   WRITE(temp,*) NINT(reals(1))
   msg = "..> STL file was read successfully ("//TRIM(ADJUSTL(temp))//" triangles)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)

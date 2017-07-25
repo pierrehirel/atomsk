@@ -1610,7 +1610,7 @@ CASE('stl','STL')
     td = (/0,0,1/)  !vector of ray
     DO i=1,SIZE(P,1)
       !
-      IF( SIZE(P,1) > 5000 .AND. SIZE(triangles,1)>10000 ) THEN
+      IF( SIZE(P,1)>500000 .OR. SIZE(triangles,1)>100000 ) THEN
         !If there are many atoms and triangles, display a fancy progress bar
         CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
       ENDIF

@@ -1850,6 +1850,29 @@ CASE(2133)
   !reals(1) = new number of atoms
   msg = "..> Les opérations de symétrie ont bien été appliquées, nouveau nombre d'atomes : "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2140)
+  !reals(1) = min. separation distance
+  !reals(2) = separate atoms by this amount
+  WRITE(temp,"(f16.2)") reals(1)
+  WRITE(temp2,"(f16.2)") reals(2)
+  msg = ">>> Séparation des atomes proches de moins de "//TRIM(ADJUSTL(temp))//" A d'une distance de "//TRIM(ADJUSTL(temp2))//"..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2141)
+  !reals(1) = number of pairs of atoms that were separated
+  IF( reals(1) < 1.d-3 ) THEN
+    msg = "..> Aucun atome n'a été séparé."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> Une paire d'atomes a été séparée."
+  ELSE
+    WRITE(temp,"(i16)") NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" paires d'atomes ont été séparées."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2142)
+  !reals(1) = number of triangles in STL file
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Le fichier STL a bien été lu ("//TRIM(ADJUSTL(temp))//" triangles)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
