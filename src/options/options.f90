@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 July 2017                                     *
+!* Last modification: P. Hirel - 25 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -843,6 +843,12 @@ DO ioptions=1,SIZE(options_array)
       !  temp = treal(1)
       !  GOTO 810
       !ENDIF
+    ELSEIF( region_side=="stl" ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom
+      region_geom = TRIM(ADJUSTL(region_geom))
+      IF( region_geom(1:6)=="center" ) THEN
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_dir, region_geom
+      ENDIF
     ELSEIF( region_side=="neigh" ) THEN
       !Store number of neighbors, or cutoff radius for neighbor search, into region_1(1)
       !Store species of neighbors (can be "all" or "any") in region_geom

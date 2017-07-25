@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 July 2017                                     *
+!* Last modification: P. Hirel - 25 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1232,6 +1232,31 @@ DO WHILE(i<SIZE(cla))
       READ(cla(i),*,END=400,ERR=400) temp
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !
+    ELSEIF( temp=='prop' .OR. temp=='property' ) THEN
+      !Atoms must be selected according to a property
+      !Read name of the property
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !Read criterion (will be interpreted later)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !
+    ELSEIF( temp=='stl' .OR. temp=='STL' ) THEN
+      !Atoms inside a 3-D model must be selected
+      !Read name of the STL file
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      IF( temp(1:6)=="center" ) THEN
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        options_array(ioptions) = '-select stl center '//TRIM(temp)
+      ELSE
+        options_array(ioptions) = '-select stl '//TRIM(temp)
+      ENDIF
+      !
     ELSEIF( temp=='random' .OR. temp=='rand' ) THEN
       !A number N of atoms of given species must be selected at random
       !read number of atoms N
@@ -1244,17 +1269,6 @@ DO WHILE(i<SIZE(cla))
       READ(cla(i),*,END=400,ERR=400) temp
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF(LEN_TRIM(temp)>3) GOTO 120
-      !
-    ELSEIF( temp=='prop' .OR. temp=='property' ) THEN
-      !Atoms must be selected according to a property
-      !Read name of the property
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      !Read criterion (will be interpreted later)
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !
     ELSEIF( i+2<=SIZE(cla) .AND.                                                           &
           &  ( cla(i+2)=="neighbors" .OR. cla(i+2)=="neighbours" .OR. cla(i+2)=="neigh" )  &

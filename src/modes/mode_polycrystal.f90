@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 11 July 2017                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -564,14 +564,19 @@ DO
           miller=.FALSE.
         ELSE
           !Ambiguous data: the user entered something like "110", is it an angle or Miller indices?
-          !Try to interpret it as Miller indices, if it fails then it is angles
-          miller=.TRUE.
-          CALL INDEX_MILLER(or1,rotmat,j)
-          IF(j>0) miller=.FALSE.
-          CALL INDEX_MILLER(or2,rotmat,j)
-          IF(j>0) miller=.FALSE.
-          CALL INDEX_MILLER(or3,rotmat,j)
-          IF(j>0) miller=.FALSE.
+          IF( LEN_TRIM(or1)>=3 .AND. LEN_TRIM(or2)>=3 .AND. LEN_TRIM(or3)>=3 ) THEN
+            !Try to interpret it as Miller indices, if it fails then it is angles
+            miller=.TRUE.
+            CALL INDEX_MILLER(or1,rotmat,j)
+            IF(j>0) miller=.FALSE.
+            CALL INDEX_MILLER(or2,rotmat,j)
+            IF(j>0) miller=.FALSE.
+            CALL INDEX_MILLER(or3,rotmat,j)
+            IF(j>0) miller=.FALSE.
+          ELSE
+            !or1, or2 and/or or3 contain only 2 digits => consider they are angles
+            miller=.FALSE.
+          ENDIF
         ENDIF
         !
         IF( miller ) THEN

@@ -45,6 +45,8 @@
 
 <p><code>-select grid &#60;fichier&#62;</code></p>
 
+<p><code>-select stl [center] &#60;fichier&#62;</code></p>
+
 
 <h4>Description</h4>
 
@@ -101,6 +103,8 @@ de leur espèce chimique.</p>
 </ul>
 
 <p>Les deux premiers formats permettent de manipuler des grilles en 2-D ou en 3-D ; le dernier format, uniquement des grilles bidimensionnelles (voir les exemples ci-dessous). Cette option permet de sélectionner des formes complexes.</p>
+
+<p>En utilisant <strong>-select stl</strong>, les atomes sont sélectionnés selon le modèle 3-D défini dans le &#60;fichier&#62;. Le &#60;fichier&#62; doit être au <a href="https://fr.wikipedia.org/wiki/Fichier_de_st%C3%A9r%C3%A9olithographie">format STL</a>, ASCII ou binaire. Ce format de fichier est très utilisé pour l'impression 3-D et dans d'autres applications 3-D, et peut être généré à l'aide de nombreux logiciels de modélisation 3-D, parmi lesquels <a href="http://tinkercad.com/">Tinkercad</a>, <a href="http://www.blender.org/">Blender</a>, ou <a href="http://sketchup.google.com/">Google Sketchup</a>; ou bien, des modèles prédéfinis pauvent être obtenus depuis une grande variété de sources, par exemple <a href="https://cults3d.com/">Cults</a>, <a href="https://pinshape.com/">Pinshape</a>, ou bien <a href="https://www.thingiverse.com/">Thingiverse</a>. Après avoir lu le fichier STL, Atomsk le redimensionne automatiquement pour qu'il rentre dans la boîte de simulation, le facteur étant égal à la plus petite dimension de la boîte atomique, divisée par la plus grande dimension du modèle 3-D. Si le mot-clé "center" apparaît avant le nom du &#60;fichier&#62;, alors le modèle 3-D est placé au centre de la boîte de simulation. Sinon, le modèle 3-D n'est translaté en aucune façon. Les atomes qui se trouvent <em>à l'intérieur</em> du modèle 3-D model sont selectionnés&nbsp;; pour sélectionner les atomes qui se trouvent à l'extérieur, utilisez simplement "-select invert". Notez que, si le modèle 3-D contient un très grand nombre de triangles (plus de 100&nbsp;000), alors la sélection peut prendre du temps.</p>
 
 <p>Les options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
 

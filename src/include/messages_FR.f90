@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 July 2017                                     *
+!* Last modification: P. Hirel - 24 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1324,6 +1324,9 @@ CASE(2077)
     WRITE(temp,*) NINT(reals(2))
     msg = ">>> Sélection "//TRIM(ADJUSTL(msg))//" de l'atome #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="stl" ) THEN
+    msg = ">>> Sélection des atomes dans l'objet 3-D défini dans le fichier STL : "//TRIM(ADJUSTL(strings(2)))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     !Last case: strings(1) should be an atom species
     msg = ">>> Selection de tous les atomes de "//TRIM(ADJUSTL(strings(1)))//"."
@@ -2083,6 +2086,9 @@ CASE(2816)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2817)
   msg = "X!X ERREUR : la propriété '"//TRIM(ADJUSTL(strings(1)))//"' n'est pas définie, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2818)
+  msg = "X!X ERREUR : une erreur s'est produite lors de la lecture du fichier STL, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

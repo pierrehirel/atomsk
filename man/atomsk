@@ -182,7 +182,9 @@ Rotates the system around a cartesian <axis>.
 .B -select <N> <species> neighbor <index>
 .TP
 .B -select grid <file>
-Selects all atoms, or invert selection, or select atom with given index, or all atoms of given species, or a random set of N atoms of the given species, or atoms that are above or below a given plane, or the N first neighbors with the given <species> of the atom with the given <index>, or atoms that are inside or outside of a region.
+.TP
+.B -select stl [center] <file>
+Selects atoms according to the given criteria.
 .TP
 .B -separate <distance> <shift>
 Separate atoms that are closer to each other than the <distance>.

@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 July 2017                                     *
+!* Last modification: P. Hirel - 13 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -33,6 +33,7 @@ USE messages
 USE neighbors
 USE files
 USE functions
+USE in_stl
 USE subroutines
 !
 !
@@ -48,7 +49,7 @@ CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: temp
-CHARACTER(LEN=128):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh' or 'list'
+CHARACTER(LEN=128):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh' or 'list' or 'grid' or 'stl'
 CHARACTER(LEN=4096):: region_geom !geometry of the region: "box" or "sphere". If "neighbors" then
                                   !neighbors of an atom must be searched. If region_side=="list" then
                                   !region_geom contains the name of the file.
@@ -69,15 +70,20 @@ INTEGER:: Nselect  !number of atoms selected
 INTEGER:: rand_N   !number of atoms to select randomly
 INTEGER:: sp_N     !number of atoms of the given species that exist in P
 INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be selected
+INTEGER,DIMENSION(:),ALLOCATABLE:: newindex    !list of sorted indexes
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !the neighbor list
 REAL(dp):: distance  !distance of an atom to the center of the sphere
+REAL(dp):: dz        !increment along Z
+REAL(dp):: ta, tf, tt, tu, tv !used to detect ray-triangle intersections
 REAL(dp):: snumber   !atomic number
 REAL(dp):: tempreal
 REAL(dp):: V1, V2, V3  !vector components
 REAL(dp):: xmin, xmax, ymin, ymax, zmin, zmax !box parameters
+REAL(dp),DIMENSION(3):: e1, e2, td, th, ts, tq !vectors used to detect ray-triangle intersections
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
+REAL(dp),DIMENSION(3):: T1, T2, T3 !positions of vertices of a triangle
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !supercell vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
@@ -87,6 +93,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries   !species, Natoms of this specie
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX        !auxiliary properties of atoms/shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: GRID       !positions of elements in a finite-element grid
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: facenormals !vectors normal to faces (prism)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: triangles  !triangles defining a 3-D surface
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q     !positions of atoms of a given species
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList !positions of neighbors
@@ -114,7 +121,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 SELECT CASE(region_side)
 !
-CASE('all','any','none','above','below','invert','inv','in','list','out','prop','property','random','rand','random%','rand%')
+CASE('all','any','none','above','below','invert','inv','in','list','out','prop','property','random','rand','random%','rand%','stl')
   CONTINUE
   !
 CASE DEFAULT
@@ -1494,6 +1501,212 @@ CASE('grid')
       !
     ENDIF
     !
+  ENDIF
+  !
+  !
+CASE('stl','STL')
+  !Select atoms inside polygons (triangles) defined in a STL file
+  !NOTE: in order to determine if an atom at coordinates (x,y,z) is inside
+  !     or outside of the 3-D shape, the program follows a line starting at
+  !     (x,y,0), progressively increasing Z, and incrementing a variable n
+  !     every time it crosses the surface of a triangle. In the end, if
+  !     n is even then the atom is inside the 3-D shape, otherwise it is outside.
+  !
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  !
+  !Define increment to parse along Z
+  !NOTE: if two triangles of the 3D surface are separated by less than
+  !     this distance, the detection will fail
+  dz = 10.d0  !MAX ( 0.1d0 , 0.01d0*VECLENGTH(H(:,3)) )
+  !
+  !Define
+  m = NINT( VECLENGTH(H(:,3)) / dz ) + 1
+  !
+  !Read triangles from STL file
+  CALL READ_STL(region_geom,triangles)
+  !
+  IF( ALLOCATED(triangles) .AND. SIZE(triangles,1) > 3 ) THEN
+    CALL ATOMSK_MSG(2142,(/""/),(/DBLE(SIZE(triangles,1))/))
+    !
+    !The array "triangles" should contain all triangles defining the 3-D object
+    !It is a N x 12 array (where N is the number of triangles):
+    !  triangles(:,1:3)     vector normal to the triangle surface
+    !  triangles(:,4:6)     position of 1st vertex of triangle
+    !  triangles(:,7:9)     position of 2nd vertex of triangle
+    !  triangles(:,10:12)   position of 3rd vertex of triangle
+    !
+    !Sort triangles by increasing Z coordinates
+    !NOTE: if the file respects the STL standard, it is already the case.
+    !     This is just a precaution to make sure it is the case.
+    !NOTE2: here we sort only the Z coordinates of the 1st vertices
+    CALL QUICKSORT( triangles(:,:) , 6 , 'up  ' , newindex )
+    IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
+    !
+    !Determine bounding box of 3-D model
+    xmin = MIN( MINVAL(triangles(:,4)) , MINVAL(triangles(:,7)) , MINVAL(triangles(:,10)) )
+    xmax = MAX( MAXVAL(triangles(:,4)) , MAXVAL(triangles(:,7)) , MAXVAL(triangles(:,10)) )
+    ymin = MIN( MINVAL(triangles(:,5)) , MINVAL(triangles(:,8)) , MINVAL(triangles(:,11)) )
+    ymax = MAX( MAXVAL(triangles(:,5)) , MAXVAL(triangles(:,8)) , MAXVAL(triangles(:,11)) )
+    zmin = MIN( MINVAL(triangles(:,6)) , MINVAL(triangles(:,9)) , MINVAL(triangles(:,12)) )
+    zmax = MAX( MAXVAL(triangles(:,6)) , MAXVAL(triangles(:,9)) , MAXVAL(triangles(:,12)) )
+    WRITE(msg,'(a14,6f6.2)') "BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !
+    !Rescale the 3-D model to the dimensions of current simulation box
+    !conserving the proportions of the 3-D model
+    !tempreal is the rescaling factor
+    tempreal = MIN( VECLENGTH(H(:,1)) , VECLENGTH(H(:,2)) , VECLENGTH(H(:,3)) ) &
+             & / MAX( xmax-xmin , ymax-ymin , zmax-zmin )
+    triangles(:,4)  = triangles(:,4)  * tempreal
+    triangles(:,7)  = triangles(:,7)  * tempreal
+    triangles(:,10) = triangles(:,10) * tempreal
+    triangles(:,5)  = triangles(:,5)  * tempreal
+    triangles(:,8)  = triangles(:,8)  * tempreal
+    triangles(:,11) = triangles(:,11) * tempreal
+    triangles(:,6)  = triangles(:,6)  * tempreal
+    triangles(:,9)  = triangles(:,9)  * tempreal
+    triangles(:,12) = triangles(:,12) * tempreal
+    !
+    !Update bounding box of 3-D model
+    xmin = MIN( MINVAL(triangles(:,4)) , MINVAL(triangles(:,7)) , MINVAL(triangles(:,10)) )
+    xmax = MAX( MAXVAL(triangles(:,4)) , MAXVAL(triangles(:,7)) , MAXVAL(triangles(:,10)) )
+    ymin = MIN( MINVAL(triangles(:,5)) , MINVAL(triangles(:,8)) , MINVAL(triangles(:,11)) )
+    ymax = MAX( MAXVAL(triangles(:,5)) , MAXVAL(triangles(:,8)) , MAXVAL(triangles(:,11)) )
+    zmin = MIN( MINVAL(triangles(:,6)) , MINVAL(triangles(:,9)) , MINVAL(triangles(:,12)) )
+    zmax = MAX( MAXVAL(triangles(:,6)) , MAXVAL(triangles(:,9)) , MAXVAL(triangles(:,12)) )
+    WRITE(msg,'(a22,6f6.2)') "UPDATED BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !
+    IF( region_dir=="center" ) THEN
+      !Translate 3-D model so that it is at center of simulation box
+      tempreal = xmin + (xmax-xmin)/2.d0 - MAXVAL(H(1,:))/2.d0
+      triangles(:,4)  = triangles(:,4) - tempreal
+      triangles(:,7)  = triangles(:,7) - tempreal
+      triangles(:,10) = triangles(:,10) - tempreal
+      tempreal = ymin + (ymax-ymin)/2.d0 - MAXVAL(H(2,:))/2.d0
+      triangles(:,5)  = triangles(:,5) - tempreal
+      triangles(:,8)  = triangles(:,8) - tempreal
+      triangles(:,11) = triangles(:,11) - tempreal
+      tempreal = zmin + (zmax-zmin)/2.d0 - MAXVAL(H(3,:))/2.d0
+      triangles(:,6)  = triangles(:,6) - tempreal
+      triangles(:,9)  = triangles(:,9) - tempreal
+      triangles(:,12) = triangles(:,12) - tempreal
+      !
+      !Update bounding box of 3-D model once again
+      xmin = MIN( MINVAL(triangles(:,4)) , MINVAL(triangles(:,7)) , MINVAL(triangles(:,10)) )
+      xmax = MAX( MAXVAL(triangles(:,4)) , MAXVAL(triangles(:,7)) , MAXVAL(triangles(:,10)) )
+      ymin = MIN( MINVAL(triangles(:,5)) , MINVAL(triangles(:,8)) , MINVAL(triangles(:,11)) )
+      ymax = MAX( MAXVAL(triangles(:,5)) , MAXVAL(triangles(:,8)) , MAXVAL(triangles(:,11)) )
+      zmin = MIN( MINVAL(triangles(:,6)) , MINVAL(triangles(:,9)) , MINVAL(triangles(:,12)) )
+      zmax = MAX( MAXVAL(triangles(:,6)) , MAXVAL(triangles(:,9)) , MAXVAL(triangles(:,12)) )
+      WRITE(msg,'(a22,6f6.2)') "UPDATED BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDIF
+    !
+    ALLOCATE( SELECT(SIZE(P,1)) )
+    SELECT(:) = .FALSE.
+    !
+    !Loop on all atoms
+    td = (/0,0,1/)  !vector of ray
+    DO i=1,SIZE(P,1)
+      !
+      IF( SIZE(P,1) > 5000 .AND. SIZE(triangles,1)>10000 ) THEN
+        !If there are many atoms and triangles, display a fancy progress bar
+        CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
+      ENDIF
+      !
+      IF( P(i,1)<xmin .OR. P(i,1)>xmax .OR. &
+        & P(i,2)<ymin .OR. P(i,2)>ymax .OR. &
+        & P(i,3)<zmin .OR. P(i,3)>zmax      ) THEN
+        !Atom is outside of the bounding box, hence outside of the 3-D shape
+        !SELECT(i) = .FALSE.
+      ELSE
+        !Loop on Z coordinates to check how many vertices are crossed
+        !At beginning atom is assumed to be outside the 3-D shape
+        keep = .FALSE.
+        !
+        !Loop on all triangles
+        k = 1
+        n = 1
+        DO WHILE( n>0 .AND. k <= SIZE(triangles,1) )
+          IF( ( triangles(k,4)>P(i,1) .AND. triangles(k,7)>P(i,1) .AND. triangles(k,10)>P(i,1) ) .OR. &
+            & ( triangles(k,4)<P(i,1) .AND. triangles(k,7)<P(i,1) .AND. triangles(k,10)<P(i,1) ) .OR. &
+            & ( triangles(k,5)>P(i,2) .AND. triangles(k,8)>P(i,2) .AND. triangles(k,11)>P(i,2) ) .OR. &
+            & ( triangles(k,5)<P(i,2) .AND. triangles(k,8)<P(i,2) .AND. triangles(k,11)<P(i,2) )      ) THEN
+            !All X or all Y coordinates of triangles vertices have greater (or smaller)
+            !than coordinates of atom #i
+            !Ray will not intersect this triangle => skip
+          ELSE
+            !Determine if ray [001] passing through atom #i intersects the triangle #k
+            !Note: this part follows the algorithm proposed in this Web site:
+            !  http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
+            e1(:) = triangles(k,7:9) - triangles(k,4:6)
+            e2(:) = triangles(k,10:12) - triangles(k,4:6)
+            !
+            th = CROSS_PRODUCT(td,e2)
+            ta = DOT_PRODUCT(e1,th)
+            !
+            IF( ta > -1.d-12 .AND. ta < 1.d-12 ) THEN
+              !keep = .FALSE.
+            ELSE
+              tf = 1.d0/ta
+              ts(:) = P(i,1:3) - triangles(k,4:6)
+              tu = tf * DOT_PRODUCT(ts,th)
+              !
+              IF( tu < 0.d0 .OR. tu > 1.d0 ) THEN
+                !keep = .FALSE.
+              ELSE
+                tq = CROSS_PRODUCT(ts,e1)
+                tv = tf * DOT_PRODUCT(td,tq)
+                !
+                IF( tv < 0.d0 .OR. tu+tv > 1.d0 ) THEN
+                  !keep = .FALSE.
+                ELSE
+                  !There is a line or ray intersection
+                  !keep = .NOT.keep
+                  ! at this stage we can compute t to find out where
+                  ! the intersection point is on the line
+                  tt = tf * DOT_PRODUCT(e2,tq)
+                  !
+                  IF( tt > 1.d-12 ) THEN
+                    !The ray intersects the triangle
+                    !=> invert status of atom
+                    keep = .NOT.keep
+                  ELSE
+                    !There is a line intersection, but not a ray intersection
+                    !keep = .FALSE.
+                  ENDIF
+                ENDIF
+              ENDIF
+            ENDIF
+            !
+          ENDIF
+          !
+!           IF( triangles(k,6)>P(i,3) ) THEN
+!             n=0
+!           ENDIF
+          k = k+1
+          !
+        ENDDO !end loop on k
+        !
+        IF( keep ) THEN
+          !This atom is inside the 3-D shape
+          !PRINT*, "Keep atom #", i
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
+      ENDIF
+      !
+    ENDDO !end loop on i
+    !
+    !Free memory
+    IF(ALLOCATED(triangles)) DEALLOCATE(triangles)
+    !
+  ELSE
+    !Array "triangles" is not allocated or has zero size
+    nerr = nerr+1
+    CALL ATOMSK_MSG(2818,(/''/),(/0.d0/))
+    GOTO 1000
   ENDIF
   !
   !

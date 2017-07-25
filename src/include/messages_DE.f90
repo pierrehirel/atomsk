@@ -1256,6 +1256,9 @@ CASE(2077)
     WRITE(temp,*) NINT(reals(2))
     msg = ">>> Waehle "//TRIM(ADJUSTL(msg))//" von Atom #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="stl" ) THEN
+    msg = ">>> Selecting atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     !Last case: strings(1) should be an atom species
     msg = ">>> Waehle alle "//TRIM(ADJUSTL(strings(1)))//" Atome..."

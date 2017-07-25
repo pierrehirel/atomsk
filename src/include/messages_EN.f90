@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 07 July 2017                                     *
+!* Last modification: P. Hirel - 24 July 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1296,6 +1296,9 @@ CASE(2077)
     WRITE(temp,*) NINT(reals(2))
     msg = ">>> Selecting "//TRIM(ADJUSTL(msg))//" of atom #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="stl" ) THEN
+    msg = ">>> Selecting atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     !Last case: strings(1) should be an atom species
     msg = ">>> Selecting all "//TRIM(ADJUSTL(strings(1)))//" atoms..."
@@ -1811,6 +1814,11 @@ CASE(2141)
     msg = "..> "//TRIM(ADJUSTL(temp))//" pairs of atoms were separated."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2142)
+  !strings(1) = file name
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> STL file was read successfully ("//TRIM(ADJUSTL(temp))//" triangles)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2046,6 +2054,9 @@ CASE(2816)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2817)
   msg = "X!X ERROR: the property '"//TRIM(ADJUSTL(strings(1)))//"' is not defined, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2818)
+  msg = "X!X ERROR: there was an error while reading the STL file, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
