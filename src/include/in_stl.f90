@@ -76,7 +76,7 @@ IF( line(1:5) == "solid" ) THEN
   formatted = .TRUE.
 ENDIF
 !Try to detect non-ASCII characters to check if file is binary
-READ(32,'(a128)',END=800,ERR=800) line
+!READ(32,'(a128)',END=800,ERR=800) line
 j=0
 k=1  !counter for lines. Reading the first 5 lines should be sufficient
 DO WHILE( j==0 .AND. formatted .AND. k<=5 )
