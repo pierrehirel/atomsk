@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 July 2017                                     *
+!* Last modification: P. Hirel - 03 Août 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1065,7 +1065,7 @@ CASE(2061)
     & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2062)
-  msg = "..> Calcul des solutions aux équations anisotropiques..."
+  msg = "..> Calcul des solutions aux équations anisotropes..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2063)
   !reals(1) = number of inserted atoms
