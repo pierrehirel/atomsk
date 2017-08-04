@@ -19,8 +19,8 @@ MODULE dislocation
 !* BEFORE being passed to the present routine.                                    *
 !**********************************************************************************
 !* (C) May 2010 - Pierre Hirel                                                    *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
 !* Last modification: P. Hirel - 15 Feb. 2017                                     *
 !**********************************************************************************
@@ -241,21 +241,32 @@ IF(aniso) THEN
   !we have to provide a rotated C_tensor
   IF(a3.NE.3) THEN
     !Set rotation matrix:
+    rot_matrix(:,:) = 0.d0
     IF( a3==1 ) THEN
-      !dislocline along X => rotate by 90° around a1=Y
-      rot_matrix(:,:) = 0.d0
-      rot_matrix(a1,a1) = 1.d0
-      rot_matrix(a2,a3) = -1.d0
-      rot_matrix(a3,a2) = 1.d0
-    ELSEIF( a3==2 ) THEN
-      !dislocline along Y=a3 => rotate by 90° around a2=X
-      rot_matrix(:,:) = 0.d0
-      rot_matrix(a2,a2) = 1.d0
-      rot_matrix(a1,a3) = -1.d0
-      rot_matrix(a3,a1) = 1.d0
+      !dislocline along X => rotate by -90° around Y
+      rot_matrix(2,2) = 1.d0
+      rot_matrix(1,3) = 1.d0
+      rot_matrix(3,1) = -1.d0
+    ELSE  !i.e. if a3==2
+      !dislocline along Y => rotate by 90° around X
+      rot_matrix(1,1) = 1.d0
+      rot_matrix(2,3) = 1.d0
+      rot_matrix(3,2) = -1.d0
     ENDIF
     !Rotate elastic tensor
     C_tensor_rot = ROTELAST( C_tensor, rot_matrix )
+    !
+    IF( a2.NE.a3+1 ) THEN
+      !Dislocline is along X, but slip plane is not normal to Y, OR
+      !dislocline is along Y, but slip plane is not normal to Z
+      !=> rotate elastic tensor around the Z axis
+      rot_matrix(:,:) = 0.d0
+      rot_matrix(1,2) = -1.d0
+      rot_matrix(2,1) = 1.d0
+      rot_matrix(3,3) = 1.d0
+      !Rotate elastic tensor
+      C_tensor_rot = ROTELAST( C_tensor, rot_matrix )
+    ENDIF
     !
   ELSE
     !Otherwise (i.e. dislocline is along Z) just use C_tensor
@@ -272,6 +283,56 @@ IF(aniso) THEN
     CALL ATOMSK_MSG(2807,(/''/),(/DBLE(k)/))
     GOTO 1000
   ELSE
+    !Routine ANISO_COEFF worked: now the coefficients A_kn, Dn, Pn, B_ijk
+    !are known, for a dislocation line along Z.
+    !If dislocation line is *not* along Z, then 
+    !rotate the C_tensor back to its previous orientation
+    IF(a3.NE.3) THEN
+      !Set rotation matrix:
+      rot_matrix(:,:) = 0.d0
+      IF( a3==1 ) THEN
+        !dislocline along X => rotate by 90° around a1=Y
+        rot_matrix(2,2) = 1.d0
+        rot_matrix(1,3) = -1.d0
+        rot_matrix(3,1) = 1.d0
+      ELSE  !i.e. if a3==2
+        !dislocline along Y=a3 => rotate by -90° around a2=X
+        rot_matrix(1,1) = 1.d0
+        rot_matrix(2,3) = -1.d0
+        rot_matrix(3,2) = 1.d0
+      ENDIF
+      !Rotate elastic tensor
+      C_tensor_rot = ROTELAST( C_tensor, rot_matrix )
+      !
+      !In addition, we have to fix the A_kn and B_ijk
+      !so that the displacements u_k are applied in the
+      !correct direction
+      IF( a3==1 ) THEN
+        !dislocline along X => swap Z and X
+        DO i=1,3
+          tempcmplx = A_kn(1,i)
+          A_kn(1,i) = A_kn(3,i)
+          A_kn(3,i) = tempcmplx
+          DO n=1,3
+            tempcmplx = B_ijk(i,1,n)
+            B_ijk(i,1,n) = B_ijk(i,3,n)
+            B_ijk(i,3,n) = tempcmplx
+          ENDDO
+        ENDDO
+      ELSE  !i.e. if a3==2
+        !dislocline along Y => swap Z and Y
+        DO i=1,3
+          tempcmplx = A_kn(2,i)
+          A_kn(2,i) = A_kn(3,i)
+          A_kn(3,i) = tempcmplx
+          DO n=1,3
+            tempcmplx = B_ijk(i,2,n)
+            B_ijk(i,2,n) = B_ijk(i,3,n)
+            B_ijk(i,3,n) = tempcmplx
+          ENDDO
+        ENDDO
+      ENDIF
+    ENDIF
     CALL ATOMSK_MSG(2096,(/''/),(/0.d0/))
   ENDIF
 ENDIF
