@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 11 Sept. 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,7 +49,7 @@ CHARACTER(LEN=2),DIMENSION(20):: create_species !chemical species of atoms (mode
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
-CHARACTER(LEN=128):: msg, test, temp
+CHARACTER(LEN=128):: cwd, msg, test, temp
 CHARACTER(LEN=128):: question, solution
 CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
@@ -70,6 +70,7 @@ INTEGER:: i, j, k
 INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
 LOGICAL:: cubic !is the lattice cubic?
+LOGICAL:: exists !does file or directory exist?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp):: smass, snumber  !atomic mass, atomic number
@@ -139,8 +140,18 @@ DO
   instruction = ""
   nerr=0  !do not exit program upon errors
   !
+  !Get current working directory
+  CALL getcwd(cwd)
+  IF( cwd=="/home/"//username ) THEN
+    cwd="~"
+  ELSE
+    !Keep only what is after the last separator
+    k = INDEX(cwd,pathsep,BACK=.TRUE.)
+    cwd = TRIM(ADJUSTL(cwd(k+1:)))
+  ENDIF
+  !
   !The Atomsk prompt!
-  WRITE(temp,*) TRIM(ADJUSTL(username))//"@atomsk> "
+  WRITE(temp,*) TRIM(ADJUSTL(username))//"@atomsk:"//TRIM(ADJUSTL(cwd))//"> "
   WRITE(*,'(a)',ADVANCE='NO') TRIM(temp)//" "
   !
   !Read the instruction given by the user
@@ -203,6 +214,39 @@ DO
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!         SPECIAL COMMANDS
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      CASE("cd","CD")
+        temp = TRIM(ADJUSTL( instruction(3:) ))
+        IF( LEN_TRIM(temp) <= 0 .OR. temp=="~" ) THEN
+          !Go to root directory
+#if defined(WINDOWS)
+          CALL CHDIR("C:")
+#else
+          CALL CHDIR("/home/"//username)
+#endif
+        ELSEIF( INDEX(temp,'!§;,?:#&{}<>=')==0 ) THEN
+          !Test if directory exists
+          INQUIRE( FILE="."//pathsep//TRIM(temp)//pathsep//"." , EXIST=exists )
+          IF( exists ) THEN
+            CALL CHDIR(temp)
+          ELSE
+            !Directory does not exist => display error message
+            CALL ATOMSK_MSG(813,(/''/),(/0.d0/))
+          ENDIF
+        ELSE
+          !Strange characters in dir name => display error message
+          CALL ATOMSK_MSG(813,(/''/),(/0.d0/))
+        ENDIF
+        !
+      CASE("ls","dir")
+        CALL SYSTEM(system_ls)
+        !
+      CASE("pwd","PWD")
+        CALL SYSTEM("pwd")
+        !
+      CASE("whoami")
+        !Print user name
+        WRITE(*,*) "  "//TRIM(ADJUSTL(username))
+        !
       CASE("clear")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
           !User may have forgotten to write file => Display a warning
@@ -224,12 +268,6 @@ DO
         IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
         IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
         IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
-        !
-      CASE("ls","dir")
-        CALL SYSTEM(system_ls)
-        !
-      CASE("pwd","PWD")
-        CALL SYSTEM("pwd")
         !
       CASE("exit","quit","bye")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
@@ -299,9 +337,18 @@ DO
         !
       !Commands to read and write files
       CASE("read")
-        !Read a file
-        inputfile = TRIM(ADJUSTL(instruction(6:)))
-        CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)
+        !Verify that there is no previous system in memory
+        answer = langyes
+        IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
+          !User may have forgotten to write file => Display a warning
+          CALL ATOMSK_MSG(4713,(/'erase it'/),(/0.d0/))
+          READ(*,*) answer
+        ENDIF
+        IF( answer==langyes .OR. answer==langBigYes ) THEN
+          !Read the file
+          inputfile = TRIM(ADJUSTL(instruction(6:)))
+          CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)
+        ENDIF
         !
       CASE("write")
         !Write system to a file
@@ -564,10 +611,6 @@ DO
         ENDIF
         !
         CALL ATOMSK_MSG(4302,(/solution/),(/DBLE(try)/DBLE(maxtries)/))
-        !
-      CASE("whoami")
-        !Print user name
-        WRITE(*,*) "  "//TRIM(ADJUSTL(username))
         !
         !
       CASE DEFAULT

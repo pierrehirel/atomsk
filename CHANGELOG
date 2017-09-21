@@ -9,8 +9,8 @@ Master (development)
 
 
 
-Beta 0.9.5 (09 May 2017)
-------------------------
+Beta 0.9.6 (04 Aug. 2017)
+-------------------------
 - fixed a bug in option "-dislocation", where the anisotropic displacements would not be correct when the dislocation line was not along the Cartesian Z axis. Thanks to Hui Liu, McGill University, Montreal, Canada, for pointing out this bug.
 
 

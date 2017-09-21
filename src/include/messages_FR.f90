@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 03 Août 2017                                     *
+!* Last modification: P. Hirel - 11 Sept. 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -777,6 +777,9 @@ CASE(812)
   !strings(1) = non-conformal symmetry operation string
   msg = "X!X ERREUR : impossible d'appliquer les opérations de symétrie : '"// &
       & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(813)
+  msg = "X!X ERREUR : aucun fichier ou dossier de ce type"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2322,7 +2325,11 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "help               Affiche cette aide"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls//"                 Affiche la liste des fichiers du dossier courant"
+  msg = "cd                 Changer de dossier"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = system_ls//"                Affiche la liste des fichiers du dossier courant"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "pwd                Affiche le dossier courant"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "memory             Résumé du contenu de la mémoire"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

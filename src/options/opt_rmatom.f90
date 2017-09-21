@@ -67,6 +67,7 @@ snumber = 0.d0
 IF(ALLOCATED(newP)) DEALLOCATE(newP)
 IF(ALLOCATED(newS)) DEALLOCATE(newS)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
 !
 WRITE(msg,*) 'Entering RMATOM_XYZ: '//TRIM(ADJUSTL(rmatom_prop))
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -113,8 +114,6 @@ IF( method==1 ) THEN
     IF(NP>0) THEN
       ALLOCATE( newP(NP,4) )
       newP(:,:) = 0.d0
-      ALLOCATE( newSELECT(NP) )
-      newSELECT(:) = .FALSE.
       IF( ALLOCATED(S) ) THEN
         ALLOCATE( newS(NP,4) )
         newS(:,:) = 0.d0
@@ -126,7 +125,6 @@ IF( method==1 ) THEN
       !
       NP = 0
       DO i=1,SIZE(P,1)
-        newSELECT(NP) = SELECT(i)
         IF( .NOT.SELECT(i) ) THEN
           !This atom is not selected => it lives
           NP=NP+1
@@ -143,6 +141,11 @@ IF( method==1 ) THEN
       !All atoms must be removed
       rmatoms = SIZE(P,1)
     ENDIF
+    !
+    !Since all selected atoms were removed, clear the selection
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2750,(/''/),(/0.d0/))
+    IF( ALLOCATED(SELECT) ) DEALLOCATE(SELECT)
     !
   ELSE
     !No selection is defined => do not remove any atom

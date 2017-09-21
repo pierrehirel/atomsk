@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 07 July 2017                                     *
+!* Last modification: P. Hirel - 11 Sept. 2017                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -750,6 +750,9 @@ CASE(812)
   !strings(1) = non-conformal symmetry operation string
   msg = "X!X FEHLER beim Interpretieren der Symmetrieoperationen '"// &
       & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(813)
+  msg = "X!X FEHLER: Datei oder Verzeichnis existiert nicht"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2245,8 +2248,12 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "help              Zeigt diese Hilfe"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "cd                Ändern das aktuelle Arbeitsverzeichnis"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = system_ls//"               Zeigt Dateien im aktuellen"// &
       & " Verzeichnis"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "pwd               Zeigt das aktuelle Arbeitsverzeichnis an"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "memory            Zeigt Speicheruebersicht"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
