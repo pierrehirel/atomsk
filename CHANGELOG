@@ -1,6 +1,11 @@
 CHANGELOG FOR ATOMSK
 ====================
 
+Beta 0.9.7 (21 Sept. 2017)
+-------------------------
+- fixed a bug in option "-remove-atoms", where the selection was not cleared after removing selected atoms. Thanks to Alexandra Goryaeva, INSA Lyon, France, for pointing out this bug.
+
+
 Beta 0.9.6 (04 Aug. 2017)
 -------------------------
 - fixed a bug in option "-dislocation", where the anisotropic displacements would not be correct when the dislocation line was not along the Cartesian Z axis. Thanks to Hui Liu, McGill University, Montreal, Canada, for pointing out this bug.
