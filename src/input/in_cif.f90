@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 March 2017                                    *
+!* Last modification: P. Hirel - 05 Oct. 2017                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -862,6 +862,7 @@ ELSE
   !No symmetry operation was defined, but a group symmetry was
   !Apply symmetry operations of that symmetry group
   IF( sgnumber > 1 .AND. sgnumber <= 230 ) THEN
+    CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
     ALLOCATE(symops_trf(sgnumber,SIZE(symop_list)))
     !Initialize symmetry operations
     CALL SYMOPS_INIT()

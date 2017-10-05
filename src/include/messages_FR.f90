@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 28 Feb. 2017                                     *
+!* Last modification: P. Hirel - 05 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1833,6 +1833,7 @@ CASE(2132)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2133)
   !reals(1) = new number of atoms
+  WRITE(temp,"(i16)") NINT(reals(1))
   msg = "..> Les opérations de symétrie ont bien été appliquées, nouveau nombre d'atomes : "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !

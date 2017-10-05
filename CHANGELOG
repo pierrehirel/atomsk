@@ -1,6 +1,12 @@
 CHANGELOG FOR ATOMSK
 ====================
 
+Beta 0.9.8 (5 Oct. 2017)
+------------------------
+- fixed a bug in option "-add-atoms", that caused a crash when auxiliary properties were defined. Thanks to Srinivasan Mahendran, UMET, Lille, France, for pointing out this bug.
+- fixed bugs in the display of messages when applying symmetry operations.
+
+
 Beta 0.9.7 (21 Sept. 2017)
 -------------------------
 - fixed a bug in option "-remove-atoms", where the selection was not cleared after removing selected atoms. Thanks to Alexandra Goryaeva, INSA Lyon, France, for pointing out this bug.

@@ -7,10 +7,10 @@ MODULE addatom
 !* position, of near an existing atom, or N new atoms at random places.           *
 !**********************************************************************************
 !* (C) March 2014 - Pierre Hirel                                                  *
-!*     Unité Matériaux Et Transformations (UMET),                                 *
-!*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
+!*     Université de Lille, Sciences et Technologies                              *
+!*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 05 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -112,6 +112,8 @@ ENDIF
 SELECT CASE(addatom_type)
 !
 CASE("at","AT","@")
+  WRITE(msg,'(a3,3f9.3)') 'AT ', addatom_prop(1), addatom_prop(2), addatom_prop(3)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Simplest case: a new atom must be inserted at position x, y, z
   ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
   DO i=1,SIZE(P,1)
@@ -130,6 +132,8 @@ CASE("at","AT","@")
   !
   !
 CASE("relative","rel")
+  WRITE(msg,'(a3,3f9.3)') 'RELATIVE ', addatom_prop(1), addatom_prop(2), addatom_prop(3)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !A new atom must be added near atom with the index addatom_prop(1)
   !Get index of atom
   atomindex = NINT(addatom_prop(1))
@@ -157,6 +161,8 @@ CASE("relative","rel")
   !
   !
 CASE("near","NEAR")
+  WRITE(msg,'(a3,i9)') 'NEAR ', NINT(addatom_prop(1))
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !A new atom must be added near atom with the index addatom_prop(1)
   !Get index of atom
   atomindex = NINT(addatom_prop(1))
@@ -231,6 +237,8 @@ CASE("near","NEAR")
   !
   !
 CASE("random","RANDOM","rand","RAND")
+  WRITE(msg,'(a3,i9)') 'RANDOM ', NINT(addatom_prop(1))
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Insert NP atoms at random positions (but not too close to existing atom)
   NP = NINT(addatom_prop(1))
   !
@@ -314,6 +322,10 @@ IF( addedatoms>0 ) THEN
   DEALLOCATE(P)
   ALLOCATE(P(SIZE(newP,1),4))
   P(:,:) = 0.d0
+  DO i=1,SIZE(P,1)
+    P(i,:) = newP(i,:)
+  ENDDO
+  !
   IF(ALLOCATED(S)) THEN
     IF(ALLOCATED(newS)) DEALLOCATE(newS)
     ALLOCATE(newS(SIZE(newP,1),4))
@@ -325,24 +337,40 @@ IF( addedatoms>0 ) THEN
     ALLOCATE(S(SIZE(P,1),4))
     S(:,:) = newS(:,:)
     DEALLOCATE(newS)
-  ENDIF
-  IF(ALLOCATED(AUX)) THEN
-    DEALLOCATE(AUX)
-    ALLOCATE( AUX( SIZE(newP,1),SIZE(newAUX,2) ) )
-    AUX(:,:) = 0.d0
+    IF( hasShells ) THEN
+      !Atoms of the same type as the new one have shells
+      !=> also add shells to all new atoms
+      DO i=SIZE(S,1)-addedatoms+1, SIZE(S,1)
+        S(i,:) = P(i,:)
+      ENDDO
+    ENDIF
   ENDIF
   !
-  DO i=1,SIZE(P,1)
-    P(i,:) = newP(i,:)
-    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      IF( i>SIZE(S,1)-addedatoms .AND. hasShells ) THEN
-        !Other atoms of this type have shells
-        !=> also add shells to new atoms
-        S(i,1:4) = P(i,1:4)
-      ENDIF
-    ENDIF
-    IF(ALLOCATED(AUX)) AUX(i,:) = newAUX(i,:)
-  ENDDO
+  IF(ALLOCATED(AUX)) THEN
+    !Copy aux. properties into a temp. array
+    IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+    ALLOCATE( newAUX(SIZE(P,1),SIZE(AUX,2) ) )
+    newAUX(:,:) = 0.d0
+    DO i=1,SIZE(AUX,1)
+      newAUX(i,:) = AUX(i,:)
+    ENDDO
+    DEALLOCATE(AUX)
+    ALLOCATE( AUX( SIZE(newAUX,1),SIZE(newAUX,2) ) )
+    AUX(:,:) = newAUX(:,:)
+    DEALLOCATE(newAUX)
+    !For each new particle, set aux. prop. according to existing particles
+    DO i=SIZE(AUX,1)-addedatoms+1 , SIZE(AUX,1)
+      !Check if other atoms of this type existed
+      DO j=1,SIZE(P,1)-addedatoms
+        IF( NINT(P(j,4))==NINT(P(i,4)) ) THEN
+          !Same atom existed => copy its aux. properties
+          AUX(i,:) = AUX(j,:)
+          EXIT
+        ENDIF
+      ENDDO
+    ENDDO
+  ENDIF
+  !
 ENDIF
 IF(ALLOCATED(newP)) DEALLOCATE(newP)
 IF(ALLOCATED(newS)) DEALLOCATE(newS)

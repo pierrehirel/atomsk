@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER="Beta-0.9.7"
+VER="Beta-0.9.8"
 
 # Name of the final binary
 BIN=atomsk
@@ -143,7 +143,7 @@ atomsk: modes
 	@echo ""
 
 # Compile modes modules
-modes: aux
+modes: aux FORCE
 	$(MAKE) $(MFLAGS) -C modes
 
 # Compile input, options and output - this can be run in parallel
