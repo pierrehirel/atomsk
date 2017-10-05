@@ -8,6 +8,15 @@ Master (development)
 - in option "-select", added possibility to provide a file containing any ASCII character when using "-select grid"; blank spaces are replaced by 0, any other character by 1. Also added possibility to select atoms inside a 3-D model defined by an STL file. Also added possibility to select atoms inside or outside a torus.
 
 
+Beta 0.9.8 (5 Oct. 2017)
+------------------------
+- fixed a bug in option "-add-atoms", that caused a crash when auxiliary properties were defined. Thanks to Srinivasan Mahendran, UMET, Lille, France, for pointing out this bug.
+
+
+Beta 0.9.7 (21 Sept. 2017)
+-------------------------
+- fixed a bug in option "-remove-atoms", where the selection was not cleared after removing selected atoms. Thanks to Alexandra Goryaeva, INSA Lyon, France, for pointing out this bug.
+
 
 Beta 0.9.6 (04 Aug. 2017)
 -------------------------

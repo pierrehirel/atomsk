@@ -143,7 +143,7 @@ atomsk: modes
 	@echo ""
 
 # Compile modes modules
-modes: aux
+modes: aux FORCE
 	$(MAKE) $(MFLAGS) -C modes
 
 # Compile input, options and output - this can be run in parallel
