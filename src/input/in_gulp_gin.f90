@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 06 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -398,7 +398,7 @@ species = ''
 !
 i=0  !Counter for cores
 j=0  !Counter for shells
-DO WHILE(i<NP .OR. j<NP)
+DO WHILE(i<NP .OR. j<NS)
   strlength = 0
   READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
@@ -473,11 +473,11 @@ DO WHILE(i<NP .OR. j<NP)
     temp2 = temp(strlength:)
     !
     !
-    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', species, TRIM(temp2)
+    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', species, ' ', TRIM(temp2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     IF(coord=='cart') THEN
-    !Cartesian coordinates are easy to read
+      !Cartesian coordinates are easy to read
       READ(temp2,*,END=800,ERR=800) P1, P2, P3
       !Save the rest of the line in "temp2" for later
       temp2 = ADJUSTL(temp2)
