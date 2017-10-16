@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Oct. 2017                                     *
+!* Last modification: P. Hirel - 16 Oct. 2017                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -397,7 +397,9 @@ DO !Main reading loop
             !Make sure that column #at_sp contains an atom species
             READ(columns(at_sp),*,ERR=170,END=170) temp
             temp = ADJUSTL(temp)
-            species = temp(1:2)
+            !Make sure that 1st letter is upper case, 2nd is lower case
+            species(1:1) = StrUpCase( temp(1:1) )
+            species(2:2) = StrDnCase( temp(2:2) )
             CALL ATOMNUMBER(species,snumber)
             IF( NINT(snumber) <= 0 ) THEN
               species = temp(1:1)
@@ -485,7 +487,8 @@ DO !Main reading loop
             ENDIF
             175 CONTINUE
             !Store atomic species
-            species = temp(1:2)
+            species(1:1) = StrUpCase( temp(1:1) )
+            species(2:2) = StrDnCase( temp(2:2) )
             CALL ATOMNUMBER(species,P(i,4))
             IF( P(i,4)<=1.d-12 ) THEN
               !Failed to read an atom species from the first two characters

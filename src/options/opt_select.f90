@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 13 July 2017                                     *
+!* Last modification: P. Hirel - 06 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1555,8 +1555,9 @@ CASE('stl','STL')
     !Rescale the 3-D model to the dimensions of current simulation box
     !conserving the proportions of the 3-D model
     !tempreal is the rescaling factor
-    tempreal = MIN( VECLENGTH(H(:,1)) , VECLENGTH(H(:,2)) , VECLENGTH(H(:,3)) ) &
-             & / MAX( xmax-xmin , ymax-ymin , zmax-zmin )
+    tempreal = MIN( VECLENGTH(H(:,1)) / (xmax-xmin) ,  &
+                  & VECLENGTH(H(:,2)) / (ymax-ymin) ,  &
+                  & VECLENGTH(H(:,3)) / (zmax-zmin)  )
     triangles(:,4)  = triangles(:,4)  * tempreal
     triangles(:,7)  = triangles(:,7)  * tempreal
     triangles(:,10) = triangles(:,10) * tempreal
