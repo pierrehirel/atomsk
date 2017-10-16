@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 16 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -398,7 +398,7 @@ species = ''
 !
 i=0  !Counter for cores
 j=0  !Counter for shells
-DO WHILE(i<NP .OR. j<NP)
+DO WHILE(i<NP .OR. j<NS)
   strlength = 0
   READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
@@ -473,7 +473,7 @@ DO WHILE(i<NP .OR. j<NP)
     temp2 = temp(strlength:)
     !
     !
-    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', species, TRIM(temp2)
+    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', species, ' ', TRIM(temp2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     IF(coord=='cart') THEN

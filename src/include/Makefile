@@ -6,8 +6,8 @@ L10N=messages_FR.f90 messages_DE.f90
 
 SGE=comv.f90              \
     constants.f90         \
-    atoms.f90             \
     functions.f90         \
+    atoms.f90             \
     subroutines.f90       \
     display_messages.f90  \
     messages_EN.f90       \
