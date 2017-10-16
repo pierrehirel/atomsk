@@ -18,7 +18,7 @@ MODULE modes
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 16 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -407,6 +407,9 @@ CASE('create')
       DO i=1,SIZE(create_species)
         outputfile = TRIM(outputfile)//TRIM(create_species(i))
       ENDDO
+      IF(create_struc=='fluorite' .OR. create_struc=='fluorine') THEN
+        outputfile = TRIM(outputfile)//'2'
+      ENDIF
       IF(create_struc=='per' .OR. create_struc=='perovskite') THEN
         outputfile = TRIM(outputfile)//'3'
       ENDIF
