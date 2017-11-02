@@ -4,8 +4,16 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
-- in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.
+- in mode "--interactive", added possibility to browse folders.
 - in option "-select", added possibility to provide a file containing any ASCII character when using "-select grid"; blank spaces are replaced by 0, any other character by 1. Also added possibility to select atoms inside a 3-D model defined by an STL file. Also added possibility to select atoms inside or outside a torus.
+
+
+
+Beta 0.9.9 (16 Oct. 2017)
+-------------------------
+- in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.
+- fixed a bug when reading GULP files, that caused a crash when shells were not present. Thanks to Srinivasan Mahendran, UMET, Lille, France, for pointing out this bug.
+- fixed a bug where atom species were not always recognized when written in all uppercase or all lowercase letters (e.g. "PB" instead of "Pb").
 
 
 Beta 0.9.8 (5 Oct. 2017)

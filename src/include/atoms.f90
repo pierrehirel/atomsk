@@ -9,7 +9,7 @@ MODULE atoms
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Oct. 2017                                     *
+!* Last modification: P. Hirel - 25 Oct. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -48,15 +48,15 @@ CONTAINS
 SUBROUTINE ATOMNUMBER(species,snumber)
 !
 IMPLICIT NONE
-CHARACTER(LEN=2):: species
+CHARACTER(LEN=2):: species, species2
 REAL(dp),INTENT(OUT):: snumber
 !
 !
 !Make sure that the first letter is uppercase, the second one lowercase
-species(1:1) = StrUpCase(species(1:1))
-species(2:2) = StrDnCase(species(2:2))
+species2(1:1) = StrUpCase(species(1:1))
+species2(2:2) = StrDnCase(species(2:2))
 !
-SELECT CASE(species)
+SELECT CASE(species2)
 ! n=1
 CASE('H','D')
       snumber=1.d0

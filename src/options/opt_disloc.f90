@@ -286,27 +286,9 @@ IF(aniso) THEN
     !Routine ANISO_COEFF worked: now the coefficients A_kn, Dn, Pn, B_ijk
     !are known, for a dislocation line along Z.
     !If dislocation line is *not* along Z, then 
-    !rotate the C_tensor back to its previous orientation
+    !rotate the A_kn and B_ijk so that the displacements u_k
+    !are applied in the correct direction
     IF(a3.NE.3) THEN
-      !Set rotation matrix:
-      rot_matrix(:,:) = 0.d0
-      IF( a3==1 ) THEN
-        !dislocline along X => rotate by 90° around a1=Y
-        rot_matrix(2,2) = 1.d0
-        rot_matrix(1,3) = -1.d0
-        rot_matrix(3,1) = 1.d0
-      ELSE  !i.e. if a3==2
-        !dislocline along Y=a3 => rotate by -90° around a2=X
-        rot_matrix(1,1) = 1.d0
-        rot_matrix(2,3) = -1.d0
-        rot_matrix(3,2) = 1.d0
-      ENDIF
-      !Rotate elastic tensor
-      C_tensor_rot = ROTELAST( C_tensor, rot_matrix )
-      !
-      !In addition, we have to fix the A_kn and B_ijk
-      !so that the displacements u_k are applied in the
-      !correct direction
       IF( a3==1 ) THEN
         !dislocline along X => swap Z and X
         DO i=1,3

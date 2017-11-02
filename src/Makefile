@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER="master-devel"
+VER="master"
 
 # Name of the final binary
 BIN=atomsk
@@ -108,6 +108,7 @@ help:
 	@echo "      o---o|   _____________     |"
 	@echo "      |   |o    A T O M S K     ,0;-o"
 	@echo "      o---o                   o'   'O"
+	@echo "             Version ${VER}"
 	@echo "Available targets for make:"
         ifeq ($(MF),Makefile)
 	  @echo "- make help         display this message"
@@ -186,7 +187,11 @@ clean:
 
 
 # Create an archive of the package (only on UNIX and Linux systems)
+# NOTE: Source files are modified with sed to match target version defined above
 tar:
+	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/comv.f90
+	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
+	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
 	@tar -czf ../$(ARCNAME).tar.gz                                          \
 	          ../doc/*/*.html ../doc/*/*.css   ../doc/*/*.svg               \
 	          ../doc/*/*.png  ../doc/index.html                             \
