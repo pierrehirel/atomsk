@@ -1,4 +1,4 @@
-# Makefile for compiling atomsk and installing it locally
+# Makefile for compiling Atomsk and installing it locally
 # (i.e. in the user's home directory).
 # All defaults are used (see main Makefile)
 # except the installation path which is defined below.

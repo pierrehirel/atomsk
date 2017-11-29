@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Sept. 2017                                    *
+!* Last modification: P. Hirel - 29 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1828,7 +1828,7 @@ CASE(2700)
   !strings(1) = option name
   msg = "/!\ WARNING: could not understand this option: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Try `atomsk -help options` for a summary of options."
+  msg = "    Try `atomsk --help options` for a summary of options."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2720)
   msg = "/!\ WARNING: axis is already aligned, skipping."
@@ -2255,7 +2255,9 @@ CASE(4020)
   msg = ">>> Unfolding "//TRIM(strings(1))//" to many files..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4021)
-  msg = ">>> Atomsk is a free Open Source software, for details type 'atomsk --license'."
+  msg = ">>> Atomsk is a free, Open Source software."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    To learn more, enter 'license'."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4022)
   msg = ">>> Atomsk command-line interpreter:"

@@ -1,4 +1,4 @@
-# Makefile for compiling atomsk on a Unix/Linux machine.
+# Makefile for compiling Atomsk on a Unix/Linux machine.
 # Tested and works with GNU make and gfortran >4.4
 
 #####################################################################

@@ -1,7 +1,7 @@
-# Makefile for compiling atomsk and
+# Makefile for compiling Atomsk and
 # linking statically.
 # All defaults are used (see main Makefile)
-# except the installation path which is defined below.
+# except the compilation flags, defined below.
 
 # USAGE:
 #    make -f Makefile.static all

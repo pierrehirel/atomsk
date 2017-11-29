@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 Oct. 2017                                     *
+!* Last modification: P. Hirel - 29 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1883,7 +1883,7 @@ CASE(2700)
   !strings(1) = option name
   msg = "/!\ ALERTE : impossible de comprendre cette option : "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Essayez 'atomsk -help options' pour un résumé des options."
+  msg = "    Essayez 'atomsk --help options' pour un résumé des options."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2720)
   msg = "/!\ ALERTE : l'axe est déjà aligné, abandon."
@@ -2310,7 +2310,9 @@ CASE(4020)
   msg = ">>> Décomposition de "//TRIM(strings(1))//" en plusieurs fichiers..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4021)
-  msg = ">>> Atomsk est un logiciel libre et Open Source, pour plus d'informations tapez 'atomsk --license'."
+  msg = ">>> Atomsk est un logiciel libre et Open Source."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    Pour plus d'informations, entrez 'license'."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4022)
   msg = ">>> Interpréteur de ligne de commande de Atomsk :"
@@ -2344,7 +2346,7 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "quit               Quitte Atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "OPTIONS : les options de atomsk peuvent être utilisées,"
+  msg = "OPTIONS : les options de Atomsk peuvent être utilisées,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "         entrez 'help options' pour afficher les options disponibles."
   CALL DISPLAY_MSG(verbosity,msg,logfile)

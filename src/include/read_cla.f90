@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 July 2017                                     *
+!* Last modification: P. Hirel - 27 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -869,9 +869,9 @@ DO WHILE(i<SIZE(cla))
       i=i-1
     ENDIF
   !
-  ELSEIF(clarg=='-frac' .OR. clarg=='-fractional') THEN
+  ELSEIF(clarg=='-frac' .OR. clarg=='-fractional' .OR. clarg=='-reduce' .OR. clarg=='-reduced') THEN
     ioptions = ioptions+1
-    options_array(ioptions) = TRIM(clarg)
+    options_array(ioptions) = '-fractional'
   !
   ELSEIF(clarg=='-mirror') THEN
     ioptions = ioptions+1
@@ -937,7 +937,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-remove-doubles' .OR. clarg=='-rmd') THEN
+  ELSEIF(clarg=='-remove-doubles' .OR. clarg=='-remove-double' .OR. clarg=='-rmd') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read the max. distance
@@ -954,7 +954,8 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-remove-shells' .OR. clarg=='-remove-shell' .OR. clarg=='-rmshell' .OR. clarg=='-rmshells') THEN
+  ELSEIF( clarg=='-remove-shells' .OR. clarg=='-remove-shell' .OR. &
+        & clarg=='-rmshell' .OR. clarg=='-rmshells' ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the atom species on which shells will be removed

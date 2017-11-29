@@ -1,4 +1,4 @@
-# Makefile for compiling atomsk on a Microsoft(R) Windows(R) environment
+# Makefile for compiling Atomsk on a Microsoft(R) Windows(R) environment
 # using GNU make and GNU MinGW/gfortran.
 
 # USAGE

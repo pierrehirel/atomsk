@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 11 Sept. 2017                                    *
+!* Last modification: P. Hirel - 29 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1788,7 +1788,7 @@ CASE(2700)
   msg = "/!\ WARNUNG: folgende Anweisung konnte nicht interpretiert"// &
       & " werden: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Siehe `atomsk -help options` fuer eine Uebersicht"// &
+  msg = "    Siehe `atomsk --help options` fuer eine Uebersicht"// &
       & " aller Optionen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2720)
@@ -2134,7 +2134,7 @@ CASE(3707)
   msg = "/!\ WARNUNG: Atomanzahl ist sehr gross: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Reduzieren die sie Anzahl mit der -cut Anweisung"// &
-      & " von atomsk,"
+      & " von Atomsk,"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    falls ddplot nicht so viele Atome darstellen kann."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2233,8 +2233,9 @@ CASE(4020)
   msg = ">>> Entpacke "//TRIM(strings(1))//" in mehrere Dateien..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4021)
-  msg = ">>> Atomsk ist eine freie Open Source software"// &
-      & ", siehe 'atomsk --license'."
+  msg = ">>> Atomsk ist eine freie Open Source software."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    Für weitere Informationen, geben Sie 'license' ein."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4022)
   msg = ">>> Atomsk command-line Interpreter:"
@@ -2269,7 +2270,7 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "quit              Beendet atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "OPTIONS: atomsk Anweisungen fuer den Command-Line Interpreter,"
+  msg = "OPTIONS: Atomsk Anweisungen fuer den Command-Line Interpreter,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "        gebe 'help options' ein um verfuegbare Anweisungen"// &
       & " aufzulisten."
@@ -2702,7 +2703,7 @@ CASE(4802)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4803)
   !reals(1) = theoretical number of atoms in nanotube
-  !reals(2) = number found by atomsk
+  !reals(2) = number found by Atomsk
   WRITE(msg,*) "X!X FEHLER: Unerwartete Anzahl von Atomen in der"// &
              & " Nanoroehre."
   CALL DISPLAY_MSG(1,msg,logfile)

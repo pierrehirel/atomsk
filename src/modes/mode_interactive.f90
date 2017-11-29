@@ -161,7 +161,7 @@ DO
   !Try to interpret the instruction and act accordingly
   IF( LEN_TRIM(instruction) > 0 ) THEN
     !
-    READ(instruction,*) command
+    READ(instruction,*,END=400,ERR=400) command
     command = ADJUSTL(command)
     !
     IF( command(1:2)=="#!" ) THEN
