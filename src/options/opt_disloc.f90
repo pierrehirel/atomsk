@@ -984,7 +984,7 @@ CHARACTER(LEN=128):: msg
 INTEGER:: i, j, k, l, n, p, q, r
 INTEGER,DIMENSION(6):: IPIV !for LAPACK routine DGESV
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
-REAL(dp),PARAMETER:: Ak_threshold=1.d-14 !threshold for normalization of the A_k(n)
+REAL(dp),PARAMETER:: Ak_threshold=1.d-4 !threshold for normalization of the A_k(n)
                                       !This is because of numerical precision,
                                       !to avoid division by ridiculously small numbers.
                                       !The value 10^-4 assumes C_tensor is in GPa
@@ -1277,7 +1277,7 @@ DO n=1,3
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
-  IF( DBLE(A_3)>Ak_threshold ) THEN
+  IF( DABS(DBLE(A_3)) > Ak_threshold ) THEN
     !We are not dividing by zero => normalize the A_k(n) to A3(n)
     msg = "Normalizing by A3(n)..."
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -1286,7 +1286,7 @@ DO n=1,3
     A_kn(2,n) = -1.d0*A_2/A_3
     A_kn(3,n) = DCMPLX(1.d0,0.d0)
     !
-  ELSEIF( DBLE(A_1)>Ak_threshold ) THEN
+  ELSEIF( DABS(DBLE(A_1)) > Ak_threshold ) THEN
     !A3(n) is zero => try to divide by A1
     msg = "Normalizing by A1(n)..."
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -1295,7 +1295,7 @@ DO n=1,3
     A_kn(2,n) = -1.d0*A_2/A_1
     A_kn(3,n) = A_3/A_1
     !
-  ELSEIF( DBLE(A_2)>Ak_threshold ) THEN
+  ELSEIF( DABS(DBLE(A_2)) > Ak_threshold ) THEN
     !A3(n) and A1(n) are zero => try to divide by A2
     msg = "Normalizing by A2(n)..."
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
