@@ -22,7 +22,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Feb. 2017                                     *
+!* Last modification: P. Hirel - 30 Nov. 2017                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* DISLOC_XYZ          main subroutine - introduces a dislocation                 *
