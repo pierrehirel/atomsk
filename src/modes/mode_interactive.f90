@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 30 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -150,7 +150,7 @@ DO
   !Try to interpret the instruction and act accordingly
   IF( LEN_TRIM(instruction) > 0 ) THEN
     !
-    READ(instruction,*) command
+    READ(instruction,*,END=400,ERR=400) command
     command = ADJUSTL(command)
     !
     IF( command(1:2)=="#!" ) THEN

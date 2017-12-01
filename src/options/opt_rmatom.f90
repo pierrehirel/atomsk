@@ -10,7 +10,7 @@ MODULE rmatom
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Sept. 2016                                    *
+!* Last modification: P. Hirel - 30 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,6 +44,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32),INTENT(IN):: rmatom_prop
 CHARACTER(LEN=128):: msg
+LOGICAL:: clear_sel  !clear selection at the end of option?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT   !mask for atom list
 LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT              !mask for atom list (temporary)
 INTEGER:: atomindex !index of atom that must be removed
@@ -58,6 +59,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX   !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties (temporary)
 !
 species = ''
+ clear_sel = .FALSE.
 atomindex = 0
 i = 0
 method=0
@@ -143,9 +145,7 @@ IF( method==1 ) THEN
     ENDIF
     !
     !Since all selected atoms were removed, clear selection
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(2750,(/''/),(/0.d0/))
-    IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+    clear_sel = .TRUE.
     !
   ELSE
     !No selection is defined => do not remove any atom
@@ -302,6 +302,12 @@ IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
 !
 CALL ATOMSK_MSG(2080,(/species/),(/DBLE(rmatoms),DBLE(SIZE(P,1))/))
+IF( clear_sel ) THEN
+  !All selected atoms were removed => clear the selection
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(2750,(/''/),(/0.d0/))
+  IF( ALLOCATED(SELECT) ) DEALLOCATE(SELECT)
+ENDIF
 GOTO 1000
 !
 !

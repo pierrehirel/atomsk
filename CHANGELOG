@@ -1,6 +1,14 @@
 CHANGELOG FOR ATOMSK
 ====================
 
+Beta 0.9.10 (30 Nov. 2017)
+--------------------------
+- fixed a bug in interactive mode, where the program would crash if the user simply entered a tabulation character.
+- fixed problem of precision of ion charges when writing LAMMPS data files.
+- fixed a bug in option "-dislocation", where edge dislocations were not constructed correctly when using anisotropic elasticity. Thanks to Matous Mrovec, ICAMS, Ruhr-Universität Bochum, Germany, for pointing out this bug.
+- fixed a misplaced message in option "-remove-atoms".
+
+
 Beta 0.9.9 (16 Oct. 2017)
 -------------------------
 - in mode "--create", added possibility to create fluorite lattice. Thanks to Jonathan Amodeo, MATEIS, Lyon, France, for implementing this feature.

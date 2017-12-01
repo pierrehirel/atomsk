@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 May 2017                                      *
+!* Last modification: P. Hirel - 30 Nov. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -479,9 +479,9 @@ ELSE
   ENDIF
   !
 ENDIF
-210 FORMAT(i10,2X,i3,2X,f7.3,2X,3(f16.8,1X))
+210 FORMAT(i10,2X,i3,2X,f9.6,2X,3(f16.8,1X))
 211 FORMAT(i10,2X,i3,2X,3(f16.8,1X))
-212 FORMAT(i10,2X,i3,2X,i3,2X,f7.3,2X,3(f16.8,1X))
+212 FORMAT(i10,2X,i3,2X,i3,2X,f9.6,2X,3(f16.8,1X))
 !
 !Write velocities
 IF( velocities ) THEN
