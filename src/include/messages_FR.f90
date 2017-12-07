@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Oct. 2017                                     *
+!* Last modification: P. Hirel - 07 Dec. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -777,6 +777,9 @@ CASE(812)
   !strings(1) = non-conformal symmetry operation string
   msg = "X!X ERREUR : impossible d'appliquer les opérations de symétrie : '"// &
       & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(813)
+  msg = "X!X ERREUR : aucun fichier ou dossier de ce type"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2280,21 +2283,26 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "Seules les commandes suivantes sont disponibles :"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help               Affiche cette aide"
+  msg = "help               Afficher cette aide"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls//"                 Affiche la liste des fichiers du dossier courant"
+  msg = system_ls
+  WRITE(msg(19:),*) "Afficher la liste des fichiers du dossier courant"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory             Résumé du contenu de la mémoire"
+  msg = "cd                 Changer de dossier"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "pwd                Afficher le chemin complet du dossier courant"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "create             Créer un système atomique"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <fichier>     Lit le <fichier> et charge son contenu en mémoire"
+  msg = "read <fichier>     Lire le <fichier> et charge son contenu en mémoire"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <fichier>    Ecrit le système courant dans le <fichier>"
+  msg = "write <fichier>    Ecrire le système courant dans le <fichier>"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear              Efface la mémoire (détruit le système atomique)"
+  msg = "memory             Afficher un résumé du contenu de la mémoire"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit               Quitte Atomsk"
+  msg = "clear              Effacer la mémoire (détruit le système atomique)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "quit               Quitter Atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "OPTIONS : les options de atomsk peuvent être utilisées,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

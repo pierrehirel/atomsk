@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 Nov. 2017                                     *
+!* Last modification: P. Hirel - 07 Dec. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -70,6 +70,7 @@ INTEGER:: i, j, k
 INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
 LOGICAL:: cubic !is the lattice cubic?
+LOGICAL:: exists !does file or directory exist?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp):: smass, snumber  !atomic mass, atomic number
@@ -203,6 +204,29 @@ DO
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!         SPECIAL COMMANDS
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      CASE("cd","CD")
+        temp = TRIM(ADJUSTL( instruction(3:) ))
+        IF( LEN_TRIM(temp) <= 0 .OR. temp=="~" ) THEN
+          !Go to root directory
+#if defined(WINDOWS)
+          CALL CHDIR("C:")
+#else
+          CALL CHDIR("/home/"//username)
+#endif
+        ELSEIF( INDEX(temp,'!§;,?:#&{}<>=')==0 ) THEN
+          !Test if directory exists
+          INQUIRE( FILE="."//pathsep//TRIM(temp)//pathsep//"." , EXIST=exists )
+          IF( exists ) THEN
+            CALL CHDIR(temp)
+          ELSE
+            !Directory does not exist => display error message
+            CALL ATOMSK_MSG(813,(/''/),(/0.d0/))
+          ENDIF
+        ELSE
+          !Strange characters in dir name => display error message
+          CALL ATOMSK_MSG(813,(/''/),(/0.d0/))
+        ENDIF
+         !
       CASE("clear")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
           !User may have forgotten to write file => Display a warning
@@ -298,7 +322,7 @@ DO
         ENDIF
         !
       !Commands to read and write files
-      CASE("read")
+      CASE("read","open")
         !Read a file
         inputfile = TRIM(ADJUSTL(instruction(6:)))
         CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)

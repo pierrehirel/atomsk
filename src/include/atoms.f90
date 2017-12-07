@@ -9,7 +9,7 @@ MODULE atoms
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Oct. 2017                                     *
+!* Last modification: P. Hirel - 07 Dec. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,16 +45,17 @@ CONTAINS
 !  depending on its species.
 !********************************************************
 !
-SUBROUTINE ATOMNUMBER(species,snumber)
+SUBROUTINE ATOMNUMBER(sp_in,snumber)
 !
 IMPLICIT NONE
+CHARACTER(LEN=2),INTENT(IN):: sp_in
 CHARACTER(LEN=2):: species
 REAL(dp),INTENT(OUT):: snumber
 !
 !
 !Make sure that the first letter is uppercase, the second one lowercase
-species(1:1) = StrUpCase(species(1:1))
-species(2:2) = StrDnCase(species(2:2))
+species(1:1) = StrUpCase(sp_in(1:1))
+species(2:2) = StrDnCase(sp_in(2:2))
 !
 SELECT CASE(species)
 ! n=1

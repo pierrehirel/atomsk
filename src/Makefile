@@ -171,11 +171,17 @@ general: objdir
 	$(MAKE) $(MFLAGS) -j1 -C include
 
 # Create OBJ directory (the - sign indicates to ignore any error)
-objdir:
+objdir: update_version
 	-$(MKDIR) $(OBJ)
 
 # Dummy target to force the compilation of input, options, output
 FORCE:
+
+# Update source files to match the target version VER defined above
+update_version:
+	sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/comv.f90
+	sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
+	sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
 
 
 # Clean current directory
@@ -186,11 +192,7 @@ clean:
 
 
 # Create an archive of the package (only on UNIX and Linux systems)
-# NOTE: Source files are modified with sed to match target version defined above
-tar:
-	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/comv.f90
-	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
-	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
+tar: update_version
 	@tar -czf ../$(ARCNAME).tar.gz                                          \
 	          ../doc/*/*.html ../doc/*/*.css   ../doc/*/*.svg               \
 	          ../doc/*/*.png  ../doc/index.html                             \

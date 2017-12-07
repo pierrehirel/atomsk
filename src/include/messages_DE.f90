@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 28 Feb. 2017                                     *
+!* Last modification: P. Hirel - 07 Dec. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -750,6 +750,9 @@ CASE(812)
   !strings(1) = non-conformal symmetry operation string
   msg = "X!X FEHLER beim Interpretieren der Symmetrieoperationen '"// &
       & TRIM(strings(1))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(813)
+  msg = "X!X FEHLER: Datei oder Verzeichnis existiert nicht"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2193,10 +2196,12 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "help              Zeigt diese Hilfe"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls//"               Zeigt Dateien im aktuellen"// &
-      & " Verzeichnis"
+  msg = system_ls
+  WRITE(msg(18:),*) "Zeigt Dateien im aktuellen Verzeichnis"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory            Zeigt Speicheruebersicht"
+  msg = "cd                Ändere das aktuelle Verzeichnis"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "pwd               Zeigen den Pfad zum aktuellen Arbeitsverzeichnis an"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "create            Erstellt ein atomares System"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2204,6 +2209,8 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "write <file>      Schreibt aktuelles System in die Datei"// &
       & " <file>"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "memory            Zeigt Speicheruebersicht"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "clear             Loescht den Speicher"// &
       & " (zerstoert atomares System)"

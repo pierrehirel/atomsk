@@ -3,6 +3,7 @@ CHANGELOG FOR ATOMSK
 
 Beta 0.9.10 (30 Nov. 2017)
 --------------------------
+- in interactive mode, added possibility to browse folders.
 - fixed a bug in interactive mode, where the program would crash if the user simply entered a tabulation character.
 - fixed problem of precision of ion charges when writing LAMMPS data files.
 - fixed a bug in option "-dislocation", where edge dislocations were not constructed correctly when using anisotropic elasticity. Thanks to Matous Mrovec, ICAMS, Ruhr-Universität Bochum, Germany, for pointing out this bug.
