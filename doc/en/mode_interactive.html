@@ -28,20 +28,22 @@
 
 <ul>
   <li class="clist"><strong>help</strong> Display a summary of commands</li>
+  <li class="clist"><strong>cd</strong> Change directory</li>
   <li class="clist"><strong>ls</strong> Display a list of files in the current directory</li>
+  <li class="clist"><strong>pwd</strong> Display current working directory</li>
+  <li class="clist"><strong>memory</strong> Display a summary of the memory used</li>
   <li class="clist"><strong>create</strong> Create a system from scratch</li>
   <li class="clist"><strong>read &#60;file&#62;</strong> Read the &#60;file&#62; and load its content in memory</li>
-  <li class="clist"><strong>memory</strong> Display a summary of the memory used</li>
   <li class="clist"><strong>write &#60;file&#62;</strong> Write the current system into &#60;file&#62;</li>
   <li class="clist"><strong>clear</strong> Clear the memory, destroying the current atomic system</li>
-  <li class="clist"><strong>quit</strong> Exit this mode and close <code>atomsk</code></li>
+  <li class="clist"><strong>quit</strong> Exit this mode and close Atomsk</li>
 </ul>
 
 <p>The command <strong>create</strong> can be called with the same arguments as the <a href="./mode_create.html">mode <code>--create</code></a>. If no argument is provided then the user will be prompted.</p>
 
 <p>The <a href="./options.html">options</a> of <code>atomsk</code> are also available. They must be called <em>without</em> the leading dash sign (-), and with all their parameters.</p>
 
-<p>For now the other <a href="./modes.html">modes</a> of <code>atomsk</code> cannot be called from the interactive mode.</p>
+<p>For now the other <a href="./modes.html">modes</a> of Atomsk cannot be called from the interactive mode.</p>
 
 <p>Note that only one command (or option) can be issued at a time, and it will take effect immediately.</p>
 
