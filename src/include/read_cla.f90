@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Nov. 2017                                     *
+!* Last modification: P. Hirel - 18 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -722,68 +722,119 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
-          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
-    !READ(temp,*,END=120,ERR=120) tempreal
-    !read second coordinate of disloc.
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
-          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
-    !READ(temp,*,END=120,ERR=120) tempreal
-    !read the type of dislocation (edge, edge2, screw or mixed)
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    temp2 = temp !important for reading the Burgers vector afterwards
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( TRIM(temp).NE.'screw' .AND. TRIM(temp(1:4)).NE.'edge' &
-      & .AND. TRIM(temp).NE.'mixed') GOTO 120
-    IF( temp(1:4)=="edge" ) m=1
-    !read the dislocation line direction (x, y or z)
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    temp3 = temp !important for reading the Burgers vector afterwards
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
-    !read the normal to cut plane (x, y or z)
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    temp4 = temp !important for reading the Burgers vector afterwards
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
-    !read the Burgers vector
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    READ(temp,*,END=120,ERR=120) tempreal
-    IF(temp2=="mixed") THEN
-      !three components are given: the first one was b(1)
-      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-      !Read b(2)
+    IF( TRIM(temp)=='loop' ) THEN
+      !Construct a dislocation loop
+      !read coordinates (x,y,z) of dislocation loop
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      !Read direction normal to loop plane
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+        & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+      !Read dislocation loop radius
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       READ(temp,*,END=120,ERR=120) tempreal
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-      !Read b(3)
+      !Read the three values of Burgers vector (bx,by,bz)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      !Read Poisson ratio
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       READ(temp,*,END=120,ERR=120) tempreal
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
     ELSE
-      !Only one component is given
-      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-    ENDIF
-    !read Poisson's ratio (only if it is of edge character)
-    IF( m==1 ) THEN
+      !Construct a straight dislocation line
+      !=> temp should contain a real number corresponding to p1 = pos(1)
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      !READ(temp,*,END=120,ERR=120) tempreal
+      !read second coordinate of disloc.
+      i=i+1
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+          IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+            & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      !READ(temp,*,END=120,ERR=120) tempreal
+      !read the character of dislocation (edge, edge2, screw or mixed)
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      temp2 = temp !important for reading the Burgers vector afterwards
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( TRIM(temp).NE.'screw' .AND. TRIM(temp(1:4)).NE.'edge' &
+        & .AND. TRIM(temp).NE.'mixed' ) GOTO 120
+      IF( temp(1:4)=="edge" ) m=1
+      !read the dislocation line direction (x, y or z)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      temp3 = temp !important for reading the Burgers vector afterwards
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+        & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+      !read the normal to cut plane (x, y or z)
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
+      temp4 = temp !important for reading the Burgers vector afterwards
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+        & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+      !read the Burgers vector
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
       READ(temp,*,END=120,ERR=120) tempreal
+      IF(temp2=="mixed") THEN
+        !three components are given: the first one was b(1)
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+        !Read b(2)
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        READ(temp,*,END=120,ERR=120) tempreal
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+        !Read b(3)
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        READ(temp,*,END=120,ERR=120) tempreal
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      ELSE
+        !Only one component is given
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      ENDIF
+      !read Poisson's ratio (only if it is of edge character)
+      IF( m==1 ) THEN
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        READ(temp,*,END=120,ERR=120) tempreal
+      ENDIF
     ENDIF
     !scan the final option line
     !if slashes are present (user wants to perform a division), replace them by a colon (:)

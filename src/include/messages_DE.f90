@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 29 Nov. 2017                                     *
+!* Last modification: P. Hirel - 25 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -247,6 +247,7 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> screw <x|y|z> <x|y|z> <b>"
   WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge2> <x|y|z> <x|y|z> <b> <ν>"
   WRITE(*,*) "          -disloc <pos1> <pos2> mixed <x|y|z> <x|y|z> <b1> <b2> <b3>"
+  WRITE(*,*) "          -disloc loop <x> <y> <z> <x|y|z> <radius> <bx> <by> <bz> <nu>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
@@ -489,7 +490,7 @@ SUBROUTINE ATOMSK_MSG_DE(imsg,strings,reals)
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg  !The message to be displayed
-CHARACTER(LEN=128):: temp, temp2, temp3
+CHARACTER(LEN=128):: temp, temp2, temp3, temp4
 CHARACTER(LEN=*),DIMENSION(:):: strings !Character strings that may be part of the message
 INTEGER:: i, j
 INTEGER,INTENT(IN):: imsg  !index of message to display
@@ -1001,11 +1002,17 @@ CASE(2061)
   !reals(4) = positive if C_tensor is defined, zero otherwise
   !reals(5) = pos1, position of dislocation along first axis
   !reals(6) = pos2, position of dislocation along second axis
+  !reals(7) = pos3 (only for loops)
+  !reals(8) = loop radius
   temp = TRIM(ADJUSTL(strings(1)))
   IF(TRIM(temp)=="screw") THEN
     msg = ">>> Fuege eine Schraubenversetzung ein, entlang der Linie"
   ELSEIF(temp(1:4)=="edge") THEN
     msg = ">>> Fuege eine Stufenversetzung ein, entlang der Linie"
+  ELSEIF(temp(1:5)=="mixed") THEN
+    msg = ">>> Inserting a mixed dislocation with line along"
+  ELSEIF(temp(1:4)=="loop") THEN
+    msg = ">>> Inserting a dislocation loop in a plane normal to"
   ENDIF
   msg = TRIM(msg)//' '//TRIM(strings(2))//","
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1029,8 +1036,15 @@ CASE(2061)
   msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
   WRITE(temp,"(f16.3)") reals(5)
   WRITE(temp2,"(f16.3)") reals(6)
-  msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
-    & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+  IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
+    WRITE(temp3,"(f16.3)") reals(7)
+    WRITE(temp4,"(f16.3)") reals(8)
+    msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+        & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+  ELSE
+    msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
+        & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2062)
   msg = "..> Bestimme Loesungen der anisotropen Elastizitaetsgleichungen..."
@@ -1939,7 +1953,13 @@ CASE(2756)
   msg = "    Are you sure you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2757)
-  msg = "/!\ WARNUNG: the indices are the same, skipping."
+  msg = "/!\ WARNUNG: die Indizes sind gleich. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2758)
+  msg = "/!\ WARNUNG: keine Operation zum Anwendenno operation to apply. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2759)
+  msg = "/!\ WARNUNG: Schleifenradius ist zu klein. Ueberspringe."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

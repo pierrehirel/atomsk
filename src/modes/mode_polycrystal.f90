@@ -754,7 +754,7 @@ IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
 ENDIF
 !
 !Compute boxmax = maximum distance from one end of the box to another
-boxmax = 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
+boxmax = MIN( 50.d0 , 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  ) )
 WRITE(msg,*) "Max. distance for neighbor search:", boxmax
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
@@ -792,13 +792,15 @@ DO i=1,3
     m = CEILING( 1.1d0*MAX( VECLENGTH(H(1,:))/Huc(i,i) , &
                & VECLENGTH(H(2,:))/Huc(i,i) , VECLENGTH(H(3,:))/Huc(i,i) ) )
     !If the number of grains is small, the template grain may not be large enough
-    IF( Nnodes<=6 ) THEN
+    IF( Nnodes<=4 ) THEN
       m = NINT( 1.5d0*DBLE(m) )
     ENDIF
     IF(m==2) m=3
-    expandmatrix(i) = m
+    expandmatrix(i) = MIN( m , 999 )
   ENDIF
 ENDDO
+WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !If the system is 2-D, do not expand along the shortest axis
 IF( twodim>0 ) THEN
@@ -817,9 +819,11 @@ IF( m > 1.d8 ) THEN
     !There are not many grains => do not reduce too much
     expandmatrix(:) = NINT( 0.8d0 * expandmatrix(:) )
   ENDIF
+ELSEIF( m <= 0.d0 ) THEN
+  !expandmatrix(:) = 1.d0
 ENDIF
 !
-WRITE(msg,'(a32,3i4)') "Creating template grain, expand:", expandmatrix(:)
+WRITE(msg,'(a32,3i6)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 ALLOCATE( Pt( PRODUCT(expandmatrix(:))*SIZE(Puc,1) , 4 ) )

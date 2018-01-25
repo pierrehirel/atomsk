@@ -21,10 +21,12 @@
 
 <p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; mixed &#60;&xi;&#62; &#60;n&#62; &#60;b<sub>1</sub>&#62; &#60;b<sub>2</sub>&#62; &#60;b<sub>3</sub>&#62;</code></p>
 
+<p><code>-dislocation loop &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;n&#62; &#60;rayon&#62; &#60;b<sub>x</sub>&#62; &#60;b<sub>y</sub>&#62; &#60;b<sub>z</sub>&#62; &#60;&nu;&#62;</code></p>
+
 
 <h4>Description</h4>
 
-<p>Cette option permet d'insérer une dislocation rectiligne dans le système, en utilisant les déplacements prédits par la théorie des dislocations. Les solutions isotropes ou anisotropes peuvent être utilisées (voir ci-dessous). Les équations employées par cette option se trouvent par ex. dans J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
+<p>Cette option permet d'insérer une dislocation rectiligne dans le système, ou une boucle de dislocation, en utilisant les déplacements prédits par la théorie des dislocations. Les solutions isotropes ou anisotropes peuvent être utilisées (voir ci-dessous). Les équations employées par cette option se trouvent par ex. dans J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
 
 <p>Les paramètres associés avec cette option sont (voir <strong>Fig. 1</strong>) :</p>
 
@@ -80,13 +82,28 @@ marche sur un côté de la boîte, ce qui peut modifier les conditions aux limit
 
 <p>Dans ce cas puisque le tenseur élastique est entièrement connu, ce sont bien les contraintes exactes qui sont calculées. Comme dans le cas isotrope, les composantes de Voigt sont enregistrées comme propriétés auxiliaires, et si plusieurs dislocations sont construites alors leurs contributions sont cumulées.</p>
 
-<p>S'il existe des coquilles dans le système (dans le cadre d'un modèle ionique c&oelig;ur-coquille), alors chaque coquille est déplacée du même vecteur que le c&oelig;ur qui lui est associé.</p>
+<hr>
+
+<p>Les boucles de dislocation peuvent être construites en utilisant "<strong>-dislocation loop</strong>". Dans ce cas, les paramètres à fournir sont les suivants&nbsp;: les coordonnées (x,y,z) du centre de la boucle, la direction &#60;n&#62; normale au plan de la boucle (doit être "X", "Y", ou "Z"), le &#60;rayon&#62; de la boucle, les trois composantes (b<sub>x</sub>,b<sub>y</sub>,b<sub>z</sub>) du vecteur de Burgers, et le module de Poisson &nu; du matériau.</p>
+
+<p>Les coordonnées (x,y,z) du centre de la boucle peuvent être fournies en &Aring;. Il est aussi possible de spécifier des distances relatives aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). Toutefois, le &#60;rayon&#62; de la boucle ainsi que les composantes du vecteur de Burgers doivent impérativement être donnés en &Aring;.</p>
+
+<p>Si le &#60;rayon&#62; de la boucle est négatif, alors au lieu d'être circulaire, la boucle aura la forme d'un carré.</p>
+
+<p>Comme tous les autres types de dislocation, plusieurs boucles peuvent être introduites dans le système atomique en appelant cette option plusieurs fois.</p>
+
+<object type="img/svg+xml" data="../img/opt_disloc_2.svg"><img src="../img/opt_disloc_2.png" alt="" /></object>
+<p><strong>Fig. 3</strong> - <em>Schéma de construction d'une boucle de dislocation. Dans cet exemple, la boucle est contenue dans un plan normal à l'axe cartésien Z (c'est-à-dire que <strong><em>n</em></strong> est dirigé suivant Z). La boucle de dislocation apparaît en vert, et son vecteur de Burgers <strong><em>b</em></strong> en bleu. Sur la droite&nbsp;: si le &#60;rayon&#62; a une valeur négative, alors la boucle de dislocation aura une forme carrée.</em></p>
+
+<hr>
 
 <p><strong>Remarques importantes :</strong> Atomsk ne va pas trouver ni ajuster "automagiquement" le vecteur de Burgers, aussi est-il impératif d'en fournir une valeur très précise. Le programme n'ajustera pas non plus la position de la dislocation vers un site particulier : si vous fournissez une position <code>(p<sub>1</sub>,p<sub>2</sub>)</code> qui correspond exactement à la position d'un atome, il peut en résulter des déplacements non réalistes. Il est possible que vous ayez à tester différentes positions pour obtenir des résultats cohérents. Comme toujours, ne croyez pas que le programme va penser pour vous -vérifiez votre système avant de lancer une simulation, surtout lors de la construction de dislocations.</p>
 
-<p>Après avoir appliqué cette option, certains atomes peuvent se trouver hors de la boîte. Pour les replacer dans la boîte il est possible d'utiliser l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
-
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors les déplacements discutés ci-dessus ne seront appliqués qu'aux atomes sélectionnés.</p>
+
+<p>S'il existe des coquilles dans le système (dans le cadre d'un modèle ionique c&oelig;ur-coquille), alors chaque coquille est déplacée du même vecteur que le c&oelig;ur qui lui est associé.</p>
+
+<p>Après avoir appliqué cette option, certains atomes peuvent se trouver hors de la boîte. Pour les replacer dans la boîte il est possible d'utiliser l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
 
 
@@ -138,6 +155,9 @@ elastic Voigt<br/>
 </div>
 <code class="command">atomsk initial.xyz -orient 110 1-10 001 100 010 001 -prop ctensor.txt -orient 100 010 001 110 1-10 001 -disloc 0.5*BOX 0.5*BOX screw y x 2.8 dislocation.cfg</code>
 <p>Cet exemple illustre une autre manière de faire la même chose que l'exemple précédent. Le système originel (<code>initial.xyz</code> ayant pour orientation [110] [1-10] [001]) est d'abord pivoté avec l'<a href="./option_orient.html">option <code>-orient</code></a> de sorte qu'il ait pour orientation X=[100], Y=[010] et Z=[001]. Puis le tenseur élastique, qui correspond à cette orientation, est lu grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>. Puis le système est de nouveau pivoté pour lui redonner son orientation initiale (ceci aurait également pu être réalisé grâce à l'<a href="./option_alignx.html">option <code>-alignx</code></a>), ce qui effectue également la rotation du tenseur élastique. Enfin la dislocation peut être introduite.</p></li>
+
+<li><code class="command">atomsk supercell.cfg -dislocation loop 0.5*box 0.5*box 0.5*box Z 30 2.85 0 0 0.33 Loop.cfg</code>
+<p>Dans cet exemple, une boucle de dislocation est introduite au milieu de la boîte, dans un plan normal à Z, avec un rayon de 30 &Aring;, et un vecteur de Burgers <strong><em>b</em></strong>=[2.85 0 0]. Le coefficient de Poisson du matériau est fixé à &nu;=0.33.</p></li>
 
 <li><p>D'autres exemples sont fournis dans le dossier "examples" fourni avec le programme. Le dossier "<code>Al_110dislocations</code>" contient un script bash qui construit deux dislocations coin de vecteurs de Burgers opposés dans un système d'aluminium, en utilisant l'élasticité isotrope. Le dossier "<code>Fe_disloc_screw111_anisotropy</code>" montre comment construire une dislocation vis 1/2&#60;111&#62; dans du fer en utilisant l'élasticité anisotrope.</p></li>
 </ul>

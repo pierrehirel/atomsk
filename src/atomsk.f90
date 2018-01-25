@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 16 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -253,6 +253,10 @@ ELSE
       CALL GETARG(i,clarg)
       logfile = TRIM(ADJUSTL(clarg))
       IF(logfile=='') logfile='atomsk.log'
+      IF( verbosity<=1 ) THEN
+        !Set verbosity level to 3 = write info on screen + in log file
+        verbosity = 3
+      ENDIF
     ELSEIF(clarg=='-lang' .OR. clarg=='-language') THEN
       i=i+1
       CALL GETARG(i,clarg)
@@ -355,11 +359,6 @@ ELSE
     mode = "interactive"
   ENDIF
   !
-ENDIF
-!
-!If the user specified an alternate logfile, change the level of verbosity to 3
-IF( logfile.NE.'atomsk.log' .AND. (verbosity==0 .OR. verbosity==1) ) THEN
-  verbosity = 3
 ENDIF
 !
 IF(verbosity<2) THEN

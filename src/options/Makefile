@@ -1,6 +1,9 @@
 # Makefile for compiling options modules of atomsk
 
-SOP=$(wildcard opt_*.f90)
+SOP=disloc_iso.f90   \
+    disloc_aniso.f90 \
+    disloc_loop.f90  \
+    $(wildcard opt_*.f90)
 OOP=$(SOP:.f90=.o)
 
 VPATH=..$(SEP)$(OBJ)

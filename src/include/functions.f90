@@ -10,7 +10,7 @@ MODULE functions
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Feb. 2017                                     *
+!* Last modification: P. Hirel - 17 Feb. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,6 +39,8 @@ MODULE functions
 !* DEG2RAD             converts angles from degrees to radians                    *
 !* RAD2DEG             converts angles from radians to degrees                    *
 !* CROSS_PRODUCT       calculates the cross product of two vectors                *
+!* SCALAR_TRIPLE_PRODUCT *
+!* 
 !* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
 !* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
 !* ROTELAST            rotates a 9x9 matrix                                       *
@@ -399,6 +401,40 @@ V3(3) = V1(1)*V2(2)-V1(2)*V2(1)
 RETURN
 !
 END FUNCTION CROSS_PRODUCT
+!
+!
+!********************************************************
+!  SCALAR_TRIPLE_PRODUCT
+!  This function computes the scalar triple product
+!  of three vectors: ez (ex ^ ey).
+!********************************************************
+
+FUNCTION SCALAR_TRIPLE_PRODUCT(ex,ey,ez) RESULT(stp)
+
+IMPLICIT NONE
+REAL(dp), DIMENSION(1:3), INTENT(IN):: ex, ey, ez
+REAL(dp) :: stp
+
+stp = ez(1) *( ex(2)*ey(3) - ex(3)*ey(2) ) &
+    + ez(2) *( ex(3)*ey(1) - ex(1)*ey(3) ) &
+    + ez(3) *( ex(1)*ey(2) - ex(2)*ey(1) )
+
+END FUNCTION SCALAR_TRIPLE_PRODUCT
+!
+!
+!********************************************************
+! VECANGLE
+! Angles between vectors u1 and u2, oriented according to normal n
+!********************************************************
+FUNCTION vecAngle(u1, u2, n) RESULT(phi)
+
+IMPLICIT NONE
+REAL(dp), DIMENSION(1:3), INTENT(IN) :: u1, u2, n
+REAL(dp) :: phi
+!
+phi = SIGN( ACOS( DOT_PRODUCT(u1, u2)/ ( VECLENGTH(u1)*VECLENGTH(u2) ) ), SCALAR_TRIPLE_PRODUCT(u1,u2,n) )
+!
+END FUNCTION vecAngle
 !
 !
 !********************************************************

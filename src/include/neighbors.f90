@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 March 2017                                    *
+!* Last modification: P. Hirel - 08 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,6 +36,7 @@ MODULE neighbors
 USE comv
 USE functions
 USE subroutines
+USE messages
 !
 !
 CONTAINS
@@ -127,11 +128,16 @@ IF(ALLOCATED(Cell_AtomID)) DEALLOCATE(Cell_AtomID)
 IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
 !
 !
+msg = 'entering NEIGHBOR_LIST'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
 IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
   & .OR. SIZE(A,1) < 2000 ) THEN
   !
   !System is pseudo-2D or contains a small number of atoms
   !=> a simplistic Verlet neighbor search will suffice
+  msg = 'algorithm: VERLET'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !Define "close to border" in reduced units
   DO i=1,3
@@ -291,6 +297,8 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
   !
 ELSE
   !Large system => use a cell list algorithm
+  msg = 'algorithm: CELL DECOMPOSITION'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !Determine the number of cells needed along each dimension X, Y, Z
   DO i=1,3
@@ -499,6 +507,15 @@ IF( ALLOCATED(NeighList) ) THEN
   ENDIF
 ENDIF
 !
+IF( ALLOCATED(NeighList) ) THEN
+  WRITE(msg,*) 'Max. n. neighbors = ', SIZE(NeighList,2)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ELSE
+  msg = 'NeighList UNALLOCATED'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
+msg = 'exiting NEIGHBOR_LIST'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 END SUBROUTINE NEIGHBOR_LIST

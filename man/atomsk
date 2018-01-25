@@ -104,15 +104,19 @@ Removes all atoms that are above or below the plane defined by its <normal>.
 .B -deform <direction> <ε> <ν>
 Applies normal strain.
 .TP
-.B -dislocation <pos1> <pos2> <edge|edge2> <xi> <n> <b> <ν>
-.TP
 .B -dislocation <pos1> <pos2> screw <xi> <n> <b>
 .TP
+.B -dislocation <pos1> <pos2> <edge|edge2> <xi> <n> <b> <ν>
+.TP
 .B -dislocation <pos1> <pos2> mixed <xi> <n> <b1> <b2> <b3>
-Introduces a straight dislocation line of the given character, aligned along <xi> and in the plane normal to <n>.
+.TP
+.B -dislocation loop <x> <y> <z> <n> <radius> <bx> <by> <bz> <ν>
+Introduces a straight dislocation line of the given character, aligned along <xi> and in the plane normal to <n>, or a dislocation loop of the given <radius>.
 .TP
 .B -disturb <dmax>
-Apply a random displacement (maximum dmax) to all atoms.
+.TP
+.B -disturb <dx> <dy> <dz>
+Apply a random displacement to all atoms.
 .TP
 .B -duplicate <Nx> <Ny> <Nz>, -dup <Nx> <Ny> <Nz>
 Duplicates the system.

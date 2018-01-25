@@ -21,10 +21,12 @@
 
 <p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; mixed &#60;&xi;&#62; &#60;n&#62; &#60;b<sub>1</sub>&#62; &#60;b<sub>2</sub>&#62; &#60;b<sub>3</sub>&#62;</code></p>
 
+<p><code>-dislocation loop &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;n&#62; &#60;radius&#62; &#60;b<sub>x</sub>&#62; &#60;b<sub>y</sub>&#62; &#60;b<sub>z</sub>&#62; &#60;&nu;&#62;</code></p>
+
 
 <h4>Description</h4>
 
-<p>This option allows to insert a straight dislocation line into the system, using the displacements predicted by the theory of dislocations. Either isotropic or anisotropic solutions can be used (see below). The equations used by this option can be found e.g. in J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
+<p>This option allows to insert a straight dislocation line or a dislocation loop into the system, using the displacements predicted by the theory of dislocations. Either isotropic or anisotropic solutions can be used (see below). The equations used by this option can be found e.g. in J.P. Hirth and J. Lothe, <em>Theory of dislocations</em>.</p>
 
 <p>The user must provide the following parameters (see <strong>Fig. 1</strong>):</p>
 
@@ -79,13 +81,28 @@ This method results in the presence of a step at one edge of the supercell, poss
 
 <p>Since the elastic tensor is known, in this case it is the exact stresses that are computed. As for the isotropic case, the Voigt components are saved as auxiliary properties for each atom, and if several dislocations are constructed then their contributions to the stresses are added.</p>
 
-<p>If the system contains shells (in the sense of an ionic core-shell model), then each shell is displaced by the same vector as its associated core.</p>
+<hr>
 
-<p><strong>Important remarks:</strong> Atomsk does not "automagically" find nor adjust the Burgers vector of the dislocation, therefore a very precise value of <code>b</code> must be provided. Neither does the program find the optimal position for the dislocation center: a position <code>(p<sub>1</sub>,p<sub>2</sub>)</code> that exactly matches an atom position may result in unrealistic displacements, so you may have to play around with these coordinates to obtain proper results. As always, don't trust a program blindly -check your system before running any simulation, especially when building systems with dislocation(s).</p>
+<p>Dislocation loops can be constructed by using "<strong>-dislocation loop</strong>". In this case, the following parameters must be provided: the coordinates (x,y,z) of the center of the loop, the direction &#60;n&#62; normal to the plane of the loop (must be "X", "Y", or "Z"), the &#60;radius&#62; of the loop, the three components (b<sub>x</sub>,b<sub>y</sub>,b<sub>z</sub>) of the Burgers vector, and the value of the material's Poisson ratio &nu;.</p>
 
-<p>After applying this option, some atoms may end up out of the box. If you want to wrap these atoms back into the simulation cell you may consider using the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+<p>The coordinates (x,y,z) of the center of the loop can be provided in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). However, the &#60;radius&#62; of the loop and the Burgers vector components must be given in &Aring;.</p>
+
+<p>If the &#60;radius&#62; of the loop is negative, then instead of being circular, the loop will have a square shape.</p>
+
+<p>Just like the previous types of dislocations, several loops can be introduced in the system by calling the present option several times.</p>
+
+<object type="img/svg+xml" data="../img/opt_disloc_2.svg"><img src="../img/opt_disloc_2.png" alt="" /></object>
+<p><strong>Fig. 3</strong> - <em>Schematic for the construction of a dislocation loop. In this example, the dislocation loop is in a plane normal to the Cartesian Z axis (i.e. <strong><em>n</em></strong> is along Z). The dislocation loop appears in green, and its Burgers vector <strong><em>b</em></strong> in blue. Right-hand side figure: if the &#60;radius&#62; has a negative value, then the dislocation loop will have a square shape.</em></p>
+
+<hr>
+
+<p><strong>Important remarks:</strong> Atomsk does not "automagically" find nor adjust the Burgers vector of the dislocation, therefore a very accurate value of <strong><em>b</em></strong> must be provided. Neither does the program find the optimal position for the dislocation center: a position <code>(p<sub>1</sub>,p<sub>2</sub>)</code> that exactly matches an atom position may result in unrealistic displacements, so you may have to play around with these coordinates to obtain proper results. As always, don't trust a program blindly -check your system before running any simulation, especially when building systems with dislocation(s).</p>
 
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the displacements described above are applied only to selected atoms.</p>
+
+<p>If the system contains shells (in the sense of an ionic core-shell model), then each shell is displaced by the same vector as its associated core.</p>
+
+<p>After applying this option, some atoms may end up out of the box. If you want to wrap these atoms back into the simulation cell you may consider using the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
 
 
 
@@ -137,6 +154,9 @@ elastic Voigt<br/>
 </div>
 <code class="command">atomsk initial.xyz -orient 110 1-10 001 100 010 001 -prop ctensor.txt -orient 100 010 001 110 1-10 001 -disloc 0.5*BOX 0.5*BOX screw y x 2.8 dislocation.cfg</code>
 <p>This example illustrates another way of doing the same thing as the previous example. The original system (<code>initial.xyz</code> which is oriented X=[110], Y=[1<span class="over">1</span>0], Z=[001]) is first rotated thanks to the <a href="./option_orient.html">option <code>-orient</code></a> so that the [100] crystal direction lies along X, [010] along Y and [001] along Z. Then the elastic tensor, which corresponds to that orientation, is read. Then the system is rotated back to its original orientation (this could also be done by using the <a href="./option_alignx.html">option <code>-alignx</code></a> instead), which also rotates the elastic tensor accordingly. Finally the dislocation can be introduced.</p></li>
+
+<li><code class="command">atomsk supercell.cfg -dislocation loop 0.5*box 0.5*box 0.5*box Z 30 2.85 0 0 0.33 Loop.cfg</code>
+<p>In this example, a dislocation loop is introduced in the middle of the box, in a plane normal to Z, with a radius of 30 &Aring; and a Burgers vector <strong><em>b</em></strong>=[2.85 0 0]. The Poisson ratio of the material is set to &nu;=0.33.</p></li>
 
 <li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Al_110dislocations</code>" contains a bash script that builds two edge dislocations with opposite Burgers vectors in a slab of aluminium, using isotropic elasticity. The folder "<code>Fe_disloc_screw111_anisotropy</code>" shows how to build a 1/2&#60;111&#62; screw dislocation in iron using anisotropic elasticity.</p></li>
 </ul>

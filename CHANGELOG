@@ -4,14 +4,19 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
-- in mode "--interactive", added possibility to browse folders.
+- in option "-dislocation", added possibility to construct dislocation loops. Thanks to Emmanuel Clouet, CEA, Gif-sur-Yvette, France, for sharing his code Babel for the construction of dislocation loops.
 - in option "-select", added possibility to provide a file containing any ASCII character when using "-select grid"; blank spaces are replaced by 0, any other character by 1. Also added possibility to select atoms inside a 3-D model defined by an STL file. Also added possibility to select atoms inside or outside a torus.
+- in option "-properties", fixed a bug that would result in an infinite loop if user wrote numbers instead of atom species after the keyword "charge". Thanks to Srinivasan Mahendran, UMET, Lille, France, for pointing out this bug.
 
 
 
-Beta 0.9.10 (29 Nov. 2017)
+Beta 0.9.10 (07 Dec. 2017)
 --------------------------
+- in interactive mode, added possibility to browse folders.
+- fixed a bug in interactive mode, where the program would crash if the user simply entered a tabulation character.
+- fixed problem of precision of ion charges when writing LAMMPS data files.
 - fixed a bug in option "-dislocation", where edge dislocations were not constructed correctly when using anisotropic elasticity. Thanks to Matous Mrovec, ICAMS, Ruhr-Universität Bochum, Germany, for pointing out this bug.
+- fixed a misplaced message in option "-remove-atoms".
 
 
 Beta 0.9.9 (16 Oct. 2017)

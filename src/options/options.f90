@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Sept. 2017                                    *
+!* Last modification: P. Hirel - 17 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -161,7 +161,8 @@ REAL(dp):: def_strain, def_poisson  !applied strain and Poisson's ratio
 CHARACTER(LEN=1):: dislocline     !(x, y or z)
 CHARACTER(LEN=1):: dislocplane    !(x, y or z)
 CHARACTER(LEN=5):: disloctype     !edge or screw
-REAL(dp):: nu, pos1, pos2
+REAL(dp):: nu
+REAL(dp),DIMENSION(5):: pos !pos(1:3) = position of dislocation; pos(4) = radius of disloc.loop
 REAL(dp),DIMENSION(3):: b !Burgers vector
 !
 !Variables relative to Option: disturb
@@ -402,17 +403,17 @@ DO ioptions=1,SIZE(options_array)
   CASE('-crack')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, crackmode, &
         & cracktype, crackK, treal(1), treal(2), crackline, crackplane, mu, nu
-    CALL BOX2DBLE( H(:,1) , treal(1) , pos1 , status )
+    CALL BOX2DBLE( H(:,1) , treal(1) , pos(1) , status )
     IF(status>0) THEN
       temp = treal(1)
       GOTO 810
     ENDIF
-    CALL BOX2DBLE( H(:,2) , treal(2) , pos2 , status )
+    CALL BOX2DBLE( H(:,2) , treal(2) , pos(2) , status )
     IF(status>0) THEN
       temp = treal(2)
       GOTO 810
     ENDIF
-    CALL CRACK_XYZ(H,P,S,crackmode,cracktype,crackK,crackline,crackplane,mu,nu,pos1,pos2,SELECT,AUXNAMES,AUX)
+    CALL CRACK_XYZ(H,P,S,crackmode,cracktype,crackK,crackline,crackplane,mu,nu,pos(1),pos(2),SELECT,AUXNAMES,AUX)
   !
   CASE('-cut')
     cut_dir = TRIM(ADJUSTL(options_array(ioptions)(5:)))
@@ -463,103 +464,115 @@ DO ioptions=1,SIZE(options_array)
     !First, get disloctype
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10), disloctype
     !Depending on type, read further parameters
-    IF( disloctype=="mixed" ) THEN
-      !Read the three components of Burgers vector
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-          & treal(9), treal(10), disloctype, dislocline, dislocplane, b(1), b(2), b(3)
+    IF( TRIM(ADJUSTL(treal(9)))=="loop" ) THEN
+      disloctype = "loop"
+      !Read coordinates of loop center, loop radius, components of Burgers vector, and Poisson ratio
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), &
+          & treal(1), treal(2), treal(3), dislocline, pos(4), b(1), b(2), b(3), nu
+      !Convert the treal(:) into real numbers, if they contain the keyword "box"
+      DO i=1,3
+        CALL BOX2DBLE( H(:,i) , treal(i) , pos(i) , status )
+      ENDDO
+      !
     ELSE
-      !Only the norm of the Burgers vector is given
-      !Construct the complete Burgers vector b(:)
-      b(:) = 0.d0
-      IF(disloctype=="screw") THEN
-        !don't attempt to read nu
+      IF( disloctype=="mixed" ) THEN
+        !Read the three components of Burgers vector
         READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-            & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal
-        !only one component is given, the one along dislocline
-        SELECT CASE(dislocline)
-        CASE("x","X")
-          b(1) = tempreal
-        CASE("y","Y")
-          b(2) = tempreal
-        CASE("z","Z")
-          b(3) = tempreal
-        END SELECT
-      ELSEIF(disloctype(1:4)=="edge") THEN
-        !Edge character => read nu
-        READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-            & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal, nu
-        !only one component is given, normal to dislocline and plane of cut
-        SELECT CASE(dislocline)
-        CASE("x","X")
-          SELECT CASE(dislocplane)
-          CASE('z','Z')
+            & treal(9), treal(10), disloctype, dislocline, dislocplane, b(1), b(2), b(3)
+      ELSE
+        !Only the norm of the Burgers vector is given
+        !Construct the complete Burgers vector b(:)
+        b(:) = 0.d0
+        IF(disloctype=="screw") THEN
+          !don't attempt to read nu
+          READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+              & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal
+          !only one component is given, the one along dislocline
+          SELECT CASE(dislocline)
+          CASE("x","X")
+            b(1) = tempreal
+          CASE("y","Y")
             b(2) = tempreal
-          CASE('y','Y')
+          CASE("z","Z")
             b(3) = tempreal
           END SELECT
-        CASE("y","Y")
-          SELECT CASE(dislocplane)
-          CASE('x','X')
-            b(3) = tempreal
-          CASE('z','Z')
-            b(1) = tempreal
+        ELSEIF(disloctype(1:4)=="edge") THEN
+          !Edge character => read nu
+          READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+              & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal, nu
+          !only one component is given, normal to dislocline and plane of cut
+          SELECT CASE(dislocline)
+          CASE("x","X")
+            SELECT CASE(dislocplane)
+            CASE('z','Z')
+              b(2) = tempreal
+            CASE('y','Y')
+              b(3) = tempreal
+            END SELECT
+          CASE("y","Y")
+            SELECT CASE(dislocplane)
+            CASE('x','X')
+              b(3) = tempreal
+            CASE('z','Z')
+              b(1) = tempreal
+            END SELECT
+          CASE("z","Z")
+            SELECT CASE(dislocplane)
+            CASE('x','X')
+              b(2) = tempreal
+            CASE('y','Y')
+              b(1) = tempreal
+            END SELECT
           END SELECT
-        CASE("z","Z")
-          SELECT CASE(dislocplane)
-          CASE('x','X')
-            b(2) = tempreal
-          CASE('y','Y')
-            b(1) = tempreal
-          END SELECT
-        END SELECT
+        ENDIF
+      ENDIF
+      !Check if numbers contain a keyword like "BOX" or "INF"
+      SELECT CASE(dislocplane)
+      CASE('x','X')
+        j=1
+      CASE('y','Y')
+        j=2
+      CASE('z','Z')
+        j=3
+      END SELECT
+      SELECT CASE(dislocline)
+      CASE('x','X')
+        treal(2) = treal(9)
+        treal(3) = treal(10)
+        IF(j==2) THEN
+          i=3
+        ELSEIF(j==3) THEN
+          i=2
+        ENDIF
+      CASE('y','Y')
+        treal(3) = treal(9)
+        treal(1) = treal(10)
+        IF(j==1) THEN
+          i=3
+        ELSEIF(j==3) THEN
+          i=1
+        ENDIF
+      CASE('z','Z')
+        treal(1) = treal(9)
+        treal(2) = treal(10)
+        IF(j==1) THEN
+          i=2
+        ELSEIF(j==2) THEN
+          i=1
+        ENDIF
+      END SELECT
+      CALL BOX2DBLE( H(:,i) , treal(i) , pos(1) , status )
+      IF(status>0) THEN
+        temp = treal(i)
+        GOTO 810
+      ENDIF
+      CALL BOX2DBLE( H(:,j) , treal(j) , pos(2) , status )
+      IF(status>0) THEN
+        temp = treal(j)
+        GOTO 810
       ENDIF
     ENDIF
-    !Check if numbers contain a keyword like "BOX" or "INF"
-    SELECT CASE(dislocplane)
-    CASE('x','X')
-      j=1
-    CASE('y','Y')
-      j=2
-    CASE('z','Z')
-      j=3
-    END SELECT
-    SELECT CASE(dislocline)
-    CASE('x','X')
-      treal(2) = treal(9)
-      treal(3) = treal(10)
-      IF(j==2) THEN
-        i=3
-      ELSEIF(j==3) THEN
-        i=2
-      ENDIF
-    CASE('y','Y')
-      treal(3) = treal(9)
-      treal(1) = treal(10)
-      IF(j==1) THEN
-        i=3
-      ELSEIF(j==3) THEN
-        i=1
-      ENDIF
-    CASE('z','Z')
-      treal(1) = treal(9)
-      treal(2) = treal(10)
-      IF(j==1) THEN
-        i=2
-      ELSEIF(j==2) THEN
-        i=1
-      ENDIF
-    END SELECT
-    CALL BOX2DBLE( H(:,i) , treal(i) , pos1 , status )
-    IF(status>0) THEN
-      temp = treal(i)
-      GOTO 810
-    ENDIF
-    CALL BOX2DBLE( H(:,j) , treal(j) , pos2 , status )
-    IF(status>0) THEN
-      temp = treal(j)
-      GOTO 810
-    ENDIF
-    CALL DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos1,pos2,SELECT,AUXNAMES,AUX,C_tensor)
+    CALL DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,AUXNAMES,AUX,C_tensor)
   !
   CASE('-disturb')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dmax(1), dist_dmax(2), dist_dmax(3)
