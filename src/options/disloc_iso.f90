@@ -7,7 +7,7 @@ MODULE dislocation_iso
 !* a straight dislocation in the framework of isotropic elasticity.               *
 !* Formulae can be found for instance in:                                         *
 !* J.P. Hirth, J. Lothe, 'Theory of dislocations', 1st ed. (1968), p.75.          *
-!* These functions are used by the module "opt_dislocation.f90".                  *
+!* These functions are used by the module "opt_disloc.f90".                       *
 !**********************************************************************************
 !* (C) January 2018 - Pierre Hirel                                                *
 !*     Université de Lille, Sciences et Technologies                              *

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 25 Jan. 2018                                     *
+!* Last modification: P. Hirel - 30 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2202,6 +2202,11 @@ CASE(3716)
   msg = "            von einigen Ausgabeformaten unterstützt werden."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Shells werden in einer Ausgabedatei verloren gehen."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3717)
+  !reals(1) = total charge
+  WRITE(temp,'(f9.3)') reals(1)
+  msg = "/!\ WARNUNG: Zelle hat eine von Null verschiedene elektrische Ladung: Q_total = "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES

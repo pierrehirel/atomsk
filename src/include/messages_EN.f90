@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Jan. 2018                                     *
+!* Last modification: P. Hirel - 30 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2223,6 +2223,11 @@ CASE(3716)
   msg = "            not supported by some output format(s)."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Shells will be lost in some output file(s)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3717)
+  !reals(1) = total charge
+  WRITE(temp,'(f9.3)') reals(1)
+  msg = "/!\ WARNING: cell has a non-zero electric charge: Q_total = "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

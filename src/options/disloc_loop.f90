@@ -9,7 +9,7 @@ MODULE dislocation_loop
 !* Emmanuel Clouet, and adapted for use within Atomsk.                            *
 !* Babel is available from the following Website:                                 *
 !*   http://emmanuel.clouet.free.fr/Programs/Babel/                               *
-!* These functions are used by the module "opt_dislocation.f90".                  *
+!* These functions are used by the module "opt_disloc.f90".                       *
 !**********************************************************************************
 !* (C) October 2017 - Emmanuel Clouet                                             *
 !*     Service de Recherches de Métallurgie Physique                              *

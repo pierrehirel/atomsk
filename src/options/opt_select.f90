@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 Oct. 2017                                     *
+!* Last modification: P. Hirel - 29 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1182,9 +1182,13 @@ CASE('grid')
     IF( k==1 ) THEN
       !First line of data => determine the format of the file
       !Check if line contains only numbers
-      IF( SCAN(temp,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?,;:!§%*$£=+-^&~'#{}[]()<>/") == 0 ) THEN
+      IF( temp(1:6)=="FINITE" .OR. temp(1:6)=="Finite" .OR. temp(1:6)=="finite" &
+        & .OR. temp(1:2)=="FE" .OR. temp(1:2)=="fe" ) THEN
+        !Finite-element grid: lines of "xyz 0|1" should follow
+        gridformat = 2
+      ELSEIF( SCAN(temp,"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz?,;:!§%*$£=+-^&~'#{}[]()<>/") == 0 ) THEN
         !Try to read three integers
-        READ(temp,*,ERR=291,END=291) a1, a2, a3
+        READ(temp,*,ERR=292,END=292) a1, a2, a3
         !Success => we have NX=a1, NY=a2, NZ=a3
         gridformat=1
         IF( a1<=0 .OR. a2<=0 .OR. a3<=0 ) THEN
@@ -1194,33 +1198,26 @@ CASE('grid')
         ENDIF
         Ngrid = a1*a2*a3
         GOTO 294
-        291 CONTINUE
-        !Failed to read 3 integers => it should be 3 real numbers + an integer
-        !Try to confirm (if it fails, then the file has a bad format, abort):
-        READ(temp,*,ERR=292,END=292) V1, V2, V3, i
-        !No error, the format is confirmed
-        gridformat = 2
-        GOTO 294
+        !
+        292 CONTINUE
+        !Failed to read 3 integers, and failed to read 3 real numbers
+        !=> assume 2-D grid made of random characters
+        gridformat = 3
+        !Determine max. length of a line and number of lines
+        a2=1        !one line was read already
+        DO
+          READ(30,'(a4096)',ERR=293,END=293) temp
+          a2 = a2+1
+          IF( LEN_TRIM(temp) > Nperline ) THEN
+            Nperline = LEN_TRIM(temp)
+          ENDIF
+        ENDDO
+        293 CONTINUE
+        !Now we know the number of lines, and the number of elements per line
+        a1 = Nperline
+        a3 = 1
+        Ngrid = a1*a2
       ENDIF
-      !
-      292 CONTINUE
-      !Failed to read 3 integers, and failed to read 3 real numbers
-      !=> assume 2-D grid made of random characters
-      gridformat = 3
-      !Determine max. length of a line and number of lines
-      a2=1        !one line was read already
-      DO
-        READ(30,'(a4096)',ERR=293,END=293) temp
-        a2 = a2+1
-        IF( LEN_TRIM(temp) > Nperline ) THEN
-          Nperline = LEN_TRIM(temp)
-        ENDIF
-      ENDDO
-      293 CONTINUE
-      !Now we know the number of lines, and the number of elements per line
-      a1 = Nperline
-      a3 = 1
-      Ngrid = a1*a2
       !
     ELSE
       !Not first line of data => read line assuming same format
@@ -1292,6 +1289,8 @@ CASE('grid')
       GOTO 295
       !
     ELSEIF( gridformat==2 ) THEN
+      !First line contains "FE" or similar (it was already read, so there should not be any error)
+      READ(30,*,ERR=801,END=801) temp
       !Read position and status (0 or 1) of each grid element
       DO
         READ(30,'(a4096)',ERR=295,END=295) temp
@@ -1397,7 +1396,7 @@ CASE('grid')
         DO i=1,SIZE(NeighList,1)
           WRITE(msg,*) "Grid neighbors:"
           CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-          WRITE(msg,*) i, "|", (NeighList(i,j),j=1,10)
+          WRITE(msg,'(i3,a3,10(1X,f9.3))') i, " | ", (NeighList(i,j),j=1,10)
           CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
         ENDDO
       ENDIF

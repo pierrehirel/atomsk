@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 30 Jan. 2017                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -106,8 +106,9 @@ CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN),OPTIONAL:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,OPTIONAL:: comment
 LOGICAL:: fileexists
-INTEGER:: i, j
+INTEGER:: i, j, q, qs
 INTEGER,DIMENSION(8):: values
+REAL(dp):: Q_total  !total electric charge of the cell
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P          !positions of atoms (or ionic cores)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),OPTIONAL:: S !positions of ionic shells
@@ -116,6 +117,9 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 username=""
+q = 0
+qs = 0
+Q_total = 0.d0
 !
 IF(verbosity==4) THEN
   msg = 'Entering WRITE_AFF'
@@ -266,6 +270,38 @@ IF(SIZE(outfileformats)>1) THEN
       ENDIF
     ENDDO
   ENDDO
+ENDIF
+!
+!Check for the total electric charge
+IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+  DO i=1,SIZE(AUXNAMES)
+    msg = TRIM(ADJUSTL(AUXNAMES(i)))
+    IF( msg(1:2)=='q ' ) THEN
+      q = i
+    ELSEIF( msg(1:3)=='qs ' ) THEN
+      qs = i
+    ENDIF
+  ENDDO
+  !
+  IF( .NOT.ALLOCATED(S) .OR. SIZE(S,1).NE.SIZE(AUX,1) ) THEN
+    qs = 0
+  ENDIF
+  !
+  Q_total = 0.d0
+  IF( q>0 ) THEN
+    DO i=1,SIZE(AUX,1)
+      Q_total = Q_total + AUX(i,q)
+      IF( qs>0 ) THEN
+        Q_total = Q_total + AUX(i,qs)
+      ENDIF
+    ENDDO
+  ENDIF
+  !
+  IF( DABS(Q_total) > 1.d-6 ) THEN
+    !Total electric charge is non-zero => display a warning
+    nwarn = nwarn+1
+    CALL ATOMSK_MSG(3717,(/""/),(/Q_total/))
+  ENDIF
 ENDIF
 !
 !

@@ -97,7 +97,7 @@ de leur espèce chimique.</p>
 <ul>
   <li>Le &#60;fichier&#62; peut contenir une première ligne contenant trois entiers NX, NY, NZ, définissant le nombre d'éléments suivant chaque direction cartésienne. Dans ce cas tous les éléments sont des parallélépipèdes de mêmes dimensions. Ensuite, le fichier doit contenir NXxNYxNZ nombres 0 ou 1, contigus ou séparés par des espaces, sur une ou plusieurs lignes (dans la limite de 4096 caractères par ligne). Chaque nombre correspond à un élément de la grille, en se déplaçant d'abord suivant X, puis suivant Y, puis suivant Z. Un 0 indique que les atomes à l'intérieur d'un élément ne doivent pas être sélectionnés, et un 1 qu'ils doivent l'être.</li>
   
-  <li>Ou, le &#60;fichier&#62; peut contenir des lignes donnant la position (x,y,z) d'éléments de la grille (soit en &Aring; soit en coordonnées réduites), suivies par un nombre entier 0 ou 1. Ces éléments forment alors les n&oelig;uds d'un maillage de Voronoï, qui peut être régulier ou non.</li>
+  <li>Ou, le &#60;fichier&#62; peut commencer par une ligne contenant le mot-clé "Finite element", puis contenir des lignes donnant la position (x,y,z) d'éléments de la grille (soit en &Aring; soit en coordonnées réduites), suivies par un nombre entier 0 ou 1. Ces éléments forment alors les n&oelig;uds d'un maillage de Voronoï, qui peut être régulier ou non.</li>
   
   <li>Enfin, le &#60;fichier&#62; peut contenir des lignes de caractères ASCII formant une représentation 2-D d'une grille. Les espaces et le caractère 0 sont interprétés comme des 0 (représentant des endroits où les atomes ne sont pas sélectionnés), et tout autre caractère est interprété comme un 1 (marquant les endroits où les atomes sont sélectionnés). Ceci peut être utile pour sélectionner des formes géométriques simples, comme des lettres ou de l'art ASCII. Vous pouvez utiliser des programmes comme <a href="https://figlet.org/">figlet</a> pour convertir du texte en art ASCII, ou bien <a href="https://csl.name/jp2a/">jp2a</a> pour convertir une image JPG en un fichier texte. Ensuite, Atomsk peut utiliser de tels fichiers textes comme grilles pour sélectionner des atomes.</li>
 </ul>
@@ -190,7 +190,8 @@ petit rapport entre la dimension de la boîte atomique et la dimension correspon
 <p>Le fichier "grille.txt" contient une première ligne donnant le nombre d'éléments suivant chaque direction : ici, le système atomique sera découpé selon une grille de taille 4x4x3. Les lignes suivantes donnent l'état (0 ou 1) de chacun des 48 éléments de la grille (les lignes vides ou commençant par un signe &#35; sont ignorées). Une valeur de 1 indique que les atomes à l'intérieur d'un élément seront sélectionnés, et 0 qu'ils ne le seront pas. Dans ce fichier, chaque groupement de 4x4 chiffres représente une grille dans un plan XY, et il y a trois de ces plans suivant Z. En résumé, Atomsk va lire le fichier "initial.cfg", mettra automatiquement la grille à l'échelle du système atomique, sélectionnera les atomes situés dans des éléments marqués d'un "1", et <a href="./option_rmatom.html">supprimera les atomes sélectionnés</a>. Le résultat final sera écrit dans le fichier "final.xyz".</p></li>
 
 <li><div class="txtfile"><h5>grille.txt</h5>
-<p><code>0.2354 0.2 0.4013540 1<br/>
+<p><code>Finite element<br/>
+0.2354 0.2 0.4013540 1<br/>
 0.196874 0.5354 0.541 0<br/>
 0.9432587 0.651 0.3554 1<br/>
 0.68354 0.2189 0.35 0<br/>
