@@ -21,7 +21,7 @@ MODULE aio
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Jan. 2016                                     *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -70,6 +70,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: fx, fy, fz
 INTEGER:: i, j, k
 INTEGER:: snap, totsnap  !current/total snapshot
+REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX_FORCES !forces on atoms
@@ -87,6 +88,7 @@ fy=0
 fz=0
 snap = 0
 totsnap = 0
+Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 ALLOCATE(comment(1))
  comment(1)=''
@@ -187,7 +189,7 @@ DO i=1,totsnap
       IF(nerr>0) GOTO 300
       !
       !Apply options if any
-      CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+      CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
       IF(nerr>0) GOTO 300
       !
       !

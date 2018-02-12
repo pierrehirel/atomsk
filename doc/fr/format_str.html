@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format STR - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : STR</h2>
+
+<p><strong>Nom :</strong> fichier de structure PDFFIT</p>
+
+<p><strong>Extension :</strong> str ou stru</p>
+
+<p><strong>Spécification :</strong> <a href="https://web.pa.msu.edu/cmp/billinge-group/programs/discus/pdffit.html">guide d'utilisateur de PDFFIT</a></p>
+
+<p><strong>Programmes de visualisation :</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>PDFFIT est un programme permettant de déterminer une structure cristalline à partir de clichés de diffraction de rayons X. Après avoir effectué un raffinement, la structure finale du cristal est enregistrée dans un fichier texte au format STR.</p>
+
+<p>Atomsk peut lire les fichiers de structure aussi bien dans le format utilisé par DISCUS, que dans celui utilisé par PDFFIT. Lors de la lecture de ces fichiers, les occupations partielles et les facteurs de vibration anisotropes sont enregistrés, de sorte à pouvoir être transférés dans les fichiers de sortie si leur format le permet. Si un groupe d'espace est défini (après le mot-clé "spcgr"), alors les opérations de symétrie correspondantes sont appliquées immédiatement.</p>
+
+<p>Atomsk peut aussi écrire des fichiers au format STR, en utilisant toujours le format de PDFFIT. Le groupe d'espace est toujours P1, et toutes les positions atomiques sont écrites explicitement dans le fichier. S'ils sont définis, les occupations partielles et facteurs anisotropes sont aussi écrits dans le fichier ; toute valeur manquante est automatiquement remplacée par un zéro. De plus, les déviations standards pour tous les paramètres sont toujours égales à zéro.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk Ni.str vesta</code>
+<p>Avec cette commande, Atomsk va lire le fichier <code>Ni.str</code>, et le convertir en <code>Ni.vesta</code> pour visualisation avec VESTA. Les occupations partielles seront enregistrées et écrites dans le fichier de sortie, et pourront donc être visualisées dans VESTA.</p></li>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

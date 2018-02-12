@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 Jan. 2018                                     *
+!* Last modification: P. Hirel - 12 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -446,6 +446,7 @@ WRITE(*,*) "    pdb (Protein Data Bank) |   yes  |  yes"
 WRITE(*,*) "    pos (POSCAR/VASP)       |   yes  |  yes"
 WRITE(*,*) "    pw (Quantum Espresso)   |   yes  |  yes"
 WRITE(*,*) "    pwout (QE output file)  |  yes(2)|   no"
+WRITE(*,*) "    str (PDFFIT)            |   yes  |  yes"
 WRITE(*,*) "    vesta (VESTA file)      |   yes  |  yes"
 WRITE(*,*) "    xmd (XMD file)          |   yes  |  yes"
 WRITE(*,*) "    xsf (XCrySDen)          |   yes  |  yes"
@@ -2211,7 +2212,7 @@ CASE(3714)
   msg = "/!\ WARNING: some atoms have an invalid type."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3715)
-  msg = "/!\ WARNING: data contains partial occupancies, which are"
+  msg = "/!\ WARNING: input data contains partial occupancies, which are"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            not supported by some output format(s)."
   CALL DISPLAY_MSG(1,msg,logfile)

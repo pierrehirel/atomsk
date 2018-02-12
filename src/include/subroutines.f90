@@ -473,57 +473,61 @@ REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
 REAL(dp),DIMENSION(SIZE(A,2)) :: col_value
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
 !
- col_value(:) = 0.d0
 !
-IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
-ALLOCATE( newindex(SIZE(A,1)) )
-DO i=1,SIZE(newindex)
-  newindex(i) = i
-ENDDO
-!
-IF(order=='down') THEN
-  DO j=SIZE(A,1),2,-1
-    sorted = .TRUE.
-    DO i=1,j-1
-      !If element i+1 is greater than element i, swap them
-      IF( A(i+1,col) > A(i,col) ) THEN
-        col_value(:) = A(i,:)
-        A(i,:) = A(i+1,:)
-        A(i+1,:) = col_value(:)
-        !Save new indexes
-        k = newindex(i)
-        newindex(i) = newindex(i+1)
-        newindex(i+1) = k
-        !We performed an inversion => list is not sorted
-        sorted = .FALSE.
-      ENDIF
-    ENDDO
-    !If no inversion was performed after loop on i, the list is fully sorted
-    IF(sorted) EXIT
+IF( SIZE(A,2)>=1 .AND. col>0 .AND. col<=SIZE(A,2) ) THEN
+  col_value(:) = 0.d0
+  IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
+  ALLOCATE( newindex(SIZE(A,1)) )
+  DO i=1,SIZE(newindex)
+    newindex(i) = i
   ENDDO
   !
-ELSE  !i.e. if order is "up"
-  DO j=SIZE(A,1),2,-1
-    sorted = .TRUE.
-    DO i=1,j-1
-      !If element i+1 is smaller than element i, swap them
-      IF( A(i+1,col) < A(i,col) ) THEN
-        col_value(:) = A(i,:)
-        A(i,:) = A(i+1,:)
-        A(i+1,:) = col_value(:)
-        !Save new indexes
-        k = newindex(i)
-        newindex(i) = newindex(i+1)
-        newindex(i+1) = k
-        !We performed an inversion => list is not sorted
-        sorted = .FALSE.
-      ENDIF
+  IF(order=='down') THEN
+    DO j=SIZE(A,1),2,-1
+      sorted = .TRUE.
+      DO i=1,j-1
+        !If element i+1 is greater than element i, swap them
+        IF( A(i+1,col) > A(i,col) ) THEN
+          col_value(:) = A(i,:)
+          A(i,:) = A(i+1,:)
+          A(i+1,:) = col_value(:)
+          !Save new indexes
+          k = newindex(i)
+          newindex(i) = newindex(i+1)
+          newindex(i+1) = k
+          !We performed an inversion => list is not sorted
+          sorted = .FALSE.
+        ENDIF
+      ENDDO
+      !If no inversion was performed after loop on i, the list is fully sorted
+      IF(sorted) EXIT
     ENDDO
-    !If no inversion was performed after loop on i, the list is fully sorted
-    IF(sorted) EXIT
-  ENDDO
+    !
+  ELSE  !i.e. if order is "up"
+    DO j=SIZE(A,1),2,-1
+      sorted = .TRUE.
+      DO i=1,j-1
+        !If element i+1 is smaller than element i, swap them
+        IF( A(i+1,col) < A(i,col) ) THEN
+          col_value(:) = A(i,:)
+          A(i,:) = A(i+1,:)
+          A(i+1,:) = col_value(:)
+          !Save new indexes
+          k = newindex(i)
+          newindex(i) = newindex(i+1)
+          newindex(i+1) = k
+          !We performed an inversion => list is not sorted
+          sorted = .FALSE.
+        ENDIF
+      ENDDO
+      !If no inversion was performed after loop on i, the list is fully sorted
+      IF(sorted) EXIT
+    ENDDO
+  ENDIF
+  !
+ELSE
+  PRINT*, "ERROR col = ", col
 ENDIF
-!
 !
 END SUBROUTINE BUBBLESORT
 !

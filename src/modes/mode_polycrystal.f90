@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 July 2017                                     *
+!* Last modification: P. Hirel - 12 Feb. 2018                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -754,7 +754,7 @@ IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
 ENDIF
 !
 !Compute boxmax = maximum distance from one end of the box to another
-boxmax = MIN( 50.d0 , 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  ) )
+boxmax = 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
 WRITE(msg,*) "Max. distance for neighbor search:", boxmax
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
@@ -1190,7 +1190,7 @@ IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
 IF(ALLOCATED(St)) DEALLOCATE(St)
 !P now contains positions of all atoms in all the grains
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Write final system to file(s)
 CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)

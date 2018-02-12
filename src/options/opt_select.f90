@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 Jan. 2018                                     *
+!* Last modification: P. Hirel - 02 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1191,20 +1191,21 @@ CASE('grid')
         READ(temp,*,ERR=292,END=292) a1, a2, a3
         !Success => we have NX=a1, NY=a2, NZ=a3
         gridformat=1
-        IF( a1<=0 .OR. a2<=0 .OR. a3<=0 ) THEN
-          !cannot have a grid with zero dimension => abort
-          nerr=nerr+1
-          GOTO 1000
+        IF( a1*a2*a3 <= 0 ) THEN
+          !cannot have a grid with zero dimension
+          !=> maybe those 3 integers are part of a 2-D grid
+          GOTO 292
+        ELSE
+          Ngrid = a1*a2*a3
+          GOTO 294
         ENDIF
-        Ngrid = a1*a2*a3
-        GOTO 294
         !
         292 CONTINUE
         !Failed to read 3 integers, and failed to read 3 real numbers
         !=> assume 2-D grid made of random characters
         gridformat = 3
         !Determine max. length of a line and number of lines
-        a2=1        !one line was read already
+        a2=1  !one line was read already
         DO
           READ(30,'(a4096)',ERR=293,END=293) temp
           a2 = a2+1

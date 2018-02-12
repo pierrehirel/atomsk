@@ -9,6 +9,7 @@
 # where columns 4 to 6 only contain zeros.
 
 if [[ -z "$@" ]]; then
+  printf "Remove lines where columns 4-6 contain only zeros in data files (*.dat). \n"
   printf "Usage: dat_rm0.sh <file1.dat> [<file2.dat> ...] \n"
 else
   FILES="$@"

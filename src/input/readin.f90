@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 May 2017                                      *
+!* Last modification: P. Hirel - 09 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -78,6 +78,7 @@ USE in_moldy
 USE in_pdb
 USE in_qe_pw
 USE in_siesta_xv
+USE in_str
 USE in_vasp_poscar
 USE in_vesta
 USE in_xmd
@@ -190,6 +191,8 @@ CASE('pos')
   CALL READ_POSCAR(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('pw')
   CALL READ_QEPW(inputfile,H,P,comment,AUXNAMES,AUX)
+CASE('str')
+  CALL READ_STR(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('vesta')
   CALL READ_VESTA(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('xmd')

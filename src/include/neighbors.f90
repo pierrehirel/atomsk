@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Jan. 2018                                     *
+!* Last modification: P. Hirel - 12 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -91,7 +91,8 @@ INTEGER:: Ix, Iy, Iz
 INTEGER:: i, j, k, l, m, n, u
 INTEGER:: iCell  !index of a cell (cell-list algorithm)
 INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
-INTEGER:: Ncells !total number of cells (cell-list algorithm)
+INTEGER:: Maxcells !max number of cells along one direction (cell-list algorithm)
+INTEGER:: Ncells   !total number of cells (cell-list algorithm)
 INTEGER,DIMENSION(3):: shift
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(3):: NcellsX  !number of cells along X, Y, Z (cell-list algorithm)
@@ -129,6 +130,8 @@ IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
 !
 !
 msg = 'entering NEIGHBOR_LIST'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
@@ -297,25 +300,30 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
   !
 ELSE
   !Large system => use a cell list algorithm
+  Maxcells = NINT( SIZE(A,1)**(1.d0/3.d0) )
   msg = 'algorithm: CELL DECOMPOSITION'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !Determine the number of cells needed along each dimension X, Y, Z
   DO i=1,3
-    distance = MAXVAL(H(:,i))
-    tempreal = 0.9d0*distance/R
+    distance = SUM(DABS(H(:,i)))
+    tempreal = 1.9d0*distance/R
     IF( distance < 2.d0*R .OR. NINT(tempreal) < 2 ) THEN
       !Ensure that there is always at least one cell along any given direction
       NcellsX(i) = 1
     ELSE
       !Large cell or small R => do not create zillions of small cells
-      !Decomposition into max. 20 cells along that direction should be enough
-      NcellsX(i) = MIN( NINT(tempreal) , 20 )
+      !=> No more than Maxcell cells along any direction
+      NcellsX(i) = MIN( NINT(tempreal) , Maxcells )
     ENDIF
     !Length of a cell along each direction
     Cell_L(i) = distance / DBLE(NcellsX(i))
   ENDDO
   Ncells = PRODUCT( NcellsX(:) )  !total number of cells
+  WRITE(msg,*) 'Actual number of cells along X, Y, Z: ', NcellsX(1), NcellsX(2), NcellsX(3)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !For each atom, find the index of the cell it belongs to
   ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to
@@ -357,8 +365,8 @@ ELSE
   DO i=1,NcellsX(1)
     DO j=1,NcellsX(2)
       DO k=1,NcellsX(3)
-        iCell = (k-1)*NcellsX(1)*NcellsX(2) + (j-1)*NcellsX(1) + i
         u=0
+        iCell = (k-1)*NcellsX(1)*NcellsX(2) + (j-1)*NcellsX(1) + i
         !
         DO l=i-1,i+1
           a1=l
@@ -417,13 +425,15 @@ ELSE
       ENDDO !k
     ENDDO !j
   ENDDO !i
+  WRITE(msg,*) 'Neighbor list for cells complete'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !Construct the neighbor list for atoms
   DO i=1,SIZE(A,1)
     !iCell = index of the cell atom #i belongs to
     iCell = Atom_Cell(i)
     !
-    !Parse all 27 cells (=cell #iCell and its neighbors)
+    !Parse atoms in cell #iCell and its neighbors
     DO j=1,27  !SIZE(Cell_Neigh,2)
       !Parse atoms in cell #j (there are Cell_NP(j) atoms in it)
       DO k=1,Cell_NP(Cell_Neigh(iCell,j,1))
@@ -437,8 +447,8 @@ ELSE
             !Use the correct periodic image of that cell
             !The position of the atom #n has to be translated by Cell_Neigh(iCell,j,2:4) * (box vectors)
             Vfrac(1,1:3) = A(n,1:3) + DBLE(Cell_Neigh(iCell,j,2))*H(1,:)   &
-                         &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
-                         &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
+                        &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
+                        &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
             !Compute distance between atom #i and the periodic image of atom #n
             distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
             IF( distance < R ) THEN
@@ -484,6 +494,7 @@ ELSE
         ENDIF
         !
       ENDDO  !k
+      !
     ENDDO  !j
     !
   ENDDO  !i
@@ -540,6 +551,7 @@ END SUBROUTINE NEIGHBOR_LIST
 SUBROUTINE NEIGHBOR_POS(H,A,V,NeighList,Use_NeighList,radius,PosList)
 !
 IMPLICIT NONE
+CHARACTER(LEN=128):: msg
 LOGICAL:: selfneighbor  !is central atom a neighbor of itself? (because of PBC)
 LOGICAL,INTENT(IN):: Use_NeighList !use provided neighbor list?
 INTEGER:: i, m, n, o
@@ -554,6 +566,11 @@ REAL(dp),DIMENSION(3),INTENT(IN):: V !position of central atom
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H  !vectors of the box
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: PosList
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A !positions of all atoms
+!
+msg = 'entering NEIGHBOR_POS'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) 'SIZE NeighList = ', SIZE(NeighList,1)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 selfneighbor=.FALSE.
 IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
@@ -660,6 +677,8 @@ IF( Nneighbors>0 ) THEN
   ENDIF
   !
 ENDIF
+msg = 'exiting NEIGHBOR_POS'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 END SUBROUTINE NEIGHBOR_POS

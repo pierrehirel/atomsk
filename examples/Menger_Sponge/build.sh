@@ -11,9 +11,9 @@ atomsk --create fcc 4.02 Al unitcell.xsf
 # in nine equal parts, and removing the central part.
 # We create a grid containing nine elements, where only
 # the central element is 1 and will be selected
-echo "0 0 0" >  grid_sponge.txt
-echo "0 1 0" >> grid_sponge.txt
-echo "0 0 0" >> grid_sponge.txt
+echo "000" >  grid_sponge.txt
+echo "010" >> grid_sponge.txt
+echo "000" >> grid_sponge.txt
 
 # Initial input file name
 f1="unitcell.xsf"

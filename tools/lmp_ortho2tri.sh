@@ -10,6 +10,7 @@
 # if necessary.
 
 if [[ -z "$@" ]]; then
+  printf "Add a line 'xy xz yz' into LAMMPS data files (*.lmp). \n"
   printf "Usage: lmp_ortho2tri.sh <file1.lmp> [<file2.lmp> ...] \n"
 else
   FILES="$@"

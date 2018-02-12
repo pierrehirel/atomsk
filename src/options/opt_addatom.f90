@@ -280,9 +280,9 @@ CASE("random","RANDOM","rand","RAND")
     !CALL FIND_NNN(H,newP(1:m,:),(/x,y,z/),4,V_NN,Nlist,exceeds100)
     !
     !Generate list of positions of neighbors of atom #n
-    CALL NEIGHBOR_POS(H,newP,(/x,y,z/),NeighList(m+n,:),ALLOCATED(NeighList),6.d0,PosList)
+    CALL NEIGHBOR_POS(H,newP,(/x,y,z/),NeighList(SIZE(P,1)+n,:),.TRUE.,6.d0,PosList)
     !
-    IF( SIZE(PosList,1) >= 4 ) THEN
+    IF( ALLOCATED(PosList) .AND. SIZE(PosList,1) >= 4 .AND. SIZE(PosList,2)>=4 ) THEN
       !Atom #m+n has more than 4 neighbors => try to adjust its position
       !Sort neighbors by increasing distance
       CALL BUBBLESORT(PosList,4,'up  ',newindex)
@@ -304,7 +304,7 @@ CASE("random","RANDOM","rand","RAND")
     !
     !Determine if this type of atoms has shells
     IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      IF( NINT(S(i,4))==NINT(snumber) ) THEN
+      IF( NINT(S(n,4))==NINT(snumber) ) THEN
         hasShells = .TRUE.
       ENDIF
     ENDIF
@@ -318,6 +318,8 @@ END SELECT
 !
 !
 !Replace old P by newP; same with S and AUX if necessary
+WRITE(msg,*) 'Final added atoms: ', addedatoms
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 IF( addedatoms>0 ) THEN
   DEALLOCATE(P)
   ALLOCATE(P(SIZE(newP,1),4))

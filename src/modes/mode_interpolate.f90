@@ -10,7 +10,7 @@ MODULE mode_interpolate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,6 +57,7 @@ LOGICAL:: doshells !also take shells into account?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k
 INTEGER,INTENT(IN):: Nimages  !number of configurations to interpolate (that excludes initial & final images)
+REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H1, H2   !Base vectors of the supercells of initial, final images
 REAL(dp),DIMENSION(3,3):: Himg     !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
@@ -138,7 +139,7 @@ DO i=1,Nimages
   ENDIF
   !
   !Apply options to current image
-  CALL OPTIONS_AFF(options_array,Himg,Pimg,Simg,AUXNAMESimg,AUXimg,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,Himg,Pimg,Simg,AUXNAMESimg,AUXimg,ORIENT,SELECT)
   !
   !Write current image to file(s)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)

@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Jan. 2016                                     *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -322,7 +322,8 @@ ENDDO
 CALL ATOMSK_MSG(4031,(/''/),(/DBLE(Nfiles)/))
 !
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,H,Q,T,AUXNAMES,AUX,ORIENT,SELECT)
+Htemp(:,:) = 0.d0
+CALL OPTIONS_AFF(options_array,Htemp,H,Q,T,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Write final system into file(s)
 CALL WRITE_AFF(outputfile,outfileformats,H,Q,T,comment,AUXNAMES,AUX)

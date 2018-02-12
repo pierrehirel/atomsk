@@ -15,6 +15,7 @@ set -e
 factor=0.0
 
 if [[ -z "${@:2}" ]]; then
+  printf "Multiply the columns 4-6 by the given factor in data files (*.dat). \n"
   printf "Usage: dat_mulvec.sh <factor> <file1.dat> [<file2.dat> ...] \n"
 else
   factor=$1

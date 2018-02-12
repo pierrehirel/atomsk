@@ -279,6 +279,9 @@ VASP format.
 .B PW
 Quantum Espresso PWscf format.
 .TP
+.B STR
+PDFFIT structure file.
+.TP
 .B vesta
 VESTA file.
 .TP
@@ -343,6 +346,9 @@ VASP format.
 .TP
 .B PW
 Quantum Espresso PWscf format.
+.TP
+.B STR
+PDFFIT structure file.
 .TP
 .B vesta
 VESTA file.

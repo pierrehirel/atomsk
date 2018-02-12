@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 April 2017                                    *
+!* Last modification: P. Hirel - 05 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -71,6 +71,7 @@ REAL(dp):: H1, H2, H3
 REAL(dp):: l_perp, l_para, NT_radius, vol, vol_cell, x, y, z1, z2  !for nanotubes
 REAL(dp),DIMENSION(3):: a_perp, a_para, b_perp, b_para, coord, Hrecip !for nanotubes
 REAL(dp),DIMENSION(4):: tempP  !temporary position
+REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ips, uv     !interplanar spacing, unit vectors corresponding to new orientation ORIENT(:,:)
 REAL(dp),DIMENSION(3,3):: ORIENTN     !normalized ORIENT
@@ -82,6 +83,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
  cubic = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 nspecies = 0
+Huc(:,:) = 0.d0
 H(:,:) = 0.d0
 ips(:,:) = 0.d0
 uv(:,:) = 0.d0
@@ -152,6 +154,7 @@ CASE('sc')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) 'Simple cubic '//TRIM(ADJUSTL((create_species(1))))
 !
@@ -181,6 +184,7 @@ CASE('bcc')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))
   IF(nspecies==1) THEN
@@ -220,6 +224,7 @@ CASE('fcc')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))
   IF(nspecies==1) THEN
@@ -255,6 +260,7 @@ CASE('L12')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//"3"//TRIM(create_species(2))
   comment(1) = 'L12 '//TRIM(ADJUSTL(comment(1)))
@@ -321,6 +327,7 @@ CASE('fluorite','fluorine')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
   comment(1) = "Fluorite "//TRIM(ADJUSTL(comment(1)))
@@ -337,6 +344,7 @@ CASE('hcp')
   H(2,1) = create_a0(2)*DCOS(DEG2RAD(60.d0))
   H(2,2) = create_a0(2)*DSIN(DEG2RAD(60.d0))
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up atom positions
   P(:,:) = 0.d0
   x = 1.d0/3.d0
@@ -408,6 +416,7 @@ CASE('dia','diamond','zincblende','zc')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))
   IF(nspecies==1) THEN
@@ -427,6 +436,7 @@ CASE('wurtzite','wz')
   H(2,1) = create_a0(2)*DCOS(DEG2RAD(60.d0))
   H(2,2) = create_a0(2)*DSIN(DEG2RAD(60.d0))
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up atom positions
   ALLOCATE(P(4,4))
   P(:,:) = 0.d0
@@ -487,6 +497,7 @@ CASE('rocksalt','rs')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))
   comment(1) = 'Rocksalt '//TRIM(ADJUSTL(comment(1)))//TRIM(create_species(2))
@@ -517,6 +528,7 @@ CASE('per','perovskite')
   H(1,1) = create_a0(1)
   H(2,2) = create_a0(2)
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   temp = TRIM(create_species(1))//TRIM(create_species(2))//TRIM(create_species(3))//'3'
   WRITE(comment(1),*) 'Cubic perovskite '//TRIM(temp)
@@ -553,6 +565,7 @@ CASE('graphite')
    H(2,1) = create_a0(1)/2.d0
    H(2,2) = DSQRT(3.d0)*create_a0(2)/2.d0
   H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up the messages
   temp = TRIM(create_species(1))//TRIM(create_species(2))
   WRITE(comment(1),*) TRIM(temp)//' with hexagonal graphite structure'
@@ -592,6 +605,7 @@ CASE('nanotube','NT','nt')
    H(2,1) = DSQRT(3.d0)*create_a0(1)/2.d0
    H(2,2) = -create_a0(2)/2.d0
   H(3,3) = 1.d0  !Arbitrary
+  Huc(:,:) = H(:,:)
   !Positions of the 2 atoms of the graphene-like sheet
   ALLOCATE(Q(2,4))
   Q(:,:) = 0.d0
@@ -957,7 +971,7 @@ CALL ATOMSK_MSG(4029,(/''/),(/0.d0/))
 !
 400 CONTINUE
 !Apply options to the created system
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>0) GOTO 1000
 !
 !

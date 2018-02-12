@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Jan. 2018                                     *
+!* Last modification: P. Hirel - 05 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -52,18 +52,19 @@ USE dislocation_loop
 CONTAINS
 !
 !
-SUBROUTINE DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,AUXNAMES,AUX,C_tensor)
+SUBROUTINE DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,ORIENT,AUXNAMES,AUX,C_tensor)
 !
 !
 IMPLICIT NONE
 !Input variables
-CHARACTER(LEN=1),INTENT(IN):: dislocline !direction of dislocation line, must be x, y or z
-CHARACTER(LEN=1),INTENT(IN):: dislocplane !normal to plane of cut, must be x, y or z
+CHARACTER(LEN=16),INTENT(IN):: dislocline !direction of dislocation line: x, y, z, or Miller index
+CHARACTER(LEN=16),INTENT(IN):: dislocplane !normal to plane of cut: x, y, z, or Miller index
 CHARACTER(LEN=5),INTENT(IN):: disloctype !type of dislocation: screw, edge, edge2, mixed, or loop
 REAL(dp),INTENT(IN):: nu   !Poisson ratio of the material
                            !(not used if disloctype=screw, or if aniso=.TRUE.)
-REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor   !Elastic tensor
-REAL(dp),DIMENSION(3),INTENT(IN):: b    !Burgers vector (in Angstroms)
+REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT   !crystal orientation
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor !Elastic tensor (GPa)
+REAL(dp),DIMENSION(3),INTENT(IN):: b    !Burgers vector (angströms)
 !
 !Internal variables
 CHARACTER(LEN=1):: dir1, dir2, dir3 !directions x, y, z
@@ -71,6 +72,7 @@ CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
 LOGICAL:: aniso !shall anisotropic elasticity be used?
 LOGICAL:: doshells !apply displacements also to shells?
+LOGICAL:: rotate  !rotate displacements?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1, a2, a3 !a3=1,2,3 if dislocline=x,y,z respectively
 INTEGER:: i, j, k, n, r, u
@@ -79,9 +81,13 @@ REAL(dp):: bsign !sign of Burgers vector (+1.d0 or -1.d0)
 REAL(dp),DIMENSION(5):: pos !pos(1:3) = coordinates of dislocation center; pos(4) = radius of loop
 REAL(dp):: Efactor  !prelogarithmic energy factor
 REAL(dp):: tempreal
+REAL(dp):: V1, V2, V3
 REAL(dp),DIMENSION(3):: disp     !elastic displacement applied to an atom
+REAL(dp),DIMENSION(1,3):: Vline, Vplane  !vector along disloc. line, normal to cut plane
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: ORIENTN    !crystal orientation
 REAL(dp),DIMENSION(3,3):: rot_matrix !rotation matrix
+REAL(dp),DIMENSION(3,3):: disp_rot_matrix !rotation matrix for displacements
 REAL(dp),DIMENSION(3,3):: sigma      !dislocation theoretical elastic stresses
 REAL(dp),DIMENSION(9,9):: C_tensor_rot !rotated tensor if dislocline is not along Z
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S   !Positions of atoms, shells
@@ -101,7 +107,11 @@ a2 = 0
 a3 = 0
 k = 0
 bsign = 1.d0
+disp_rot_matrix(:,:) = 0.d0
+Vline(:,:) = 0.d0
+Vplane(:,:) = 0.d0
 aniso = .FALSE.
+rotate = .FALSE.
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
@@ -119,28 +129,60 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
 100 CONTINUE
-IF( disloctype .NE. 'loop' ) THEN
+IF( disloctype == 'loop' ) THEN
+  k = 0
+  !
+ELSE
+  !A straight dislocation must be constructed
   !Define the axes: a3=dislocation line
+  Vline(:,:) = 0.d0
   IF(dislocline=='x' .OR. dislocline=='X') THEN
     a3 = 1
     dir3 = "x"
+    Vline(1,1) = 1.d0
   ELSEIF(dislocline=='y' .OR. dislocline=='Y') THEN
     a3 = 2
     dir3 = "y"
+    Vline(1,2) = 1.d0
   ELSEIF(dislocline=='z' .OR. dislocline=='Z') THEN
     a3 = 3
     dir3 = "z"
+    Vline(1,3) = 1.d0
   ELSE
-    CALL ATOMSK_MSG(2800,(/dislocline/),(/0.d0/))
-    nerr = nerr+1
-    GOTO 1000
+    !It ought to be a vector given by Miller indices
+    !Convert this string into a proper vector
+    CALL INDEX_MILLER(dislocline,Vline(1,:),j)
+    IF(j==0) THEN
+      !If the system has a defined crystallographic orientation ORIENT,
+      !then Vline(1,:) is defined in that basis
+      !=> rotate Vline(1,:) to express it in cartesian basis
+      IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+        DO i=1,3
+          ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+        ENDDO
+        V1 = Vline(1,1)
+        V2 = Vline(1,2)
+        V3 = Vline(1,3)
+        Vline(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+        Vline(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+        Vline(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+      ENDIF
+    ELSE
+      !Unable to understand this string => display error message and quit
+      CALL ATOMSK_MSG(2800,(/dislocline/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    !
   ENDIF
   !
   !a2=normal to plane of cut
+  Vplane(:,:) = 0.d0
   !a1=last component
   IF(dislocplane=='x' .OR. dislocplane=='X') THEN
     a2 = 1
     dir2 = "x"
+    Vplane(1,1) = 1.d0
     IF(a3==2) THEN
       a1 = 3
       dir1 = "z"
@@ -155,6 +197,7 @@ IF( disloctype .NE. 'loop' ) THEN
   ELSEIF(dislocplane=='y' .OR. dislocplane=='Y') THEN
     a2 = 2
     dir2 = "y"
+    Vplane(1,2) = 1.d0
     IF(a3==1) THEN
       a1 = 3
       dir1 = "z"
@@ -169,6 +212,7 @@ IF( disloctype .NE. 'loop' ) THEN
   ELSEIF(dislocplane=='z' .OR. dislocplane=='Z') THEN
     a2 = 3
     dir2 = "z"
+    Vplane(1,3) = 1.d0
     IF(a3==1) THEN
       a1 = 2
       dir1 = "y"
@@ -181,13 +225,41 @@ IF( disloctype .NE. 'loop' ) THEN
       GOTO 1000
     ENDIF
   ELSE
-    CALL ATOMSK_MSG(2800,(/dislocplane/),(/0.d0/))
-    nerr = nerr+1
-    GOTO 1000
+    !It ought to be a vector given by Miller indices
+    !Convert this string into a proper vector
+    CALL INDEX_MILLER(dislocline,Vplane(1,:),j)
+    IF(j==0) THEN
+      !If the system has a defined crystallographic orientation ORIENT,
+      !then Vplane(1,:) is defined in that basis
+      !=> rotate Vplane(1,:) to express it in cartesian basis
+      IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+        DO i=1,3
+          ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+        ENDDO
+        V1 = Vplane(1,1)
+        V2 = Vplane(1,2)
+        V3 = Vplane(1,3)
+        Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+        Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+        Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+      ENDIF
+    ELSE
+      !Unable to understand this string => display error message and quit
+      CALL ATOMSK_MSG(2800,(/dislocplane/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
   ENDIF
   !
-  WRITE(msg,*) "a1, a2, a3: ", a1, a2, a3
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !Debug messages
+  IF( verbosity>=4 ) THEN
+    WRITE(msg,*) "a1, a2, a3: ", a1, a2, a3
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,*) "Vline = (", Vline(1,:), " )"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,*) "Vplane = (", Vplane(1,:), " )"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
   !
   !Check if elastic tensor is defined
   IF( ANY( C_tensor(1:3,1:3).NE.0.d0 ) ) THEN
@@ -197,9 +269,6 @@ IF( disloctype .NE. 'loop' ) THEN
     aniso = .FALSE.
     k = 0 !only used by message below
   ENDIF
-  !
-ELSE  !i.e. disloctype = 'loop'
-  k = 0
 ENDIF
 !
 !

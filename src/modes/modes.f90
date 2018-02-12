@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 16 Oct. 2017                                     *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -109,6 +109,7 @@ INTEGER:: strlength
 INTEGER,DIMENSION(2):: NT_mn
 REAL(dp):: NNN, rdf_maxR, rdf_dr, smass
 REAL(dp),DIMENSION(3):: create_a0
+REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system (mode create)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Pfirst, Psecond, S
@@ -126,6 +127,7 @@ filefirst = pfiles(3)
 filesecond = pfiles(4)
 listfile = pfiles(5)
  create_species(:) = ''
+Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 !Setup the files correctly for some modes
 IF(mode=='list') THEN
@@ -258,10 +260,10 @@ CASE('ddplot')
   !Read the two input files and apply options if any
   CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !!Determine if the cell vectors were found or not
   IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
@@ -684,11 +686,11 @@ CASE('diff')
   !Read first file
   CALL READ_AFF(file1,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   !Read second file
   CALL READ_AFF(file2,H,Psecond,S,commentsecond,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !!Determine if the cell vectors were found or not
   IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
@@ -766,7 +768,7 @@ CASE('edm')
   ENDIF
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   IF(nerr>0) GOTO 10000
   !
   !Compute polarization
@@ -818,7 +820,7 @@ CASE('PE')
   ENDIF
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
   IF(nerr>0) GOTO 10000
   !
   !Compute polarization

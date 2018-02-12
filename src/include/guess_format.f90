@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 March 2016                                    *
+!* Last modification: P. Hirel - 09 Feb. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,8 +61,8 @@ INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
 REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, isdd, isdlp, isgin, isimd
-REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isvesta
-REAL(dp):: isxsf, isxv,isxmd, isxyz, isexyz, issxyz
+REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isstr
+REAL(dp):: isvesta, isxsf, isxv,isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
 REAL(dp):: certainty
@@ -94,6 +94,7 @@ ispdb=0.d0       !Protein Data Bank format
 isposcar = 0.d0  !VASP POSCAR format
 isqepw = 0.d0    !Quantum Espresso PWscf format
 isqeout = 0.d0   !Quantum Espresso PWscf output format
+isstr = 0.d0     !PDFFIT structure file format
 isvesta = 0.d0   !VESTA format
 isxmd = 0.d0     !XMD format
 isxsf = 0.d0     !xCrySDen format
@@ -167,6 +168,8 @@ IF( strlength > 0 ) THEN
     ispdb = ispdb+0.6d0
   CASE('pw','PW')
     isqepw = isqepw+0.15d0
+  CASE('str','STR','stru','STRU')
+    isstr = isstr+0.6d0
   CASE('vesta')
     isvesta = isvesta+0.6d0
   CASE('xmd','XMD')
@@ -323,8 +326,10 @@ IF(fileexists) THEN
     !Search for patterns corresponding to GIN format
     ELSEIF(test(1:5)=='title') THEN
       isgin = isgin+0.2d0
+      isstr = isstr+0.2d0
     ELSEIF(test(1:4)=='cell') THEN
       isgin = isgin+0.2d0
+      isstr = isstr+0.2d0
     ELSEIF(test(1:4)=='vect') THEN
       isgin = isgin+0.1d0
     ELSEIF(test(1:3)=='car') THEN
@@ -453,6 +458,12 @@ IF(fileexists) THEN
     !Search for patterns corresponding to Quantum Espresso PW output format
     ELSEIF(test(1:13)=='Program PWSCF') THEN
       isqeout = isqeout+1.d0
+    !
+    !Search for patterns corresponding to PDFFIT structure file format
+    ELSEIF(test(1:13)=='dcell') THEN
+      isstr = isstr+0.5d0
+    ELSEIF(test(1:13)=='spcgr') THEN
+      isstr = isstr+1.d0
     !
     !Search for patterns corresponding to VESTA format
     ELSEIF(test(1:13)=='#VESTA_FORMAT') THEN
@@ -605,7 +616,7 @@ ENDIF   !If fileexists
 300 CONTINUE
 !Find the best score
 likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,isjems,islmp, &
-       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isvesta,isxmd,isxsf, &
+       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isstr,isvesta,isxmd,isxsf, &
        &     isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
@@ -648,6 +659,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   QEPW ', isqepw
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   QEOUT ', isqeout
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   STR ', isstr
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   VESTA ', isvesta
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -712,6 +725,8 @@ ELSE
     infileformat = 'pw'
   ELSEIF(isqeout==likely) THEN
     infileformat = 'pwo'
+  ELSEIF(isstr==likely) THEN
+    infileformat = 'str'
   ELSEIF(isvesta==likely) THEN
     infileformat = 'vesta'
   ELSEIF(isxmd==likely) THEN

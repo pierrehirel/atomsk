@@ -15,7 +15,7 @@ MODULE dislocation_loop
 !*     Service de Recherches de Métallurgie Physique                              *
 !*     SRMP CEA-Saclay, 91191 Gif-sur-Yvette, France                              *
 !*     emmanuel.clouet@cea.fr                                                     *
-!* Last modification: P. Hirel - 24 Jan. 2018                                     *
+!* Last modification: P. Hirel - 05 Feb. 2018                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* LOOP_SEGMENTS         builds a list of points that form a circular loop        *
@@ -142,7 +142,7 @@ FUNCTION LOOP_DISPLACEMENT(R, b, nu, center, xLoop) RESULT(u)
 IMPLICIT NONE
 REAL(dp),DIMENSION(3),INTENT(IN):: b  ! Burgers vector of the loop
 REAL(dp),DIMENSION(3),INTENT(IN):: center  ! center of the loop
-REAL(dp),DIMENSION(1:3), INTENT(IN):: R !atom coordinates
+REAL(dp),DIMENSION(3),INTENT(IN):: R !atom coordinates
 REAL(dp),INTENT(IN):: nu ! Poisson coefficient
 REAL(dp),DIMENSION(:,:),INTENT(IN):: xLoop !coordinates of points forming the loop
 !
@@ -190,28 +190,28 @@ END FUNCTION LOOP_DISPLACEMENT
 !       IEEE Transactions on Biomedical Engineering BME-30, 125 (1983).
 !********************************************************
 FUNCTION SolidAngle(xA, xB, xC) RESULT(Omega)
-
+!
 IMPLICIT NONE
-
+!
 ! Extremities of the triangle loop
-REAL(dp), DIMENSION(1:3), INTENT(IN) :: xA, xB, xC
-
+REAL(dp),DIMENSION(3),INTENT(IN) :: xA, xB, xC
+!
 ! Solid angle (normalized by 4*pi)
-REAL(dp) :: omega
-REAL(dp), PARAMETER :: factor=1.d0/(2.d0*pi)
-
+REAL(dp):: omega
+REAL(dp),PARAMETER:: factor=1.d0/(2.d0*pi)
+!
 REAL(dp) :: rA, rB, rC, numerator, denominator
-
+!
 rA = VECLENGTH(xA)
 rB = VECLENGTH(xB)
 rC = VECLENGTH(xC)
-
+!
 numerator = SCALAR_TRIPLE_PRODUCT( xA, xB, xC )
 denominator = rA*rB*rC + DOT_PRODUCT( xA, xB )*rC &
             & + DOT_PRODUCT( xB, xC )*rA + DOT_PRODUCT( xC, xA )*rB
-
+!
 omega = factor*ATAN2( numerator, denominator )
-
+!
 END FUNCTION SolidAngle
 !
 !
@@ -225,31 +225,31 @@ END FUNCTION SolidAngle
 !       Philos. Mag. A, 1985, 51, 383-387 
 !********************************************************
 FUNCTION DisloSeg_displacement_iso(xA, xB, b, nu) RESULT(u)
-
+!
 IMPLICIT NONE
-REAL(dp),DIMENSION(1:3), INTENT(IN) :: xA, xB ! Extremities of the segment
-REAL(dp),DIMENSION(1:3), INTENT(IN) :: b  ! Burgers vector
-REAL(dp),INTENT(IN) :: nu    ! Poisson coefficient
-REAL(dp),DIMENSION(1:3) :: u ! Displacement
+REAL(dp),DIMENSION(3),INTENT(IN):: xA, xB ! Extremities of the segment
+REAL(dp),DIMENSION(3),INTENT(IN):: b  ! Burgers vector
+REAL(dp),INTENT(IN):: nu    ! Poisson coefficient
+REAL(dp),DIMENSION(3):: u ! Displacement
 REAL(dp):: rA, rB
-REAL(dp),DIMENSION(1:3) ::  tAB, nAB 
-
+REAL(dp),DIMENSION(1:3)::  tAB, nAB 
+!
 rA = VECLENGTH(xA)
 rB = VECLENGTH(xB)
-
+!
 ! Tangent vector
 tAB(:) = xB(:) - xA(:)
 tAB(:) = tAB(:)/VECLENGTH(tAB)
-
+!
 ! Normal vector
 nAB(:) = CROSS_PRODUCT(xA,xB)
 nAB(:) = nAB(:)/VECLENGTH(nAB)
-
+!
 u(:) = ( -(1.d0-2.d0*nu)*CROSS_PRODUCT(b, tAB)* &
      &  LOG( (rB + DOT_PRODUCT(xB,tAB))/(rA + DOT_PRODUCT(xA,tAB)) ) &
      &  + DOT_PRODUCT(b,nAB)*CROSS_PRODUCT(xB/rB-xA/rA,nAB) ) &
      &  /(8.d0*pi*(1.d0-nu))
-
+!
 END FUNCTION DisloSeg_displacement_iso
 !
 !

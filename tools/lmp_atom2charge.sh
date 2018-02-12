@@ -12,6 +12,7 @@
 # the atom_style "atom" into "charge".
 
 if [[ -z "$@" ]]; then
+  printf "Add a column containing zeros to LAMMPS data files (*.lmp) to comply to 'atom_style charge'. \n"
   printf "Usage: lmp_atom2charge.sh <file1.lmp> [<file2.lmp> ...] \n"
 else
   FILES="$@"

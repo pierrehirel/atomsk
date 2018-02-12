@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 Jan. 2017                                     *
+!* Last modification: P. Hirel - 12 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,6 +79,7 @@ USE out_moldy
 USE out_pdb
 USE out_qe_pw
 USE out_siesta_xv
+USE out_str
 USE out_vasp_poscar
 USE out_vesta
 USE out_xmd
@@ -358,7 +359,7 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     DO i=1,SIZE(outfileformats)
       IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
         SELECT CASE( outfileformats(i) )
-        CASE('atsk','ATSK','cel','CEL','cfg','CFG','cif','CIF','gin','GIN','jems','pdb','vesta')
+        CASE('atsk','ATSK','cel','CEL','cfg','CFG','cif','CIF','gin','GIN','jems','pdb','str','vesta')
           !Those file formats do support partial occupancies
         CASE DEFAULT
           !Other file formats don't
@@ -549,6 +550,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_QEPW(H,P,comment,AUXNAMES,AUX,outputfile)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('str','STR','stru','STRU')
+    CALL NAME_OUTFILE(prefix,outputfile,'str  ')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_STR(H,P,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

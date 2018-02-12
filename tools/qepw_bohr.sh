@@ -10,6 +10,7 @@ set -e
 # for Quantum Espresso/pwscf.
 
 if [[ -z "$@" ]]; then
+  printf "Set lines 'ATOMIC_POSITIONS' and 'CELL_PARAMETER' to 'bohr' in Quantum Espresso PWscf files (*.pw). \n"
   printf "Usage: qepw_bohr.sh <file1.pw> [<file2.pw> ...] \n"
 else
   FILES="$@"

@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -82,6 +82,7 @@ REAL(dp):: rdf_radius   !radius of the sphere
 REAL(dp):: sp1number, sp2number  !atomic number of atoms of type #1, type #2
 REAL(dp):: Vsphere, Vskin        !volume of the sphere, skin
 REAL(dp):: Vsystem               !volume of the system
+REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
@@ -95,6 +96,8 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: rdf_final  !final values of the partial 
 !
 msg = 'ENTERING RDF_XYZ...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+Huc(:,:) = 0.d0
 !
 CALL ATOMSK_MSG(4051,(/""/),(/rdf_dr/))
 !
@@ -140,7 +143,7 @@ DO
       IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
       !
       !Apply options to the system
-      CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+      CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
       IF(nerr>0) GOTO 1000
       !
       !Compute total volume of the system

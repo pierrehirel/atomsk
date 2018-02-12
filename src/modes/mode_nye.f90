@@ -74,7 +74,8 @@ REAL(dp):: alpha, alpha_tmp !angles between two vectors
 REAL(dp):: NeighFactor !%of tolerance in the radius for neighbor search
 REAL(dp):: radius
 REAL(dp):: tempreal
-REAL(dp),DIMENSION(3,3):: alpha_tensor, test_matrix 
+REAL(dp),DIMENSION(3,3):: alpha_tensor, test_matrix
+REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: Hfirst,Hsecond !Box vectors of systems 1 and 2
 REAL(dp),DIMENSION(3,3):: ORIENT   !crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3,3):: A_tensor  !tensor A(IM)
@@ -95,6 +96,7 @@ NeighFactor = 1.1d0 !distance to 1st neighbor times 1.1 ensures to exclude secon
                     !1.1 is expected to be robust for simple lattices (fcc, bcc) but fails for complex
                     !or distorted systems
 radius = 8.d0  !radius for neighbor search: 8 A should be enough to find some neighbors in any system
+Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 !
 !
@@ -110,7 +112,7 @@ IF (ALLOCATED(comment)) DEALLOCATE(comment)
 IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
 !Apply options to system 1
-CALL OPTIONS_AFF(options_array,Hfirst,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,Hfirst,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !Read atomic positions from filesecond and store them into Psecond(:,:)
 CALL READ_AFF(filesecond,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
@@ -119,7 +121,7 @@ IF (ALLOCATED(comment)) DEALLOCATE(comment)
 IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
 !Apply options to system 2
-CALL OPTIONS_AFF(options_array,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
 !
 !
 !Check that systems 1 and 2 have the same number of atoms

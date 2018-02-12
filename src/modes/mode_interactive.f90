@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 11 Sept. 2017                                    *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -75,6 +75,7 @@ LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp):: smass, snumber  !atomic mass, atomic number
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
+REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
@@ -101,6 +102,7 @@ IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
 IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 maxtries=5
 H(:,:) = 0.d0
+Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
             &    "alignx          ", "bind-shells     ", "bs              ", "center          ", &
@@ -619,7 +621,7 @@ DO
           IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
           ALLOCATE(options_array(1))
           options_array(1) = "-"//TRIM(ADJUSTL(instruction))
-          CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+          CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
           DEALLOCATE(options_array)
           !
         ELSE

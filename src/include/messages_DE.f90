@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 30 Jan. 2018                                     *
+!* Last modification: P. Hirel - 12 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -418,6 +418,7 @@ WRITE(*,*) "    pdb (Protein Data Bank) |  ja    |  ja "
 WRITE(*,*) "    pos (POSCAR/VASP)       |  ja    |  ja "
 WRITE(*,*) "    pw (Quantum Espresso)   |  ja    |  ja "
 WRITE(*,*) "    pwout (QE output file)  |  ja (2)|  nein"
+WRITE(*,*) "    str (PDFFIT)            |  ja    |  ja"
 WRITE(*,*) "    vesta (VESTA file)      |  ja    |  ja"
 WRITE(*,*) "    xmd (XMD file)          |  ja    |  ja "
 WRITE(*,*) "    xsf (XCrySDen)          |  ja    |  ja "
@@ -2190,7 +2191,7 @@ CASE(3714)
   msg = "/!\ WARNUNG: einige Atome haben einen ungültigen Typ."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3715)
-  msg = "/!\ WARNUNG: Daten enthalten Besetzungen, die nicht"
+  msg = "/!\ WARNUNG: Eingabedaten enthalten Besetzungen, die nicht"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            von einigen Ausgabeformaten unterstützt werden."
   CALL DISPLAY_MSG(1,msg,logfile)

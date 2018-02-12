@@ -84,6 +84,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their p
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, tempcomment
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: strlength
+REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !positions of cores, shells
@@ -96,6 +97,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Initialize variables
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+Huc(:,:) = 0.d0
 H(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 infileformat=''
@@ -170,7 +172,7 @@ msg = 'APPLYING OPTIONS TO THE SYSTEM:'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 IF( ALLOCATED(options_array) ) THEN
-  CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 ENDIF
 !
 450 CONTINUE

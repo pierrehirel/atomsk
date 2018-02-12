@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Jan. 2018                                     *
+!* Last modification: P. Hirel - 05 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -751,25 +751,32 @@ DO WHILE(i<SIZE(cla))
       READ(cla(i),*,END=400,ERR=400) temp
       READ(temp,*,END=120,ERR=120) tempreal
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-      !Read the three values of Burgers vector (bx,by,bz)
+      !Read the Burgers vector
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
-      READ(temp,*,END=120,ERR=120) tempreal
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      READ(temp,*,END=120,ERR=120) tempreal
-      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      READ(temp,*,END=120,ERR=120) tempreal
-      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-      !Read Poisson ratio
-      i=i+1
-      READ(cla(i),*,END=400,ERR=400) temp
-      READ(temp,*,END=120,ERR=120) tempreal
-      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
-    ELSE
+      !If we just read Miller indices, finish here
+      !Otherwise, we just read a real number equal to bx => read by and bz
+      IF( SCAN(temp,'[')==0 .AND. SCAN(temp,']')==0 .AND. SCAN(temp,'_')==0 ) THEN
+        !Check that bx was indeed a real number
+        READ(temp,*,END=120,ERR=120) tempreal
+        !Read the coordinates by and bz of Burgers vector
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        READ(temp,*,END=120,ERR=120) tempreal
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        READ(temp,*,END=120,ERR=120) tempreal
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+        !Read Poisson ratio
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        READ(temp,*,END=120,ERR=120) tempreal
+        options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      ENDIF
+      !
+    ELSE !i.e. if temp.NE.'loop'
       !Construct a straight dislocation line
       !=> temp should contain a real number corresponding to p1 = pos(1)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &

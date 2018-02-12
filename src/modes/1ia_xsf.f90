@@ -12,7 +12,7 @@ MODULE oia_xsf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 June 2014                                     *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,6 +59,7 @@ INTEGER:: i, j, NP, Nsnap, snap
 INTEGER:: Nsys  !number of systems converted
 REAL(dp):: a0, testreal
 REAL(dp):: snumber
+REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P,S  !positions of cores, shells
@@ -199,7 +200,7 @@ DO j=1,Nsnap
   !
   400 CONTINUE
   !Apply options
-  CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
   !
   !Output snapshot to one or several format(s)
   outfileformat=''

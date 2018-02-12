@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -75,6 +75,7 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: pairs  !indexes of pairs of atoms
 REAL(dp):: distance, dmin
 REAL(dp):: sum_dj       !sum of |d_j|²
+REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system (mode create)
 REAL(dp),DIMENSION(:),ALLOCATABLE:: pairs_distances  !distances
@@ -86,6 +87,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList
 !
 !Initialize variables
 Nspecies = 0
+Huc(:,:) = 0.d0
 !
 !
 msg = 'ENTERING CENTRO_SYM...'
@@ -99,7 +101,7 @@ CALL ATOMSK_MSG(4069,(/inputfile/),(/0.d0/))
 CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !
 ! Apply options if any
-CALL OPTIONS_AFF(options_array,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>0) GOTO 1000
 !
 !If auxiliary properties already exist, add a column to save the central symmetry parameter

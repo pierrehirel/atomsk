@@ -11,6 +11,7 @@
 # the atom_style "charge" into "atom".
 
 if [[ -z "$@" ]]; then
+  printf "Keep only first two and last three columns of LAMMPS data files (*.lmp) to comply to 'atom_style atom'. \n"
   printf "Usage: lmp_charge2atom.sh <file1.lmp> [<file2.lmp> ...] \n"
 else
   FILES="$@"

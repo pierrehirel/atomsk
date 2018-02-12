@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>STR format - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: STR</h2>
+
+<p><strong>Name:</strong> PDFFIT structure file</p>
+
+<p><strong>Extension:</strong> str or stru</p>
+
+<p><strong>Specification:</strong> <a href="https://web.pa.msu.edu/cmp/billinge-group/programs/discus/pdffit.html">PDFFIT user guide</a></p>
+
+<p><strong>Visualization programs:</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>PDFFIT is a program for determining the structure of crystals from X-ray diffraction patterns. After performing a refinement, the final crystal structure is saved into a text file in the STR format.</p>
+
+<p>Atomsk can read structure files in both the DISCUS format, and in the PDFFIT format. When reading such files, the atom partial occupancies and thermal vibration factors are stored, so they can be transferred into output files if their format support it. If a space group if defined (after the keyword "spcgr"), then the corresponding symmetry operations are applied immediately.</p>
+
+<p>Atomsk can also write STR files, always using the PDFFIT file format. The space group is always set to P1, and all atom positions are explicitely written into the file. If defined, the occupancies and anisotropic thermal vibration parameters are also written into the file; missing or non-defined values are automatically replaced by zeros. Moreover, the standard deviation for all parameters are always set to zero.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk Ni.str vesta</code>
+<p>This will read the file <code>Ni.str</code>, and convert it to <code>Ni.vesta</code> for visualization with VESTA. Partial occupancies will be stored and written into the output file, so they can be visualized within VESTA.</p></li>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

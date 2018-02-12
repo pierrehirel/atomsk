@@ -15,7 +15,7 @@ MODULE mode_unwrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 July 2014                                     *
+!* Last modification: P. Hirel - 08 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -63,6 +63,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k
 INTEGER:: Nunwrap !number of atoms unwrapped
 REAL(dp):: distance
+REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pfirst  !positions of "reference"
@@ -92,13 +93,13 @@ CALL CHECKFILE(filesecond,'read')
 !Read first file
 CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
 IF(nerr>=1) GOTO 1000
-CALL OPTIONS_AFF(options_array,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>=1) GOTO 1000
 !
 !Read second file
 CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
 IF(nerr>=1) GOTO 1000
-CALL OPTIONS_AFF(options_array,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>=1) GOTO 1000
 !
 !!Determine if the cell vectors were found or not

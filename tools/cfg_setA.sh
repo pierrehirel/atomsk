@@ -11,6 +11,7 @@ set -e
 # about "ATOM_COORDINATION_MAX = 24 exceeded".
 
 if [[ -z "${@:2}" ]]; then
+  printf "Change the scaling factor in Atomeye CFG files. \n"
   printf "Usage: cfg_setA.sh <factor> <file1.cfg> [<file2.cfg> ...] \n"
 else
   factor=$1
