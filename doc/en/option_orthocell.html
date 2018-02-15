@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option orthogonal-cell - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: orthogonal-cell</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-orthogonal-cell</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option finds the optimal orthorhombic cell that corresponds to the system. This can be useful when working with complex lattices, that one needs to rotate</p>
+
+<p>The system may have any arbitrary vectors H1, H2, H3. This option searches for linear combinations m*H1+n*H2+o*H3 (with m,n,o integers) that produce vectors aligned with the Cartesian directions X, Y, Z. Then, atom positions are duplicated using the translation vectors H1, H2, H3, so as to fill this new orthogonal cell. Finally, the initial cell vectors are replaced by the vectors of the orthorhombic cell. Since the new cell vectors are linear combinations of the initial cell vectors, they respect the lattice periodicity.</p>
+
+<p>If shells (in the sense of an ionic core-shell model) and/or auxiliary properties are present, then they are also duplicated.</p>
+
+<p>Note that, after this option is applied, the total number of atoms may differ from that of the initial system.</p>
+
+
+
+
+<h4>Default</h4>
+
+<p>By default, Atomsk preserves the cell vectors and does not try to find an equivalent orthogonal cell.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -rotate 45 z -orthocell final.cfg</code>
+<p>The initial system (<code>initial.cfg</code>) is rotated by 45° around the Z axis. Then, a suitable equivalent orthogonal cell is found, and atoms are duplicated to fill the new orthogonal cell. The final result will be output to <code>final.cfg</code>.</p></li>
+
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

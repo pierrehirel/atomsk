@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Feb. 2018                                     *
+!* Last modification: P. Hirel - 15 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -128,8 +128,22 @@ DO WHILE(i<SIZE(cla))
     !Get the type of structure
     i=i+1
     m=1
-    READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    mode_param(m) = TRIM(ADJUSTL(mode_param(m)))
+    READ(cla(i),*,END=130,ERR=130) temp
+    !Make the mode_param(1) variable straight
+    !in case the user mistyped 'diamand' or 'pervoskite'
+    SELECT CASE(temp(1:2))
+    CASE('di','Di','DI')
+      temp = 'diamond'
+    CASE('pe','Pe','PE')
+      temp = 'perovskite'
+    CASE('zi','Zi','zb','ZB')
+      temp = 'zincblende'
+    CASE('na','NA','nt','NT')
+      temp = 'nanotube'
+    CASE('wu','Wu','WU','wz','Wz','WZ')
+      temp = 'wurtzite'
+    END SELECT
+    mode_param(m) = TRIM(ADJUSTL(temp))
     !Get the lattice constant a
     i=i+1
     m=m+1
@@ -181,18 +195,29 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     temp = ADJUSTL(cla(i))
     IF( temp=="orient" ) THEN
-      m=m+1
-      mode_param(m) = "orient"
-      !Get Miller indices of the crystal orientation along X, Y, Z
-      i=i+1
-      m=m+1
-      READ(cla(i),*,END=130,ERR=130) mode_param(m)
-      i=i+1
-      m=m+1
-      READ(cla(i),*,END=130,ERR=130) mode_param(m)
-      i=i+1
-      m=m+1
-      READ(cla(i),*,END=130,ERR=130) mode_param(m)
+      SELECT CASE(mode_param(1))
+      CASE('sc','SC','fcc','FCC','L12','bcc','BCC','diamond','dia','zincblende','zb','ZB', &
+          & 'perovskite','per','rocksalt','rs','RS','fluorite','fluorine')
+        !Cubic lattice => read crystal orientation
+        m=m+1
+        mode_param(m) = "orient"
+        !Get Miller indices of the crystal orientation along X, Y, Z
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+      CASE DEFAULT
+        !Non-cubic lattice: crystal orientation not implemented yet
+        !Display error message and exit
+        CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
+        nerr = nerr+1
+        GOTO 1000
+      END SELECT
     ELSE
       i=i-1
     ENDIF
@@ -973,6 +998,12 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a128)',END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+  !
+  ELSEIF(clarg=='-orthogonal-cell' .OR. clarg=='-orthorhombic-cell' .OR. &
+        & clarg=='-orthogonal-box' .OR. clarg=='-orthorhombic-box'  .OR. &
+        & clarg=='-orthocell' ) THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
   !
   ELSEIF(clarg=='-prop'.OR.clarg=='-properties'.OR.clarg=="property") THEN
     ioptions = ioptions+1

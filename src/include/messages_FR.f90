@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Feb. 2018                                     *
+!* Last modification: P. Hirel - 15 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1892,6 +1892,12 @@ CASE(2142)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Le fichier STL a bien été lu ("//TRIM(ADJUSTL(temp))//" triangles)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2143)
+  msg = ">>> Conversion du système en une boîte orthorhombique..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2144)
+  msg = "..> La boîte est désormais orthorhombique ("//TRIM(ADJUSTL(temp))//" atomes)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2050,6 +2056,9 @@ CASE(2758)
 CASE(2759)
   msg = "/!\ ALERTE : le rayon de la boucle de dislocation est trop petit, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2760)
+  msg = "/!\ ALERTE : la boîte est déjà orthorhombique, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
@@ -2134,6 +2143,9 @@ CASE(2817)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2818)
   msg = "X!X ERREUR : une erreur s'est produite lors de la lecture du fichier STL, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2819)
+  msg = "X!X ERREUR : impossible de trouver une boîte orthorhombique à partir des vecteurs de boîte initiaux."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -2883,7 +2895,10 @@ CASE(4820)
   msg = "X!X ERREUR : les dimensions de la supercellule n'ont pas été définis, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4821)
-  msg = "X!X ERREUR : le nombre d'atomes dépasse la taille du tableau alloué."
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "X!X ERREUR : le nombre d'atomes ("//TRIM(ADJUSTL(temp))// &
+      & ") dépasse la table du tableau alloué ("//TRIM(ADJUSTL(temp2))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4822)
   msg = "X!X ERREUR : aucun fichier à traiter, abandon."

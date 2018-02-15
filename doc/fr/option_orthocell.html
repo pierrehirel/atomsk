@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Option orthogonal-cell - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option : orthogonal-cell</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-orthogonal-cell</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option cherche une boîte orthogonale optimale qui convienne au système.</p>
+
+<p>Le système peut être défini par des vecteurs de boîtes arbitraires H1, H2, H3. Cette option recherche les combinaisons linéaires de ces vecteurs, m*H1+n*H2+o*H3 (où m,n,o sont des entiers) qui produisent des vecteurs de boîte alignés avec les axes Cartésiens X, Y, Z. Puis, les positions des atomes sont dupliquées en utilisant les vecteurs de translation H1, H2, H3, afin de remplir la boîte orthorombique. Finalement, les vecteurs de boîte initiaux sont remplacés par les vecteurs de la boîte orthogonale. Puisque ces nouveaux vecteurs de boîte sont une combinaison linéaire des anciens, la périodicité de la maille est préservée.</p>
+
+<p>Si des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) et/ou des propriétés auxiliaires existent dans le système, alors elles sont aussi dupliquées.</p>
+
+<p>Notez que, après l'application de cette option, le nombre total d'atomes peut être différent du nombre initial.</p>
+
+
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut, Atomsk préserve les vecteurs de boîte et n'essaye pas de trouver une boîte orthogonale équivalente.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -rotate 45 z -orthocell final.cfg</code>
+<p>Le système initial (<code>initial.cfg</code>) est tourné de 45° autour de l'axe Z. Puis, une boîte orthogonale équivalente est trouvée, et les atomes sont dupliqués afin de remplir cette boîte. Le résultat final est écrit dans le fichier <code>final.cfg</code>.</p></li>
+
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

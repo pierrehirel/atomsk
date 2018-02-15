@@ -136,6 +136,9 @@ Reads a list of options from a file, and apply these options to the system.
 .B -orient <Hx> <Hy> <Hz> <H'x> <H'y> <H'z>
 Changes the crystallographic orientation of the system.
 .TP
+.B -orthogonal-cell
+Finds a suitable equivalent orthogonal cell.
+.TP
 .B -properties <file>, -prop <file>
 Reads some properties of the system from <file>.
 .TP

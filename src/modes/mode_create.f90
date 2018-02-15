@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Feb. 2018                                     *
+!* Last modification: P. Hirel - 15 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -909,7 +909,7 @@ IF( cubic ) THEN
                 NP = NP+1
                 IF(NP>SIZE(Q,1)) THEN
                   nerr = nerr+1
-                  CALL ATOMSK_MSG(4821,(/""/),(/0.d0/))
+                  CALL ATOMSK_MSG(4821,(/""/),(/DBLE(NP),DBLE(SIZE(Q,1))/))
                   GOTO 1000
                 ENDIF
                 Q(NP,:) = tempP(:)

@@ -5,11 +5,13 @@ CHANGELOG FOR ATOMSK
 Master (development)
 --------------------
 - added support for reading and writing files in PDFFIT structure file format (*.str or *.stru).
+- new option "-orthogonal-cell" allows to find a suitable equivalent orthorhombic cell for any type of system.
 - in option "-dislocation", added possibility to construct dislocation loops. Thanks to Emmanuel Clouet, CEA, Gif-sur-Yvette, France, for sharing his code Babel for the construction of dislocation loops.
 - in option "-select", added possibility to provide a file containing any ASCII character when using "-select grid"; blank spaces are replaced by 0, any other character by 1. Also added possibility to select atoms inside a 3-D model defined by an STL file. Also added possibility to select atoms inside or outside a torus.
 - in option "-properties", fixed a bug that would result in an infinite loop if user wrote numbers instead of atom species after the keyword "charge". Thanks to Srinivasan Mahendran, UMET, Lille, France, for pointing out this bug.
 - if electric charges are present and their sum is non-zero, a warning is displayed before writing the output file(s).
 - fixed a bug in neighbor search algorithm that would cause a segmentation fault under certain conditions.
+- fixed a bug in mode "--create" that caused a segmentation fault if user attempted to orient a non-cubic lattice.
 
 
 

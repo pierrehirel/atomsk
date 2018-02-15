@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Feb. 2018                                     *
+!* Last modification: P. Hirel - 14 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -78,6 +78,7 @@ USE duplicate
 USE fix
 USE mirror
 USE orient
+USE orthocell
 USE properties
 USE rmatom
 USE remdoubles
@@ -648,6 +649,9 @@ DO ioptions=1,SIZE(options_array)
     CALL INDEX_MILLER(newvec3,Hend(3,:),j)
     IF(j>0) GOTO 800
     CALL ORIENT_XYZ(H,P,S,Hstart,Hend,SELECT,C_tensor)
+  !
+  CASE('-orthogonal-cell','-orthorhombic-cell','-orthogonal-box','-orthorhombic-box','-orthocell')
+    CALL ORTHOCELL_XYZ(H,P,S,AUX)
   !
   CASE('-prop','-properties','-property')
     READ(options_array(ioptions),'(a128)',END=800,ERR=800) temp

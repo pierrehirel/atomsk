@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Feb. 2018                                     *
+!* Last modification: P. Hirel - 15 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1837,6 +1837,13 @@ CASE(2142)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> STL file was read successfully ("//TRIM(ADJUSTL(temp))//" triangles)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2143)
+  msg = ">>> Converting system into an orthorhombic cell..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2144)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Cell is now orthorhombic ("//TRIM(ADJUSTL(temp))//" atoms)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -1994,6 +2001,9 @@ CASE(2758)
 CASE(2759)
   msg = "/!\ WARNING: dislocation loop radius is too small, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2760)
+  msg = "/!\ WARNING: cell is already orthorhombic, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
@@ -2078,6 +2088,9 @@ CASE(2817)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2818)
   msg = "X!X ERROR: there was an error while reading the STL file, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2819)
+  msg = "X!X ERROR: unable to find an orthogonal cell from initial cell vectors."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -2822,7 +2835,10 @@ CASE(4820)
   msg = "X!X ERROR: supercell dimensions were not defined, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4821)
-  msg = "X!X ERROR: number of atoms exceeds size of allocated array."
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "X!X ERROR: number of atoms ("//TRIM(ADJUSTL(temp))// &
+      & ") exceeds size of allocated array ("//TRIM(ADJUSTL(temp2))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4822)
   msg = "X!X ERROR: no file to be treated, aborting."
