@@ -1896,6 +1896,7 @@ CASE(2143)
   msg = ">>> Conversion du système en une boîte orthorhombique..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2144)
+  WRITE(temp,*) NINT(reals(1))
   msg = "..> La boîte est désormais orthorhombique ("//TRIM(ADJUSTL(temp))//" atomes)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !

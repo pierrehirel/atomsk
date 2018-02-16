@@ -1800,6 +1800,7 @@ CASE(2143)
   msg = ">>> Converting system into an orthorhombic cell..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2144)
+  WRITE(temp,*) NINT(reals(1))
   msg = "..> Cell is now orthorhombic ("//TRIM(ADJUSTL(temp))//" atoms)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
