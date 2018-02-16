@@ -172,7 +172,7 @@ DO i=1,SIZE(P,1)
       ELSEIF( DABS( AUX(i,j)-DBLE(NINT(AUX(i,j))) ) < 1.d-12 ) THEN
         !It is an integer number
         WRITE(msg,*) NINT(AUX(i,j))
-      ELSEIF( AUX(i,j)<1.d3 ) THEN
+      ELSEIF( DABS(AUX(i,j))<1.d3 ) THEN
         WRITE(msg,'(f16.8)') AUX(i,j)
       ELSE
         WRITE(msg,'(e16.8)') AUX(i,j)
