@@ -167,7 +167,7 @@ DO i=1,SIZE(P,1)
   !Append the auxiliray properties if any
   IF(ALLOCATED(AUX)) THEN
     DO j=1, MIN( SIZE(AUX(1,:)),32 )
-      IF( DABS(AUX(i,j))>0.d0 .AND. AUX(i,j)<1.d-3 ) THEN
+      IF( DABS(AUX(i,j))>0.d0 .AND. AUX(i,j)<1.d-1 ) THEN
         WRITE(msg,'(e16.8)') AUX(i,j)
       ELSEIF( DABS( AUX(i,j)-DBLE(NINT(AUX(i,j))) ) < 1.d-12 ) THEN
         !It is an integer number

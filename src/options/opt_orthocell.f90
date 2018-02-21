@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
-!* Last modification: P. Hirel - 15 Feb. 2018                                     *
+!* Last modification: P. Hirel - 19 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,8 +45,10 @@ CHARACTER(LEN=128):: msg
 LOGICAL:: doshells, doaux !are shells/auxiliary properties present?
 LOGICAL:: new  !is the duplicated atom new?
 INTEGER:: i, j, k, m, n, o
-INTEGER:: lminmax
+INTEGER:: mminmax, nminmax, ominmax, lminmax
+INTEGER:: mfinal, nfinal, ofinal
 INTEGER:: NP
+REAL(dp):: vlen  !length of a vector
 REAL(dp),DIMENSION(3):: vector !just a vector
 REAL(dp),DIMENSION(4):: tempP  !temporary atom position and species
 REAL(dp),DIMENSION(3,3):: uv   !new vectors along each Cartesian direction
@@ -58,10 +60,10 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties 
 !Initialize variables
 doshells = .FALSE.
 doaux = .FALSE.
-uv(:,:) = 0.d0
-DO i=1,3
-  uv(i,i) = 1.d12
-ENDDO
+mminmax = 200
+nminmax = 200
+ominmax = 200
+uv(:,:) = 1.d12
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 !
@@ -85,9 +87,23 @@ IF( verbosity>=4 ) THEN
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !
-!Check if cell vectors already form an orthogonal cell
-IF( VECLENGTH(H(1,:))-DABS(H(1,1)) < 1.d-3 .AND. VECLENGTH(H(2,:))-DABS(H(2,2)) < 1.d-3 .AND. &
-  & VECLENGTH(H(3,:))-DABS(H(3,3)) < 1.d-3 ) THEN
+!Check if cell vectors are already aligned with Cartesian axes
+IF( VECLENGTH(H(1,:))-DABS(H(1,1)) < 1.d-3 ) THEN
+  mminmax = 1
+ENDIF
+IF( VECLENGTH(H(2,:))-DABS(H(2,2)) < 1.d-3 ) THEN
+  nminmax = 1
+ENDIF
+IF( VECLENGTH(H(3,:))-DABS(H(3,3)) < 1.d-3 ) THEN
+  ominmax = 1
+ENDIF
+!
+IF( verbosity>=4 ) THEN
+  WRITE(msg,*) "Cell vectors duplication min/max = ", mminmax, nminmax, ominmax
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
+!
+IF( mminmax==1 .AND. nminmax==1 .AND. ominmax==1 ) THEN
   !Cell vectors already orthogonal => skip to the end
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2760,(/msg/),(/0.d0/))
@@ -106,49 +122,69 @@ ENDIF
 !Along each Cartesian direction, search for the smallest
 !linear combination of vectors H that produce an orthogonal base
 DO i=1,3
-  IF( VECLENGTH(H(i,:))-DABS(H(i,i)) < 1.d-3 ) THEN
+  mfinal = 0
+  nfinal = 0
+  ofinal = 0
+  IF( i==1 ) THEN
+    j = 2
+    k = 3
+  ELSEIF( i==2 ) THEN
+    j = 3
+    k = 1
+  ELSE
+    j = 1
+    k = 2
+  ENDIF
+  !
+  IF( DABS(VECLENGTH(H(i,:))-DABS(H(i,i))) < 1.d-3 ) THEN
     !Vector H is already aligned with Cartesian axis => save it in uv
     uv(i,:) = DABS(H(i,:))
+    WRITE(msg,'(a3,i1,a17)') "uv(", i, ") already aligned"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ELSE
     !This vector is not aligned along correct Cartesian axis
     !Search for the smallest linear combination that produces a vector aligned with i
-    DO m=-200,200
-      DO n=-200,200
-        DO o=-200,200
+    DO m=-mminmax,mminmax
+      DO n=-nminmax,nminmax
+        DO o=-ominmax,ominmax
           vector(:) = m*H(1,:) + n*H(2,:) + o*H(3,:)
-          IF( DABS(vector(i))>1.d0 .AND. VECLENGTH(vector)-DABS(vector(i)) < 1.d-3 ) THEN
+          vlen = VECLENGTH(vector)
+          IF( DABS(vector(j))<1.d-3 .AND. DABS(vector(k))<1.d-3 .AND. vlen>1.d0 ) THEN
             !This vector is (almost) aligned with the Cartesian axis
-            IF( VECLENGTH(vector)<VECLENGTH(uv(i,:)) ) THEN
+            IF( vlen < VECLENGTH(uv(i,:)) ) THEN
               !Vector is shorter => save it into uv
               uv(i,:) = DABS(vector(:))
-            ELSEIF( VECLENGTH(vector)>3.d0*VECLENGTH(uv(i,:)) ) THEN
+              mfinal = m
+              nfinal = n
+              ofinal = o
+            !ELSEIF( VECLENGTH(vector) > 3.d0*VECLENGTH(uv(i,:)) ) THEN
               !Vector is much longer => we won't find a shorter vector, exit loop
-              GOTO 150
+             ! GOTO 150
+            ENDIF
+          ELSEIF( DABS(vector(j))<1.d-1 .AND. DABS(vector(k))<1.d-1 .AND. vlen>1.d0 ) THEN
+            IF( DABS(vector(j))<uv(i,j) .AND. DABS(vector(k))<uv(i,k) ) THEN
+              !This vector is better aligned with Cartesian axis than previously found vector
+              !(although this may mean that it is longer)
+              uv(i,:) = DABS(vector(:))
+              mfinal = m
+              nfinal = n
+              ofinal = o
             ENDIF
           ENDIF
           !
         ENDDO !o
       ENDDO !n
     ENDDO !m
+    150 CONTINUE
+    WRITE(msg,'(a3,i1,a4,3(i4,a6),3e16.6)') "uv(", i, ") = ", mfinal, "*H1 + ", nfinal, "*H2 + ", ofinal, "*H3 = ", uv(i,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
   ENDIF
-  150 CONTINUE
 ENDDO
 !
 !
 !
 200 CONTINUE
-IF( verbosity>=4 ) THEN
-  !Print some debug messages
-  WRITE(msg,*) "New cell vectors:"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,*) "  uv(1,:) = ", uv(1,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,*) "  uv(2,:) = ", uv(2,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,*) "  uv(3,:) = ", uv(3,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ENDIF
 !At this point we should have new cell vectors
 !If not then something went wrong => abort
 IF( VECLENGTH(uv(1,:))<1.d-3 .OR. VECLENGTH(uv(2,:))<1.d-3 .OR. VECLENGTH(uv(3,:))<1.d-3 .OR. &
@@ -167,6 +203,17 @@ DO i=1,3
     ENDIF
   ENDDO
 ENDDO
+IF( verbosity>=4 ) THEN
+  !Print some debug messages
+  WRITE(msg,*) "New cell vectors:"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "  uv(1,:) = ", uv(1,:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "  uv(2,:) = ", uv(2,:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "  uv(3,:) = ", uv(3,:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
 !
 !Estimate new number of particles NP by comparing volumes of old and new cells
 !Allow for +20% and +20 atoms. Actual size of arrays will be adjusted later
@@ -186,15 +233,25 @@ IF(doaux) THEN
   newAUX(:,:) = 0.d0
 ENDIF
 !
-!Set lminmax = 10 * 
-lminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+!Set min/max replica search
+IF( mminmax.NE.1 ) THEN
+  mminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+ENDIF
+IF( nminmax.NE.1 ) THEN
+  nminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+ENDIF
+IF( ominmax.NE.1 ) THEN
+  ominmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+ENDIF
+WRITE(msg,*) "Atom duplication min/max = ", mminmax, nminmax, ominmax
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Loop over all replica in a wide range
 NP = 0
 DO i=1,SIZE(P,1)
-  DO m=-lminmax,lminmax
-    DO n=-lminmax,lminmax
-      DO o=-lminmax,lminmax
+  DO m=-mminmax,mminmax
+    DO n=-nminmax,nminmax
+      DO o=-ominmax,ominmax
         !Compute cartesian position of this replica
         tempP(1) = P(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
         tempP(2) = P(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
@@ -281,9 +338,8 @@ GOTO 1000
 !
 !
 800 CONTINUE
-CALL ATOMSK_MSG(2819,(/msg/),(/0.d0/))
-CALL DISPLAY_MSG(verbosity,msg,logfile)
 nerr = nerr+1
+CALL ATOMSK_MSG(2819,(/msg/),(/0.d0/))
 !
 !
 !

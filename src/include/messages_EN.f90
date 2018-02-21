@@ -1073,9 +1073,15 @@ CASE(2061)
   WRITE(temp2,"(f16.3)") reals(6)
   IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
     WRITE(temp3,"(f16.3)") reals(7)
-    WRITE(temp4,"(f16.3)") reals(8)
-    msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-        & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+    IF( reals(8)>0.d0 ) THEN
+      WRITE(temp4,"(f16.3)") reals(8)
+      msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+          & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+    ELSE
+      WRITE(temp4,"(f16.3)") DABS(reals(8))
+      msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+          & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+    ENDIF
   ELSE
     msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
         & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
