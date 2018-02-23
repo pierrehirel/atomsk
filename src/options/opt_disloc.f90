@@ -948,17 +948,17 @@ ELSE !i.e. disloctype == 'loop'
     END SELECT
     ALLOCATE(xLoop(3,4))
     xLoop(:,:) = 0.d0
-    xLoop(a1,1) = pos(1) - pos(4)/2.d0
-    xLoop(a2,1) = pos(2) - pos(4)/2.d0
+    xLoop(a1,1) = pos(1) - pos(4)
+    xLoop(a2,1) = pos(2) - pos(4)
     xLoop(a3,1) = pos(3)
-     xLoop(a1,2) = pos(1) + pos(4)/2.d0
-     xLoop(a2,2) = pos(2) - pos(4)/2.d0
+     xLoop(a1,2) = pos(1) + pos(4)
+     xLoop(a2,2) = pos(2) - pos(4)
      xLoop(a3,2) = pos(3)
-    xLoop(a1,3) = pos(1) + pos(4)/2.d0
-    xLoop(a2,3) = pos(2) + pos(4)/2.d0
+    xLoop(a1,3) = pos(1) + pos(4)
+    xLoop(a2,3) = pos(2) + pos(4)
     xLoop(a3,3) = pos(3)
-     xLoop(a1,4) = pos(1) - pos(4)/2.d0
-     xLoop(a2,4) = pos(2) + pos(4)/2.d0
+     xLoop(a1,4) = pos(1) - pos(4)
+     xLoop(a2,4) = pos(2) + pos(4)
      xLoop(a3,4) = pos(3)
   ELSE
     !Positive pos(4) => Generate points that belong to a circle of radius pos(4)

@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Feb. 2018                                     *
+!* Last modification: P. Hirel - 23 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -80,6 +80,7 @@ REAL(dp):: snumber   !atomic number
 REAL(dp):: tempreal
 REAL(dp):: V1, V2, V3  !vector components
 REAL(dp):: xmin, xmax, ymin, ymax, zmin, zmax !box parameters
+REAL(dp):: txmin, txmax, tymin, tymax, tzmax  !min/max X,Y,Z coordinates of a triangle
 REAL(dp),DIMENSION(3):: e1, e2, td, th, ts, tq !vectors used to detect ray-triangle intersections
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
@@ -1628,16 +1629,15 @@ CASE('stl','STL')
         !
         !Loop on all triangles
         k = 1
-        n = 1
-        DO WHILE( n>0 .AND. k <= SIZE(triangles,1) )
-          IF( ( triangles(k,4)>P(i,1) .AND. triangles(k,7)>P(i,1) .AND. triangles(k,10)>P(i,1) ) .OR. &
-            & ( triangles(k,4)<P(i,1) .AND. triangles(k,7)<P(i,1) .AND. triangles(k,10)<P(i,1) ) .OR. &
-            & ( triangles(k,5)>P(i,2) .AND. triangles(k,8)>P(i,2) .AND. triangles(k,11)>P(i,2) ) .OR. &
-            & ( triangles(k,5)<P(i,2) .AND. triangles(k,8)<P(i,2) .AND. triangles(k,11)<P(i,2) )      ) THEN
-            !All X or all Y coordinates of triangles vertices have greater (or smaller)
-            !than coordinates of atom #i
-            !Ray will not intersect this triangle => skip
-          ELSE
+        DO WHILE( k <= SIZE(triangles,1) )
+          txmin = MIN( triangles(k,4) , triangles(k,7) , triangles(k,10) ) - 0.1d0
+          txmax = MAX( triangles(k,4) , triangles(k,7) , triangles(k,10) ) + 0.1d0
+          tymin = MIN( triangles(k,5) , triangles(k,8) , triangles(k,11) ) - 0.1d0
+          tymax = MAX( triangles(k,5) , triangles(k,8) , triangles(k,11) ) + 0.1d0
+          tzmax = MAX( triangles(k,6) , triangles(k,9) , triangles(k,12) ) + 0.1d0
+          IF( P(i,3)<tzmax .AND. P(i,1)>txmin .AND. P(i,1)<txmax .AND. &
+            & P(i,2)>tymin .AND. P(i,2)<tymax   ) THEN
+            !Current triangle appears to be above (or close) to current atom
             !Determine if ray [001] passing through atom #i intersects the triangle #k
             !Note: this part follows the algorithm proposed in this Web site:
             !  http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
@@ -1647,24 +1647,18 @@ CASE('stl','STL')
             th = CROSS_PRODUCT(td,e2)
             ta = DOT_PRODUCT(e1,th)
             !
-            IF( ta > -1.d-12 .AND. ta < 1.d-12 ) THEN
-              !keep = .FALSE.
-            ELSE
+            IF( DABS(ta) > 1.d-12 ) THEN
               tf = 1.d0/ta
               ts(:) = P(i,1:3) - triangles(k,4:6)
               tu = tf * DOT_PRODUCT(ts,th)
               !
-              IF( tu < 0.d0 .OR. tu > 1.d0 ) THEN
-                !keep = .FALSE.
-              ELSE
+              IF( tu >= 0.d0 .AND. tu <= 1.d0 ) THEN
+                !Ray seems to intersect triangle
                 tq = CROSS_PRODUCT(ts,e1)
                 tv = tf * DOT_PRODUCT(td,tq)
                 !
-                IF( tv < 0.d0 .OR. tu+tv > 1.d0 ) THEN
-                  !keep = .FALSE.
-                ELSE
+                IF( tv >= 0.d0 .AND. tu+tv <= 1.d0 ) THEN
                   !There is a line or ray intersection
-                  !keep = .NOT.keep
                   ! at this stage we can compute t to find out where
                   ! the intersection point is on the line
                   tt = tf * DOT_PRODUCT(e2,tq)
@@ -1673,9 +1667,6 @@ CASE('stl','STL')
                     !The ray intersects the triangle
                     !=> invert status of atom
                     keep = .NOT.keep
-                  ELSE
-                    !There is a line intersection, but not a ray intersection
-                    !keep = .FALSE.
                   ENDIF
                 ENDIF
               ENDIF

@@ -393,7 +393,7 @@ CASE('create')
       i=i+1
       READ(mode_param(i),*,END=520,ERR=520) temp
       CALL INDEX_MILLER(temp,ORIENT(j,:),k)
-      IF(k>0) GOTO 7000
+      IF( k>0 .OR. VECLENGTH(ORIENT(j,:))<1.d-6 ) GOTO 7000
     ENDDO
   ENDIF
   520 CONTINUE

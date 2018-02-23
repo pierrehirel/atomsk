@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 15 Feb. 2018                                     *
+!* Last modification: P. Hirel - 22 Feb. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -150,7 +150,7 @@ IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Erstellen Modus:"
-  WRITE(*,*) "          atomsk -C <structure> <a0> <species> <outputfile> [<formats>] [options]"
+  WRITE(*,*) "          atomsk -C <structure> <a0> <species> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> DDplot Modus:"
