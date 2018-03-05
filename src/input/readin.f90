@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 Feb. 2018                                     *
+!* Last modification: P. Hirel - 05 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -246,38 +246,17 @@ IF(.NOT.ALLOCATED(P)) nerr=nerr+1
 IF(nerr>=1) GOTO 800
 !
 !Check sizes of the arrays
-IF(ALLOCATED(S)) THEN
-  IF( SIZE(S,1) > SIZE(P,1) ) THEN
-    !There cannot be more shells than cores => exit
-    nerr=nerr+1
-    CALL ATOMSK_MSG(1802,(/'S'/),(/0.d0/))
-  ELSEIF( SIZE(S,1)<=0 ) THEN
-    !no shell => S should not be allocated
-    DEALLOCATE(S)
+CALL CHECK_ARRAY_CONSISTENCY(P,S,AUX,AUXNAMES,i)
+IF( i.NE.0 ) THEN
+  IF( i==1 ) THEN
+    msg = 'S'
+  ELSEIF( i==2 ) THEN
+    msg = 'AUX'
+  ELSEIF( i==3 ) THEN
+    msg = 'AUXNAMES'
   ENDIF
-ENDIF
-IF( ALLOCATED(AUXNAMES) .OR. ALLOCATED(AUX) ) THEN
-  !first dimension of AUX must correspond to number of atoms
-  IF( SIZE(AUX,1) .NE. SIZE(P,1) ) THEN
-    nerr=nerr+1
-    CALL ATOMSK_MSG(1803,(/'AUX'/),(/0.d0/))
-  ENDIF
-  !second dimension of AUX must correspond to number of auxiliary properties
-  IF( SIZE(AUXNAMES) .NE. SIZE(AUX,2) ) THEN
-    nerr=nerr+1
-    CALL ATOMSK_MSG(1802,(/'AUXNAMES'/),(/0.d0/))
-  ENDIF
-  !avoid arrays allocated with zero size
-  IF( SIZE(AUXNAMES)<=0 .OR. SIZE(AUX,1)<=0 .OR. SIZE(AUX,2)<=0 ) THEN
-    IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
-    IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-  ENDIF
-  !Verify that names of auxiliary properties are left-aligned
-  IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
-    DO i=1,SIZE(AUXNAMES)
-      AUXNAMES(i) = TRIM(ADJUSTL(AUXNAMES(i)))
-    ENDDO
-  ENDIF
+  nerr=nerr+1
+  CALL ATOMSK_MSG(1802,(/msg/),(/0.d0/))
 ENDIF
 !
 IF(verbosity==4) THEN

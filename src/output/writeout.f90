@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Feb. 2018                                     *
+!* Last modification: P. Hirel - 05 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -182,6 +182,20 @@ IF( SIZE(P,1)<30000 ) THEN
       GOTO 1000
     ENDIF
   ENDIF
+ENDIF
+!
+!Check sizes of the arrays
+CALL CHECK_ARRAY_CONSISTENCY(P,S,AUX,AUXNAMES,i)
+IF( i.NE.0 ) THEN
+  IF( i==1 ) THEN
+    msg = 'S'
+  ELSEIF( i==2 ) THEN
+    msg = 'AUX'
+  ELSEIF( i==3 ) THEN
+    msg = 'AUXNAMES'
+  ENDIF
+  nerr=nerr+1
+  CALL ATOMSK_MSG(1802,(/msg/),(/0.d0/))
 ENDIF
 !
 !

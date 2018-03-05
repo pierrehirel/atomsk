@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 05 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,6 +26,7 @@ MODULE subroutines
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
+!* CHECK_ARRAY_CONSISTENCY checks that arrays P, S, AUX, AUXNAMES are consistent  *
 !* STR2BOOL            transforms a string into a boolean value                   *
 !* INT2MONTH           transforms an integer into a month                         *
 !* INT2DAY             transforms an integer into a day                           *
@@ -33,16 +34,8 @@ MODULE subroutines
 !* CHECKNAN            checks an array for NaN (Not a Number) values              *
 !* GEN_NRANDNUMBERS    generate a list of N random real numbers in [0.0,1.0]      *
 !* GEN_NRANDGAUSS      generate a list of N numbers with gaussian distribution    *
-!* BUBBLESORT          sorts an array by increasing or decreasing values          *
-!* QUICKSORT           sorts an array by increasing or decreasing values          *
-!* PACKSORT            sorts an array by packing identical values together        *
-!* IDSORT              sorts an array according to the provided list of index     *
 !* DO_STATS            do some statistics on a 1-dimensional array                *
 !* CHECK_ORTHOVEC      checks if two vectors are normal to each other             *
-!* INVMAT              inverts a NxN matrix                                       *
-!* CONVMAT             converts conventional vectors into a matrix                *
-!* MATCONV             converts matrix into conventional vectors                  *
-!* VOLUME_PARA         computes the volume of a parallelepiped                    *
 !* CART2FRAC           converts cartesian coordinates to fractional               *
 !* FRAC2CART           converts fractional coordinates to cartesian               *
 !* INDEX_MILLER        find the indices of a plane from a string                  *
@@ -59,11 +52,71 @@ MODULE subroutines
 USE comv
 USE constants
 USE functions
+USE math
 !
 IMPLICIT NONE
 !
 !
 CONTAINS
+!
+!
+!
+!********************************************************
+! CHECK_ARRAY_CONSISTENCY
+! This subroutine verifies that the arrays S (containing
+! the positions of shells), AUX (auxiliary properties),
+! and AUXNAMES (names of auxiliary properties), have
+! sizes that are consistent with the array P (atom positions)
+! and with each other.
+! Rules: if allocated, S must have same size MxN as P.
+!        if AUXNAMES is allocated and has a size L,
+!        then AUX must have a size MxL.
+!********************************************************
+SUBROUTINE CHECK_ARRAY_CONSISTENCY(P,S,AUX,AUXNAMES,status)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P !positions of atoms (or ionic cores)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S   !positions of ionic shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+INTEGER,INTENT(OUT):: status !=0 if no problem was detected
+                             !1=problem with S; 2=problem with AUX; 3=problem with AUXNAMES
+INTEGER:: i
+!
+status = 0
+!
+IF(ALLOCATED(S)) THEN
+  IF( SIZE(S,1) > SIZE(P,1) ) THEN
+    !There cannot be more shells than cores => exit
+    status = 1
+  ELSEIF( SIZE(S,1)<=0 ) THEN
+    !no shell => S should not be allocated
+    DEALLOCATE(S)
+  ENDIF
+ENDIF
+IF( ALLOCATED(AUXNAMES) .OR. ALLOCATED(AUX) ) THEN
+  !first dimension of AUX must correspond to number of atoms
+  IF( SIZE(AUX,1) .NE. SIZE(P,1) ) THEN
+    status = 2
+  ENDIF
+  !second dimension of AUX must correspond to number of auxiliary properties
+  IF( SIZE(AUXNAMES) .NE. SIZE(AUX,2) ) THEN
+    status = 3
+  ENDIF
+  !avoid arrays allocated with zero size
+  IF( SIZE(AUXNAMES)<=0 .OR. SIZE(AUX,1)<=0 .OR. SIZE(AUX,2)<=0 ) THEN
+    IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+    IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  ENDIF
+  !Verify that names of auxiliary properties are left-aligned
+  IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+    DO i=1,SIZE(AUXNAMES)
+      AUXNAMES(i) = TRIM(ADJUSTL(AUXNAMES(i)))
+    ENDDO
+  ENDIF
+ENDIF
+!
+END SUBROUTINE CHECK_ARRAY_CONSISTENCY
 !
 !
 !
@@ -160,7 +213,7 @@ CHARACTER(LEN=16),INTENT(OUT):: day,sday
 INTEGER,INTENT(IN):: number
 !
 SELECT CASE(number)
-CASE(0)
+CASE(0,7)
   day = "Sunday"
   sday = "Sun."
 CASE(1)
@@ -181,9 +234,6 @@ CASE(5)
 CASE(6)
   day = "Saturday"
   sday = "Sat."
-CASE(7)
-  day = "Sunday"
-  sday = "Sun."
 CASE DEFAULT
   day = "Unknown"
   sday = "N/A"
@@ -230,7 +280,11 @@ ELSEIF( text=="INF" .OR. INDEX(text,"inf")>0 ) THEN
   !
 ELSEIF( text=='BOX' .OR. text=='box' ) THEN
   !Total length of the box
-  number = MAXVAL(vbox) + DABS(MINVAL(vbox))
+  number = MAX(0.d0,MAXVAL(vbox)) + DABS(MIN(0.d0,MINVAL(vbox)))
+  !
+ELSEIF( text=='-BOX' .OR. text=='-box' ) THEN
+  !Opposite of total length of the box
+  number = -1.d0 * ( MAX(0.d0,MAXVAL(vbox)) + DABS(MIN(0.d0,MINVAL(vbox))) )
   !
 ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
   !There is an operation, e.g. '0.6*BOX' or 'BOX/2'
@@ -247,6 +301,7 @@ ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
     text = text(2:)
   ENDIF
   !
+  text = ADJUSTL(text)
   !Detect the position of the keyword "BOX"
   posbox = INDEX(text,'BOX')
   IF(posbox==0) posbox = INDEX(text,'box')
@@ -266,28 +321,32 @@ ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
       !Save position of operator in text
       posop = posbox-1
     ELSE
-      !no operator before of after "box" => abandon ship
-      nerr=nerr+1
-      RETURN
+      !no operator => assume it is a multiplication
+      op="*"
+      IF( posbox==1 ) THEN
+        posop = posbox+2
+      ELSE
+        posop = posbox
+      ENDIF
     ENDIF
   ENDIF
   !
   !Evaluate the expression and save it to "number"
-  IF( posop<posbox ) THEN
+  IF( posop<=posbox ) THEN
     !Read what is before 'BOX'
     READ(text(1:posop-1),*,END=800,ERR=800) areal
     !Do the operation
     IF( op=='+' ) THEN
-      number = areal+MAXVAL(vbox)
+      number = areal + MAX(0.d0,MAXVAL(vbox))
     ELSEIF( op=='-' ) THEN
-      number = areal-MAXVAL(vbox)
+      number = areal - MAX(0.d0,MAXVAL(vbox))
     ELSEIF( op=='*' ) THEN
-      number = MINVAL(vbox) + areal*( SUM(DABS(vbox)) )
+      number = MIN(0.d0,MINVAL(vbox)) + areal*( SUM(DABS(vbox)) )
     ELSEIF( op==':' .OR. op=='/' ) THEN
-      IF( ANY(vbox(:)<1.d-12) ) THEN
+      IF( DABS(vbox(1))<1.d-12 .OR. DABS(vbox(2))<1.d-12 .OR. DABS(vbox(3))<1.d-12 ) THEN
         number = HUGE(areal)
       ELSE
-        number = MINVAL(vbox) + areal/( SUM(DABS(vbox)) )
+        number = MIN(0.d0,MINVAL(vbox)) + areal/( SUM(DABS(vbox)) )
       ENDIF
     ENDIF
   ELSE
@@ -295,16 +354,16 @@ ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
     READ(text(posop+1:),*,END=800,ERR=800) areal
     !Do the operation
     IF( op=='+' ) THEN
-      number = MAXVAL(vbox)+areal
+      number = MAX(0.d0,MAXVAL(vbox)) + areal
     ELSEIF( op=='-' ) THEN
-      number = MAXVAL(vbox)-areal
+      number = MAX(0.d0,MAXVAL(vbox)) - areal
     ELSEIF( op=='*' ) THEN
-      number = MINVAL(vbox) + areal*( SUM(DABS(vbox)) )
+      number = MIN(0.d0,MINVAL(vbox)) + areal*( SUM(DABS(vbox)) )
     ELSEIF( op==':' .OR. op=='/' ) THEN
       IF( DABS(areal)<1.d-12 ) THEN
         number = HUGE(vbox)
       ELSE
-        number = MINVAL(vbox) + ( SUM(DABS(vbox)) )/areal
+        number = MIN(0.d0,MINVAL(vbox)) + ( SUM(DABS(vbox)) )/areal
       ENDIF
     ENDIF
   ENDIF
@@ -452,311 +511,6 @@ END SUBROUTINE GEN_NRANDGAUSS
 !
 !
 !********************************************************
-! BUBBLESORT
-! This subroutine sorts a MxN array by increasing or
-! decreasing values of its column 'col'.
-! It also returns the list of index after the sorting.
-! It uses the so-called "bubble-sort" algorithm.
-! IMPORTANT NOTE: this algorithm swaps entire columns
-! of an array, up to N*(N-1) times (N=number of lines),
-! i.e. it scales as N². For very large arrays, use
-! the QUICKSORT algorithm below.
-!********************************************************
-SUBROUTINE BUBBLESORT(A,col,order,newindex)
-!
-IMPLICIT NONE
-CHARACTER(LEN=4),INTENT(IN):: order  !up or down
-LOGICAL:: sorted
-INTEGER:: i, j, k
-INTEGER,INTENT(IN):: col             !index of column to sort
-REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-REAL(dp),DIMENSION(SIZE(A,2)) :: col_value
-INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
-!
-!
-IF( SIZE(A,2)>=1 .AND. col>0 .AND. col<=SIZE(A,2) ) THEN
-  col_value(:) = 0.d0
-  IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
-  ALLOCATE( newindex(SIZE(A,1)) )
-  DO i=1,SIZE(newindex)
-    newindex(i) = i
-  ENDDO
-  !
-  IF(order=='down') THEN
-    DO j=SIZE(A,1),2,-1
-      sorted = .TRUE.
-      DO i=1,j-1
-        !If element i+1 is greater than element i, swap them
-        IF( A(i+1,col) > A(i,col) ) THEN
-          col_value(:) = A(i,:)
-          A(i,:) = A(i+1,:)
-          A(i+1,:) = col_value(:)
-          !Save new indexes
-          k = newindex(i)
-          newindex(i) = newindex(i+1)
-          newindex(i+1) = k
-          !We performed an inversion => list is not sorted
-          sorted = .FALSE.
-        ENDIF
-      ENDDO
-      !If no inversion was performed after loop on i, the list is fully sorted
-      IF(sorted) EXIT
-    ENDDO
-    !
-  ELSE  !i.e. if order is "up"
-    DO j=SIZE(A,1),2,-1
-      sorted = .TRUE.
-      DO i=1,j-1
-        !If element i+1 is smaller than element i, swap them
-        IF( A(i+1,col) < A(i,col) ) THEN
-          col_value(:) = A(i,:)
-          A(i,:) = A(i+1,:)
-          A(i+1,:) = col_value(:)
-          !Save new indexes
-          k = newindex(i)
-          newindex(i) = newindex(i+1)
-          newindex(i+1) = k
-          !We performed an inversion => list is not sorted
-          sorted = .FALSE.
-        ENDIF
-      ENDDO
-      !If no inversion was performed after loop on i, the list is fully sorted
-      IF(sorted) EXIT
-    ENDDO
-  ENDIF
-  !
-ELSE
-  PRINT*, "ERROR col = ", col
-ENDIF
-!
-END SUBROUTINE BUBBLESORT
-!
-!
-!********************************************************
-! QUICKSORT
-! This subroutine sorts a MxN array by increasing or
-! decreasing values of its column 'col'.
-! It also returns the list of index after the sorting.
-! It uses the so-called "quick-sort" algorithm, which
-! scales as N*log(N) where N is the number of lines.
-! NOTE: this algorithm actually counts three subroutines:
-!      QUICKSORT (the one that you should CALL),
-!      QSORT (which is recursive), and
-!      QS_PARTITION below.
-!********************************************************
-SUBROUTINE QUICKSORT(A,col,order,newindex)
-!
-IMPLICIT NONE
-CHARACTER(LEN=4),INTENT(IN):: order  !up or down
-INTEGER,INTENT(IN):: col             !index of column to sort
-INTEGER:: i
-INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
-REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-!
-IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
-ALLOCATE( newindex(SIZE(A,1)) )
-DO i=1,SIZE(newindex)
-  newindex(i) = i
-ENDDO
-!
-CALL QSORT(A,col,order,newindex)
-!
-END SUBROUTINE QUICKSORT
-!
-!********************************************************
-RECURSIVE SUBROUTINE QSORT(A,col,order,newindex)
-!
-IMPLICIT NONE
-CHARACTER(LEN=4),INTENT(IN):: order  !up or down
-INTEGER,INTENT(IN):: col             !index of column to sort
-INTEGER:: iq
-INTEGER,DIMENSION(:):: newindex !list of sorted indexes
-REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-!
-IF( SIZE(A,1) > 1 ) THEN
-  CALL QS_PARTITION(A,col,order,iq,newindex)
-  CALL QSORT(A(:iq-1,:),col,order,newindex(:iq-1))
-  CALL QSORT(A(iq:,:),col,order,newindex(iq:))
-ENDIF
-!
-END SUBROUTINE QSORT
-!
-!********************************************************
-!
-SUBROUTINE QS_PARTITION(A,col,order,marker,newindex)
-!
-IMPLICIT NONE
-CHARACTER(LEN=4),INTENT(IN):: order  !up or down
-REAL(dp),INTENT(INOUT),DIMENSION(:,:):: A
-INTEGER,INTENT(OUT):: marker
-INTEGER,INTENT(IN):: col             !index of column to sort
-INTEGER:: i, j, k
-INTEGER,DIMENSION(:):: newindex !list of sorted indexes
-REAL(dp),DIMENSION(SIZE(A,2)):: tempreal
-REAL(dp):: pivot      !value of pivot point
-!
-pivot = A(1,col)
-i = 0
-j = SIZE(A,1)+1
-!
-IF(order=='up') THEN
-  DO
-    j = j-1
-    DO
-      IF( A(j,col) <= pivot ) THEN
-        EXIT
-      ENDIF
-      j = j-1
-    ENDDO
-    !
-    i = i+1
-    DO
-      IF( A(i,col) >= pivot ) THEN
-        EXIT
-      ENDIF
-      i = i+1
-    ENDDO
-    !
-    IF( i < j ) THEN
-      ! Exchange A(i,:) and A(j,:)
-      tempreal(:) = A(i,:)
-      A(i,:) = A(j,:)
-      A(j,:) = tempreal(:)
-      k = newindex(i)
-      newindex(i) = newindex(j)
-      newindex(j) = k
-    ELSEIF( i==j ) THEN
-      marker = i+1
-      RETURN
-    ELSE
-      marker = i
-      RETURN
-    ENDIF
-    !
-  ENDDO
-  !
-ELSE  !i.e. if order != 'up'
-  DO
-    j = j-1
-    DO
-      IF( A(j,col) >= pivot ) THEN
-        EXIT
-      ENDIF
-      j = j-1
-    ENDDO
-    !
-    i = i+1
-    DO
-      IF( A(i,col) <= pivot ) THEN
-        EXIT
-      ENDIF
-      i = i+1
-    ENDDO
-    !
-    IF( i < j ) THEN
-      ! Exchange A(i,:) and A(j,:)
-      tempreal(:) = A(i,:)
-      A(i,:) = A(j,:)
-      A(j,:) = tempreal(:)
-      k = newindex(i)
-      newindex(i) = newindex(j)
-      newindex(j) = k
-    ELSEIF( i==j ) THEN
-      marker = i+1
-      RETURN
-    ELSE
-      marker = i
-      RETURN
-    ENDIF
-    !
-  ENDDO
-  !
-ENDIF  
-!
-END SUBROUTINE QS_PARTITION
-!
-!
-!********************************************************
-! PACKSORT
-! This subroutine sorts a MxN array by packing
-! identical values together, but without sorting them
-! (unlike the BUBBLESORT above). E.g. if values like:
-!      2 4 2 3 1 1 2 4 3 3 2 1 4
-! are given, this subroutine will pack identical
-! values so the result is:
-!      2 2 2 2 4 4 4 3 3 3 1 1 1
-! It also returns the list of index after the sorting.
-!********************************************************
-SUBROUTINE PACKSORT(A,col,newindex)
-!
-IMPLICIT NONE
-INTEGER:: i, j, k, l
-INTEGER:: col, last
-INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
-REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-REAL(dp),DIMENSION(SIZE(A,2)):: Atemp
-!
-IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
-ALLOCATE( newindex(SIZE(A,1)) )
-DO i=1,SIZE(newindex)
-  newindex(i) = i
-ENDDO
-!
-IF(col>SIZE(A,2)) col = SIZE(A,2)
-!
-DO i=1,SIZE(A,1)
-  last=i
-  DO j=i+1,SIZE(A,1)
-    IF( A(j,col)==A(i,col) ) THEN
-      !Only consider A(j)==A(i)
-      IF(j==last+1) THEN
-        !If the two values are contiguous just go on
-        last=j
-      ELSE
-        !If the value is further down in the array, pack it with the others
-        Atemp(:) = A(j,:)
-        l = newindex(j)
-        !Shift all previous values in the array
-        DO k=j,last+1,-1
-          A(k,:) = A(k-1,:)
-          newindex(k) = newindex(k-1)
-        ENDDO
-        last=last+1
-        A(last,:) = Atemp(:)
-        newindex(last) = l
-      ENDIF
-    ENDIF
-  ENDDO
-ENDDO
-
-!
-END SUBROUTINE PACKSORT
-!
-!
-!********************************************************
-! IDSORT
-! This subroutine takes a list of index and an 2-dim.
-! array A as input, and re-shuffles array A according
-! to the index list.
-!********************************************************
-SUBROUTINE IDSORT(idlist,A)
-!
-INTEGER:: i
-INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of sorted indexes
-REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Atemp
-!
-DO i=1,SIZE(idlist)
-  !Exchange entries in A with index i and idlist(i)
-  Atemp(i,:) = A(idlist(i),:)
-ENDDO
-!
-A(:,:) = Atemp(:,:)
-!
-END SUBROUTINE IDSORT
-!
-!
-!********************************************************
 ! DO_STATS
 ! This subroutine performs some simple statistics
 ! on the numbers contained in a 1-dimensional array.
@@ -814,150 +568,6 @@ IF(DOT_PRODUCT(V1,V2)==0.d0) THEN
 ENDIF
 !
 END SUBROUTINE CHECK_ORTHOVEC
-!
-!
-!********************************************************
-! INVMAT
-! This subroutine inverts a NxN matrix M
-! and outputs the result into the matrix G.
-!********************************************************
-SUBROUTINE INVMAT(M,G,status)
-!
-IMPLICIT NONE
-REAL(dp),DIMENSION(:,:),INTENT(IN):: M
-REAL(dp),DIMENSION(:,:),INTENT(OUT):: G
-INTEGER,INTENT(OUT),OPTIONAL:: status
-INTEGER:: i
-INTEGER,DIMENSION(SIZE(M,1)):: IPIV !for LAPACK routine DGETRI
-REAL(dp):: det
-REAL(dp),DIMENSION(SIZE(M,1)):: WORK !for LAPACK routine DGETRI
-!
-i=0
-!
-IF( SIZE(M,1).NE.SIZE(M,2) ) THEN
-  !Non-square matrix: cancel
-  i=1
-  !
-ELSE
-  IF( SIZE(M,1)==3 .AND. SIZE(M,2)==3 ) THEN
-    !3x3 matrix: simple enough, let's do it by hand
-    det =   M(1,1)*M(2,2)*M(3,3) - M(1,1)*M(3,2)*M(2,3) &
-        & - M(2,1)*M(1,2)*M(3,3) + M(2,1)*M(3,2)*M(1,3) &
-        & + M(3,1)*M(1,2)*M(2,3) - M(3,1)*M(2,2)*M(1,3)
-    !
-    G(1,1) = (M(2,2)*M(3,3) - M(2,3)*M(3,2))/det
-    G(2,1) = (M(2,3)*M(3,1) - M(2,1)*M(3,3))/det
-    G(3,1) = (M(2,1)*M(3,2) - M(2,2)*M(3,1))/det
-    !
-    G(1,2) = (M(3,2)*M(1,3) - M(3,3)*M(1,2))/det
-    G(2,2) = (M(3,3)*M(1,1) - M(3,1)*M(1,3))/det
-    G(3,2) = (M(3,1)*M(1,2) - M(3,2)*M(1,1))/det
-    !
-    G(1,3) = (M(1,2)*M(2,3) - M(1,3)*M(2,2))/det
-    G(2,3) = (M(1,3)*M(2,1) - M(1,1)*M(2,3))/det
-    G(3,3) = (M(1,1)*M(2,2) - M(1,2)*M(2,1))/det
-    !
-  ELSEIF( SIZE(G,1)==SIZE(M,1) .AND. SIZE(G,2)==SIZE(M,2) ) THEN
-    !general NxN matrix: call LAPACK routines DGETRF and DGETRI
-    G(:,:) = M(:,:)
-    CALL DGETRF( SIZE(M,1), SIZE(M,2), G, SIZE(M,1), IPIV, i)
-    IF( i==0 ) THEN
-      CALL DGETRI( SIZE(M,1), G, SIZE(M,1), IPIV, WORK, SIZE(M,1), i )
-    ENDIF
-    !
-  ELSE
-    !non-consistent array sizes: some programmer
-    !made a mistake when calling this routine
-    i=1
-  ENDIF
-  !
-ENDIF
-!
-IF(PRESENT(status)) status=i
-!
-END SUBROUTINE INVMAT
-!
-!
-!********************************************************
-!  CONVMAT
-!  This subroutine converts conventional vectors
-!  defined by a b c alpha beta gamma,
-!  into a lower triangular matrix:
-!        |  H(1,1)    0       0     |
-!   H =  |  H(2,1)  H(2,2)    0     |
-!        |  H(3,1)  H(3,2)  H(3,3)  |
-!********************************************************
-!
-SUBROUTINE CONVMAT(a,b,c,alpha,beta,gamma,H)
-!
-IMPLICIT NONE
-REAL(dp),INTENT(IN):: a, b, c, alpha, beta, gamma
-REAL(dp),DIMENSION(3,3):: H
-!
-H(:,:) = 0.d0
-H(1,1) = a
-H(2,1) = b*DCOS(gamma)
-H(2,2) = b*DSIN(gamma)
-H(3,1) = c*DCOS(beta)
-H(3,2) = c*( DSIN(beta)*( DCOS(alpha)-DCOS(beta)*DCOS(gamma) )/ &
-       &      (DSIN(beta)*DSIN(gamma))             )
-H(3,3) = c*(DSIN(beta)*                                         &
-       &     DSQRT(                                             &
-       &           ( DSIN(gamma)**2                             &
-       &             -DCOS(beta)**2 - DCOS(alpha)**2            &
-       &             +2.d0*DCOS(alpha)*DCOS(beta)*DCOS(gamma)   &
-       &           )                                            &
-       &          )/(DSIN(beta)*DSIN(gamma))                    &
-       &   )
-!
-!
-END SUBROUTINE CONVMAT
-!
-!
-!********************************************************
-!  MATCONV
-!  This subroutine converts a matrix into conventional
-!  vectors defined by a b c alpha beta gamma.
-!********************************************************
-!
-SUBROUTINE MATCONV(H,a,b,c,alpha,beta,gamma)
-!
-IMPLICIT NONE
-REAL(dp):: a, b, c, alpha, beta, gamma
-REAL(dp),DIMENSION(3,3),INTENT(IN):: H
-!
- a = VECLENGTH(H(1,:))
- b = VECLENGTH(H(2,:))
- c = VECLENGTH(H(3,:))
- alpha = ANGVEC( H(2,:),H(3,:) )
-  beta = ANGVEC( H(3,:),H(1,:) )
- gamma = ANGVEC( H(1,:),H(2,:) )
-!
-!
-END SUBROUTINE MATCONV
-!
-!
-!********************************************************
-!  VOLUME_PARA
-!  This subroutine computes the volume of a parallelepiped
-!  defined by three vectors stored in a 3x3 matrix.
-!********************************************************
-!
-SUBROUTINE VOLUME_PARA(Pvec,Volume)
-!
-IMPLICIT NONE
-REAL(dp):: a, b, c, alpha, beta, gamma
-REAL(dp):: Volume
-REAL(dp), DIMENSION(3,3),INTENT(IN):: Pvec
-!
-CALL MATCONV(Pvec, a, b, c, alpha, beta, gamma)
-!
-Volume = a*b*c*                                            &
-       & (1.d0 + 2.d0*DCOS(alpha)*DCOS(beta)*DCOS(gamma)   &
-       &  -DCOS(alpha)**2 -DCOS(beta)**2 -DCOS(gamma)**2  )
-!
-!
-END SUBROUTINE VOLUME_PARA
 !
 !
 !********************************************************
@@ -1024,6 +634,39 @@ ELSE
 ENDIF
 !
 END SUBROUTINE FRAC2CART
+!
+!
+!********************************************************
+! COUNT_OUTBOX
+! This subroutine counts how many points of array A(x,y,z)
+! are outside of the box.
+!********************************************************
+SUBROUTINE COUNT_OUTBOX(H,A,Nout)
+!
+IMPLICIT NONE
+INTEGER:: i, Nout
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: A
+REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac
+!
+Nout = 0
+!
+IF( ALLOCATED(A) .AND. SIZE(A,1)>0 ) THEN
+  Afrac(:,:) = A(:,:)
+  !
+  CALL CART2FRAC(Afrac,H)
+  !
+  DO i=1,SIZE(Afrac,1)
+    IF( Afrac(i,1)<0.d0 .OR. Afrac(i,1)>1.d0 .OR. &
+      & Afrac(i,2)<0.d0 .OR. Afrac(i,2)>1.d0 .OR. &
+      & Afrac(i,3)<0.d0 .OR. Afrac(i,3)>1.d0     ) THEN
+      Nout = Nout+1
+    ENDIF
+  ENDDO
+!
+ENDIF
+!
+END SUBROUTINE COUNT_OUTBOX
 !
 !
 !********************************************************
@@ -1308,33 +951,6 @@ DO i=2, SIZE(atoms_v(:,1))
 ENDDO
 !
 END SUBROUTINE UNWRAP
-!
-!
-!********************************************************
-!  DERIVATIVE
-!  This subroutine calculates the centered derivative
-!  of an array.
-!********************************************************
-!
-SUBROUTINE DERIVATIVE(func,dfunc)
-!
-IMPLICIT NONE
-INTEGER:: i, funcsize
-REAL(dp):: step
-REAL(dp),DIMENSION(:,:),INTENT(IN):: func
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: dfunc
-!
-funcsize = SIZE(func(:,1))
-IF(.NOT.ALLOCATED(dfunc)) ALLOCATE(dfunc(funcsize-2,2))
-dfunc(:,:)=0.d0
-!
-DO i=2,funcsize-1
-  step = func(i+1,1)-func(i-1,1)
-  dfunc(i,1) = func(i,1)
-  dfunc(i,2) = (func(i+1,2)-func(i-1,2))/step
-ENDDO
-!
-END SUBROUTINE DERIVATIVE
 !
 !
 !********************************************************

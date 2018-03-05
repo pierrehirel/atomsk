@@ -107,15 +107,15 @@ Npoints = MAX( 3 , MIN( NINT(perimeter/5.d0) , 100 ) )
 theta = 2.d0*pi / DBLE(Npoints)
 !
 ! Allocate xLoop
-ALLOCATE( xLoop(3,Npoints) )
+ALLOCATE( xLoop(Npoints,3) )
 xLoop(:,:) = 0.d0
 !
 ! Save the position of each point of the loop
 angle = 0.d0
-DO i=1,SIZE(xLoop,2)
-  xLoop(a1,i) = center(a1) + radius*DCOS(angle)
-  xLoop(a2,i) = center(a2) + radius*DSIN(angle)
-  xLoop(a3,i) = center(a3)
+DO i=1,SIZE(xLoop,1)
+  xLoop(i,a1) = center(a1) + radius*DCOS(angle)
+  xLoop(i,a2) = center(a2) + radius*DSIN(angle)
+  xLoop(i,a3) = center(a3)
   ! Increment angle for next point
   angle = angle + theta
 ENDDO
@@ -123,8 +123,8 @@ ENDDO
 IF( verbosity==4 ) THEN
   WRITE(msg,'(i3,a42)') Npoints, "  POINTS FOR DISLOCATION LOOP"
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  DO i=1,SIZE(xLoop,2)
-    WRITE(msg,'(4X,3f9.3)') xLoop(1:3,i)
+  DO i=1,SIZE(xLoop,1)
+    WRITE(msg,'(4X,3f9.3)') xLoop(i,1:3)
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDDO
 ENDIF
@@ -157,15 +157,15 @@ omega = 0.d0
 xC(:) = center(:) - R(:)
 !
 ! Loop on all segments forming the dislocation loop
-DO i=1,SIZE(xLoop,2)
+DO i=1,SIZE(xLoop,1)
   !Coordinates of point A
   IF( i==1 ) THEN
-    xA(:) = xLoop(:,SIZE(xLoop,2)) - R(:)
+    xA(:) = xLoop(SIZE(xLoop,1),:) - R(:)
   ELSE
-    xA(:) = xLoop(:,i-1) - R(:)
+    xA(:) = xLoop(i-1,:) - R(:)
   ENDIF
   ! Coordinates of point B
-  xB(:) = xLoop(:,i) - R(:)
+  xB(:) = xLoop(i,:) - R(:)
   !
   ! Part due to solid angle
   omega = omega + SolidAngle(xA, xB, xC)

@@ -966,6 +966,18 @@ ELSE !i.e. disloctype == 'loop'
   ENDIF
   !
   !Now xLoop should contain the positions of points defining the loop
+  !Check if some points are outside of the box
+  CALL COUNT_OUTBOX(H,xLoop,i)
+  IF(i>0) THEN
+    !Some points of the loop are outside of the loop => display a warning
+    IF( i==SIZE(xLoop,1) ) THEN
+      !ALL points are outside of the box => something is probably very wrong
+      CALL ATOMSK_MSG(2754,(/'all'/),(/0.d0/))
+    ELSE
+      !There are i points that are outside of the box
+      CALL ATOMSK_MSG(2754,(/'loop'/),(/DBLE(i)/))
+    ENDIF
+  ENDIF
   !For each atom, compute its displacement due to the loop
   DO i=1,SIZE(P,1)
     P(i,1:3) = P(i,1:3) + LOOP_DISPLACEMENT(P(i,1:3), b, nu, pos(1:3), xLoop)

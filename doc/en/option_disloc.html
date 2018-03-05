@@ -83,11 +83,13 @@ This method results in the presence of a step at one edge of the supercell, poss
 
 <hr>
 
-<p>Dislocation loops can be constructed by using "<strong>-dislocation loop</strong>". In this case, the following parameters must be provided: the coordinates (x,y,z) of the center of the loop, the direction &#60;n&#62; normal to the plane of the loop (must be "X", "Y", or "Z"), the &#60;radius&#62; of the loop, the three components (b<sub>x</sub>,b<sub>y</sub>,b<sub>z</sub>) of the Burgers vector, and the value of the material's Poisson ratio &nu;.</p>
+<p>Dislocation loops can be constructed by using "<strong>-dislocation loop</strong>". In this case, the following parameters must be provided: the coordinates (x,y,z) of the center of the loop, the direction &#60;n&#62; normal to the plane of the loop (must be "X", "Y", or "Z"), the &#60;radius&#62; of the loop, the three components (b<sub>x</sub>,b<sub>y</sub>,b<sub>z</sub>) of the Burgers vector, and the value of the material's Poisson ratio &nu;. The atomic displacements follow the description of D.M. Barnett, <em>Philos. Mag. A</em> <strong>51</strong> (1985) 383-387.</p>
 
 <p>The coordinates (x,y,z) of the center of the loop can be provided in &Aring;. It is also possible to give them with respect to the box dimensions with the keyword BOX and an operation (see <a href="./box.html">this page</a>). However, the &#60;radius&#62; of the loop and the Burgers vector components must be given in &Aring;.</p>
 
 <p>If the &#60;radius&#62; of the loop is negative, then instead of being circular, the loop will have a square shape. The side of the square will then have a length equal to twice the absolute value of the &#60;radius&#62;.</p>
+
+<p>For dislocation loops, the theoretical stresses are not calculated.</p>
 
 <p>Just like the previous types of dislocations, several loops can be introduced in the system by calling the present option several times.</p>
 

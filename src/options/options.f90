@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 Feb. 2018                                     *
+!* Last modification: P. Hirel - 01 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -474,6 +474,11 @@ DO ioptions=1,SIZE(options_array)
       !Convert the treal(:) into real numbers, if they contain the keyword "box"
       DO i=1,3
         CALL BOX2DBLE( H(:,i) , treal(i) , pos(i) , status )
+        IF(status>0) THEN
+          temp = treal(i)
+          nerr=nerr+1
+          GOTO 810
+        ENDIF
       ENDDO
       !
     ELSE
@@ -566,11 +571,13 @@ DO ioptions=1,SIZE(options_array)
       CALL BOX2DBLE( H(:,i) , treal(i) , pos(1) , status )
       IF(status>0) THEN
         temp = treal(i)
+        nerr=nerr+1
         GOTO 810
       ENDIF
       CALL BOX2DBLE( H(:,j) , treal(j) , pos(2) , status )
       IF(status>0) THEN
         temp = treal(j)
+        nerr=nerr+1
         GOTO 810
       ENDIF
     ENDIF
@@ -1116,6 +1123,22 @@ DO ioptions=1,SIZE(options_array)
   !
 !
 ENDDO
+!
+!
+!End of options => check sizes of the arrays
+CALL CHECK_ARRAY_CONSISTENCY(P,S,AUX,AUXNAMES,i)
+IF( i.NE.0 ) THEN
+  IF( i==1 ) THEN
+    msg = 'S'
+  ELSEIF( i==2 ) THEN
+    msg = 'AUX'
+  ELSEIF( i==3 ) THEN
+    msg = 'AUXNAMES'
+  ENDIF
+  nerr=nerr+1
+  CALL ATOMSK_MSG(1802,(/msg/),(/0.d0/))
+ENDIF
+!
 GOTO 1000
 !
 !

@@ -84,11 +84,13 @@ marche sur un côté de la boîte, ce qui peut modifier les conditions aux limit
 
 <hr>
 
-<p>Les boucles de dislocation peuvent être construites en utilisant "<strong>-dislocation loop</strong>". Dans ce cas, les paramètres à fournir sont les suivants&nbsp;: les coordonnées (x,y,z) du centre de la boucle, la direction &#60;n&#62; normale au plan de la boucle (doit être "X", "Y", ou "Z"), le &#60;rayon&#62; de la boucle, les trois composantes (b<sub>x</sub>,b<sub>y</sub>,b<sub>z</sub>) du vecteur de Burgers, et le module de Poisson &nu; du matériau.</p>
+<p>Les boucles de dislocation peuvent être construites en utilisant "<strong>-dislocation loop</strong>". Dans ce cas, les paramètres à fournir sont les suivants&nbsp;: les coordonnées (x,y,z) du centre de la boucle, la direction &#60;n&#62; normale au plan de la boucle (doit être "X", "Y", ou "Z"), le &#60;rayon&#62; de la boucle, les trois composantes (b<sub>x</sub>,b<sub>y</sub>,b<sub>z</sub>) du vecteur de Burgers, et le module de Poisson &nu; du matériau. Les déplacements atomiques sont alors ceux décrits par D.M. Barnett, <em>Philos. Mag. A</em> <strong>51</strong> (1985) 383-387.</p>
 
 <p>Les coordonnées (x,y,z) du centre de la boucle peuvent être fournies en &Aring;. Il est aussi possible de spécifier des distances relatives aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>). Toutefois, le &#60;rayon&#62; de la boucle ainsi que les composantes du vecteur de Burgers doivent impérativement être donnés en &Aring;.</p>
 
 <p>Si le &#60;rayon&#62; de la boucle est négatif, alors au lieu d'être circulaire, la boucle aura la forme d'un carré. Le côté du carré sera égal au double de la valeur absolue du &#60;rayon&#62;.</p>
+
+<p>Pour les boucles de dislocations, les contraintes théoriques ne sont pas calculées.</p>
 
 <p>Comme tous les autres types de dislocation, plusieurs boucles peuvent être introduites dans le système atomique en appelant cette option plusieurs fois.</p>
 

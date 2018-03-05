@@ -1952,11 +1952,24 @@ CASE(2753)
   msg = "/!\ WARNUNG: atom #"//TRIM(ADJUSTL(temp))//"  wurde bereits ausgewählt. Ueberspringe."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2754)
-  !strings(1) = type of object (e.g. "dislocation" or "crack")
-  msg = "/!\ WARNUNG: Das "//TRIM(ADJUSTL(strings(1)))//" wird aus der Box platziert."
-  CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Das macht wenig Sinn. Bitte ueberpruefen!"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  !strings(1) = type of object (e.g. "dislocation" or "crack" or "loop" or "all"
+  !             ("all" means that all points of a loop are out of the box)
+  !reals(1) = number of points that are out of the box
+  IF( strings(1)=="loop" ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "/!\ WARNUNG: "//TRIM(ADJUSTL(temp))//" points of the loop are out of the box."
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ELSEIF( strings(1)=="all" ) THEN
+    msg = "/!\ WARNUNG: all points of the loop are out of the box!"
+    CALL DISPLAY_MSG(1,msg,logfile)
+    msg = "    Are you sure you know what you are doing?"
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ELSE
+    msg = "/!\ WARNUNG: Das "//TRIM(ADJUSTL(strings(1)))//" wird aus der Box platziert."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    msg = "    Das macht wenig Sinn. Bitte ueberpruefen!"
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(2755)
   msg = "/!\ WARNUNG: Faktor ist Null. Ueberspringe."
   CALL DISPLAY_MSG(1,msg,logfile)

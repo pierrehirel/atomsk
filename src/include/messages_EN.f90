@@ -1984,11 +1984,24 @@ CASE(2753)
   msg = "/!\ WARNING: atom #"//TRIM(ADJUSTL(temp))//" was already selected, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2754)
-  !strings(1) = type of object (e.g. "dislocation" or "crack")
-  msg = "/!\ WARNING: the position of the "//TRIM(ADJUSTL(strings(1)))//" is out of the box."
-  CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Are you sure you know what you are doing?"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  !strings(1) = type of object (e.g. "dislocation" or "crack" or "loop" or "all"
+  !             ("all" means that all points of a loop are out of the box)
+  !reals(1) = number of points that are out of the box
+  IF( strings(1)=="loop" ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "/!\ WARNING: "//TRIM(ADJUSTL(temp))//" points of the loop are out of the box."
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ELSEIF( strings(1)=="all" ) THEN
+    msg = "/!\ WARNING: all points of the loop are out of the box!"
+    CALL DISPLAY_MSG(1,msg,logfile)
+    msg = "    Are you sure you know what you are doing?"
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ELSE
+    msg = "/!\ WARNING: the position of the "//TRIM(ADJUSTL(strings(1)))//" is out of the box."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    msg = "    Are you sure you know what you are doing?"
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(2755)
   msg = "/!\ WARNING: the factor is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)

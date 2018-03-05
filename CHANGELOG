@@ -4,6 +4,7 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- some modules were split into smaller ones, making current version incompatible with previous branches.
 - added support for reading and writing files in PDFFIT structure file format (*.str or *.stru).
 - new option "-orthogonal-cell" allows to find a suitable equivalent orthorhombic cell for any type of system.
 - in option "-dislocation", added possibility to construct dislocation loops. Thanks to Emmanuel Clouet, CEA, Gif-sur-Yvette, France, for sharing his code Babel for the construction of dislocation loops.

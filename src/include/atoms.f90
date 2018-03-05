@@ -9,7 +9,7 @@ MODULE atoms
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Oct. 2017                                     *
+!* Last modification: P. Hirel - 05 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -331,11 +331,17 @@ END SUBROUTINE ATOMNUMBER
 SUBROUTINE ATOMMASS(species,smass)
 !
 IMPLICIT NONE
-CHARACTER(LEN=2):: species
+CHARACTER(LEN=2),INTENT(IN):: species
+CHARACTER(LEN=2):: species2
 REAL(dp):: smass
 !
 !
-SELECT CASE(species)
+!Make sure that the first letter is uppercase, the second one lowercase
+species2(1:1) = StrUpCase(species(1:1))
+species2(2:2) = StrDnCase(species(2:2))
+!
+!
+SELECT CASE(species2)
 ! n=1
 CASE('H')
       smass=1.008d0
@@ -610,9 +616,9 @@ END SUBROUTINE ATOMMASS
 SUBROUTINE ATOMSPECIES(snumber,species)
 !
 IMPLICIT NONE
+REAL(dp),INTENT(IN):: snumber
 CHARACTER(LEN=2):: species
 INTEGER:: smint
-REAL(dp):: snumber
 !
 smint = INT(snumber)
 !

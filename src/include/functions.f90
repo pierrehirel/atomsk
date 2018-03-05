@@ -10,7 +10,7 @@ MODULE functions
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Feb. 2018                                     *
+!* Last modification: P. Hirel - 05 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -32,24 +32,15 @@ MODULE functions
 !* DAY_OF_WEEK         finds the day of the week given the date                   *
 !* CHARLONG2SHRT       convert a long file name to a shorter one                  *
 !* IS_INTEGER          determines if a real number is an integer                  *
-!* VECLENGTH           calculates the length of a vector                          *
-!* VEC_PLANE           determines if a point is above or below a plane            *
-!* VEC_ANGLE           computes angle between 2 vectors                           *
-!* GCD                 calculates the greatest common divisor of two integers     *
-!* ANGVEC              calculates angle between 2 vectors                         *
-!* DEG2RAD             converts angles from degrees to radians                    *
-!* RAD2DEG             converts angles from radians to degrees                    *
-!* CROSS_PRODUCT       calculates the cross product of two vectors                *
-!* SCALAR_TRIPLE_PRODUCT computes scalar triple product ez (ex ^ ey).             *
 !* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
 !* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
 !* ROTELAST            rotates a 9x9 matrix                                       *
-!* EPS_LEVI_CIVITA     calculates the Levi-Civita symbol, given i,j,k             *
 !**********************************************************************************
 !
 !
 USE comv
 USE constants
+USE math
 !
 !
 CONTAINS
@@ -250,196 +241,6 @@ END FUNCTION IS_INTEGER
 !
 !
 !********************************************************
-!  VECLENGTH
-!  This function calculates the length of a vector.
-!********************************************************
-FUNCTION VECLENGTH(V) RESULT(Vlength)
-!
-IMPLICIT NONE
-REAL(dp),DIMENSION(3),INTENT(IN):: V
-REAL(dp):: Vlength
-!
-Vlength = DSQRT(DABS( V(1)*V(1) + V(2)*V(2) + V(3)*V(3) ))
-!
-END FUNCTION VECLENGTH
-!
-!
-!********************************************************
-!  VEC_PLANE
-!  This function determines if a point of coordinates P
-!  is above or below a given plane. The plane is defined
-!  by its normal N and its distance to the cartesian
-!  origin (0,0,0). The result "position" is positive if
-!  the point is above the plane, negative if it is below,
-!  and zero if P is exactly in the plane. The expressions
-!  "above" and "below" mean that the point P is at a
-!  greater and smaller distance from the origin than
-!  the plane, respectively.
-!********************************************************
-FUNCTION VEC_PLANE(N,d0,P) RESULT(position)
-!
-IMPLICIT NONE
-REAL(dp), DIMENSION(3),INTENT(IN):: N  !normal to the plane
-REAL(dp), DIMENSION(3),INTENT(IN):: P  !position of the point
-REAL(dp),INTENT(IN):: d0  !distance between the plane and the origin
-REAL(dp):: position  !>0 if P is above plane, <0 if below, =0 if in plane
-!
-IF( d0==0.d0 .OR. VECLENGTH(N)==0.d0 ) THEN
-  !atom has to be in plane
-  position = 0.d0
-ELSE
-  position = DOT_PRODUCT( N/VECLENGTH(N) , P - d0*N/VECLENGTH(N) )
-ENDIF
-!
-END FUNCTION VEC_PLANE
-!
-!
-!********************************************************
-!  GCD
-!  This function calculates the Greatest Common Divisor
-!  of two integers.
-!********************************************************
-RECURSIVE FUNCTION GCD(n,m) RESULT(o)
-!
-IMPLICIT NONE
-INTEGER, INTENT(IN) :: n,m
-INTEGER:: o
-INTEGER:: r
-!
-IF(m*n.NE.0) THEN
-  r = MODULO(n,m)
-  IF(r == 0) THEN
-    o = m
-  ELSE
-    o = GCD(m,r)
-  ENDIF
-ELSE
-  IF(m==0 .AND. n==0) THEN
-    o=1
-  ELSE
-    o = MAX(n,m)
-  ENDIF
-ENDIF
-!
-END FUNCTION GCD
-!
-!
-!********************************************************
-!  ANGVEC
-!  This function calculates the angle between two vectors
-!  V1 and V2. Angle theta is returned in radians.
-!********************************************************
-FUNCTION ANGVEC(V1,V2) RESULT(theta)
-!
-IMPLICIT NONE
-REAL(dp),DIMENSION(3),INTENT(IN):: V1, V2
-REAL(dp):: theta
-!
-theta = DOT_PRODUCT(V1,V2) /                                    &
-      & ( DSQRT(DOT_PRODUCT(V1,V1))*DSQRT(DOT_PRODUCT(V2,V2)) )
-!
-IF(theta>1.d0) THEN
-  theta = 1.d0
-ELSEIF(theta<-1.d0) THEN
-  theta = -1.d0
-ENDIF
-!
-theta = DACOS(theta)
-!
-RETURN
-!
-END FUNCTION ANGVEC
-!
-!
-!********************************************************
-! VEC_ANGLE
-! Angles between vectors u1 and u2, oriented
-! according to normal n
-!********************************************************
-FUNCTION VEC_ANGLE(u1, u2, n) RESULT(phi)
-
-IMPLICIT NONE
-REAL(dp),DIMENSION(3),INTENT(IN):: u1, u2, n
-REAL(dp):: phi
-!
-phi = SIGN( ACOS( DOT_PRODUCT(u1, u2)/ &
-    &  ( VECLENGTH(u1)*VECLENGTH(u2) ) ), SCALAR_TRIPLE_PRODUCT(u1,u2,n) )
-!
-END FUNCTION VEC_ANGLE
-!
-!
-!********************************************************
-!  DEG2RAD
-!  This function converts angles from degrees to radians
-!********************************************************
-FUNCTION DEG2RAD(angdeg) RESULT(angrad)
-!
-IMPLICIT NONE
-REAL(dp):: angdeg, angrad
-!
-angrad = angdeg*pi/180.d0
-!
-RETURN
-!
-END FUNCTION DEG2RAD
-!
-!
-!********************************************************
-!  RAD2DEG
-!  This function converts angles from radians to degrees
-!********************************************************
-FUNCTION RAD2DEG(angrad) RESULT(angdeg)
-!
-IMPLICIT NONE
-REAL(dp):: angdeg, angrad
-!
-angdeg = angrad*180.d0 / pi
-!
-RETURN
-!
-END FUNCTION RAD2DEG
-!
-!
-!********************************************************
-!  CROSS_PRODUCT
-!  This function calculates the cross product
-!  of two vectors.
-!********************************************************
-FUNCTION CROSS_PRODUCT(V1,V2) RESULT(V3)
-!
-IMPLICIT NONE
-REAL(dp), DIMENSION(3),INTENT(IN):: V1, V2
-REAL(dp), DIMENSION(3):: V3
-!
-V3(1) = V1(2)*V2(3)-V1(3)*V2(2)
-V3(2) = V1(3)*V2(1)-V1(1)*V2(3)
-V3(3) = V1(1)*V2(2)-V1(2)*V2(1)
-!
-RETURN
-!
-END FUNCTION CROSS_PRODUCT
-!
-!
-!********************************************************
-!  SCALAR_TRIPLE_PRODUCT
-!  This function computes the scalar triple product
-!  of three vectors: ez (ex ^ ey).
-!********************************************************
-
-FUNCTION SCALAR_TRIPLE_PRODUCT(ex,ey,ez) RESULT(stp)
-
-IMPLICIT NONE
-REAL(dp),DIMENSION(3),INTENT(IN):: ex, ey, ez
-REAL(dp):: stp
-
-stp = ez(1) *( ex(2)*ey(3) - ex(3)*ey(2) ) &
-    + ez(2) *( ex(3)*ey(1) - ex(1)*ey(3) ) &
-    + ez(3) *( ex(1)*ey(2) - ex(2)*ey(1) )
-
-END FUNCTION SCALAR_TRIPLE_PRODUCT
-!
-!
-!********************************************************
 !  ELASTINDEX
 !  This function converts the indices i and j into
 !  single index m.
@@ -565,27 +366,6 @@ RETURN
 !
 END FUNCTION ROTELAST
 !
-!
-!********************************************************
-! EPS_LEVI_CIVITA
-! This function computes the Levi-Civita symbol.
-!********************************************************
-FUNCTION EPS_LEVI_CIVITA(i,j,k) RESULT(eps_ijk)
-!
-IMPLICIT NONE
-INTEGER:: i, j, k, eps_ijk
-!
-eps_ijk=0
-!
-IF (i.eq.1 .AND. j.eq.2 .AND. k.eq.3) eps_ijk=1
-IF (i.eq.2 .AND. j.eq.3 .AND. k.eq.1) eps_ijk=1
-IF (i.eq.3 .AND. j.eq.1 .AND. k.eq.2) eps_ijk=1
-!
-IF (i.eq.3 .AND. j.eq.2 .AND. k.eq.1) eps_ijk=-1
-IF (i.eq.1 .AND. j.eq.3 .AND. k.eq.2) eps_ijk=-1
-IF (i.eq.2 .AND. j.eq.1 .AND. k.eq.3) eps_ijk=-1
-!
-END FUNCTION EPS_LEVI_CIVITA
 !
 !
 END MODULE functions
