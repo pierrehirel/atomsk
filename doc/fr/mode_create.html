@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>Ce mode permet de créer des structures à partir de rien. Pour l'instant seul un petit nombre de structures peuvent être générées (voir la table ci-dessous). Par défaut les systèmes cubiques sont créés avec l'orientation X=[100], Y=[010] et Z=[001], mais cela peut être changé (voir ci-dessous). Pour les systèmes non-cubiques seule l'orientation de base est possible.</p>
+<p>Ce mode permet de créer des structures atomiques. Pour l'instant, seul un petit nombre de structures peuvent être générées (voir la table ci-dessous). Par défaut les systèmes cubiques sont créés avec l'orientation X=[100], Y=[010] et Z=[001], mais cela peut être changé (voir ci-dessous). Pour les autres systèmes, seule l'orientation de base est possible.</p>
 
 <p>Les paramètres associés au mode <code>create</code> sont :</p>
 <ul>
@@ -36,22 +36,28 @@
 <p>La table ci-dessous répertorie les entrées possibles pour <strong>&#60;maille&#62;</strong>, et le nombre de <strong>paramètres de maille</strong> et d'<strong>espèces chimiques</strong> qui doivent être spécifiées. Pour la maille "bcc" (cubique centrée), entrer deux espèces atomiques créera une structure faite de deux réseaux cubiques simples qui s'interpénètrent (type chlorure de césium). Pour la maille "fcc" (cubique à faces centrées), entrer deux espèces chimiques créera un alliage des deux éléments. Pour la maille diamant, entrer deux espèces créera une maille zincblende&nbsp;; pour la maille zincblende, n'entrer qu'un seul élément créera une maille diamant.</p>
 
 <table border="1">
-  <tr> <th></th> <th><strong>maille</strong></th>  <th><strong>Paramètres de maille</strong></th> <th><strong>Espèces chimiques</strong></th> </tr>
+  <tr> <th></th> <th><strong>&#60;maille&#62;</strong></th>  <th><strong>Nb. de paramètres de maille</strong></th> <th><strong>Nb. d'espèces chimiques</strong></th> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Mailles cubiques</th> </tr>
   <tr> <th align="left">Cubique simple</th>         <td align="right">sc</td>    <td align="right">1</td> <td align="right">1</td> </tr>
-  <tr> <th align="left">Cubique centrée</th>  <td align="right">bcc</td>   <td align="right">1</td> <td align="right">1 ou 2</td> </tr>
+  <tr> <th align="left">Cubique centrée<br/>Chlorure de césium</th>  <td align="right">bcc<br/>CsCl</td>   <td align="right">1</td> <td align="right">1 ou 2</td> </tr>
   <tr> <th align="left">Cubique faces centrées</th>  <td align="right">fcc</td>   <td align="right">1</td> <td align="right">1 ou 2</td> </tr>
-  <tr> <th align="left">Cubique L1<sub>2</sub></th>  <td align="right">L12</td>   <td align="right">1</td> <td align="right">2</td> </tr>
+  <tr> <th align="left">Cubique L1<sub>2</sub></th>  <td align="right">L12, L1_2</td>   <td align="right">1</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Fluorite</th>  <td align="right">fluorite</td>   <td align="right">1</td> <td align="right">2</td> </tr>
-  <tr> <th align="left">Diamant/zincblende</th>   <td align="right">diamond, dia<br/>zincblende, zb</td>   <td align="right">1</td> <td align="right">1 ou 2</td> </tr>
+  <tr> <th align="left">Diamant<br/>Zincblende</th>   <td align="right">diamond, dia<br/>zincblende, zb</td>   <td align="right">1</td> <td align="right">1 ou 2</td> </tr>
   <tr> <th align="left">Chlorure de sodium (NaCl)</th>     <td align="right">rocksalt</td>   <td align="right">1</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Perovskite cubique</th>     <td align="right">perovskite, per</td>   <td align="right">1</td> <td align="right">3</td> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Mailles hexagonales</th> </tr>
   <tr> <th align="left">Hexagonal compact</th>  <td align="right">hcp</td>   <td align="right">2 (a et c)</td> <td align="right">1 ou 2</td> </tr>
   <tr> <th align="left">Wurtzite</th>   <td align="right">wurtzite, wz</td>   <td align="right">2 (a et c)</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Graphite</th>             <td align="right">graphite</td>   <td align="right">2 (a et c)</td> <td align="right">1 ou 2</td> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Autres structures</th> </tr>
   <tr> <th align="left">Nanotube</th>             <td align="right">nanotube, NT</td>   <td align="right">1 + m,n</td> <td align="right">1 ou 2</td> </tr>
 </table>
 
-<p>Les cellules élémentaires des systèmes cubiques peuvent être créées avec une certaine <strong>orientation cristallographique</strong>, si le mot-clé "<code>orient</code>" apparaît après les espèces chimiques et est suivi des indices de Miller <em>hkl</em> des directions à aligner avec les axes cartésiens X, Y et Z (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Notez que le mot-clé "<code>orient</code>" doit impérativement apparaître juste après les symboles des espèces chimiques, et ne doit pas être confondu avec l'<a href="./option_orient.html">option <code>-orient</code></a>.</p>
+<p>Les cellules élémentaires des <strong>systèmes cubiques</strong> peuvent être créées avec une certaine <strong>orientation cristallographique</strong>, si le mot-clé "<code>orient</code>" apparaît après les espèces chimiques et est suivi des indices de Miller <em>hkl</em> des directions à aligner avec les axes cartésiens X, Y et Z (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Notez que le mot-clé "<code>orient</code>" doit impérativement apparaître juste après les symboles des espèces chimiques, et ne doit pas être confondu avec l'<a href="./option_orient.html">option <code>-orient</code></a>.</p>
 
 <p>Pour <strong>créer un nanotube</strong> il faut spécifier un seul paramètre de maille (correspondant à la distance entre premiers voisins) ainsi que les indices chiraux <em>m</em> et <em>n</em> qui doivent être des entiers. Le motif élémentaire d'un nanotube n'est défini de manière non-ambigue que suivant l'axe du tube, qui sera l'axe Z ici. Dans les autres directions, Atomsk définira les vecteurs de boîte de sorte que les répliques périodiques du nanotube forment un motif hexagonal, tel que cela est observé expérimentalement. La distance entre les répliques peut être changée en changeant manuellement ces composantes des vecteurs de boîte. Notez que le centre du nanotube créé se trouvera à l'origine (0,0), de sorte qu'il est facile de créer des nanotubes multi-parois en créant plusieurs nanotubes de diamètres différents puis en les <a href="mode_merge.html">regroupant</a>.</p>
 

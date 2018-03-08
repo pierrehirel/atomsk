@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 06 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,6 +39,7 @@ MODULE subroutines
 !* CART2FRAC           converts cartesian coordinates to fractional               *
 !* FRAC2CART           converts fractional coordinates to cartesian               *
 !* INDEX_MILLER        find the indices of a plane from a string                  *
+!* INDEX_MILLER_HCP    find the indices of a plane from a string (hcp lattices)   *
 !* ELAST2TENSOR        converts from Voigt notation to full elastic tensor        *
 !* FIND_NSP            find the number of different entries in an array           *
 !* FIND_IF_REDUCED     determines if values of an array are within 0 and 1        *
@@ -671,7 +672,7 @@ END SUBROUTINE COUNT_OUTBOX
 !
 !********************************************************
 !  INDEX_MILLER
-!  This subroutine finds the Miller indices
+!  This subroutine finds the Miller indices [hkl]
 !  from a string. The string can contain signed integers
 !  attached together, or separated by underscores,
 !  with or without brackets, e.g.:
@@ -749,6 +750,109 @@ RETURN
 ifail=1
 !
 END SUBROUTINE INDEX_MILLER
+!
+!
+!********************************************************
+!  INDEX_MILLER_HCP
+!  This subroutine finds the Miller indices [hkil]
+!  from a string. The string can contain signed integers
+!  attached together, or separated by underscores,
+!  with or without brackets, e.g.:
+!         1-100       [1-100]
+!        1_-1_00     [1_-1_0_0]
+!  The notation without underscore only allows to use
+!  one-digit signed integers (like "1-10"), while the
+!  notation allows to use greater integers,
+!  like "[12_-15_3_14]".
+!  The "planestring" is converted to a real array
+!  containing only the 3 relevant Miller indices hkl,
+! e.g. "1-10" will be converted into (1.d0  -1.d0  0.d0).
+!********************************************************
+!
+SUBROUTINE INDEX_MILLER_HCP(planestring,planeindices,ifail)
+!
+IMPLICIT NONE
+CHARACTER(LEN=16),INTENT(IN):: planestring
+CHARACTER(LEN=16):: temp, temp2
+INTEGER:: i, m, mint
+INTEGER:: ifail !0=success; 1=error while reading string; 2=h+k not equal to -i
+INTEGER:: strpos
+REAL(dp):: msign   !sign of value
+REAL(dp),DIMENSION(3):: planeindices
+!
+ifail=0
+planeindices(:) = 0.d0
+!
+m = 1
+mint = 0
+msign = 1.d0
+temp = planestring
+!
+!If there are brackets, remove them
+IF( temp(1:1)=='[' ) THEN
+  temp = ADJUSTL(temp(2:))
+ENDIF
+strpos = LEN_TRIM(temp)
+IF( temp(strpos:strpos)==']' ) THEN
+  temp = temp(:strpos-1)
+ENDIF
+!
+IF( SCAN(temp,'_').NE.0 ) THEN
+  !values are separated by underscores, e.g. "1_-1_0_0"
+  !read first value
+  strpos = SCAN(temp,'_')
+  READ(temp(1:strpos-1),*,ERR=100,END=100) planeindices(1)
+  temp = temp(strpos+1:)
+  !read second value
+  strpos = SCAN(temp,'_')
+  READ(temp(1:strpos-1),*,ERR=100,END=100) planeindices(2)
+  temp = temp(strpos+1:)
+  !read third value
+  strpos = SCAN(temp,'_')
+  READ(temp(1:strpos-1),*,ERR=100,END=100) planeindices(3)
+  !Check that -i=h+k
+  IF( -1*NINT(planeindices(3))==NINT(planeindices(1))+NINT(planeindices(2)) ) THEN
+    !Notation is good, go on
+    temp = temp(strpos+1:)
+    !read fourth value
+    READ(temp,*,ERR=100,END=100) planeindices(3)
+  ELSE
+    !h+k is not equal to -i => return with error
+    ifail = 2
+    RETURN
+  ENDIF
+ELSE
+  !values are given as attached integers, e.g. "1-100"
+  !convert them to a vector like [1 -1 0]
+  strpos=0
+  DO i=1, LEN_TRIM(temp)
+    READ(temp(i:i),*,ERR=100,END=100) temp2
+    IF(temp2=='-') THEN
+      msign = -1.d0
+    ELSEIF(temp2=='+') THEN
+      msign = 1.d0
+    ELSEIF(LEN_TRIM(temp2)>0) THEN
+      READ(temp2,*,ERR=100,END=100) mint
+      planeindices(m) = msign*DBLE(mint)
+      strpos=strpos+1
+      IF( strpos==3 ) THEN
+        !Check that -i=h+k
+        IF( -1*NINT(planeindices(3)).NE.NINT(planeindices(1))+NINT(planeindices(2)) ) THEN
+          ifail = 2
+          RETURN
+        ENDIF
+      ENDIF
+      m = MIN(3,m+1)
+      msign = 1.d0
+    ENDIF
+  ENDDO
+ENDIF
+RETURN
+!
+100 CONTINUE
+ifail=1
+!
+END SUBROUTINE INDEX_MILLER_HCP
 !
 !
 !********************************************************

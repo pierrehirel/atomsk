@@ -12,7 +12,7 @@ MODULE mirror
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 08 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -155,6 +155,12 @@ CASE DEFAULT
   !convert it to a vector and save it in Vplane(1,:)
   CALL INDEX_MILLER(mirror_dir,Vplane(1,:),j)
   IF(j>0) GOTO 800
+  !Check that Vplane is not [000]
+  IF( VECLENGTH(Vplane(1,:))<1.d-12 ) THEN
+    CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
+    nerr=nerr+1
+    GOTO 1000
+  ENDIF
   !
   !If the system has a defined crystallographic orientation ORIENT,
   !then Vplane(1,:) is defined in that basis

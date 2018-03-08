@@ -22,12 +22,13 @@
 
 <p>Cette option cherche une boîte orthogonale optimale qui convienne au système.</p>
 
-<p>Le système peut être défini par des vecteurs de boîtes arbitraires H1, H2, H3. Cette option recherche les combinaisons linéaires de ces vecteurs, m*H1+n*H2+o*H3 (où m,n,o sont des entiers) qui produisent des vecteurs de boîte alignés avec les axes Cartésiens X, Y, Z. Puis, les positions des atomes sont dupliquées en utilisant les vecteurs de translation H1, H2, H3, afin de remplir la boîte orthorombique. Finalement, les vecteurs de boîte initiaux sont remplacés par les vecteurs de la boîte orthogonale. Puisque ces nouveaux vecteurs de boîte sont une combinaison linéaire des anciens, la périodicité de la maille est préservée.</p>
+<p>Le système peut être défini par des vecteurs de boîtes arbitraires <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>. Cette option recherche les combinaisons linéaires de ces vecteurs, m*H1+n*H2+o*H3 (où m,n,o sont des entiers) qui produisent des vecteurs de boîte alignés avec les axes Cartésiens X, Y, Z. Puis, les positions des atomes sont dupliquées en utilisant les vecteurs de translation <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>, afin de remplir la boîte orthorombique. Finalement, les vecteurs de boîte initiaux sont remplacés par les vecteurs de la boîte orthogonale. Puisque ces nouveaux vecteurs de boîte sont une combinaison linéaire des anciens, la périodicité de la maille est préservée.</p>
 
 <p>Si des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) et/ou des propriétés auxiliaires existent dans le système, alors elles sont aussi dupliquées.</p>
 
-<p>Notez que, après l'application de cette option, le nombre total d'atomes peut être différent du nombre initial.</p>
+<p>Après l'application de cette option, le nombre total d'atomes dans le système peut être différent du nombre initial.</p>
 
+<p>Notez que dans certaines conditions (par exemple si les vecteurs de boîte initiaux forment un angle très petit avec les axes cartésiens), alors Atomsk peut échouer à trouver une boîte orthogonale équivalente.</p>
 
 
 

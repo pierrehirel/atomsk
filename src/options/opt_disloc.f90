@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 Feb. 2018                                     *
+!* Last modification: P. Hirel - 06 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -96,7 +96,6 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX    !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX               !auxiliary properties (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: xLoop !coordinates of points forming the loop
 COMPLEX(dp):: tempcmplx
-COMPLEX(dp),PARAMETER:: frac2ipi = DCMPLX(0.d0,-1.d0/(2.d0*pi))  ! -1/(2*i*pi)
 COMPLEX(dp),DIMENSION(3):: Dn, Pn    !anisotropy coefficients D(n), P(n)-
 COMPLEX(dp),DIMENSION(3,3):: A_kn    !-, A_k(n) -
 COMPLEX(dp),DIMENSION(9,3,3):: B_ijk !-, and B_ijk(n)

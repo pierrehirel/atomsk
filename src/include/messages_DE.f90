@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 22 Feb. 2018                                     *
+!* Last modification: P. Hirel - 08 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -755,6 +755,9 @@ CASE(812)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(813)
   msg = "X!X FEHLER: Datei oder Verzeichnis existiert nicht"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(814)
+  msg = "X!X FEHLER: Miller Vektor kann nicht [000] sein."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2863,8 +2866,14 @@ CASE(4818)
       & " scheint leer zu sein."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4819)
-  msg = "X!X FEHLER: Basisvektoren sind nicht orthogonal. Abbruch."
+  !strings(1) = suggestion for a vector
+  !strings(2) = direction of suggested vector (X,Y or Z)
+  msg = "X!X FEHLER: Basisvektoren sind nicht orthogonal."
   CALL DISPLAY_MSG(1,msg,logfile)
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    msg = "    Suggested vector along "//TRIM(ADJUSTL(strings(2)))//": "//TRIM(ADJUSTL(strings(1)))
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(4820)
   msg = "X!X FEHLER: Dimension der Superzelle wurden nicht"// &
       & " definiert. Abbruch."

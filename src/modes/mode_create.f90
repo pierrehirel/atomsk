@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 Feb. 2018                                     *
+!* Last modification: P. Hirel - 08 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,7 +47,7 @@ IMPLICIT NONE
 !Input parameters
 CHARACTER(LEN=2),DIMENSION(20),INTENT(IN):: create_species !chemical species of atoms
 REAL(dp),DIMENSION(3),INTENT(IN):: create_a0               !the lattice constants
-REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT  !crystallographic orientation of the cell
+REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the cell
 !
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
 CHARACTER(LEN=10):: create_struc  !structure to create (fcc, bcc...)
@@ -57,7 +57,7 @@ CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-LOGICAL:: cubic     !is the system cubic?
+LOGICAL:: cubic, hcp, oriented   !is the system cubic? is it hcp? should it be oriented?
 LOGICAL:: new
 LOGICAL,INTENT(IN):: wof !write output file?
 LOGICAL,DIMENSION(3):: orthovec  !are vectors orthogonal?
@@ -81,6 +81,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !Initialize variables
  cubic = .FALSE.
+ hcp = .FALSE.
+ oriented = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 nspecies = 0
 Huc(:,:) = 0.d0
@@ -119,14 +121,26 @@ END SELECT
 !
 !Determine if structure is cubic or not
 SELECT CASE(create_struc)
-CASE('sc','SC','fcc','FCC','L12','bcc','BCC','diamond','dia','zincblende','zb','ZB', &
-    & 'perovskite','per','rocksalt','rs','RS','fluorite','fluorine')
+CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
+    & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine')
   cubic = .TRUE.
+CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+  hcp = .TRUE.
+  cubic = .FALSE.
 CASE DEFAULT
   cubic = .FALSE.
+  hcp = .FALSE.
 END SELECT
-WRITE(msg,*) "cubic:", cubic
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+IF( verbosity==4 ) THEN
+  IF( cubic ) THEN
+    WRITE(msg,*) "System is cubic:", cubic
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
+  IF( hcp ) THEN
+    WRITE(msg,*) "System is hcp:", hcp
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
+ENDIF
 !
 !Determine the number of species
 nspecies=0
@@ -140,6 +154,7 @@ ENDDO
 !Define base vectors H(:,:) and atom positions P(:,:) for the given lattice
 SELECT CASE(create_struc)
 !
+!!!!!!  CUBIC LATTICES  !!!!!!
 CASE('sc')
   IF(nspecies.NE.1) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
@@ -159,7 +174,7 @@ CASE('sc')
   WRITE(comment(1),*) 'Simple cubic '//TRIM(ADJUSTL((create_species(1))))
 !
 !
-CASE('bcc')
+CASE('bcc','CsCl')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -234,7 +249,7 @@ CASE('fcc')
   ENDIF
 !
 !
-CASE('L12')
+CASE('L12','L1_2')
   IF(nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -264,6 +279,98 @@ CASE('L12')
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//"3"//TRIM(create_species(2))
   comment(1) = 'L12 '//TRIM(ADJUSTL(comment(1)))
+!
+!
+CASE('dia','diamond','zincblende','zc')
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(8,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(2,1) = 0.5d0
+  P(2,2) = 0.5d0
+   P(3,2) = 0.5d0
+   P(3,3) = 0.5d0
+  P(4,1) = 0.5d0
+  P(4,3) = 0.5d0
+   P(5,1) = 0.25d0
+   P(5,2) = 0.25d0
+   P(5,3) = 0.25d0
+  P(6,1) = 0.75d0
+  P(6,2) = 0.75d0
+  P(6,3) = 0.25d0
+   P(7,1) = 0.75d0
+   P(7,2) = 0.25d0
+   P(7,3) = 0.75d0
+  P(8,1) = 0.25d0
+  P(8,2) = 0.75d0
+  P(8,3) = 0.75d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  IF(nspecies==2) THEN
+    CALL ATOMNUMBER(create_species(2),P(5,4))
+  ELSE
+    P(5,4) = P(1,4)
+  ENDIF
+  DO i=2,4
+    P(i,4) = P(1,4)
+  ENDDO
+  DO i=5,8
+    P(i,4) = P(5,4)
+  ENDDO
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))
+  IF(nspecies==1) THEN
+    comment(1) = TRIM(ADJUSTL(comment(1)))//' with diamond structure'
+  ELSE
+    comment(1) = TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' with zincblende structure'
+  ENDIF
+!
+!
+CASE('rocksalt','rs','B1')
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(8,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(2,1) = 0.5d0
+  P(2,2) = 0.5d0
+   P(3,2) = 0.5d0
+   P(3,3) = 0.5d0
+  P(4,1) = 0.5d0
+  P(4,3) = 0.5d0
+   P(5,1) = 0.5d0
+  P(6,2) = 0.5d0
+   P(7,3) = 0.5d0
+  P(8,1:3) = 0.5d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  DO i=1,4
+    CALL ATOMNUMBER(create_species(1),P(i,4))
+    CALL ATOMNUMBER(create_species(2),P(i+4,4))
+  ENDDO
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))
+  comment(1) = 'Rocksalt '//TRIM(ADJUSTL(comment(1)))//TRIM(create_species(2))
 !
 !
 CASE('fluorite','fluorine')
@@ -333,6 +440,38 @@ CASE('fluorite','fluorine')
   comment(1) = "Fluorite "//TRIM(ADJUSTL(comment(1)))
 !
 !
+CASE('per','perovskite')
+  IF(nspecies.NE.3) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(5,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(1,:) = 0.5d0
+  P(3,1) = 0.5d0
+   P(4,2) = 0.5d0
+  P(5,3) = 0.5d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  CALL ATOMNUMBER(create_species(2),P(2,4))
+  CALL ATOMNUMBER(create_species(3),P(3,4))
+  P(4,4) = P(3,4)
+  P(5,4) = P(3,4)
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  temp = TRIM(create_species(1))//TRIM(create_species(2))//TRIM(create_species(3))//'3'
+  WRITE(comment(1),*) 'Cubic perovskite '//TRIM(temp)
+!
+!
+!!!!!!  HEXAGONAL LATTICES  !!!!!!
 CASE('hcp')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -341,14 +480,14 @@ CASE('hcp')
   ALLOCATE(P(2,4))
   !Set up the unit cell
   H(1,1) = create_a0(1)
-  H(2,1) = create_a0(2)*DCOS(DEG2RAD(60.d0))
-  H(2,2) = create_a0(2)*DSIN(DEG2RAD(60.d0))
+  H(2,1) = create_a0(2)*DCOS(DEG2RAD(120.d0))
+  H(2,2) = create_a0(2)*DSIN(DEG2RAD(120.d0))
   H(3,3) = create_a0(3)
   Huc(:,:) = H(:,:)
   !Set up atom positions
   P(:,:) = 0.d0
   x = 1.d0/3.d0
-  y = 1.d0/3.d0
+  y = 2.d0/3.d0
   z1 = 0.5d0
   !Set up atom species
   CALL ATOMNUMBER(create_species(1),P(1,4))
@@ -369,63 +508,6 @@ CASE('hcp')
     comment(1) = 'Hcp '//TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' alloy'
   ENDIF
 !
-!
-CASE('dia','diamond','zincblende','zc')
-  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
-    GOTO 810
-  ENDIF
-  ALLOCATE(P(8,4))
-  !Set up atom positions
-  P(:,:) = 0.d0
-  P(2,1) = 0.5d0
-  P(2,2) = 0.5d0
-   P(3,2) = 0.5d0
-   P(3,3) = 0.5d0
-  P(4,1) = 0.5d0
-  P(4,3) = 0.5d0
-   P(5,1) = 0.25d0
-   P(5,2) = 0.25d0
-   P(5,3) = 0.25d0
-  P(6,1) = 0.75d0
-  P(6,2) = 0.75d0
-  P(6,3) = 0.25d0
-   P(7,1) = 0.75d0
-   P(7,2) = 0.25d0
-   P(7,3) = 0.75d0
-  P(8,1) = 0.25d0
-  P(8,2) = 0.75d0
-  P(8,3) = 0.75d0
-  P(:,1) = create_a0(1)*P(:,1)
-  P(:,2) = create_a0(2)*P(:,2)
-  P(:,3) = create_a0(3)*P(:,3)
-  !Set up atom species
-  CALL ATOMNUMBER(create_species(1),P(1,4))
-  IF(nspecies==2) THEN
-    CALL ATOMNUMBER(create_species(2),P(5,4))
-  ELSE
-    P(5,4) = P(1,4)
-  ENDIF
-  DO i=2,4
-    P(i,4) = P(1,4)
-  ENDDO
-  DO i=5,8
-    P(i,4) = P(5,4)
-  ENDDO
-  !Set up the unit cell
-  H(1,1) = create_a0(1)
-  H(2,2) = create_a0(2)
-  H(3,3) = create_a0(3)
-  Huc(:,:) = H(:,:)
-  !Set up the messages
-  WRITE(comment(1),*) TRIM(create_species(1))
-  IF(nspecies==1) THEN
-    comment(1) = TRIM(ADJUSTL(comment(1)))//' with diamond structure'
-  ELSE
-    comment(1) = TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' with zincblende structure'
-  ENDIF
-!
-!
 CASE('wurtzite','wz')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -433,8 +515,8 @@ CASE('wurtzite','wz')
   ENDIF
   !Set up the unit cell
   H(1,1) = create_a0(1)
-  H(2,1) = create_a0(2)*DCOS(DEG2RAD(60.d0))
-  H(2,2) = create_a0(2)*DSIN(DEG2RAD(60.d0))
+  H(2,1) = create_a0(2)*DCOS(DEG2RAD(120.d0))
+  H(2,2) = create_a0(2)*DSIN(DEG2RAD(120.d0))
   H(3,3) = create_a0(3)
   Huc(:,:) = H(:,:)
   !Set up atom positions
@@ -467,90 +549,27 @@ CASE('wurtzite','wz')
   comment(1) = TRIM(ADJUSTL(comment(1)))//' with wurtzite structure'
 !
 !
-CASE('rocksalt','rs')
-  IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 2.d0 /))
-    GOTO 810
-  ENDIF
-  ALLOCATE(P(8,4))
-  !Set up atom positions
-  P(:,:) = 0.d0
-  P(2,1) = 0.5d0
-  P(2,2) = 0.5d0
-   P(3,2) = 0.5d0
-   P(3,3) = 0.5d0
-  P(4,1) = 0.5d0
-  P(4,3) = 0.5d0
-   P(5,1) = 0.5d0
-  P(6,2) = 0.5d0
-   P(7,3) = 0.5d0
-  P(8,1:3) = 0.5d0
-  P(:,1) = create_a0(1)*P(:,1)
-  P(:,2) = create_a0(2)*P(:,2)
-  P(:,3) = create_a0(3)*P(:,3)
-  !Set up atom species
-  DO i=1,4
-    CALL ATOMNUMBER(create_species(1),P(i,4))
-    CALL ATOMNUMBER(create_species(2),P(i+4,4))
-  ENDDO
-  !Set up the unit cell
-  H(1,1) = create_a0(1)
-  H(2,2) = create_a0(2)
-  H(3,3) = create_a0(3)
-  Huc(:,:) = H(:,:)
-  !Set up the messages
-  WRITE(comment(1),*) TRIM(create_species(1))
-  comment(1) = 'Rocksalt '//TRIM(ADJUSTL(comment(1)))//TRIM(create_species(2))
-!
-!
-CASE('per','perovskite')
-  IF(nspecies.NE.3) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
-    GOTO 810
-  ENDIF
-  ALLOCATE(P(5,4))
-  !Set up atom positions
-  P(:,:) = 0.d0
-  P(1,:) = 0.5d0
-  P(3,1) = 0.5d0
-   P(4,2) = 0.5d0
-  P(5,3) = 0.5d0
-  P(:,1) = create_a0(1)*P(:,1)
-  P(:,2) = create_a0(2)*P(:,2)
-  P(:,3) = create_a0(3)*P(:,3)
-  !Set up atom species
-  CALL ATOMNUMBER(create_species(1),P(1,4))
-  CALL ATOMNUMBER(create_species(2),P(2,4))
-  CALL ATOMNUMBER(create_species(3),P(3,4))
-  P(4,4) = P(3,4)
-  P(5,4) = P(3,4)
-  !Set up the unit cell
-  H(1,1) = create_a0(1)
-  H(2,2) = create_a0(2)
-  H(3,3) = create_a0(3)
-  Huc(:,:) = H(:,:)
-  !Set up the messages
-  temp = TRIM(create_species(1))//TRIM(create_species(2))//TRIM(create_species(3))//'3'
-  WRITE(comment(1),*) 'Cubic perovskite '//TRIM(temp)
-!
-!
 CASE('graphite')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
-  ALLOCATE(P(4,4))
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+    H(2,1) = create_a0(2)*DCOS(DEG2RAD(120.d0))
+    H(2,2) = create_a0(2)*DSIN(DEG2RAD(120.d0))
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
   !Set up atom positions
+  ALLOCATE(P(4,4))
   P(:,:) = 0.d0
-   P(2,1) = 1.d0
-   P(2,2) = 1.d0/DSQRT(3.d0)
-  P(3,3) = 0.5d0
-   P(4,1) = 0.5d0
-   P(4,2) = P(2,2)/2.d0
-   P(4,3) = 0.5d0
-  P(:,1) = create_a0(1)*P(:,1)
-  P(:,2) = create_a0(2)*P(:,2)
-  P(:,3) = create_a0(3)*P(:,3)
+   P(2,3) = 0.5d0*H(3,3)
+  x = 1.d0/3.d0
+  y = 2.d0/3.d0
+  P(3,:) = x*H(1,:) + y*H(2,:)
+   x = 2.d0/3.d0
+   y = 1.d0/3.d0
+   P(4,:) = x*H(1,:) + y*H(2,:) + 0.5*H(3,:)
   !Set up atom species
   CALL ATOMNUMBER(create_species(1),P(1,4))
   IF(nspecies==2) THEN
@@ -560,17 +579,12 @@ CASE('graphite')
   ENDIF
   P(3,4) = P(1,4)
   P(4,4) = P(2,4)
-  !Set up the unit cell
-  H(1,1) = create_a0(1)
-   H(2,1) = create_a0(1)/2.d0
-   H(2,2) = DSQRT(3.d0)*create_a0(2)/2.d0
-  H(3,3) = create_a0(3)
-  Huc(:,:) = H(:,:)
   !Set up the messages
   temp = TRIM(create_species(1))//TRIM(create_species(2))
   WRITE(comment(1),*) TRIM(temp)//' with hexagonal graphite structure'
 !
 !
+!!!!!!  OTHER LATTICES  !!!!!!
 CASE('nanotube','NT','nt')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -722,9 +736,10 @@ CASE('nanotube','NT','nt')
   comment(1) = TRIM(ADJUSTL(comment(1)))//'; radius: '//TRIM(ADJUSTL(temp))//' A.'
 !
 !
-! -- add other structures here --
+! -- add other structures according to the groups defined above (cubic/hexagonal/etc.) --
 !
 CASE DEFAULT
+  !Structure not recogized
   nerr = nerr+1
   CALL ATOMSK_MSG(4805,(/create_struc/),(/0.d0/))
   GOTO 1000
@@ -734,10 +749,20 @@ END SELECT
 !
 !
 300 CONTINUE
-!Orient the system so that the cartesian axes are X=ORIENT(1,:); Y=ORIENT(2,:); Z=ORIENT(3,:)
+!Orient the system according to ORIENT(:,:) - CUBIC SYSTEMS ONLY!
 IF( cubic ) THEN
-  IF( VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 &
-    & .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
+  IF( VECLENGTH(ORIENT(1,:))>1.d-12 .OR. VECLENGTH(ORIENT(2,:))>1.d-12 &
+    & .OR. VECLENGTH(ORIENT(3,:))>1.d-12 ) THEN
+    !
+    !Check that no vector in ORIENT is [000]
+    IF( VECLENGTH(ORIENT(1,:))<1.d-12 .OR. VECLENGTH(ORIENT(2,:))<1.d-12 &
+    & .OR. VECLENGTH(ORIENT(3,:))<1.d-12 ) THEN
+      CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
+      nerr=nerr+1
+      GOTO 1000
+    ENDIF
+    !
+    oriented = .TRUE.
     comment(1) = TRIM(comment(1))//' oriented'
     DO i=1,3
       IF(i==1) comment(1) = TRIM(comment(1))//' X=['
@@ -769,30 +794,110 @@ IF( cubic ) THEN
     !
     !Check that vectors of ORIENT are orthogonal
     orthovec(:) = .FALSE.
-    IF( DABS( ANGVEC(ORIENT(1,:),ORIENT(2,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(1)=.TRUE.
-    IF( DABS( ANGVEC(ORIENT(2,:),ORIENT(3,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(2)=.TRUE.
-    IF( DABS( ANGVEC(ORIENT(3,:),ORIENT(1,:))-(pi/2.d0) ) < 1.d-6 ) orthovec(3)=.TRUE.
-    WRITE(msg,*) "orthovec: ", orthovec(:)
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    IF( ANY(.NOT.orthovec) ) THEN
-      CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
+    IF( DABS( ANGVEC(ORIENT(1,:),ORIENT(2,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+      orthovec(1)=.TRUE.
+    ELSE
+      IF( DABS( ANGVEC(ORIENT(3,:),ORIENT(1,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+        !Vectors 1 and 3 are orthogonal, but vector 2 is not
+        !Compute what vector 2 should be, and suggest it to the user
+        a_perp(:) = CROSS_PRODUCT( ORIENT(3,:) , ORIENT(1,:) )
+        msg = '['
+        DO i=1,3
+          WRITE(temp,*) NINT(a_perp(i))
+          msg = TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))
+        ENDDO
+        msg = TRIM(ADJUSTL(msg))//']'
+        temp = 'Y'
+        CALL ATOMSK_MSG(4819,(/msg,temp/),(/0.d0/))
+      ELSEIF( DABS( ANGVEC(ORIENT(2,:),ORIENT(3,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+        !Vectors 2 and 3 are orthogonal, but vector 1 is not
+        !Compute what vector 1 should be, and suggest it to the user
+        a_perp(:) = CROSS_PRODUCT( ORIENT(2,:) , ORIENT(3,:) )
+        msg = '['
+        DO i=1,3
+          WRITE(temp,*) NINT(a_perp(i))
+          msg = TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))
+        ENDDO
+        msg = TRIM(ADJUSTL(msg))//']'
+        temp = 'X'
+        CALL ATOMSK_MSG(4819,(/msg,temp/),(/0.d0/))
+      ELSE
+        !None of the 3 vectors are orthogonal
+        CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
+      ENDIF
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    IF( DABS( ANGVEC(ORIENT(2,:),ORIENT(3,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+      orthovec(2)=.TRUE.
+    ELSE
+      IF( DABS( ANGVEC(ORIENT(1,:),ORIENT(2,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+        !Vectors 1 and 2 are orthogonal, but vector 3 is not
+        !Compute what vector 3 should be, and suggest it to the user
+        a_perp(:) = CROSS_PRODUCT( ORIENT(1,:) , ORIENT(2,:) )
+        msg = '['
+        DO i=1,3
+          WRITE(temp,*) NINT(a_perp(i))
+          msg = TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))
+        ENDDO
+        msg = TRIM(ADJUSTL(msg))//']'
+        temp = 'Z'
+        CALL ATOMSK_MSG(4819,(/msg,temp/),(/0.d0/))
+      ELSEIF( DABS( ANGVEC(ORIENT(3,:),ORIENT(1,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+        !Vectors 1 and 3 are orthogonal, but vector 2 is not
+        !Compute what vector 2 should be, and suggest it to the user
+        a_perp(:) = CROSS_PRODUCT( ORIENT(3,:) , ORIENT(1,:) )
+        msg = '['
+        DO i=1,3
+          WRITE(temp,*) NINT(a_perp(i))
+          msg = TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))
+        ENDDO
+        msg = TRIM(ADJUSTL(msg))//']'
+        temp = 'Y'
+        CALL ATOMSK_MSG(4819,(/msg,temp/),(/0.d0/))
+      ELSE
+        !None of the 3 vectors are orthogonal
+        CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
+      ENDIF
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    IF( DABS( ANGVEC(ORIENT(3,:),ORIENT(1,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+      orthovec(3)=.TRUE.
+    ELSE
+      IF( DABS( ANGVEC(ORIENT(1,:),ORIENT(2,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+        !Vectors 1 and 2 are orthogonal, but vector 3 is not
+        !Compute what vector 3 should be, and suggest it to the user
+        a_perp(:) = CROSS_PRODUCT( ORIENT(1,:) , ORIENT(2,:) )
+        msg = '['
+        DO i=1,3
+          WRITE(temp,*) NINT(a_perp(i))
+          msg = TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))
+        ENDDO
+        msg = TRIM(ADJUSTL(msg))//']'
+        temp = 'Z'
+        CALL ATOMSK_MSG(4819,(/msg,temp/),(/0.d0/))
+      ELSEIF( DABS( ANGVEC(ORIENT(2,:),ORIENT(3,:))-(pi/2.d0) ) < 1.d-6 ) THEN
+        !Vectors 2 and 3 are orthogonal, but vector 1 is not
+        !Compute what vector 1 should be, and suggest it to the user
+        a_perp(:) = CROSS_PRODUCT( ORIENT(2,:) , ORIENT(3,:) )
+        msg = '['
+        DO i=1,3
+          WRITE(temp,*) NINT(a_perp(i))
+          msg = TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))
+        ENDDO
+        msg = TRIM(ADJUSTL(msg))//']'
+        temp = 'X'
+        CALL ATOMSK_MSG(4819,(/msg,temp/),(/0.d0/))
+      ELSE
+        !None of the 3 vectors are orthogonal
+        CALL ATOMSK_MSG(4819,(/''/),(/0.d0/))
+      ENDIF
       nerr = nerr+1
       GOTO 1000
     ENDIF
     !
-    !Compute the interplanar spacings that correspond to the new orientation
-    !For a cubic system the interplanar spacing along a Miller axis hkl is defined by:
-    !   d_hkl = a² / sqrt( h² + k² + l² )
-    ips(:,:) = 0.d0
-    DO i=1,3
-      ips(i,i) = create_a0(1) / DSQRT( ORIENT(i,1)**2 + ORIENT(i,2)**2 + ORIENT(i,3)**2 )
-    ENDDO
-    WRITE(msg,*) "interplanar spacings along X, Y, Z:"
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    WRITE(msg,'(3f16.6)') VECLENGTH(ips(1,:)), VECLENGTH(ips(2,:)), VECLENGTH(ips(3,:))
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    !
-    !Unit cell is oriented so that H(1,:)//[100], H(2,:)//[010], H(3,:)//[001]
+    !Currently, unit cell is oriented so that H(1,:)//[100], H(2,:)//[010], H(3,:)//[001]
     !=> express the vectors H(:,:) and atom positions P(:,:) in the new base ORIENT
     !Normalize the vectors in ORIENT, save them to ORIENTN
     DO i=1,3
@@ -869,84 +974,95 @@ IF( cubic ) THEN
       !
     END SELECT
     !
-    !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
-    !and store it in Q(:,:)
-    WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    !Estimate new number of particles NP by comparing volumes of old and new unit cells
-    NP = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
-       & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 10
-    WRITE(msg,*) "Estimated new number of atoms : ", NP
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    IF(ALLOCATED(Q)) DEALLOCATE(Q)
-    ALLOCATE( Q(NP,4) )
-    Q(:,:) = 0.d0
+  ELSE
+    comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
+    oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
+  ENDIF  !end if oriented
     !
-    !Loop over all replica in a wide range
-    NP = 0
-    DO i=1,SIZE(P,1)
-      DO l=-lminmax,lminmax
-        DO k=-lminmax,lminmax
-          DO j=-lminmax,lminmax
-            !Compute cartesian position of this replica
-            tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
-            tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
-            tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
-            tempP(4) = P(i,4)
-            IF( tempP(1)>=-1.d-12 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
-              & tempP(2)>=-1.d-12 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
-              & tempP(3)>=-1.d-12 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
-              !This replica is inside the new cell, mark it as new
-              new = .TRUE.
-              !Verify that its position is different from all previous atoms
-              DO m=1,NP
-                IF( DABS( VECLENGTH(tempP(1:3)-Q(m,1:3)) )<1.d-6 ) THEN
-                  new = .FALSE.
-                ENDIF
-              ENDDO
-              !
-              IF( new ) THEN
-                NP = NP+1
-                IF(NP>SIZE(Q,1)) THEN
-                  nerr = nerr+1
-                  CALL ATOMSK_MSG(4821,(/""/),(/DBLE(NP),DBLE(SIZE(Q,1))/))
-                  GOTO 1000
-                ENDIF
-                Q(NP,:) = tempP(:)
+ENDIF
+!
+!
+IF( cubic .AND. oriented ) THEN
+  !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
+  !and store it in Q(:,:)
+  WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !Estimate new number of particles NP by comparing volumes of old and new unit cells
+  NP = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+      & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 10
+  WRITE(msg,*) "Estimated new number of atoms : ", NP
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
+  ALLOCATE( Q(NP,4) )
+  Q(:,:) = 0.d0
+  !
+  !Loop over all replica in a wide range
+  NP = 0
+  DO i=1,SIZE(P,1)
+    DO l=-lminmax,lminmax
+      DO k=-lminmax,lminmax
+        DO j=-lminmax,lminmax
+          !Compute cartesian position of this replica
+          tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
+          tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
+          tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
+          tempP(4) = P(i,4)
+          IF( tempP(1)>=-1.d-12 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
+            & tempP(2)>=-1.d-12 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
+            & tempP(3)>=-1.d-12 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
+            !This replica is inside the new cell, mark it as new
+            new = .TRUE.
+            !Verify that its position is different from all previous atoms
+            DO m=1,NP
+              IF( DABS( VECLENGTH(tempP(1:3)-Q(m,1:3)) )<1.d-6 ) THEN
+                new = .FALSE.
               ENDIF
+            ENDDO
+            !
+            IF( new ) THEN
+              NP = NP+1
+              IF(NP>SIZE(Q,1)) THEN
+                nerr = nerr+1
+                CALL ATOMSK_MSG(4821,(/""/),(/DBLE(NP),DBLE(SIZE(Q,1))/))
+                GOTO 1000
+              ENDIF
+              Q(NP,:) = tempP(:)
             ENDIF
-          ENDDO
+          ENDIF
         ENDDO
       ENDDO
     ENDDO
-    !
-    !Replace old P with the new Q
-    IF(ALLOCATED(P)) DEALLOCATE(P)
-    ALLOCATE(P(NP,4))
-    DO i=1,NP
-      P(i,:) = Q(i,:)
-    ENDDO
-    IF(ALLOCATED(Q)) DEALLOCATE(Q)
-    WRITE(msg,*) "new NP in oriented cell:", NP
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    !
-    !Replace old H with the new (oriented) cell vectors
-    H(:,:) = 0.d0
+  ENDDO
+  !
+  !Replace old P with the new Q
+  IF(ALLOCATED(P)) DEALLOCATE(P)
+  ALLOCATE(P(NP,4))
+  DO i=1,NP
+    P(i,:) = Q(i,:)
+  ENDDO
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
+  WRITE(msg,*) "new NP in oriented cell:", NP
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !
+  !Replace old H with the new (oriented) cell vectors
+  H(:,:) = 0.d0
+  IF( cubic ) THEN
     DO i=1,3
       H(i,i) = uv(i,i)
     ENDDO
-    WRITE(msg,*) "new cell vectors:"
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    WRITE(msg,'(3f16.6)') H(1,:)
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    WRITE(msg,'(3f16.6)') H(2,:)
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    WRITE(msg,'(3f16.6)') H(3,:)
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    !
   ELSE
-    comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
-  ENDIF  !end if oriented
+    DO i=1,3
+      H(i,:) = uv(i,:)
+    ENDDO
+  ENDIF
+  WRITE(msg,*) "new cell vectors:"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,'(3f16.6)') H(1,:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,'(3f16.6)') H(2,:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,'(3f16.6)') H(3,:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
 ELSE
   !The lattice is not cubic

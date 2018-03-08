@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>This mode allows to create an atomic structure from scratch. For now, only a small number of very basic lattices can be created (see table below). By default the base vectors of the cubic systems created are X=[100], Y=[010] and Z=[001], but that can be changed (see below). For non-cubic systems, other orientations are not implemented yet.</p>
+<p>This mode allows to create an atomic structure from scratch. For now, only a small number of very basic lattices can be created (see table below). By default the base vectors of the cubic systems created are X=[100], Y=[010] and Z=[001], but that can be changed (see below). For other systems, other orientations are not implemented yet.</p>
 
 <p>The parameters associated with the <code>create</code> mode are:</p>
 <ul>
@@ -36,22 +36,28 @@
 <p>The table below shows the acceptable entries for <strong>&#60;lattice&#62;</strong>, and the corresponding number of <strong>lattice constants</strong> and <strong>atom species</strong> that must be specified. For bcc lattice, entering two atom species will produce an interpenetrating simple cubic (aka "caesium chloride") lattice. For fcc lattice, entering two atom species will create an alloy of the two elements. For diamond lattice, entering two species will create a zincblende lattice; for zincblende, entering only one species will create a diamond lattice.</p>
 
 <table border="1">
-  <tr> <th></th> <th><strong>lattice</strong></th>  <th><strong>Lattice constants</strong></th> <th><strong>Atom species</strong></th> </tr>
+  <tr> <th></th> <th><strong>&#60;lattice&#62;</strong></th>  <th><strong>N. of lattice constants</strong></th> <th><strong>N. of atom species</strong></th> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Cubic lattices</th> </tr>
   <tr> <th align="left">Simple cubic</th>         <td align="right">sc</td>    <td align="right">1</td> <td align="right">1</td> </tr>
-  <tr> <th align="left">Body-centered cubic</th>  <td align="right">bcc</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Body-centered cubic<br/>Cesium chloride</th>  <td align="right">bcc<br/>CsCl</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
   <tr> <th align="left">Face-centered cubic</th>  <td align="right">fcc</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
-  <tr> <th align="left">L1<sub>2</sub> cubic</th>  <td align="right">L12</td>   <td align="right">1</td> <td align="right">2</td> </tr>
+  <tr> <th align="left">L1<sub>2</sub> cubic</th>  <td align="right">L12, L1_2</td>   <td align="right">1</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Fluorite</th>  <td align="right">fluorite</td>   <td align="right">1</td> <td align="right">2</td> </tr>
-  <tr> <th align="left">Diamond/zincblende</th>   <td align="right">diamond, dia<br/>zincblende, zb</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Diamond<br/>Zincblende</th>   <td align="right">diamond, dia<br/>zincblende, zb</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
   <tr> <th align="left">Cubic rock-salt</th>     <td align="right">rocksalt</td>   <td align="right">1</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Cubic perovskite</th>     <td align="right">perovskite, per</td>   <td align="right">1</td> <td align="right">3</td> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Hexagonal lattices</th> </tr>
   <tr> <th align="left">Hexagonal close-packed</th>  <td align="right">hcp</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
   <tr> <th align="left">Wurtzite</th>   <td align="right">wurtzite, wz</td>   <td align="right">2 (a and c)</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Graphite</th>             <td align="right">graphite</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Other structures</th> </tr>
   <tr> <th align="left">Nanotube</th>             <td align="right">nanotube, NT</td>   <td align="right">1 + m,n</td> <td align="right">1 or 2</td> </tr>
 </table>
 
-<p>Unit cells of cubic systems can be created with a given <strong>crystallographic orientation</strong>, if the keyword "<code>orient</code>" is appened after the atom species and is followed by the Miller indices <em>hkl</em> of the lattice in each cartesian direction X, Y and Z (see <a href="./options.html">how to specify Miller indices</a>). Note that the keyword "<code>orient</code>" must always appear immediately after the atom species, and should not be mistaken with the <a href="./option_orient.html">option <code>-orient</code></a>.</p>
+<p>Unit cells of <strong>cubic systems</strong> can be created with a given <strong>crystallographic orientation</strong>, if the keyword "<code>orient</code>" is appened after the atom species and is followed by the Miller indices <em>hkl</em> of the lattice in each cartesian direction X, Y and Z (see <a href="./options.html">how to specify Miller indices</a>). Note that the keyword "<code>orient</code>" must always appear immediately after the atom species, and should not be mistaken with the <a href="./option_orient.html">option <code>-orient</code></a>.</p>
 
 <p>For <strong>creating a nanotube</strong> one has to specify one lattice parameter (that corresponds to the first neighbours distance), followed by the chiral indices <em>m</em> and <em>n</em> which must be integers. The unit cell of a nanotube is defined unambiguously only along the nanotube, which is along the Z axis here. In the other directions, Atomsk defines the lattice so that periodic replica form an hexagonal pattern as it is observed experimentally. You can tune the distance between periodic replica by changing the cell parameters. Note that the center of the nanotube is at (0,0) so it is easy to create multiwall nanotubes (create several nanotubes and <a href="mode_merge.html">merge them</a>).</p>
 

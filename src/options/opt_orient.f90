@@ -11,7 +11,7 @@ MODULE ORIENT
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 May 2016                                      *
+!* Last modification: P. Hirel - 08 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -96,6 +96,14 @@ ENDIF
 !
 !
 100 CONTINUE
+!Check that no vector in Hstart and Hend is [000]
+IF( VECLENGTH(Hstart(1,:))<1.d-12 .OR. VECLENGTH(Hstart(2,:))<1.d-12 .OR. &
+  & VECLENGTH(Hstart(3,:))<1.d-12 .OR. VECLENGTH(Hend(1,:))<1.d-12   .OR. &
+  & VECLENGTH(Hend(2,:))<1.d-12   .OR. VECLENGTH(Hend(3,:))<1.d-12        ) THEN
+  CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ENDIF
 !If bases are the same we skip it
 !For this we compute the angle between vectors (Hx,H'x), (Hy,H'y), (Hz,H'z)
 !If all angles are zero then the system is not rotated at all

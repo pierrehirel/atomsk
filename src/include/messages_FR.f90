@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 22 Feb. 2018                                     *
+!* Last modification: P. Hirel - 08 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -782,6 +782,9 @@ CASE(812)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(813)
   msg = "X!X ERREUR : aucun fichier ou dossier de ce type"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(814)
+  msg = "X!X ERREUR : un vecteur de Miller ne peut pas être [000]."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2909,8 +2912,14 @@ CASE(4818)
   msg = "            ou il ne contient aucun nom de fichier valide."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4819)
-  msg = "X!X ERREUR : les vecteurs de base ne sont pas orthogonaux, abandon."
+  !strings(1) = suggestion for a vector
+  !strings(2) = direction of suggested vector (X,Y or Z)
+  msg = "X!X ERREUR : les vecteurs de base ne sont pas orthogonaux."
   CALL DISPLAY_MSG(1,msg,logfile)
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    msg = "    Vecteur suggéré suivant "//TRIM(ADJUSTL(strings(2)))//": "//TRIM(ADJUSTL(strings(1)))
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(4820)
   msg = "X!X ERREUR : les dimensions de la supercellule n'ont pas été définis, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
