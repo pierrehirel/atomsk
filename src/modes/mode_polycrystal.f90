@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Feb. 2018                                     *
+!* Last modification: P. Hirel - 12 March 2018                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -100,7 +100,8 @@ REAL(dp),DIMENSION(3):: vector    !vector between an atom and a node
 REAL(dp),DIMENSION(3):: vnormal   !vector normal to grain boundary
 REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell (seed)
 REAL(dp),DIMENSION(3,3):: Ht        !Base vectors of the oriented unit cell
-REAL(dp),DIMENSION(3,3):: Hunity    !unit matrix
+REAL(dp),DIMENSION(3,3):: Gt        !Inverse of Ht
+REAL(dp),DIMENSION(3,3):: Hn        !Normalized Ht
 REAL(dp),DIMENSION(3,3):: H         !Base vectors of the final supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
 REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
@@ -124,10 +125,6 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: vorient !crystallographic orientation of
 CALL NAME_OUTFILE(prefix,distfile,"dat  ")
 Nnodes = 0
 twodim = 0  !assume system will be 3-D
-Hunity(:,:) = 0.d0
-DO i=1,3
-  Hunity(i,i) = 1.d0
-ENDDO
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(NPgrains)) DEALLOCATE(NPgrains)
  C_tensor(:,:) = 0.d0
@@ -201,36 +198,39 @@ DO
       READ(line(4:),*,END=830,ERR=830) P1, P2, P3
       !Set final box vectors
       H(:,:) = 0.d0
-      H(1,1) = P1
-      H(2,2) = P2
-      H(3,3) = P3
-      IF( VECLENGTH(H(1,:))<15.d0 .OR. VECLENGTH(H(2,:))<15.d0 .OR.   &
-        & VECLENGTH(H(3,:))<15.d0                                     ) THEN
-        !The user asked for a final cell with at least one small dimension (<15A)
+      H(1,1) = DABS(P1)
+      H(2,2) = DABS(P2)
+      H(3,3) = DABS(P3)
+      IF( H(1,1)<1.1d0*Huc(1,1) .OR. H(2,2)<1.1d0*Huc(2,2) .OR. H(3,3)<1.1d0*Huc(3,3) ) THEN
+        !The user asked for a final cell with at least one small dimension (smaller than seed)
         !=> Look along which dimension the final box is "small"
-        twodim=0
-        m=0
-        n=0
+        twodim=0  !=1 if cell is small along X; =2 along Y; =3 along Z
+        m=0  !counter for how many dimensions are small (only one is allowed to be small)
         DO i=1,3
-          IF( VECLENGTH(H(i,:)) < 15.d0 ) THEN
-            !The final box is "small" along this dimension
+          IF( i==1 ) msg="X"
+          IF( i==2 ) msg="Y"
+          IF( i==3 ) msg="Z"
+          IF( VECLENGTH(H(i,:)) < 1.1d0*VECLENGTH(Huc(i,:)) ) THEN
+            !The final box is zero along this dimension
             m=m+1
-            n=i
+            IF( m>=2 ) THEN
+              !Final box is small in many directions => error
+              nerr=nerr+1
+              CALL ATOMSK_MSG(4828,(/""/),(/0.d0/))
+              GOTO 1000
+            ELSE
+              !The final box is small in only one dimension => pseudo-2D system
+              IF( VECLENGTH(H(i,:)) < 1.d-12 ) THEN
+                !Cell size was actually zero along that dimension => warn that it will be resized
+                nwarn=nwarn+1
+                CALL ATOMSK_MSG(4714,(/TRIM(msg)/),(/Huc(i,i)/))
+              ENDIF
+              twodim = i
+              !Make sure that the final box dimension matches the seed dimension in that direction
+              H(i,i) = Huc(i,i)
+            ENDIF
           ENDIF
         ENDDO
-        !
-        IF( m>0 ) THEN
-          !The final box is small in at least one dimension
-          IF( m==1 ) THEN
-            !The final box is small in only one dimension => pseudo-2D system
-            twodim = n
-            !Make sure that the final box dimension matches the seed dimension in that direction
-            H(n,n) = Huc(n,n)
-          ELSE
-            !m>1 => Final box is small in many directions, consider it is a 3D system
-            twodim = 0
-          ENDIF
-        ENDIF
       ENDIF
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -445,7 +445,7 @@ DO
         P2 = randarray(3*(i-1)+3)
         P3 = randarray(3*(i-1)+3)
         !
-        vorient(i,:,:) = Hunity(:,:)
+        vorient(i,:,:) = Id_Matrix(:,:)  !unity matrix
         IF( twodim==0 .OR. twodim==1 ) THEN
           !Construct the rotation matrix around X
           rotmat(:,:) = 0.d0
@@ -517,7 +517,7 @@ DO
         !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
         randarray(:) = randarray(:)*2.d0*pi - pi
         !
-        vorient(Nnodes,:,:) = Hunity(:,:)
+        vorient(Nnodes,:,:) = Id_Matrix(:,:)  !unity matrix
         !
         IF( twodim==0 .OR. twodim==1 ) THEN
           !Construct the rotation matrix around X
@@ -660,7 +660,7 @@ DO
         P2 = randarray(3*Nnodes+3*(i-1)+2)
         P3 = randarray(3*Nnodes+3*(i-1)+3)
         !
-        vorient(i,:,:) = Hunity(:,:)
+        vorient(i,:,:) = Id_Matrix(:,:) !unity matrix
         IF( twodim==0 .OR. twodim==1 ) THEN
           !Construct the rotation matrix around X
           rotmat(:,:) = 0.d0
@@ -1022,7 +1022,7 @@ DO inode=1,Nnodes
   !Auxiliary properties: the array AUX_Q(:,:) will be used
   AUX_Q(:,grainID) = DBLE(inode)
   !
-  !Rotate this cell to obtain the desired crystallographic orientation
+  !Rotate this cell to obtain the desired crystallographic orientation:
   CALL ORIENT_XYZ(Ht,Q,T,Ht,vorient(inode,:,:),SELECT,C_tensor)
   IF(nerr>0) GOTO 1000
   !

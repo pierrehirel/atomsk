@@ -789,6 +789,12 @@ CASE(813)
 CASE(814)
   msg = "X!X ERROR: Miller vector cannot be [000]."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(815)
+  msg = "X!X ERROR: in hexagonal lattices, Miller indices [hkil] must have h+k+i=0."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(816)
+  msg = "X!X ERROR: division by zero."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -806,8 +812,15 @@ CASE(1000)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
   !reals(1) = number of atoms
+  !reals(2) = number of shells
   WRITE(temp,*) NINT(reals(1))
-  msg = "..> Input file was read successfully ("//TRIM(ADJUSTL(temp))//" atoms)."
+  IF( NINT(reals(2))>0 ) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    msg = "..> Input file was read successfully ("//TRIM(ADJUSTL(temp))//" cores + "// &
+        & TRIM(ADJUSTL(temp2))//" shells)."
+  ELSE
+    msg = "..> Input file was read successfully ("//TRIM(ADJUSTL(temp))//" atoms)."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1002)
   msg = "..> Found INP file, reading supercell from it..."
@@ -2121,8 +2134,15 @@ CASE(2819)
 ! 3000-3999: MESSAGES FOR OUTPUT
 CASE(3000)
   !reals(1) = number of atoms
+  !reals(2) = number of shells
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Writing output file(s) ("//TRIM(ADJUSTL(temp))//" atoms):"
+  IF( NINT(reals(2))>0 ) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    msg = ">>> Writing output file(s) ("//TRIM(ADJUSTL(temp))//" cores + "// &
+        & TRIM(ADJUSTL(temp2))//" shells):"
+  ELSE
+    msg = ">>> Writing output file(s) ("//TRIM(ADJUSTL(temp))//" atoms):"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file
@@ -2747,6 +2767,13 @@ CASE(4713)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Are you sure you want to "//TRIM(ADJUSTL(strings(1)))//"? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4714)
+  !strings(1) = direction along which cell is small
+  !reals(1) = new cell size along that direction
+  WRITE(temp,'(f16.3)') reals(1)
+  msg = "/!\ WARNING: final cell has a small dimension along " &
+      & //TRIM(ADJUSTL(strings(1)))//", setting it to "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
 CASE(4800)
@@ -2910,7 +2937,13 @@ CASE(4826)
   msg = "X!X ERROR: this mode is not available in interactive mode, please refer to the documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
-  msg = "X!X ERROR: unable to create lattice with specified orientation, because lattice is not cubic."
+  msg = "X!X ERROR: unable to create lattice with specified orientation."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4828)
+  msg = "X!X ERROR: at least two cell dimensions are too small, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4829)
+  msg = "X!X ERROR: one box vector is a linear combination of the other two, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERROR: only one mode can be used at a time."

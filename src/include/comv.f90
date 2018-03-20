@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.03.05' !Version of the program
+CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.03.20' !Version of the program
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !

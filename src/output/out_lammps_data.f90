@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 02 Nov. 2017                                     *
+!* Last modification: P. Hirel - 14 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -74,7 +74,7 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: K   !copy of H
 REAL(dp),DIMENSION(:,:),POINTER:: Ppoint  !pointer to P or R
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),TARGET:: P !atom positions
-REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R !copy of P (if necessary)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R  !copy of P (if necessary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: S !positions of shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes    !atom types and their number
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries  !atom species and their number
@@ -300,18 +300,19 @@ WRITE(40,*) ''
 !
 !
 200 CONTINUE
-!In case of core/shell model, write mass ratio
+!Write the Masses section
+WRITE(40,'(a6)') "Masses"
+WRITE(40,*) ''
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-  WRITE(40,'(a6)') "Masses"
-  WRITE(40,*) ''
-  !Write mass of cores
+  !In case of core/shell model, write mass ratio
+  !Write mass of cores (and chemical species as comment)
   DO i=1,SIZE(aentries,1)
     CALL ATOMSPECIES(aentries(i,1),species)
     CALL ATOMMASS(species,smass)
     WRITE(temp,'(f16.8)') smass
-    WRITE(40,*) i, "  ", TRIM(ADJUSTL(temp))//" #"//species//" core"
+    WRITE(40,*) i, "  ", TRIM(ADJUSTL(temp))//"    # "//species//" core"
   ENDDO
-  !Write mass of shells
+  !Write mass of shells (and chemical species as comment)
   j=0
   DO i=1,SIZE(aentriesS,1)
     IF( aentriesS(i,1)>0.1d0 ) THEN
@@ -319,20 +320,30 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       CALL ATOMSPECIES(aentriesS(i,1),species)
       CALL ATOMMASS(species,smass)
       WRITE(temp,'(f16.8)') smass/10.d0
-      WRITE(40,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))//"    #"//species//" shell"
+      WRITE(40,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))//"    # "//species//" shell"
     ENDIF
   ENDDO
-  WRITE(40,*) ''
+ELSE
+  !Write mass of each atom type (and chemical species as comment)
+  DO i=1,SIZE(aentries,1)
+    CALL ATOMSPECIES(aentries(i,1),species)
+    CALL ATOMMASS(species,smass)
+    WRITE(temp,'(f16.8)') smass
+    WRITE(40,*) i, "  ", TRIM(ADJUSTL(temp))//"    # "//species
+  ENDDO
 ENDIF
+WRITE(40,*) ''
 !
 !
 molID = 0
 Nspecies = 0
 !Write atom positions
-IF (q>0 ) THEN
+IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+  WRITE(40,'(a12)') 'Atoms # full'
+ELSEIF (q>0 ) THEN
   WRITE(40,'(a14)') 'Atoms # charge'
 ELSE
-  WRITE(40,'(a5)') 'Atoms'
+  WRITE(40,'(a14)') 'Atoms # atomic'
 ENDIF
 WRITE(40,*) ''
 !
@@ -342,7 +353,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !   http://lammps.sandia.gov/doc/Section_howto.html#howto-26
   !
   !(1) Write positions of cores (atoms) and shells
-  !    with format "atom-ID molecule-ID atom-type q x y z"
+  !    with format "full": atom-ID molecule-ID atom-type q x y z
   j=0
   moleculeID = 0
   DO i=1,SIZE(Ppoint,1)
@@ -489,7 +500,7 @@ IF( velocities ) THEN
   WRITE(40,'(a10)') 'Velocities'
   WRITE(40,*) ''
   DO i=1,SIZE(Ppoint(:,1))
-    WRITE(40,'(i10,2X,3(f16.8,1X))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
+    WRITE(40,'(i10,2X,3(e16.8,1X))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
   ENDDO
 ENDIF
 !

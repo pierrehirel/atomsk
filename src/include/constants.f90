@@ -9,7 +9,7 @@ MODULE constants
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 23 Oct. 2013                                     *
+!* Last modification: P. Hirel - 12 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -32,6 +32,9 @@ USE comv  !dp is defined there
 REAL(dp),PARAMETER:: zero  = 0.d0
 REAL(dp),PARAMETER:: sqrt2 = DSQRT(2.d0)
 REAL(dp),PARAMETER:: pi    = 4.d0*DATAN(1.d0)
+REAL(dp),DIMENSION(3,3),PARAMETER:: Id_Matrix = &
+        & RESHAPE( (/ 1.d0,0.d0,0.d0, 0.d0,1.d0,0.d0, 0.d0,0.d0,1.d0/) , (/3,3/) )
+        ! 3x3 identity matrix
 !
 !
 !

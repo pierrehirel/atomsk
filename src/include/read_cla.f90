@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 19 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -202,6 +202,20 @@ DO WHILE(i<SIZE(cla))
         m=m+1
         mode_param(m) = "orient"
         !Get Miller indices [hkl] of the crystal orientation along X, Y, Z
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+      CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+        !Hexagonal lattice => read crystal orientation
+        m=m+1
+        mode_param(m) = "orient"
+        !Get Miller indices [hkil] of the crystal orientation
         i=i+1
         m=m+1
         READ(cla(i),*,END=130,ERR=130) mode_param(m)
@@ -1001,7 +1015,7 @@ DO WHILE(i<SIZE(cla))
   !
   ELSEIF(clarg=='-orthogonal-cell' .OR. clarg=='-orthorhombic-cell' .OR. &
         & clarg=='-orthogonal-box' .OR. clarg=='-orthorhombic-box'  .OR. &
-        & clarg=='-orthocell' ) THEN
+        & clarg=='-orthocell' .OR. clarg=='-orthobox' ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !

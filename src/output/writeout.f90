@@ -325,7 +325,18 @@ ENDIF
 !!Then, write output file(s)
 ! by calling the module corresponding to the output format
 ! Output to several formats is possible
-CALL ATOMSK_MSG(3000,(/TRIM(outputfile)/),(/DBLE(SIZE(P,1))/))
+IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+  !Count actual number of shells
+  j = 0
+  DO i=1,SIZE(S,1)
+    IF( NINT(S(i,4))>0 ) THEN
+      j = j+1
+    ENDIF
+  ENDDO
+  CALL ATOMSK_MSG(3000,(/""/),(/DBLE(SIZE(P,1)),DBLE(j)/))
+ELSE
+  CALL ATOMSK_MSG(3000,(/""/),(/DBLE(SIZE(P,1)),0.d0/))
+ENDIF
 !
 !If shells exist (ionic core-shell model), then we must make sure
 !that all the current output file formats support it. Otherwise, the output file

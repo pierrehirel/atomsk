@@ -9,7 +9,7 @@ MODULE atoms
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 13 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,6 +28,7 @@ MODULE atoms
 !* ATOMNUMBER          gives the atomic number of an atom provided its symbol     *
 !* ATOMMASS            gives the mass of an atom provided its symbol              *
 !* ATOMSPECIES         gives an atom symbol provided its atomic number            *
+!* ATOMMASSSPECIES     gives an atom symbol provided its mass                     *
 !**********************************************************************************
 !
 !
@@ -882,6 +883,283 @@ CASE DEFAULT
 END SELECT
 !
 END SUBROUTINE ATOMSPECIES
+!
+!
+!
+!********************************************************
+!  ATOMMASSSPECIES
+!  This subroutine sets the species of an atom,
+!  depending on its mass. The provided mass is rounded
+!  to the nearest integer to avoid numerical imprecision.
+!********************************************************
+!
+SUBROUTINE ATOMMASSSPECIES(smass,species)
+!
+IMPLICIT NONE
+CHARACTER(LEN=2),INTENT(OUT):: species
+INTEGER:: mass
+REAL(dp),INTENT(IN):: smass
+!
+!
+!Round mass to nearest integer
+mass = NINT(smass)
+!
+!
+SELECT CASE(mass)
+! n=1
+CASE(1)
+      species = 'H'
+CASE(2)
+      species = 'D'
+CASE(4)
+      species = 'He'
+!
+! n=2
+CASE(6,7)
+      species = 'Li'
+CASE(9)
+      species = 'Be'
+CASE(10,11)
+      species = 'B'
+CASE(12)
+      species = 'C'
+CASE(14)
+      species = 'N'
+CASE(16)
+      species = 'O'
+CASE(19)
+      species = 'F'
+CASE(20)
+      species = 'Ne'
+!
+! n=3
+CASE(22,23) 
+      species = 'Na'
+CASE(24,25) 
+      species = 'Mg'
+CASE(26,27) 
+      species = 'Al'
+CASE(28) 
+      species = 'Si'
+CASE(30,31)
+      species = 'P'
+CASE(32)
+      species = 'S'
+CASE(35,36) 
+      species = 'Cl'
+!
+! n=4
+CASE(39)
+      species = 'K'
+CASE(40)
+      species = 'Ca'  !could also be Ar
+CASE(44,45)
+      species = 'Sc'
+CASE(47,48)
+      species = 'Ti'
+CASE(50,51)
+      species = 'V'
+CASE(52)
+      species = 'Cr'
+CASE(54,55)
+      species = 'Mn'
+CASE(56)
+      species = 'Fe'
+CASE(58)
+      species = 'Ni'
+CASE(59)
+      species = 'Co'
+CASE(63,64)
+      species = 'Cu'
+CASE(65,66)
+      species = 'Zn'
+CASE(69,70)
+      species = 'Ga'
+CASE(72,73)
+      species = 'Ge'
+CASE(74,75)
+      species = 'As'
+CASE(78,79)
+      species = 'Se'
+CASE(80)
+      species = 'Br'
+CASE(83,84)
+      species = 'Kr'
+!
+! n=5
+CASE(85,86)
+      species = 'Rb'
+CASE(87,88)
+      species = 'Sr'
+CASE(89)
+      species = 'Y'
+CASE(91)
+      species = 'Zr'
+CASE(93)
+      species = 'Nb'
+CASE(95,96)
+      species = 'Mo'
+CASE(98,99)
+      species = 'Tc'
+CASE(101)
+      species = 'Ru'
+CASE(102,103)
+      species = 'Rh'
+CASE(106,107)
+      species = 'Pd'
+CASE(108)
+      species = 'Ag'
+CASE(112,113)
+      species = 'Cd'
+CASE(114,115)
+      species = 'In'
+CASE(118,119)
+      species = 'Sn'
+CASE(121,122)
+      species = 'Sb'
+CASE(128)
+      species = 'Te'
+CASE(126,127)
+      species = 'I'
+CASE(131)
+      species = 'Xe'
+!
+! n=6
+CASE(133)
+      species = 'Cs'
+CASE(137)
+      species = 'Ba'
+! Lanthanides
+CASE(138,139)
+      species = 'La'
+CASE(140)
+      species = 'Ce'
+CASE(141)
+      species = 'Pr'
+CASE(144)
+      species = 'Nd'
+CASE(145)
+      species = 'Pm'
+CASE(150)
+      species = 'Sm'
+CASE(151,152)
+      species = 'Eu'
+CASE(157)
+      species = 'Gd'
+CASE(158,159)
+      species = 'Tb'
+CASE(162,163)
+      species = 'Dy'
+CASE(164,165)
+      species = 'Ho'
+CASE(167)
+      species = 'Er'
+CASE(168,169)
+      species = 'Tm'
+CASE(173)
+      species = 'Yb'
+CASE(175)
+      species = 'Lu'
+! End of Lanthanides
+CASE(178,179)
+      species = 'Hf'
+CASE(180,181)
+      species = 'Ta'
+CASE(183,184)
+      species = 'W'
+CASE(186)
+      species = 'Re'
+CASE(190)
+      species = 'Os'
+CASE(192)
+      species = 'Ir'
+CASE(195)
+      species = 'Pt'
+CASE(196,197)
+      species = 'Au'
+CASE(200,201)
+      species = 'Hg'
+CASE(204)
+      species = 'Tl'
+CASE(207)
+      species = 'Pb'
+CASE(208,209)
+      species = 'Bi'
+CASE(210)
+      species = 'Po'
+CASE(222)
+      species = 'Rn'
+!
+! n=7
+CASE(233)
+      species = 'Fr'
+CASE(226)
+      species = 'Ra'
+! Actinides
+CASE(227)
+      species = 'Ac'
+CASE(232)
+      species = 'Th'
+CASE(231)
+      species = 'Pa'
+CASE(238)
+      species = 'U'
+CASE(237)
+      species = 'Np'
+CASE(244)
+      species = 'Pu'
+CASE(243)
+      species = 'Am'
+CASE(247)
+      species = 'Cm'
+CASE(251)
+      species = 'Cf'
+CASE(252)
+      species = 'Es'
+CASE(257)
+      species = 'Fm'
+CASE(258)
+      species = 'Md'
+CASE(259)
+      species = 'No'
+CASE(262)
+      species = 'Lr'
+! End of actinides
+CASE(265)
+      species = 'Rf'
+CASE(268)
+      species = 'Db'
+CASE(271)
+      species = 'Sg'
+CASE(270)
+      species = 'Bh'
+CASE(277)
+      species = 'Hs'
+CASE(276)
+      species = 'Mt'
+CASE(281)
+      species = 'Ds'
+CASE(280)
+      species = 'Rg'
+CASE(285)
+      species = 'Cn'
+CASE(284)
+      species = 'Uu'
+CASE(289)
+      species = 'Fl'
+CASE(288)
+      species = 'Mc'
+CASE(293)
+      species = 'Lv'
+CASE(294)
+      species = 'Ts'
+!
+CASE DEFAULT
+  !If the species is not recognized
+  species = "Xx"
+END SELECT
+!
+END SUBROUTINE ATOMMASSSPECIES
 !
 !
 !

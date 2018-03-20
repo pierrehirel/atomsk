@@ -88,22 +88,9 @@ IF( verbosity>=4 ) THEN
 ENDIF
 !
 !Check if cell vectors are already aligned with Cartesian axes
-IF( VECLENGTH(H(1,:))-DABS(H(1,1)) < 1.d-3 ) THEN
-  mminmax = 1
-ENDIF
-IF( VECLENGTH(H(2,:))-DABS(H(2,2)) < 1.d-3 ) THEN
-  nminmax = 1
-ENDIF
-IF( VECLENGTH(H(3,:))-DABS(H(3,3)) < 1.d-3 ) THEN
-  ominmax = 1
-ENDIF
-!
-IF( verbosity>=4 ) THEN
-  WRITE(msg,*) "Cell vectors duplication min/max = ", mminmax, nminmax, ominmax
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ENDIF
-!
-IF( mminmax==1 .AND. nminmax==1 .AND. ominmax==1 ) THEN
+IF( VECLENGTH(H(1,:))-DABS(H(1,1)) < 1.d-3 .AND. &
+  & VECLENGTH(H(2,:))-DABS(H(2,2)) < 1.d-3 .AND. &
+  & VECLENGTH(H(3,:))-DABS(H(3,3)) < 1.d-3       ) THEN
   !Cell vectors already orthogonal => skip to the end
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2760,(/msg/),(/0.d0/))
@@ -216,9 +203,9 @@ IF( verbosity>=4 ) THEN
 ENDIF
 !
 !Estimate new number of particles NP by comparing volumes of old and new cells
-!Allow for +20% and +20 atoms. Actual size of arrays will be adjusted later
-NP = 1.2d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
-    & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 20
+!Allow for +50% and +25 atoms. Actual size of arrays will be adjusted later
+NP = 1.5d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+    & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 25
 WRITE(msg,*) "Estimated new number of atoms : ", NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
@@ -272,9 +259,8 @@ DO i=1,SIZE(P,1)
           IF( new ) THEN
             NP = NP+1
             IF(NP>SIZE(Q,1)) THEN
-              nerr = nerr+1
-              CALL ATOMSK_MSG(4821,(/""/),(/DBLE(NP),DBLE(SIZE(Q,1))/))
-              GOTO 1000
+              !Resize array Q
+              CALL RESIZE_DBLEARRAY2(Q,SIZE(Q,1)+10,SIZE(Q,2))
             ENDIF
             Q(NP,:) = tempP(:)
             !

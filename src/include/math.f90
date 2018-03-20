@@ -35,6 +35,7 @@ MODULE math
 !* RAD2DEG             converts angles from radians to degrees                    *
 !* CROSS_PRODUCT       calculates the cross product of two vectors                *
 !* SCALAR_TRIPLE_PRODUCT computes scalar triple product ez (ex ^ ey).             *
+!* ROTMAT_AXIS         provides the matrix for rotation of angle around axis      *
 !* EPS_LEVI_CIVITA     calculates the Levi-Civita symbol, given i,j,k             *
 !* List of subroutines in this file:                                              *
 !* INVMAT              inverts a NxN matrix                                       *
@@ -239,6 +240,54 @@ stp = ez(1) *( ex(2)*ey(3) - ex(3)*ey(2) ) &
     + ez(3) *( ex(1)*ey(2) - ex(2)*ey(1) )
 
 END FUNCTION SCALAR_TRIPLE_PRODUCT
+!
+!
+!********************************************************
+!  ROTMAT_AXIS
+!  This function provides the rotation matrix
+!  corresponding to a rotation of a given angle
+!  around the given axis.
+!********************************************************
+!
+FUNCTION ROTMAT_AXIS(axis,angle) RESULT(rot_matrix)
+!
+IMPLICIT NONE
+REAL(dp),INTENT(IN):: angle  !angle of rotation (degrees)
+REAL(dp),DIMENSION(3),INTENT(IN):: axis !coordinates (x,y,z) of rotation axis
+REAL(dp),DIMENSION(3):: axis_u !unit vector directed along the axis
+REAL(dp),DIMENSION(3,3):: rot_matrix !final rotation matrix
+REAL(dp):: c, s
+!
+ c=DCOS(DEG2RAD(angle))
+ s=DSIN(DEG2RAD(angle))
+!
+axis_u(:) = axis(:) / VECLENGTH(axis)
+!
+rot_matrix(:,:) = 0.d0
+!
+!ux²(1-c) + c
+rot_matrix(1,1) = (1.d0-c)*axis_u(1)**2 + c
+!ux*uy(1-c) - uz*s
+rot_matrix(1,2) = (1.d0-c)*axis_u(1)*axis_u(2) - s*axis_u(3)
+!ux*uz*(1-c) + uy*s
+rot_matrix(1,3) = (1.d0-c)*axis_u(1)*axis_u(3) + s*axis_u(2)
+!
+!ux*uy*(1-c) + uz*s
+rot_matrix(2,1) = (1.d0-c)*axis_u(1)*axis_u(2) + s*axis_u(3)
+!uy²(1-c) + c
+rot_matrix(2,2) = (1.d0-c)*axis_u(2)**2 + c
+!uy*uz(1-c) - ux*s
+rot_matrix(2,3) = (1.d0-c)*axis_u(2) - s*axis_u(1)
+!
+!ux*uz*(1-c) - uy*s
+rot_matrix(3,1) = (1.d0-c)*axis_u(1)*axis_u(3) - s*axis_u(2)
+!uy*uz(1-c) + ux*s
+rot_matrix(3,2) = (1.d0-c)*axis_u(2)*axis_u(3) + s*axis_u(1)
+!uz²(1-c) + c
+rot_matrix(3,3) = (1.d0-c)*axis_u(3)**2 + c
+!
+!
+END FUNCTION ROTMAT_AXIS
 !
 !
 !********************************************************

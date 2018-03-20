@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 15 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -182,7 +182,7 @@ CASE('jems')
 CASE('lmc')
   CALL READ_LMP_CUSTOM(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('lmp')
-  CALL READ_LMP_DATA(inputfile,H,P,comment,AUXNAMES,AUX)
+  CALL READ_LMP_DATA(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('mol')
   CALL READ_MOLDY(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('pdb')
@@ -261,10 +261,10 @@ ENDIF
 !
 IF(verbosity==4) THEN
   IF(ALLOCATED(AUX)) THEN
-    WRITE(msg,'(a5,12(a9,1X))') "AUXNAMES: ", (TRIM(AUXNAMES(i))//' ', i=1,SIZE(AUXNAMES) )
+    WRITE(msg,'(a6,12(a9,1X))') "AUXNA:", (TRIM(AUXNAMES(i))//' ', i=1,MIN(12,SIZE(AUXNAMES)) )
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO strlength=1,MIN(20,SIZE(AUX,1))
-      WRITE(msg,'(a5,20e10.3)') "AUX: ", (AUX(strlength,i), i=1,SIZE(AUX,2) )
+      WRITE(msg,'(a5,12(e10.3,1X))') "AUX: ", (AUX(strlength,i), i=1,MIN(12,SIZE(AUX,2)) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
     IF(SIZE(AUX,1)>20) THEN
@@ -274,7 +274,18 @@ IF(verbosity==4) THEN
   ENDIF
 ENDIF
 !
-CALL ATOMSK_MSG(1001,(/''/),(/DBLE(SIZE(P,1))/))
+IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+  !Count actual number of shells
+  strlength = 0
+  DO i=1,SIZE(S,1)
+    IF( NINT(S(i,4))>0 ) THEN
+      strlength = strlength+1
+    ENDIF
+  ENDDO
+  CALL ATOMSK_MSG(1001,(/''/),(/DBLE(SIZE(P,1)),DBLE(strlength)/))
+ELSE
+  CALL ATOMSK_MSG(1001,(/''/),(/DBLE(SIZE(P,1)),0.d0/))
+ENDIF
 GOTO 1000
 !
 !

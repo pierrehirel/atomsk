@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 06 March 2018                                    *
+!* Last modification: P. Hirel - 19 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -390,44 +390,27 @@ CASE('create')
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
-    CASE('hcp','wurtzite','wz','graphite')
-      !Two Miller vectors follow, they must have notation [hkil] with i=-h-k
+    CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+      !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
       DO j=1,3
         i=i+1
-        IF( LEN_TRIM(mode_param(i))>0 ) THEN
-          READ(mode_param(i),*,END=520,ERR=520) temp
-          IF( temp(1:2)=="X=" ) THEN
-            CALL INDEX_MILLER_HCP(temp(3:),ORIENT(1,:),k)
-          ELSEIF( temp(1:2)=="Y=" ) THEN
-            CALL INDEX_MILLER_HCP(temp(3:),ORIENT(2,:),k)
-          ELSEIF( temp(1:2)=="Z=" ) THEN
-            CALL INDEX_MILLER_HCP(temp(3:),ORIENT(3,:),k)
+        READ(mode_param(i),*,END=520,ERR=520) temp
+        CALL INDEX_MILLER_HCP(temp,ORIENT(j,:),k)
+        IF( k>0 ) THEN
+          IF( k==2 ) THEN
+            !The error was because i is not equal to -h-k
+            nerr=nerr+1
+            CALL ATOMSK_MSG(815,(/""/),(/0.d0/))
+            GOTO 10000
           ELSE
-            IF( j==1 ) m=1  !First vector iis assumed to be along X
-            IF( j==2 ) m=3  !Second vector is assumed to be along Z
-            CALL INDEX_MILLER_HCP(temp,ORIENT(m,:),k)
+            GOTO 7000
           ENDIF
-          IF( k>0 ) GOTO 7000
         ENDIF
       ENDDO
-      !If only two vectors were provided, compute the third one
-      IF( VECLENGTH(ORIENT(1,:))<1.d-12 ) THEN
-        ORIENT(1,:) = CROSS_PRODUCT( ORIENT(2,:) , ORIENT(3,:) )
-      ELSEIF( VECLENGTH(ORIENT(2,:))<1.d-12 ) THEN
-        ORIENT(2,:) = CROSS_PRODUCT( ORIENT(3,:) , ORIENT(1,:) )
-      ELSEIF( VECLENGTH(ORIENT(3,:))<1.d-12 ) THEN
-        ORIENT(3,:) = CROSS_PRODUCT( ORIENT(1,:) , ORIENT(2,:) )
-      ENDIF
-      i=i+1
-      READ(mode_param(i),*,END=520,ERR=520) temp
-      CALL INDEX_MILLER_HCP(temp,ORIENT(1,:),k)
-      IF( k>0 .OR. VECLENGTH(ORIENT(1,:))<1.d-6 ) GOTO 7000
-      i=i+1
-      READ(mode_param(i),*,END=520,ERR=520) temp
-      CALL INDEX_MILLER_HCP(temp,ORIENT(3,:),k)
-      IF( k>0 .OR. VECLENGTH(ORIENT(3,:))<1.d-6 ) GOTO 7000
+      !ORIENT(3,:) = 0.d0
+      !ORIENT(3,3) = 1.d0
     CASE DEFAULT
-      !Two or three Miller vectors follow, they must have notation [hkl]
+      !Three Miller vectors follow, they must have notation [hkl]
       DO j=1,3
         i=i+1
         IF( LEN_TRIM(mode_param(i))>0 ) THEN

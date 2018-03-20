@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 09 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -759,6 +759,12 @@ CASE(813)
 CASE(814)
   msg = "X!X FEHLER: Miller Vektor kann nicht [000] sein."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(815)
+  msg = "X!X FEHLER: in hexagonal lattices, Miller indices [hkil] must have h+k+i=0."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(816)
+  msg = "X!X FEHLER: Durch Null teilen."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -776,8 +782,15 @@ CASE(1000)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
   !reals(1) = number of atoms
+  !reals(2) = number of shells
   WRITE(temp,*) NINT(reals(1))
-  msg = "..> Eingabedatei wurde erfolgreich gelesen ("//TRIM(ADJUSTL(temp))//" Atomen)."
+  IF( NINT(reals(2))>0 ) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    msg = "..> Eingabedatei wurde erfolgreich gelesen ("//TRIM(ADJUSTL(temp))//" cores + "// &
+        & TRIM(ADJUSTL(temp2))//" shells)."
+  ELSE
+    msg = "..> Eingabedatei wurde erfolgreich gelesen ("//TRIM(ADJUSTL(temp))//" Atomen)."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1002)
   msg = "..> INP Datei erkannt, entnehme Daten der Superzelle..."
@@ -2095,9 +2108,15 @@ CASE(2819)
 !**************************
 ! 3000-3999: MESSAGES FOR OUTPUT
 CASE(3000)
-  !reals(1) = number of atoms
+  !reals(2) = number of shells
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Schreibe Ausgabedatei(en) ("//TRIM(ADJUSTL(temp))//" Atomen):"
+  IF( NINT(reals(2))>0 ) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    msg = ">>> Schreibe Ausgabedatei(en) ("//TRIM(ADJUSTL(temp))//" cores + "// &
+        & TRIM(ADJUSTL(temp2))//" shells):"
+  ELSE
+    msg = ">>> Schreibe Ausgabedatei(en) ("//TRIM(ADJUSTL(temp))//" Atomen):"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file
@@ -2752,6 +2771,12 @@ CASE(4713)
       & TRIM(ADJUSTL(strings(1)))//" wollen? ("// &
       & langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4714)
+  !strings(1) = direction along which cell is small
+  !reals(1) = new cell size along that direction
+  msg = "/!\ WARNING: final cell has a small dimension along " &
+      & //TRIM(ADJUSTL(strings(1)))//", setting it to "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES
 CASE(4800)
@@ -2926,7 +2951,13 @@ CASE(4826)
   msg = "X!X FEHLER: Dieser Modus ist im interaktiven Modus nicht verfügbar. Bitte beachten Sie die Dokumentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
-  msg = "X!X FEHLER: Unmöglich, Gitter mit vorgegebener Orientierung zu schaffen, weil Gitter nicht kubisch ist."
+  msg = "X!X FEHLER: Unmöglich, Gitter mit vorgegebener Orientierung zu schaffen."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4828)
+  msg = "X!X FEHLER: at least two cell dimensions are too small, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4829)
+  msg = "X!X ERROR: one box vector is a linear combination of the other two, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."

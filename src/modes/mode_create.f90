@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 20 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,7 +57,7 @@ CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-LOGICAL:: cubic, hcp, oriented   !is the system cubic? is it hcp? should it be oriented?
+LOGICAL:: cubic, hexagonal, oriented   !is the system cubic? is it hcp? should it be oriented?
 LOGICAL:: new
 LOGICAL,INTENT(IN):: wof !write output file?
 LOGICAL,DIMENSION(3):: orthovec  !are vectors orthogonal?
@@ -70,18 +70,19 @@ INTEGER,DIMENSION(2):: NT_mn
 REAL(dp):: H1, H2, H3
 REAL(dp):: l_perp, l_para, NT_radius, vol, vol_cell, x, y, z1, z2  !for nanotubes
 REAL(dp),DIMENSION(3):: a_perp, a_para, b_perp, b_para, coord, Hrecip !for nanotubes
-REAL(dp),DIMENSION(4):: tempP  !temporary position
+REAL(dp),DIMENSION(1,4):: tempP  !temporary position
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ips, uv     !interplanar spacing, unit vectors corresponding to new orientation ORIENT(:,:)
 REAL(dp),DIMENSION(3,3):: ORIENTN     !normalized ORIENT
+REAL(dp),DIMENSION(3,3):: rot_matrix, rot_matrix2  !rotation matrices
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S  !positions of atoms, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q     !positions of atoms (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !Initialize variables
  cubic = .FALSE.
- hcp = .FALSE.
+ hexagonal = .FALSE.
  oriented = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 nspecies = 0
@@ -125,19 +126,19 @@ CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zinc
     & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine')
   cubic = .TRUE.
 CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
-  hcp = .TRUE.
+  hexagonal = .TRUE.
   cubic = .FALSE.
 CASE DEFAULT
   cubic = .FALSE.
-  hcp = .FALSE.
+  hexagonal = .FALSE.
 END SELECT
 IF( verbosity==4 ) THEN
   IF( cubic ) THEN
     WRITE(msg,*) "System is cubic:", cubic
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDIF
-  IF( hcp ) THEN
-    WRITE(msg,*) "System is hcp:", hcp
+  IF( hexagonal ) THEN
+    WRITE(msg,*) "System is hexagonal:", hexagonal
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDIF
 ENDIF
@@ -154,7 +155,7 @@ ENDDO
 !Define base vectors H(:,:) and atom positions P(:,:) for the given lattice
 SELECT CASE(create_struc)
 !
-!!!!!!  CUBIC LATTICES  !!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  CUBIC LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('sc')
   IF(nspecies.NE.1) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
@@ -471,7 +472,7 @@ CASE('per','perovskite')
   WRITE(comment(1),*) 'Cubic perovskite '//TRIM(temp)
 !
 !
-!!!!!!  HEXAGONAL LATTICES  !!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!  HEXAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('hcp')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -584,7 +585,7 @@ CASE('graphite')
   WRITE(comment(1),*) TRIM(temp)//' with hexagonal graphite structure'
 !
 !
-!!!!!!  OTHER LATTICES  !!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  OTHER STRUCTURES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('nanotube','NT','nt')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -771,10 +772,10 @@ IF( cubic ) THEN
       DO j=1,3
         m = NINT(ORIENT(i,j))
         WRITE(msg,*) m
-        IF( ABS(m)<10 ) THEN
-          comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
+        IF( j>1 .AND. ANY(ABS(NINT(ORIENT(1,:)))>=10) ) THEN
+          comment(1) = TRIM(comment(1))//"_"//TRIM(ADJUSTL(msg))
         ELSE
-          comment(1) = TRIM(comment(1))//" "//TRIM(ADJUSTL(msg))
+          comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
         ENDIF
         IF(j==3) comment(1) = TRIM(comment(1))//']'
       ENDDO
@@ -974,98 +975,241 @@ IF( cubic ) THEN
       !
     END SELECT
     !
-  ELSE
-    comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
-    oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
-  ENDIF  !end if oriented
+    !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
+    !and store it in Q(:,:)
+    WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !Estimate new number of particles NP by comparing volumes of old and new unit cells
+    NP = 1.2d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+        & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 20
+    WRITE(msg,*) "Estimated new number of atoms : ", NP
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    ALLOCATE( Q(NP,4) )
+    Q(:,:) = 0.d0
     !
-ENDIF
-!
-!
-IF( cubic .AND. oriented ) THEN
-  !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
-  !and store it in Q(:,:)
-  WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !Estimate new number of particles NP by comparing volumes of old and new unit cells
-  NP = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
-      & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 10
-  WRITE(msg,*) "Estimated new number of atoms : ", NP
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  ALLOCATE( Q(NP,4) )
-  Q(:,:) = 0.d0
-  !
-  !Loop over all replica in a wide range
-  NP = 0
-  DO i=1,SIZE(P,1)
-    DO l=-lminmax,lminmax
-      DO k=-lminmax,lminmax
-        DO j=-lminmax,lminmax
-          !Compute cartesian position of this replica
-          tempP(1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
-          tempP(2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
-          tempP(3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
-          tempP(4) = P(i,4)
-          IF( tempP(1)>=-1.d-12 .AND. tempP(1)<uv(1,1)-1.d-12 .AND.             &
-            & tempP(2)>=-1.d-12 .AND. tempP(2)<uv(2,2)-1.d-12 .AND.             &
-            & tempP(3)>=-1.d-12 .AND. tempP(3)<uv(3,3)-1.d-12       ) THEN
-            !This replica is inside the new cell, mark it as new
-            new = .TRUE.
-            !Verify that its position is different from all previous atoms
-            DO m=1,NP
-              IF( DABS( VECLENGTH(tempP(1:3)-Q(m,1:3)) )<1.d-6 ) THEN
-                new = .FALSE.
+    !Loop over all replica in a wide range
+    NP = 0
+    DO i=1,SIZE(P,1)
+      DO l=-lminmax,lminmax
+        DO k=-lminmax,lminmax
+          DO j=-lminmax,lminmax
+            !Compute cartesian position of this replica
+            tempP(1,1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
+            tempP(1,2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
+            tempP(1,3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
+            tempP(1,4) = P(i,4)
+            IF( tempP(1,1)>=-1.d-12 .AND. tempP(1,1)<uv(1,1)-1.d-12 .AND.             &
+              & tempP(1,2)>=-1.d-12 .AND. tempP(1,2)<uv(2,2)-1.d-12 .AND.             &
+              & tempP(1,3)>=-1.d-12 .AND. tempP(1,3)<uv(3,3)-1.d-12       ) THEN
+              !This replica is inside the new cell, mark it as new
+              new = .TRUE.
+              !Verify that its position is different from all previous atoms
+              DO m=1,NP
+                IF( DABS( VECLENGTH(tempP(1,1:3)-Q(m,1:3)) )<1.d-6 ) THEN
+                  new = .FALSE.
+                ENDIF
+              ENDDO
+              !
+              IF( new ) THEN
+                NP = NP+1
+                IF(NP>SIZE(Q,1)) THEN
+                  nerr = nerr+1
+                  CALL ATOMSK_MSG(4821,(/""/),(/DBLE(NP),DBLE(SIZE(Q,1))/))
+                  GOTO 1000
+                ENDIF
+                Q(NP,:) = tempP(1,:)
               ENDIF
-            ENDDO
-            !
-            IF( new ) THEN
-              NP = NP+1
-              IF(NP>SIZE(Q,1)) THEN
-                nerr = nerr+1
-                CALL ATOMSK_MSG(4821,(/""/),(/DBLE(NP),DBLE(SIZE(Q,1))/))
-                GOTO 1000
-              ENDIF
-              Q(NP,:) = tempP(:)
             ENDIF
-          ENDIF
+          ENDDO
         ENDDO
       ENDDO
     ENDDO
-  ENDDO
-  !
-  !Replace old P with the new Q
-  IF(ALLOCATED(P)) DEALLOCATE(P)
-  ALLOCATE(P(NP,4))
-  DO i=1,NP
-    P(i,:) = Q(i,:)
-  ENDDO
-  IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  WRITE(msg,*) "new NP in oriented cell:", NP
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Replace old H with the new (oriented) cell vectors
-  H(:,:) = 0.d0
-  IF( cubic ) THEN
+    !
+    !Replace old P with the new Q
+    IF(ALLOCATED(P)) DEALLOCATE(P)
+    ALLOCATE(P(NP,4))
+    DO i=1,NP
+      P(i,:) = Q(i,:)
+    ENDDO
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    WRITE(msg,*) "new NP in oriented cell:", NP
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !Replace old H with the new (oriented) cell vectors
+    H(:,:) = 0.d0
     DO i=1,3
       H(i,i) = uv(i,i)
     ENDDO
+    !
   ELSE
+    comment(1) = TRIM(comment(1))//" oriented X=[100] Y=[010] Z=[001]"
+    oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
+  ENDIF  !end if oriented
+    !
+    !
+ELSEIF( hexagonal ) THEN
+  IF( VECLENGTH(ORIENT(1,:))>1.d-12  .OR. VECLENGTH(ORIENT(2,:))>1.d-12 &
+    & .OR. VECLENGTH(ORIENT(3,:))>1.d-12 ) THEN
+    !
+    !Check that no vector in ORIENT is [000]
+    IF( VECLENGTH(ORIENT(1,:))<1.d-12 .OR. VECLENGTH(ORIENT(2,:))<1.d-12 &
+    & .OR. VECLENGTH(ORIENT(3,:))<1.d-12 ) THEN
+      CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
+      nerr=nerr+1
+      GOTO 1000
+    ENDIF
+    !
+    !Check that no box vector is a linear combination of the other two
+    tempP(1,:) = SCALAR_TRIPLE_PRODUCT( ORIENT(1,:) , ORIENT(2,:) , ORIENT(3,:) )
+    IF( VECLENGTH(tempP(1,:))<1.d-12 ) THEN
+      nerr = nerr+1
+      CALL ATOMSK_MSG(4829,(/""/),(/0.d0/))
+      GOTO 1000
+    ENDIF
+    !
+    oriented = .TRUE.
+    comment(1) = TRIM(comment(1))//' with box vectors'
     DO i=1,3
-      H(i,:) = uv(i,:)
+      IF(i==1) comment(1) = TRIM(comment(1))//' H1=['
+      IF(i==2) comment(1) = TRIM(comment(1))//' H2=['
+      IF(i==3) comment(1) = TRIM(comment(1))//' H3=['
+      DO j=1,3
+        m = NINT(ORIENT(i,j))
+        WRITE(msg,*) m
+        IF( j>1 .AND. ( ANY(ABS(NINT(ORIENT(i,:)))>=10) .OR. ABS(NINT(ORIENT(i,1)+ORIENT(i,2)))>=10 ) ) THEN
+          comment(1) = TRIM(comment(1))//"_"//TRIM(ADJUSTL(msg))
+        ELSE
+          comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
+        ENDIF
+        IF( j==2 ) THEN
+          m = -1*NINT(ORIENT(i,1)) - NINT(ORIENT(i,2))
+          WRITE(msg,*) m
+          IF( j>1 .AND. ( ANY(ABS(NINT(ORIENT(i,:)))>=10) .OR. ABS(NINT(ORIENT(i,1)+ORIENT(i,2)))>=10 ) ) THEN
+            comment(1) = TRIM(comment(1))//"_"//TRIM(ADJUSTL(msg))
+          ELSE
+            comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
+          ENDIF
+        ENDIF
+        IF(j==3) comment(1) = TRIM(comment(1))//']'
+      ENDDO
     ENDDO
-  ENDIF
-  WRITE(msg,*) "new cell vectors:"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(1,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(2,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  WRITE(msg,'(3f16.6)') H(3,:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    WRITE(msg,*) "orienting the system:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') ORIENT(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') ORIENT(2,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') ORIENT(3,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !Set lminmax = 10 * largest value in ORIENT
+    lminmax = 10 * NINT(MAXVAL(DABS(ORIENT(:,:))))
+    !
+    !The oriented unit cell vectors are defined by the Miller indices
+    !NOTE: the third box vector is always
+    uv(:,:) = 0.d0
+    !First box vector
+    uv(1,:) = ORIENT(1,1)*H(1,:) + ORIENT(1,2)*H(2,:) + ORIENT(1,3)*H(3,:)
+    !Second box vector
+    uv(2,:) = ORIENT(2,1)*H(1,:) + ORIENT(2,2)*H(2,:) + ORIENT(2,3)*H(3,:)
+    !Third box vector
+    uv(3,:) = ORIENT(3,1)*H(1,:) + ORIENT(3,2)*H(2,:) + ORIENT(3,3)*H(3,:)
+    !
+    WRITE(msg,*) "Oriented unit cell vectors:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') uv(1,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') uv(2,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,'(3f16.6)') uv(3,:)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
+    !and store it in Q(:,:)
+    WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !Estimate new number of particles NP by comparing volumes of old and new unit cells
+    NP = 1.2d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+        & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 20
+    WRITE(msg,*) "Estimated new number of atoms : ", NP
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    ALLOCATE( Q(NP,4) )
+    Q(:,:) = 0.d0
+    !
+    !Loop over all replica in a wide range
+    NP = 0
+    DO i=1,SIZE(P,1)
+      DO l=-lminmax,lminmax
+        DO k=-lminmax,lminmax
+          DO j=-lminmax,lminmax
+            !Compute cartesian position of this replica
+            tempP(1,1) = P(i,1) + DBLE(j)*H(1,1) + DBLE(k)*H(2,1) + DBLE(l)*H(3,1)
+            tempP(1,2) = P(i,2) + DBLE(j)*H(1,2) + DBLE(k)*H(2,2) + DBLE(l)*H(3,2)
+            tempP(1,3) = P(i,3) + DBLE(j)*H(1,3) + DBLE(k)*H(2,3) + DBLE(l)*H(3,3)
+            tempP(1,4) = P(i,4)
+            CALL CART2FRAC(tempP,uv)
+            IF( tempP(1,1)>=-1.d-12 .AND. tempP(1,1)<1.d0-1.d-12 .AND.             &
+              & tempP(1,2)>=-1.d-12 .AND. tempP(1,2)<1.d0-1.d-12 .AND.             &
+              & tempP(1,3)>=-1.d-12 .AND. tempP(1,3)<1.d0-1.d-12       ) THEN
+              !This replica is inside the new cell, mark it as new
+              new = .TRUE.
+              !Verify that its position is different from all previous atoms
+              DO m=1,NP
+                IF( DABS( VECLENGTH(tempP(1,1:3)-Q(m,1:3)) )<1.d-6 ) THEN
+                  new = .FALSE.
+                ENDIF
+              ENDDO
+              !
+              IF( new ) THEN
+                NP = NP+1
+                IF(NP>SIZE(Q,1)) THEN
+                  !Resize array Q
+                  CALL RESIZE_DBLEARRAY2(Q,SIZE(Q,1)+10,SIZE(Q,2))
+                ENDIF
+                Q(NP,:) = tempP(1,:)
+              ENDIF
+            ENDIF
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDDO
+    !
+    !Replace old P with the new Q
+    IF(ALLOCATED(P)) DEALLOCATE(P)
+    ALLOCATE(P(NP,4))
+    DO i=1,NP
+      P(i,:) = Q(i,:)
+    ENDDO
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    WRITE(msg,*) "new NP in oriented cell:", NP
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !
+    !Replace old H with the new (oriented) cell vectors
+    !Align 1st box vector with Cartesian X axis
+    !Place 2nd box vector in the XY plane
+    H(:,:) = 0.d0
+    H1 = VECLENGTH(uv(1,:))
+    H2 = VECLENGTH(uv(2,:))
+    H3 = VECLENGTH(uv(3,:))
+    x = ANGVEC(uv(2,:),uv(3,:))
+    y  = ANGVEC(uv(3,:),uv(1,:))
+    z1 = ANGVEC(uv(1,:),uv(2,:))
+    !Then convert this conventional notation into lower-triangular matrix H
+    CALL CONVMAT(H1,H2,H3,x,y,z1,H)
+    !Transform atom positions in Cartesian coordinates
+    CALL FRAC2CART(P,H)
+    !
+  ELSE
+    comment(1) = TRIM(comment(1))//" with box vectors H1=[10-10], H2=[01-10], H3=[0001]"
+    oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
+  ENDIF  !end if oriented
+  !
   !
 ELSE
-  !The lattice is not cubic
+  !The lattice is not cubic nor hexagonal
   IF( VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 &
     & .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
     !The user asked for a crystal orientation, but the lattice is not cubic
@@ -1074,7 +1218,19 @@ ELSE
     nerr = nerr+1
     GOTO 1000
   ENDIF
-ENDIF
+  !
+ENDIF !end if cubic or hexagonal
+!
+!
+WRITE(msg,*) "final cell vectors:"
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,'(3f16.6)') H(1,:)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,'(3f16.6)') H(2,:)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,'(3f16.6)') H(3,:)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
 !
  comment(1) = TRIM(comment(1))//'.'
 !
@@ -1086,6 +1242,12 @@ CALL ATOMSK_MSG(4029,(/''/),(/0.d0/))
 !
 !
 400 CONTINUE
+!Check that array P is allocated and number of atoms is not zero, otherwise display error message
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)==0 ) THEN
+  nerr = nerr+1
+  CALL ATOMSK_MSG(3800,(/TRIM(msg)/),(/0.d0/))
+  GOTO 1000
+ENDIF
 !Apply options to the created system
 CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 IF(nerr>0) GOTO 1000
@@ -1101,7 +1263,7 @@ IF(wof) THEN
   CALL WRITE_AFF(outputfile,outfileformats,H,P,S,comment,AUXNAMES,AUX)
 ENDIF
 !
-GOTO 900
+GOTO 1000
 !
 !
 !
@@ -1113,10 +1275,6 @@ GOTO 1000
 nerr = nerr+1
 CALL ATOMSK_MSG(4803,(/''/),(/DBLE(SIZE(P,1)), DBLE(NT_NP) /))
 GOTO 1000
-!
-!
-!
-900 CONTINUE
 !
 !
 !

@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>This mode allows to create an atomic structure from scratch. For now, only a small number of very basic lattices can be created (see table below). By default the base vectors of the cubic systems created are X=[100], Y=[010] and Z=[001], but that can be changed (see below). For other systems, other orientations are not implemented yet.</p>
+<p>This mode allows to create an atomic structure from scratch. For now, only a small number of very basic lattices can be created (see table below). By default the base vectors of the cubic systems created are X=[100], Y=[010] and Z=[001], but that can be changed (see below). Hexagonal lattices can also be oriented, with restrictions detailed below. For other systems, other orientations are not implemented yet.</p>
 
 <p>The parameters associated with the <code>create</code> mode are:</p>
 <ul>
@@ -30,7 +30,7 @@
   <li><strong>a0</strong>: lattice parameter (in &Aring;);</li>
   <li><strong>c0</strong>: lattice parameter (in &Aring;, only needed for some structures);</li>
   <li><strong>sp1, sp2...</strong>: atomic species constituting the material (one- or two-characters symbol); the number of species that must be specified depends on the lattice, see table below.</li>
-  <li><strong>orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub></strong>: crystallographic orientation of the created lattice (cubic lattices only).</li>
+  <li><strong>orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub></strong>: crystallographic orientation of the created lattice (cubic and hexagonal lattices only).</li>
 </ul>
 
 <p>The table below shows the acceptable entries for <strong>&#60;lattice&#62;</strong>, and the corresponding number of <strong>lattice constants</strong> and <strong>atom species</strong> that must be specified. For bcc lattice, entering two atom species will produce an interpenetrating simple cubic (aka "caesium chloride") lattice. For fcc lattice, entering two atom species will create an alloy of the two elements. For diamond lattice, entering two species will create a zincblende lattice; for zincblende, entering only one species will create a diamond lattice.</p>
@@ -58,6 +58,8 @@
 </table>
 
 <p>Unit cells of <strong>cubic systems</strong> can be created with a given <strong>crystallographic orientation</strong>, if the keyword "<code>orient</code>" is appened after the atom species and is followed by the Miller indices <em>hkl</em> of the lattice in each cartesian direction X, Y and Z (see <a href="./options.html">how to specify Miller indices</a>). Note that the keyword "<code>orient</code>" must always appear immediately after the atom species, and should not be mistaken with the <a href="./option_orient.html">option <code>-orient</code></a>.</p>
+
+<p>Unit cells of <strong>hexagonal lattices</strong> can also be oriented, but this has a different meaning. First of all, for hexagonal systems, the Miller vectors must contain four integers [<em>hkil</em>], and satisfy <em>h</em>+<em>k</em>+<em>i</em>=0. Three vectors must be provided after the keyword "orient". These three vectors will define the new unit cell. They do not have to be orthogonal (contrary to cubic systems), however they must be linearly independent. In the end, Atomsk will align the first vector with the Cartesian X direction, the second vector will belong to the XY plane, and the third vector will point out of the XY plane. So, contrary to cubic systems, the three provided crystallographic directions will not be aligned with Cartesian directions (except for the first vector), and the final cell will not be orthogonal. To obtain an orthogonal box, you may use the <a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a> afterwards.</p>
 
 <p>For <strong>creating a nanotube</strong> one has to specify one lattice parameter (that corresponds to the first neighbours distance), followed by the chiral indices <em>m</em> and <em>n</em> which must be integers. The unit cell of a nanotube is defined unambiguously only along the nanotube, which is along the Z axis here. In the other directions, Atomsk defines the lattice so that periodic replica form an hexagonal pattern as it is observed experimentally. You can tune the distance between periodic replica by changing the cell parameters. Note that the center of the nanotube is at (0,0) so it is easy to create multiwall nanotubes (create several nanotubes and <a href="mode_merge.html">merge them</a>).</p>
 

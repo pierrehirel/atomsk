@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 09 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -786,6 +786,12 @@ CASE(813)
 CASE(814)
   msg = "X!X ERREUR : un vecteur de Miller ne peut pas être [000]."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(815)
+  msg = "X!X ERREUR : dans les mailles hexagonales, les indices de Miller [hkil] doivent respecter h+k+i=0."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(816)
+  msg = "X!X ERREUR : division par zero."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -803,8 +809,15 @@ CASE(1000)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
   !reals(1) = number of atoms
+  !reals(2) = number of shells
   WRITE(temp,*) NINT(reals(1))
-  msg = "..> Le fichier a bien été lu ("//TRIM(ADJUSTL(temp))//" atomes)."
+  IF( NINT(reals(2))>0 ) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    msg = "..> Le fichier a bien été lu ("//TRIM(ADJUSTL(temp))//" cœurs + "// &
+        & TRIM(ADJUSTL(temp2))//" coquilles)."
+  ELSE
+    msg = "..> Le fichier a bien été lu ("//TRIM(ADJUSTL(temp))//" atomes)."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1002)
   msg = "..> Fichier INP trouvé, lecture des vecteurs..."
@@ -2177,8 +2190,15 @@ CASE(2819)
 ! 3000-3999: MESSAGES FOR OUTPUT
 CASE(3000)
   !reals(1) = number of atoms
+  !reals(2) = number of shells
   WRITE(temp,*) NINT(reals(1))
-  msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" atomes):"
+  IF( NINT(reals(2))>0 ) THEN
+    WRITE(temp2,*) NINT(reals(2))
+    msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" cœurs + "// &
+        & TRIM(ADJUSTL(temp2))//" coquilles):"
+  ELSE
+    msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" atomes):"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
   !strings(1) = name of file
@@ -2810,6 +2830,13 @@ CASE(4713)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Êtes-vous sûr de vouloir "//TRIM(ADJUSTL(temp))//" ? ("//langyes//"/"//langno//")"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4714)
+  !strings(1) = direction along which cell is small
+  !reals(1) = new cell size along that direction
+  WRITE(temp,'(f16.3)') reals(1)
+  msg = "/!\ ALERTE : la boîte finale a une petite dimension suivant "&
+      & //TRIM(ADJUSTL(strings(1)))//", ajustement à "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
 CASE(4800)
@@ -2970,7 +2997,13 @@ CASE(4826)
   msg = "X!X ERREUR : ce mode n'est pas disponible en mode interactif, veuillez vous référer à la documentation."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4827)
-  msg = "X!X ERREUR : impossible de créer le système avec l'orientation donnée, car il s'agit d'un réseau non-cubique."
+  msg = "X!X ERREUR : impossible de créer le système avec l'orientation donnée."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4828)
+  msg = "X!X ERREUR : au moins deux dimensions de la boîte sont trop petites, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4829)
+  msg = "X!X ERREUR : un des vecteurs de boîte est une combinaison linéaire des deux autres, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERREUR : un seul mode peut être utilisé à la fois."

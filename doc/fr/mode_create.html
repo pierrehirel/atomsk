@@ -22,7 +22,7 @@
 
 <h4>Description</h4>
 
-<p>Ce mode permet de créer des structures atomiques. Pour l'instant, seul un petit nombre de structures peuvent être générées (voir la table ci-dessous). Par défaut les systèmes cubiques sont créés avec l'orientation X=[100], Y=[010] et Z=[001], mais cela peut être changé (voir ci-dessous). Pour les autres systèmes, seule l'orientation de base est possible.</p>
+<p>Ce mode permet de créer des structures atomiques. Pour l'instant, seul un petit nombre de structures peuvent être générées (voir la table ci-dessous). Par défaut les systèmes cubiques sont créés avec l'orientation X=[100], Y=[010] et Z=[001], mais cela peut être changé (voir ci-dessous). Les systèmes hexagonaux peuvent aussi être orientés, avec les restrictions détaillées ci-dessous. Pour les autres systèmes, seule l'orientation de base est possible.</p>
 
 <p>Les paramètres associés au mode <code>create</code> sont :</p>
 <ul>
@@ -30,10 +30,10 @@
   <li><strong>a0</strong>: paramètre de maille (en &Aring;) ;</li>
   <li><strong>c0</strong>: second paramètre de maille (en &Aring;, nécessaire seulement pour certaines structures) ;</li>
   <li><strong>sp1, sp2...</strong>: espèces chimiques constituant le matériau (symbole atomique à une ou deux lettres); le nombre d'espèces qui doivent être spécifiées dépend de la maille créée (voir table ci-dessous) ;</li>
-  <li><strong>orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub></strong>: orientation cristallographique de la cellule élémentaire créée (réseaux cubiques uniquement).</li>
+  <li><strong>orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub></strong>: orientation cristallographique de la cellule élémentaire créée (mailles cubiques et hexagonales uniquement).</li>
 </ul>
 
-<p>La table ci-dessous répertorie les entrées possibles pour <strong>&#60;maille&#62;</strong>, et le nombre de <strong>paramètres de maille</strong> et d'<strong>espèces chimiques</strong> qui doivent être spécifiées. Pour la maille "bcc" (cubique centrée), entrer deux espèces atomiques créera une structure faite de deux réseaux cubiques simples qui s'interpénètrent (type chlorure de césium). Pour la maille "fcc" (cubique à faces centrées), entrer deux espèces chimiques créera un alliage des deux éléments. Pour la maille diamant, entrer deux espèces créera une maille zincblende&nbsp;; pour la maille zincblende, n'entrer qu'un seul élément créera une maille diamant.</p>
+<p>La table ci-dessous répertorie les entrées possibles pour <strong>&#60;maille&#62;</strong>, et le nombre de <strong>paramètres de maille</strong> et d'<strong>espèces chimiques</strong> qui doivent être spécifiées. Pour la maille "bcc" (cubique centrée), entrer deux espèces atomiques créera une structure faite de deux mailles cubiques simples qui s'interpénètrent (type chlorure de césium). Pour la maille "fcc" (cubique à faces centrées), entrer deux espèces chimiques créera un alliage des deux éléments. Pour la maille diamant, entrer deux espèces créera une maille zincblende&nbsp;; pour la maille zincblende, n'entrer qu'un seul élément créera une maille diamant.</p>
 
 <table border="1">
   <tr> <th></th> <th><strong>&#60;maille&#62;</strong></th>  <th><strong>Nb. de paramètres de maille</strong></th> <th><strong>Nb. d'espèces chimiques</strong></th> </tr>
@@ -58,6 +58,8 @@
 </table>
 
 <p>Les cellules élémentaires des <strong>systèmes cubiques</strong> peuvent être créées avec une certaine <strong>orientation cristallographique</strong>, si le mot-clé "<code>orient</code>" apparaît après les espèces chimiques et est suivi des indices de Miller <em>hkl</em> des directions à aligner avec les axes cartésiens X, Y et Z (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Notez que le mot-clé "<code>orient</code>" doit impérativement apparaître juste après les symboles des espèces chimiques, et ne doit pas être confondu avec l'<a href="./option_orient.html">option <code>-orient</code></a>.</p>
+
+<p>Les cellules élémentaires des <strong>mailles hexagonales</strong> peuvent aussi être orientées, mais la signification est différente des mailles cubiques. Tout d'abord, pour les systèmes hexagonaux, les vecteurs de Miller doivent contenir quatre entiers [<em>hkil</em>], qui satisfont <em>h</em>+<em>k</em>+<em>i</em>=0. Trois vecteurs doivent être fournis après le mot-clé "orient". Ces trois vecteurs deviendront les trois vecteurs de boîte. Ils ne doivent pas forcément être orthogonaux (contrairement aux systèmes cubiques), en revanche ils doivent être linéairement indépendants. À la fin, Atomsk alignera le premier vecteur avec l'axe cartésien X, le second vecteur sera contenu dans le plan XY, et le troisième vecteur de boîte pointera en-dehors du plan XY. Ainsi, contrairement aux systèmes cubiques, les trois directions cristallographiques fournies ne seront pas toutes alignées avec les axes cartésiens (à l'exception du premier vecteur), et la boîte finale ne sera pas orthogonale. Pour obtenir une boîte orthogonale, vous pouvez utiliser l'<a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a> après avoir créé le système orienté.</p>
 
 <p>Pour <strong>créer un nanotube</strong> il faut spécifier un seul paramètre de maille (correspondant à la distance entre premiers voisins) ainsi que les indices chiraux <em>m</em> et <em>n</em> qui doivent être des entiers. Le motif élémentaire d'un nanotube n'est défini de manière non-ambigue que suivant l'axe du tube, qui sera l'axe Z ici. Dans les autres directions, Atomsk définira les vecteurs de boîte de sorte que les répliques périodiques du nanotube forment un motif hexagonal, tel que cela est observé expérimentalement. La distance entre les répliques peut être changée en changeant manuellement ces composantes des vecteurs de boîte. Notez que le centre du nanotube créé se trouvera à l'origine (0,0), de sorte qu'il est facile de créer des nanotubes multi-parois en créant plusieurs nanotubes de diamètres différents puis en les <a href="mode_merge.html">regroupant</a>.</p>
 
