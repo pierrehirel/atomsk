@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 20 March 2018                                    *
+!* Last modification: P. Hirel - 27 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,6 +69,7 @@ INTEGER:: d, NT_NP, nspecies, r, t
 INTEGER,DIMENSION(2):: NT_mn
 REAL(dp):: H1, H2, H3
 REAL(dp):: l_perp, l_para, NT_radius, vol, vol_cell, x, y, z1, z2  !for nanotubes
+REAL(dp):: u, v, w
 REAL(dp),DIMENSION(3):: a_perp, a_para, b_perp, b_para, coord, Hrecip !for nanotubes
 REAL(dp),DIMENSION(1,4):: tempP  !temporary position
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
@@ -1108,14 +1109,19 @@ ELSEIF( hexagonal ) THEN
     lminmax = 10 * NINT(MAXVAL(DABS(ORIENT(:,:))))
     !
     !The oriented unit cell vectors are defined by the Miller indices
-    !NOTE: the third box vector is always
-    uv(:,:) = 0.d0
-    !First box vector
-    uv(1,:) = ORIENT(1,1)*H(1,:) + ORIENT(1,2)*H(2,:) + ORIENT(1,3)*H(3,:)
-    !Second box vector
-    uv(2,:) = ORIENT(2,1)*H(1,:) + ORIENT(2,2)*H(2,:) + ORIENT(2,3)*H(3,:)
-    !Third box vector
-    uv(3,:) = ORIENT(3,1)*H(1,:) + ORIENT(3,2)*H(2,:) + ORIENT(3,3)*H(3,:)
+    DO i=1,3
+      !Convert [hkil] notation into [uvw]
+      u = 2.d0*ORIENT(i,1) + ORIENT(i,2)
+      v = ORIENT(i,1) + 2.d0*ORIENT(i,2)
+      w = ORIENT(i,3)
+      !Check for common divisor
+      z1 = GCD( NINT(u) , NINT(v) )
+      z2 = GCD( NINT(u) , NINT(w) )
+      x = GCD( NINT(z1),NINT(z2) )
+      IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+      !Set box vector
+      uv(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
+    ENDDO
     !
     WRITE(msg,*) "Oriented unit cell vectors:"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))

@@ -60,9 +60,9 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties 
 !Initialize variables
 doshells = .FALSE.
 doaux = .FALSE.
-mminmax = 200
-nminmax = 200
-ominmax = 200
+mminmax = 10
+nminmax = 10
+ominmax = 10
 uv(:,:) = 1.d12
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
@@ -106,8 +106,12 @@ IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(P,1) ) THEN
   doaux = .TRUE.
 ENDIF
 !
+110 CONTINUE
 !Along each Cartesian direction, search for the smallest
 !linear combination of vectors H that produce an orthogonal base
+!NOTE: the triple loop is first parsed with small values of mminmax, nminmax and ominmax
+!  This should ensure a fast search for simple systems/orientations
+!  If it fails, these values are increased and the loops are parsed again (see label 200 below)
 DO i=1,3
   mfinal = 0
   nfinal = 0
@@ -173,10 +177,27 @@ ENDDO
 !
 200 CONTINUE
 !At this point we should have new cell vectors
-!If not then something went wrong => abort
 IF( VECLENGTH(uv(1,:))<1.d-3 .OR. VECLENGTH(uv(2,:))<1.d-3 .OR. VECLENGTH(uv(3,:))<1.d-3 .OR. &
   & VECLENGTH(uv(1,:))>1.d10 .OR. VECLENGTH(uv(2,:))>1.d10 .OR. VECLENGTH(uv(3,:))>1.d10     ) THEN
-  GOTO 800
+  !We don't have appropriate cell vectors
+  IF( mminmax+nminmax+ominmax < 80 ) THEN
+    !The first attempt with small loops did not work => try to expand the loop
+    mminmax = 200
+    nminmax = 200
+    ominmax = 200
+    GOTO 110
+  ELSEIF( mminmax+nminmax+ominmax < 620 ) THEN
+    !The second attempt with larger loops did not work => try to expand the loop again
+    !(this may take a long time)
+    CALL ATOMSK_MSG(3,(/""/),(/0.d0/))
+    mminmax = 500
+    nminmax = 500
+    ominmax = 500
+    GOTO 110
+  ELSE
+    !Even the larger loops did not work => abort
+    GOTO 800
+  ENDIF
 ENDIF
 !
 !Make sure vectors are oriented positively along each axis

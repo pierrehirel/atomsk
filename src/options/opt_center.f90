@@ -11,7 +11,7 @@ MODULE center
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 25 Nov. 2014                                     *
+!* Last modification: P. Hirel - 22 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !vectors of supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of atoms, shells
 !
 species = ''
+Vshift(:) = 0.d0
 !
 WRITE(msg,*) 'Entering CENTER_XYZ: ', center_atom
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -79,6 +80,8 @@ IF( center_atom <= 0 ) THEN
     totmass = totmass + smass
   ENDDO
   Vcom(:) = Vcom(:) / totmass
+  WRITE(msg,'(a16,3f9.3)') 'Center of mass: ', Vcom(:)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   Vshift(:) = box_center(:) - Vcom(:)
   !
 ELSE

@@ -102,6 +102,15 @@
 <li><code class="command">atomsk --create per 3.86 Sr Ti O orient [001] [110] [1-10] -duplicate 30 20 1 sto.xsf</code>
 <p>This example uses the <a href="./option_duplicate.html">duplicate option</a>. It will create a unit cell of cubic strontium titanate oriented X=[001], Y=[110], Z=[1<span class="over">1</span>0], and then duplicate it to form a 30x20x1 supercell. The final result will be output in the file <code>sto.xsf</code>.</p></li>
 
+<li><code class="command">atomsk --create hcp 3.21 5.213 Mg cfg</code>
+<p>This example will create a unit cell of hexagonal close-packed magnesium, with a=3.21&nbsp;&Aring; and c=5.213&nbsp;&Aring;. The final result will be output in the file <code>Mg.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --create hcp 3.21 5.213 Mg orient [0001] [2-310] [-1-230] cfg</code>
+<p>This example will create a unit cell of hcp magnesium with the specified orientation. The first box vector will be [0001] and aligned with the Cartesian X axis; the second box vector will be [2-310] and will be placed in the XY plane; and the third box vector will be [-1-230] and will point out of the XY plane. Note that the three box vecteors will not be orthogonal.</p></li>
+
+<li><code class="command">atomsk --create hcp 3.21 5.213 Mg orient [0001] [2-310] [-1-230] -orthogonal-cell cfg</code>
+<p>Same as previous example, but the <a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a> will generate an equivalent orthogonal box, by using linear combinations of the initial box vectors. In this example, the final box vectors will be linear combinations of the vectors [0001], [2-310], and [-1-230].</p></li>
+
 <li><code class="command">atomsk --create graphite 2.5 3.6 B N bn.xsf</code>
 <p>This example will create a unit cell of hexagonal boron nitride (which has the same lattice as graphite), with a=2.5&nbsp;&Aring; and c=3.6&nbsp;&Aring;. The final result will be output in the file <code>bn.xsf</code>.</p></li>
 
