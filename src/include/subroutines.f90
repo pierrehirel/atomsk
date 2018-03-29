@@ -116,6 +116,56 @@ END SUBROUTINE RESIZE_DBLEARRAY2
 !
 !
 !********************************************************
+! RESIZE_LOGICAL1
+! This routine changes the size of the provided logical Array.
+! Initial data is preserved in the new array.
+! If the new size is larger, unknown data is set to .FALSE.
+! If the new size is smaller, some data is lost.
+!********************************************************
+SUBROUTINE RESIZE_LOGICAL1(Array,L1,status)
+!
+IMPLICIT NONE
+INTEGER:: i
+INTEGER,OPTIONAL:: status  !Success=0; failure=1
+INTEGER,INTENT(IN):: L1    !new size of Array
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: Array !the array to resize
+LOGICAL,DIMENSION(:),ALLOCATABLE:: temp_array !temporary copy of Array
+!
+IF(PRESENT(status)) status = 0
+!
+IF( .NOT.ALLOCATED(Array) ) THEN
+  !Allocate Array with required size and fill it with .FALSE.
+  ALLOCATE(Array(L1))
+  Array(:) = .FALSE.
+  !
+ELSE
+  !Array is already allocated => resize it
+  IF( L1>0 ) THEN
+    !
+    ALLOCATE( temp_array(L1) )
+    temp_array(:) = .FALSE.
+    DO i=1,MIN(L1,SIZE(Array))
+      temp_array(i) = Array(i)
+    ENDDO
+    !
+    DEALLOCATE(Array)
+    ALLOCATE( Array(L1) )
+    Array(:) = temp_array(:)
+    !
+    DEALLOCATE(temp_array)
+    !
+  ELSE
+    !i.e. if L1<=0 or L2<=0 => problem
+    IF(PRESENT(status)) status = 1
+  ENDIF
+  !
+ENDIF
+!
+END SUBROUTINE RESIZE_LOGICAL1
+!
+!
+!
+!********************************************************
 ! CHECK_ARRAY_CONSISTENCY
 ! This subroutine verifies that the arrays S (containing
 ! the positions of shells), AUX (auxiliary properties),

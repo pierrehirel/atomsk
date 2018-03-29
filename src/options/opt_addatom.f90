@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 29 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,7 +49,7 @@ CHARACTER(LEN=8),INTENT(IN):: addatom_type    !"at" or "near" or "random"
 CHARACTER(LEN=128):: msg
 LOGICAL:: exceeds100 !does the number of neighbors exceed 100?
 LOGICAL:: hasShells  !does this type of atom have shells?
-LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
 INTEGER:: atomindex
 INTEGER:: NP !number of particles
 INTEGER:: i, j, k, m, n
@@ -372,6 +372,10 @@ IF( addedatoms>0 ) THEN
         ENDIF
       ENDDO
     ENDDO
+  ENDIF
+  !
+  IF( ALLOCATED(SELECT) ) THEN
+    CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
   ENDIF
   !
 ENDIF

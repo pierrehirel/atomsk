@@ -17,6 +17,7 @@ Master (development)
 - modified the way auxiliary properties are written in CFG files (better accuracy).
 - fixed a bug in neighbor search algorithm that would cause a segmentation fault under certain conditions.
 - fixed a bug in mode "--create" that caused a segmentation fault if user attempted to orient a non-cubic lattice.
+- fixed a bug in option "-duplicate", which would not behave correctly when a selection was defined.
 
 
 

@@ -1099,7 +1099,9 @@ CASE(2067)
   msg = "..> Neue Teilchenzahl: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2068)
-  msg = "..> Das System wurde erfolgreich vervielfaeltigt."
+  !reals(1) = new number of atoms
+  WRITE(temp,*) NINT( reals(1) )
+  msg = "..> Das System wurde erfolgreich vervielfaeltigt ("//TRIM(ADJUSTL(temp))//" Atome)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2069)
   !strings(1) = "all" or property to be removed

@@ -41,7 +41,7 @@ SUBROUTINE DUPLICATECELL(H,P,S,dupmatrix,SELECT,AUX)
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 LOGICAL:: doshells
-LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
 INTEGER:: i, newNP
 INTEGER:: m, n, o, qi
 INTEGER, DIMENSION(3):: dupmatrix
@@ -53,6 +53,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX !auxiliary properties
 !
 !Initialize variables
 i = 0
+qi = 0
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
@@ -93,13 +94,13 @@ ELSE
   DO i=1,SIZE(SELECT)
     IF(SELECT(i)) qi=qi+1
   ENDDO
-  newNP = qi*ABS(dupmatrix(1)*dupmatrix(2)*dupmatrix(3))
+  newNP = SIZE(P,1) + qi*( ABS(dupmatrix(1)*dupmatrix(2)*dupmatrix(3)) - 1)
 ENDIF
 WRITE(msg,*) "new NP = ", newNP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ALLOCATE(Q(newNP,4))
 IF(ALLOCATED(AUX)) ALLOCATE( newAUX(newNP,SIZE(AUX,2) ) )
-CALL ATOMSK_MSG(2067,(/''/),(/DBLE(newNP)/))
+!CALL ATOMSK_MSG(2067,(/''/),(/DBLE(newNP)/))
 !
 IF( newNP<=0 ) THEN
   nerr=nerr+1
@@ -116,20 +117,26 @@ DO o = 0 , dupmatrix(3)-SIGN(1,dupmatrix(3)) , SIGN(1,dupmatrix(3))
   DO n = 0 , dupmatrix(2)-SIGN(1,dupmatrix(2)) , SIGN(1,dupmatrix(2))
     DO m = 0 , dupmatrix(1)-SIGN(1,dupmatrix(1)) , SIGN(1,dupmatrix(1))
       DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i) .OR. (o==0.AND.n==0.AND.m==0) ) THEN
           qi = qi+1
-          Q(qi,1) = P(i,1)*SIGN(1,dupmatrix(1)) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-          Q(qi,2) = P(i,2)*SIGN(1,dupmatrix(2)) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-          Q(qi,3) = P(i,3)*SIGN(1,dupmatrix(3)) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-          Q(qi,4) = P(i,4)
-          !Duplicated particles will have same auxiliary properties as the originals
-          IF(ALLOCATED(newAUX)) newAUX(qi,:) = AUX(i,:)
-          !Also duplicate shells if any
-          IF( doshells ) THEN
-            T(qi,1) = S(i,1)*SIGN(1,dupmatrix(1)) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-            T(qi,2) = S(i,2)*SIGN(1,dupmatrix(2)) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-            T(qi,3) = S(i,3)*SIGN(1,dupmatrix(3)) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-            T(qi,4) = S(i,4)
+          IF( qi>SIZE(Q,1) ) THEN
+            nerr = nerr+1
+            CALL ATOMSK_MSG(4821,(/''/),(/DBLE(qi),DBLE(SIZE(Q,1))/))
+            GOTO 1000
+          ELSE
+            Q(qi,1) = P(i,1)*SIGN(1,dupmatrix(1)) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+            Q(qi,2) = P(i,2)*SIGN(1,dupmatrix(2)) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+            Q(qi,3) = P(i,3)*SIGN(1,dupmatrix(3)) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+            Q(qi,4) = P(i,4)
+            !Duplicated particles will have same auxiliary properties as the originals
+            IF(ALLOCATED(newAUX)) newAUX(qi,:) = AUX(i,:)
+            !Also duplicate shells if any
+            IF( doshells ) THEN
+              T(qi,1) = S(i,1)*SIGN(1,dupmatrix(1)) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+              T(qi,2) = S(i,2)*SIGN(1,dupmatrix(2)) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+              T(qi,3) = S(i,3)*SIGN(1,dupmatrix(3)) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+              T(qi,4) = S(i,4)
+            ENDIF
           ENDIF
         ENDIF
       ENDDO
@@ -158,6 +165,21 @@ IF( doshells) THEN
   DEALLOCATE(T)
 ENDIF
 !
+!Increase the size of SELECT array
+!NOTE: atoms that were previously selected will still be selected after that,
+!     but their replicas WILL NOT be selected
+IF( ALLOCATED(SELECT) ) THEN
+  ALLOCATE( newSELECT(SIZE(P,1)) )
+  newSELECT(:) = .FALSE.
+  DO i=1,SIZE(SELECT)
+    newSELECT(i) = SELECT(i)
+  ENDDO
+  DEALLOCATE(SELECT)
+  ALLOCATE(SELECT(SIZE(P,1)))
+  SELECT(:) = newSELECT(:)
+  DEALLOCATE(SELECT)
+ENDIF
+!
 !Resize the cell dimensions
 H(1,:) = dupmatrix(1)*H(1,:)
 H(2,:) = dupmatrix(2)*H(2,:)
@@ -178,6 +200,9 @@ nerr = nerr+1
 !
 !
 1000 CONTINUE
+IF(ALLOCATED(Q)) DEALLOCATE(Q)
+IF(ALLOCATED(T)) DEALLOCATE(T)
+IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
 !
 !

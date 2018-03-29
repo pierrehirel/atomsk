@@ -1115,9 +1115,21 @@ ELSEIF( hexagonal ) THEN
       v = ORIENT(i,1) + 2.d0*ORIENT(i,2)
       w = ORIENT(i,3)
       !Check for common divisor
-      z1 = GCD( NINT(u) , NINT(v) )
-      z2 = GCD( NINT(u) , NINT(w) )
-      x = GCD( NINT(z1),NINT(z2) )
+      IF( DABS(u)>0.1d0 .AND. NINT(v)>0.1d0 ) THEN
+        z1 = GCD( NINT(u) , NINT(v) )
+      ELSE
+        z1 = MAX(u,v)
+      ENDIF
+      IF( DABS(u)>0.1d0 .AND. NINT(w)>0.1d0 ) THEN
+        z2 = GCD( NINT(u) , NINT(w) )
+      ELSE
+        z2 = MAX(u,w)
+      ENDIF
+      IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+        x = GCD( NINT(z1),NINT(z2) )
+      ELSE  !i.e. z1==0 or z2==0
+        x = MAX( z1,z2 )
+      ENDIF
       IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
       !Set box vector
       uv(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
@@ -1209,7 +1221,7 @@ ELSEIF( hexagonal ) THEN
     CALL FRAC2CART(P,H)
     !
   ELSE
-    comment(1) = TRIM(comment(1))//" with box vectors H1=[10-10], H2=[01-10], H3=[0001]"
+    comment(1) = TRIM(comment(1))//" with box vectors H1=[2-1-10], H2=[-12-10], H3=[0001]"
     oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
   ENDIF  !end if oriented
   !

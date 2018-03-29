@@ -20,13 +20,15 @@
 
 <h4>Description</h4>
 
-<p>This option finds the optimal orthorhombic cell that corresponds to the system. This can be useful when working with complex lattices, that one needs to rotate</p>
+<p>This option finds the optimal orthorhombic cell that corresponds to the system.</p>
 
-<p>The system may have any arbitrary vectors <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>. This option searches for linear combinations m*H1+n*H2+o*H3 (with m,n,o integers) that produce vectors aligned with the Cartesian directions X, Y, Z. Then, atom positions are duplicated using the translation vectors <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>, so as to fill this new orthogonal cell. Finally, the initial cell vectors are replaced by the vectors of the orthorhombic cell. Since the new cell vectors are linear combinations of the initial cell vectors, they respect the lattice periodicity.</p>
+<p>The initial system may have any arbitrary vectors <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>. This option searches for linear combinations m*H1+n*H2+o*H3 (with m,n,o integers) that produce vectors aligned with the Cartesian directions X, Y, Z. Then, atom positions are duplicated using the translation vectors <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>, so as to fill this new orthogonal cell. Finally, the initial cell vectors are replaced by the vectors of the orthorhombic cell. Since the new cell vectors are linear combinations of the initial cell vectors, they respect the lattice periodicity.</p>
 
 <p>If shells (in the sense of an ionic core-shell model) and/or auxiliary properties are present, then they are also duplicated.</p>
 
-<p>After this option is applied, the total number of atoms may differ from that of the initial system.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>), then the equivalent atoms in the new cell will be selected.</p>
+
+<p>After this option is applied, the total number of atoms may differ from that of the initial system. In the particular case where box vectors are already all aligned with the Cartesian directions, but one or more of them point towards negative coordinates, this option will flip them so that they all point towards positive coordinates. The number of atoms will remain unchanged, but atoms will be translated by the appropriate box vector(s). Similarly, if <strong><em>H</em><sub>1</sub></strong> is aligned with the Cartesian Y axis and <strong><em>H</em><sub>2</sub></strong> with X, then this option will exchange these vectors so that <strong><em>H</em><sub>1</sub></strong> is aligned with X and <strong><em>H</em><sub>2</sub></strong> with Y.</p>
 
 <p>Note that in certain conditions (for instance, if the initial box vectors form very small angles with Cartesian axes), then Atomsk may fail to find a suitable set of orthogonal vectors.</p>
 

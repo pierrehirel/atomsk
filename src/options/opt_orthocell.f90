@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
-!* Last modification: P. Hirel - 19 Feb. 2018                                     *
+!* Last modification: P. Hirel - 29 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,13 +37,15 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE ORTHOCELL_XYZ(H,P,S,AUX)
+SUBROUTINE ORTHOCELL_XYZ(H,P,S,AUX,SELECT)
 !
 !
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 LOGICAL:: doshells, doaux !are shells/auxiliary properties present?
 LOGICAL:: new  !is the duplicated atom new?
+LOGICAL,DIMENSION(3):: aligned, reversed !is box vector aligned along X,Y,Z? Did we just reverse it?
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, o
 INTEGER:: mminmax, nminmax, ominmax, lminmax
 INTEGER:: mfinal, nfinal, ofinal
@@ -60,6 +62,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties 
 !Initialize variables
 doshells = .FALSE.
 doaux = .FALSE.
+aligned(:) = .FALSE.
+reversed(:) = .FALSE.
 mminmax = 10
 nminmax = 10
 ominmax = 10
@@ -88,9 +92,9 @@ IF( verbosity>=4 ) THEN
 ENDIF
 !
 !Check if cell vectors are already aligned with Cartesian axes
-IF( VECLENGTH(H(1,:))-DABS(H(1,1)) < 1.d-3 .AND. &
-  & VECLENGTH(H(2,:))-DABS(H(2,2)) < 1.d-3 .AND. &
-  & VECLENGTH(H(3,:))-DABS(H(3,3)) < 1.d-3       ) THEN
+IF( DABS(VECLENGTH(H(1,:))-DABS(H(1,1))) < 1.d-3 .AND. H(1,1)>0.d0 .AND. &
+  & DABS(VECLENGTH(H(2,:))-DABS(H(2,2))) < 1.d-3 .AND. H(2,2)>0.d0 .AND. &
+  & DABS(VECLENGTH(H(3,:))-DABS(H(3,3))) < 1.d-3 .AND. H(3,3)>0.d0        ) THEN
   !Cell vectors already orthogonal => skip to the end
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2760,(/msg/),(/0.d0/))
@@ -129,6 +133,11 @@ DO i=1,3
   !
   IF( DABS(VECLENGTH(H(i,:))-DABS(H(i,i))) < 1.d-3 ) THEN
     !Vector H is already aligned with Cartesian axis => save it in uv
+    aligned(i) = .TRUE.
+    IF( H(i,i)<0.d0 ) THEN
+      !The new cell vector will just be uv(i,:) = -H(i,:)
+      reversed = .TRUE.
+    ENDIF
     uv(i,:) = DABS(H(i,:))
     WRITE(msg,'(a3,i1,a17)') "uv(", i, ") already aligned"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -223,113 +232,147 @@ IF( verbosity>=4 ) THEN
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !
-!Estimate new number of particles NP by comparing volumes of old and new cells
-!Allow for +50% and +25 atoms. Actual size of arrays will be adjusted later
-NP = 1.5d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
-    & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 25
-WRITE(msg,*) "Estimated new number of atoms : ", NP
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-IF(ALLOCATED(Q)) DEALLOCATE(Q)
-ALLOCATE( Q(NP,4) )
-Q(:,:) = 0.d0
-IF(doshells) THEN
-  ALLOCATE( T(NP,4) )
-  T(:,:) = 0.d0
-ENDIF
-IF(doaux) THEN
-  ALLOCATE( newAUX(NP,SIZE(AUX,2)) )
-  newAUX(:,:) = 0.d0
-ENDIF
-!
-!Set min/max replica search
-IF( mminmax.NE.1 ) THEN
-  mminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
-ENDIF
-IF( nminmax.NE.1 ) THEN
-  nminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
-ENDIF
-IF( ominmax.NE.1 ) THEN
-  ominmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
-ENDIF
-WRITE(msg,*) "Atom duplication min/max = ", mminmax, nminmax, ominmax
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!
-!Loop over all replica in a wide range
-NP = 0
-DO i=1,SIZE(P,1)
-  DO m=-mminmax,mminmax
-    DO n=-nminmax,nminmax
-      DO o=-ominmax,ominmax
-        !Compute cartesian position of this replica
-        tempP(1) = P(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-        tempP(2) = P(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-        tempP(3) = P(i,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-        tempP(4) = P(i,4)
-        IF( tempP(1)>-1.d-12 .AND. tempP(1)<=uv(1,1)-1.d-12 .AND.             &
-          & tempP(2)>-1.d-12 .AND. tempP(2)<=uv(2,2)-1.d-12 .AND.             &
-          & tempP(3)>-1.d-12 .AND. tempP(3)<=uv(3,3)-1.d-12       ) THEN
-          !This replica is inside the new cell, mark it as new
-          new = .TRUE.
-          !Verify that its position is different from all previous atoms
-          DO k=1,NP
-            IF( VECLENGTH(tempP(1:3)-Q(k,1:3)) < 0.1d0 ) THEN
-              new = .FALSE.
-            ENDIF
-          ENDDO
-          !
-          IF( new ) THEN
-            NP = NP+1
-            IF(NP>SIZE(Q,1)) THEN
-              !Resize array Q
-              CALL RESIZE_DBLEARRAY2(Q,SIZE(Q,1)+10,SIZE(Q,2))
-            ENDIF
-            Q(NP,:) = tempP(:)
+IF( aligned(1) .AND. aligned(2) .AND. aligned(3) ) THEN
+  !Very special case: all box vectors were already aligned,
+  !but maybe some of them pointed towards negative directions
+  !In this case, the number of atoms will remain the same,
+  !but atoms will be shifted by the box vector
+  DO i=1,3
+    IF( reversed(i) ) THEN
+      !This box vector was just reversed => shift all atoms by this vector
+      P(:,i) = P(:,i) + uv(i,i)
+    ENDIF
+  ENDDO
+  !
+ELSE
+  !Estimate new number of particles NP by comparing volumes of old and new cells
+  !Allow for +50% and +25 atoms. Actual size of arrays will be adjusted later
+  NP = 1.5d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+      & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 25
+  WRITE(msg,*) "Estimated new number of atoms : ", NP
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
+  ALLOCATE( Q(NP,4) )
+  Q(:,:) = 0.d0
+  IF(doshells) THEN
+    ALLOCATE( T(NP,4) )
+    T(:,:) = 0.d0
+  ENDIF
+  IF(doaux) THEN
+    ALLOCATE( newAUX(NP,SIZE(AUX,2)) )
+    newAUX(:,:) = 0.d0
+  ENDIF
+  !Verify if some atoms are selected
+  IF( ALLOCATED(SELECT) ) THEN
+    ALLOCATE( newSELECT(NP) )
+    newSELECT(:) = .FALSE.
+  ENDIF
+  !
+  !Set min/max replica search
+  IF( mminmax.NE.1 ) THEN
+    mminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+  ENDIF
+  IF( nminmax.NE.1 ) THEN
+    nminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+  ENDIF
+  IF( ominmax.NE.1 ) THEN
+    ominmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+  ENDIF
+  WRITE(msg,*) "Atom duplication min/max = ", mminmax, nminmax, ominmax
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !
+  !Loop over all replica in a wide range
+  NP = 0
+  DO i=1,SIZE(P,1)
+    DO m=-mminmax,mminmax
+      DO n=-nminmax,nminmax
+        DO o=-ominmax,ominmax
+          !Compute cartesian position of this replica
+          tempP(1) = P(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+          tempP(2) = P(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+          tempP(3) = P(i,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+          tempP(4) = P(i,4)
+          IF( tempP(1)>-1.d-12 .AND. tempP(1)<=uv(1,1)-1.d-12 .AND.             &
+            & tempP(2)>-1.d-12 .AND. tempP(2)<=uv(2,2)-1.d-12 .AND.             &
+            & tempP(3)>-1.d-12 .AND. tempP(3)<=uv(3,3)-1.d-12       ) THEN
+            !This replica is inside the new cell, mark it as new
+            new = .TRUE.
+            !Verify that its position is different from all previous atoms
+            DO k=1,NP
+              IF( VECLENGTH(tempP(1:3)-Q(k,1:3)) < 0.1d0 ) THEN
+                new = .FALSE.
+              ENDIF
+            ENDDO
             !
-            IF( doshells ) THEN
-              !Compute position of the replica of this shell
-              tempP(1) = S(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-              tempP(2) = S(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-              tempP(3) = S(i,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-              tempP(4) = S(i,4)
-              T(NP,:) = tempP(:)
+            IF( new ) THEN
+              NP = NP+1
+              IF(NP>SIZE(Q,1)) THEN
+                !Resize array Q
+                CALL RESIZE_DBLEARRAY2(Q,SIZE(Q,1)+10,SIZE(Q,2))
+              ENDIF
+              Q(NP,:) = tempP(:)
+              !
+              IF( doshells ) THEN
+                !Compute position of the replica of this shell
+                tempP(1) = S(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+                tempP(2) = S(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+                tempP(3) = S(i,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+                tempP(4) = S(i,4)
+                T(NP,:) = tempP(:)
+              ENDIF
+              !
+              IF( doaux ) THEN
+                newAUX(NP,:) = AUX(i,:)
+              ENDIF
+              !
+              IF( ALLOCATED(SELECT) ) THEN
+                newSELECT(NP) = SELECT(i)
+              ENDIF
+              !
             ENDIF
-            !
-            IF( doaux ) THEN
-              newAUX(NP,:) = AUX(i,:)
-            ENDIF
-            !
           ENDIF
-        ENDIF
-        !
-      ENDDO !o
-    ENDDO !n
-  ENDDO !m
-ENDDO !i
-!
-!Replace old P with the new Q
-IF(ALLOCATED(P)) DEALLOCATE(P)
-ALLOCATE(P(NP,4))
-DO i=1,NP
-  P(i,:) = Q(i,:)
-ENDDO
-IF(ALLOCATED(Q)) DEALLOCATE(Q)
-!Same with shell if they are present
-IF( doshells ) THEN
-  IF(ALLOCATED(S)) DEALLOCATE(S)
-  ALLOCATE(S(NP,4))
+          !
+        ENDDO !o
+      ENDDO !n
+    ENDDO !m
+  ENDDO !i
+  !
+  !Replace old P with the new Q
+  IF(ALLOCATED(P)) DEALLOCATE(P)
+  ALLOCATE(P(NP,4))
   DO i=1,NP
-    S(i,:) = T(i,:)
+    P(i,:) = Q(i,:)
   ENDDO
-  IF(ALLOCATED(T)) DEALLOCATE(T)
-ENDIF
-!Same with auxiliary properties if they are present
-IF( doaux ) THEN
-  IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-  ALLOCATE(AUX(NP,4))
-  DO i=1,NP
-    AUX(i,:) = newAUX(i,:)
-  ENDDO
-  IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
+  !Same with shell if they are present
+  IF( doshells ) THEN
+    IF(ALLOCATED(S)) DEALLOCATE(S)
+    ALLOCATE(S(NP,4))
+    DO i=1,NP
+      S(i,:) = T(i,:)
+    ENDDO
+    IF(ALLOCATED(T)) DEALLOCATE(T)
+  ENDIF
+  !Same with auxiliary properties if they are present
+  IF( doaux ) THEN
+    IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+    ALLOCATE(AUX(NP,4))
+    DO i=1,NP
+      AUX(i,:) = newAUX(i,:)
+    ENDDO
+    IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+  ENDIF
+  !Same with SELECT array if it is defined
+  IF( ALLOCATED(SELECT) ) THEN
+    DEALLOCATE(SELECT)
+    ALLOCATE(SELECT(NP))
+    SELECT(:) = .FALSE.
+    DO i=1,NP
+      SELECT(i) = newSELECT(i)
+    ENDDO
+    IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
+  ENDIF
+  !
 ENDIF
 !
 !Save new cell vectors to H (making sure non-diagonal components are all zero)

@@ -1133,7 +1133,9 @@ CASE(2067)
   msg = "..> New number of particles: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2068)
-  msg = "..> System was successfully duplicated."
+  !reals(1) = new number of atoms
+  WRITE(temp,*) NINT( reals(1) )
+  msg = "..> System was successfully duplicated ("//TRIM(ADJUSTL(temp))//" atoms)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2069)
   !strings(1) = "all" or property to be removed

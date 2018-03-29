@@ -131,7 +131,7 @@ CHARACTER(LEN=128):: msg
 INTEGER:: i, j, k, l, n, p, q, r
 INTEGER,DIMENSION(6):: IPIV !for LAPACK routine DGESV
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
-REAL(dp),PARAMETER:: Ak_threshold=1.d-4 !threshold for normalization of the A_k(n)
+REAL(dp),PARAMETER:: Ak_threshold=1.d-9 !threshold for normalization of the A_k(n)
                                       !This is because of numerical precision,
                                       !to avoid division by ridiculously small numbers.
                                       !The value 10^-4 assumes C_tensor is in GPa
@@ -623,6 +623,17 @@ ENDIF
 !Solving the 6 linear equations
 !Note: DGESV is a LAPACK routine for solving linear equations
 CALL DGESV(6,1,LHA(:,:),6,IPIV,RHA(:,:),6,k)
+!
+IF(verbosity==4) THEN
+  !Some debug messages
+  msg = "Values of RHA returned by DGESV:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO n=1,3
+    WRITE (msg,'(3X,2e10.3)') RHA(n,1), RHA(n+3,1)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDDO
+ENDIF
+!
 !If it failed, k!=0
 IF(k.NE.0) THEN
   ifail = 3

@@ -1134,7 +1134,9 @@ CASE(2067)
   msg = "..> Nouveau nombre de particules : "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2068)
-  msg = "..> Le système a bien été dupliqué."
+  !reals(1) = new number of atoms
+  WRITE(temp,*) NINT( reals(1) )
+  msg = "..> Le système a bien été dupliqué ("//TRIM(ADJUSTL(temp))//" atomes)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2069)
   !strings(1) = "all" or property to be removed
@@ -2954,7 +2956,7 @@ CASE(4821)
   WRITE(temp,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
   msg = "X!X ERREUR : le nombre d'atomes ("//TRIM(ADJUSTL(temp))// &
-      & ") dépasse la table du tableau alloué ("//TRIM(ADJUSTL(temp2))//")."
+      & ") dépasse la taille du tableau alloué ("//TRIM(ADJUSTL(temp2))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4822)
   msg = "X!X ERREUR : aucun fichier à traiter, abandon."
@@ -2962,7 +2964,7 @@ CASE(4822)
 CASE(4823)
   !strings(1) = keyword 1
   !strings(2) = keyword 2
-  msg = "X!X ERREUR : les mots-clé '"//TRIM(ADJUSTL(strings(1)))//"' et '" &
+  msg = "X!X ERREUR : les mots-clés '"//TRIM(ADJUSTL(strings(1)))//"' et '" &
       &  //TRIM(ADJUSTL(strings(2)))//"' sont mutuellement exclusifs, abandon."
 CASE(4824)
   !strings(1) = name of unknown command
