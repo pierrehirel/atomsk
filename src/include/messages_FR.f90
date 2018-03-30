@@ -2946,7 +2946,7 @@ CASE(4819)
   msg = "X!X ERREUR : les vecteurs de base ne sont pas orthogonaux."
   CALL DISPLAY_MSG(1,msg,logfile)
   IF( LEN_TRIM(strings(1))>0 ) THEN
-    msg = "    Vecteur suggéré suivant "//TRIM(ADJUSTL(strings(2)))//": "//TRIM(ADJUSTL(strings(1)))
+    msg = "    Vecteur suggéré suivant "//TRIM(ADJUSTL(strings(2)))//" : "//TRIM(ADJUSTL(strings(1)))
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
 CASE(4820)

@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 March 2018                                    *
+!* Last modification: P. Hirel - 30 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1095,12 +1095,16 @@ DO ioptions=1,SIZE(options_array)
     ENDIF
   ENDIF
   !
-  !If a selection exists, check that at least one atom is selected, otherwise clear selection
+  !If a selection exists, check for size consistency
   IF( ALLOCATED(SELECT) ) THEN
     IF( SIZE(SELECT)<=0 .OR. .NOT.ANY(SELECT(:)) ) THEN
+      !No atom is selected => clear selection by de-allocating SELECT
       nwarn=nwarn+1
       IF( ALLOCATED(SELECT)) DEALLOCATE(SELECT)
       CALL ATOMSK_MSG(2750,(/""/),(/0.d0/))
+    ELSEIF( SIZE(SELECT).NE.SIZE(P,1) ) THEN
+      !Resize SELECT array so that its size matches the number of atoms
+      CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
     ENDIF
   ENDIF
   !
