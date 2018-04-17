@@ -729,8 +729,13 @@ DO ioptions=1,SIZE(options_array)
         GOTO 810
       ENDIF
     ELSEIF( region_side=="in" .OR. region_side=="out" ) THEN
+      region_dir = ""
+      region_1(:) = 0.d0
+      region_2(:) = 0.d0
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom
-      IF(region_geom=='box') THEN
+      IF(region_geom=='cell') THEN
+        !No other parameter
+      ELSEIF(region_geom=='box') THEN
         READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
             & region_side, region_geom, treal(1), treal(2), treal(3), &
             & treal(4), treal(5), treal(6)

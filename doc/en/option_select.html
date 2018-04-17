@@ -31,6 +31,8 @@
 
 <p><code>-select &#60;above|below&#62; &#60;d&#62; &#60;dir&#62;</code></p>
 
+<p><code>-select &#60;in|out&#62; cell</code></p>
+
 <p><code>-select &#60;in|out&#62; box &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;x'&#62; &#60;y'&#62; &#60;z'&#62;</code></p>
 
 <p><code>-select &#60;in|out&#62; sphere &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62;</code></p>
@@ -78,6 +80,8 @@ to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[0
   <li><strong>r</strong>: for the torus only, the secondary radius (in &Aring;).</li>
   <li><strong>axis</strong>: for the cylinder only, the main axis direction, must be "X", "Y" or "Z".</li>
 </ul>
+
+<p>When using <strong>-select in cell</strong> (or <strong>-select out cell</strong>), atoms that are inside (respectively outside) of the simulation cell are selected. No other parameter is required.</p>
 
 <p>The <strong>box</strong> is a parallelepipedic box defined by two points of coordinates (x,y,z) and (x',y',z').</p>
 

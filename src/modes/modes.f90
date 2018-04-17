@@ -391,6 +391,8 @@ CASE('create')
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
     CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+      msg = 'Reading the [hkil] ...'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
       DO j=1,3
         i=i+1
@@ -403,14 +405,16 @@ CASE('create')
             CALL ATOMSK_MSG(815,(/""/),(/0.d0/))
             GOTO 10000
           ELSE
-            GOTO 7000
+            !Other error, unable to convert this string into a proper vector
+            CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
+            GOTO 10000
           ENDIF
         ENDIF
       ENDDO
-      !ORIENT(3,:) = 0.d0
-      !ORIENT(3,3) = 1.d0
     CASE DEFAULT
       !Three Miller vectors follow, they must have notation [hkl]
+      msg = 'Reading the [hkl] ...'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO j=1,3
         i=i+1
         IF( LEN_TRIM(mode_param(i))>0 ) THEN
@@ -424,7 +428,10 @@ CASE('create')
           ELSE
             CALL INDEX_MILLER(temp,ORIENT(j,:),k)
           ENDIF
-          IF( k>0 ) GOTO 7000
+          IF( k>0 ) THEN
+            CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
+            GOTO 10000
+          ENDIF
         ENDIF
       ENDDO
     END SELECT

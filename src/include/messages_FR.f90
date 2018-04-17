@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 09 March 2018                                    *
+!* Last modification: P. Hirel - 12 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -677,6 +677,9 @@ CASE(12)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(14)
+  msg = "<i> Les atomes sélectionnés ont été supprimés : aucune sélection n'est plus définie."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
 CASE(700)
@@ -791,6 +794,10 @@ CASE(815)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X ERREUR : division par zero."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(817)
+  !strings(1) = a string that could not be interpreted
+  msg = "X!X ERREUR : impossible de convertir cette chaîne en indices de Miller : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -1242,7 +1249,7 @@ CASE(2077)
     ENDIF
     IF(strings(2)=="sphere") THEN
       temp2 = "de la sphère"
-    ELSEIF(strings(2)=="box") THEN
+    ELSEIF(strings(2)=="box" .OR. strings(2)=="cell") THEN
       temp2 = "de la boîte"
     ELSEIF(strings(2)=="cylinder") THEN
       temp2 = "du cylindre"

@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 March 2018                                    *
+!* Last modification: P. Hirel - 17 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1115,20 +1115,20 @@ ELSEIF( hexagonal ) THEN
       v = ORIENT(i,1) + 2.d0*ORIENT(i,2)
       w = ORIENT(i,3)
       !Check for common divisor
-      IF( DABS(u)>0.1d0 .AND. NINT(v)>0.1d0 ) THEN
-        z1 = GCD( NINT(u) , NINT(v) )
+      IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+        z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
       ELSE
-        z1 = MAX(u,v)
+        z1 = MAX(DABS(u),DABS(v))
       ENDIF
-      IF( DABS(u)>0.1d0 .AND. NINT(w)>0.1d0 ) THEN
-        z2 = GCD( NINT(u) , NINT(w) )
+      IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+        z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
       ELSE
-        z2 = MAX(u,w)
+        z2 = MAX(DABS(u),DABS(w))
       ENDIF
       IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
-        x = GCD( NINT(z1),NINT(z2) )
+        x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
       ELSE  !i.e. z1==0 or z2==0
-        x = MAX( z1,z2 )
+        x = MAX( DABS(z1) , DABS(z2) )
       ENDIF
       IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
       !Set box vector

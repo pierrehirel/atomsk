@@ -28,7 +28,7 @@
 
 <p>Le mot-clé <strong>box</strong> est obligatoire et doit apparaître avant tout autre mot-clé. Il doit être suivi (sur la même ligne) de trois nombres réels indiquant les dimensions de la boîte finale (en &Aring;). La boîte finale ne peut être qu'un parallélépipède.</p>
 
-<p>Le mot-clé <strong>random &#60;N&#62;</strong> peut être utilisé pour générer une structure aléatoire constituée de &#60;N&#62; grains. Les positions et orientations cristallographiques seront générées aléatoirement par le programme. Notez que cette option tente de définir des nombres au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et du même &#60;fichier_param&#62; il est très probable d'obtenir des résultats différents.</p>
+<p>Le mot-clé <strong>random &#60;N&#62;</strong> peut être utilisé pour générer une structure aléatoire constituée de &#60;N&#62; grains. Les positions et les orientations cristallographiques des grains seront générées aléatoirement par le programme. Notez que cette option tente de définir des nombres au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même germe et du même &#60;fichier_param&#62; il est très probable d'obtenir des résultats différents. Atomsk créera un nouveau fichier de paramètres, dont le nom se terminera par "_param.txt", contenant les positions et orientations aléatoires des grains qui ont été générées. Ce nouveau fichier de paramètres peut être réutilisé afin de reproduire le même polycrystal.</p>
 
 <p>Avec le mot-clé <strong>lattice</strong>, suivi d'un type de réseau, les positions des grains seront similaires à celles du réseau donné. Les types de réseau supportés sont "bcc", "fcc", "diamond". Par exemple avec un réseau "fcc", les germes seront placés à chaque coin de la boîte ainsi qu'au centre de chaque face. Les orientations cristallographiques des grains seront définies de façon aléatoire par le programe.</p>
 
@@ -52,7 +52,14 @@
 
 <p>Le mode <code>--polycrystal</code> créera une nouvelle propriété auxiliaire pour chaque atome : le "grainID", c'est-à-dire le numéro du grain auquel l'atome appartient. Ceci permet de facilement sélectionner les grains, par exemple avec l'<a href="./option_select.html">option <code>-select</code></a>. Notez que les propriétés auxiliaires ne peuvent être écrites que dans certains formats de fichiers, par exemple le <a href="./format_cfg.html">format CFG d'Atomeye</a>.</p>
 
-<p>Une fois le polycristal généré, la <strong>distribution de tailles de grains</strong> est calculée et écrite dans un fichier de données (*.dat), nommé d'après le nom du fichier de sortie.</p>
+<p>Une fois le polycristal généré, Atomsk produira les fichiers supplémentaires suivants :</p>
+
+<ul>
+  <li><strong>*.dat</strong> : fichier de données contenant la distribution de tailles de grains.</li>
+  <li><strong>*_nodes.xsf</strong> : fichier au format XSF contenant les positions des n&oelig;uds utilisées pour générer le polycrystal. Chaque n&oelig;ud est représenté par un atome d'hydrogène.</li>
+  <li><strong>*_grains-com.xsf</strong> : fichier au format XSF contenant les positions des centres de masse de chaque grain du polycrystal. Chaque centre de masse est représenté par un atome d'hydrogène.</li>
+  <li><strong>*_param.txt</strong> (seulement si le mot-clé "random" a été utilisé) : fichier texte contenant les nombres aléatoires générés par Atomsk. Ce fichier a le format d'un fichier de paramètres (&#60;fichier_param&#62;), et peut donc être utilisé pour générer un polycrystal identique.</li>
+</ul>
 
 <p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a>, celles-ci seront appliquées au polycristal.</p>
 

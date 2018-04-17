@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 09 March 2018                                    *
+!* Last modification: P. Hirel - 12 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -651,6 +651,9 @@ CASE(12)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(14)
+  msg = "<i> Ausgewählte Atome wurden entfernt: Die zuvor definierte Auswahl wurde gelöscht."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNUNG MESSAGES
 CASE(700)
@@ -764,6 +767,10 @@ CASE(815)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X FEHLER: Durch Null teilen."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(817)
+  !strings(1) = a string that could not be interpreted
+  msg = "X!X FEHLER: Diese Zeichenfolge kann nicht als Miller-Index interpretiert werden: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES

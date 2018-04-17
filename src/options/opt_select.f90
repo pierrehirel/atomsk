@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 04 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -454,73 +454,117 @@ CASE('in','out')
   !
   SELECT CASE(region_geom)
   !
-  CASE('box')
-  !region_1(:) = position of first corner of the box
-  !region_2(:) = position of last corner of the box
-  xmin = MIN( region_1(1),region_2(1) )
-  xmax = MAX( region_1(1),region_2(1) )
-  ymin = MIN( region_1(2),region_2(2) )
-  ymax = MAX( region_1(2),region_2(2) )
-  zmin = MIN( region_1(3),region_2(3) )
-  zmax = MAX( region_1(3),region_2(3) )
-  !
-  DO i=1,SIZE(P(:,1))
-    IF( P(i,1)>xmin .AND. P(i,1)<xmax .AND.                &
-      & P(i,2)>ymin .AND. P(i,2)<ymax .AND.                &
-      & P(i,3)>zmin .AND. P(i,3)<zmax       ) THEN
-      !If atom is inside the box...
-      IF(region_side=='in') THEN
-        !...and if we want to select the inside of the box, set to true
-        SELECT(i) = .TRUE.
-        Nselect = Nselect+1
-      ELSE
-        !...and if we want to select the outside of the box, set to false
-        SELECT(i) = .FALSE.
-      ENDIF
+  CASE('cell')
+    !Select all atoms that are inside or outside of the simulation cell
+    !Convert atom positions into reduced/fractional coordinates
+    !Check if coordinates are already reduced or not
+    CALL FIND_IF_REDUCED(P,isreduced)
+    !If not reduced, then reduce them
+    IF( .NOT.isreduced ) THEN
+      CALL CART2FRAC(P,H)
+    ENDIF
     !
-    ELSE
-      !If atom is NOT inside the box...
-      IF(region_side=='in') THEN
-        !...and if we want to select the inside of the box, set to false
-        SELECT(i) = .FALSE.
+    !Loop on all atoms
+    DO i=1,SIZE(P,1)
+      IF( P(i,1)>=0.d0 .AND. P(i,1)<1.d0 .AND. &
+        & P(i,2)>=0.d0 .AND. P(i,2)<1.d0 .AND. &
+        & P(i,3)>=0.d0 .AND. P(i,3)<1.d0     ) THEN
+        !If atom is inside the cell...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the cell, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !...and if we want to select the outside of the cell, set to false
+          SELECT(i) = .FALSE.
+        ENDIF
+      !
       ELSE
-        !...and if we want to select the outside of the box, set to true
-        SELECT(i) = .TRUE.
-        Nselect = Nselect+1
+        !If atom is NOT inside the cell...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the cell, set to false
+          SELECT(i) = .FALSE.
+        ELSE
+          !...and if we want to select the outside of the cell, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
       ENDIF
+    ENDDO
+    !
+    !Convert atom positions back to Cartesian coordinates
+    IF( .NOT.isreduced ) THEN
+      CALL FRAC2CART(P,H)
     ENDIF
-  ENDDO
-  !
-  !
+    !
+  CASE('box')
+    !Select atoms that are inside/outside a rectangular box
+    !region_1(:) = position of first corner of the box
+    !region_2(:) = position of last corner of the box
+    xmin = MIN( region_1(1),region_2(1) )
+    xmax = MAX( region_1(1),region_2(1) )
+    ymin = MIN( region_1(2),region_2(2) )
+    ymax = MAX( region_1(2),region_2(2) )
+    zmin = MIN( region_1(3),region_2(3) )
+    zmax = MAX( region_1(3),region_2(3) )
+    !
+    DO i=1,SIZE(P(:,1))
+      IF( P(i,1)>xmin .AND. P(i,1)<xmax .AND.                &
+        & P(i,2)>ymin .AND. P(i,2)<ymax .AND.                &
+        & P(i,3)>zmin .AND. P(i,3)<zmax       ) THEN
+        !If atom is inside the box...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the box, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !...and if we want to select the outside of the box, set to false
+          SELECT(i) = .FALSE.
+        ENDIF
+      !
+      ELSE
+        !If atom is NOT inside the box...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the box, set to false
+          SELECT(i) = .FALSE.
+        ELSE
+          !...and if we want to select the outside of the box, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+    !
   CASE('sphere')
-  !region_1(:) = center of the sphere
-  !region_2(1) = radius of the sphere
-  DO i=1,SIZE(P(:,1))
-    distance = VECLENGTH( P(i,1:3)-region_1(1:3) )
-    IF( distance<region_2(1) ) THEN
-      !If atom is inside the sphere...
-      IF(region_side=='in') THEN
-        !...and if we want to select the inside of the sphere, set to true
-        SELECT(i) = .TRUE.
-        Nselect = Nselect+1
+    !region_1(:) = center of the sphere
+    !region_2(1) = radius of the sphere
+    DO i=1,SIZE(P(:,1))
+      distance = VECLENGTH( P(i,1:3)-region_1(1:3) )
+      IF( distance<region_2(1) ) THEN
+        !If atom is inside the sphere...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the sphere, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ELSE
+          !...and if we want to select the outside of the sphere, set to false
+          SELECT(i) = .FALSE.
+        ENDIF
       ELSE
-        !...and if we want to select the outside of the sphere, set to false
-        SELECT(i) = .FALSE.
+        !If atom is NOT inside the sphere...
+        IF(region_side=='in') THEN
+          !...and if we want to select the inside of the sphere, set to false
+          SELECT(i) = .FALSE.
+        ELSE
+          !...and if we want to select the outside of the sphere, set to true
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
       ENDIF
-    ELSE
-      !If atom is NOT inside the sphere...
-      IF(region_side=='in') THEN
-        !...and if we want to select the inside of the sphere, set to false
-        SELECT(i) = .FALSE.
-      ELSE
-        !...and if we want to select the outside of the sphere, set to true
-        SELECT(i) = .TRUE.
-        Nselect = Nselect+1
-      ENDIF
-    ENDIF
-  ENDDO
-  !
-  !
+    ENDDO
+    !
+    !
   CASE('cylinder')
     !Define the axes: a3 is the direction of the main axis
     SELECT CASE(region_dir)
@@ -567,8 +611,8 @@ CASE('in','out')
         ENDIF
       ENDIF
     ENDDO
-  !
-  !
+    !
+    !
   CASE('torus')
     !Define the axes: a3 is the direction normal to the torus plane
     SELECT CASE(region_dir)
