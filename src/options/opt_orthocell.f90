@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
-!* Last modification: P. Hirel - 29 March 2018                                    *
+!* Last modification: P. Hirel - 18 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -356,7 +356,7 @@ ELSE
   !Same with auxiliary properties if they are present
   IF( doaux ) THEN
     IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-    ALLOCATE(AUX(NP,4))
+    ALLOCATE( AUX(NP,SIZE(newAUX,2)) )
     DO i=1,NP
       AUX(i,:) = newAUX(i,:)
     ENDDO
