@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 12 April 2018                                    *
+!* Last modification: P. Hirel - 19 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2966,7 +2966,7 @@ CASE(4828)
   msg = "X!X FEHLER: at least two cell dimensions are too small, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
-  msg = "X!X ERROR: one box vector is a linear combination of the other two, aborting."
+  msg = "X!X FEHLER: Boxvektoren sind nicht linear unabhängig, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."

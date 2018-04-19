@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 April 2018                                    *
+!* Last modification: P. Hirel - 19 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -878,7 +878,7 @@ SUBROUTINE INDEX_MILLER_HCP(planestring,planeindices,ifail)
 IMPLICIT NONE
 CHARACTER(LEN=16),INTENT(IN):: planestring
 CHARACTER(LEN=16):: temp, temp2
-INTEGER:: i, m, mint, n
+INTEGER:: i, m, mint
 INTEGER:: ifail !0=success; 1=error while reading string; 2=h+k not equal to -i
 INTEGER:: strpos
 REAL(dp):: msign   !sign of value
@@ -888,7 +888,6 @@ ifail=0
 planeindices(:) = 0.d0
 !
 m = 1
-n = 1
 mint = 0
 msign = 1.d0
 temp = planestring
@@ -921,6 +920,7 @@ IF( SCAN(temp,'_').NE.0 ) THEN
     temp = temp(strpos+1:)
     !read fourth value
     READ(temp,*,ERR=100,END=100) planeindices(3)
+    strpos=4
   ELSE
     !h+k is not equal to -i => return with error
     ifail = 2
@@ -931,7 +931,7 @@ ELSE
   !convert them to a vector like [1 -1 0]
   strpos=0
   DO i=1, LEN_TRIM(temp)
-    IF(n>4) GOTO 100
+    IF(strpos>4) GOTO 100
     READ(temp(i:i),*,ERR=100,END=100) temp2
     IF(temp2=='-') THEN
       msign = -1.d0
@@ -949,11 +949,11 @@ ELSE
         ENDIF
       ENDIF
       m = MIN(3,m+1)
-      n = n+1
       msign = 1.d0
     ENDIF
   ENDDO
 ENDIF
+IF(strpos.NE.4) ifail=1
 RETURN
 !
 100 CONTINUE
