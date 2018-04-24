@@ -1,12 +1,6 @@
 CHANGELOG FOR ATOMSK
 ====================
 
-
-Master (development)
---------------------
-
-
-
 Beta 0.10 (24 April 2018)
 -------------------------
 - some modules were split into smaller ones, making current version incompatible with previous branches.

@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER="master"
+VER="Beta-0.10"
 
 # Name of the final binary
 BIN=atomsk
