@@ -4,6 +4,11 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+
+
+
+Beta 0.10 (24 April 2018)
+-------------------------
 - some modules were split into smaller ones, making current version incompatible with previous branches.
 - added support for reading and writing files in PDFFIT structure file format (*.str or *.stru).
 - new option "-orthogonal-cell" allows to find a suitable equivalent orthorhombic cell for any type of system.
