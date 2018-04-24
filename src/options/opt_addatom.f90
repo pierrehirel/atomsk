@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,6 +34,7 @@ USE files
 USE subroutines
 USE neighbors
 USE sorting
+USE resize
 !
 !
 CONTAINS
@@ -376,6 +377,11 @@ IF( addedatoms>0 ) THEN
   !
   IF( ALLOCATED(SELECT) ) THEN
     CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
+    IF( i>0 ) THEN
+      nerr=nerr+1
+      CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
+      GOTO 1000
+    ENDIF
   ENDIF
   !
 ENDIF

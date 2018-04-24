@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
-!* Last modification: P. Hirel - 18 April 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,7 @@ USE comv
 USE constants
 USE messages
 USE files
+USE resize
 USE subroutines
 !
 !

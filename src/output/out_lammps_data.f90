@@ -54,6 +54,7 @@ CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: charges, shells, velocities !are atom charges, shells, velocities, defined?
+INTEGER:: atomID
 INTEGER:: bondtype   !bond type (core-shell model)
 INTEGER:: i, iloop, j, l
 INTEGER:: molID      !position of the molecule-ID in AUX (=0 if not defined)
@@ -86,9 +87,11 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
  charges = .FALSE.
 shells = .FALSE.
 velocities = .FALSE.
+atomID=0
 i=0
 j=0
 q = 0
+qs = 0
 typecol = 0
 vx = 0
 vy = 0
@@ -154,13 +157,16 @@ IF( ALLOCATED(AUXNAMES) ) THEN
       qs = i
     ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='type' ) THEN
       typecol = i
-      !Find how many different species are in AUX
-      CALL FIND_NSP(AUX(:,typecol),atypes)
-      Ntypes = SIZE(atypes,1)
-      !Verify that atom types are all greater than zero
-      IF( ANY(atypes(:,1)<0.99999999d0) ) THEN
-        nwarn=nwarn+1
-        CALL ATOMSK_MSG(3714,(/""/),(/0.d0/))
+      IF( Nshells==0 ) THEN
+        !Could not determine number of atom types before
+        !Count how many different species are in AUX
+        CALL FIND_NSP(AUX(:,typecol),atypes)
+        Ntypes = SIZE(atypes,1)
+        !Verify that atom types are all greater than zero
+        IF( ANY(atypes(:,1)<0.99999999d0) ) THEN
+          nwarn=nwarn+1
+          CALL ATOMSK_MSG(3714,(/""/),(/0.d0/))
+        ENDIF
       ENDIF
     ENDIF
   ENDDO
@@ -354,10 +360,10 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !
   !(1) Write positions of cores (atoms) and shells
   !    with format "full": atom-ID molecule-ID atom-type q x y z
-  j=0
+  atomID=0
   moleculeID = 0
   DO i=1,SIZE(Ppoint,1)
-    j=j+1
+    atomID=atomID+1
     !If "molecule-ID" is defined in AUX, it is used,
     !otherwise the moleculeID is incremented at each new atom-shell pair.
     IF( molID>0 ) THEN
@@ -379,14 +385,14 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
         IF( aentries(iloop,1)==NINT(Ppoint(i,4)) ) Nspecies = iloop
       ENDDO
     ENDIF
-    WRITE(40,212) j, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+    WRITE(40,212) atomID, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
     !
     IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
       !Write shell info immediately after its core
-      !NOTE: i the index of core in P(:,:) AND the index of its shell in S(:,:)
+      !NOTE: i is the index of core in P(:,:) AND the index of its shell in S(:,:)
       !     But i cannot be used as "atom-ID" in LAMMPS data file!
-      !     Increment j and use it as "atom-ID" here
-      j=j+1
+      !     => use a separate variable "atomID"
+      atomID=atomID+1
       IF( qs>0 ) THEN
         Qshell = AUX(i,qs)
       ELSE
@@ -402,7 +408,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
           ENDIF
         ENDIF
       ENDDO
-      WRITE(40,212) j, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
+      WRITE(40,212) atomID, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
     ENDIF
   ENDDO
   !

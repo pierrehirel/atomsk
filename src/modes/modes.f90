@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,6 +39,7 @@ USE comv
 USE constants
 USE messages
 USE files
+USE resize
 USE subroutines
 !Modules for input and options
 USE readin

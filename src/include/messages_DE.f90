@@ -772,6 +772,10 @@ CASE(817)
   !strings(1) = a string that could not be interpreted
   msg = "X!X FEHLER: Diese Zeichenfolge kann nicht als Miller-Index interpretiert werden: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(818)
+  !strings(1) = name of the array that was supposed to be resized
+  msg = "X!X FEHLER: Beim Versuch die Größe des Arrays zu ändern, ist ein Fehler aufgetreten: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)

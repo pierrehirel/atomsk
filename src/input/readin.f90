@@ -260,18 +260,24 @@ IF( i.NE.0 ) THEN
 ENDIF
 !
 IF(verbosity==4) THEN
-  IF(ALLOCATED(AUX)) THEN
-    WRITE(msg,'(a6,12(a9,1X))') "AUXNA:", (TRIM(AUXNAMES(i))//' ', i=1,MIN(12,SIZE(AUXNAMES)) )
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO strlength=1,MIN(20,SIZE(AUX,1))
-      WRITE(msg,'(a5,12(e10.3,1X))') "AUX: ", (AUX(strlength,i), i=1,MIN(12,SIZE(AUX,2)) )
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    ENDDO
-    IF(SIZE(AUX,1)>20) THEN
-      WRITE(msg,*) "AUX:    ... discontinued ..."
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !Write positions of cores/shells and auxiliary properties into a file
+  OPEN(UNIT=23,FILE="readin.adbg",FORM="FORMATTED",STATUS="UNKNOWN")
+  WRITE(23,*) SIZE(P,1)
+  DO i=1,SIZE(P,1)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      WRITE(23,'(i6,6(1X,f9.3))') i, P(i,:), S(i,:)
+    ELSE
+      WRITE(23,'(i6,3(1X,f9.3))') i, P(i,:)
     ENDIF
+  ENDDO
+  WRITE(23,*) ""
+  IF(ALLOCATED(AUX)) THEN
+    WRITE(23,'(a6,12(1X,a9))') "AUXNA:", (TRIM(AUXNAMES(i))//' ', i=1,MIN(12,SIZE(AUXNAMES)) )
+    DO strlength=1,SIZE(AUX,1)
+      WRITE(23,'(i6,12(1X,e10.3))') strlength, (AUX(strlength,i), i=1,MIN(12,SIZE(AUX,2)) )
+    ENDDO
   ENDIF
+  CLOSE(23)
 ENDIF
 !
 IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN

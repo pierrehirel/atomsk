@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,6 +61,7 @@ USE files
 USE subroutines
 USE guess_form
 USE deterH
+USE resize
 !
 !Modules managing options
 USE addatom
@@ -1110,6 +1111,11 @@ DO ioptions=1,SIZE(options_array)
     ELSEIF( SIZE(SELECT).NE.SIZE(P,1) ) THEN
       !Resize SELECT array so that its size matches the number of atoms
       CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
+      IF( i>0 ) THEN
+        nerr=nerr+1
+        CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
   ENDIF
   !
