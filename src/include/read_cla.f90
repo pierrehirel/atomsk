@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2018                                    *
+!* Last modification: P. Hirel - 04 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1168,7 +1168,7 @@ DO WHILE(i<SIZE(cla))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     ELSEIF( temp=='in' .OR. temp=='out' ) THEN
       !A geometric region is defined
-      !read the region geometry: 'box', 'sphere', 'cylinder'
+      !read the region geometry: 'cell', 'box', 'sphere', 'cylinder'
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
@@ -1176,7 +1176,10 @@ DO WHILE(i<SIZE(cla))
       !  & temp.NE.'prism' .AND. temp.NE.'torus' ) GOTO 120
       region_geom = temp(1:16)
       !Next parameters depend on the geometry
-      IF(region_geom=='box') THEN
+      IF(region_geom=='cell') THEN
+        !No other parameters
+        CONTINUE
+      ELSEIF(region_geom=='box') THEN
         !Read the coordinates of the first corner of the box
         !X
         i=i+1

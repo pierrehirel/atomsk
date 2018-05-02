@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 30 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,6 +61,7 @@ USE files
 USE subroutines
 USE guess_form
 USE deterH
+USE resize
 !
 !Modules managing options
 USE addatom
@@ -729,8 +730,13 @@ DO ioptions=1,SIZE(options_array)
         GOTO 810
       ENDIF
     ELSEIF( region_side=="in" .OR. region_side=="out" ) THEN
+      region_dir = ""
+      region_1(:) = 0.d0
+      region_2(:) = 0.d0
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom
-      IF(region_geom=='box') THEN
+      IF(region_geom=='cell') THEN
+        !No other parameter
+      ELSEIF(region_geom=='box') THEN
         READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
             & region_side, region_geom, treal(1), treal(2), treal(3), &
             & treal(4), treal(5), treal(6)
@@ -1105,6 +1111,11 @@ DO ioptions=1,SIZE(options_array)
     ELSEIF( SIZE(SELECT).NE.SIZE(P,1) ) THEN
       !Resize SELECT array so that its size matches the number of atoms
       CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
+      IF( i>0 ) THEN
+        nerr=nerr+1
+        CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
   ENDIF
   !

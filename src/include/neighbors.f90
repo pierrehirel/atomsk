@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 12 Feb. 2018                                     *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,6 +37,7 @@ USE comv
 USE functions
 USE subroutines
 USE messages
+USE resize
 !
 !
 CONTAINS
@@ -265,16 +266,7 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
               IF( NNeigh(j) > SIZE(NeighList,2) ) THEN
                 !The neighbor list of this atom is full
                 !=> Increase the size of NeighList by NNincrement
-                IF( ALLOCATED(tempList) ) DEALLOCATE(tempList)
-                ALLOCATE( tempList (SIZE(NeighList,1) , SIZE(NeighList,2)+NNincrement ) )
-                tempList(:,:) = 0
-                DO u=1,SIZE(NeighList,2)
-                  tempList(:,u) = NeighList(:,u)
-                ENDDO
-                DEALLOCATE(NeighList)
-                ALLOCATE( NeighList( SIZE(tempList,1) , SIZE(tempList,2) ) )
-                NeighList(:,:) = tempList(:,:)
-                DEALLOCATE(tempList)
+                CALL RESIZE_INTARRAY2(NeighList,SIZE(NeighList,1),SIZE(NeighList,2)+NNincrement,l)
               ENDIF
               !Add atom i to the list of neighbors of atom j
               NeighList(j,NNeigh(j)) = i

@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 19 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -680,6 +680,9 @@ CASE(12)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(14)
+  msg = "<i> Selected atoms were removed: the selection previously defined was cleared."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
 CASE(700)
@@ -794,6 +797,14 @@ CASE(815)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X ERROR: division by zero."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(817)
+  !strings(1) = a string that could not be interpreted
+  msg = "X!X ERROR: unable to interpret this string as Miller indices: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(818)
+  !strings(1) = name of the array that was supposed to be resized
+  msg = "X!X ERROR: there was an error while attempting to resize the array "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -1217,6 +1228,9 @@ CASE(2077)
       temp = "inside the"
     ELSE
       temp = "outside of the"
+    ENDIF
+    IF(TRIM(strings(2))=="cell") THEN
+      temp = TRIM(ADJUSTL(temp))//" cell"
     ENDIF
     msg = ">>> Selecting atoms "//TRIM(temp)//" "//TRIM(strings(2))//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2945,7 +2959,7 @@ CASE(4828)
   msg = "X!X ERROR: at least two cell dimensions are too small, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
-  msg = "X!X ERROR: one box vector is a linear combination of the other two, aborting."
+  msg = "X!X ERROR: box vectors are not linearly independent, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERROR: only one mode can be used at a time."

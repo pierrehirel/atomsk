@@ -304,8 +304,7 @@ IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 CALL ATOMSK_MSG(2080,(/species/),(/DBLE(rmatoms),DBLE(SIZE(P,1))/))
 IF( clear_sel ) THEN
   !All selected atoms were removed => clear the selection
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(2750,(/''/),(/0.d0/))
+  CALL ATOMSK_MSG(14,(/''/),(/0.d0/))
   IF( ALLOCATED(SELECT) ) DEALLOCATE(SELECT)
 ENDIF
 GOTO 1000

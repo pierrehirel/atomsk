@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 09 March 2018                                    *
+!* Last modification: P. Hirel - 19 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -651,6 +651,9 @@ CASE(12)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "    Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(14)
+  msg = "<i> Ausgewählte Atome wurden entfernt: Die zuvor definierte Auswahl wurde gelöscht."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNUNG MESSAGES
 CASE(700)
@@ -764,6 +767,14 @@ CASE(815)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X FEHLER: Durch Null teilen."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(817)
+  !strings(1) = a string that could not be interpreted
+  msg = "X!X FEHLER: Diese Zeichenfolge kann nicht als Miller-Index interpretiert werden: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(818)
+  !strings(1) = name of the array that was supposed to be resized
+  msg = "X!X FEHLER: Beim Versuch die Größe des Arrays zu ändern, ist ein Fehler aufgetreten: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2959,7 +2970,7 @@ CASE(4828)
   msg = "X!X FEHLER: at least two cell dimensions are too small, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
-  msg = "X!X ERROR: one box vector is a linear combination of the other two, aborting."
+  msg = "X!X FEHLER: Boxvektoren sind nicht linear unabhängig, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."

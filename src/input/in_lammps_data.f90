@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 15 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -35,6 +35,7 @@ USE constants
 USE functions
 USE messages
 USE files
+USE resize
 USE subroutines
 !
 IMPLICIT NONE
@@ -199,7 +200,7 @@ DO
             DO i=1,k-1
               CALL ATOMSPECIES(DBLE(Masses(i,2)),species)
               CALL ATOMMASS(species,c)
-              IF( DABS( c - 10.d0*a )<=1.d0 ) THEN
+              IF( DABS( c - 10.d0*a )<=0.9d0 ) THEN
                 Masses(k,2) = Masses(i,2)
               ENDIF
             ENDDO
@@ -275,7 +276,7 @@ DO
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
     !There must be one blank line after the keyword "Atoms"
-    READ(30,*)
+    READ(30,*,ERR=800,END=800)
     !
     !Convert supercell parameters
     a = xhi
@@ -419,7 +420,7 @@ DO
           allidzero = .FALSE.
         ENDIF
         !
-        IF( Ncol>=6 ) THEN
+        IF( Ncol>=6 .AND. datatype.NE."full" ) THEN
           !If there are at least 6 columns, determine if
           !the last three columns contain replica flags (check for 3 integers)
           flagx = NINT(column(Ncol-2))
@@ -510,7 +511,7 @@ DO
           ELSE
             IF( P(Ncores,4)<1.d-12 ) THEN
               !Mass of this atom unknown => use atom type = atom species
-              P(id,4) = DBLE(atomtype)
+              P(Ncores,4) = DBLE(atomtype)
             ENDIF
           ENDIF
         ELSE
@@ -551,6 +552,9 @@ DO
         IF( shells ) THEN
           S(Nshells,1:3) = vector(:)
           shells = .FALSE. !we don't know if next particle is a shell
+        ELSEIF( Ncores>0 ) THEN
+          P(Ncores,1:3) = vector(:)
+          AUX(Ncores,1) = DBLE(atomtype)
         ELSE
           P(id,1:3) = vector(:)
           AUX(id,1) = DBLE(atomtype)
@@ -569,9 +573,23 @@ DO
     !If cores/shells were detected, resize arrays P, S and AUX
     IF( Ncores>0 .AND. Nshells>0 ) THEN
       CALL RESIZE_DBLEARRAY2(P,Ncores,4,i)
+      IF( i>0 ) THEN
+        nerr=nerr+1
+        CALL ATOMSK_MSG(818,(/"P"/),(/0.d0/))
+        GOTO 1000
+      ENDIF
       CALL RESIZE_DBLEARRAY2(S,Ncores,4,i)
+      IF( i>0 ) THEN
+        nerr=nerr+1
+        CALL ATOMSK_MSG(818,(/"S"/),(/0.d0/))
+        GOTO 1000
+      ENDIF
       CALL RESIZE_DBLEARRAY2(AUX,Ncores,SIZE(AUX,2),i)
-      IF(i>0) GOTO 1000
+      IF( i>0 ) THEN
+        nerr=nerr+1
+        CALL ATOMSK_MSG(818,(/"AUX"/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
     !
     doneAtoms = .TRUE.
@@ -587,7 +605,7 @@ DO
       CALL RESIZE_DBLEARRAY2(AUX,SIZE(P,1),SIZE(AUX,2)+3,j)
       IF( j>0 ) THEN
         nerr=nerr+1
-        PRINT*, "ERROR while resizing AUX"
+        CALL ATOMSK_MSG(818,(/"AUX"/),(/0.d0/))
         GOTO 1000
       ENDIF
       !

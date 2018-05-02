@@ -31,6 +31,8 @@
 
 <p><code>-select &#60;above|below&#62; &#60;d&#62; &#60;dir&#62;</code></p>
 
+<p><code>-select &#60;in|out&#62; cell</code></p>
+
 <p><code>-select &#60;in|out&#62; box &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;x'&#62; &#60;y'&#62; &#60;z'&#62;</code></p>
 
 <p><code>-select &#60;in|out&#62; sphere &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62;</code></p>
@@ -77,6 +79,8 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
   <li><strong>r</strong> : seulement pour le tore, son rayon secondaire (en &Aring;).</li>
   <li><strong>axe</strong> : seulement pour le cylindre, la direction de son axe principal, doit être "X", "Y" ou "Z".</li>
 </ul>
+
+<p>En utilisant <strong>-select in cell</strong> (ou <strong>-select out cell</strong>), les atomes situés à l'intérieur (respectivement à l'extérieur) de la boîte de simulation sont sélectionnés. Cette option ne prend aucun paramètre supplémentaire.</p>
 
 <p>La <strong>boîte</strong> ("box") est une boîte parallélépipédique définie par deux points de coordonnées (x,y,z) et (x',y',z').</p>
 

@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 29 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,6 +43,7 @@ USE comv
 USE constants
 USE messages
 USE files
+USE resize
 USE subroutines
 USE dislocation_iso
 USE dislocation_aniso
@@ -590,6 +591,11 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
     !If array SELECT is defined, expand it
     IF( ALLOCATED(SELECT) ) THEN
       CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1)+k,i)
+      IF( i>0 ) THEN
+        nerr=nerr+1
+        CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
     !
     !Also create temporary array T for shells if relevant
