@@ -391,13 +391,9 @@ CASE('create')
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
-<<<<<<< HEAD
     CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14')
-=======
-    CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
       msg = 'Reading the [hkil] ...'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
->>>>>>> upstream/master
       !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
       DO j=1,3
         i=i+1
