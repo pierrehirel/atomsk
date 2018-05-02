@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,6 +39,7 @@ USE comv
 USE constants
 USE messages
 USE files
+USE resize
 USE subroutines
 !Modules for input and options
 USE readin
@@ -390,7 +391,13 @@ CASE('create')
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
+<<<<<<< HEAD
     CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14')
+=======
+    CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+      msg = 'Reading the [hkil] ...'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+>>>>>>> upstream/master
       !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
       DO j=1,3
         i=i+1
@@ -403,14 +410,16 @@ CASE('create')
             CALL ATOMSK_MSG(815,(/""/),(/0.d0/))
             GOTO 10000
           ELSE
-            GOTO 7000
+            !Other error, unable to convert this string into a proper vector
+            CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
+            GOTO 10000
           ENDIF
         ENDIF
       ENDDO
-      !ORIENT(3,:) = 0.d0
-      !ORIENT(3,3) = 1.d0
     CASE DEFAULT
       !Three Miller vectors follow, they must have notation [hkl]
+      msg = 'Reading the [hkl] ...'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO j=1,3
         i=i+1
         IF( LEN_TRIM(mode_param(i))>0 ) THEN
@@ -424,7 +433,10 @@ CASE('create')
           ELSE
             CALL INDEX_MILLER(temp,ORIENT(j,:),k)
           ENDIF
-          IF( k>0 ) GOTO 7000
+          IF( k>0 ) THEN
+            CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
+            GOTO 10000
+          ENDIF
         ENDIF
       ENDDO
     END SELECT
