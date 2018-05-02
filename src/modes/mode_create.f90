@@ -612,7 +612,7 @@ CASE('c14')
   P(4,1) = 0.500d0
   P(4,2) = 0.333d0
   P(4,3) = 0.563d0
-  !Positions of Mg
+  !Positions of Zn
   P(6,3) = 0.500d0
   P(7,2) = 0.338d0
   P(7,3) = 0.750d0
@@ -644,11 +644,10 @@ CASE('c14')
   P(10,4) = P(5,4)
   P(11,4) = P(5,4)
   P(12,4) = P(5,4)
-  !Set up the unit cell
-  H(1,1) = create_a0(1)
-  H(2,2) = create_a0(2)
-  H(3,3) = create_a0(3)
-  Huc(:,:) = H(:,:)
+  !Transform atom positions to cartesian
+  P(:,1) = H(1,1)*P(:,1)
+  P(:,2) = H(2,2)*P(:,2)
+  P(:,3) = H(3,3)*P(:,3)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
   comment(1) = 'c14 '//TRIM(ADJUSTL(comment(1)))
