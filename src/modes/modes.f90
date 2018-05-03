@@ -349,7 +349,7 @@ CASE('create')
   create_a0(3) = create_a0(1)
   i=2
   IF( create_struc=='graphite' .OR. create_struc=='hcp' .OR.            &
-    & create_struc=='wurtzite' .OR. create_struc=='wz'      ) THEN
+    & create_struc=='wurtzite' .OR. create_struc=='wz' .OR. create_struc=='c14'      ) THEN
     i=i+1
     READ(mode_param(i),*,END=7000,ERR=7000) create_a0(3)
   ELSEIF(create_struc=='nanotube' .OR. create_struc=='NT' .OR. create_struc=='nt') THEN
@@ -391,7 +391,7 @@ CASE('create')
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
-    CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+    CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14')
       msg = 'Reading the [hkil] ...'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
