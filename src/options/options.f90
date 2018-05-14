@@ -659,7 +659,7 @@ DO ioptions=1,SIZE(options_array)
     IF(j>0) GOTO 800
     CALL ORIENT_XYZ(H,P,S,Hstart,Hend,SELECT,C_tensor)
   !
-  CASE('-orthogonal-cell','-orthorhombic-cell','-orthogonal-box','-orthorhombic-box','-orthocell','orthobox')
+  CASE('-orthogonal-cell','-orthorhombic-cell','-orthogonal-box','-orthorhombic-box','-orthocell','-orthobox')
     CALL ORTHOCELL_XYZ(H,P,S,AUX,SELECT)
   !
   CASE('-prop','-properties','-property')

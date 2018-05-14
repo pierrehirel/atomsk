@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 April 2018                                    *
+!* Last modification: P. Hirel - 14 May 2018                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -149,7 +149,8 @@ DO WHILE(i<SIZE(cla))
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
     IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp' .OR.            &
-      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz' .OR. mode_param(1)=='c14'      ) THEN
+      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz' .OR.             &
+      & mode_param(1)=='c14' .OR.  mode_param(1)=='C14'          ) THEN
       !Get lattice constant c
       i=i+1
       m=m+1
@@ -211,7 +212,7 @@ DO WHILE(i<SIZE(cla))
         i=i+1
         m=m+1
         READ(cla(i),*,END=130,ERR=130) mode_param(m)
-      CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14')
+      CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14')
         !Hexagonal lattice => read crystal orientation
         m=m+1
         mode_param(m) = "orient"

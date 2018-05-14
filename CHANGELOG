@@ -6,6 +6,12 @@ Master (development)
 --------------------
 
 
+Beta 0.10.1 (14 May 2018)
+-------------------------
+- in mode "--create", added possibility to create the C14 Laves lattice. Thanks to Julien Guénolé, IPMP, RWTH Aachen, Germany, for implementing this feature.
+- fixed a bug when creating wurtzite lattice with mode "--create". Thanks to Justin Ondry, UC Berkeley, USA, for pointing out this bug.
+- fixed a bug in the writing of JEMS files. Thanks to Tara Boland, Arizona State University, USA, for pointing out this bug and providing a fix.
+
 
 Beta 0.10 (24 April 2018)
 -------------------------
