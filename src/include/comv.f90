@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.04.24' !Version of the program
+CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.05.17'
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !
@@ -39,9 +39,11 @@ CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" a
 #if defined(WINDOWS)
   CHARACTER(LEN=1),PARAMETER:: pathsep='\'     !path separator for Windows
   CHARACTER(LEN=3),PARAMETER:: system_ls='dir' !command to list current directory
+  CHARACTER(LEN=16),PARAMETER:: pathnull='2>nul'  !redirection to NULL for Windows
 #else
   CHARACTER(LEN=1),PARAMETER:: pathsep='/'     !path separator for UNIX/Linux
   CHARACTER(LEN=3),PARAMETER:: system_ls='ls ' !command to list current directory
+  CHARACTER(LEN=16),PARAMETER:: pathnull='2>/dev/null'  !redirection to NULL for UNIX/Linux
 #endif
 !
 !**********************************

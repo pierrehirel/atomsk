@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 May 2017                                      *
+!* Last modification: P. Hirel - 16 May 2018                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,7 +87,7 @@ i=0
 a = 0.d0
 b = 0.d0
  c = 0.d0
- cosalpha = 0.d0
+ cosalpha = 0.d0   !default: alphe=beta=gamma=90°
  cosbeta = 0.d0
  cosgamma = 0.d0
  celldm(:)=0.d0
@@ -171,62 +171,65 @@ DO
           !
         ELSEIF( section=='system' ) THEN
           !
-          IF( fields(i)(1:3)=='nat' ) THEN
+          IF( fields(i)(1:3)=='nat' .OR. fields(i)(1:3)=='Nat' .OR. fields(i)(1:3)=='NAT' ) THEN
             !Read number of atoms NP
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) NP
-          ELSEIF( fields(i)(1:5)=='ibrav' ) THEN
+          ELSEIF( fields(i)(1:5)=='ibrav' .OR. fields(i)(1:5)=='IBRAV' ) THEN
             !Defines the type of lattice: read it
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) ibrav
-          ELSEIF( fields(i)(1:9)=='celldm(1)' ) THEN
+          ELSEIF( fields(i)(1:9)=='celldm(1)' .OR. fields(i)(1:9)=='CELLDM(1)' ) THEN
             !Read cell parameter alat
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) celldm(1)
-          ELSEIF( fields(i)(1:9)=='celldm(2)' ) THEN
+          ELSEIF( fields(i)(1:9)=='celldm(2)' .OR. fields(i)(1:9)=='CELLDM(2)' ) THEN
             !Read cell parameter alat
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) celldm(2)
-          ELSEIF( fields(i)(1:9)=='celldm(3)' ) THEN
+          ELSEIF( fields(i)(1:9)=='celldm(3)' .OR. fields(i)(1:9)=='CELLDM(3)' ) THEN
             !Read cell parameter alat
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) celldm(3)
-          ELSEIF( fields(i)(1:9)=='celldm(4)' ) THEN
+          ELSEIF( fields(i)(1:9)=='celldm(4)' .OR. fields(i)(1:9)=='CELLDM(4)' ) THEN
             !Read cell parameter alat
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) celldm(4)
-          ELSEIF( fields(i)(1:9)=='celldm(5)' ) THEN
+          ELSEIF( fields(i)(1:9)=='celldm(5)' .OR. fields(i)(1:9)=='CELLDM(5)' ) THEN
             !Read cell parameter alat
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) celldm(5)
-          ELSEIF( fields(i)(1:9)=='celldm(6)' ) THEN
+          ELSEIF( fields(i)(1:9)=='celldm(6)' .OR. fields(i)(1:9)=='CELLDM(6)' ) THEN
             !Read cell parameter alat
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) celldm(6)
-          ELSEIF( fields(i)(1:2)=='A ' ) THEN
-            !Read cell parameter A
-            strlength = SCAN(fields(i),'=')
-            IF( strlength.NE.0 ) READ(fields(i)(strlength+1:),*,END=800,ERR=800) a
-          ELSEIF( fields(i)(1:2)=='B ' ) THEN
-            !Read cell parameter B
-            strlength = SCAN(fields(i),'=')
-            IF( strlength.NE.0 ) READ(fields(i)(strlength+1:),*,END=800,ERR=800) b
-          ELSEIF( fields(i)(1:2)=='C ' ) THEN
-            !Read cell parameter C
-            strlength = SCAN(fields(i),'=')
-            IF( strlength.NE.0 ) READ(fields(i)(strlength+1:),*,END=800,ERR=800) c
-          ELSEIF( fields(i)(1:5)=='cosAB' ) THEN
+          ELSEIF( fields(i)(1:5)=='cosAB' .OR. fields(i)(1:5)=='cosab' ) THEN
             !Read cell angle gamma
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) cosgamma
-          ELSEIF( fields(i)(1:5)=='cosAC' ) THEN
+          ELSEIF( fields(i)(1:5)=='cosAC' .OR. fields(i)(1:5)=='cosac' ) THEN
             !Read cell angle beta
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) cosbeta
-          ELSEIF( fields(i)(1:5)=='cosBC' ) THEN
+          ELSEIF( fields(i)(1:5)=='cosBC' .OR. fields(i)(1:5)=='cosbc' ) THEN
             !Read cell angle alpha
             strlength = SCAN(fields(i),'=')
             READ(fields(i)(strlength+1:),*,END=800,ERR=800) cosalpha
+          ELSEIF( fields(i)(1:5)=='angle' .OR. fields(i)(1:5)=='block' .OR. &
+                & fields(i)(1:3)=='ass'  ) THEN
+            !ignore these keywords
+          ELSEIF( fields(i)(1:1)=='A' .OR. fields(i)(1:1)=='a' ) THEN
+            !Read cell parameter A
+            strlength = SCAN(fields(i),'=')
+            IF( strlength>0 ) READ(fields(i)(strlength+1:),*,END=800,ERR=800) a
+          ELSEIF( fields(i)(1:1)=='B' .OR. fields(i)(1:1)=='b' ) THEN
+            !Read cell parameter B
+            strlength = SCAN(fields(i),'=')
+            IF( strlength>0 ) READ(fields(i)(strlength+1:),*,END=800,ERR=800) b
+          ELSEIF( fields(i)(1:1)=='C' .OR. fields(i)(1:1)=='c' ) THEN
+            !Read cell parameter C
+            strlength = SCAN(fields(i),'=')
+            IF( strlength>0 ) READ(fields(i)(strlength+1:),*,END=800,ERR=800) c
           ENDIF
           !
         ENDIF
@@ -289,8 +292,7 @@ ENDIF
 !Check whether conventional notation (a,b,c,alpha,beta,gamma) or the celldm(:) were defined.
 !According to Quantum Espresso documentation, either one OR the other must be used, not both.
 !Here, if both were defined then output a warning, use the celldm(:) and ignore the conventional notation.
-IF( NINT(a).NE.0 .AND. NINT(b).NE.0 .AND. NINT(c).NE.0 .AND.      &
-  & NINT(cosalpha).NE.0 .AND. NINT(cosbeta).NE.0 .AND. NINT(cosgamma).NE.0 ) THEN
+IF( NINT(a).NE.0 .AND. NINT(b).NE.0 .AND. NINT(c).NE.0 ) THEN
   convnot = .TRUE.
 ENDIF
 IF( NINT(SUM(celldm(2:6))).NE.0 ) THEN

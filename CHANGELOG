@@ -4,6 +4,8 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- fixed a bug when reading PWscf input files (*.pw). Thanks to Dongho Nguimdo Moise, AIMS, Cameroon, for pointing out this bug.
+- removed error message from "ls" command that appeared when writing PWscf files (*.pw), when no suitable pseudopotential file was found.
 
 
 Beta 0.10.1 (14 May 2018)
