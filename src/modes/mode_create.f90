@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 April 2018                                    *
+!* Last modification: P. Hirel - 14 May 2018                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -126,7 +126,7 @@ SELECT CASE(create_struc)
 CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
     & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine')
   cubic = .TRUE.
-CASE('hcp','HCP','wurtzite','wz','WZ','graphite')
+CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14')
   hexagonal = .TRUE.
   cubic = .FALSE.
 CASE DEFAULT
@@ -522,22 +522,24 @@ CASE('wurtzite','wz')
   H(3,3) = create_a0(3)
   Huc(:,:) = H(:,:)
   !Set up atom positions
+  x = 1.d0/3.d0
+  y = 2.d0/3.d0
+  z1 = 3.d0/8.d0
   ALLOCATE(P(4,4))
   P(:,:) = 0.d0
-  x = 1.d0/3.d0
-  y = 1.d0/3.d0
-  z1 = 0.5d0
-  P(2,1) = x*H(1,1) + y*H(2,1)
-  P(2,2) = y*H(2,2)
-  P(2,3) = z1*H(3,3)
-  z1 = 3.d0/8.d0
+  P(1,1) = x*H(1,1) + y*H(2,1)
+  P(1,2) = y*H(2,2)
+  P(1,3) = 0.d0
+   P(2,1) = y*H(1,1) + x*H(2,1)
+   P(2,2) = x*H(2,2)
+   P(2,3) = 0.5d0*H(3,3)
+  P(3,1) = x*H(1,1) + y*H(2,1)
+  P(3,2) = y*H(2,2)
   P(3,3) = z1*H(3,3)
-  x = 1.d0/3.d0
-  y = 1.d0/3.d0
-  z1 = 7.d0/8.d0
-  P(4,1) = x*H(1,1) + y*H(2,1)
-  P(4,2) = y*H(2,2)
-  P(4,3) = z1*H(3,3)
+   z1 = 7.d0/8.d0
+   P(4,1) = y*H(1,1) + x*H(2,1)
+   P(4,2) = x*H(2,2)
+   P(4,3) = z1*H(3,3)
   !Set up atom species
   CALL ATOMNUMBER(create_species(1),P(1,4))
   P(2:4,4) = P(1,4)
@@ -584,6 +586,73 @@ CASE('graphite')
   !Set up the messages
   temp = TRIM(create_species(1))//TRIM(create_species(2))
   WRITE(comment(1),*) TRIM(temp)//' with hexagonal graphite structure'
+!
+!
+CASE('c14','C14')
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,1) = create_a0(2)*DCOS(DEG2RAD(120.d0))
+  H(2,2) = create_a0(2)*DSIN(DEG2RAD(120.d0))
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up atom positions
+  !Consider the prototype MgZn2
+  ALLOCATE(P(12,4))
+  P(:,:) = 0.d0
+  !Positions of Mg
+  P(1,2) = 0.667d0
+  P(1,3) = 0.063d0
+  P(2,2) = 0.667d0
+  P(2,3) = 0.437d0
+  P(3,1) = 0.500d0
+  P(3,2) = 0.333d0
+  P(3,3) = 0.937d0
+  P(4,1) = 0.500d0
+  P(4,2) = 0.333d0
+  P(4,3) = 0.563d0
+  !Positions of Zn
+  P(6,3) = 0.500d0
+  P(7,2) = 0.338d0
+  P(7,3) = 0.750d0
+  P(8,1) = -0.247d0
+  P(8,2) = 0.831d0
+  P(8,3) = 0.750d0
+  P(9,1) = 0.253d0
+  P(9,2) = 0.169d0
+  P(9,3) = 0.250d0
+  P(10,1) = 0.247d0
+  P(10,2) = 0.831d0
+  P(10,3) = 0.750d0
+  P(11,1) = 0.747d0
+  P(11,2) = 0.167d0
+  P(11,3) = 0.250d0
+  P(12,1) = 0.500d0
+  P(12,2) = 0.662d0
+  P(12,3) = 0.250d0
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2,4) = P(1,4)
+  P(3,4) = P(1,4)
+  P(4,4) = P(1,4)
+  CALL ATOMNUMBER(create_species(2),P(5,4))
+  P(6,4) = P(5,4)
+  P(7,4) = P(5,4)
+  P(8,4) = P(5,4)
+  P(9,4) = P(5,4)
+  P(10,4) = P(5,4)
+  P(11,4) = P(5,4)
+  P(12,4) = P(5,4)
+  !Transform atom positions to cartesian
+  P(:,1) = H(1,1)*P(:,1)
+  P(:,2) = H(2,2)*P(:,2)
+  P(:,3) = H(3,3)*P(:,3)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
+  comment(1) = 'C14 '//TRIM(ADJUSTL(comment(1)))
 !
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  OTHER STRUCTURES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!

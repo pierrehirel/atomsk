@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 18 Oct. 2016                                     *
+!* Last modification: P. Hirel - 17 May 2018                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,6 +47,7 @@ CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: pseudo_dir
 CHARACTER(LEN=4096):: msg, temp
+CHARACTER(LEN=4096):: tmpfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: fileexists !does file exist?
@@ -64,6 +65,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !Initialize variables
 pseudo_dir = ""
+tmpfile = ".atomsk.tmp.out_qe_pw"
 pseudo_dir_exists = .FALSE.
 fx=0
 fy=0
@@ -176,20 +178,25 @@ DO i=1,SIZE(aentries,1)
   !
   IF( pseudo_dir_exists ) THEN
     !Look for files starting with element name in pseudo_dir
+    !Save file name pattern into msg, something like "/home/user/espresso/Al*.*"
     msg = TRIM(ADJUSTL(pseudo_dir))//TRIM(ADJUSTL(species))//".*"
-    CALL SYSTEM(system_ls//" "//TRIM(msg)//" > .atomsk.tmp.out_qe_pw")
-    INQUIRE(FILE=".atomsk.tmp.out_qe_pw",EXIST=fileexists)
+    !List all files matching this pattern, and save the list in temporary file tmpfile
+    !This will execute something like "ls /home/user/espresso/Al*.* >.atomsk.tmp.out_qe_pw > /dev/null 2>&1"
+    CALL SYSTEM(system_ls//" "//TRIM(msg)//" > "//tmpfile//" "//pathnull)
+    !Verify if tmpfile exists
+    INQUIRE(FILE=tmpfile,EXIST=fileexists)
     msg = ""
     temp = ""
+    !If it does, read the first file name from it, save it to temp
     IF( fileexists ) THEN
-      OPEN(UNIT=50,FILE=".atomsk.tmp.out_qe_pw",FORM="FORMATTED",STATUS="UNKNOWN")
+      OPEN(UNIT=50,FILE=tmpfile,FORM="FORMATTED",STATUS="UNKNOWN")
       READ(50,'(a4096)',ERR=150,END=150) temp
       150 CONTINUE
       CLOSE(50,STATUS='DELETE')
     ENDIF
     !
     IF( LEN_TRIM(temp)>0 ) THEN
-      !Verify that file exists
+      !Verify that this file exists
       INQUIRE(FILE=temp,EXIST=fileexists)
       IF( fileexists ) THEN
         j=SCAN(temp,"/",BACK=.TRUE.)
@@ -200,7 +207,7 @@ DO i=1,SIZE(aentries,1)
     ENDIF
   ENDIF
   !
-  !If no suitable file was found, use a dummy one
+  !If no suitable file was found, write a dummy file name into the PW file
   IF( .NOT.fileexists ) THEN
     msg = TRIM(species)//".fixme.upf"
   ENDIF

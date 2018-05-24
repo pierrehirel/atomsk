@@ -20,7 +20,7 @@
 export
 
 # Version of the program
-VER="Beta-0.10"
+VER="Beta-0.10.2"
 
 # Name of the final binary
 BIN=atomsk
@@ -186,12 +186,15 @@ clean:
 	@echo ">>> All binary and temporary files were deleted."
 
 
-# Create an archive of the package (only on UNIX and Linux systems)
-# NOTE: Source files are modified with sed to match target version defined above
-tar:
+# Modify source files to match target version defined above
+VER:
 	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/comv.f90
 	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
 	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
+
+
+# Create an archive of the package (only on UNIX and Linux systems)
+tar: VER
 	@tar -czf ../$(ARCNAME).tar.gz                                          \
 	          ../doc/*/*.html ../doc/*/*.css   ../doc/*/*.svg               \
 	          ../doc/*/*.png  ../doc/index.html                             \
