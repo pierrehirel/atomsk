@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 17 April 2018                                    *
+!* Last modification: P. Hirel - 04 June 2018                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -208,6 +208,28 @@ DO
       H(1,1) = DABS(P1)
       H(2,2) = DABS(P2)
       H(3,3) = DABS(P3)
+      !
+      !Check that there will be enough memory for final system
+      IF(ALLOCATED(Q)) DEALLOCATE(Q)
+      CALL VOLUME_PARA(Huc,Vmin)  ! Volume of seed
+      CALL VOLUME_PARA(H,Volume)  ! Volume of final box
+      m = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
+      IF( m<=0 ) THEN
+        ! if m is negative, it's probably because it exceeded the accuracy of INTEGER
+        nerr = nerr+1
+        CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        ALLOCATE(Q(m,4),STAT=i)
+        IF( i>0 ) THEN
+          ! Allocation failed (not enough memory)
+          nerr = nerr+1
+          CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+          GOTO 1000
+        ENDIF
+        IF(ALLOCATED(Q)) DEALLOCATE(Q)
+      ENDIF
+      !
       IF( H(1,1)<1.1d0*Huc(1,1) .OR. H(2,2)<1.1d0*Huc(2,2) .OR. H(3,3)<1.1d0*Huc(3,3) ) THEN
         !The user asked for a final cell with at least one small dimension (smaller than seed)
         !=> Look along which dimension the final box is "small"
@@ -831,7 +853,7 @@ ENDIF
 m = PRODUCT(expandmatrix(:))*SIZE(Puc,1)
 WRITE(msg,'(a25,i18)') "Expected NP for template:", m
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!If m is very large, reduce some value in expandmatrix(:)
+!If m is very large, reduce some values in expandmatrix(:)
 IF( m > 1.d8 ) THEN
   IF( Nnodes>8 ) THEN
     !Many nodes in the box => reduce drastically the size of template grain
@@ -841,25 +863,54 @@ IF( m > 1.d8 ) THEN
     expandmatrix(:) = NINT( 0.8d0 * expandmatrix(:) )
   ENDIF
 ELSEIF( m <= 0.d0 ) THEN
-  !expandmatrix(:) = 1.d0
+  ! If m is negative, it's probably because it exceeded the accuracy of INTEGER
+  ! => cannot allocate so much memory
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+  GOTO 1000
 ENDIF
 !
 WRITE(msg,'(a32,3i6)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-ALLOCATE( Pt( PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1) , 4 ) )
+m = PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1)
+ALLOCATE( Pt(m,4) , STAT=i )
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
+  GOTO 1000
+ENDIF
 Pt(:,:) = 0.d0
 IF( doshells ) THEN
-  ALLOCATE( St( SIZE(Pt,1) , 4 ) )
+  ALLOCATE( St( SIZE(Pt,1) , 4 ) , STAT=i )
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
+    GOTO 1000
+  ENDIF
   St(:,:) = 0.d0
 ENDIF
 IF( doaux ) THEN
-  ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2)+1 ) )
+  ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2)+1 ) , STAT=i )
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
+    GOTO 1000
+  ENDIF
 ELSE
-  ALLOCATE( AUX_Q( SIZE(Pt,1) , 1 ) )
+  ALLOCATE( AUX_Q( SIZE(Pt,1) , 1 ) , STAT=i )
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
+    GOTO 1000
+  ENDIF
 ENDIF
 AUX_Q(:,:) = 0.d0
-WRITE(msg,'(a47,3i3)') "Creating template grain, expand:", expandmatrix(:)
+WRITE(msg,'(a32,3i3)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 qi=0
 DO o = 0 , expandmatrix(3)
@@ -886,6 +937,7 @@ DO o = 0 , expandmatrix(3)
     ENDDO
   ENDDO
 ENDDO
+!
 !
 !Construct grains using Voronoi tesselation
 NP=0
@@ -1031,12 +1083,24 @@ DO inode=1,Nnodes
   !
   !Copy template supercell Pt(:,:) into Q(:,:)
   Ht(:,:) = H(:,:)
-  ALLOCATE( Q( SIZE(Pt,1) , SIZE(Pt,2) ) )
+  ALLOCATE( Q( SIZE(Pt,1) , SIZE(Pt,2) ) , STAT=n )
+  IF( n>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(2*SIZE(Pt,1))/))
+    GOTO 1000
+  ENDIF
   Q(:,:) = 0.d0
   Q(:,:) = Pt(:,:)
   IF(doshells) THEN
     !Copy shells from template into T(:,:)
-    ALLOCATE( T( SIZE(Pt,1) , 4 ) )
+    ALLOCATE( T( SIZE(Pt,1) , 4 ) , STAT=n )
+    IF( n>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(3*SIZE(Pt,1))/))
+      GOTO 1000
+    ENDIF
     T(:,:) = 0.d0
     T(:,:) = St(:,:)
   ENDIF
@@ -1130,7 +1194,13 @@ DO inode=1,Nnodes
     !
     !Add content of array Q into final P
     IF(ALLOCATED(newP)) DEALLOCATE(newP)
-    ALLOCATE(newP(NP+qi,4))
+    ALLOCATE(newP(NP+qi,4),STAT=n)
+    IF( n>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(2*NP+qi)/))
+      GOTO 1000
+    ENDIF
     newP(:,:) = 0.d0
     IF( ALLOCATED(P) ) THEN
       DO i=1,SIZE(P,1)

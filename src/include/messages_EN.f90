@@ -806,6 +806,33 @@ CASE(818)
   !strings(1) = name of the array that was supposed to be resized
   msg = "X!X ERROR: there was an error while attempting to resize the array "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(819)
+  !reals(1) = estimated number of particles
+  msg = "X!X ERROR: memory (RAM) is insufficient to perform this operation."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  IF( reals(1)>0.d0 ) THEN
+    tempreal = reals(1)*32.d0
+    IF( tempreal>1.d12 ) THEN
+      WRITE(temp,'(f32.1)') tempreal/1.d12
+      temp = TRIM(ADJUSTL(temp))//" TB"
+    ELSEIF( tempreal>1.d9 ) THEN
+      WRITE(temp,'(f12.1)') tempreal/1.d9
+      temp = TRIM(ADJUSTL(temp))//" GB"
+    ELSEIF( tempreal>1.d6 ) THEN
+      WRITE(temp,'(f12.1)') tempreal/1.d6
+      temp = TRIM(ADJUSTL(temp))//" MB"
+    ELSEIF( tempreal>1.d3 ) THEN
+      WRITE(temp,'(f12.1)') tempreal/1.d3
+      temp = TRIM(ADJUSTL(temp))//" kB"
+    ELSE
+      WRITE(temp,'(f12.1)') tempreal
+      temp = TRIM(ADJUSTL(temp))//" bytes"
+    ENDIF
+    msg = "          (estimated required memory: "//TRIM(ADJUSTL(temp))//")."
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
+  msg = "          Try on a computer with more memory."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)

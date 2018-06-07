@@ -15,7 +15,7 @@
 # USAGE:
 #    make atomsk
 # Or, to use parallel compilation:
-#    make -j 3 atomsk
+#    make -j3 atomsk
 
 export
 
@@ -54,6 +54,10 @@ ifndef FORTRAN
   # -I is used to specify folders where the compiler should look for *.mod files
   # -J is used to specify the folder where the compiler will store the *.mod files
   FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+  
+  # Un-comment the following line to use 8-bits integers by default
+  # (number of atoms up to 9x10^18 instead of 2x10^9)
+  #FFLAGS+=-fdefault-integer-8
   
   # DEBUGGING FLAGS
   #FFLAGS+=-fbacktrace -fbounds-check -g -Wall
