@@ -7,7 +7,6 @@ L10N=messages_FR.f90 messages_DE.f90
 SGE=comv.f90              \
     constants.f90         \
     math.f90              \
-    resize.f90            \
     functions.f90         \
     atoms.f90             \
     subroutines.f90       \
@@ -16,6 +15,7 @@ SGE=comv.f90              \
     messages_EN.f90       \
     $(L10N)               \
     messages.f90          \
+    resize.f90            \
     spacegroups.f90       \
     neighbors.f90         \
     files.f90             \

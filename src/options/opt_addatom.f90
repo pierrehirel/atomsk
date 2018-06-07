@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!* Last modification: P. Hirel - 06 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -244,7 +244,13 @@ CASE("random","RANDOM","rand","RAND")
   !Insert NP atoms at random positions (but not too close to existing atom)
   NP = NINT(addatom_prop(1))
   !
-  ALLOCATE(newP(SIZE(P,1)+NP,4))
+  ALLOCATE(newP(SIZE(P,1)+NP,4) , STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(2*SIZE(P,1)+NP)/))
+    GOTO 1000
+  ENDIF
   newP(:,:) = 0.d0
   DO i=1,SIZE(P,1)
     newP(i,:) = P(i,:)

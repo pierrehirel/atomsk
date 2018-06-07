@@ -803,6 +803,33 @@ CASE(818)
   !strings(1) = name of the array that was supposed to be resized
   msg = "X!X ERREUR : une erreur est survenue en tentant de redimensionner le tableau "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(819)
+  !reals(1) = estimated number of particles
+  msg = "X!X ERREUR : mémoire (RAM) insuffisante pour effectuer cette opération."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  IF( reals(1)>0.d0 ) THEN
+    tempreal = reals(1)*32.d0
+    IF( tempreal>1.d12 ) THEN
+      WRITE(temp,'(f32.1)') tempreal/1.d12
+      temp = TRIM(ADJUSTL(temp))//" To"
+    ELSEIF( tempreal>1.d9 ) THEN
+      WRITE(temp,'(f12.1)') tempreal/1.d9
+      temp = TRIM(ADJUSTL(temp))//" Go"
+    ELSEIF( tempreal>1.d6 ) THEN
+      WRITE(temp,'(f12.1)') tempreal/1.d6
+      temp = TRIM(ADJUSTL(temp))//" Mo"
+    ELSEIF( tempreal>1.d3 ) THEN
+      WRITE(temp,'(f12.1)') tempreal/1.d3
+      temp = TRIM(ADJUSTL(temp))//" ko"
+    ELSE
+      WRITE(temp,'(f12.1)') tempreal
+      temp = TRIM(ADJUSTL(temp))//" octets"
+    ENDIF
+    msg = "          (estimation de la mémoire requise : "//TRIM(ADJUSTL(temp))//")."
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
+  msg = "          Essayez avec un ordinateur qui possède davantage de mémoire."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)

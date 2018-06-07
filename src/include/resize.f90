@@ -9,7 +9,7 @@ MODULE resize
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!* Last modification: P. Hirel - 04 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -32,6 +32,7 @@ MODULE resize
 !
 !
 USE comv
+USE messages
 !
 IMPLICIT NONE
 !
@@ -60,14 +61,27 @@ IF(PRESENT(status)) status = 0
 !
 IF( .NOT.ALLOCATED(Array) ) THEN
   !Allocate Array with required size and fill it with zeros
-  ALLOCATE(Array(L1,L2))
+  ALLOCATE(Array(L1,L2),STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    RETURN
+  ENDIF
   Array(:,:) = 0.d0
   !
 ELSE
   !Array is already allocated => resize it
   IF( L1>0 .AND. L2>0 ) THEN
     !
-    ALLOCATE( temp_array(L1,L2) )
+    ALLOCATE( temp_array(L1,L2) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
+    !
     temp_array(:,:) = 0.d0
     DO i=1,MIN(L1,SIZE(Array,1))
       DO j=1,MIN(L2,SIZE(Array,2))
@@ -76,7 +90,13 @@ ELSE
     ENDDO
     !
     DEALLOCATE(Array)
-    ALLOCATE( Array(L1,L2) )
+    ALLOCATE( Array(L1,L2) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
     Array(:,:) = temp_array(:,:)
     !
     DEALLOCATE(temp_array)
@@ -112,14 +132,27 @@ IF(PRESENT(status)) status = 0
 !
 IF( .NOT.ALLOCATED(Array) ) THEN
   !Allocate Array with required size and fill it with zeros
-  ALLOCATE(Array(L1,L2))
+  ALLOCATE(Array(L1,L2),STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    RETURN
+  ENDIF
   Array(:,:) = 0
   !
 ELSE
   !Array is already allocated => resize it
   IF( L1>0 .AND. L2>0 ) THEN
     !
-    ALLOCATE( temp_array(L1,L2) )
+    ALLOCATE( temp_array(L1,L2) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
+    !
     temp_array(:,:) = 0
     DO i=1,MIN(L1,SIZE(Array,1))
       DO j=1,MIN(L2,SIZE(Array,2))
@@ -128,7 +161,13 @@ ELSE
     ENDDO
     !
     DEALLOCATE(Array)
-    ALLOCATE( Array(L1,L2) )
+    ALLOCATE( Array(L1,L2) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
     Array(:,:) = temp_array(:,:)
     !
     DEALLOCATE(temp_array)
@@ -171,14 +210,27 @@ ELSE
   !Array is already allocated => resize it
   IF( L1>0 ) THEN
     !
-    ALLOCATE( temp_array(L1) )
+    ALLOCATE( temp_array(L1),STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
+    !
     temp_array(:) = .FALSE.
     DO i=1,MIN(L1,SIZE(Array))
       temp_array(i) = Array(i)
     ENDDO
     !
     DEALLOCATE(Array)
-    ALLOCATE( Array(L1) )
+    ALLOCATE( Array(L1) ,STAT=i)
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
     Array(:) = temp_array(:)
     !
     DEALLOCATE(temp_array)

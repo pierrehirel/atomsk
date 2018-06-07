@@ -12,7 +12,7 @@ MODULE out_dd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 27 Oct. 2015                                     *
+!* Last modification: P. Hirel - 04 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -92,7 +92,8 @@ ENDDO
 !
 !Write second section of DD file
 WRITE(40,'(a7)') 'NUM_REL'
-WRITE(40,'(i5)') SIZE(Pfirst(:,1))
+WRITE(temp,'(i16)') SIZE(Psecond,1)
+WRITE(40,*) TRIM(ADJUSTL(temp))
 WRITE(40,'(a8)') 'COOR_REL'
 !
 !Write positions of relaxed system

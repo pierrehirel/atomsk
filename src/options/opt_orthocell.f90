@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!* Last modification: P. Hirel - 04 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -253,7 +253,13 @@ ELSE
   WRITE(msg,*) "Estimated new number of atoms : ", NP
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  ALLOCATE( Q(NP,4) )
+  ALLOCATE( Q(NP,4) , STAT=i )
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
   Q(:,:) = 0.d0
   IF(doshells) THEN
     ALLOCATE( T(NP,4) )

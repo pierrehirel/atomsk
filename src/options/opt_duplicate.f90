@@ -10,7 +10,7 @@ MODULE duplicate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 13 June 2016                                     *
+!* Last modification: P. Hirel - 04 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,6 +44,7 @@ LOGICAL:: doshells
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
 INTEGER:: i, newNP
 INTEGER:: m, n, o, qi
+INTEGER:: Nmem  !total number of atoms loaded in memory
 INTEGER, DIMENSION(3):: dupmatrix
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S
@@ -54,11 +55,13 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX !auxiliary properties
 !Initialize variables
 i = 0
 qi = 0
+Nmem = SIZE(P,1)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
   doshells=.TRUE.
+  Nmem = Nmem+SIZE(S,1)
 ELSE
   doshells=.FALSE.
 ENDIF
@@ -98,17 +101,43 @@ ELSE
 ENDIF
 WRITE(msg,*) "new NP = ", newNP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ALLOCATE(Q(newNP,4))
-IF(ALLOCATED(AUX)) ALLOCATE( newAUX(newNP,SIZE(AUX,2) ) )
-!CALL ATOMSK_MSG(2067,(/''/),(/DBLE(newNP)/))
 !
 IF( newNP<=0 ) THEN
+  !Negative number of atoms, probably because it exceeds the limit of INTEGER
   nerr=nerr+1
-  GOTO 500
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(0.d0)/))
+  GOTO 1000
 ENDIF
 !
+Nmem = Nmem+newNP
+ALLOCATE(Q(newNP,4),STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+  GOTO 1000
+ENDIF
+IF(ALLOCATED(AUX)) THEN
+  Nmem = Nmem + CEILING( DBLE(newNP*SIZE(AUX,2))/4.d0 )
+  ALLOCATE( newAUX(newNP,SIZE(AUX,2) ) , STAT=i )
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+    GOTO 1000
+  ENDIF
+ENDIF
+!CALL ATOMSK_MSG(2067,(/''/),(/DBLE(newNP)/))
+!
 IF( doshells ) THEN
-  ALLOCATE(T(newNP,4))
+  Nmem = Nmem+newNP
+  ALLOCATE(T(newNP,4) , STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+    GOTO 1000
+  ENDIF
 ENDIF
 !
 !

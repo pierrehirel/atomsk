@@ -46,6 +46,7 @@ CHARACTER(LEN=4096):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 INTEGER:: atskversion  !version of atomsk this binary file was written by
+INTEGER:: status
 INTEGER:: Ncomment, NP, NS, Naux, Nauxnames
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P, S
@@ -78,17 +79,42 @@ READ(30,ERR=800) NP, NS, Naux, Nauxnames, Ncomment
 !Allocate arrays and read them
 READ(30,ERR=800) H
 !
-ALLOCATE(P(NP,4))
+ALLOCATE(P(NP,4),STAT=status)
+IF( status>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+  GOTO 1000
+ENDIF
 READ(30,ERR=800) P
 !
 IF(NS>0) THEN
-  ALLOCATE(S(NS,4))
+  ALLOCATE(S(NS,4),STAT=status)
+  IF( status>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
   READ(30,ERR=800) S
 ENDIF
 !
 IF(Naux>0 .AND. Nauxnames>0) THEN
-  ALLOCATE( AUXNAMES(Nauxnames) )
-  ALLOCATE( AUX(NP,Nauxnames) )
+  ALLOCATE( AUXNAMES(Nauxnames) , STAT=status )
+  IF( status>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
+  !
+  ALLOCATE( AUX(NP,Nauxnames)  , STAT=status)
+  IF( status>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
   READ(30,ERR=800) AUXNAMES
   READ(30,ERR=800) AUX
 ENDIF
