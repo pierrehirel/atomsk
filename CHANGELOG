@@ -8,6 +8,7 @@ Master (development)
 - in option "-select", added possibility to select particles that have the minimum or maximum value of a property. Also added the possibility to combine a new selection to the existing one (add, remove, intersect, xor).
 - added status checks in some memory allocations to avoid OS error "cannot allocate memory". Now in most cases Atomsk will display an error message and exit smoothly.
 - fixed a bug where the PDFFIT file format "str" was not recognized from the command-line.
+- fixed a bug in option "--polycrystal" that was preventing to generate 2-D polycrystals.
 
 
 Beta 0.10.2 (24 May 2018)

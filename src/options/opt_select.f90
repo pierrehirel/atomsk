@@ -158,6 +158,8 @@ CASE DEFAULT
     ENDDO
     !
     IF(verbosity==4) THEN
+      msg = "Detected a "//TRIM(ADJUSTL(region_geom))//" of index"
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       msg = 'List: '//TRIM(region_side)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
@@ -247,7 +249,7 @@ CASE DEFAULT
       j=SCAN(msg," ")
       msg = ADJUSTL(msg(j:))
     ENDDO
-    
+    !
     !Set region_side to "index" for later
     region_side = "index"
     !

@@ -1037,7 +1037,8 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(clarg)
   !
   ELSEIF(clarg=='-remove-atom'  .OR. clarg=='-rmatom'  .OR. &
-        &clarg=='-remove-atoms' .OR. clarg=='-rmatoms'      ) THEN
+        &clarg=='-remove-atoms' .OR. clarg=='-rmatoms' .OR. &
+        &clarg=='-delete-atoms' .OR. clarg=='-delete_atoms'      ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the atom species or index that will be removed
@@ -1424,7 +1425,7 @@ DO WHILE(i<SIZE(cla))
       !It may be an integer, or a range of integer, or a list of integers separated by a comma
       !e.g. 3,6,13 or 4:12 => verify that
       DO j=1,LEN_TRIM(temp)
-        IF( SCAN(temp(j:j),'0123456789:, ') == 0 ) THEN
+        IF( SCAN(temp(j:j),' 0123456789:,') == 0 ) THEN
           !Illegal character in this string
           GOTO 120
         ENDIF

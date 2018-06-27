@@ -678,7 +678,7 @@ DO ioptions=1,SIZE(options_array)
   CASE('-rebox')
     CALL DETERMINE_H(H,P)
   !
-  CASE('-remove-atom', '-remove-atoms', '-rmatom', '-rmatoms')
+  CASE('-remove-atom','-remove-atoms','-rmatom','-rmatoms','-delete-atoms','-delete_atoms')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rmatom_prop
     CALL RMATOM_XYZ(P,S,AUX,rmatom_prop,SELECT)
   !
@@ -715,32 +715,61 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-select')
     select_multiple = ""
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, select_multiple
+    select_multiple = ADJUSTL( options_array(ioptions)(8:) )
+    i=SCAN(select_multiple," ")
+    select_multiple = select_multiple(:i)
+    !READ(options_array(ioptions),*,END=800,ERR=800) optionname, select_multiple
     !Check if current selection must be combined with previous selection
     IF( select_multiple=="union" .OR. select_multiple=="UNION" .OR.           &
       & select_multiple=="add" .OR. select_multiple=="ADD" .OR.               &
       & select_multiple=="or" .OR. select_multiple=="OR"          ) THEN
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side
       select_multiple = "add"
+      region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
+      i=SCAN(region_side," ")
+      region_side = ADJUSTL( region_side(i:) )             !remove keyword
+      i=SCAN(region_side," ")
+      region_side = region_side(:i)                        !keep only first string
     ELSEIF( select_multiple=="subtract" .OR. select_multiple=="SUBTRACT" .OR.   &
           & select_multiple=="substract" .OR. select_multiple=="SUBSTRACT" .OR. &
+          & select_multiple=="delete" .OR. select_multiple=="DELETE" .OR. &
           & select_multiple=="remove"   .OR. select_multiple=="REMOVE"   .OR.   &
-          & select_multiple=="rm"   .OR. select_multiple=="RM"                  ) THEN
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side
+          & select_multiple=="rm" .OR. select_multiple=="RM" .OR. select_multiple=="del" ) THEN
       select_multiple = "rm"
-    ELSEIF( select_multiple=="intersect" .OR. select_multiple=="INTERSECT"    ) THEN
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side
+      region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
+      i=SCAN(region_side," ")
+      region_side = ADJUSTL( region_side(i:) )             !remove keyword
+      i=SCAN(region_side," ")
+      region_side = region_side(:i)                        !keep only first string
+    ELSEIF( select_multiple=="intersect" .OR. select_multiple=="INTERSECT" .OR. &
+          & select_multiple=="and" .OR. select_multiple=="AND"                 ) THEN
       select_multiple = "intersect"
+      region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
+      i=SCAN(region_side," ")
+      region_side = ADJUSTL( region_side(i:) )             !remove keyword
+      i=SCAN(region_side," ")
+      region_side = region_side(:i)                        !keep only first string
     ELSEIF( select_multiple=="xor"  .OR. select_multiple=="XOR"  ) THEN
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side
       select_multiple = "xor"
+      region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
+      i=SCAN(region_side," ")
+      region_side = ADJUSTL( region_side(i:) )             !remove keyword
+      i=SCAN(region_side," ")
+      region_side = region_side(:i)                        !keep only first string
     ELSE
+      !No keyword after "-select" => save following string in region_side
       select_multiple = ""
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side
+      region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
+      i=SCAN(region_side," ")
+      region_side = region_side(:i)                        !keep only first string
+      !READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side
     ENDIF
     !
     IF( region_side=="above" .OR. region_side=="below" ) THEN
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, treal(1), region_dir
+      IF( LEN_TRIM(select_multiple)>0 ) THEN
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side, treal(1), region_dir
+      ELSE
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, treal(1), region_dir
+      ENDIF
       i=1
       SELECT CASE(region_dir)
       CASE('x','X')
@@ -950,7 +979,11 @@ DO ioptions=1,SIZE(options_array)
       ENDIF
       region_geom = TRIM(ADJUSTL(region_geom))
       IF( region_geom(1:6)=="center" ) THEN
-        READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_dir, region_geom
+        IF( LEN_TRIM(select_multiple)>0 ) THEN
+          READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side, region_dir, region_geom
+        ELSE
+          READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_dir, region_geom
+        ENDIF
       ENDIF
     ELSEIF( region_side=="neigh" ) THEN
       !Store number of neighbors, or cutoff radius for neighbor search, into region_1(1)

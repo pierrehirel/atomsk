@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 27 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -267,7 +267,7 @@ GOTO 1000
 !
 !
 800 CONTINUE
-CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
+CALL ATOMSK_MSG(2800,(/''/),(/DBLE(i)/))
 nerr = nerr+1
 !
 !

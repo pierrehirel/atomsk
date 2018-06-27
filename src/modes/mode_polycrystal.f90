@@ -776,7 +776,7 @@ IF(verbosity==4) THEN
     WRITE(msg,'(i4,3f9.3)') i, vnodes(i,:)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDDO
-  msg = "Orientation of nodes:"
+  msg = "Rotation matrices of nodes:"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO i=1,SIZE(vnodes,1)
     WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,1,j),j=1,3), ']'
@@ -838,8 +838,15 @@ DO i=1,3
     IF( Nnodes<=4 ) THEN
       m = NINT( 1.5d0*DBLE(m) )
     ENDIF
-    IF(m==2) m=3
-    expandmatrix(i) = MIN( m , 999 )
+    !Make sure duplication factors are not crazy
+    IF(m==0) THEN
+      m = 1
+    ELSEIF(m==2) THEN
+      m=3
+    ELSEIF(m>1000) THEN
+      m=999
+    ENDIF
+    expandmatrix(i) = m
   ENDIF
 ENDDO
 WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
@@ -847,10 +854,10 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !If the system is 2-D, do not expand along the shortest axis
 IF( twodim>0 ) THEN
-  expandmatrix(twodim) = 0
+  expandmatrix(twodim) = 1
 ENDIF
 !Evaluate how many particles the template will contain
-m = PRODUCT(expandmatrix(:))*SIZE(Puc,1)
+m = expandmatrix(1)*expandmatrix(2)*expandmatrix(3)*SIZE(Puc,1)
 WRITE(msg,'(a25,i18)') "Expected NP for template:", m
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !If m is very large, reduce some values in expandmatrix(:)
