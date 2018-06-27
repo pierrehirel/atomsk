@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 April 2018                                    *
+!* Last modification: P. Hirel - 27 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,12 +41,13 @@ USE sorting
 CONTAINS
 !
 !
-SUBROUTINE SELECT_XYZ(H,P,AUXNAMES,AUX,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
+SUBROUTINE SELECT_XYZ(H,P,AUXNAMES,AUX,select_multiple,region_side,region_geom,region_dir,region_1,region_2,ORIENT,SELECT)
 !
 !
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
+CHARACTER(LEN=16):: select_multiple  !empty or 'add' or 'rm' or 'xor'
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: temp
@@ -55,11 +56,14 @@ CHARACTER(LEN=4096):: region_geom !geometry of the region: "box" or "sphere". If
                                   !neighbors of an atom must be searched. If region_side=="list" then
                                   !region_geom contains the name of the file.
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+LOGICAL:: add, rm, intersect, xor !add, remove, intersect, XOR from previous selection?
+LOGICAL:: selectmul  !modify (add/rm/intersect/xor) previous selection with current criteria?
 LOGICAL:: exceeds100 !are there more than 100 neighboring atoms?
 LOGICAL:: isreduced  !are positions in reduced coordinates?
 LOGICAL:: keep  !keep atom?
 LOGICAL:: toselect !atomindices(:) contains atoms to select? (if FALSE, atoms to un-select)
-LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT !the final selection array
+LOGICAL,DIMENSION(:),ALLOCATABLE:: prevSELECT  !copy of previous selection
 INTEGER:: a1, a2, a3
 INTEGER:: atomrank, atomrank2  !rank of atom to be selected
 INTEGER:: gridformat !format of the file (for select grid)
@@ -68,6 +72,7 @@ INTEGER:: line
 INTEGER:: Ngrid    !number of elements in the grid
 INTEGER:: Nperline !number of grid element per line
 INTEGER:: Nselect  !number of atoms selected
+INTEGER:: Nadded, Nrm  !number of atoms added or removed from selection
 INTEGER:: rand_N   !number of atoms to select randomly
 INTEGER:: sp_N     !number of atoms of the given species that exist in P
 INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be selected
@@ -103,6 +108,11 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN    ! positions of 1st nearest neighbo
 !
 !
 !Initialize variables
+add = .FALSE.
+rm = .FALSE.
+intersect = .FALSE.
+xor = .FALSE.
+selectmul = .FALSE.
 a1 = 1
 a2 = 1
 a3 = 1
@@ -110,11 +120,14 @@ atomrank=-1
 atomrank2=-1
 i = 0
 Nselect = 0
+Nadded = 0
+Nrm = 0
 snumber = 0.d0
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 IF(ALLOCATED(atomindices)) DEALLOCATE(atomindices)
 IF(ALLOCATED(facenormals)) DEALLOCATE(facenormals)
 IF(ALLOCATED(GRID)) DEALLOCATE(GRID)
+IF(ALLOCATED(prevSELECT)) DEALLOCATE(prevSELECT)
 !
 !
 msg = 'Entering SELECT_XYZ'
@@ -270,9 +283,63 @@ ENDIF
 !
 !A message to the user of what this option will do
 CALL ATOMSK_MSG(2077, (/ region_side//'    ',                 &
-     &                 region_geom, region_dir//'       ' /), &
+     &                 region_geom, region_dir//'       ',    &
+     &                 select_multiple//'    '            /), &
      & (/ region_1(1), region_1(2), region_1(3),              &
      &    region_2(1), region_2(2), region_2(3) /))
+!
+selectmul = .TRUE.
+SELECT CASE(select_multiple)
+CASE("add")
+  add = .TRUE.
+CASE("rm")
+  rm = .TRUE.
+CASE("intersect")
+  intersect = .TRUE.
+CASE("xor")
+  xor = .TRUE.
+CASE DEFAULT
+  selectmul = .FALSE.
+END SELECT
+!
+IF( .NOT. ALLOCATED(SELECT) ) THEN
+  IF( add .OR. rm .OR. intersect .OR. xor ) THEN
+    !User asked to add or remove atoms from previous selection,
+    !but no previous selection exists => display warning and
+    !proceed with a "normal" selection
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2761,(/select_multiple/),(/0.d0/))
+    selectmul = .FALSE.
+    add = .FALSE.
+    rm = .FALSE.
+    intersect = .FALSE.
+    xor = .FALSE.
+  ENDIF
+ENDIF
+!
+IF( selectmul .AND. ALLOCATED(SELECT) ) THEN
+  !Copy previous selection to a new array
+  ALLOCATE(prevSELECT(SIZE(SELECT)))
+  prevSELECT(:) = SELECT(:)
+  DEALLOCATE(SELECT)
+  !Prepare new array
+  ALLOCATE(SELECT(SIZE(P,1)))
+  SELECT(:) = .FALSE.
+ELSE
+  !This option will work with array SELECT directly
+ENDIF
+!
+IF( verbosity==4 ) THEN
+  IF( add ) THEN
+    WRITE(msg,*) "new selection will be ADDED to previous one"
+  ELSEIF( rm ) THEN
+    WRITE(msg,*) "new selection will be REMOVED from previous one"
+  ELSEIF( intersect ) THEN
+    WRITE(msg,*) "new selection will be INTERSECTED with previous one"
+  ELSEIF( xor ) THEN
+    WRITE(msg,*) "new selection will be XOR with previous one"
+  ENDIF
+ENDIF
 !
 !
 !
@@ -284,6 +351,25 @@ CASE('all','any','none')
   !The selection must be cleared (this is equivalent to selecting all atoms)
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
   Nselect = SIZE(P,1)
+  selectmul = .FALSE.
+  !
+  !
+CASE('invert','inv')
+  !Previous selection must be inverted
+  selectmul = .FALSE.
+  IF( .NOT.ALLOCATED(SELECT) .OR. SIZE(SELECT)<=0 ) THEN
+    !Previously all atoms were selected => inverting would mean selecting no atoms
+    !However selecting no atoms doesn't make sense, so we do nothing (SELECT remains unallocated)
+    Nselect = SIZE(P,1)
+  ELSE
+    !Atoms were selected before => invert selection
+    DO i=1,SIZE(SELECT)
+      SELECT(i) = .NOT.SELECT(i)
+      IF(SELECT(i)) THEN
+        Nselect = Nselect+1
+      ENDIF
+    ENDDO
+  ENDIF
   !
   !
 CASE('index')
@@ -308,23 +394,6 @@ CASE('index')
         !Atom index is out-of-bounds
         nwarn = nwarn+1
         CALL ATOMSK_MSG(2742,(/""/),(/DBLE(atomindices(i))/))
-      ENDIF
-    ENDDO
-  ENDIF
-  !
-  !
-CASE('invert','inv')
-  !Previous selection must be inverted
-  IF( .NOT.ALLOCATED(SELECT) .OR. SIZE(SELECT)<=0 ) THEN
-    !Previously all atoms were selected => inverting would mean selecting no atoms
-    !However selecting no atoms doesn't make sense, so we do nothing (SELECT remains unallocated)
-    Nselect = SIZE(P,1)
-  ELSE
-    !Atoms were selected before => invert selection
-    DO i=1,SIZE(SELECT)
-      SELECT(i) = .NOT.SELECT(i)
-      IF(SELECT(i)) THEN
-        Nselect = Nselect+1
       ENDIF
     ENDDO
   ENDIF
@@ -697,13 +766,48 @@ CASE('prop','property')
       !No such property is defined => abort
       nwarn=nwarn+1
       CALL ATOMSK_MSG(2730,(/region_geom/),(/0.d0/))
+      !
     ELSE
       !The given property does exist
       ALLOCATE( SELECT( SIZE(P,1) ) )
       SELECT(:) = .FALSE.
-      !If user gave only one value, region_2(1)==0
-      !If user gave a range, then region_2(1)==10
-      IF( region_2(1)>2.d0 ) THEN
+      !
+      IF( region_dir(1:3)=="min" ) THEN
+        !Select atom(s) whose property takes the smallest value
+        !First loop to determine the smallest value of that property
+        tempreal = 1.d12
+        DO i=1,SIZE(AUX,1)
+          IF( AUX(i,j)<tempreal ) THEN
+            tempreal = AUX(i,j)
+          ENDIF
+        ENDDO
+        !Second loop to select atoms that have this value (relative error +/-10^-3)
+        DO i=1,SIZE(AUX,1)
+          IF( DABS((AUX(i,j)-tempreal)/tempreal)<=1.d-3 ) THEN
+            SELECT(i) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDDO
+        !
+      ELSEIF( region_dir(1:3)=="max" ) THEN
+        !Select atom(s) whose property takes the largest value
+        !First loop to determine the smallest value of that property
+        tempreal = -1.d12
+        DO i=1,SIZE(AUX,1)
+          IF( AUX(i,j)>tempreal ) THEN
+            tempreal = AUX(i,j)
+          ENDIF
+        ENDDO
+        !Second loop to select atoms that have this value (relative error +/-10^-3)
+        DO i=1,SIZE(AUX,1)
+          IF( DABS((AUX(i,j)-tempreal)/tempreal)<=1.d-3 ) THEN
+            SELECT(i) = .TRUE.
+            Nselect = Nselect+1
+          ENDIF
+        ENDDO
+        !
+      ELSEIF( region_2(1)>2.d0 ) THEN
+        !User gave a range of values
         !Select atoms whose property is in the given range
         DO i=1,SIZE(AUX,1)
           IF( AUX(i,j)>=region_1(1) .AND. AUX(i,j)<=region_1(2) ) THEN
@@ -711,7 +815,9 @@ CASE('prop','property')
             Nselect = Nselect+1
           ENDIF
         ENDDO
+        !
       ELSE
+        !All other cases: user gave only one value (and region_2(1)==0)
         DO i=1,SIZE(AUX,1)
           IF( DABS(AUX(i,j)-region_1(1)) < 1.d-12 ) THEN
             SELECT(i) = .TRUE.
@@ -1777,7 +1883,83 @@ END SELECT
 !
 !
 300 CONTINUE
-CALL ATOMSK_MSG(2078,(/''/),(/DBLE(Nselect)/))
+IF( selectmul ) THEN
+  !Final array SELECT will be a combination of previous selection and current one
+  IF( add ) THEN
+    !New atoms must be added to selection
+    Nadded = 0
+    Nselect = 0
+    DO i=1,SIZE(SELECT)
+      SELECT(i) = prevSELECT(i) .OR. SELECT(i)
+      IF( SELECT(i) ) THEN
+        Nselect = Nselect+1
+        IF( .NOT.prevSELECT(i) ) THEN
+          !Atom was not selected before => count it as added to the selection
+          Nadded = Nadded+1
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+  ELSEIF( rm ) THEN
+    !Some atoms must be removed from previous selection
+    Nrm = 0
+    Nselect = 0
+    DO i=1,SIZE(SELECT)
+      SELECT(i) = prevSELECT(i) .AND. (.NOT.SELECT(i))
+      IF( SELECT(i) ) THEN
+        Nselect = Nselect+1
+      ELSE
+        IF( prevSELECT(i) ) THEN
+          !Atom was selected before => count it as removed from the selection
+          Nrm = Nrm+1
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+  ELSEIF( intersect ) THEN
+    !Only atoms that belong to both SELECT arrays are kept
+    Nselect = 0
+    DO i=1,SIZE(SELECT)
+      SELECT(i) = prevSELECT(i) .AND. SELECT(i)
+      IF( SELECT(i) ) THEN
+        !Atom is now selected
+        Nselect = Nselect+1
+        IF( .NOT.prevSELECT(i) ) THEN
+          !Atom was not selected before
+          Nadded = Nadded+1
+        ENDIF
+      ELSE
+        !Atom is now un-selected
+        IF( prevSELECT(i) ) THEN
+          !Atom was selected before
+          Nrm = Nrm+1
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+  ELSEIF( xor ) THEN
+    !Only atoms that belong to one SELECT array or the other, but not both, are kept
+    Nselect = 0
+    DO i=1,SIZE(SELECT)
+      SELECT(i) = SELECT(i).NEQV.prevSELECT(i)
+      IF( SELECT(i) ) THEN
+        !Atom is now selected
+        Nselect = Nselect+1
+        IF( .NOT.prevSELECT(i) ) THEN
+          !Atom was not selected before
+          Nadded = Nadded+1
+        ENDIF
+      ELSE
+        !Atom is now un-selected
+        IF( prevSELECT(i) ) THEN
+          !Atom was selected before
+          Nrm = Nrm+1
+        ENDIF
+      ENDIF
+    ENDDO
+  ENDIF
+ENDIF
+CALL ATOMSK_MSG(2078,(/''/),(/DBLE(Nselect),DBLE(Nadded),DBLE(Nrm)/))
 GOTO 1000
 !
 !
@@ -1792,14 +1974,17 @@ nerr = nerr+1
 !
 !
 1000 CONTINUE
+!
 IF(ALLOCATED(atomindices)) DEALLOCATE(atomindices)
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
-IF( Nselect<=0 ) THEN
-  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-ENDIF
-IF( Nselect==SIZE(P,1) ) THEN
-  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-ENDIF
+IF(ALLOCATED(prevSELECT)) DEALLOCATE(prevSELECT)
+! IF( Nselect<=0 ) THEN
+!   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+! ENDIF
+! IF( Nselect==SIZE(P,1) ) THEN
+!   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+! ENDIF
+!
 !
 !
 END SUBROUTINE SELECT_XYZ

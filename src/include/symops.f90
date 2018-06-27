@@ -189,7 +189,7 @@ n2=2*n1
 ALLOCATE(S1(n1,MP),S2(n2,MP),SUSE(n2))
 S1=P ! copy P to S1
 CALL CART2FRAC(S1,H) ! transform to fractional coordinates
-S1(1:n1,1:3)=MODULO(S1(1:n1,1:3),1.0) ! wrap into [0,1[
+S1(1:n1,1:3)=MODULO(S1(1:n1,1:3),1.d0) ! wrap into [0,1[
 S2=0.d0 ! reset S2
 S2(1:n1,1:MP)=S1(1:n1,1:MP) ! fill first half of S2 with S1
 
@@ -198,7 +198,7 @@ IF( NS>0 ) THEN
   ALLOCATE(R1(n1,MP),R2(n2,MP))
   R1=S
   CALL CART2FRAC(R1,H) ! transform to fractional coordinates
-  R1(1:n1,1:3)=MODULO(R1(1:n1,1:3),1.0) ! wrap into [0,1[
+  R1(1:n1,1:3)=MODULO(R1(1:n1,1:3),1.d0) ! wrap into [0,1[
   R2=0.d0
   R2(1:n1,1:MP)=R1(1:n1,1:MP) ! fill first half of R2 with R1
 ENDIF
@@ -220,7 +220,7 @@ DO isym=1,Nsym ! apply each symmetry op. ...
   !Apply this transformation from S1 to S2
   DO i=1,n1 ! ... to each of the current positions
     ! get current atomic position in fractional coordinates
-    p1(1:3) = MODULO( S1(i,1:3), 1.0 ) ! wrapped into the unit cell
+    p1(1:3) = MODULO( S1(i,1:3), 1.d0 ) ! wrapped into the unit cell
     DO j=1,3
       j3=3*(j-1)
       ! get new fractional coordinate from symmetry operation
@@ -253,7 +253,7 @@ DO isym=1,Nsym ! apply each symmetry op. ...
     DO j=1,n1+i-1 ! look through the S2 data up to the new position
       IF (SUSE(j)==0) CYCLE ! skip any unmarked previous position.
       p2 = S2(j,1:3) ! get fractional coordinate (should already be in [0,1[ )
-      rfdif = MODULO(p2-p1,1.0) ! fractional distance vector (modulo unit cell)
+      rfdif = MODULO(p2-p1,1.d0) ! fractional distance vector (modulo unit cell)
       ! Note: We are looking for the shortest fractional distance
       !       under periodic boundary conditions. This may require to look
       !       for shorter vectors across the cell boundary:

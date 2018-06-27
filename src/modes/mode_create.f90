@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 May 2018                                      *
+!* Last modification: P. Hirel - 07 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -126,7 +126,7 @@ SELECT CASE(create_struc)
 CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
     & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine')
   cubic = .TRUE.
-CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14')
+CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','limo2','LiMO2')
   hexagonal = .TRUE.
   cubic = .FALSE.
 CASE DEFAULT
@@ -653,6 +653,83 @@ CASE('c14','C14')
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
   comment(1) = 'C14 '//TRIM(ADJUSTL(comment(1)))
+!
+!
+CASE('limo2','LiMO2')
+  IF(nspecies.NE.3) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
+    GOTO 810
+  ENDIF
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,1) = create_a0(2)*DCOS(DEG2RAD(120.d0))
+  H(2,2) = create_a0(2)*DSIN(DEG2RAD(120.d0))
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up atom positions
+  !Consider the prototype LiMO2
+  ALLOCATE(P(12,4))
+  P(:,:) = 0.d0
+  x = 1.d0/3.d0
+  y = 2.d0/3.d0
+  !Positions of Li
+  !   0     0     0
+  ! 2/3   1/3   1/3
+  ! 1/3   2/3   2/3
+  P(2,1) = y*H(1,1) + x*H(2,1)  
+  P(2,2) = x*H(2,2)
+  P(2,3) = x*H(3,3)
+  P(3,1) = x*H(1,1) + y*H(2,1)
+  P(3,2) = y*H(2,2)
+  P(3,3) = y*H(3,3)
+  !Positions of M
+  !   0     0     1/5
+  ! 2/3   1/3   0.833
+  ! 1/3   2/3   0.167
+  P(4,3) = 0.50d0*H(3,3)
+  P(5,1) = y*H(1,1) + x*H(2,1)  
+  P(5,2) = x*H(2,2)
+  P(5,3) = 0.833d0*H(3,3) 
+  P(6,1) = x*H(1,1) + y*H(2,1)
+  P(6,2) = y*H(2,2)
+  P(6,3) = 0.167d0*H(3,3)
+  !Positions of O
+  !   0     0   0.231
+  !   0     0   0.769
+  ! 2/3   1/3   0.564
+  ! 2/3   1/3   0.102
+  ! 1/3   2/3   0.898
+  ! 1/3   2/3   0.436
+  P(7,3) = 0.231d0*H(3,3)
+  P(8,3) = 0.769d0*H(3,3)
+  P(9,1) = y*H(1,1) + x*H(2,1)
+  P(9,2) = x*H(2,2)
+  P(9,3) = 0.564d0*H(3,3)
+  P(10,1) = y*H(1,1) + x*H(2,1)
+  P(10,2) = x*H(2,2)
+  P(10,3) = 0.102d0*H(3,3)
+  P(11,1) = x*H(1,1) + y*H(2,1)
+  P(11,2) = y*H(2,2)
+  P(11,3) = 0.898d0*H(3,3)
+  P(12,1) = x*H(1,1) + y*H(2,1)
+  P(12,2) = y*H(2,2)
+  P(12,3) = 0.436d0*H(3,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2,4) = P(1,4)
+  P(3,4) = P(1,4)
+  CALL ATOMNUMBER(create_species(2),P(4,4))
+  P(5,4) = P(4,4)
+  P(6,4) = P(4,4)
+  CALL ATOMNUMBER(create_species(3),P(7,4))
+  P(8,4) = P(7,4)
+  P(9,4) = P(7,4)
+  P(10,4) = P(7,4)
+  P(11,4) = P(7,4)
+  P(12,4) = P(7,4)
+  !Set up the messages
+  temp = TRIM(create_species(1))//TRIM(create_species(2))//TRIM(create_species(3))//'2'
+  WRITE(comment(1),*) TRIM(temp)//' with hexagonal structure'
 !
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  OTHER STRUCTURES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!

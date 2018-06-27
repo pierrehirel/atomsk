@@ -4,9 +4,16 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- in mode "--create", added possibility to generate the LiMO2 structure (where M is a transition metal). Thanks to Raoul Aurelien Ngayam Happy, Paul Sherrer Institute, Switzerland, for implementing this feature.
+- in option "-select", added possibility to select particles that have the minimum or maximum value of a property. Also added the possibility to combine a new selection to the existing one (add, remove, intersect, xor).
+- added status checks in some memory allocations to avoid OS error "cannot allocate memory". Now in most cases Atomsk will display an error message and exit smoothly.
+- fixed a bug where the PDFFIT file format "str" was not recognized from the command-line.
+
+
+Beta 0.10.2 (24 May 2018)
+-------------------------
 - fixed a bug when reading PWscf input files (*.pw). Thanks to Dongho Nguimdo Moise, AIMS, Cameroon, for pointing out this bug.
 - removed error message from "ls" command that appeared when writing PWscf files (*.pw), when no suitable pseudopotential file was found.
-- added status checks in some memory allocations to avoid OS error "cannot allocate memory". Now Atomsk will display an error message and exit smoothly.
 
 
 Beta 0.10.1 (14 May 2018)

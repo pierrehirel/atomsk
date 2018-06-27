@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 26 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,6 +79,7 @@ REAL(dp):: distance
 REAL(dp):: dx, dy,dz    !line/grid step along X, Y
 REAL(dp):: prefactor
 REAL(dp):: snumber      !atomic number of an atom
+REAL(dp):: tempreal
 REAL(dp):: x, y, z      !coordinates along the <axis> / in the grid
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
@@ -183,11 +184,11 @@ ELSEIF( den_type==2 ) THEN
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
   IF( Nx<50 .OR. Nx>200 ) THEN
-    Nx = 150
+    Nx = 200
     dx = H(a1,a1) / DBLE(Nx)
   ENDIF
   IF( Ny<50 .OR. Ny>200 ) THEN
-    Ny = 150
+    Ny = 200
     dy = H(a2,a2) / DBLE(Ny)
   ENDIF
   !
@@ -198,7 +199,7 @@ ELSE
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
   Nz = NINT( ( MAXVAL(P(:,a3))-MINVAL(P(:,a3)) ) / dz )
-  IF( Nx<40 .OR. Nx>200 ) THEN
+  IF( Nx<40 .OR. Nx>150 ) THEN
     Nx = 100
     dx = H(a1,a1) / DBLE(Nx)
   ENDIF
@@ -311,25 +312,28 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
         CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
       ENDIF
       !
-      prefactor = PropPoint(i) * A
+      prefactor = PropPoint(i) * A * DEXP(-1.d0*P(i,a3)/VECLENGTH(H(a3,:)))
       !
       DO j=1,Nx
         x = DBLE(j)*dx
         DO k=1,Ny
+          tempreal = 0.d0
           y = DBLE(k)*dy
           !
           distance = DSQRT( (x-P(i,a1))**2 + (y-P(i,a2))**2 )
-          DenGrid2(j,k) = DenGrid2(j,k) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
+          tempreal = tempreal + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
           !
           !Add the contribution of its periodic images
           DO m=-1,1
             DO n=-1,1
               IF( m.NE.0 .OR. n.NE.0 ) THEN
                 distance = DSQRT( (x-(P(i,a1)+DBLE(m)*H(a1,a1)))**2 + (y-(P(i,a2)+DBLE(n)*H(a2,a2)))**2 )
-                DenGrid2(j,k) = DenGrid2(j,k) + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
+                tempreal = tempreal + prefactor*DEXP( -distance**2 / (2.d0*Sigma**2) )
               ENDIF
             ENDDO
           ENDDO
+          !
+          DenGrid2(j,k) = DenGrid2(j,k) + tempreal
           !
         ENDDO !loop on k
       ENDDO !loop on j

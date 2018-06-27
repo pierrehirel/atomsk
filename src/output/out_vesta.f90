@@ -178,7 +178,7 @@ WRITE(40,'(a)') " 0.000000  0.000000  0.000000"
 !Write cell data
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(40,'(a5)') "CELLP"
-WRITE(40,'(X,6(f12.6,3X))') a, b, c, alpha*180.d0/pi, beta*180.d0/pi, gamma*180.d0/pi
+WRITE(40,'(1X,6(f12.6,3X))') a, b, c, alpha*180.d0/pi, beta*180.d0/pi, gamma*180.d0/pi
 WRITE(40,'(a)') "  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000"
 !
 !

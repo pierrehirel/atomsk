@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 April 2018                                    *
+!* Last modification: P. Hirel - 26 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1212,32 +1212,38 @@ CASE(2076)
   !msg = ">>> Selecting all atoms."
   !CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2077)
-  !strings(1) = side of selected region: in or out
-  !strings(2) = region geometry: sphere or box or cylinder
-  !strings(3) = axis of cylinder
+  !strings(1) = region_side: in or out
+  !strings(2) = region_geom: sphere or box or cylinder
+  !strings(3) = region_dir: axis of cylinder, or "min" or "max"
+  !strings(4) = select_multiple: empty or "add" or "rm" or "intersect" or "xor"
   !reals(1) = region_1(1)
   !reals(2) = region_1(2)
   !reals(3) = region_1(3)
   !reals(4) = region_2(1)
   !reals(5) = region_2(2)
   !reals(6) = region_2(3)
+  IF( strings(4)=="rm" ) THEN
+    msg = ">>> Un-selecting"
+  ELSE
+    msg = ">>> Selecting"
+  ENDIF
   IF( strings(1)=="all" ) THEN
-    msg = ">>> Selecting all atoms."
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSEIF( strings(1)=="index" ) THEN
-    IF( strings(2)=="list " ) THEN
-      msg = ">>> Selecting a list of atoms."
-    ELSEIF( strings(2)=="range" ) THEN
-      WRITE(temp,*) NINT(reals(1))
-      WRITE(temp2,*) NINT(reals(2))
-      msg = ">>> Selecting atoms #"//TRIM(ADJUSTL(temp))//" to "//TRIM(ADJUSTL(temp2))//"."
-    ELSE
-      WRITE(temp,*) NINT(reals(1))
-      msg = ">>> Selecting atom #"//TRIM(ADJUSTL(temp))//"."
-    ENDIF
+    msg = TRIM(ADJUSTL(msg))//" all atoms."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="invert" ) THEN
     msg = ">>> Inverting the selection of atoms..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="index" ) THEN
+    IF( strings(2)=="list " ) THEN
+      msg = TRIM(ADJUSTL(msg))//" a list of atoms."
+    ELSEIF( strings(2)=="range" ) THEN
+      WRITE(temp,*) NINT(reals(1))
+      WRITE(temp2,*) NINT(reals(2))
+      msg = TRIM(ADJUSTL(msg))//" atoms #"//TRIM(ADJUSTL(temp))//" to "//TRIM(ADJUSTL(temp2))//"."
+    ELSE
+      WRITE(temp,*) NINT(reals(1))
+      msg = TRIM(ADJUSTL(msg))//" atom #"//TRIM(ADJUSTL(temp))//"."
+    ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
     IF( DABS(reals(1))<1.d12 ) THEN
@@ -1247,7 +1253,7 @@ CASE(2077)
     ELSEIF( reals(1)>1.d12 ) THEN
       WRITE(temp,"(a4)") "+INF"
     ENDIF
-    msg = ">>> Selecting atoms "//TRIM(strings(1))//" "//TRIM(ADJUSTL(temp))// &
+    msg = TRIM(ADJUSTL(msg))//" atoms "//TRIM(strings(1))//" "//TRIM(ADJUSTL(temp))// &
         & " A along the "//TRIM(strings(3))//" axis."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="in" .OR. strings(1)=="out" ) THEN
@@ -1259,7 +1265,7 @@ CASE(2077)
     IF(TRIM(strings(2))=="cell") THEN
       temp = TRIM(ADJUSTL(temp))//" cell"
     ENDIF
-    msg = ">>> Selecting atoms "//TRIM(temp)//" "//TRIM(strings(2))//"."
+    msg = TRIM(ADJUSTL(msg))//" atoms "//TRIM(temp)//" "//TRIM(strings(2))//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     IF(TRIM(strings(2))=="box") THEN
       msg = "..> Box bounds: ("
@@ -1323,9 +1329,11 @@ CASE(2077)
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
   ELSEIF( strings(1)=="prop" ) THEN
-    msg = ">>> Selecting atoms with "//TRIM(strings(2))
+    msg = TRIM(ADJUSTL(msg))//" atoms with "//TRIM(strings(2))
     WRITE(temp,"(f16.3)") reals(1)
-    IF( reals(4)>2.d0 ) THEN
+    IF( strings(3)=="min" .OR. strings(3)=="max" ) THEN
+      msg = TRIM(ADJUSTL(msg))//" "//TRIM(strings(3))//"imum."
+    ELSEIF( reals(4)>2.d0 ) THEN
       WRITE(temp2,"(f16.3)") reals(2)
       msg = TRIM(ADJUSTL(msg))//" between "//TRIM(ADJUSTL(temp))//" and "//TRIM(ADJUSTL(temp2))//"."
     ELSE
@@ -1334,7 +1342,7 @@ CASE(2077)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random" .OR. strings(1)=="rand" ) THEN
     WRITE(temp,*) NINT(reals(1))
-    msg = ">>> Randomly selecting "//TRIM(ADJUSTL(temp))
+    msg = TRIM(ADJUSTL(msg))//" randomly "//TRIM(ADJUSTL(temp))
     IF( NINT(reals(1))<=1 ) THEN
       msg = TRIM(msg)//" atom"
     ELSE
@@ -1347,7 +1355,7 @@ CASE(2077)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random%" ) THEN
     WRITE(temp,'(f16.3)') reals(1)*100.d0
-    msg = ">>> Randomly selecting "//TRIM(ADJUSTL(temp))//"% of atoms"
+    msg = TRIM(ADJUSTL(msg))//" randomly "//TRIM(ADJUSTL(temp))//"% of atoms"
     IF( strings(2).NE."any" .AND. strings(2).NE."all" ) THEN
       msg = TRIM(msg)//" of "//TRIM(strings(2))
     ENDIF
@@ -1377,25 +1385,50 @@ CASE(2077)
       msg = TRIM(ADJUSTL(temp2))//" neighbors within a radius of "//TRIM(ADJUSTL(temp))//" A"
     ENDIF
     WRITE(temp,*) NINT(reals(2))
-    msg = ">>> Selecting "//TRIM(ADJUSTL(msg))//" of atom #"//TRIM(ADJUSTL(temp))//"..."
+    msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(msg))//" of atom #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="stl" ) THEN
-    msg = ">>> Selecting atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
+    msg = TRIM(ADJUSTL(msg))//" atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     !Last case: strings(1) should be an atom species
-    msg = ">>> Selecting all "//TRIM(ADJUSTL(strings(1)))//" atoms..."
+    msg = TRIM(ADJUSTL(msg))//" all "//TRIM(ADJUSTL(strings(1)))//" atoms..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(2078)
   !reals(1) = number of atoms that were selected
+  !reals(2) = number of atoms that were ADDED to the selection
+  !reals(3) = number of atoms that were REMOVED from the selection
+  IF( NINT(reals(2))>0 .OR. NINT(reals(3))>0 ) THEN
+    msg = "..>"
+    IF( NINT(reals(2))>0 ) THEN
+      IF( NINT(reals(2))==1 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" 1 atom was added to the selection"
+      ELSEIF( NINT(reals(2))>1 ) THEN
+        WRITE(temp,*) NINT( reals(2) )
+        msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" atoms were added to the selection"
+      ENDIF
+    ENDIF
+    IF( NINT(reals(3))>0 ) THEN
+      IF( NINT(reals(2))>0 ) THEN
+        msg = TRIM(ADJUSTL(msg))//","
+      ENDIF
+      IF( NINT(reals(3))==1 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" 1 atom was removed from the selection."
+      ELSEIF( NINT(reals(3))>1 ) THEN
+        WRITE(temp,*) NINT( reals(3) )
+        msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" atoms were removed from the selection."
+      ENDIF
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 atom was selected."
+    msg = "..> 1 atom is now selected."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(temp,*) NINT( reals(1) )
-    msg = "..> "//TRIM(ADJUSTL(temp))//" atoms were selected."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" atoms are now selected."
   ELSE
-    msg = "..> No atom was selected."
+    msg = "..> No atom is selected."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2079)
@@ -2039,8 +2072,13 @@ CASE(2752)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2753)
   !reals(1) = atom index
+  !reals(2) = 0 (selected) or 1 (un-selected)
   WRITE(temp,*) NINT(reals(1))
-  msg = "/!\ WARNING: atom #"//TRIM(ADJUSTL(temp))//" was already selected, skipping."
+  IF( NINT(reals(2))>0 ) THEN
+    msg = "/!\ WARNING: atom #"//TRIM(ADJUSTL(temp))//" was already unselected, skipping."
+  ELSE
+    msg = "/!\ WARNING: atom #"//TRIM(ADJUSTL(temp))//" was already selected, skipping."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2754)
   !strings(1) = type of object (e.g. "dislocation" or "crack" or "loop" or "all"
@@ -2081,6 +2119,10 @@ CASE(2759)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2760)
   msg = "/!\ WARNING: cell is already orthorhombic, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2761)
+  !strings(1) = "add" or "rm" or "intersect" or "xor"
+  msg = "/!\ WARNING: cannot modify selection because no selection was previously defined."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 19 April 2018                                    *
+!* Last modification: P. Hirel - 26 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1178,32 +1178,37 @@ CASE(2076)
   !msg = ">>> Waehle alle Atome aus."
   !CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2077)
-  !strings(1) = side of selected region: in or out
-  !strings(2) = region geometry: sphere or box or cylinder
-  !strings(3) = axis of cylinder
+  !strings(1) = region_side: in or out
+  !strings(2) = region_geom: sphere or box or cylinder
+  !strings(3) = region_dir: axis of cylinder, or "min" or "max"
   !reals(1) = region_1(1)
   !reals(2) = region_1(2)
   !reals(3) = region_1(3)
   !reals(4) = region_2(1)
   !reals(5) = region_2(2)
   !reals(6) = region_2(3)
+  IF( strings(4)=="rm" ) THEN
+    msg = ">>> Abwaehle"
+  ELSE
+    msg = ">>> Waehle"
+  ENDIF
   IF( strings(1)=="all" ) THEN
     msg = ">>> Waehle alle Atome aus."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="invert" ) THEN
+    msg = ">>> Invertiere die Auswahl der Atome..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="index" ) THEN
     IF( strings(2)=="list " ) THEN
-      msg = ">>> Waehle eine Liste von Atomen aus."
+      msg = TRIM(ADJUSTL(msg))//" eine Liste von Atomen aus."
     ELSEIF( strings(2)=="range" ) THEN
       WRITE(temp,*) NINT(reals(1))
       WRITE(temp2,*) NINT(reals(2))
-      msg = ">>> Waehle Atom #"//TRIM(ADJUSTL(temp))//" bis "//TRIM(ADJUSTL(temp2))//" aus."
+      msg = TRIM(ADJUSTL(msg))//" Atom #"//TRIM(ADJUSTL(temp))//" bis "//TRIM(ADJUSTL(temp2))//" aus."
     ELSE
       WRITE(temp,*) NINT(reals(1))
-      msg = ">>> Waehle Atom #"//TRIM(ADJUSTL(temp))//" aus."
+      msg = TRIM(ADJUSTL(msg))//" Atom #"//TRIM(ADJUSTL(temp))//" aus."
     ENDIF
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSEIF( strings(1)=="invert" ) THEN
-    msg = ">>> Invertiere die Auswahl der Atome..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
     IF( DABS(reals(1))<1.d12 ) THEN
@@ -1213,7 +1218,7 @@ CASE(2077)
     ELSEIF( reals(1)>1.d12 ) THEN
       WRITE(temp,"(a4)") "+INF"
     ENDIF
-    msg = ">>> Waehle Atome "//TRIM(strings(1))//" "//TRIM(ADJUSTL(temp))// &
+    msg = TRIM(ADJUSTL(msg))//" Atome "//TRIM(strings(1))//" "//TRIM(ADJUSTL(temp))// &
         & " A entlang der "//TRIM(strings(3))//" Achse aus."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="in" .OR. strings(1)=="out" ) THEN
@@ -1222,7 +1227,7 @@ CASE(2077)
     ELSE
       temp = "ausserhalb der"
     ENDIF
-    msg = ">>> Waehle die Atome "//TRIM(temp)//" "//TRIM(strings(2))//"."
+    msg = TRIM(ADJUSTL(msg))//" die Atome "//TRIM(temp)//" "//TRIM(strings(2))//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     IF(TRIM(strings(2))=="box") THEN
       msg = "..> Zellenbegrenzung: ("
@@ -1285,9 +1290,11 @@ CASE(2077)
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
   ELSEIF( strings(1)=="prop" ) THEN
-    msg = ">>> Waehle Atome mit "//TRIM(strings(2))
+    msg = TRIM(ADJUSTL(msg))//" Atome mit "//TRIM(strings(2))
     WRITE(temp,"(f16.3)") reals(1)
-    IF( reals(4)>2.d0 ) THEN
+    IF( strings(3)=="min" .OR. strings(3)=="max" ) THEN
+      msg = TRIM(ADJUSTL(msg))//" "//TRIM(strings(3))//"imum."
+    ELSEIF( reals(4)>2.d0 ) THEN
       WRITE(temp2,"(f16.3)") reals(2)
       msg = TRIM(ADJUSTL(msg))//" zwischen "//TRIM(ADJUSTL(temp))//" und "//TRIM(ADJUSTL(temp2))//"."
     ELSE
@@ -1334,25 +1341,50 @@ CASE(2077)
       msg = TRIM(ADJUSTL(temp2))//" Nachbarn innerhalb eines Radius von "//TRIM(ADJUSTL(temp))//" A"
     ENDIF
     WRITE(temp,*) NINT(reals(2))
-    msg = ">>> Waehle "//TRIM(ADJUSTL(msg))//" von Atom #"//TRIM(ADJUSTL(temp))//"..."
+    msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(msg))//" von Atom #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="stl" ) THEN
-    msg = ">>> Selecting atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
+    msg = TRIM(ADJUSTL(msg))//" atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     !Last case: strings(1) should be an atom species
-    msg = ">>> Waehle alle "//TRIM(ADJUSTL(strings(1)))//" Atome..."
+    msg = TRIM(ADJUSTL(msg))//" alle "//TRIM(ADJUSTL(strings(1)))//" Atome..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(2078)
   !reals(1) = number of atoms that were selected
+  !reals(2) = number of atoms that were ADDED to the selection
+  !reals(3) = number of atoms that were REMOVED from the selection
+  IF( NINT(reals(2))>0 .OR. NINT(reals(3))>0 ) THEN
+    msg = "..>"
+    IF( NINT(reals(2))>0 ) THEN
+      IF( NINT(reals(2))==1 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" 1 Atome wurde zur Auswahl hinzugefügt"
+      ELSEIF( NINT(reals(2))>1 ) THEN
+        WRITE(temp,*) NINT( reals(2) )
+        msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" Atome wurden zur Auswahl hinzugefügt"
+      ENDIF
+    ENDIF
+    IF( NINT(reals(3))>0 ) THEN
+      IF( NINT(reals(2))>0 ) THEN
+        msg = TRIM(ADJUSTL(msg))//","
+      ENDIF
+      IF( NINT(reals(3))==1 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" 1 Atom wurde zur Auswahl entfernt."
+      ELSEIF( NINT(reals(3))>1 ) THEN
+        WRITE(temp,*) NINT( reals(3) )
+        msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" Atome wurden zur Auswahl entfernt."
+      ENDIF
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 Atom wurde ausgewaehlt."
+    msg = "..> 1 Atom ist ausgewaehlt."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(temp,*) NINT( reals(1) )
-    msg = "..> "//TRIM(ADJUSTL(temp))//" Atome wurden ausgewaehlt."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" Atome sind ausgewaehlt."
   ELSE
-    msg = "..> Kein Atom wurde ausgewaehlt."
+    msg = "..> Kein Atom ist ausgewaehlt."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2079)
@@ -2045,7 +2077,11 @@ CASE(2759)
   msg = "/!\ WARNUNG: Schleifenradius ist zu klein. Ueberspringe."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2760)
-  msg = "/!\ WARNING: cell is already orthorhombic, skipping."
+  msg = "/!\ WARNUNG: Zelle ist bereits orthorhombisch. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2761)
+  !strings(1) = "add" or "rm" or "intersect" or "xor"
+  msg = "/!\ WARNUNG: Auswahl kann nicht geändert werden, da zuvor keine Auswahl definiert wurde."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
