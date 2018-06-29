@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 26 June 2018                                     *
+!* Last modification: P. Hirel - 29 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -322,10 +322,11 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|torus> [<Achse>] <x1> <y1> <z1> <x2> [<y2> <z2>]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<Achse>] <x1> <y1> <z1> <x2> [<y2> <z2>] [alpha]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+  WRITE(*,*) "          -select [add|rm|intersect|xor] <any of the above>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-separate") THEN
@@ -1065,9 +1066,9 @@ CASE(2061)
   ELSEIF(temp(1:4)=="edge") THEN
     msg = ">>> Fuege eine Stufenversetzung ein, entlang der Linie"
   ELSEIF(temp(1:5)=="mixed") THEN
-    msg = ">>> Inserting a mixed dislocation with line along"
+    msg = ">>> Fuege einer gemischten Versetzung mit der Linie entlang"
   ELSEIF(temp(1:4)=="loop") THEN
-    msg = ">>> Inserting a dislocation loop in a plane normal to"
+    msg = ">>> Fuege einer Versetzungsschleife in eine Ebene normal zu"
   ENDIF
   msg = TRIM(msg)//' '//TRIM(strings(2))//","
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1275,6 +1276,16 @@ CASE(2077)
       msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//")"
       WRITE(temp,"(f16.3)") reals(4)
       msg = TRIM(msg)//"; Radius: "//TRIM(ADJUSTL(temp))//" A."
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ELSEIF(TRIM(strings(2))=="cone") THEN
+      WRITE(temp,"(f16.3)") reals(1)
+      msg = "..> Achse entlang "//TRIM(strings(3))//". Tipp bei: ("//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(2)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(3)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//"). Öffnungswinkel: "
+      WRITE(temp,"(f16.3)") reals(4)
+      msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//"°."
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ELSEIF(TRIM(strings(2))=="torus") THEN
       WRITE(temp,"(f16.3)") reals(1)
@@ -1855,47 +1866,47 @@ CASE(2130)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2131)
   !strings(1) = space group name or number
-  msg = ">>> Applying symmetry operations of space group: "//TRIM(ADJUSTL(strings(1)))
+  msg = ">>> Anwenden von Symmetrieoperationen der Raumgruppe: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2132)
   !reals(1) = space group number
   WRITE(temp,"(i5)") NINT(reals(1))
-  msg = "..> Space group number: "//TRIM(ADJUSTL(temp))
+  msg = "..> Raumgruppe nummer: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2133)
   !reals(1) = new number of atoms
   WRITE(temp,"(i16)") NINT(reals(1))
-  msg = "..> Symmetry operations were successfully applied, new number of atoms: "//TRIM(ADJUSTL(temp))
+  msg = "..> Symmetrieoperationen wurden erfolgreich angewendet, neue Anzahl von Atomen: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2140)
   !reals(1) = min. separation distance
   !reals(2) = separate atoms by this amount
   WRITE(temp,"(f16.2)") reals(1)
   WRITE(temp2,"(f16.2)") reals(2)
-  msg = ">>> Separating atoms closer than "//TRIM(ADJUSTL(temp))//" A by a distance of "//TRIM(ADJUSTL(temp2))//"..."
+  msg = ">>> Trennen von Atomen näher als "//TRIM(ADJUSTL(temp))//" A  in einer Entfernung von "//TRIM(ADJUSTL(temp2))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2141)
   !reals(1) = number of pairs of atoms that were separated
   IF( reals(1) < 1.d-3 ) THEN
-    msg = "..> No atoms were separated."
+    msg = "..> Keine Atome wurden getrennt."
   ELSEIF( NINT(reals(1)) == 1 ) THEN
-    msg = "..> One pair of atoms was separated."
+    msg = "..> Ein Paar Atome wurde getrennt."
   ELSE
     WRITE(temp,"(i16)") NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(temp))//" pairs of atoms were separated."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" Paare von Atomen wurden getrennt."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2142)
   !reals(1) = number of triangles in STL file
   WRITE(temp,*) NINT(reals(1))
-  msg = "..> STL file was read successfully ("//TRIM(ADJUSTL(temp))//" triangles)."
+  msg = "..> STL Datei wurde erfolgreich gelesen ("//TRIM(ADJUSTL(temp))//" Dreiecke)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2143)
-  msg = ">>> Converting system into an orthorhombic cell..."
+  msg = ">>> Konvertieren des Systems in eine orthorhombische Zelle..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2144)
   WRITE(temp,*) NINT(reals(1))
-  msg = "..> Cell is now orthorhombic ("//TRIM(ADJUSTL(temp))//" atoms)."
+  msg = "..> Die Zelle ist jetzt orthorhombisch ("//TRIM(ADJUSTL(temp))//" Atome)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES
@@ -2170,13 +2181,13 @@ CASE(2816)
   msg = "X!X FEHLER: Elastizitaetstensor nicht definiert. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2817)
-  msg = "X!X ERROR: the property '"//TRIM(ADJUSTL(strings(1)))//"' is not defined, aborting."
+  msg = "X!X FEHLER: Die Eigenschaft '"//TRIM(ADJUSTL(strings(1)))//"' ist nicht definiert. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2818)
-  msg = "X!X ERROR: there was an error while reading the STL file, aborting."
+  msg = "X!X FEHLER: Beim Lesen der STL-Datei ist ein Fehler aufgetreten. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2819)
-  msg = "X!X ERROR: unable to find an orthogonal cell from initial cell vectors."
+  msg = "X!X FEHLER: nicht in der Lage, eine orthogonale Zelle von anfänglichen Zellenvektoren zu finden."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -2850,8 +2861,8 @@ CASE(4713)
 CASE(4714)
   !strings(1) = direction along which cell is small
   !reals(1) = new cell size along that direction
-  msg = "/!\ WARNING: final cell has a small dimension along " &
-      & //TRIM(ADJUSTL(strings(1)))//", setting it to "//TRIM(ADJUSTL(temp))
+  msg = "/!\ WARNUNG: Die letzte Zelle hat eine kleine Dimension entlang " &
+      & //TRIM(ADJUSTL(strings(1)))//", einstellung auf  "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES

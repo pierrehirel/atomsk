@@ -729,10 +729,10 @@ DO ioptions=1,SIZE(options_array)
       region_side = ADJUSTL( region_side(i:) )             !remove keyword
       i=SCAN(region_side," ")
       region_side = region_side(:i)                        !keep only first string
-    ELSEIF( select_multiple=="subtract" .OR. select_multiple=="SUBTRACT" .OR.   &
-          & select_multiple=="substract" .OR. select_multiple=="SUBSTRACT" .OR. &
-          & select_multiple=="delete" .OR. select_multiple=="DELETE" .OR. &
-          & select_multiple=="remove"   .OR. select_multiple=="REMOVE"   .OR.   &
+    ELSEIF( select_multiple=="subtract" .OR. select_multiple=="SUBTRACT" .OR.            &
+          & select_multiple=="substract" .OR. select_multiple=="SUBSTRACT" .OR.          &
+          & select_multiple=="delete" .OR. select_multiple=="DELETE" .OR.                &
+          & select_multiple=="remove"   .OR. select_multiple=="REMOVE"   .OR.            &
           & select_multiple=="rm" .OR. select_multiple=="RM" .OR. select_multiple=="del" ) THEN
       select_multiple = "rm"
       region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
@@ -750,6 +750,13 @@ DO ioptions=1,SIZE(options_array)
       region_side = region_side(:i)                        !keep only first string
     ELSEIF( select_multiple=="xor"  .OR. select_multiple=="XOR"  ) THEN
       select_multiple = "xor"
+      region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
+      i=SCAN(region_side," ")
+      region_side = ADJUSTL( region_side(i:) )             !remove keyword
+      i=SCAN(region_side," ")
+      region_side = region_side(:i)                        !keep only first string
+    ELSEIF( select_multiple=="among"  .OR. select_multiple=="AMONG"  ) THEN
+      select_multiple = "among"
       region_side = ADJUSTL( options_array(ioptions)(8:) ) !remove "-select"
       i=SCAN(region_side," ")
       region_side = ADJUSTL( region_side(i:) )             !remove keyword
@@ -895,6 +902,22 @@ DO ioptions=1,SIZE(options_array)
         region_1(3) = 0.d0
         region_2(2) = 0.d0
         region_2(3) = 0.d0
+      ELSEIF(region_geom=='cone') THEN
+        IF( LEN_TRIM(select_multiple)>0 ) THEN
+          READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side, &
+              & region_geom, region_dir, treal(1), treal(2), treal(3), region_2(1)
+        ELSE
+          READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, &
+              & region_geom, region_dir, treal(1), treal(2), treal(3), region_2(1)
+        ENDIF
+        !Check if numbers contain a keyword like "BOX" or "INF"
+        DO i=1,3
+          CALL BOX2DBLE( H(:,i) , treal(i) , region_1(i) , status )
+          IF(status>0) THEN
+            temp = treal(i)
+            GOTO 810
+          ENDIF
+        ENDDO
       ELSEIF(region_geom=='torus' .OR. region_geom=='pyramid') THEN
         IF( LEN_TRIM(select_multiple)>0 ) THEN
           READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side, &

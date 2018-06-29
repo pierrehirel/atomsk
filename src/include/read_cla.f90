@@ -1161,7 +1161,8 @@ DO WHILE(i<SIZE(cla))
     IF( temp=="add" .OR. temp=="ADD" .OR. temp=="union" .OR. temp=="UNION" .OR.          &
       & temp=="rm" .OR. temp=="RM" .OR. temp=="remove" .OR. temp=="REMOVE" .OR.          &
       & temp=="subtract" .OR. temp=="SUBTRACT" .OR. temp=="intersect" .OR.               &
-      & temp=="INTERSECT" .OR. temp=="xor" .OR. temp=="XOR"                     ) THEN
+      & temp=="INTERSECT" .OR. temp=="xor" .OR. temp=="XOR" .OR.                         &
+      & temp=="among" .OR. temp=="AMONG"                                        ) THEN
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       i=i+1
       temp = ADJUSTL(cla(i))
@@ -1300,6 +1301,38 @@ DO WHILE(i<SIZE(cla))
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         READ(temp,*,END=120,ERR=120) tempreal
+      ELSEIF(region_geom=='cone') THEN
+        !read the axis of the cone
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        temp = TRIM(ADJUSTL(temp))
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+          & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+        !read the 3 coordinates of the tip of the cone
+        !X
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !Y
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !Z
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !read opening angle of the cone (in degrees)
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 ) GOTO 120
       ELSEIF(region_geom=='torus') THEN
         !read the axis (normal to the torus plane / to the base of pyramid)
         i=i+1

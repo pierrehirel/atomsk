@@ -39,6 +39,8 @@
 
 <p><code>-select &#60;in|out&#62; cylinder &#60;axe&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
 
+<p><code>-select &#60;in|out&#62; cone &#60;axe&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;&alpha;&#62;</code></p>
+
 <p><code>-select &#60;in|out&#62; torus &#60;axe&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62; &#60;r&#62;</code></p>
 
 <p><code>-select prop &#60;propriété&#62; &#60;valeur1[:valeur2]&#62;</code></p>
@@ -48,6 +50,8 @@
 <p><code>-select grid &#60;fichier&#62;</code></p>
 
 <p><code>-select stl [center] &#60;fichier&#62;</code></p>
+
+<p><code>-select [add|rm|intersect|xor] &#60;n'importe quel critère ci-dessus&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -76,8 +80,9 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
   <li><strong>x, y, z</strong> : pour la boîte ("box"), les coordonnées du premier coin ; pour la sphère ("sphere") et le tore ("torus"), coordonnées du centre ; pour le cylindre ("cylinder") seules deux coordonnées doivent être fournies, indiquant la position du centre du cylindre dans le plan normal à son &#60;axe&#62; (voir ci-dessous).</li>
   <li><strong>x', y', z'</strong> : seulement pour la boîte ("box"), coordonnées du dernier coin.</li>
   <li><strong>R</strong> : seulement pour la sphère, le cylindre, et le tore, leur rayon (en &Aring;).</li>
+  <li><strong>axe</strong> : pour le cylindre, le tore ou le cône, la direction de l'axe principal, doit être "X", "Y" ou "Z".</li>
   <li><strong>r</strong> : seulement pour le tore, son rayon secondaire (en &Aring;).</li>
-  <li><strong>axe</strong> : seulement pour le cylindre, la direction de son axe principal, doit être "X", "Y" ou "Z".</li>
+  <li><strong>&alpha;</strong> : seulement pour le cône, son angle d'ouverture (en degrés).</li>
 </ul>
 
 <p>En utilisant <strong>-select in cell</strong> (ou <strong>-select out cell</strong>), les atomes situés à l'intérieur (respectivement à l'extérieur) de la boîte de simulation sont sélectionnés. Cette option ne prend aucun paramètre supplémentaire.</p>
@@ -87,6 +92,8 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 <p>La <strong>sphère</strong> est définie par son centre (x,y,z) et son rayon R.</p>
 
 <p>Le <strong>cylindre</strong> est défini par son centre (x<sub>1</sub>,x<sub>2</sub>) dans le plan normal à son &#60;axe&#62;, et par son rayon R. Les directions x<sub>1</sub> and y<sub>2</sub> sont définies d'après la direction de l'&#60;axe&#62; par permutation X, Y, Z (par ex. si &#60;axe&#62;=Y alors x<sub>1</sub> sera la position selon l'axe cartésien Z, et x<sub>2</sub> la position suivant X).</p>
+
+<p>Le <strong>cône</strong> est défini par son axe (X, Y ou Z), la position de sa pointe (x,y,z), et son angle d'ouverture par rapport à son axe (&alpha; en degrés).</p>
 
 <p>Le <strong>tore</strong> est défini par son axe (X, Y ou Z), sa position (x,y,z), son rayon principal R, et son rayon secondaire r.</p>
 
