@@ -209,27 +209,6 @@ DO
       H(2,2) = DABS(P2)
       H(3,3) = DABS(P3)
       !
-      !Check that there will be enough memory for final system
-      IF(ALLOCATED(Q)) DEALLOCATE(Q)
-      CALL VOLUME_PARA(Huc,Vmin)  ! Volume of seed
-      CALL VOLUME_PARA(H,Volume)  ! Volume of final box
-      m = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
-      IF( m<=0 ) THEN
-        ! if m is negative, it's probably because it exceeded the accuracy of INTEGER
-        nerr = nerr+1
-        CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
-        GOTO 1000
-      ELSE
-        ALLOCATE(Q(m,4),STAT=i)
-        IF( i>0 ) THEN
-          ! Allocation failed (not enough memory)
-          nerr = nerr+1
-          CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
-          GOTO 1000
-        ENDIF
-        IF(ALLOCATED(Q)) DEALLOCATE(Q)
-      ENDIF
-      !
       IF( H(1,1)<1.1d0*Huc(1,1) .OR. H(2,2)<1.1d0*Huc(2,2) .OR. H(3,3)<1.1d0*Huc(3,3) ) THEN
         !The user asked for a final cell with at least one small dimension (smaller than seed)
         !=> Look along which dimension the final box is "small"
@@ -264,6 +243,27 @@ DO
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       Hset=.TRUE.
+      !
+      !Check that there will be enough memory for final system
+      IF(ALLOCATED(Q)) DEALLOCATE(Q)
+      CALL VOLUME_PARA(Huc,Vmin)  ! Volume of seed
+      CALL VOLUME_PARA(H,Volume)  ! Volume of final box
+      m = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
+      IF( m<=0 ) THEN
+        ! if m is negative, it's probably because it exceeded the accuracy of INTEGER
+        nerr = nerr+1
+        CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        ALLOCATE(Q(m,4),STAT=i)
+        IF( i>0 ) THEN
+          ! Allocation failed (not enough memory)
+          nerr = nerr+1
+          CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+          GOTO 1000
+        ENDIF
+        IF(ALLOCATED(Q)) DEALLOCATE(Q)
+      ENDIF
       !
     ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
       !Check that the box was defined
@@ -321,6 +321,12 @@ DO
 ENDDO
 !
 210 CONTINUE
+IF( verbosity==4 ) THEN
+  WRITE(msg,'(a5,3(f9.3,a3))') "Box: ", H(1,1), " x ", H(2,2), " x ",  H(3,3)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "Nnodes = ", Nnodes
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+ENDIF
 !Keywords "lattice", "node" and "random" are mutually exclusive
 !If two of them appear in the param file, display an error message and exit
 IF( paramnode .AND. paramrand ) THEN
@@ -468,7 +474,15 @@ DO
       !randarray now contains 3*Nnodes real numbers between 0 and 1
       !They are used to generate rotation matrices
       !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
-      randarray(:) = randarray(:)*2.d0*pi - pi
+      !randarray(:) = randarray(:)*2.d0*pi - pi  !old "naive" sampling (biased)
+      DO i=1,Nnodes
+        m = 3*(i-1) + 1
+        n = 3*(i-1) + 2
+        o = 3*(i-1) + 3
+        randarray(m) = randarray(m)*2.d0*pi - pi
+        randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
+        randarray(o) = randarray(o)*2.d0*pi - pi
+      ENDDO
       DO i=1,Nnodes
         P1 = randarray(3*(i-1)+1)
         P2 = randarray(3*(i-1)+2)
@@ -517,11 +531,21 @@ DO
       ENDIF
       Nnodes = Nnodes+1
       !
-      !Generate N random numbers, just in case one or more nodes have random orientation
-      CALL GEN_NRANDNUMBERS( 3*SIZE(vnodes,1) , randarray )
-      !randarray now contains N real numbers between 0 and 1
-      !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
-      randarray(:) = randarray(:)*2.d0*pi - pi
+      IF( .NOT.ALLOCATED(randarray) ) THEN
+        !Generate N random numbers, just in case one or more nodes have random orientation
+        CALL GEN_NRANDNUMBERS( 3*SIZE(vnodes,1) , randarray )
+        !randarray now contains N real numbers between 0 and 1
+        !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
+        !randarray(:) = randarray(:)*2.d0*pi - pi  !old "naive" sampling (biased)
+        DO i=1,Nnodes
+          m = 3*(i-1) + 1
+          n = 3*(i-1) + 2
+          o = 3*(i-1) + 3
+          randarray(m) = randarray(m)*2.d0*pi - pi
+          randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
+          randarray(o) = randarray(o)*2.d0*pi - pi
+        ENDDO
+      ENDIF
       !
       !Read position of that grain
       !Note: position may be given with respect to box dimension, e.g. "box/2"
@@ -685,8 +709,35 @@ DO
       ENDDO
       !
       !The last 3*Nnodes random numbers are used to generate rotation matrices
-      !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
-      randarray(3*Nnodes:) = randarray(3*Nnodes:)*2.d0*pi - pi
+      !Modify them to generate 3 angles alpha, beta and gamma
+      !Note: just multiplying the three random numbers by 2pi results in a biased distribution
+      !See J.J. Kuffner, Proc. 2004 IEEE Int'l Conf. on Robotics and Automation (ICRA 2004)
+      !or http://mathworld.wolfram.com/SpherePointPicking.html
+      !randarray(3*Nnodes:) = randarray(3*Nnodes:)*2.d0*pi - pi  !old "naive" sampling (biased)
+      DO i=1,Nnodes
+        m = 3*Nnodes + 3*(i-1) + 1
+        n = 3*Nnodes + 3*(i-1) + 2
+        o = 3*Nnodes + 3*(i-1) + 3
+        randarray(m) = randarray(m)*2.d0*pi - pi
+        randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
+        randarray(o) = randarray(o)*2.d0*pi - pi
+      ENDDO
+      !
+      IF( verbosity==4 ) THEN
+        !Write angles into a file for visualization
+        !Angles are projected on the surface of a sphere of radius 10
+        !Only roll and pitch angles are used/written
+        OPEN(UNIT=43,FILE="atomsk_angles.xyz",STATUS="UNKNOWN")
+        WRITE(43,*) Nnodes
+        WRITE(43,*) "# Distribution of random angles generated by Atomsk"
+        DO i=1,Nnodes
+          P1 = randarray(3*Nnodes+3*(i-1)+1)
+          P2 = randarray(3*Nnodes+3*(i-1)+2)
+          P3 = randarray(3*Nnodes+3*(i-1)+3)
+          WRITE(43,'(a3,3(f16.3,2X))') "1  ", 10.d0*DCOS(P1)*DSIN(P2), 10.d0*DSIN(P1)*DSIN(P2), 10.d0*DCOS(P2)
+        ENDDO
+        CLOSE(43)
+      ENDIF
       !
       !Positions and orientations will be written in a parameter file
       OPEN(41,FILE=outparamfile,STATUS="UNKNOWN")
