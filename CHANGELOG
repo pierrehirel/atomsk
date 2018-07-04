@@ -1,6 +1,16 @@
 CHANGELOG FOR ATOMSK
 ====================
 
+Beta 0.10.3 (04 July 2018)
+--------------------------
+- in mode "--create", added possibility to generate the LiMO2 structure (where M is a transition metal). Thanks to Raoul Aurelien Ngayam Happy, Paul Sherrer Institute, Switzerland, for implementing this feature.
+- in option "-select", added possibility to select particles that have the minimum or maximum value of a property. Also added the possibility to combine a new selection to the existing one (add, remove, intersect, xor). Also added the possibility to select atoms inside or outside of a cone.
+- added status checks in some memory allocations to avoid OS error "cannot allocate memory". Now in most cases Atomsk will display an error message and exit smoothly.
+- fixed a bug in mode "--polycrystal", where the random distribution of angles was biased, and could result in slightly textured polycrystals. Thanks to Sen Chen, The Peac Institute of Multiscale Sciences (PIMS), Chengdu, China, for pointing out this bug.
+- fixed a bug where the PDFFIT file format "str" was not recognized from the command-line.
+- fixed a bug in option "--polycrystal" that was preventing to generate 2-D polycrystals.
+
+
 Beta 0.10.2 (24 May 2018)
 -------------------------
 - fixed a bug when reading PWscf input files (*.pw). Thanks to Dongho Nguimdo Moise, AIMS, Cameroon, for pointing out this bug.
@@ -12,6 +22,7 @@ Beta 0.10.1 (14 May 2018)
 - in mode "--create", added possibility to create the C14 Laves lattice. Thanks to Julien Guénolé, IPMP, RWTH Aachen, Germany, for implementing this feature.
 - fixed a bug when creating wurtzite lattice with mode "--create". Thanks to Justin Ondry, UC Berkeley, USA, for pointing out this bug.
 - fixed a bug in the writing of JEMS files. Thanks to Tara Boland, Arizona State University, USA, for pointing out this bug and providing a fix.
+
 
 Beta 0.10 (24 April 2018)
 -------------------------

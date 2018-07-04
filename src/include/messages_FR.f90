@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 19 April 2018                                    *
+!* Last modification: P. Hirel - 29 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -344,10 +344,11 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|torus> [<axe>] <x1> <y1> <z1> <x2> [<y2> <z2>]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<axe>] <x1> <y1> <z1> <x2> [<y2> <z2>] [alpha]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+  WRITE(*,*) "          -select [add|rm|intersect|xor] <any of the above>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-separate") THEN
@@ -1228,33 +1229,39 @@ CASE(2076)
   !msg = ">>> Sélection de tous les atomes."
   !CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2077)
-  !strings(1) = side of selected region: in or out
-  !strings(2) = region geometry: sphere or box
+  !strings(1) = region_side: in or out
+  !strings(2) = region_geom: sphere or box or cylinder
+  !strings(3) = region_dir: axis of cylinder, or "min" or "max"
   !reals(1) = region_1(1)
   !reals(2) = region_1(2)
   !reals(3) = region_1(3)
   !reals(4) = region_2(1)
   !reals(5) = region_2(2)
   !reals(6) = region_2(3)
+  IF( strings(4)=="rm" ) THEN
+    msg = ">>> Dé-sélection"
+  ELSE
+    msg = ">>> Sélection"
+  ENDIF
   temp = ""
   temp2 = ""
   IF( strings(1)=="all" ) THEN
     msg = ">>> Selection de tous les atomes."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="invert" ) THEN
+    msg = ">>> Inversion de la sélection..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="index" ) THEN
     IF( strings(2)=="list " ) THEN
-      msg = ">>> Selection d'une liste d'atomes."
+      msg = TRIM(ADJUSTL(msg))//" d'une liste d'atomes."
     ELSEIF( strings(2)=="range" ) THEN
       WRITE(temp,*) NINT(reals(1))
       WRITE(temp2,*) NINT(reals(2))
-      msg = ">>> Selection des atomes #"//TRIM(ADJUSTL(temp))//" à "//TRIM(ADJUSTL(temp2))//"."
+      msg = TRIM(ADJUSTL(msg))//" des atomes #"//TRIM(ADJUSTL(temp))//" à "//TRIM(ADJUSTL(temp2))//"."
     ELSE
       WRITE(temp,*) NINT(reals(1))
-      msg = ">>> Selection de l'atome #"//TRIM(ADJUSTL(temp))//"."
+      msg = TRIM(ADJUSTL(msg))//" de l'atome #"//TRIM(ADJUSTL(temp))//"."
     ENDIF
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSEIF( strings(1)=="invert" ) THEN
-    msg = ">>> Inversion de la sélection..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="above" .OR. strings(1)=="below" ) THEN
     IF(strings(1)=="above") THEN
@@ -1269,7 +1276,7 @@ CASE(2077)
     ELSEIF( reals(1)>1.d12 ) THEN
       WRITE(temp,"(a4)") "+INF"
     ENDIF
-    msg = ">>> Sélection des atomes "//TRIM(temp2)//" de "//TRIM(ADJUSTL(temp))// &
+    msg = TRIM(ADJUSTL(msg))//" des atomes "//TRIM(temp2)//" de "//TRIM(ADJUSTL(temp))// &
         & " A suivant l'axe "//TRIM(strings(3))//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="in" .OR. strings(1)=="out" ) THEN
@@ -1284,8 +1291,12 @@ CASE(2077)
       temp2 = "de la boîte"
     ELSEIF(strings(2)=="cylinder") THEN
       temp2 = "du cylindre"
+    ELSEIF(strings(2)=="cone") THEN
+      temp2 = "du cône"
+    ELSEIF(strings(2)=="torus") THEN
+      temp2 = "du tore"
     ENDIF
-    msg = ">>> Selection des atomes "//TRIM(temp)//" "//TRIM(temp2)//"."
+    msg = TRIM(ADJUSTL(msg))//" des atomes "//TRIM(temp)//" "//TRIM(temp2)//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     IF(TRIM(strings(2))=="box") THEN
       msg = "..> Limites de la boîte : ("
@@ -1334,6 +1345,16 @@ CASE(2077)
       WRITE(temp,"(f16.3)") reals(4)
       msg = TRIM(msg)//" ; Rayon : "//TRIM(ADJUSTL(temp))//" A."
       CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ELSEIF(TRIM(strings(2))=="cone") THEN
+      WRITE(temp,"(f16.3)") reals(1)
+      msg = "..> Axe suivant "//TRIM(strings(3))//". Pointe en : ("//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(2)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))
+      WRITE(temp,"(f16.3)") reals(3)
+      msg = TRIM(msg)//","//TRIM(ADJUSTL(temp))//"). Angle d'ouverture : "
+      WRITE(temp,"(f16.3)") reals(4)
+      msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//"°."
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
     ELSEIF(TRIM(strings(2))=="torus") THEN
       WRITE(temp,"(f16.3)") reals(1)
       msg = "..> Axe suivant "//TRIM(strings(3))//". Centre : ("//TRIM(ADJUSTL(temp))
@@ -1348,9 +1369,11 @@ CASE(2077)
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
   ELSEIF( strings(1)=="prop" ) THEN
-    msg = ">>> Sélection des atomes avec "//TRIM(strings(2))
+    msg = TRIM(ADJUSTL(msg))//" des atomes avec "//TRIM(strings(2))
     WRITE(temp,"(f16.3)") reals(1)
-    IF( reals(4)>2.d0 ) THEN
+    IF( strings(3)=="min" .OR. strings(3)=="max" ) THEN
+      msg = TRIM(ADJUSTL(msg))//" "//TRIM(strings(3))//"imum."
+    ELSEIF( reals(4)>2.d0 ) THEN
       WRITE(temp2,"(f16.3)") reals(2)
       msg = TRIM(ADJUSTL(msg))//" compris entre "//TRIM(ADJUSTL(temp))//" et "//TRIM(ADJUSTL(temp2))//"."
     ELSE
@@ -1359,7 +1382,7 @@ CASE(2077)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random" .OR. strings(1)=="rand" ) THEN
     WRITE(temp,*) NINT(reals(1))
-    msg = ">>> Sélection aléatoire de "//TRIM(ADJUSTL(temp))
+    msg = TRIM(ADJUSTL(msg))//" aléatoire de "//TRIM(ADJUSTL(temp))
     IF( NINT(reals(1))<=1 ) THEN
       msg = TRIM(msg)//" atome"
     ELSE
@@ -1372,7 +1395,7 @@ CASE(2077)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random%" ) THEN
     WRITE(temp,'(f16.3)') reals(1)*100.d0
-    msg = ">>> Sélection aléatoire de "//TRIM(ADJUSTL(temp))//"% des atomes"
+    msg = TRIM(ADJUSTL(msg))//" aléatoire de "//TRIM(ADJUSTL(temp))//"% des atomes"
     IF( strings(2).NE."any" .AND. strings(2).NE."all" ) THEN
       msg = TRIM(msg)//" de "//TRIM(strings(2))
     ENDIF
@@ -1402,25 +1425,50 @@ CASE(2077)
       msg = "des"//TRIM(temp2)//" voisins dans un rayon de "//TRIM(ADJUSTL(temp))//" A"
     ENDIF
     WRITE(temp,*) NINT(reals(2))
-    msg = ">>> Sélection "//TRIM(ADJUSTL(msg))//" de l'atome #"//TRIM(ADJUSTL(temp))//"..."
+    msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(msg))//" de l'atome #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="stl" ) THEN
-    msg = ">>> Sélection des atomes dans l'objet 3-D défini dans le fichier STL : "//TRIM(ADJUSTL(strings(2)))
+    msg = TRIM(ADJUSTL(msg))//" des atomes dans l'objet 3-D défini dans le fichier STL : "//TRIM(ADJUSTL(strings(2)))
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     !Last case: strings(1) should be an atom species
-    msg = ">>> Selection de tous les atomes de "//TRIM(ADJUSTL(strings(1)))//"."
+    msg = TRIM(ADJUSTL(msg))//" de tous les atomes de "//TRIM(ADJUSTL(strings(1)))//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(2078)
   !reals(1) = number of atoms that were selected
+  !reals(2) = number of atoms that were ADDED to the selection
+  !reals(3) = number of atoms that were REMOVED from the selection
+  IF( NINT(reals(2))>0 .OR. NINT(reals(3))>0 ) THEN
+    msg = "..>"
+    IF( NINT(reals(2))>0 ) THEN
+      IF( NINT(reals(2))==1 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" 1 atome a été ajouté à la sélection"
+      ELSEIF( NINT(reals(2))>1 ) THEN
+        WRITE(temp,*) NINT( reals(2) )
+        msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" atomes ont été ajoutés à la sélection"
+      ENDIF
+    ENDIF
+    IF( NINT(reals(3))>0 ) THEN
+      IF( NINT(reals(2))>0 ) THEN
+        msg = TRIM(ADJUSTL(msg))//","
+      ENDIF
+      IF( NINT(reals(3))==1 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" 1 atome a été retiré de la sélection."
+      ELSEIF( NINT(reals(3))>1 ) THEN
+        WRITE(temp,*) NINT( reals(3) )
+        msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" atomes ont été retirés de la sélection."
+      ENDIF
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 atome a été sélectionné."
+    msg = "..> 1 atome est sélectionné."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(temp,*) NINT( reals(1) )
-    msg = "..> "//TRIM(ADJUSTL(temp))//" atomes ont été sélectionnés."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" atomes sont sélectionnés."
   ELSE
-    msg = "..> Aucun atome n'a été sélectionné."
+    msg = "..> Aucun atome n'est sélectionné."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2079)
@@ -2092,8 +2140,13 @@ CASE(2752)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2753)
   !reals(1) = atom index
+  !reals(2) = 0 (selected) or 1 (un-selected)
   WRITE(temp,*) NINT(reals(1))
-  msg = "/!\ ALERTE : l'atome #"//TRIM(ADJUSTL(temp))//" est déjà sélectionné."
+  IF( NINT(reals(2))>0 ) THEN
+    msg = "/!\ ALERTE : l'atome #"//TRIM(ADJUSTL(temp))//" est déjà dé-sélectionné."
+  ELSE
+    msg = "/!\ ALERTE : l'atome #"//TRIM(ADJUSTL(temp))//" est déjà sélectionné."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2754)
   !strings(1) = type of object (e.g. "dislocation" or "crack" or "loop" or "all"
@@ -2134,6 +2187,10 @@ CASE(2759)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2760)
   msg = "/!\ ALERTE : la boîte est déjà orthorhombique, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2761)
+  !strings(1) = "add" or "rm" or "intersect" or "xor"
+  msg = "/!\ ALERTE : impossible de modifier la sélection, car aucune sélection n'a été définie précédemment."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -3118,14 +3175,14 @@ REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 !
 !Get the current date
 CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
-!VALUES(1): 	The year
-!VALUES(2): 	The month
-!VALUES(3): 	The day of the month
-!VALUES(4): 	Time difference with UTC in minutes
-!VALUES(5): 	The hour of the day
-!VALUES(6): 	The minutes of the hour
-!VALUES(7): 	The seconds of the minute
-!VALUES(8): 	The milliseconds of the second 
+!VALUES(1):     The year
+!VALUES(2):     The month
+!VALUES(3):     The day of the month
+!VALUES(4):     Time difference with UTC in minutes
+!VALUES(5):     The hour of the day
+!VALUES(6):     The minutes of the hour
+!VALUES(7):     The seconds of the minute
+!VALUES(8):     The milliseconds of the second 
 !
 !Nouvel an
 IF(values(2)==1 .AND. values(3)<=10) THEN

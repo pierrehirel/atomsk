@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 14 May 2018                                      *
+!* Last modification: P. Hirel - 25 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -149,8 +149,9 @@ DO WHILE(i<SIZE(cla))
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
     IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp' .OR.            &
-      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz' .OR.             &
-      & mode_param(1)=='c14' .OR.  mode_param(1)=='C14'          ) THEN
+      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'  .OR.            &
+      & mode_param(1)=='c14' .OR.  mode_param(1)=='C14'     .OR.            &
+      & mode_param(1)=='limo2' .OR.  mode_param(1)=='LiMO2'          ) THEN
       !Get lattice constant c
       i=i+1
       m=m+1
@@ -212,7 +213,7 @@ DO WHILE(i<SIZE(cla))
         i=i+1
         m=m+1
         READ(cla(i),*,END=130,ERR=130) mode_param(m)
-      CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14')
+      CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','limo2','LiMO2')
         !Hexagonal lattice => read crystal orientation
         m=m+1
         mode_param(m) = "orient"
@@ -513,6 +514,9 @@ DO WHILE(i<SIZE(cla))
         & .OR. clarg=='XCrysDen'.OR. clarg=='XCRYSDEN') THEN
     Nout = Nout+1
     tempout(Nout) = 'xsf'
+  ELSEIF(clarg=='str' .OR. clarg=='STR' .OR. clarg=='stru' .OR. clarg=='STRU') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'stru'
   ELSEIF(clarg=='sxyz' .OR. clarg=='SXYZ') THEN
     Nout = Nout+1
     tempout(Nout) = 'sxyz'
@@ -1033,7 +1037,8 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(clarg)
   !
   ELSEIF(clarg=='-remove-atom'  .OR. clarg=='-rmatom'  .OR. &
-        &clarg=='-remove-atoms' .OR. clarg=='-rmatoms'      ) THEN
+        &clarg=='-remove-atoms' .OR. clarg=='-rmatoms' .OR. &
+        &clarg=='-delete-atoms' .OR. clarg=='-delete_atoms'      ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the atom species or index that will be removed
@@ -1152,8 +1157,18 @@ DO WHILE(i<SIZE(cla))
     !read first keyword
     i=i+1
     temp = ADJUSTL(cla(i))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !
+    IF( temp=="add" .OR. temp=="ADD" .OR. temp=="union" .OR. temp=="UNION" .OR.          &
+      & temp=="rm" .OR. temp=="RM" .OR. temp=="remove" .OR. temp=="REMOVE" .OR.          &
+      & temp=="subtract" .OR. temp=="SUBTRACT" .OR. temp=="intersect" .OR.               &
+      & temp=="INTERSECT" .OR. temp=="xor" .OR. temp=="XOR" .OR.                         &
+      & temp=="among" .OR. temp=="AMONG"                                        ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      i=i+1
+      temp = ADJUSTL(cla(i))
+    ENDIF
+    !
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( temp=='all' .OR. temp=='any' .OR. temp=='invert' .OR. temp=='none' ) THEN
       !No other parameter to read
       CONTINUE
@@ -1286,6 +1301,38 @@ DO WHILE(i<SIZE(cla))
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         READ(temp,*,END=120,ERR=120) tempreal
+      ELSEIF(region_geom=='cone') THEN
+        !read the axis of the cone
+        i=i+1
+        READ(cla(i),*,END=400,ERR=400) temp
+        temp = TRIM(ADJUSTL(temp))
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
+          & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+        !read the 3 coordinates of the tip of the cone
+        !X
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !Y
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !Z
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+          & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+        !read opening angle of the cone (in degrees)
+        i=i+1
+        READ(cla(i),'(a)',END=400,ERR=400) temp
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+        IF( SCAN(temp,'0123456789')==0 ) GOTO 120
       ELSEIF(region_geom=='torus') THEN
         !read the axis (normal to the torus plane / to the base of pyramid)
         i=i+1
@@ -1402,11 +1449,20 @@ DO WHILE(i<SIZE(cla))
       !It should be an atom species: try to recognize it
       CALL ATOMNUMBER(temp(1:2),tempreal)
       IF( NINT(tempreal)==0 ) THEN
-        !it is not an atom species, then it can be an integer,
-        !or a range of integer, or a list of integers separated by a comma
+        !it is not an atom species, then it can be an integer
         !This will be dealt with inside the option (see "opt_select.f90")
         !READ(temp,*,ERR=120,END=120) m
       ENDIF
+      !
+    ELSE
+      !It may be an integer, or a range of integer, or a list of integers separated by a comma
+      !e.g. 3,6,13 or 4:12 => verify that
+      DO j=1,LEN_TRIM(temp)
+        IF( SCAN(temp(j:j),' 0123456789:,') == 0 ) THEN
+          !Illegal character in this string
+          GOTO 120
+        ENDIF
+      ENDDO
       !
     ENDIF
     !if slashes are present (user wants to perform a division), replace them by a colon (:)

@@ -39,6 +39,8 @@
 
 <p><code>-select &#60;in|out&#62; cylinder &#60;axe&#62; &#60;x<sub>1</sub>&#62; &#60;x<sub>2</sub>&#62; &#60;R&#62;</code></p>
 
+<p><code>-select &#60;in|out&#62; cone &#60;axe&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;&alpha;&#62;</code></p>
+
 <p><code>-select &#60;in|out&#62; torus &#60;axe&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;R&#62; &#60;r&#62;</code></p>
 
 <p><code>-select prop &#60;propriété&#62; &#60;valeur1[:valeur2]&#62;</code></p>
@@ -48,6 +50,8 @@
 <p><code>-select grid &#60;fichier&#62;</code></p>
 
 <p><code>-select stl [center] &#60;fichier&#62;</code></p>
+
+<p><code>-select [add|rm|intersect|xor] &#60;n'importe quel critère ci-dessus&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -76,8 +80,9 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
   <li><strong>x, y, z</strong> : pour la boîte ("box"), les coordonnées du premier coin ; pour la sphère ("sphere") et le tore ("torus"), coordonnées du centre ; pour le cylindre ("cylinder") seules deux coordonnées doivent être fournies, indiquant la position du centre du cylindre dans le plan normal à son &#60;axe&#62; (voir ci-dessous).</li>
   <li><strong>x', y', z'</strong> : seulement pour la boîte ("box"), coordonnées du dernier coin.</li>
   <li><strong>R</strong> : seulement pour la sphère, le cylindre, et le tore, leur rayon (en &Aring;).</li>
+  <li><strong>axe</strong> : pour le cylindre, le tore ou le cône, la direction de l'axe principal, doit être "X", "Y" ou "Z".</li>
   <li><strong>r</strong> : seulement pour le tore, son rayon secondaire (en &Aring;).</li>
-  <li><strong>axe</strong> : seulement pour le cylindre, la direction de son axe principal, doit être "X", "Y" ou "Z".</li>
+  <li><strong>&alpha;</strong> : seulement pour le cône, son angle d'ouverture (en degrés).</li>
 </ul>
 
 <p>En utilisant <strong>-select in cell</strong> (ou <strong>-select out cell</strong>), les atomes situés à l'intérieur (respectivement à l'extérieur) de la boîte de simulation sont sélectionnés. Cette option ne prend aucun paramètre supplémentaire.</p>
@@ -87,6 +92,8 @@ indices de Miller se réfèrent à cette orientation. Sinon il est supposé que 
 <p>La <strong>sphère</strong> est définie par son centre (x,y,z) et son rayon R.</p>
 
 <p>Le <strong>cylindre</strong> est défini par son centre (x<sub>1</sub>,x<sub>2</sub>) dans le plan normal à son &#60;axe&#62;, et par son rayon R. Les directions x<sub>1</sub> and y<sub>2</sub> sont définies d'après la direction de l'&#60;axe&#62; par permutation X, Y, Z (par ex. si &#60;axe&#62;=Y alors x<sub>1</sub> sera la position selon l'axe cartésien Z, et x<sub>2</sub> la position suivant X).</p>
+
+<p>Le <strong>cône</strong> est défini par son axe (X, Y ou Z), la position de sa pointe (x,y,z), et son angle d'ouverture par rapport à son axe (&alpha; en degrés).</p>
 
 <p>Le <strong>tore</strong> est défini par son axe (X, Y ou Z), sa position (x,y,z), son rayon principal R, et son rayon secondaire r.</p>
 
@@ -111,7 +118,16 @@ de leur espèce chimique.</p>
 <p>En utilisant <strong>-select stl</strong>, les atomes sont sélectionnés selon le modèle 3-D défini dans le &#60;fichier&#62;. Le &#60;fichier&#62; doit être au <a href="https://fr.wikipedia.org/wiki/Fichier_de_st%C3%A9r%C3%A9olithographie">format STL</a>, ASCII ou binaire. Ce format de fichier est très utilisé pour l'impression 3-D et dans d'autres applications 3-D, et peut être généré à l'aide de nombreux logiciels de modélisation 3-D, parmi lesquels <a href="http://tinkercad.com/">Tinkercad</a>, <a href="http://www.blender.org/">Blender</a>, ou <a href="http://sketchup.google.com/">Google Sketchup</a>; ou bien, des modèles prédéfinis peuvent être obtenus depuis une grande variété de sources, par exemple <a href="https://cults3d.com/">Cults</a>, <a href="https://pinshape.com/">Pinshape</a>, ou bien <a href="https://www.thingiverse.com/">Thingiverse</a>. Après avoir lu le fichier STL, Atomsk le redimensionne automatiquement pour qu'il rentre dans la boîte de simulation, le facteur étant égal au plus 
 petit rapport entre la dimension de la boîte atomique et la dimension correspondante du modèle 3-D. Si le mot-clé "center" apparaît avant le nom du &#60;fichier&#62;, alors le modèle 3-D est placé au centre de la boîte de simulation. Sinon, le modèle 3-D n'est translaté en aucune façon. Les atomes qui se trouvent <em>à l'intérieur</em> du modèle 3-D model sont selectionnés&nbsp;; pour sélectionner les atomes qui se trouvent à l'extérieur, utilisez simplement "-select invert". Notez que, si le modèle 3-D contient un très grand nombre de triangles (plus de 100&nbsp;000), alors la sélection peut prendre du temps.</p>
 
-<p>Les options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
+<p>Pour tous les cas ci-dessus (sauf "-select all" et "-select invert"), il est possible d'utiliser l'un des mots-clés optionnels "add", "rm", "intersect", ou "xor", juste après le mot-clé "-select". Ces mots-clés permettent de modifier une sélection précédente, en la combinant avec de nouveaux critères. Supposons que l'option "-select" ait déjà été appelée et ait sélectionné un groupe d'atomes A&nbsp;; supposons qu'un nouvel appel sélectionne les atomes d'un groupe B&nbsp;; alors les mots clés correspondent aux opérations logiques suivantes&nbsp;:</p>
+
+<ul>
+  <li><strong>add</strong> : les atomes appartenant au groupe A ou au groupe B sont sélectionnés (opération OU) ;</li>
+  <li><strong>rm</strong> : les atomes appartenant au groupe A, mais pas au groupe B, sont sélectionnés (A ou non-B) ;</li>
+  <li><strong>intersect</strong> : les atomes appartenant à la fois au groupe A et au groupe B sont sélectionnés (opérateur ET) ;</li>
+  <li><strong>xor</strong> : les atomes appartenant soit au groupe A, soit au groupe B, mais pas aux deux, sont sélectionnés (opération OU exclusif, ou XOR).</li>
+</ul>
+
+<p>Les autres options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
 
 <p>À chaque fois que cette option est invoquée, elle oublie toute sélection précédente et en définit une nouvelle.</p>
 
