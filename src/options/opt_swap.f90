@@ -9,7 +9,7 @@ MODULE swap
 !* (C) August 2015 - Pierre Hirel                                                 *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel - 05 April 2016                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *

@@ -10,7 +10,7 @@ MODULE comv
 !* (C) March 2010 - Pierre Hirel                                                  *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel (see date in the variable "version" below)         *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.06.27'
+CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.07.04'
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !

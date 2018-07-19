@@ -14,7 +14,7 @@ MODULE crack
 !* (C) March 2012 - Pierre Hirel                                                  *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel - 05 Jan. 2017                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *

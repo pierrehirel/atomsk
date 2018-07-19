@@ -8,7 +8,7 @@ MODULE display_messages
 !* (C) June 2011 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel - 28 Oct. 2016                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
@@ -95,22 +95,20 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 !
 !Print a nice message
-msg = " _________________________________________"
+msg = " _______________________________________________"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|      o---o                     O        |"
+msg = "|                    ___________                |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|     o---o|   _____________     |        |"
+msg = "|     o---o          A T O M S K                |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|     |   |o    A T O M S K     ,0;-o     |"
+msg = "|    o---o|                                     |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|     o---o                   o'   'O     |"
+msg = "|    |   |o    Version "//TRIM(ADJUSTL(version))
+msg = msg(1:48)//"|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|   Version "//TRIM(ADJUSTL(version))
-msg = msg(1:42)//"|"
+msg = "|    o---o     (C) 2010 Pierre Hirel            |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|   (C) 2010 Pierre Hirel                 |"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|_________________________________________|"
+msg = "|_______________________________________________|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 END SUBROUTINE DISPLAY_HEADER

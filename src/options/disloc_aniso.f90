@@ -12,7 +12,7 @@ MODULE dislocation_aniso
 !* (C) January 2018 - Pierre Hirel                                                *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel - 05 March 2018                                    *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *

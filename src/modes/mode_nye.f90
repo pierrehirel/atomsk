@@ -12,7 +12,7 @@ MODULE mode_nye
 !* (C) October 2013 - Philippe Carrez                                             *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     philippe.carrez@univ-lille1.fr                                             *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel - 01 March 2017                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *

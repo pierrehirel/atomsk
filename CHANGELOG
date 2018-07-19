@@ -4,6 +4,10 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+
+
+Beta 0.10.3 (04 July 2018)
+--------------------------
 - in mode "--create", added possibility to generate the LiMO2 structure (where M is a transition metal). Thanks to Raoul Aurelien Ngayam Happy, Paul Sherrer Institute, Switzerland, for implementing this feature.
 - in option "-select", added possibility to select particles that have the minimum or maximum value of a property. Also added the possibility to combine a new selection to the existing one (add, remove, intersect, xor). Also added the possibility to select atoms inside or outside of a cone.
 - added status checks in some memory allocations to avoid OS error "cannot allocate memory". Now in most cases Atomsk will display an error message and exit smoothly.

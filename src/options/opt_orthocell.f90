@@ -10,7 +10,7 @@ MODULE orthocell
 !* (C) Feb. 2018 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@izbs.uni-karlsruhe.de                                         *
+!*     pierre.hirel@univ-lille.fr                                                 *
 !* Last modification: P. Hirel - 04 June 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *

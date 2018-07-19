@@ -10,8 +10,8 @@ MODULE mode_polycrystal
 !* (C) May 2013 - Pierre Hirel                                                    *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 June 2018                                     *
+!*     pierre.hirel@univ-lille.fr                                                 *
+!* Last modification: P. Hirel - 04 July 2018                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -473,16 +473,19 @@ DO
       CALL GEN_NRANDNUMBERS( 3*Nnodes , randarray )
       !randarray now contains 3*Nnodes real numbers between 0 and 1
       !They are used to generate rotation matrices
-      !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
-      !randarray(:) = randarray(:)*2.d0*pi - pi  !old "naive" sampling (biased)
-      DO i=1,Nnodes
-        m = 3*(i-1) + 1
-        n = 3*(i-1) + 2
-        o = 3*(i-1) + 3
-        randarray(m) = randarray(m)*2.d0*pi - pi
-        randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
-        randarray(o) = randarray(o)*2.d0*pi - pi
-      ENDDO
+      IF( twodim>0 ) THEN
+        !Only one random number will be used => Multiply all of them by 2*pi and subtract pi
+        randarray(:) = randarray(:)*2.d0*pi - pi
+      ELSE
+        DO i=1,Nnodes
+          m = 3*(i-1) + 1
+          n = 3*(i-1) + 2
+          o = 3*(i-1) + 3
+          randarray(m) = randarray(m)*2.d0*pi - pi
+          randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
+          randarray(o) = randarray(o)*2.d0*pi - pi
+        ENDDO
+      ENDIF
       DO i=1,Nnodes
         P1 = randarray(3*(i-1)+1)
         P2 = randarray(3*(i-1)+2)
@@ -536,15 +539,18 @@ DO
         CALL GEN_NRANDNUMBERS( 3*SIZE(vnodes,1) , randarray )
         !randarray now contains N real numbers between 0 and 1
         !Multiply them by 2*pi and subtract pi to generate 3 angles alpha, beta and gamma
-        !randarray(:) = randarray(:)*2.d0*pi - pi  !old "naive" sampling (biased)
-        DO i=1,Nnodes
-          m = 3*(i-1) + 1
-          n = 3*(i-1) + 2
-          o = 3*(i-1) + 3
-          randarray(m) = randarray(m)*2.d0*pi - pi
-          randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
-          randarray(o) = randarray(o)*2.d0*pi - pi
-        ENDDO
+        IF( twodim>0 ) THEN
+          randarray(:) = randarray(:)*2.d0*pi - pi
+        ELSE
+          DO i=1,Nnodes
+            m = 3*(i-1) + 1
+            n = 3*(i-1) + 2
+            o = 3*(i-1) + 3
+            randarray(m) = randarray(m)*2.d0*pi - pi
+            randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
+            randarray(o) = randarray(o)*2.d0*pi - pi
+          ENDDO
+        ENDIF
       ENDIF
       !
       !Read position of that grain
@@ -710,18 +716,21 @@ DO
       !
       !The last 3*Nnodes random numbers are used to generate rotation matrices
       !Modify them to generate 3 angles alpha, beta and gamma
-      !Note: just multiplying the three random numbers by 2pi results in a biased distribution
-      !See J.J. Kuffner, Proc. 2004 IEEE Int'l Conf. on Robotics and Automation (ICRA 2004)
-      !or http://mathworld.wolfram.com/SpherePointPicking.html
-      !randarray(3*Nnodes:) = randarray(3*Nnodes:)*2.d0*pi - pi  !old "naive" sampling (biased)
-      DO i=1,Nnodes
-        m = 3*Nnodes + 3*(i-1) + 1
-        n = 3*Nnodes + 3*(i-1) + 2
-        o = 3*Nnodes + 3*(i-1) + 3
-        randarray(m) = randarray(m)*2.d0*pi - pi
-        randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
-        randarray(o) = randarray(o)*2.d0*pi - pi
-      ENDDO
+      IF( twodim>0 ) THEN
+        randarray(3*Nnodes:) = randarray(3*Nnodes:)*2.d0*pi - pi
+      ELSE
+        !NOTE: just multiplying the three random numbers by 2pi results in a biased distribution
+        !See J.J. Kuffner, Proc. 2004 IEEE Int'l Conf. on Robotics and Automation (ICRA 2004)
+        !or http://mathworld.wolfram.com/SpherePointPicking.html
+        DO i=1,Nnodes
+          m = 3*Nnodes + 3*(i-1) + 1
+          n = 3*Nnodes + 3*(i-1) + 2
+          o = 3*Nnodes + 3*(i-1) + 3
+          randarray(m) = randarray(m)*2.d0*pi - pi
+          randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
+          randarray(o) = randarray(o)*2.d0*pi - pi
+        ENDDO
+      ENDIF
       !
       IF( verbosity==4 ) THEN
         !Write angles into a file for visualization
