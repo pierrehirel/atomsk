@@ -6,6 +6,11 @@ Master (development)
 --------------------
 
 
+Beta 0.10.3 (03 Sept. 2018)
+---------------------------
+- in mode "--polycrystal", fixed a bug where atoms were duplicated when generating 2-D polycrystals.
+
+
 Beta 0.10.3 (04 July 2018)
 --------------------------
 - in mode "--create", added possibility to generate the LiMO2 structure (where M is a transition metal). Thanks to Raoul Aurelien Ngayam Happy, Paul Sherrer Institute, Switzerland, for implementing this feature.
