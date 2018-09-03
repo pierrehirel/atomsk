@@ -10,8 +10,8 @@ MODULE mode_polycrystal
 !* (C) May 2013 - Pierre Hirel                                                    *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 04 June 2018                                     *
+!*     pierre.hirel@univ-lille.fr                                                 *
+!* Last modification: P. Hirel - 03 Sept. 2018                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -808,12 +808,13 @@ CLOSE(31)
 CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
 !
 !If system is pseudo 2-D then place all nodes on the same plane
+!in the middle of the cell in this direction
 IF( twodim==1 ) THEN
-  vnodes(:,1) = 0.d0
+  vnodes(:,1) = 0.5d0*H(twodim,twodim)
 ELSEIF( twodim==2 ) THEN
-  vnodes(:,2) = 0.d0
+  vnodes(:,2) = 0.5d0*H(twodim,twodim)
 ELSEIF( twodim==3 ) THEN
-  vnodes(:,3) = 0.d0
+  vnodes(:,3) = 0.5d0*H(twodim,twodim)
 ENDIF
 !
 !The maximum number of faces of any polyhedron should be 11 in 2-D,
@@ -914,10 +915,10 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !If the system is 2-D, do not expand along the shortest axis
 IF( twodim>0 ) THEN
-  expandmatrix(twodim) = 1
+  expandmatrix(twodim) = 0
 ENDIF
 !Evaluate how many particles the template will contain
-m = expandmatrix(1)*expandmatrix(2)*expandmatrix(3)*SIZE(Puc,1)
+m = MAX(1,expandmatrix(1)) * MAX(1,expandmatrix(2)) * MAX(1,expandmatrix(3)) * SIZE(Puc,1)
 WRITE(msg,'(a25,i18)') "Expected NP for template:", m
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !If m is very large, reduce some values in expandmatrix(:)
