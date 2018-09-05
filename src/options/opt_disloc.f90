@@ -22,8 +22,8 @@ MODULE dislocation
 !* (C) May 2010 - Pierre Hirel                                                    *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
-!*     pierre.hirel@univ-lille1.fr                                                *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!*     pierre.hirel@univ-lille.fr                                                 *
+!* Last modification: P. Hirel - 05 Sept. 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -955,23 +955,31 @@ ELSE !i.e. disloctype == 'loop'
       a2 = 2
       a3 = 3
     END SELECT
-    ALLOCATE(xLoop(3,4))
+    ALLOCATE(xLoop(4,3))
     xLoop(:,:) = 0.d0
-    xLoop(a1,1) = pos(1) - pos(4)
-    xLoop(a2,1) = pos(2) - pos(4)
-    xLoop(a3,1) = pos(3)
-     xLoop(a1,2) = pos(1) + pos(4)
-     xLoop(a2,2) = pos(2) - pos(4)
-     xLoop(a3,2) = pos(3)
-    xLoop(a1,3) = pos(1) + pos(4)
-    xLoop(a2,3) = pos(2) + pos(4)
-    xLoop(a3,3) = pos(3)
-     xLoop(a1,4) = pos(1) - pos(4)
-     xLoop(a2,4) = pos(2) + pos(4)
-     xLoop(a3,4) = pos(3)
+    xLoop(1,a1) = pos(1) - pos(4)
+    xLoop(1,a2) = pos(2) - pos(4)
+    xLoop(1,a3) = pos(3)
+     xLoop(2,a1) = pos(1) + pos(4)
+     xLoop(2,a2) = pos(2) - pos(4)
+     xLoop(2,a3) = pos(3)
+    xLoop(3,a1) = pos(1) + pos(4)
+    xLoop(3,a2) = pos(2) + pos(4)
+    xLoop(3,a3) = pos(3)
+     xLoop(4,a1) = pos(1) - pos(4)
+     xLoop(4,a2) = pos(2) + pos(4)
+     xLoop(4,a3) = pos(3)
   ELSE
     !Positive pos(4) => Generate points that belong to a circle of radius pos(4)
     xLoop = LOOP_SEGMENTS( pos(1:3) , pos(4) , dislocline )
+  ENDIF
+  !
+  IF( verbosity==4 ) THEN
+    CALL ATOMSK_MSG(999,(/"Positions of points of the loop:"/),(/0.d0/))
+    DO i=1,SIZE(xLoop,1)
+      WRITE(msg,'(3(3X,f16.3))') xLoop(i,1), xLoop(i,2), xLoop(i,3)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
   ENDIF
   !
   !Now xLoop should contain the positions of points defining the loop
