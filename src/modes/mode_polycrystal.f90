@@ -1023,7 +1023,7 @@ DO inode=1,Nnodes
   expandmatrix(:) = 1
   IF( twodim>0 ) THEN
     !System is pseudo 2-D => do not look along the short distance
-    expandmatrix(twodim) = 0
+    expandmatrix(twodim) = 1
   ENDIF
   DO o=-expandmatrix(3),expandmatrix(3)
     DO n=-expandmatrix(2),expandmatrix(2)
@@ -1046,6 +1046,10 @@ DO inode=1,Nnodes
     ENDDO
   ENDDO
   !Then search neighbor list
+  IF( twodim>0 ) THEN
+    !System is pseudo 2-D => do not look along the short distance
+    expandmatrix(twodim) = 0
+  ENDIF
   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
     DO i=1,SIZE(vnodesNeighList,2)  !loop on neighboring nodes
       IF( vnodesNeighList(inode,i).NE.0 ) THEN
@@ -1075,6 +1079,10 @@ DO inode=1,Nnodes
   ALLOCATE( vvertex(Nvertices,4) )
   vvertex(:,:) = 0.d0
   !Save the positions of neighbor vertices for current node
+  IF( twodim>0 ) THEN
+    !System is pseudo 2-D => do not look along the short distance
+    expandmatrix(twodim) = 1
+  ENDIF
   Nvertices = 0
   DO o=-expandmatrix(3),expandmatrix(3)
     DO n=-expandmatrix(2),expandmatrix(2)
@@ -1097,6 +1105,10 @@ DO inode=1,Nnodes
       ENDDO
     ENDDO
   ENDDO
+  IF( twodim>0 ) THEN
+    !System is pseudo 2-D => do not look along the short distance
+    expandmatrix(twodim) = 0
+  ENDIF
   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
     DO i=1,SIZE( vnodesNeighList,2 )
       IF( vnodesNeighList(inode,i).NE.0 ) THEN

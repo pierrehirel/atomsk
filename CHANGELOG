@@ -6,6 +6,11 @@ Master (development)
 --------------------
 
 
+Beta 0.10.6 (07 Sept. 2018)
+---------------------------
+- in mode "--polycrystal", fixed a bug where the two crystals were not aligned when generating bicrystals.
+
+
 Beta 0.10.5 (05 Sept. 2018)
 ---------------------------
 - in option "-dislocation", fixed a bug in the creation of dislocation loops with a square shape. Thanks to Yong Zhang, Monash University, Clayton, Australia, for pointing out this bug.
