@@ -1,6 +1,10 @@
 CHANGELOG FOR ATOMSK
 ====================
 
+Beta 0.10.6 (07 Sept. 2018)
+---------------------------
+- in mode "--polycrystal", fixed a bug where the two crystals were not aligned when generating bicrystals.
+
 
 Beta 0.10.5 (05 Sept. 2018)
 ---------------------------
