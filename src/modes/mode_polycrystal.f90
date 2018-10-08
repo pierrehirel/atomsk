@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Sept. 2018                                    *
+!* Last modification: P. Hirel - 05 Oct. 2018                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -806,6 +806,24 @@ ENDDO
 CLOSE(31)
 !
 CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
+!
+!
+!For 2-D polycrystal, check that the user rotated the grains
+!only around the rotation axis
+IF( twodim>0 ) THEN
+  m=0
+  DO i=1,SIZE(vorient,1)
+    DO j=1,3
+      IF( twodim==j .AND. DABS(DABS(vorient(i,j,j))-1.d0)>1.d-12 ) THEN
+        m=1
+      ENDIF
+    ENDDO
+  ENDDO
+  IF( m>0 ) THEN
+    nwarn = nwarn+1
+    CALL ATOMSK_MSG(4715,(/''/),(/DBLE(twodim)/))
+  ENDIF
+ENDIF
 !
 !If system is pseudo 2-D then place all nodes on the same plane
 !in the middle of the cell in this direction

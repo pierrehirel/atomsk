@@ -2934,6 +2934,21 @@ CASE(4714)
   msg = "/!\ ALERTE : la boîte finale a une petite dimension suivant "&
       & //TRIM(ADJUSTL(strings(1)))//", ajustement à "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4715)
+  !reals(1) = index of rotation axis
+  IF( NINT(reals(1))==1 ) THEN
+    temp = "X"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    temp = "Y"
+  ELSE
+    temp = "Z"
+  ENDIF
+  msg = "/!\ ALERTE : un polycristal 2-D doit être construit perpendiculairement à l'axe "//TRIM(temp)//","
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            mais vous avez entré des angles de rotation autour des autres axes cartésiens."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
 CASE(4800)

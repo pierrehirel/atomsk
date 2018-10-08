@@ -4,6 +4,7 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- in mode "--polycrystal", added a warning if a 2-D polycrystal is constructed and the user specified non-zero angles around other Cartesian axes.
 
 
 Beta 0.10.6 (07 Sept. 2018)

@@ -12,6 +12,7 @@ export
 # This way, the program atomsk will be installed in ~/bin/
 # and the html documentation will be copied to ~/share/doc/atomsk/
 INSTPATH=~
+CONFPATH=~/.config/
 
 # Goto main Makefile
 include Makefile

@@ -2870,6 +2870,21 @@ CASE(4714)
   msg = "/!\ WARNING: final cell has a small dimension along " &
       & //TRIM(ADJUSTL(strings(1)))//", setting it to "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4715)
+  !reals(1) = index of rotation axis
+  IF( NINT(reals(1))==1 ) THEN
+    temp = "X"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    temp = "Y"
+  ELSE
+    temp = "Z"
+  ENDIF
+  msg = "/!\ WARNING: a 2-D polycrystal is to be constructed normal to the "//TRIM(temp)//" axis,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            but you specified rotation angles around the other Cartesian axes."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Are you sure that you know what you are doing?"
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
 CASE(4800)

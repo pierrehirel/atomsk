@@ -89,6 +89,9 @@ endif
 ifndef MPATH
   MPATH=$(INSTPATH)/share/man/man1
 endif
+ifndef CONFPATH
+  CONFPATH=/etc/
+endif
 
 # Name for the tar.gz archive (do NOT add extension like .tar.gz)
 ARCNAME=atomsk_$(VER)
@@ -214,7 +217,8 @@ tar:
 install:
 	@echo ""
 	@echo "  >>> Installation of Atomsk version $(VER):"
-	@cp -rf ../etc/atomsk.conf /etc/
+	@mkdir -p $(CONFPATH)
+	@cp -rf ../etc/atomsk.conf $(CONFPATH)
 	@mkdir -p $(BINPATH)
 	@cp -rf $(BIN) $(BINPATH)
 	@echo "  ..> The program was successfuly installed in $(BINPATH)"
