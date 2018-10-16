@@ -90,7 +90,7 @@ ifndef MPATH
   MPATH=$(INSTPATH)/share/man/man1
 endif
 ifndef CONFPATH
-  CONFPATH=/etc/
+  CONFPATH=/etc
 endif
 
 # Name for the tar.gz archive (do NOT add extension like .tar.gz)

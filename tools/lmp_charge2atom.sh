@@ -22,6 +22,13 @@ else
       #Check that it is a LAMMPS file
       islmp=$(grep "atom types" $f | wc -l)
       if [ $islmp = 1 ]; then
+        # If the keyword "Atoms" is followed by "# charge",
+        # change it to "# atomic"
+        charge=$(grep "Atoms" $f | grep "charge" | wc -l)
+        if [ $charge = 1 ]; then
+          sed -i '/Atoms/ c\Atoms  # atomic' $f
+        fi
+        # Keep only columns 1, 2, and three last columns
         awk '{if(NR>9 && $1>0 && $2>0)
                 {print $1 "\t" $2 "\t" $(NF-2) "\t" $(NF-1) "\t" $NF}
               else
