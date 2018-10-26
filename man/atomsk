@@ -258,6 +258,9 @@ DL_POLY configuration.
 .B COORAT
 Mixed-Basis Pseudo Potential (MBPP) coordinates.
 .TP
+.B csv
+Comma-Separated Values file.
+.TP
 .B gin
 GULP input file.
 .TP
@@ -323,6 +326,9 @@ DL_POLY format.
 .TP
 .B COORAT
 Mixed-Basis Pseudo Potential (MBPP) coordinates.
+.TP
+.B csv
+Comma-Separated Values file.
 .TP
 .B ddplot
 DDplot format (ddplot mode only).

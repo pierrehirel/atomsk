@@ -33,7 +33,7 @@ src/            Source code of the program (Fortran95)
 tools/          Companion programs and scripts
 install.sh      Bash script to install Atomsk in GNU/Linux
 
-(C) P. Hirel 2010
+(C) Pierre Hirel 2010
 This program is distributed under the GNU/GPL
 (General Public License) version 3 or any later version.
 A copy of this license can be found in the file LICENSE

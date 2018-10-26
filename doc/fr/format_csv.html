@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format CSV - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : CSV</h2>
+
+<p><strong>Nom :</strong> Comma-Separated Values (valeurs séparées par des virgules)</p>
+
+<p><strong>Extension :</strong> csv</p>
+
+<p><strong>Spécification :</strong> pas de standard ; recommendations sur <a href="https://tools.ietf.org/html/rfc4180">IETF web page</a></p>
+
+<p><strong>Programmes de visualisation :</strong> aucun</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Un fichier au format CSV (Comma-Separated Values) est un fichier texte contenant des valeurs séparées par des virgules, comme son nom le suggère. De tels fichiers sont couramment utilisés dans les tableurs (comme Microsoft Excel ou LibreOffice Calc), et aussi par certaines applications Web.</p>
+
+<p>Lorsqu'il écrit un fichier au format CSV, Atomsk écrit les noms des champs de données sur la première ligne, suivie des lignes de données. Toutes les informations sont écrites dans le fichier CSV&nbsp;: l'espèce chimique de l'atome, ses coordonnées (x,y,z), les coordonnées des coquilles s'il en existe, les propriétés auxiliaires s'il en existe, les vecteurs de boîte, et les commentaires.</p>
+
+<p>Lorsqu'il lit un fichier CSV, Atomsk recherche des mots-clés dans la première ligne. Si des mots-clés sont reconnus, alors ils sont utilisés pour déterminer le type de données présent dans chaque colonne (espèce chimique, x, y, z, etc.). Si des coquilles sont présentes (dans le sens d'un potentiel ionique de type c&oelig;ur-coquille), alors leurs positions sont aussi lues. En revanche, si des propriétés auxiliaires sont présentes, alors elles ne sont pas lues (elles sont ignorées).</p>
+
+<p>Si aucun mot-clé n'est reconnu sur la première ligne, alors Atomsk tentera de trouver des nombres réels parmi les données, et les interprètera comme des coordonnées d'atomes, en supposant que chaque ligne contient les coordonnées d'un atome. Par défaut, tous les atomes seront alors considérés comme étant des atomes d'hydrogène.</p>
+
+<p>Si les vecteurs de boîte ne peuvent pas être lus depuis un fichier CSV, alors Atomsk construira une boîte parallélépipédique englobant tous les atomes.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk mon_systeme.xsf csv</code>
+<p>Ceci va lire le fichier <code>mon_systeme.xsf</code>, et le convertira en <code>mon_systeme.csv</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

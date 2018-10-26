@@ -333,7 +333,7 @@ NP=0
 NS=0
 !Count the total number of atoms NP
 DO
-  READ(30,*,ERR=31,END=31), test, test2
+  READ(30,*,ERR=31,END=31) test, test2
   test = ADJUSTL(test)
   IF(test(1:1).NE.'#') THEN
     !In all cases if the first two characters do not correspond
@@ -387,7 +387,7 @@ REWIND(30)
 !Look for beginning of atom positions
 test=''
 DO WHILE( .NOT.(test(1:3)=='fra' .OR. test(1:3)=='car') )
-  READ(30,*,END=800,ERR=800), test
+  READ(30,*,END=800,ERR=800) test
   test = ADJUSTL(test)
 ENDDO
 !

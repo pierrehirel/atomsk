@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 25 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,6 +69,7 @@ USE out_bop
 USE out_cfg
 USE out_cel
 USE out_cif
+USE out_csv
 USE out_dlp_cfg
 USE out_gulp_gin
 USE out_imd
@@ -348,7 +349,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   DO i=1,SIZE(outfileformats)
     IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
       SELECT CASE( outfileformats(i) )
-      CASE('atsk','ATSK','dlp','DLP','gin','GIN','lmp','LMP')
+      CASE('atsk','ATSK','csv','CSV','dlp','DLP','gin','GIN','lmp','LMP')
         !Those file formats do support shells
       CASE DEFAULT
         !Other file formats don't
@@ -384,7 +385,7 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     DO i=1,SIZE(outfileformats)
       IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
         SELECT CASE( outfileformats(i) )
-        CASE('atsk','ATSK','cel','CEL','cfg','CFG','cif','CIF','gin','GIN','jems','pdb','str','vesta')
+        CASE('atsk','ATSK','cel','CEL','cfg','CFG','cif','CIF','csv','CSV','gin','GIN','jems','pdb','str','vesta')
           !Those file formats do support partial occupancies
         CASE DEFAULT
           !Other file formats don't
@@ -480,6 +481,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_COORAT(H,P,comment,AUXNAMES,AUX,outputfile)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('csv','CSV')
+    CALL NAME_OUTFILE(prefix,outputfile,'csv  ')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_CSV(H,P,S,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

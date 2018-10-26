@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>CSV format - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: CSV</h2>
+
+<p><strong>Name:</strong> Comma-Separated Values format</p>
+
+<p><strong>Extension:</strong> csv</p>
+
+<p><strong>Specification:</strong> no standard; recommendations at <a href="https://tools.ietf.org/html/rfc4180">IETF web page</a></p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+
+<h4>Restrictions</h4>
+
+<p>A file in the Comma-Separated Values (CSV) format is a plain-text file containing values separated by commas (,), as its name suggests. Such files are commonly used in spreadsheets (like Microsoft Excel or LibreOffice Calc), and also on the Web.</p>
+
+<p>When writing a CSV file, Atomsk writes the fields names in the first line, followed by lines containing values. All informations are written in a CSV file: the atom species, coordinates (x,y,z), the shells coordinates if any, the auxiliary properties if any, the cell vectors, and the comments.</p>
+
+<p>When reading CSV file, Atomsk will look for keywords on the first line. If recognizable keywords are present, then they are used to determine in which column each data type is stored (atom species, x, y, z, etc.). If shells are present (in the sense of an ionic core-shell model potential), then their positions are also read. If auxiliary properties are present, they are not read (they are ignored).</p>
+
+<p>If no recognizable keyword is present on the first line, then Atomsk will attempt to find numbers among the data, and interpret them as atom coordinates, assuming that each line contains data about one atom. All atoms are then considered as hydrogen atoms.</p>
+
+<p>If the box vectors cannot be read from the CSV file, then Atomsk will construct a bounding box.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.xsf csv</code>
+<p>This will read the file <code>my_system.xsf</code>, and convert it to <code>my_system.csv</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

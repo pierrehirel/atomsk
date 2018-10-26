@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 March 2018                                    *
+!* Last modification: P. Hirel - 25 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,6 +67,7 @@ USE in_bop
 USE in_cfg
 USE in_cel
 USE in_cif
+USE in_csv
 USE in_dlp_cfg
 USE in_gulp_gin
 USE in_imd
@@ -171,6 +172,8 @@ CASE('cif')
   CALL READ_CIF(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('coo')
   CALL READ_COORAT(inputfile,H,P,comment,AUXNAMES,AUX)
+CASE('csv')
+  CALL READ_CSV(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('dlp')
   CALL READ_DLP_CFG(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('gin')

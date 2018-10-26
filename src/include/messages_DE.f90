@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 29 June 2018                                     *
+!* Last modification: P. Hirel - 26 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -883,6 +883,26 @@ CASE(1707) ! invalid symmetry operation string input.
   msg = "/!\ WARNUNG: unzulaessige Zeichenkette fuer "// &
       & "Symmetrieoperation '"//TRIM(strings(1))//"'. Ueberspringe..."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1708)
+  !reals(1) = line number
+  !reals(2) = expected number of fields
+  !reals(3) = actual number of fields
+  IF( NINT(reals(2)).NE.NINT(reals(3)) ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    WRITE(temp2,*) NINT(reals(2))
+    WRITE(temp3,*) NINT(reals(3))
+    msg = "/!\ WARNUNG: in Zeile "//TRIM(ADJUSTL(temp))//", erwartete "//TRIM(ADJUSTL(temp2))// &
+        & " Felder, "//TRIM(ADJUSTL(temp3))//" gefunden."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    IF( NINT(reals(2))>NINT(reals(3)) ) THEN
+      !Actual number of fields is smaller than expected
+      msg = "          Fehlende Daten werden durch Nullwerte ersetzt."
+    ELSE
+      !Actual number of fields is larger than expected
+      msg = "          Zusätzliche Daten werden ignoriert."
+    ENDIF
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 !
 !1800-1899: FEHLER MESSAGES
 CASE(1800)

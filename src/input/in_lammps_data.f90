@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!* Last modification: P. Hirel - 16 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -292,7 +292,7 @@ DO
     Ncol = 0
     Naux = 1 !always at least 1 auxiliary property: the atom type
     SELECT CASE(datatype)
-    CASE("atomic")
+    CASE("atomic","atom")
       Ncol = 4
     CASE("angle","bond","dpd","mdpd","molecular")
       Ncol = 5

@@ -29,7 +29,7 @@ else
           printf " Done.\n"
         fi
       else
-        printf " Not a LAMMPS file, skipping.\n"
+        printf " Not a LAMMPS data file, skipping.\n"
       fi
     else
       printf " File doesn't exist, skipping.\n"

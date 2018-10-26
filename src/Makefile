@@ -217,10 +217,6 @@ tar:
 install:
 	@echo ""
 	@echo "  >>> Installation of Atomsk version $(VER):"
-	@mkdir -p $(CONFPATH)
-	@cp -rf ../etc/atomsk.conf $(CONFPATH)
-	@mkdir -p $(BINPATH)
-	@cp -rf $(BIN) $(BINPATH)
 	@echo "  ..> The program was successfuly installed in $(BINPATH)"
 	@echo "      To run it, enter 'atomsk' in a terminal."
 	@mkdir -p $(DOCPATH)/atomsk
@@ -234,6 +230,10 @@ install:
 	@echo "  ..> To read the manual, type 'man atomsk'."
 	@chmod +x ../tools/*.sh
 	@cp -f ../tools/*.sh $(BINPATH)
+	@mkdir -p $(CONFPATH)
+	@cp -rf ../etc/atomsk.conf $(CONFPATH)
+	@mkdir -p $(BINPATH)
+	@cp -rf $(BIN) $(BINPATH)
 	@echo ""
 
 
@@ -245,4 +245,5 @@ uninstall:
 	@rm -rf $(DOCPATH)/atomsk
 	@rm -rf $(MPATH)/atomsk.1.gz
 	@echo "      Uninstallation successfull."
+	@echo "      NOTE: configuration file(s) 'atomsk.conf' may still exist in folders /etc/ and /home/.config/"
 	@echo ""

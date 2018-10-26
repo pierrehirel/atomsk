@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 June 2018                                     *
+!* Last modification: P. Hirel - 25 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -440,6 +440,9 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='cml' .OR. clarg=='CML') THEN
     Nout = Nout+1
     tempout(Nout) = 'cml'
+  ELSEIF(clarg=='csv' .OR. clarg=='CSV') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'csv'
   ELSEIF(clarg=='dlp' .OR. clarg=='DLP' .OR. clarg=='dlpoly' .OR. clarg=='DLPOLY' .OR.  &
         & clarg=="dl_poly" .OR. clarg=="DL_POLY" ) THEN
     Nout = Nout+1

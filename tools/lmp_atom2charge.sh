@@ -9,7 +9,7 @@
 # copies the last three columns of data,
 # to one or many files. It is intended
 # for changing a LAMMPS data file from
-# the atom_style "atom" into "charge".
+# the atom_style "atomic" into "charge".
 
 if [[ -z "$@" ]]; then
   printf "Add a column containing zeros to LAMMPS data files (*.lmp) to comply to 'atom_style charge'. \n"
@@ -23,10 +23,9 @@ else
       #Check that it is a LAMMPS file
       islmp=$(grep "atom types" $f | wc -l)
       if [ $islmp = 1 ]; then
-        # If the keyword "Atoms" is followed by "# atomic",
-        # change it to "# charge"
-        atomic=$(grep "Atoms" $f | grep "atomic" | wc -l)
-        if [ $atomic = 1 ]; then
+        # If the keyword "Atoms" is not followed by "# charge", add it
+        atomic=$(grep "Atoms" $f | grep "charge" | wc -l)
+        if [ $atomic = 0 ]; then
           sed -i '/Atoms/ c\Atoms  # charge' $f
         fi
         # Add a column of zero after column 2
@@ -38,7 +37,7 @@ else
         mv -f /tmp/temp.lmp $f
         printf " Done.\n"
       else
-        printf " Not a LAMMPS file, skipping.\n"
+        printf " Not a LAMMPS data file, skipping.\n"
       fi
     else
       printf " File doesn't exist, skipping.\n"

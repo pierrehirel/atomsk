@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Feb. 2016                                     *
+!* Last modification: P. Hirel - 25 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,7 +60,7 @@ LOGICAL:: fileisopened
 INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
-REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, isdd, isdlp, isgin, isimd
+REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, iscsv, isdd, isdlp, isgin, isimd
 REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isstr
 REAL(dp):: isvesta, isxsf, isxv,isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
@@ -81,6 +81,7 @@ iscfg = 0.d0     !Atomeye CFG format
 iscif = 0.d0     !Crystallographic Information File
 iscml = 0.d0     !Chemical Markup Language
 iscoorat = 0.d0  !Mixed-Basis PseudoPotential format
+iscsv = 0.d0     !Comma-Separated Values format
 isdd = 0.d0      !ddplot format
 isdlp = 0.d0     !DL_POLY format
 isgin = 0.d0     !GULP input file format
@@ -150,6 +151,8 @@ IF( strlength > 0 ) THEN
     iscif = iscif+0.6d0
   CASE('cml','CML')
     iscml = iscml+0.6d0
+  CASE('csv','CSV')
+    iscsv = iscsv+1.d0
   CASE('DD','dd')
     isdd = isdd+0.6d0
   CASE('gin','GIN','res','RES','grs','GRS')
@@ -615,8 +618,8 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,isdd,isdlp,isgin,isimd,isjems,islmp, &
-       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isstr,isvesta,isxmd,isxsf, &
+likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,iscsv,isdd,isdlp,isgin,isimd,isjems,islmp, &
+       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isstr,isvesta,isxmd,isxsf,    &
        &     isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
@@ -635,6 +638,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   CML ', iscml
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   COORAT ', iscoorat
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   CSV ', iscsv
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   DDPLOT ', isdd
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -701,6 +706,8 @@ ELSE
     infileformat = 'coo'
   ELSEIF(iscml==likely) THEN
     infileformat = 'cml'
+  ELSEIF(iscsv==likely) THEN
+    infileformat = 'csv'
   ELSEIF(isdd==likely) THEN
     infileformat = 'dd'
   ELSEIF(isdlp==likely) THEN

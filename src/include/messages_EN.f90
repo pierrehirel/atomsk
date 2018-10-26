@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 29 June 2018                                     *
+!* Last modification: P. Hirel - 26 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -435,6 +435,7 @@ WRITE(*,*) "    cel (Dr. Probe/EMS)     |   yes  |  yes"
 WRITE(*,*) "    coo (COORAT/MBPP)       |   yes  |  yes"
 WRITE(*,*) "    cfg (Atomeye)           |   yes  |  yes"
 WRITE(*,*) "    cif (Cryst.Info.File)   |   yes  |  yes"
+WRITE(*,*) "    csv (Comma-Sep.Values)  |   yes  |  yes"
 WRITE(*,*) "    dd  (ddplot)            |    no  | yes (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   yes  |  yes"
 WRITE(*,*) "    gin (GULP input)        |   yes  |  yes"
@@ -913,6 +914,26 @@ CASE(1707) ! invalid symmetry operation string input.
   msg = "/!\ WARNING: invalid symmetry operation string '"// &
       & TRIM(strings(1))//"', skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1708)
+  !reals(1) = line number
+  !reals(2) = expected number of fields
+  !reals(3) = actual number of fields
+  IF( NINT(reals(2)).NE.NINT(reals(3)) ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    WRITE(temp2,*) NINT(reals(2))
+    WRITE(temp3,*) NINT(reals(3))
+    msg = "/!\ WARNING: on line "//TRIM(ADJUSTL(temp))//", expected "//TRIM(ADJUSTL(temp2))// &
+        & " fields, found "//TRIM(ADJUSTL(temp3))//"."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    IF( NINT(reals(2))>NINT(reals(3)) ) THEN
+      !Actual number of fields is smaller than expected
+      msg = "          Missing data will be replaced by naught values."
+    ELSE
+      !Actual number of fields is larger than expected
+      msg = "          Extra data will be ignored."
+    ENDIF
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(1799)
   msg = "/!\ WARNING: the data file had an unknown format. Atomsk tried to extract"
   CALL DISPLAY_MSG(1,msg,logfile)

@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 29 June 2018                                     *
+!* Last modification: P. Hirel - 26 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -434,6 +434,7 @@ WRITE(*,*) "    cel (Dr. Probe/EMS)     |   oui  |  oui"
 WRITE(*,*) "    coo (COORAT/MBPP)       |   oui  |  oui"
 WRITE(*,*) "    cfg (Atomeye)           |   oui  |  oui"
 WRITE(*,*) "    cif (Cryst.Info.File)   |   oui  |  oui"
+WRITE(*,*) "    csv (Comma-Sep.Values)  |   oui  |  oui"
 WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
 WRITE(*,*) "    gin (fichier GULP)      |   oui  |  oui"
@@ -909,6 +910,26 @@ CASE(1707) ! invalid symmetry operation string input.
   msg = "/!\ ALERTE : opération de symétrie invalide : '"// &
       & TRIM(strings(1))//"', ignorée..."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1708)
+  !reals(1) = line number
+  !reals(2) = expected number of fields
+  !reals(3) = actual number of fields
+  IF( NINT(reals(2)).NE.NINT(reals(3)) ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    WRITE(temp2,*) NINT(reals(2))
+    WRITE(temp3,*) NINT(reals(3))
+    msg = "/!\ ALERTE : sur la ligne "//TRIM(ADJUSTL(temp))//", "//TRIM(ADJUSTL(temp2))// &
+        & " champs attendus, "//TRIM(ADJUSTL(temp3))//" trouvés."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    IF( NINT(reals(2))>NINT(reals(3)) ) THEN
+      !Actual number of fields is smaller than expected
+      msg = "          Les données manquantes seront remplacées par des zéros."
+    ELSE
+      !Actual number of fields is larger than expected
+      msg = "          Les données supplémentaires seront ignorées."
+    ENDIF
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 !
 !1800-1899: ERROR MESSAGES
 CASE(1800)
