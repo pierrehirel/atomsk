@@ -28,7 +28,9 @@
 
 <p>Lorsqu'il écrit un fichier au format CSV, Atomsk écrit les noms des champs de données sur la première ligne, suivie des lignes de données. Toutes les informations sont écrites dans le fichier CSV&nbsp;: l'espèce chimique de l'atome, ses coordonnées (x,y,z), les coordonnées des coquilles s'il en existe, les propriétés auxiliaires s'il en existe, les vecteurs de boîte, et les commentaires.</p>
 
-<p>Lorsqu'il lit un fichier CSV, Atomsk recherche des mots-clés dans la première ligne. Si des mots-clés sont reconnus, alors ils sont utilisés pour déterminer le type de données présent dans chaque colonne (espèce chimique, x, y, z, etc.). Si des coquilles sont présentes (dans le sens d'un potentiel ionique de type c&oelig;ur-coquille), alors leurs positions sont aussi lues. En revanche, si des propriétés auxiliaires sont présentes, alors elles ne sont pas lues (elles sont ignorées).</p>
+<p>Lorsqu'il lit un fichier CSV, Atomsk utilisera la première ligne pour déterminer le délimiteur. Par défaut, les valeurs sont censées être séparées par des virgules (,). Cependant, si la première ligne contient des point-virgules (;) ou des barres verticales (|), alors Atomsk supposera que ce caractère est le séparateur de valeurs dans tout le fichier.</p>
+
+<p>Ensuite, Atomsk recherchera aussi des mots-clés dans la première ligne. Si des mots-clés sont reconnus, alors ils sont utilisés pour déterminer le type de données présent dans chaque colonne (espèce chimique, x, y, z, etc.). Si des coquilles sont présentes (dans le sens d'un potentiel ionique de type c&oelig;ur-coquille), alors leurs positions sont aussi lues. En revanche, si des propriétés auxiliaires sont présentes, alors elles ne sont pas lues (elles sont ignorées).</p>
 
 <p>Si aucun mot-clé n'est reconnu sur la première ligne, alors Atomsk tentera de trouver des nombres réels parmi les données, et les interprètera comme des coordonnées d'atomes, en supposant que chaque ligne contient les coordonnées d'un atome. Par défaut, tous les atomes seront alors considérés comme étant des atomes d'hydrogène.</p>
 

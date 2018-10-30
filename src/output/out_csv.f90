@@ -11,7 +11,7 @@ MODULE out_csv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Oct. 2018                                     *
+!* Last modification: P. Hirel - 30 Oct. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,6 +43,7 @@ CONTAINS
 SUBROUTINE WRITE_CSV(H,P,S,comment,AUXNAMES,AUX,outputfile)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
+CHARACTER(LEN=1):: fs=','  !field separator. Default is a comma (,). Change it here if you want something else
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: v1,v2,v3  !to store values
 CHARACTER(LEN=4096):: msg, temp
@@ -69,15 +70,15 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
 !
 ! First line is header to indicate the fields names
-msg = 'species,x,y,z'
+msg = 'species'//fs//'x'//fs//'y'//fs//'z'
 Ncol = 4
 IF( ALLOCATED(S) ) THEN
-  msg = TRIM(ADJUSTL(msg))//',S,sx,sy,sz'
+  msg = TRIM(ADJUSTL(msg))//fs//'S'//fs//'sx'//fs//'sy'//fs//'sz'
   Ncol=Ncol+4
 ENDIF
 IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
   DO i=1,SIZE(AUXNAMES)
-    msg = TRIM(ADJUSTL(msg))//','//TRIM(ADJUSTL(AUXNAMES(i)))
+    msg = TRIM(ADJUSTL(msg))//fs//TRIM(ADJUSTL(AUXNAMES(i)))
     Ncol=Ncol+1
   ENDDO
 ENDIF
@@ -85,12 +86,13 @@ ENDIF
 !Add columns for the box vectors
 IF( SIZE(P,1)>=9 ) THEN
   !Store all values H(:,:) in one column
-  msg = TRIM(ADJUSTL(msg))//',H'
+  msg = TRIM(ADJUSTL(msg))//fs//'H'
   Ncol=Ncol+1
   Hcol=-1*Ncol
 ELSE
   !Use 9 columns to store box vectors
-  msg = TRIM(ADJUSTL(msg))//',H11,H12,H13,H21,H22,H23,H31,H32,H33'
+  msg = TRIM(ADJUSTL(msg))//fs//'H11'//fs//'H12'//fs//'H13'//fs// &
+      &   'H21'//fs//'H22'//fs//'H23'//fs//'H31'//fs//'H32'//fs//'H33'
   Hcol=Ncol+1
   Ncol=Ncol+9
 ENDIF
@@ -98,7 +100,7 @@ ENDIF
 !Add one column for comments (if necessary)
 !NOTE: if there are more comment lines than atoms, some comments will be lost
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
-  msg = TRIM(ADJUSTL(msg))//',comment'
+  msg = TRIM(ADJUSTL(msg))//fs//'comment'
   Ncol=Ncol+1
 ENDIF
 !Write the line to the file
@@ -115,7 +117,7 @@ DO i=1,SIZE(P,1)
   WRITE(v2,'(f16.8)') P(i,2)
   WRITE(v3,'(f16.8)') P(i,3)
   !Write that into the line
-  msg = TRIM(species)//","//TRIM(ADJUSTL(v1))//","//TRIM(ADJUSTL(v2))//","//TRIM(ADJUSTL(v3))
+  msg = TRIM(species)//fs//TRIM(ADJUSTL(v1))//fs//TRIM(ADJUSTL(v2))//fs//TRIM(ADJUSTL(v3))
   !
   IF( ALLOCATED(S) ) THEN
     !Get species of current atom
@@ -125,15 +127,15 @@ DO i=1,SIZE(P,1)
     WRITE(v2,'(f16.8)') S(i,2)
     WRITE(v3,'(f16.8)') S(i,3)
     !Write that into the line
-    msg = TRIM(ADJUSTL(msg))//","//TRIM(ADJUSTL(species))//","// &
-        & TRIM(ADJUSTL(v1))//","//TRIM(ADJUSTL(v2))//","//TRIM(ADJUSTL(v3))
+    msg = TRIM(ADJUSTL(msg))//fs//TRIM(ADJUSTL(species))//fs// &
+        & TRIM(ADJUSTL(v1))//fs//TRIM(ADJUSTL(v2))//fs//TRIM(ADJUSTL(v3))
   ENDIF
   !
   IF( ALLOCATED(AUX) ) THEN
     DO j=1,SIZE(AUX,2)
       WRITE(v1,'(f16.8)') AUX(i,j)
       !Write that into the line
-      msg = TRIM(ADJUSTL(msg))//","//TRIM(ADJUSTL(v1))
+      msg = TRIM(ADJUSTL(msg))//fs//TRIM(ADJUSTL(v1))
     ENDDO
   ENDIF
   !
@@ -142,18 +144,18 @@ DO i=1,SIZE(P,1)
     IF( i<=3 ) THEN
       !Write components of first box vector H(1,:)
       WRITE(v1,'(f16.8)') H(1,i)
-      msg = TRIM(ADJUSTL(msg))//","//TRIM(ADJUSTL(v1))
+      msg = TRIM(ADJUSTL(msg))//fs//TRIM(ADJUSTL(v1))
     ELSEIF( i<=6 ) THEN
       !Write components of second box vector H(2,:)
       WRITE(v1,'(f16.8)') H(2,i-3)
-      msg = TRIM(ADJUSTL(msg))//","//TRIM(ADJUSTL(v1))
+      msg = TRIM(ADJUSTL(msg))//fs//TRIM(ADJUSTL(v1))
     ELSEIF( i<=9 ) THEN
       !Write components of third box vector H(3,:)
       WRITE(v1,'(f16.8)') H(3,i-6)
-      msg = TRIM(ADJUSTL(msg))//","//TRIM(ADJUSTL(v1))
+      msg = TRIM(ADJUSTL(msg))//fs//TRIM(ADJUSTL(v1))
     ELSE
       !No more values to write: leave a blanck field
-      msg = TRIM(ADJUSTL(msg))//","
+      msg = TRIM(ADJUSTL(msg))//fs
     ENDIF
   ELSE
     !All values of H(:,:) are stored in first line
@@ -162,34 +164,36 @@ DO i=1,SIZE(P,1)
       WRITE(v1,'(f16.8)') H(1,1)
       WRITE(v2,'(f16.8)') H(1,2)
       WRITE(v3,'(f16.8)') H(1,3)
-      msg = TRIM(msg)//","//TRIM(ADJUSTL(v1))//","//TRIM(ADJUSTL(v2))//","//TRIM(ADJUSTL(v3))
+      msg = TRIM(msg)//fs//TRIM(ADJUSTL(v1))//fs//TRIM(ADJUSTL(v2))//fs//TRIM(ADJUSTL(v3))
       WRITE(v1,'(f16.8)') H(2,1)
       WRITE(v2,'(f16.8)') H(2,2)
       WRITE(v3,'(f16.8)') H(2,3)
-      msg = TRIM(msg)//","//TRIM(ADJUSTL(v1))//","//TRIM(ADJUSTL(v2))//","//TRIM(ADJUSTL(v3))
+      msg = TRIM(msg)//fs//TRIM(ADJUSTL(v1))//fs//TRIM(ADJUSTL(v2))//fs//TRIM(ADJUSTL(v3))
       WRITE(v1,'(f16.8)') H(3,1)
       WRITE(v2,'(f16.8)') H(3,2)
       WRITE(v3,'(f16.8)') H(3,3)
-      msg = TRIM(msg)//","//TRIM(ADJUSTL(v1))//","//TRIM(ADJUSTL(v2))//","//TRIM(ADJUSTL(v3))
+      msg = TRIM(msg)//fs//TRIM(ADJUSTL(v1))//fs//TRIM(ADJUSTL(v2))//fs//TRIM(ADJUSTL(v3))
     ELSE
       !This is another line: just write empty fields
-      msg = TRIM(ADJUSTL(msg))//",,,,,,,,,"
+      DO j=1,9
+        msg = TRIM(ADJUSTL(msg))//fs
+      ENDDO
     ENDIF
   ENDIF
   !
   IF( SIZE(comment)>0 ) THEN
     !Store comments in corresponding column
     IF( i<=SIZE(comment) ) THEN
-      k = SCAN(comment(i),',')
+      k = SCAN(comment(i),fs)
       IF( k>0 ) THEN
         !There is one or several commas in this comment => use quotes
-        msg = TRIM(msg)//',"'//TRIM(ADJUSTL(comment(i)))//'"'
+        msg = TRIM(msg)//fs//'"'//TRIM(ADJUSTL(comment(i)))//'"'
       ELSE
         !No commas => it is safe to just write the comment
-        msg = TRIM(msg)//","//TRIM(ADJUSTL(comment(i)))
+        msg = TRIM(msg)//fs//TRIM(ADJUSTL(comment(i)))
       ENDIF
     ELSE
-      msg = TRIM(ADJUSTL(msg))//","
+      msg = TRIM(ADJUSTL(msg))//fs
     ENDIF
   ENDIF
   !
