@@ -12,6 +12,9 @@ Multiplies the columns 4-6 of a data file (*.dat) by a factor.
 dat_rm0.sh
 Removes lines from a data file (*.dat) if their columns 4-6 are zero.
 
+dat2csv.sh
+Converts a space-separated data file (*.dat) into a comma-separated data file (*.csv).
+
 lmp_atom2charge.sh
 Converts LAMMPS data files (*.lmp) for "atom_style charge".
 

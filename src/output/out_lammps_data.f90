@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 March 2018                                    *
+!* Last modification: P. Hirel - 16 Nov. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -56,23 +56,26 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: charges, shells, velocities !are atom charges, shells, velocities, defined?
 INTEGER:: atomID
 INTEGER:: bondtype   !bond type (core-shell model)
-INTEGER:: i, iloop, j, l
+INTEGER:: i, iloop, j, l, m
 INTEGER:: molID      !position of the molecule-ID in AUX (=0 if not defined)
 INTEGER:: moleculeID !actual ID of a molecule
 INTEGER:: NPdigits   !number of digits in the number of particles
 INTEGER:: Nspecies
-INTEGER:: Ntypes     !number of atom types
+INTEGER:: Ntypes     !number of particles types (atoms, or cores+shells)
 INTEGER:: Nbond      !bond number (core-shell model)
 INTEGER:: Nshells    !number of shells (core-shell model)
 INTEGER:: Nshelltypes !number of shell types (core-shell model)
-INTEGER:: vx, vy, vz, q, qs, typecol !index of velocities, charges, shell charges, atom types in AUX
+INTEGER:: vx, vy, vz, q, typecol !index of atom (or core) velocities, charges, types in AUX
+INTEGER:: qs, Stypecol           !index of shell charges, types in AUX
 REAL(dp):: alpha, beta, gamma, Kx, Ky, Kz !for conventional notation
 REAL(dp):: Qcore, Qshell !electric charge of core, shell
 REAL(dp):: smass         !mass of an atom
+REAL(dp):: Smassratio=0.1d0  !ratio (mass of shell)/(mass of core)
 REAL(dp):: tiltbefore
 REAL(dp),DIMENSION(3):: tilt  !xy, xz, yz
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: K   !copy of H
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: typemass  !array for storing the mass of each atom type
 REAL(dp),DIMENSION(:,:),POINTER:: Ppoint  !pointer to P or R
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),TARGET:: P !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R  !copy of P (if necessary)
@@ -93,6 +96,7 @@ j=0
 q = 0
 qs = 0
 typecol = 0
+Stypecol = 0
 vx = 0
 vy = 0
 vz = 0
@@ -137,7 +141,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   Ntypes = Ntypes + Nshelltypes
 ENDIF
 !
-WRITE(msg,*) "Found NP, Nshells, Ntypes = ", SIZE(P,1), Nshells, Ntypes
+WRITE(msg,*) "Found NP, Nshells, Ntypes, Nshelltypes = ", SIZE(P,1), Nshells, Ntypes, Nshelltypes
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Check if auxiliary properties relevant to LAMMPS data files are present
@@ -159,7 +163,7 @@ IF( ALLOCATED(AUXNAMES) ) THEN
       typecol = i
       IF( Nshells==0 ) THEN
         !Could not determine number of atom types before
-        !Count how many different species are in AUX
+        !Count how many different atom types are in AUX
         CALL FIND_NSP(AUX(:,typecol),atypes)
         Ntypes = SIZE(atypes,1)
         !Verify that atom types are all greater than zero
@@ -168,11 +172,80 @@ IF( ALLOCATED(AUXNAMES) ) THEN
           CALL ATOMSK_MSG(3714,(/""/),(/0.d0/))
         ENDIF
       ENDIF
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='Stype' ) THEN
+      Stypecol = i
     ENDIF
   ENDDO
   !
   IF( vx>0 .AND. vy>0 .AND. vz>0 ) velocities = .TRUE.
   IF( q>0 ) charges = .TRUE.
+ENDIF
+!
+!
+IF( typecol>0 ) THEN
+  !A column for atom types is defined
+  !For each atom type, find its atomic number and mass and store it in array "typemass"
+  ALLOCATE( typemass(Ntypes,2) )
+  typemass(:,:) = 0.d0
+  !For each atom type, find its mass
+  i = 0
+  j = 0
+  DO WHILE( i<SIZE(P,1) .AND. j<=(Ntypes-Nshelltypes) )
+    i = i+1
+    IF( NINT(AUX(i,typecol)) == j+1 ) THEN
+      j = j+1
+      typemass(j,1) = P(i,4)
+      CALL ATOMSPECIES(P(i,4),species)
+      CALL ATOMMASS(species , typemass(j,2))
+    ENDIF
+  ENDDO
+  !
+  !Then, append shells if any
+  IF( Nshelltypes>0 .AND. ALLOCATED(S) ) THEN
+    i = 0
+    IF( Stypecol>0 ) THEN
+      !Use types as defined in AUX
+      DO WHILE( i<SIZE(S,1) .AND. j<=Ntypes )
+        i=i+1
+        IF( NINT(AUX(i,Stypecol)) == j+1 ) THEN
+          IF( S(i,4)>0.9d0 ) THEN
+            j = j+1
+            typemass(j,1) = S(i,4)
+            CALL ATOMSPECIES(S(i,4),species)
+            CALL ATOMMASS(species , typemass(j,2))
+            typemass(j,2) = typemass(j,2)*Smassratio
+          ENDIF
+        ENDIF
+      ENDDO
+    ELSE
+      !Define new types for shells
+      !Try to put shells in same order as cores
+      iloop = j
+      DO WHILE( i<=iloop .AND. j<=Ntypes )
+        i = i+1
+        !Check if this type of core has an associated shell
+        DO m=1,SIZE(aentriesS,1)
+          IF( DABS(typemass(i,1)-aentriesS(m,1)) < 0.1d0 ) THEN
+            !This is the 
+            j = j+1
+            typemass(j,1) = aentriesS(m,1)
+            CALL ATOMSPECIES(aentriesS(m,1),species)
+            CALL ATOMMASS(species , typemass(j,2))
+            typemass(j,2) = typemass(j,2)*Smassratio
+          ENDIF
+        ENDDO
+      ENDDO
+    ENDIF
+  ENDIF
+  !
+  IF( verbosity>=4 ) THEN
+    msg = "Particle Type | At. Number |  Mass"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    DO i=1,SIZE(typemass,1)
+      WRITE(msg,'(5X,i3, 2f12.3)') i, typemass(i,1), typemass(i,2)
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDDO
+  ENDIF
 ENDIF
 !
 !
@@ -309,34 +382,81 @@ WRITE(40,*) ''
 !Write the Masses section
 WRITE(40,'(a6)') "Masses"
 WRITE(40,*) ''
-IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !In case of core/shell model, write mass ratio
   !Write mass of cores (and chemical species as comment)
-  DO i=1,SIZE(aentries,1)
-    CALL ATOMSPECIES(aentries(i,1),species)
-    CALL ATOMMASS(species,smass)
-    WRITE(temp,'(f16.8)') smass
-    WRITE(40,*) i, "  ", TRIM(ADJUSTL(temp))//"    # "//species//" core"
-  ENDDO
-  !Write mass of shells (and chemical species as comment)
-  j=0
-  DO i=1,SIZE(aentriesS,1)
-    IF( aentriesS(i,1)>0.1d0 ) THEN
-      j=j+1
-      CALL ATOMSPECIES(aentriesS(i,1),species)
+  IF( typecol>0 ) THEN
+    !Atom types are defined in auxiliary properties
+    !and were saved in array "typemass"
+    !=> write that information
+    DO i=1,Ntypes-Nshelltypes
+      CALL ATOMSPECIES(typemass(i,1),species)
+      WRITE(temp,'(f16.8)') typemass(i,2)
+      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+      msg(40:) = "# "//species//" core"
+      WRITE(40,*) TRIM(msg)
+    ENDDO
+    DO i=Ntypes-Nshelltypes+1,Ntypes
+      CALL ATOMSPECIES(typemass(i,1),species)
+      WRITE(temp,'(f16.8)') typemass(i,2)
+      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+      msg(40:) = "# "//species//" shell"
+      WRITE(40,*) TRIM(msg)
+    ENDDO
+  ELSE
+    !Atom types are undefined
+    !=> set them by order of appearence in array "aentries"
+    DO i=1,SIZE(aentries,1)
+      !Determine the mass of this type of atom
+      CALL ATOMSPECIES(aentries(i,1),species)
       CALL ATOMMASS(species,smass)
-      WRITE(temp,'(f16.8)') smass/10.d0
-      WRITE(40,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))//"    # "//species//" shell"
-    ENDIF
-  ENDDO
+      WRITE(temp,'(f16.8)') smass
+      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+      msg(40:) = "# "//species//" core"
+      WRITE(40,*) TRIM(msg)
+    ENDDO
+    !Same with shells
+    DO i=1,SIZE(aentriesS,1)
+      IF( aentriesS(i,1)>0.1d0 ) THEN
+        j=j+1
+        CALL ATOMSPECIES(aentriesS(i,1),species)
+        CALL ATOMMASS(species,smass)
+        WRITE(temp,'(f16.8)') smass*Smassratio
+        WRITE(msg,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))
+        msg(40:) = "# "//species//" shell"
+        WRITE(40,*) TRIM(msg)
+      ENDIF
+    ENDDO
+    !
+  ENDIF
+  !
 ELSE
   !Write mass of each atom type (and chemical species as comment)
-  DO i=1,SIZE(aentries,1)
-    CALL ATOMSPECIES(aentries(i,1),species)
-    CALL ATOMMASS(species,smass)
-    WRITE(temp,'(f16.8)') smass
-    WRITE(40,*) i, "  ", TRIM(ADJUSTL(temp))//"    # "//species
-  ENDDO
+  IF( typecol>0 ) THEN
+    !Atom types are defined in auxiliary properties
+    !and were saved in array "typemass"
+    !=> write that
+    DO i=1,SIZE(typemass,1)
+      CALL ATOMSPECIES(typemass(i,1),species)
+      WRITE(temp,'(f16.8)') typemass(i,2)
+      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+      msg(40:) = "# "//species
+      WRITE(40,*) TRIM(msg)
+    ENDDO
+  ELSE
+    !Atom types are undefined
+    !=> set them by order of appearence in array "aentries"
+    DO i=1,SIZE(aentries,1)
+      !Determine the mass of this type of atom
+      CALL ATOMSPECIES(aentries(i,1),species)
+      CALL ATOMMASS(species,smass)
+      WRITE(temp,'(f16.8)') smass
+      !Write atom type and mass to file
+      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+      msg(40:) = "# "//species
+      WRITE(40,*) TRIM(msg)
+    ENDDO
+  ENDIF
 ENDIF
 WRITE(40,*) ''
 !
@@ -376,7 +496,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     ELSE
       Qcore = 0.d0
     ENDIF
-    IF( typecol.NE.0 ) THEN
+    IF( typecol>0 ) THEN
       !Atom types are in auxiliary properties, use it
       Nspecies = NINT(AUX(i,typecol))
     ELSE
@@ -439,6 +559,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   ENDDO
   !
 ELSE
+  !No ionic shells, only atoms are present
   IF( Ntypes>1 ) THEN
     IF( charges ) THEN
       !Atom charges are defined
@@ -498,7 +619,7 @@ ELSE
 ENDIF
 210 FORMAT(i10,2X,i3,2X,f9.6,2X,3(f16.8,1X))
 211 FORMAT(i10,2X,i3,2X,3(f16.8,1X))
-212 FORMAT(i10,2X,i3,2X,i3,2X,f9.6,2X,3(f16.8,1X))
+212 FORMAT(i10,2X,i5,2X,i3,2X,f9.6,2X,3(f16.8,1X))
 !
 !Write velocities
 IF( velocities ) THEN
