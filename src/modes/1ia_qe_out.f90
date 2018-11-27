@@ -21,7 +21,7 @@ MODULE oia_qeout
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 23 Nov. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -227,12 +227,21 @@ DO  !loop on all snapshots
     ELSEIF( test(1:15)=="CELL_PARAMETERS" ) THEN
       !In case of variable cell simulations ("vc-relax" or "vc-md")
       !the cell parameters are given for each snapshot
-      IF( INDEX(test(16:),"alat").NE.0 ) THEN
+      IF( INDEX(test(16:),"alat")>0 ) THEN
         !Read lattice constant alat
         strlength = SCAN(test,"=")
         strlength2 = SCAN(test,")")
         READ(test(strlength+1:strlength2-1),*,ERR=220,END=220) alat
         !No unit was specified => it is in Bohrs
+        cell_units = 'B'
+      ELSEIF( INDEX(test(16:),"angst")>0 ) THEN
+        cell_units = 'A'
+      ELSEIF( INDEX(test(16:),"bohr")>0 ) THEN
+        cell_units = 'B'
+      ELSE
+        !Unrecognized unit or no unit given
+        !(this is supposed to be deprecated but may still happen)
+        !=> assume bohrs
         cell_units = 'B'
       ENDIF
       !
@@ -243,7 +252,14 @@ DO  !loop on all snapshots
       DO i=1,3
         READ(30,*,ERR=800,END=800) H(i,1), H(i,2), H(i,3)
       ENDDO
-      H(:,:) = alat*H(:,:)
+      IF( INDEX(test(16:),"alat")>0 .AND. alat>1.d-12 ) THEN
+        !Cell parameters were given in lattice units => multiply them by alat
+        H(:,:) = alat*H(:,:)
+      ELSE
+        !Cell parameters were given in angströms or bohrs
+        !Use them to define the lattice constant
+        IF( alat<=1.d-12 ) alat = DSQRT(H(1,1)*H(1,1))
+      ENDIF
       cell_defined = .TRUE.
       !
     ELSEIF( test(1:16)=="ATOMIC_POSITIONS" ) THEN
