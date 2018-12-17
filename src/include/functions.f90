@@ -10,7 +10,7 @@ MODULE functions
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 17 Dec. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -32,6 +32,7 @@ MODULE functions
 !* DAY_OF_WEEK         finds the day of the week given the date                   *
 !* CHARLONG2SHRT       convert a long file name to a shorter one                  *
 !* IS_INTEGER          determines if a real number is an integer                  *
+!* IS_REAL             determines if a string contains a number                   *
 !* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
 !* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
 !* ROTELAST            rotates a 9x9 matrix                                       *
@@ -238,6 +239,27 @@ IF( DBLE(NINT(number)) - number < 1.d-12 ) THEN
 ENDIF
 !
 END FUNCTION IS_INTEGER
+!
+!
+!
+!********************************************************
+!  IS_REAL
+!  This function determines if a string can be
+!  interpreted as a number (integer or real).
+!********************************************************
+LOGICAL FUNCTION IS_REAL(string)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: string
+REAL(dp):: number
+!
+IS_REAL = .FALSE.
+!
+READ(string,*,ERR=100,END=100) number
+IS_REAL=.TRUE.
+100 CONTINUE
+!
+END FUNCTION IS_REAL
 !
 !
 !********************************************************

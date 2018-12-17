@@ -7,6 +7,7 @@ Master (development)
 - added support for reading and writing files in Comma-Separated Values format (*.csv).
 - in mode "--polycrystal", added a warning if a 2-D polycrystal is constructed and the user specified non-zero angles around other Cartesian axes.
 - fixed a bug when writing LAMMPS data files (*.lmp): if atom types were defined, the types written in the "Masses" section did not match the atom types used in the "Atoms" section.
+- fixed a bug when reading Quantum Espresso output files (*.out) in mode "--one-in-all".
 
 
 Beta 0.10.6 (07 Sept. 2018)
