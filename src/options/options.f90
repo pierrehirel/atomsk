@@ -1257,7 +1257,7 @@ DO ioptions=1,SIZE(options_array)
   !
   !If an elastic tensor was defined, check it
   IF( ANY( C_tensor(1:3,1:3).NE.0.d0 ) ) THEN
-    !Check its shape
+    !Check if it is symmetric, i.e. Cij = Cji
     CALL CHECK_CTENSOR(C_tensor,i)
     IF(i.NE.0) THEN
       nwarn=nwarn+1

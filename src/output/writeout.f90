@@ -79,6 +79,7 @@ USE out_mbpp_coorat
 USE out_moldy
 USE out_pdb
 USE out_qe_pw
+USE out_siesta_fdf
 USE out_siesta_xv
 USE out_str
 USE out_vasp_poscar
@@ -506,6 +507,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_DLP_CFG(H,P,comment,AUXNAMES,AUX,outputfile,S)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('fdf','FDF')
+    CALL NAME_OUTFILE(prefix,outputfile,'fdf  ')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_FDF(H,P,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

@@ -78,6 +78,7 @@ USE in_mbpp_coorat
 USE in_moldy
 USE in_pdb
 USE in_qe_pw
+USE in_siesta_fdf
 USE in_siesta_xv
 USE in_str
 USE in_vasp_poscar
@@ -176,6 +177,8 @@ CASE('csv')
   CALL READ_CSV(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('dlp')
   CALL READ_DLP_CFG(inputfile,H,P,S,comment,AUXNAMES,AUX)
+CASE('fdf')
+  CALL READ_FDF(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('gin')
   CALL READ_GIN(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('imd')

@@ -195,6 +195,8 @@ DO
         ENDDO
       ENDIF
       CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !Check tensor for stability criteria
+      CALL CTENSOR_STABILITY(C_tensor)
       !Print the anisotropy ratio (A) and anisotropy factor (H)
       aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
       aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
@@ -256,6 +258,8 @@ DO
         ENDDO
       ENDIF
       CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
+      !Check tensor for stability criteria
+      CALL CTENSOR_STABILITY(C_tensor)
       !Print the anisotropy ratio (A) and anisotropy factor (H)
       aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
       aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
@@ -727,6 +731,41 @@ GOTO 1000
 !
 !
 END SUBROUTINE READ_PROPERTIES
+!
+!
+!
+SUBROUTINE CTENSOR_STABILITY(C_tensor)
+!
+CHARACTER(LEN=32):: temp, msg
+INTEGER:: i, j
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
+!
+IF( C_tensor(1,1) < DABS(C_tensor(1,2)) ) THEN
+  msg = "C11 > |C12|"
+  CALL ATOMSK_MSG(2762,(/msg/),(/0.d0/))
+ENDIF
+DO i=1,6
+  IF( C_tensor(i,i)<=0.d0 ) THEN
+    WRITE(temp,'(2i1)') i, i
+    msg = "C"//TRIM(ADJUSTL(temp))//" > 0"
+    CALL ATOMSK_MSG(2762,(/msg/),(/0.d0/))
+  ENDIF
+  DO j=i,6
+    IF( j>i ) THEN
+      IF( C_tensor(i,j)**2 > C_tensor(i,i)*C_tensor(j,j) ) THEN
+        WRITE(temp,'(2i1)') i, i
+        msg = "C"//TRIM(ADJUSTL(temp))
+        WRITE(temp,'(2i1)') j, j
+        msg = TRIM(ADJUSTL(msg))//" * C"//TRIM(ADJUSTL(temp))
+        WRITE(temp,'(2i1)') i, j
+        msg = "(C"//TRIM(ADJUSTL(temp))//")² < "//TRIM(ADJUSTL(msg))
+        CALL ATOMSK_MSG(2762,(/msg/),(/0.d0/))
+      ENDIF
+    ENDIF
+  ENDDO
+ENDDO
+!
+END SUBROUTINE CTENSOR_STABILITY
 !
 !
 !

@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'Master-2018.12.17'
+CHARACTER(LEN=24),PARAMETER:: version = 'Master-2019.01.09'
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 !
@@ -59,10 +59,10 @@ INTEGER:: verbosity          !level of verbosity of the program
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are added to Atomsk
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(23),PARAMETER:: listofformats =                             &
-& (/'atsk ','bop  ','cfg  ','cif  ','cel  ','coo  ','csv  ','dlp  ','gin  ','imd  ',   &
-&   'jems ','lmp  ','mol  ','pos  ','pw   ','vesta','xmd  ','xsf  ','xv   ','xyz  ',   &
-&   'exyz ','sxyz ','stru '    &
+CHARACTER(LEN=5),DIMENSION(24),PARAMETER:: listofformats =                             &
+& (/'atsk ','bop  ','cfg  ','cif  ','cel  ','coo  ','csv  ','dlp  ','fdf  ','gin  ',   &
+&   'imd  ','jems ','lmp  ','mol  ','pos  ','pw   ','vesta','xmd  ','xsf  ','xv   ',   &
+&   'xyz  ','exyz ','sxyz ','stru '    &
 & /)
 !
 END MODULE comv

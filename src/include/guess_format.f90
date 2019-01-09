@@ -60,7 +60,7 @@ LOGICAL:: fileisopened
 INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
-REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, iscsv, isdd, isdlp, isgin, isimd
+REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, iscsv, isdd, isdlp, isfdf, isgin, isimd
 REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isstr
 REAL(dp):: isvesta, isxsf, isxv,isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
@@ -84,6 +84,7 @@ iscoorat = 0.d0  !Mixed-Basis PseudoPotential format
 iscsv = 0.d0     !Comma-Separated Values format
 isdd = 0.d0      !ddplot format
 isdlp = 0.d0     !DL_POLY format
+isfdf = 0.d0     !SIESTA FDF format
 isgin = 0.d0     !GULP input file format
 isimd = 0.d0     !IMD format
 isjems = 0.d0    !JEMS format
@@ -155,6 +156,8 @@ IF( strlength > 0 ) THEN
     iscsv = iscsv+1.d0
   CASE('DD','dd')
     isdd = isdd+0.6d0
+  CASE('FDF','fdf')
+    isfdf = isfdf+0.6d0
   CASE('gin','GIN','res','RES','grs','GRS')
     isgin = isgin+0.6d0
   CASE('imd','IMD')
@@ -325,6 +328,22 @@ IF(fileexists) THEN
     !Search for patterns corresponding to COORAT format
     ELSEIF(test(1:6)=='natom=') THEN
       iscoorat = iscoorat+0.4d0
+    !
+    !Search for patterns corresponding to SIESTA FDF format
+    ELSEIF(test(1:10)=='SystemName') THEN
+      isfdf = isfdf+0.4d0
+    ELSEIF(test(1:11)=='SystemLabel') THEN
+      isfdf = isfdf+0.4d0
+    ELSEIF(test(1:13)=='NumberOfAtoms') THEN
+      isfdf = isfdf+0.4d0
+    ELSEIF(test(1:15)=='NumberOfSpecies') THEN
+      isfdf = isfdf+0.4d0
+    ELSEIF(test(1:23)=='AtomicCoordinatesFormat') THEN
+      isfdf = isfdf+0.4d0
+    ELSEIF(test(1:7)=='%block ') THEN
+      isfdf = isfdf+0.4d0
+    ELSEIF(test(1:10)=='%endblock ') THEN
+      isfdf = isfdf+0.4d0
     !
     !Search for patterns corresponding to GIN format
     ELSEIF(test(1:5)=='title') THEN
@@ -618,9 +637,9 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,iscsv,isdd,isdlp,isgin,isimd,isjems,islmp, &
-       &     islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isstr,isvesta,isxmd,isxsf,    &
-       &     isxv,isxyz,isexyz,issxyz)
+likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,iscsv,isdd,isdlp,isfdf,isgin,isimd,isjems, &
+       &     islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isstr,isvesta,isxmd,    &
+       &     isxsf,isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) 'Scores of file formats: '
@@ -644,6 +663,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   DDPLOT ', isdd
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   DLPOLY ', isdlp
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   FDF ', isfdf
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   GIN ', isgin
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -712,6 +733,8 @@ ELSE
     infileformat = 'dd'
   ELSEIF(isdlp==likely) THEN
     infileformat = 'dlp'
+  ELSEIF(isfdf==likely) THEN
+    infileformat = 'fdf'
   ELSEIF(isgin==likely) THEN
     infileformat = 'gin'
   ELSEIF(isimd==likely) THEN

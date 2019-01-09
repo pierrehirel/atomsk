@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>FDF format - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : FDF</h2>
+
+<p><strong>Nom :</strong> Format de Données Flexible de SIESTA</p>
+
+<p><strong>Extension :</strong> fdf</p>
+
+<p><strong>Spécification :</strong> <a href="https://departments.icmab.es/leem/siesta/Documentation/Manuals/manuals.html">documentation de SIESTA</a></p>
+
+<p><strong>Programmes de visualisation :</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Atomsk peut lire les fichiers au format de données flexible de SIESTA (fdf). Si le fichier contient des positions atomiques en coordonnées réduites ou à l'échelle de la boîte, alors elles sont automatiquement converties en coordonnées cartésiennes. Notez que si le paramètre de maille, les vecteurs de boîte, et/ou les coordonnées des atomes sont en Bohrs, alors Atomsk <em>ne les convertit pas automatiquement</em>. Au besoin, il est possible d'utiliser l'<a href="./option_unit.html">option <code>-unit</code></a> pour convertir explicitement les coordonnées après avoir lu le fichier FDF. Les "types" des atomes sont sauvegardés comme une propriété auxiliaire, de façon à être transmis aux formats de sortie qui les supportent.</p>
+
+<p>Lorsqu'il écrit un fichier au format FDF, Atomsk écrit toujours les paramètres de maille et les positions atomiques en coordonnées cartésiennes. Celles-ci sont supposées être en Angströms&nbsp;; si elles sont en Bohrs, alors la ligne "<code>AtomicCoordinatesFormat Ang</code>" sera fausse et devra être corrigée. Si les types des atomes sont définis, alors ils sont utilisés&nbsp;; sinon Atomsk génère automatiquement de nouveaux types d'atomes pour chaque espèce chimique, dans l'ordre de leur apparition.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg fdf</code>
+<p>Ceci va lire le fichier <code>my_system.cfg</code>, et le convertira en <code>my_system.fdf</code>.</p></li>
+
+<li><code class="command">atomsk input.fdf -unit B A vesta</code>
+<p>Ceci va lire le fichier <code>input.fdf</code>, convertir les paramètres de maille et les coordonnées des atomes de Bohrs vers des Angströms, et écrira le résultat dans <code>input.vesta</code> afin d'être visualisé avec VESTA.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

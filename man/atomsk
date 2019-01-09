@@ -261,6 +261,9 @@ Mixed-Basis Pseudo Potential (MBPP) coordinates.
 .B csv
 Comma-Separated Values file.
 .TP
+.B fdf
+SIESTA Flexible Data Format.
+.TP
 .B gin
 GULP input file.
 .TP
@@ -332,6 +335,9 @@ Comma-Separated Values file.
 .TP
 .B ddplot
 DDplot format (ddplot mode only).
+.TP
+.B fdf
+SIESTA Flexible Data Format.
 .TP
 .B gin
 GULP input file.
@@ -410,7 +416,7 @@ http://atomsk.univ-lille1.fr/
 .P
 Dr. Pierre Hirel (pierre.hirel@univ-lille1.fr)
 .P
-Univ. Lille 1, UMR CNRS 8702 - UMET, 59650 Villeneuve d'Ascq, France
+Universite de Lille Sciences et Technologies, UMR CNRS 8207 - UMET, 59650 Villeneuve d'Ascq, France
 
 
 

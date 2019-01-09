@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Oct. 2018                                     *
+!* Last modification: P. Hirel - 08 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -437,6 +437,7 @@ WRITE(*,*) "    cif (Cryst.Info.File)   |   oui  |  oui"
 WRITE(*,*) "    csv (Comma-Sep.Values)  |   oui  |  oui"
 WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
+WRITE(*,*) "    fdf (fichier SIESTA)    |   oui  |  oui"
 WRITE(*,*) "    gin (fichier GULP)      |   oui  |  oui"
 WRITE(*,*) "    imd (fichier IMD)       |   oui  |  oui"
 WRITE(*,*) "    jems (fichier JEMS)     |   oui  |  oui"
@@ -1744,10 +1745,10 @@ CASE(2100)
   !reals(1) = anisotropy ratio A = 2*C44 / (C11-C12)
   !reals(2) = anisotropy factor H = 2*C44 + C12 - C11
   WRITE(msg,'(e16.3)') reals(1)
-  msg = "..> Ratio d'anisotropie : A = "//TRIM(ADJUSTL(msg))
+  msg = "..> Ratio d'anisotropie :   A = 2*C44 / (C11-C12) = "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(msg,'(e16.3)') reals(2)
-  msg = "..> Facteur d'anisotropie : H = "//TRIM(ADJUSTL(msg))
+  msg = "..> Facteur d'anisotropie : H = 2*C44 + C12 - C11 = "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2101)
   !strings(1) = formula of energy factor, e.g. "Kb²"
@@ -2212,6 +2213,10 @@ CASE(2760)
 CASE(2761)
   !strings(1) = "add" or "rm" or "intersect" or "xor"
   msg = "/!\ ALERTE : impossible de modifier la sélection, car aucune sélection n'a été définie précédemment."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2762)
+  !strings(1) = elastic tensor stability criterion
+  msg = "/!\ ALERTE: le tenseur élastique ne respecte pas ce critère de stabilité : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

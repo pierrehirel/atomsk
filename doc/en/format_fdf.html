@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>FDF format - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: FDF</h2>
+
+<p><strong>Name:</strong> SIESTA Flexible Data Format</p>
+
+<p><strong>Extension:</strong> fdf</p>
+
+<p><strong>Specification:</strong> <a href="https://departments.icmab.es/leem/siesta/Documentation/Manuals/manuals.html">SIESTA documentation</a></p>
+
+<p><strong>Visualization programs:</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Atomsk can read files in the SIESTA Flexible Data Format (fdf). If the file contains atom positions in fractional (reduced) or scaled coordinates, then they are automatically rescaled into Cartesian coordinates. Note that if the lattice constant, lattice vectors, and/or atom coordinates are expressed in Bohrs, Atomsk does <em>not</em> automatically convert them. If needed, one can use the <a href="./option_unit.html">option <code>-unit</code></a> to perform the conversion after reading an FDF file. The "types" of atoms is saved as an auxiliary property, so that it can be transferred to other file formats that support it.</p>
+
+<p>When writing a file in FDF format, Atomsk always writes the lattice vectors and the atom positions using Cartesian coordinates. Angströms are assumed; if positions are actually in Bohr units, then the line "<code>AtomicCoordinatesFormat Ang</code>" will be wrong and will have to be corrected. If atom types exist, then they are used; otherwise Atomsk generates automatically new atom types for each chemical species, in the order of their appearance.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg fdf</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.fdf</code>.</p></li>
+
+<li><code class="command">atomsk input.fdf -unit B A vesta</code>
+<p>This will read the file <code>input.fdf</code>, convert lattice vectors and atom coordinates from Bohrs to Angströms, and write the result into <code>input.vesta</code> for visualization with VESTA.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 26 Oct. 2018                                     *
+!* Last modification: P. Hirel - 08 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -409,6 +409,7 @@ WRITE(*,*) "    cfg (Atomeye)           |  ja    |  ja "
 WRITE(*,*) "    cif (Cryst.Info.File)   |  ja    |  ja "
 WRITE(*,*) "    dd  (ddplot)            |  nein  |  ja (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  ja    |  ja "
+WRITE(*,*) "    fdf (SIESTA format)     |  ja    |  ja "
 WRITE(*,*) "    gin (GULP input)        |  ja    |  ja "
 WRITE(*,*) "    imd (IMD input)         |  ja    |  ja "
 WRITE(*,*) "    jems (JEMS input)       |  ja    |  ja "
@@ -1629,10 +1630,10 @@ CASE(2100)
   !reals(1) = anisotropy ratio A = 2*C44 / (C11-C12)
   !reals(2) = anisotropy factor H = 2*C44 + C12 - C11
   WRITE(msg,'(f16.3)') reals(1)
-  msg = "..> Anisotropieverhaeltnis: A = "//TRIM(ADJUSTL(msg))
+  msg = "..> Anisotropieverhaeltnis: A = 2*C44 / (C11-C12) = "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(msg,'(e16.3)') reals(2)
-  msg = "..> Anisotropiefaktor     : H = "//TRIM(ADJUSTL(msg))
+  msg = "..> Anisotropiefaktor:      H = 2*C44 + C12 - C11 = "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2101)
   !strings(1) = formula of energy factor, e.g. "Kb²"
@@ -2113,6 +2114,10 @@ CASE(2760)
 CASE(2761)
   !strings(1) = "add" or "rm" or "intersect" or "xor"
   msg = "/!\ WARNUNG: Auswahl kann nicht geändert werden, da zuvor keine Auswahl definiert wurde."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2762)
+  !strings(1) = elastic tensor stability criterion
+  msg = "/!\ WARNUNG: das Kriterium der elastischen Tensorstabilität ist nicht erfüllt: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
