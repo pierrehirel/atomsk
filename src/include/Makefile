@@ -15,6 +15,7 @@ SGE=comv.f90              \
     messages_EN.f90       \
     $(L10N)               \
     messages.f90          \
+    expreval.f90          \
     resize.f90            \
     spacegroups.f90       \
     neighbors.f90         \

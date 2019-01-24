@@ -39,6 +39,13 @@
             ...</code></p>
   <p>The displacements can be given for all atoms, or only some of them. If shells are present, but no displacement is specified for them, then they are displaced by the same vector as their core. The displacement vectors are immediately applied to the atom positions (and shells, if any).</p></li>
   
+  <li><strong>Displacement functions</strong> can be defined using the keyword "displacement function", followed by three lines containing functions <code>u<sub>x</sub></code>, <code>u<sub>y</sub></code>, <code>u<sub>z</sub></code>. Optionally, the displacement vector <code>s</code> for the shell (in the sense of an ionic core-shell model) can also be given:<br/>
+      <p><code>displacement functions<br/>
+            ux = &#60;function&#62;<br/>
+            uy = &#60;function&#62;<br/>
+            uz = &#60;function&#62;<br/></code></p>
+  <p>The functions may be composed of the following: real or integer number; operators (+, -, *, /, %, ^, e); mathematical functions (abs, sqrt, cos, acos, sin, asin, tan, atan); the keyword "pi"; the keywords Hx, Hy, Hz, which refer to box dimensions along X, Y, Z; and/or the variables x, y, z, which refer to atoms coordinates. For each atom, the functions ux, uy and uz are evaluated by substituting the variables x, y, z by the actual atom's coordinates, and the atom is immediately displaced by the computed vector. Examples are given below.</p></li>
+  
   <li><strong>Ionic charges</strong> can be specified using the keyword "charge" followed by lines containing the ion species and corresponding charge (the elementary charge <em>e</em> is usually the default unit, but Atomsk will work with whatever number is given). In case of an ionic core-shell model the charge Q of the core and the charge q of the shell can be given:<br/>
       <p><code>charge<br/>
             &#60;species1&#62; &#60;Q<sub>1</sub>&#62; [&#60;q<sub>1</sub>&#62;]<br/>
@@ -192,6 +199,30 @@ auxiliary my_energy<br/>
 6  -19.86<br/>
 15  -20.4<br/>
 9  -19.9<br/>
+</code></p></div>
+</li>
+
+<li>In the example below, displacement vectors are given for some atoms. The index of the atom is given, followed by the displacement along X, Y and Z (in &Aring;). Note that these displacements are applied immediately upon reading.
+
+<div class="txtfile">
+<h5>disp.txt</h5>
+<p><code>#Lets displace some atoms<br/>
+displacements<br/>
+45  1.2 -0.4 0<br/>
+67  -6.9 2.88 -10.02<br/>
+191 0.5  -0.78 0.34<br/>
+</code></p></div>
+</li>
+
+<li>In the example below, displacement functions are given. Each atom will be displaced by a vector <code>(u<sub>x</sub>,u<sub>y</sub>,u<sub>z</sub>)</code> that depends on its coordinates x, y and z. In this example, atoms are displaced only along z, by an amount that depends on their x and y coordinates. The keyword Hx is replaced by the length of the first box vector, and Hy by that of the second box vector.
+
+<div class="txtfile">
+<h5>disp.txt</h5>
+<p><code># Displacements defined as functions<br/>
+displacement function<br/>
+ux = 0<br/>
+uy = 0<br/>
+uz = 10*cos(4*pi*x/Hx) + 8*sin(2*pi*y/Hy) )</br>
 </code></p></div>
 </li>
 

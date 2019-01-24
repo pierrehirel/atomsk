@@ -106,7 +106,7 @@ Applies normal strain.
 .TP
 .B -dislocation <pos1> <pos2> screw <xi> <n> <b>
 .TP
-.B -dislocation <pos1> <pos2> <edge|edge2> <xi> <n> <b> <ν>
+.B -dislocation <pos1> <pos2> <edge|edge_add|edge_rm> <xi> <n> <b> <ν>
 .TP
 .B -dislocation <pos1> <pos2> mixed <xi> <n> <b1> <b2> <b3>
 .TP

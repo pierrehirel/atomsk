@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Jan. 2019                                     *
+!* Last modification: P. Hirel - 22 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -563,18 +563,21 @@ DO WHILE(i<SIZE(cla))
       !Read coordinate x of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !Read coordinate y of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !Read coordinate z of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
@@ -588,18 +591,21 @@ DO WHILE(i<SIZE(cla))
       !Read coordinate x of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !Read coordinate y of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !Read coordinate z of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
@@ -662,16 +668,21 @@ DO WHILE(i<SIZE(cla))
     !Read first coordinate of crack tip (pos1)
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !Read second coordinate of crack tip (pos2)
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !Read direction along crack tip (X, Y or Z)
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
       & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
@@ -727,6 +738,7 @@ DO WHILE(i<SIZE(cla))
     !read cut distance
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
@@ -755,6 +767,8 @@ DO WHILE(i<SIZE(cla))
       temp(m:m)=" "
       READ(temp,*,END=120,ERR=120) tempreal
       WRITE(temp,'(f16.3)') tempreal/100.d0
+    ELSE
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     ENDIF
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     READ(temp,*,END=120,ERR=120) tempreal
@@ -771,22 +785,26 @@ DO WHILE(i<SIZE(cla))
     !read first coordinate of disloc.
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( TRIM(temp)=='loop' ) THEN
       !Construct a dislocation loop
       !read coordinates (x,y,z) of dislocation loop
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -799,6 +817,7 @@ DO WHILE(i<SIZE(cla))
       !Read dislocation loop radius
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       READ(temp,*,END=120,ERR=120) tempreal
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
       !Read the Burgers vector
@@ -835,18 +854,19 @@ DO WHILE(i<SIZE(cla))
       !read second coordinate of disloc.
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-          IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
-            & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
+      IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
+        & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       !READ(temp,*,END=120,ERR=120) tempreal
-      !read the character of dislocation (edge, edge2, screw or mixed)
+      !read the character of dislocation: edge, edge_add, edge_rm, screw, or mixed
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       temp = TRIM(ADJUSTL(temp))
       temp2 = temp !important for reading the Burgers vector afterwards
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      IF( TRIM(temp).NE.'screw' .AND. TRIM(temp(1:4)).NE.'edge' &
-        & .AND. TRIM(temp).NE.'mixed' ) GOTO 120
+      IF( TRIM(temp).NE.'screw' .AND. TRIM(temp).NE.'edge' .AND. TRIM(temp).NE.'edge_add' &
+        & .AND. TRIM(temp).NE.'edge_rm' .AND. TRIM(temp).NE.'mixed' ) GOTO 120
       IF( temp(1:4)=="edge" ) m=1
       !read the dislocation line direction (x, y or z)
       i=i+1
@@ -867,6 +887,7 @@ DO WHILE(i<SIZE(cla))
       !read the Burgers vector
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       READ(temp,*,END=120,ERR=120) tempreal
       IF(temp2=="mixed") THEN
         !three components are given: the first one was b(1)
@@ -874,11 +895,13 @@ DO WHILE(i<SIZE(cla))
         !Read b(2)
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         READ(temp,*,END=120,ERR=120) tempreal
         options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
         !Read b(3)
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         READ(temp,*,END=120,ERR=120) tempreal
         options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
       ELSE
@@ -889,6 +912,7 @@ DO WHILE(i<SIZE(cla))
       IF( m==1 ) THEN
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         READ(temp,*,END=120,ERR=120) tempreal
       ENDIF
@@ -961,6 +985,7 @@ DO WHILE(i<SIZE(cla))
       !read fix distance
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
+      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -987,6 +1012,7 @@ DO WHILE(i<SIZE(cla))
     !read distance between mirror plane and origin
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1206,6 +1232,7 @@ DO WHILE(i<SIZE(cla))
         !X
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1213,6 +1240,7 @@ DO WHILE(i<SIZE(cla))
         !Y
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1220,6 +1248,7 @@ DO WHILE(i<SIZE(cla))
         !Z
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1228,6 +1257,7 @@ DO WHILE(i<SIZE(cla))
         !X
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1235,6 +1265,7 @@ DO WHILE(i<SIZE(cla))
         !Y
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1242,6 +1273,7 @@ DO WHILE(i<SIZE(cla))
         !Z
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1251,6 +1283,7 @@ DO WHILE(i<SIZE(cla))
         !X
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1258,6 +1291,7 @@ DO WHILE(i<SIZE(cla))
         !Y
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1265,6 +1299,7 @@ DO WHILE(i<SIZE(cla))
         !Z
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1272,6 +1307,7 @@ DO WHILE(i<SIZE(cla))
         !read the radius of the sphere
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1289,6 +1325,7 @@ DO WHILE(i<SIZE(cla))
         !X
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1296,6 +1333,7 @@ DO WHILE(i<SIZE(cla))
         !Y
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1319,18 +1357,21 @@ DO WHILE(i<SIZE(cla))
         !X
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         !Y
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         !Z
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1351,18 +1392,21 @@ DO WHILE(i<SIZE(cla))
         !X
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         !Y
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
         !Z
         i=i+1
         READ(cla(i),'(a)',END=400,ERR=400) temp
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
         IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
           & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1548,18 +1592,21 @@ DO WHILE(i<SIZE(cla))
     !read tau1
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read tau2
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read tau3
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
+    IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
       & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)

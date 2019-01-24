@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Jan. 2019                                     *
+!* Last modification: P. Hirel - 18 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -255,7 +255,7 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-disloc") THEN
   WRITE(*,*) "..> Insert a dislocation in the system:"
   WRITE(*,*) "          -disloc <pos1> <pos2> screw <x|y|z> <x|y|z> <b>"
-  WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge2> <x|y|z> <x|y|z> <b> <ν>"
+  WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge_add|edge_rm> <x|y|z> <x|y|z> <b> <ν>"
   WRITE(*,*) "          -disloc <pos1> <pos2> mixed <x|y|z> <x|y|z> <b1> <b2> <b3>"
   WRITE(*,*) "          -disloc loop <x> <y> <z> <x|y|z> <radius> <bx> <by> <bz> <nu>"
 ENDIF
@@ -1106,7 +1106,7 @@ CASE(2060)
   msg = "..> System was successfully deformed."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2061)
-  !strings(1) = disloctype: screw, edge, edge2, mixed, loop
+  !strings(1) = disloctype: screw, edge, edge_add, edge_rm, mixed, loop
   !strings(2) = direction of dislocline: x, y or z
   !reals(1) = X component of Burgers vector
   !reals(2) = Y component of Burgers vector
@@ -1134,13 +1134,14 @@ CASE(2061)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   !
-  IF(TRIM(strings(1))=="edge") THEN
+  IF(TRIM(strings(1))=="edge_add") THEN
     WRITE(msg,"(a34)") "    by inserting a plane of atoms,"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSEIF(TRIM(strings(1))=="edge2") THEN
+  ELSEIF(TRIM(strings(1))=="edge_rm") THEN
+    WRITE(msg,"(a33)") "    by removing a plane of atoms,"
+  ELSE
     WRITE(msg,"(a41)") "    conserving the total number of atoms,"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
   !
   WRITE(msg,"(f16.3)") reals(1)
   WRITE(temp,"(f16.3)") reals(2)
@@ -1168,9 +1169,14 @@ CASE(2062)
   msg = "..> Searching the solutions to the anisotropic elasticity equations..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2063)
-  !reals(1) = number of inserted atoms
-  WRITE(msg,*) NINT(reals(1))
-  msg = "..> "//TRIM(ADJUSTL(msg))//" atoms were inserted."
+  !reals(1) = number of inserted/removed atoms
+  IF( NINT(reals(1)) < 0 ) THEN
+    WRITE(msg,*) NINT(ABS(reals(1)))
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atoms were removed."
+  ELSE
+    WRITE(msg,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atoms were inserted."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2064)
   msg = "..> Supercell was expanded."
@@ -1974,6 +1980,9 @@ CASE(2143)
 CASE(2144)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Cell is now orthorhombic ("//TRIM(ADJUSTL(temp))//" atoms)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2145)
+  msg = "..> Applying displacements to atoms..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES

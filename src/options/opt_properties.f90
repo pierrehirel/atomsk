@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Jan. 2018                                     *
+!* Last modification: P. Hirel - 22 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,30 +31,34 @@ MODULE properties
 USE atoms
 USE comv
 USE constants
-USE messages
 USE files
+USE exprev
+USE messages
 USE subroutines
 !
 !
 CONTAINS
 !
 !
-SUBROUTINE READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX)
+SUBROUTINE READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX,SELECT)
 !
 !
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: propfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=16):: miller  !Miller indices
-CHARACTER(LEN=128):: msg, msg2
-CHARACTER(LEN=128):: temp, temp2
+CHARACTER(LEN=4096):: msg, msg2
+CHARACTER(LEN=4096):: temp, temp2
+CHARACTER(LEN=4096),DIMENSION(3):: func_uxyz, func_ui   !functions for displacements
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
 LOGICAL:: chargeshell !are the charges for shells defined?
 LOGICAL:: readprop    !was the property read?
 LOGICAL,DIMENSION(3):: areortho
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: auxcol, qcol, qscol  !index of columns in AUX
-INTEGER:: i, j
+INTEGER:: i, j, k
 INTEGER:: Nprop  !number of per-atom properties declared in the file
+INTEGER:: status, strlength
 INTEGER:: vx, vy, vz !columns in AUX where atom velocities are stored
 REAL(dp):: a, b, c, alpha, beta, gamma
 REAL(dp):: aniA, aniH !anisotropy factors
@@ -78,6 +82,7 @@ areortho(:) = .TRUE.
 auxcol=0
 qcol = 0
 qscol = 0
+status = 0
 !
 !
 WRITE(msg,*) 'Entering READ_PROPERTIES: '
@@ -270,47 +275,144 @@ DO
     !
     !! PER-ATOM PROPERTIES !!
     ELSEIF(temp(1:12)=='displacement' .OR. temp(1:4)=='disp') THEN
-      msg = 'atom displacements'
-      !Displacement vectors of atoms (and shells) follow
-      !Read the displacement for each atom and apply it immediately
-      !Note: the values may not be given for all atoms
-      DO
-        j=0
-        READ(35,'(a128)',END=173,ERR=173) msg2
-        IF( LEN_TRIM(msg2)>0 ) THEN
-          !Read displacement of atom (or ionic core)
-          READ(msg2,*,END=173,ERR=173) i, a, b, c
-          !Read displacement of ionic shell (optional)
-          READ(msg2,*,END=172,ERR=172) i, a, b, c, tempreal, tempreal2, tempreal3
-          j=1
-          172 CONTINUE
-          IF( i>0 .AND. i<=SIZE(P,1) ) THEN
-            P(i,1) = P(i,1) + a
-            P(i,2) = P(i,2) + b
-            P(i,3) = P(i,3) + c
-            IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-              IF( j>0 ) THEN
-                !Displacements were explicitely given for the shell => use that
-                S(i,1) = S(i,1) + tempreal
-                S(i,2) = S(i,2) + tempreal2
-                S(i,3) = S(i,3) + tempreal3
-              ELSE
-                !User did not specify any displacement for the shell
-                !=> use same displacement vector as for the core
-                S(i,1) = S(i,1) + a
-                S(i,2) = S(i,2) + b
-                S(i,3) = S(i,3) + c
-              ENDIF
+      IF( INDEX(temp,"function")>0 ) THEN
+        msg = 'atom displacements functions'
+        func_uxyz(:) = ""
+        func_ui(:) = ""
+        status = 0
+        DO j=1,3
+          READ(35,'(a128)',END=171,ERR=171) msg2
+          msg2 = ADJUSTL(msg2)
+          IF( msg2(1:2)=="ux" .OR. msg(1:2)=="Ux" .OR. msg2(1:2)=="UX" ) THEN
+            k = SCAN(msg2,"=")
+            IF(k==0) k=2
+            func_uxyz(1) = ADJUSTL(msg2(k+1:))
+          ELSEIF( msg2(1:2)=="uy" .OR. msg(1:2)=="Uy" .OR. msg2(1:2)=="UY" ) THEN
+            k = SCAN(msg2,"=")
+            IF(k==0) k=2
+            func_uxyz(2) = ADJUSTL(msg2(k+1:))
+          ELSEIF( msg2(1:2)=="uz" .OR. msg(1:2)=="Uz" .OR. msg2(1:2)=="UZ" ) THEN
+            k = SCAN(msg2,"=")
+            IF(k==0) k=2
+            func_uxyz(3) = ADJUSTL(msg2(k+1:))
+          ENDIF
+        ENDDO
+        171 CONTINUE
+        !For each function, replace Hx, Hy, Hz by the appropriate box length
+        DO j=1,3
+          tempreal = MAX(0.d0,MAXVAL(H(:,1))) + DABS(MIN(0.d0,MINVAL(H(:,1))))
+          CALL STR_EXP2VAL(func_uxyz(j),"Hx",tempreal,strlength)
+          tempreal = MAX(0.d0,MAXVAL(H(:,2))) + DABS(MIN(0.d0,MINVAL(H(:,2))))
+          CALL STR_EXP2VAL(func_uxyz(j),"Hy",tempreal,strlength)
+          tempreal = MAX(0.d0,MAXVAL(H(:,3))) + DABS(MIN(0.d0,MINVAL(H(:,3))))
+          CALL STR_EXP2VAL(func_uxyz(j),"Hz",tempreal,strlength)
+        ENDDO
+        CALL ATOMSK_MSG(999,(/"ux = "//TRIM(func_uxyz(1))/),(/0.d0/))
+        CALL ATOMSK_MSG(999,(/"uy = "//TRIM(func_uxyz(2))/),(/0.d0/))
+        CALL ATOMSK_MSG(999,(/"uz = "//TRIM(func_uxyz(3))/),(/0.d0/))
+        !Apply displacements immediately to all atoms
+        CALL ATOMSK_MSG(2145,(/""/),(/0.d0/))
+        DO i=1,SIZE(P,1)
+          IF( .NOT. ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+            !In each function string, replace the  variables x, y, z
+            !by their actual values for atom i
+            DO j=1,3
+              func_ui(j) = func_uxyz(j)
+              CALL STR_EXP2VAL(func_ui(j),"box",H(j,j),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"x",P(i,1),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"X",P(i,1),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"y",P(i,2),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"Y",P(i,2),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"z",P(i,3),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"Z",P(i,3),strlength)
+            ENDDO
+            !Evaluate the function with those values
+            IF( LEN_TRIM(func_ui(1))>0 ) THEN
+              strlength=0
+              CALL EXPREVAL(func_ui(1),tempreal,strlength,status)
+            ELSE
+              tempreal = 0.d0
+            ENDIF
+            IF(status>0) THEN
+              nerr = nerr+1
+              GOTO 1000
+            ENDIF
+            IF( LEN_TRIM(func_ui(2))>0 ) THEN
+              strlength=0
+              CALL EXPREVAL(func_ui(2),tempreal2,strlength,status)
+            ELSE
+              tempreal2 = 0.d0
+            ENDIF
+            IF(status>0) THEN
+              nerr = nerr+1
+              GOTO 1000
+            ENDIF
+            IF( LEN_TRIM(func_ui(3))>0 ) THEN
+              strlength=0
+              CALL EXPREVAL(func_ui(3),tempreal3,strlength,status)
+            ELSE
+              tempreal3 = 0.d0
+            ENDIF
+            IF(status>0) THEN
+              nerr = nerr+1
+              GOTO 1000
+            ENDIF
+            IF( VECLENGTH( (/tempreal,tempreal2,tempreal3/) ) > 100.d0 ) THEN
+              nwarn = nwarn+1
+              CALL ATOMSK_MSG(2727,(/""/),(/DBLE(i)/))
+            ENDIF
+            !Apply displacements
+            P(i,1) = P(i,1) + tempreal
+            P(i,2) = P(i,2) + tempreal2
+            P(i,3) = P(i,3) + tempreal3
+          ENDIF  !end if SELECT
+        ENDDO
+      ELSE
+        msg = 'atom displacements'
+        !Displacement vectors of atoms (and shells) follow
+        CALL ATOMSK_MSG(2145,(/""/),(/0.d0/))
+        !Read the displacement for each atom and apply it immediately
+        !Note: the values may not be given for all atoms
+        DO
+          j=0
+          READ(35,'(a128)',END=173,ERR=173) msg2
+          IF( LEN_TRIM(msg2)>0 ) THEN
+            !Read displacement of atom (or ionic core)
+            READ(msg2,*,END=173,ERR=173) i, a, b, c
+            !Read displacement of ionic shell (optional)
+            READ(msg2,*,END=172,ERR=172) i, a, b, c, tempreal, tempreal2, tempreal3
+            j=1
+            172 CONTINUE
+            IF( i>0 .AND. i<=SIZE(P,1) ) THEN
+              IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+                P(i,1) = P(i,1) + a
+                P(i,2) = P(i,2) + b
+                P(i,3) = P(i,3) + c
+                IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+                  IF( j>0 ) THEN
+                    !Displacements were explicitely given for the shell => use that
+                    S(i,1) = S(i,1) + tempreal
+                    S(i,2) = S(i,2) + tempreal2
+                    S(i,3) = S(i,3) + tempreal3
+                  ELSE
+                    !User did not specify any displacement for the shell
+                    !=> use same displacement vector as for the core
+                    S(i,1) = S(i,1) + a
+                    S(i,2) = S(i,2) + b
+                    S(i,3) = S(i,3) + c
+                  ENDIF  ! end if j>0
+                ENDIF  !end if S
+              ENDIF  !end if SELECT
+            ELSE
+              !given index is out-of-bounds
+              nwarn=nwarn+1
+              CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
             ENDIF
           ELSE
-            !given index is out-of-bounds
-            nwarn=nwarn+1
-            CALL ATOMSK_MSG(2742,(/""/),(/DBLE(i)/))
+            EXIT
           ENDIF
-        ELSE
-          EXIT
-        ENDIF
-      ENDDO
+        ENDDO
+      ENDIF
       173 CONTINUE
       CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
       !

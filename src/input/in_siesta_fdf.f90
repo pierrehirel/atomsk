@@ -55,20 +55,28 @@ CHARACTER(LEN=32):: atPosType !type of atomic positions: Cartesian, ScaledCartes
 CHARACTER(LEN=4096):: line, msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
-INTEGER:: i, j, Nline
+INTEGER:: i, j, k, Nline
 INTEGER:: NP, Ntypes    !number of particles, of atom types
 INTEGER:: strlength
+INTEGER,DIMENSION(3,3):: M   !Matrix defining a supercell in terms of unit cell
 INTEGER,DIMENSION(20,2):: atypes  !atom types and chemical species
 REAL(dp):: alat   !lattice constant
+REAL(dp):: a, b, c, alpha, beta, gamma   !supercell (conventional notation)
+REAL(dp),DIMENSION(3):: vector   !a temporary vector
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX !auxiliary properties
 !
 !
 !Initialize variables
 atPosType=""
+M(:,:) = 0
 alat = 1.d0
 H(:,:) = 0.d0
+DO i=1,3
+  H(i,i) = 1.d0  !default of SIESTA
+ENDDO
 IF(ALLOCATED(comment)) DEALLOCATE(comment)
 IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
@@ -136,6 +144,15 @@ DO
       READ(line(16:),*,ERR=190,END=190) alat, unit
       IF( alat<=1.d-12 ) alat = 1.d0
       !
+    ELSEIF( temp(1:17)=="latticeparameters" ) THEN
+      !Read lattice parameters: a, b, c, alpha, beta, gamma
+      READ(line(18:),*,ERR=190,END=190) a, b, c, alpha, beta, gamma
+      !Convert it into proper cell vectors
+      alpha = DEG2RAD(alpha)
+      beta  = DEG2RAD(beta)
+      gamma = DEG2RAD(gamma)
+      CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
+      !
     ELSEIF( temp(1:23)=="atomiccoordinatesformat" ) THEN
       !Read type of atomic coordinates
       READ(line(24:),*,ERR=190,END=190) atPosType
@@ -144,7 +161,12 @@ DO
       !
       IF( INDEX(line,"LatticeVectors") > 0 ) THEN
         DO i=1,3
-          READ(30,*,ERR=190,END=190) H(i,1), H(i,2), H(i,3)
+          READ(30,*,ERR=190,END=190) H(1,i), H(2,i), H(3,i)
+        ENDDO
+      !
+      ELSEIF( INDEX(line,"SuperCell") > 0 ) THEN
+        DO i=1,3
+          READ(30,*,ERR=190,END=190) M(i,1), M(i,2), M(i,3)
         ENDDO
         !
       ELSEIF( INDEX(line,"ChemicalSpeciesLabel") > 0 ) THEN
@@ -268,6 +290,58 @@ IF( alat.NE.1.d0 ) THEN
     CALL FRAC2CART(P,H)
   ENDIF
 ENDIF
+!
+!If system must be duplicated, do it
+! IF( ANY( SuperCell(:,:).NE.0 ) ) THEN
+!   NP = SIZE(P,1)*SuperCell(1,1)*SuperCell(2,2)*SuperCell(3,3)
+!   ALLOCATE(Q(NP,4))
+!   NP=0
+!   DO o=1,Nz
+!     DO n=1,Ny
+!       DO m=1,Nx
+!         DO i=1,SIZE(P,1)
+!           NP = NP+1
+!           Q(NP,1) = P(i,1)+REAL(m-1)*H(1,1)+REAL(n-1)*H(2,1)+REAL(o-1)*H(3,1)
+!           Q(NP,2) = P(i,2)+REAL(m-1)*H(1,2)+REAL(n-1)*H(2,2)+REAL(o-1)*H(3,2)
+!           Q(NP,3) = P(i,3)+REAL(m-1)*H(1,3)+REAL(n-1)*H(2,3)+REAL(o-1)*H(3,3)
+!           Q(NP,4) = P(i,4)
+!         ENDDO
+!       ENDDO
+!     ENDDO
+!   ENDDO
+!   !Replace old P by new Q
+!   DEALLOCATE(P)
+!   ALLOCATE(P(SIZE(Q,1),4))
+!   P(:,:) = Q(:,:)
+!   DEALLOCATE(Q)
+!   !
+!   !Also duplicate auxiliary properties
+!   ALLOCATE( Q( SIZE(P,1) , SIZE(AUXNAMES) ) )
+!   NP = 0
+!   DO o=1,Nz
+!     DO n=1,Ny
+!       DO m=1,Nx
+!         DO i=1,SIZE(AUX,1)
+!           NP = NP+1
+!           Q(NP,:) = AUX(i,:)
+!         ENDDO
+!       ENDDO
+!     ENDDO
+!   ENDDO
+!   DEALLOCATE(AUX)
+!   ALLOCATE(AUX(SIZE(Q,1),SIZE(Q,2)))
+!   AUX(:,:) = Q(:,:)
+!   DEALLOCATE(Q)
+!   !
+!   !Resize the cell
+!   DO i=1,3
+!     vector(:) = 0.d0
+!     DO j=1,3
+!       vector(j) = H(i,j) * M(j,i)
+!     ENDDO
+!     H(i,:) = vector(:)
+!   ENDDO
+! ENDIF
 !
 !
 !

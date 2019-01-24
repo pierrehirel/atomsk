@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!* Last modification: P. Hirel - 16 Jan. 2018                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -706,6 +706,12 @@ mint = 0
 msign = 1.d0
 temp = planestring
 !
+!Detect if there are dots, commas or other forbidden characters
+IF( SCAN(planestring,".,:/!")>0 ) THEN
+  ifail = 2
+  RETURN
+ENDIF
+!
 !If there are brackets, remove them
 IF( temp(1:1)=='[' ) THEN
   temp = ADJUSTL(temp(2:))
@@ -788,6 +794,12 @@ m = 1
 mint = 0
 msign = 1.d0
 temp = planestring
+!
+!Detect if there are dots, commas or other forbidden characters
+IF( SCAN(planestring,".,:/!")>0 ) THEN
+  ifail = 2
+  RETURN
+ENDIF
 !
 !If there are brackets, remove them
 IF( temp(1:1)=='[' ) THEN

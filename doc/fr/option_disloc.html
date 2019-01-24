@@ -17,7 +17,7 @@
 
 <p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; screw &#60;&xi;&#62; &#60;n&#62; &#60;b&#62;</code></p>
 
-<p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; &#60;edge|edge2&#62; &#60;&xi;&#62; &#60;n&#62; &#60;b&#62; &#60;&nu;&#62;</code></p>
+<p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; &#60;edge|edge_add|edge_rm&#62; &#60;&xi;&#62; &#60;n&#62; &#60;b&#62; &#60;&nu;&#62;</code></p>
 
 <p><code>-dislocation &#60;p<sub>1</sub>&#62; &#60;p<sub>2</sub>&#62; mixed &#60;&xi;&#62; &#60;n&#62; &#60;b<sub>1</sub>&#62; &#60;b<sub>2</sub>&#62; &#60;b<sub>3</sub>&#62;</code></p>
 
@@ -32,11 +32,11 @@
 
 <ul>
   <li><strong>p<sub>1</sub>, p<sub>2</sub></strong> : coordonnées de la dislocation dans le plan normal à la ligne de dislocation (voir &xi; ci-dessous), dans l'ordre de permutation X, Y, Z : si &xi;=Z alors p<sub>1</sub> est la position suivant X et p<sub>2</sub> celle suivant Y ; si &xi;=Y alors p<sub>1</sub> est suivant Z et p<sub>2</sub> suivant X ; si &xi;=X alors p<sub>1</sub> est suivant Y et p<sub>2</sub> suivant Z. Les positions &#60;p<sub>1</sub>&#62;, &#60;p<sub>2</sub>&#62; sont généralement données en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</li>
-  <li><strong>screw|edge|edge2|mixed</strong> : caractère de la dislocation, doit être "edge" ou "edge2" pour une dislocation coin, "screw" pour une dislocation vis. Le caractère "mixed" ne peut être utilisé qu'en élasticité anisotrope (voir ci-dessous).</li>
+  <li><strong>screw|edge|edge_add|edge_rm|mixed</strong> : caractère de la dislocation, doit être "edge", "edge_add" ou "edge_rm" pour une dislocation coin, "screw" pour une dislocation vis. Le caractère "mixed" ne peut être utilisé qu'en élasticité anisotrope (voir ci-dessous).</li>
   <li><strong>&xi;</strong> : direction de la ligne de dislocation, doit être x, y ou z.</li>
   <li><strong>n</strong> : direction normale au plan de coupure, doit être x, y ou z, et doit être différent de <code>&xi;</code>.</li>
-  <li><strong>b</strong> : norme du vecteur de Burgers (en &Aring;). Pour les dislocations de type coin ("edge" ou "edge2") ou vis ("screw"), une seule valeur doit être donnée. Pour celles de caractère mixte ("mixed"), les trois composantes b<sub>1</sub>, b<sub>2</sub>, b<sub>3</sub> doivent être données.</li>
-  <li><strong>&nu;</strong> : coefficient de Poisson du matériau ; sa valeur doit être donnée pour construire les dislocations coin ("edge" ou "edge2"). Pour les autres caractères (vis ou mixte), ce paramètre doit être omis.</li>
+  <li><strong>b</strong> : norme du vecteur de Burgers (en &Aring;). Pour les dislocations de type coin ("edge", "edge_add", "edge_rm") ou vis ("screw"), une seule valeur doit être donnée. Pour celles de caractère mixte ("mixed"), les trois composantes b<sub>1</sub>, b<sub>2</sub>, b<sub>3</sub> doivent être données.</li>
+  <li><strong>&nu;</strong> : coefficient de Poisson du matériau ; sa valeur doit être donnée pour construire les dislocations coin ("edge", "edge_add", "edge_rm"). Pour les autres caractères (vis ou mixte), ce paramètre doit être omis.</li>
 </ul>
 
 <hr>
@@ -60,18 +60,26 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>2</sub> = (-<em>b</em>/2&pi;) [ (1-2&nu;)ln(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>))/(4(1-&nu;)) + (x<sub>1</sub><sup>2</sup>-x<sub>2</sub><sup>2</sup>)/(4(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code>
 </p>
 
-<p>où &nu; est le coefficient de Poisson du matériau, et doit être fourni. Avec cette option, les dislocations coin peuvent être construites de deux manières différentes, nommées ici "edge" ou "edge2", comme illustré sur la <strong>Fig. 2</strong>. La première méthode, associée au mot-clé "<strong>edge</strong>", consiste à insérer un nouveau plan d'atomes dans le système, et à appliquer les déplacements atomiques correspondant au champ élastique d'une dislocation coin aux autres atomes. Ensuite la boîte est agrandie de 2/3 de la norme du vecteur de Burgers dans la direction du vecteur de Burgers -il est recommandé de vérifier la taille de boîte. Puisque cette méthode change le nombre total d'atomes et le volume de la boîte, la comparaison entre les systèmes initial et final devient impossible. Avec la seconde méthode, associée au mot-clé "<strong>edge2</strong>", la dislocation coin est construite en conservant le nombre total d'atomes dans le système (et en conservant les 
-vecteurs de boîte). Cette méthode résulte en une 
-marche sur un côté de la boîte, ce qui peut modifier les conditions aux limites.</p>
+<p>où &nu; est le coefficient de Poisson du matériau, et doit être fourni. Avec cette option, les dislocations coin peuvent être construites de trois manières différentes, comme illustré sur la <strong>Fig. 2</strong>:</p>
+
+<ul>
+  <li>Avec la première méthode, associée au mot-clé "<strong>edge</strong>", la dislocation coin est construite en conservant le nombre total d'atomes dans le système (et en conservant les vecteurs de boîte). Cette méthode résulte en une marche sur un côté de la boîte, ce qui peut modifier les conditions aux limites.</li>
+  
+  <li>La seconde méthode, associée au mot-clé "<strong>edge_add</strong>", consiste à insérer un nouveau plan d'atomes dans le système, et à appliquer les déplacements atomiques correspondant au champ élastique d'une dislocation coin aux autres atomes. Ensuite la boîte est agrandie de la moitié de la norme du vecteur de Burgers, |<strong><em>b</em></strong>|/2, dans la direction du vecteur de Burgers -il est recommandé de vérifier la taille de boîte. Puisque cette méthode change le nombre total d'atomes et le volume de la boîte, la comparaison entre les systèmes initial et final devient impossible.</li>
+  
+  <li>Enfin la troisième méthode, associée au mot-clé "<strong>edge_rm</strong>", consiste à supprimer un plan d'atomes dans le système, et à appliquer les déplacements atomiques correspondant au champ élastique d'une dislocation coin aux autres atomes. Ensuite la boîte est raccourcie de la moitié de la norme du vecteur de Burgers, |<strong><em>b</em></strong>|/2, dans la direction du vecteur de Burgers -il est recommandé de vérifier la taille de boîte. Là aussi, cette méthode change le nombre total d'atomes et le volume de la boîte.</li>
+</ul>
+
+<p>Notez que dans tous les cas, les bords du système sont perturbés, et les conditions aux limites ne peuvent plus être périodiques dans les 3 dimensions.</p>
 
 <hr>
 <object type="img/svg+xml" data="../img/opt_disloc.svg"><img src="../img/opt_disloc.png" alt="" /></object>
-<p><strong>Fig. 2</strong> - <em>Les deux façons de construire une dislocation coin avec cette option. En utilisant le mot-clé "</em>edge<em>", un demi-plan d'atomes est ajouté au système (représenté en orange). Avec le mot-clé "</em>edge2<em>", aucun nouvel atome n'est introduit, mais l'insertion de la dislocation résulte en la formation d'une marche sur un bord du système. Dans les deux cas les bords du système sont perturbés, et les conditions aux limites ne peuvent plus être périodiques dans les 3 dimensions.</em></p>
+<p><strong>Fig. 2</strong> - <em>Les trois façons de construire une dislocation coin avec cette option. En utilisant le mot-clé "</em>edge<em>", aucun nouvel atome n'est introduit, mais l'insertion de la dislocation résulte en la formation d'une marche sur un bord du système. Avec le mot-clé "</em>edge_add<em>", un demi-plan d'atomes est ajouté au système (représenté en orange), et la boîte est légèrement allongée. Avec le mot-clé "</em>edge_rm<em>", un demi-plan d'atomes est supprimé (en gris), et la boîte est légèrement raccourcie.</em></p>
 <hr>
 
 <p>Après avoir déplacé les atomes, Atomsk calcule aussi les contraines théoriques (prédites par la théorie continue). Cependant, puisque le module de cisaillement &mu; est inconnu de cette option, les contraintes sont normalisées, autrement dit la quantité calculée est en réalité &sigma;/&mu;. Les six composantes de Voigt &sigma;<sub>xx</sub>, &sigma;<sub>yy</sub>, &sigma;<sub>zz</sub>, &sigma;<sub>yz</sub>, &sigma;<sub>xz</sub> et &sigma;<sub>xy</sub>, sont enregistrées comme propriétés auxiliaires pour chaque atome. Si plusieurs dislocations sont introduites dans le système, ces contraintes sont cumulées. Notez que ces propriétés auxiliaires ne peuvent être écrites que vers certains formats de fichiers, comme le CFG (voir <a href="./formats.html">cette page</a> pour une liste de formats supportant les propriétés auxiliaires).</p>
 
-<p>L'<strong>élasticité anisotrope</strong> est automatiquement utilisée lorsque le tenseur élastique est défini avant que la présente option ne soit appelée, par ex. avec l'<a href="./option_properties.html">option <code>-properties</code></a> (se référer à cette option pour ce qui concerne la rotation du tenseur élastique). La dislocation peut avoir un caractère vis ou coin ("screw", "edge", "edge2") comme décrit ci-dessus. De plus, il est également possible de créer une dislocation mixte avec le mot-clé "mixed". Dans ce cas, les trois composantes b<sub>1</sub>, b<sub>2</sub>, b<sub>3</sub> du vecteur de Burgers doivent être fournies. Les équations de l'élasticité anisotrope sont alors résolues pour obtenir les valeurs des coefficients <em>A<sub>k</sub>(n)</em>, <em>D(n)</em>, <em>P(n)</em> et 
+<p>L'<strong>élasticité anisotrope</strong> est automatiquement utilisée lorsque le tenseur élastique est défini avant que la présente option ne soit appelée, par ex. avec l'<a href="./option_properties.html">option <code>-properties</code></a> (se référer à cette option pour ce qui concerne la rotation du tenseur élastique). La dislocation peut avoir un caractère vis ou coin ("screw", "edge", "edge_add", "edge_rm") comme décrit ci-dessus. De plus, il est également possible de créer une dislocation mixte avec le mot-clé "mixed". Dans ce cas, les trois composantes b<sub>1</sub>, b<sub>2</sub>, b<sub>3</sub> du vecteur de Burgers doivent être fournies. Les équations de l'élasticité anisotrope sont alors résolues pour obtenir les valeurs des coefficients <em>A<sub>k</sub>(n)</em>, <em>D(n)</em>, <em>P(n)</em> et 
 <em>B<sub>ijk</sub>(n)</em>, et les déplacements anisotropes sont appliqués :</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>k</sub> = </code>&real;{<code> (-2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>A<sub>k</sub>(n) D(n)</em> ln(x<sub>1</sub>+<em>P(n)</em>x<sub>2</sub>) </code>}, k=1,3</code></p>
@@ -124,10 +132,10 @@ marche sur un côté de la boîte, ce qui peut modifier les conditions aux limit
 <li><code class="command">atomsk initial.cfg -disloc 0.25*BOX 0.5*BOX screw z y 3.2 -disloc 0.75*BOX 0.5*BOX screw z y -3.2 final.xyz</code>
 <p>Ceci insèrera deux dislocations vis de vecteurs de Burgers opposés, la première en (0.25;0.5) et la seconde en (0.75;0.5) fois la taille de boîte.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.xsf</code>
+<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge_add y x 2.8 0.28 dislocation.xsf</code>
 <p>Ceci lira <code>unitcell.xyz</code>, <a href="./option_duplicate.html">dupliquera le système</a> pour former une supercellule de 30x2x20, puis construira une dislocation coin en insérant un nouveau plan d'atomes. La ligne de dislocation sera suivant Y, le vecteur de Burgers aura une amplitude de 2.8 &Aring;, le coefficient de Poisson vaut 0.28, et le centre de la dislocation sera placé à Z=30 &Aring; et X=40.2 &Aring;. Le résultat sera écrit dans <code>dislocation.xsf</code>.</p></li>
 
-<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge2 y x 2.8 0.28 dislocation.cfg</code>
+<li><code class="command">atomsk unitcell.xyz -duplicate 30 2 20 -disloc 30 40.2 edge y x 2.8 0.28 dislocation.cfg</code>
 <p>Similaire à l'exemple précédent, sauf que la dislocation coin sera introduite sans ajouter d'atome au système.</p></li>
 
 <li><div class="txtfile">

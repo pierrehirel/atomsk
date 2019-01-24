@@ -39,6 +39,13 @@
             ...</code></p>
   <p>Les déplacements peuvent être donnés pour tous les atomes, ou seulement certains d'entre eux. S'il existe des coquilles dans le système, mais qu'aucun vecteur de déplacement n'est donné pour elles, alors elles seront déplacées du même vecteur que leur c&oelig;ur. Ces déplacements seront immédiatement appliqués aux positions des atomes (et des coquilles s'il y en a).</p></li>
   
+  <li><strong>Des déplacements sous forme de fonction</strong> peuvent être définies grâce au mo-clé "displacement functions", suivi de trois lignes donnant les fonctions <code>u<sub>x</sub></code>, <code>u<sub>y</sub></code>, <code>u<sub>z</sub></code>:<br/>
+      <p><code>displacement functions<br/>
+            ux = &#60;fonction&#62;<br/>
+            uy = &#60;fonction&#62;<br/>
+            uz = &#60;fonction&#62;<br/></code></p>
+  <p>Les fonctions peuvent contenir&nbsp;: des nombres entiers ou réels&nbsp;; des opérateurs (+, -, *, /, %, ^, e)&nbsp;; des fonctions mathématiques (abs, sqrt, cos, acos, sin, asin, tan, atan)&nbsp;; le mot-clé "pi"&nbsp;; les mots-clés Hx, Hy, Hz, qui correspondent aux dimensions de la boîte suivant X, Y, Z&nbsp;; et/ou les variables x, y, z, qui correspondent aux coordonnées des atomes. Pour chaque atome, les fonctions ux, uy et uz sont évaluées en utilisant ses coordonnées x, y, z, et l'atome est immédiatement déplacé de la quantité calculée. Des exemples sont donnés ci-dessous.</p></li>
+  
   <li><strong>Les charges des ions</strong> peuvent être définies grâce au mot-clé "charge", suivi de lignes contenant le symbole chimique de l'ion et sa charge (généralement en unités de charges élémentaires <em>e</em>, bien que <code>atomsk</code> travaillera quel que soit le nombre donné). Dans le cas d'un modèle ionique c&oelig;ur-coquille, la charge Q du c&oelig;ur et la charge q de la coquille peuvent être données :<br/>
       <p><code>charge<br/>
             &#60;espèce1&#62; &#60;Q<sub>1</sub>&#62; [&#60;q<sub>1</sub>&#62;]<br/>
@@ -192,6 +199,30 @@ auxiliary mon_énergie<br/>
 6  -19.86<br/>
 15  -20.4<br/>
 9  -19.9<br/>
+</code></p></div>
+</li>
+
+<li>Dans l'exemple ci-dessous, des vecteurs de déplacement sont donnés pour certains atomes. L'indice de l'atome est donné, suivi des trois composantes de son déplacement suivant X, Y et Z (en &Aring;). Notez que ces déplacements sont appliqués immédiatement au moment de leur lecture.
+
+<div class="txtfile">
+<h5>disp.txt</h5>
+<p><code>#Déplaçons quelques atomes<br/>
+displacements<br/>
+45  1.2 -0.4 0<br/>
+67  -6.9 2.88 -10.02<br/>
+191 0.5  -0.78 0.34<br/>
+</code></p></div>
+</li>
+
+<li>Dans l'exemple ci-dessous, les déplacements sont donnés sous forme de fonction. Chaque atome sera déplacé d'un vecteur <code>(u<sub>x</sub>,u<sub>y</sub>,u<sub>z</sub>)</code> qui dépend de ses coordonnées x, y, z. Dans cet exemple, les atomes seront déplacés uniquement suivant z, d'une distance qui dépend de leurs coordonnées x et y. Le mo-clé Hx est remplacé par la longueur du premier vecteur de boîte, et Hy par celle du second vecteur de boîte.
+
+<div class="txtfile">
+<h5>disp.txt</h5>
+<p><code># Déplacements définis comme fonctions<br/>
+displacement function<br/>
+ux = 0<br/>
+uy = 0<br/>
+uz = 10*cos(4*pi*x/Hx) + 8*sin(2*pi*y/Hy) )</br>
 </code></p></div>
 </li>
 

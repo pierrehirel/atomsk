@@ -145,7 +145,6 @@ WRITE(40,*) "%endblock ChemicalSpeciesLabel"
 !Write atom positions
 WRITE(40,*) ""
 WRITE(40,*) "AtomicCoordinatesFormat Ang"
-WRITE(40,*) "AtomicCoorFormatOut     Ang"
 WRITE(40,*) "%block AtomicCoordinatesAndAtomicSpecies"
 DO i=1,SIZE(P,1)
   IF( typecol>0 ) THEN

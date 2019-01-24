@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 June 2018                                     *
+!* Last modification: P. Hirel - 18 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,6 +55,7 @@ MODULE options
 USE atoms
 USE comv
 USE constants
+USE exprev
 USE functions
 USE messages
 USE files
@@ -114,7 +115,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32):: optionname
 CHARACTER(LEN=128):: temp, msg
-CHARACTER(LEN=128),DIMENSION(10):: treal !text containing a real number and maybe a word
+CHARACTER(LEN=4096),DIMENSION(10):: treal !text containing a real number and maybe a word
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 INTEGER:: i, ioptions, j
@@ -164,7 +165,7 @@ REAL(dp):: def_strain, def_poisson  !applied strain and Poisson's ratio
 !Variables relative to Option: dislocation
 CHARACTER(LEN=16):: dislocline    !(x, y, z, or Miller vector)
 CHARACTER(LEN=16):: dislocplane   !(x, y, z, or Miller vector)
-CHARACTER(LEN=5):: disloctype     !edge or screw
+CHARACTER(LEN=8):: disloctype     !edge, edge_add, edge_rm, screw, mixed, loop
 REAL(dp):: nu
 REAL(dp),DIMENSION(5):: pos !pos(1:3) = position of dislocation; pos(4) = radius of disloc.loop
 REAL(dp),DIMENSION(3):: b !Burgers vector
@@ -309,10 +310,16 @@ ENDIF
 !
 DO ioptions=1,SIZE(options_array)
   !Initialisations
+  treal(:) = ""
+  disloctype = ""
+  dislocline = ""
+  dislocplane = ""
   select_multiple = ""
   region_dir = ""
   region_geom = ""
   region_side = ""
+  b(:) = 0.d0
+  pos(:) = 0.d0
   region_1(:) = 0.d0
   region_2(:) = 0.d0
   !
@@ -512,6 +519,7 @@ DO ioptions=1,SIZE(options_array)
             b(3) = tempreal
           END SELECT
         ELSEIF(disloctype(1:4)=="edge") THEN
+          !(it may be edge, edge_add or edge_rm)
           !Edge character => read nu
           READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
               & treal(9), treal(10), disloctype, dislocline, dislocplane, tempreal, nu
@@ -539,6 +547,9 @@ DO ioptions=1,SIZE(options_array)
               b(1) = tempreal
             END SELECT
           END SELECT
+        ELSE
+          !Error: unknown dislocation type
+          GOTO 800
         ENDIF
       ENDIF
       !Check if numbers contain a keyword like "BOX" or "INF"
@@ -576,18 +587,46 @@ DO ioptions=1,SIZE(options_array)
           i=1
         ENDIF
       END SELECT
-      CALL BOX2DBLE( H(:,i) , treal(i) , pos(1) , status )
+      !CALL BOX2DBLE( H(:,i) , treal(i) , pos(1) , status )
+      WRITE(msg,*) "  (1) Input position:   "//TRIM(treal(i))
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      IF( INDEX(treal(i),"box")>0 ) THEN
+        !Replace the keyword "box" by its appropriate value, save it in pos(1)
+        tempreal = MAX(0.d0,MAXVAL(H(:,i))) + DABS(MIN(0.d0,MINVAL(H(:,i))))
+        CALL STR_EXP2VAL(treal(i),"box",tempreal,strlength)
+        WRITE(msg,*) "  (1) Converted string: "//TRIM(treal(i))
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
+      !Evaluate expression to obtain a real value
+      strlength=0
+      CALL EXPREVAL(treal(i),pos(1),strlength,status)
       IF(status>0) THEN
         temp = treal(i)
         nerr=nerr+1
         GOTO 810
       ENDIF
-      CALL BOX2DBLE( H(:,j) , treal(j) , pos(2) , status )
+      WRITE(msg,*) "  (1) pos (angs) =      ", pos(1)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !CALL BOX2DBLE( H(:,j) , treal(j) , pos(2) , status )
+      WRITE(msg,*) "  (2) Input position:   "//TRIM(treal(j))
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      IF( INDEX(treal(j),"box")>0 ) THEN
+        !Replace the keyword "box" or "BOX" by its appropriate value
+        tempreal = MAX(0.d0,MAXVAL(H(:,j))) + DABS(MIN(0.d0,MINVAL(H(:,j))))
+        CALL STR_EXP2VAL(treal(j),"box",tempreal,strlength)
+        WRITE(msg,*) "  (2) Converted string: "//TRIM(treal(j))
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
+      !Evaluate expression to obtain a real value, save it in pos(2)
+      strlength=0
+      CALL EXPREVAL(treal(j),pos(2),strlength,status)
       IF(status>0) THEN
         temp = treal(j)
         nerr=nerr+1
         GOTO 810
       ENDIF
+      WRITE(msg,*) "  (2) pos (angs) =      ", pos(2)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
     CALL DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,ORIENT,AUXNAMES,AUX,C_tensor)
   !
@@ -673,7 +712,7 @@ DO ioptions=1,SIZE(options_array)
     READ(options_array(ioptions),'(a128)',END=800,ERR=800) temp
     READ(temp(6:),'(a128)') propfile
     propfile = TRIM(ADJUSTL(propfile))
-    CALL READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX)
+    CALL READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX,SELECT)
   !
   CASE('-rebox')
     CALL DETERMINE_H(H,P)
