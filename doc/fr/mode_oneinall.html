@@ -27,6 +27,8 @@
 <ul>
  <li><strong>HISTORY</strong> : fichiers produits par DL_POLY (voir les <a href="./format_dlp.html">spécifications de DL_POLY</a>) ; le pas de simulation du fichier HISTORY est utilisé pour nommer les fichiers de sortie.</li>
  
+ <li><strong>Les fichiers de sortie personnalisés de LAMMPS (*.lmc)</strong> (voir les <a href="./format_lmc.html">spécifications</a>).</li>
+ 
  <li><strong>Les fichiers de sortie de Quantum Espresso PWscf</strong> (voir les <a href="./format_qeout.html">spécifications</a>).</li>
  
  <li><strong>Les fichiers XSF animés</strong> (voir les <a href="./format_xsf.html">spécifications</a>).</li>
@@ -44,6 +46,9 @@
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk --one-in-all dump.lmc cfg</code>
+<p>Ceci va lire le fichier <code>monfichier.lmc</code>, et écrira chaque configuration dans un fichier CFG séparé : <code>dump1.cfg</code>, <code>dump2.cfg</code>, etc.</p></li>
+
 <li><code class="command">atomsk --one-in-all monfichier.xyz xsf</code>
 <p>Ceci va lire le fichier <code>monfichier.xyz</code>, et écrira chaque configuration dans un fichier XSF séparé : <code>monfichier1.xsf</code>, <code>monfichier2.xsf</code>, etc.</p></li>
 

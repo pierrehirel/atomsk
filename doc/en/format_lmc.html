@@ -33,9 +33,11 @@
 
 <p>If additional properties (e.g. potential energy, stress/atom...) are defined in the line "<code>ITEM: ATOMS</code>", then Atomsk will store all of them as auxiliary properties. These properties must then exist for each atom in the file.</p>
 
-<p>If coordinates (or auxiliary properties) are specified several times, then only the coordinates that appear first will be used by Atomsk. For instance if unwrapped and "normal" coordinates are present with the format "<code>xu x yu y z zu</code>", then Atomsk will use <code>xu</code>, <code>yu</code> and <code>z</code>. When reduced (or "scaled") coordinates are output then all 3 space coordinates should be reduced (e.g. <code>xs</code>, <code>ys</code> and <code>zs</code>) for Atomsk to correctly read them.</p>
+<p>If coordinates (or auxiliary properties) are specified several times, then only the coordinates that appear first will be used by Atomsk. For instance if unwrapped and "normal" coordinates are present with the format "<code>xu x yu y z zu</code>", then Atomsk will use <code>xu</code>, <code>yu</code> and <code>z</code>. When reduced (or "scaled") coordinates are output then all 3 space coordinates should be reduced (e.g. <code>xs</code>, <code>ys</code> and <code>zs</code>) for Atomsk to correctly read them. Also, if one or two coordinates are missing then they are assumed to be naught (for instance if the coordinates are only "<code>xu yu</code>", then the Z coordinates of all atoms will be zero); if all three coordinates are missing then Atomsk will produce an error message.</p>
 
 <p>Note that the order in which atom coordinates and auxiliary properties are written does not matter, as long as this order is specified correctly in the line "<code>ITEM: ATOMS</code>" (which should be the case, unless LAMMPS has a bug or the LMC file was produced by hand with a wrong format).</p>
+
+<p>If the dump file contains several snapshots (for example, steps of a minimization or molecular dynamics simulations), then only the first snapshot will be read and converted. To convert all the snapshots, one can use the <a href="./mode_oneinall.html">mode one-in-all</a>.</p>
 
 <p>Atomsk cannot write LMC files.</p>
 
@@ -46,6 +48,9 @@
 <ul>
 <li><code class="command">atomsk lammps_relax.lmc -sub 1 Si -sub 2 C xsf cfg</code>
 <p>This will read the file <code>lammps_relax.lmc</code>, <a href="./option_substitute.html">substitute</a> atoms of type 1 with silicon and those of type 2 with carbon, and write the final result to <code>lammps_relax.xsf</code> and <code>lammps_relax.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --one-in-all dump.lmc cfg</code>
+<p>This will read the LAMMPS dump file <code>dump.lmc</code>, and output each snapshot to CFG format: <code>dump1.cfg</code>, <code>dump2.cfg</code>, etc.</p></li>
 </ul>
 
 

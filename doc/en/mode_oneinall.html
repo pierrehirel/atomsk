@@ -27,6 +27,8 @@
 <ul>
  <li><strong>HISTORY</strong> files produced by DL_POLY (see <a href="./format_dlp.html">DL_POLY specifications</a>); the actual timestep from the HISTORY file is used to name output files.</li>
  
+ <li><strong>LAMMPS custom dump files</strong> (see <a href="./format_lmc.html">specifications</a>).</li>
+ 
  <li><strong>Quantum Espresso PWscf output files</strong> (see <a href="./format_qeout.html">specifications</a>).</li>
  
  <li><strong>Animated XSF</strong> (see <a href="./format_xsf.html">XSF specifications</a>).</li>
@@ -44,6 +46,9 @@
 <h4>Examples</h4>
 
 <ul>
+<li><code class="command">atomsk --one-in-all dump.lmc cfg</code>
+<p>This will read the LAMMPS dump file <code>dump.lmc</code> and output each snapshot to CFG format: <code>dump1.cfg</code>, <code>dump2.cfg</code>, etc.</p></li>
+
 <li><code class="command">atomsk --one-in-all myfile.xyz xsf</code>
 <p>This will read <code>myfile.xyz</code> and output each snapshot to XSF format: <code>myfile1.xsf</code>, <code>myfile2.xsf</code>, etc.</p></li>
 

@@ -33,9 +33,11 @@
 
 <p>Si d'autres propriétés (par ex. l'énergie potentielle, la contrainte par atome...) sont définies dans la ligne "<code>ITEM: ATOMS</code>", alors Atomsk les enregistrera comme propriétés auxiliaires. Ces propriétés doivent alors exister pour chaque atome dans le fichier.</p>
 
-<p>Si des coordonnées apparaissent plusieurs fois, seules les premières sont utilisées par Atomsk. Par exemple si les coordonnées remballées et non remballées sont présentes avec le format "<code>xu x yu y z zu</code>", alors Atomsk utilisera <code>xu</code>, <code>yu</code> et <code>z</code>. Dans le cas de coordonnées réduites, lese trois composantes doivent être réduites (c'est-à-dire <code>xs</code>, <code>ys</code> et <code>zs</code>) pour que Atomsk les interprète correctement.</p>
+<p>Si des coordonnées apparaissent plusieurs fois, seules les premières sont utilisées par Atomsk. Par exemple si les coordonnées remballées et non remballées sont présentes avec le format "<code>xu x yu y z zu</code>", alors Atomsk utilisera <code>xu</code>, <code>yu</code> et <code>z</code>. Dans le cas de coordonnées réduites, lese trois composantes doivent être réduites (c'est-à-dire <code>xs</code>, <code>ys</code> et <code>zs</code>) pour que Atomsk les interprète correctement. Si une ou deux coordonnées sont manquantes, alors Atomsk considèrera qu'elles sont égales à zéro par défaut (par exemple si les coordonnées sont uniquement "<code>xu yu</code>", alors la composante Z sera zéro pour tous les atomes)&nbsp;; si les trois coordonnées sont manquantes alors Atomsk produira un message d'erreur.</p>
 
 <p>Notez que l'ordre dans lequel les coordonnées des atomes et les propriétés auxiliaires apparaissent dans le fichier n'a que peu d'importance, tant que leur ordre d'apparition est correctement spécifié dans la ligne "<code>ITEM: ATOMS</code>" (ce qui devrait toujours être le cas, sauf si LAMMPS a un bug ou si le fichier LMC a été produit par un autre code avec un format incorrect).</p>
+
+<p>Si le fichier LMC contient plusieurs configurations (par exemple, les pas d'un calcul de minimisation ou de dynamique moléculaire), alors seule la première configuration sera lue et convertie. Pour convertir toutes les configurations, il est possible d'utiliser le mode <a href="./mode_oneinall.html">mode one-in-all</a>.</p>
 
 <p>Atomsk ne peut pas écrire de fichier au format LMC.</p>
 
