@@ -60,7 +60,7 @@ ifndef FORTRAN
   #FFLAGS+=-fdefault-integer-8
   
   # DEBUGGING FLAGS
-  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall
+  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall -Og
 endif
 
 ifndef LAPACK

@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Jan. 2019                                     *
+!* Last modification: P. Hirel - 28 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,6 +88,7 @@ USE rmprop
 USE rmshells
 USE roll
 USE rotate
+USE roundoff
 USE select
 USE separate
 USE shear
@@ -114,7 +115,7 @@ SUBROUTINE OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32):: optionname
-CHARACTER(LEN=128):: temp, msg
+CHARACTER(LEN=256):: temp, msg
 CHARACTER(LEN=4096),DIMENSION(10):: treal !text containing a real number and maybe a word
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
@@ -318,6 +319,7 @@ DO ioptions=1,SIZE(options_array)
   region_dir = ""
   region_geom = ""
   region_side = ""
+  status = 0
   b(:) = 0.d0
   pos(:) = 0.d0
   region_1(:) = 0.d0
@@ -478,6 +480,7 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-disloc', '-dislocation')
     nu = 0.d0
+    status=0
     !First, get disloctype
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10), disloctype
     !Depending on type, read further parameters
@@ -587,46 +590,47 @@ DO ioptions=1,SIZE(options_array)
           i=1
         ENDIF
       END SELECT
-      !CALL BOX2DBLE( H(:,i) , treal(i) , pos(1) , status )
-      WRITE(msg,*) "  (1) Input position:   "//TRIM(treal(i))
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      IF( INDEX(treal(i),"box")>0 ) THEN
-        !Replace the keyword "box" by its appropriate value, save it in pos(1)
-        tempreal = MAX(0.d0,MAXVAL(H(:,i))) + DABS(MIN(0.d0,MINVAL(H(:,i))))
-        CALL STR_EXP2VAL(treal(i),"box",tempreal,strlength)
-        WRITE(msg,*) "  (1) Converted string: "//TRIM(treal(i))
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      ENDIF
-      !Evaluate expression to obtain a real value
-      strlength=0
-      CALL EXPREVAL(treal(i),pos(1),strlength,status)
-      IF(status>0) THEN
-        temp = treal(i)
-        nerr=nerr+1
-        GOTO 810
-      ENDIF
-      WRITE(msg,*) "  (1) pos (angs) =      ", pos(1)
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      !CALL BOX2DBLE( H(:,j) , treal(j) , pos(2) , status )
-      WRITE(msg,*) "  (2) Input position:   "//TRIM(treal(j))
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      IF( INDEX(treal(j),"box")>0 ) THEN
-        !Replace the keyword "box" or "BOX" by its appropriate value
-        tempreal = MAX(0.d0,MAXVAL(H(:,j))) + DABS(MIN(0.d0,MINVAL(H(:,j))))
-        CALL STR_EXP2VAL(treal(j),"box",tempreal,strlength)
-        WRITE(msg,*) "  (2) Converted string: "//TRIM(treal(j))
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      ENDIF
-      !Evaluate expression to obtain a real value, save it in pos(2)
-      strlength=0
-      CALL EXPREVAL(treal(j),pos(2),strlength,status)
-      IF(status>0) THEN
-        temp = treal(j)
-        nerr=nerr+1
-        GOTO 810
-      ENDIF
-      WRITE(msg,*) "  (2) pos (angs) =      ", pos(2)
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !Convert strings containing "box" with appropriate box dimension
+      CALL BOX2DBLE( H(:,i) , treal(i) , pos(1) , status )
+      CALL BOX2DBLE( H(:,j) , treal(j) , pos(2) , status )
+!       WRITE(msg,*) "  (1) Input position:   "//TRIM(treal(i))
+!       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!       IF( INDEX(treal(i),"box")>0 ) THEN
+!         !Replace the keyword "box" by its appropriate value, save it in pos(1)
+!         tempreal = MAX(0.d0,MAXVAL(H(:,i))) + DABS(MIN(0.d0,MINVAL(H(:,i))))
+!         CALL STR_EXP2VAL(treal(i),"box",tempreal,strlength)
+!         WRITE(msg,*) "  (1) Converted string: "//TRIM(treal(i))
+!         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!       ENDIF
+!       !Evaluate expression to obtain a real value
+!       strlength=0
+!       CALL EXPREVAL(treal(i),pos(1),strlength,status)
+!       IF(status>0) THEN
+!         temp = treal(i)
+!         nerr=nerr+1
+!         GOTO 810
+!       ENDIF
+!       WRITE(msg,*) "  (1) pos (angs) =      ", pos(1)
+!       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!       WRITE(msg,*) "  (2) Input position:   "//TRIM(treal(j))
+!       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!       IF( INDEX(treal(j),"box")>0 ) THEN
+!         !Replace the keyword "box" or "BOX" by its appropriate value
+!         tempreal = MAX(0.d0,MAXVAL(H(:,j))) + DABS(MIN(0.d0,MINVAL(H(:,j))))
+!         CALL STR_EXP2VAL(treal(j),"box",tempreal,strlength)
+!         WRITE(msg,*) "  (2) Converted string: "//TRIM(treal(j))
+!         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!       ENDIF
+!       !Evaluate expression to obtain a real value, save it in pos(2)
+!       strlength=0
+!       CALL EXPREVAL(treal(j),pos(2),strlength,status)
+!       IF(status>0) THEN
+!         temp = treal(j)
+!         nerr=nerr+1
+!         GOTO 810
+!       ENDIF
+!       WRITE(msg,*) "  (2) pos (angs) =      ", pos(2)
+!       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
     CALL DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,ORIENT,AUXNAMES,AUX,C_tensor)
   !
@@ -751,6 +755,10 @@ DO ioptions=1,SIZE(options_array)
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
     ENDIF
     CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,j,rot_axis,rot_angle,SELECT,C_tensor)
+  !
+  CASE('-roundoff','-round-off')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, tempreal
+    CALL ROUNDOFF_XYZ(P,S,AUXNAMES,AUX,temp,tempreal,SELECT)
   !
   CASE('-select')
     select_multiple = ""

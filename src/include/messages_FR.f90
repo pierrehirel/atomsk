@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Jan. 2019                                     *
+!* Last modification: P. Hirel - 28 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -335,6 +335,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Tourner le système autour d'un axe :"
   WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-roundoff" .OR. helpsection=="-round-off") THEN
+  WRITE(*,*) "..> Arondir les coordonnées des atomes ou les valeurs d'une propriété :"
+  WRITE(*,*) "          -roundoff <propriété> <seuil>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-select") THEN
@@ -2040,6 +2045,28 @@ CASE(2144)
 CASE(2145)
   msg = "..> Application des déplacements aux atomes..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2146)
+  !strings(1) = name of property that is rounded off
+  msg = ">>> Arrondissement des valeurs de"
+  IF( strings(1)=="AUX" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" toutes les propriétés auxiliaires..."
+  ELSEIF( strings(1)=="XYZ" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" toutes les coordonnées des atomes..."
+  ELSEIF( strings(1)=="X" .OR. strings(1)=="x" ) THEN
+    msg = TRIM(ADJUSTL(msg))//"s coordonnées X des atomes..."
+  ELSEIF( strings(1)=="Y" .OR. strings(1)=="y" ) THEN
+    msg = TRIM(ADJUSTL(msg))//"s coordonnées Y des atomes..."
+  ELSEIF( strings(1)=="Z" .OR. strings(1)=="z" ) THEN
+    msg = TRIM(ADJUSTL(msg))//"s coordonnées Z des atomes..."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//" la propriété '"//TRIM(ADJUSTL(strings(1)))//"'..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2147)
+  !reals(1) = number of values that were rounded off
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" valeurs ont été arrondies."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2826,6 +2853,25 @@ CASE(4069)
   !strings(1) = name of file
   msg = ">>> Calcul du paramètre de symétrie centrale pour : "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4070)
+  !strings(1) = name of file
+  !reals(2) = 1 (reference is a unit cell) or 2 (no reference)
+  IF( NINT(reals(1))==1 ) THEN
+    msg = ">>> Maille élémentaire utilisée comme référence : "//TRIM(ADJUSTL(strings(1)))//"..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = ">>> Aucun système de référence fourni. Construction de la référence depuis : "//TRIM(ADJUSTL(strings(1)))//"..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+CASE(4071)
+  !reals(1) = number of different atomic environments found
+  WRITE(temp,*) NINT(reals(1))
+  IF( NINT(reals(1))>1 ) THEN
+    msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" différents environments atomiques ont été trouvés."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> Terminé, 1 environment atomique trouvé."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "
@@ -3151,6 +3197,9 @@ CASE(4828)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
   msg = "X!X ERREUR : les vecteurs de boîte ne sont pas linéairement indépendants, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4830)
+  msg = "X!X ERREUR : impossible de construire un environnement de référence, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERREUR : un seul mode peut être utilisé à la fois."

@@ -20,9 +20,17 @@
 
 <h4>Description</h4>
 
-<p>Ce mode calcule le tenseur de Nye de chaque atome, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des dislocations. Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
+<p>Ce mode calcule le tenseur de Nye de chaque atome, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des défauts cristallins, comme les défauts ponctuels, les dislocations, ou les défauts planaires (défauts d'empilement, macles, joints de grains...). Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
 
-<p>Ce mode requiert deux fichiers : un &#60;fichier1&#62; contenant le système de référence, c-à-d. le système sans défaut et où les atomes sont dans leurs positions idéales ; et un &#60;fichier2&#62; qui peut contenir un défaut (par ex. une dislocation). Les deux fichiers donnés <em>doivent</em> contenir exactement le même nombre de particules, et devraient correspondre au même type de système (i.e. vecteurs de boîte similaires, mêmes types d'atomes, etc.) pour que le calcul ait du sens. Les deux fichiers peuvent être dans des formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par <code>atomsk</code></a>.</p>
+<p>Ce mode requiert deux fichiers&nbsp;: un &#60;fichier1&#62; contenant un système de référence, et un &#60;fichier2&#62; contenant le système à analyser. Le système de référence peut être&nbsp;:</p>
+
+<ul>
+  <li><strong>un système de référence complet</strong>, c'est-à-dire une supercellule de matériau massif (sans défaut) du même type que le fichier à analyser, i.e. les vecteurs de boîte, les types d'atomes, et les indices des atomes dans le &#60;fichier1&#62; doivent correspondre à ceux du &#60;fichier2&#62;. Autrement dit, seules les positions des atomes doivent être différentes entre le système de référence et le système étudié. Par exemple, le &#60;fichier1&#62; peut contenir une supercellule de matériau parfait, et le &#60;fichier2&#62; le même système avec une dislocation vis.</li>
+  <li><strong>une maille élémentaire</strong> du système à analyser. La maille peut avoir la même orientation cristallographique que le système étudié, ou pas. Atomsk construira les environnements atomiques de référence depuis la maille élémentaire, puis les comparera avec les environnements du système étudié.</li>
+  <li><strong>NULL</strong>, ce qui signifie qu'aucun système de référence n'est fourni. Atomsk construira alors les environnements atomiques de référence à la volée, en moyennant les environnements trouvés dans le système à analyser.</li>
+</ul>
+
+<p>Les deux fichiers &#60;fichier1&#62; et &#60;fichier2&#62; peuvent être du même format, ou bien de formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par <code>atomsk</code></a>.</p>
 
 <p>Les neuf composantes du tenseur de Nye (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), sont enregistrées comme propriétés auxiliaires pour chaque atome. Notez que <code>atomsk</code> n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
 
@@ -36,6 +44,12 @@
 <ul>
 <li><code class="command">atomsk --nye reference.xsf dislocation.cfg nye.cfg</code>
 <p>Ceci calculera les valeurs du tenseur de Nye dues aux déplacements dans le fichiers <code>dislocation.cfg</code>, en utilisant <code>reference.xsf</code> comme système de référence. Les positions et valeurs du tenseur de Nye seront écrites dans le fichier <code>nye.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --nye unitcell.xsf mysystem.cfg nye.cfg</code>
+<p>Dans cet exemple, une maille élémentaire est fournie comme système de référence. Atomsk construira les environnements atomiques de référence depuis le fichier <code>unitcell.xsf</code>, puis calculera le tenseur de Nye. Le résultat final sera écrit dans le fichier <code>nye.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --nye NULL monsysteme.cfg nye.cfg</code>
+<p>Dans cet exemple, le système de référence est indiqué comme "NULL", c'est-à-dire qu'aucun système de référence n'est fourni. Atomsk va lire les positions des atomes depuis le fichier <code>monsysteme.cfg</code>, et moyennera leurs environnements pour construire la référence. Ensuite, il calculera le tenseur de Nye, et écrira le résultat dans <code>nye.cfg</code>.</p></li>
 
 </ul>
 

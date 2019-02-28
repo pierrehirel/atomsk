@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Option round-off - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: round-off</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-roundoff &#60;property&#62; &#60;threshold&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to round off the values of the given &#60;property&#62; to the nearest integer. For the given &#60;property&#62;, if a value is closer than the &#60;threshold&#62; from the nearest integer, then the value is rounded off to the nearest integer. This option can be useful to eliminate round-off errors after constructing an atomic system, or after a simulation.</p>
+
+<p>The &#60;property&#62; can be X, Y or Z (referring to Cartesian coordinates of atoms), or any per-atom auxiliary property. If it is defined as "XYZ", then all three coordinates will be rounded off; if it is "AUX", then all auxiliary properties will be rounded off. The &#60;threshold&#62; should be a positive real number.</p>
+
+<p>Values that are different from the nearest integer by an amount larger than the given &#60;threshold&#62; will not be modified by this option.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rounding off will affect only the property of the selected atoms.</p>
+
+
+<h4>Default</h4>
+
+<p>By default numbers are not rounded off.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -round-off x 1e-6 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off the X coordinates of all atoms, if necessary. For instance, if an atom has a X coordinate equal to 0.00000023, it will be rounded off to zero. If an atom has a coordinate X=0.9999999967, it will be rounded off to 1, and so on. The final result will be saved into <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -round-off xyz 1e-9 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off all coordinates (X, Y and Z) of all atoms, if they are closer to an integer than 10<sup>-9</sup>. The final result will be saved into <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -round-off energy 5.0e-4 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off the auxiliary property called "energy", if it takes values closer to an integer than 5&nbsp;10<sup>-4</sup>. The final result will be saved into <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -round-off AUX 1.0e-8 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off all auxiliary properties. The final result will be saved into <code>final.cfg</code>.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

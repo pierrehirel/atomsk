@@ -20,9 +20,17 @@
 
 <h4>Description</h4>
 
-<p>This mode computes the per-atom Nye tensor, a quantity related to the strain gradient around an atom. The Nye tensor can be useful for visualizing dislocations. The calculation follows the method described in C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
+<p>This mode computes the per-atom Nye tensor, a quantity related to the strain gradient around an atom. The Nye tensor can be useful for visualizing lattice defects such as point defects, dislocations, or planar defects (stacking faults, twins, grain boundaries). The calculation follows the method described in C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
 
-<p>This mode requires two files: a &#60;file1&#62; containing the reference system, i.e. the system with no defect and all atoms in their perfect lattice sites; and a &#60;file2&#62; that can contain a defect (e.g. a dislocation). The two systems <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the calculation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by Atomsk</a>.</p>
+<p>This mode requires two files: a &#60;file1&#62; containing the reference system, and a &#60;file2&#62; that contains the system to analyze. The reference system may be:</p>
+
+<ul>
+  <li><strong>a full reference system</strong>, i.e. a supercell of bulk material of the same type as the system to analyze, i.e. the base vectors, the atom types, and the index of atoms in the &#60;file1&#62; must match those in &#60;file2&#62;. In other words, only the positions of atoms must differ between the reference and studied system. For example, the &#60;file1&#62; can be a supercell of bulk material, and the &#60;file2&#62; the same system containing a screw dislocation.</li>
+  <li><strong>a unit cell</strong> of the system to analyze. The unit cell may or may not have the same crystal orientation as the system to analyze. Atomsk will construct the reference atomic environments from the unit cell, and compare them with the actual atom environments in the system to study.</li>
+  <li><strong>NULL</strong>, meaning that no reference is provided. Atomsk will construct reference atomic environments on-the-fly, by averaging the environments found in the system to analyze.</li>
+</ul>
+
+<p>The two files &#60;file1&#62; and &#60;file2&#62; may be of the same format, or of different formats, as long as these formats are <a href="./formats.html">supported by Atomsk</a>.</p>
 
 <p>The nine components of the Nye tensor (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), are saved as auxiliary properties for each atom. Note that Atomsk will output these auxiliary properties only to the file formats that support it, like e.g. <a href="./format_cfg.html">Atomeye CFG format</a> (see <a href="./formats.html">this page</a> for a list of formats supporting auxiliary properties).</p>
 
@@ -36,6 +44,12 @@
 <ul>
 <li><code class="command">atomsk --nye reference.xsf dislocation.cfg nye.cfg</code>
 <p>This will compute the Nye tensor due to the displacements in the file <code>dislocation.cfg</code>, using <code>reference.xsf</code> as a reference system. The positions and Nye tensors of atoms will be written to <code>nye.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --nye unitcell.xsf mysystem.cfg nye.cfg</code>
+<p>In this example, a unit cell is provided as reference system. Atomsk will construct reference atomic environments from the file <code>unitcell.xsf</code>, and then proceed with computing the Nye tensor. The final result will be written into <code>nye.cfg</code>.</p></li>
+
+<li><code class="command">atomsk --nye NULL mysystem.cfg nye.cfg</code>
+<p>In this example the reference system is specified as "NULL", i.e. no reference is provided. Atomsk will read atom positions from the file <code>mysystem.cfg</code>, and average their environments to construct the reference. Then, it will compute the Nye tensor and write the result into <code>nye.cfg</code>.</p></li>
 
 </ul>
 

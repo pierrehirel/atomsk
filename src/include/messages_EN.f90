@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Jan. 2019                                     *
+!* Last modification: P. Hirel - 28 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -335,6 +335,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Rotate the system around an axis:"
   WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-roundoff" .OR. helpsection=="-round-off") THEN
+  WRITE(*,*) "..> Round off atom coordinates or the values of a property:"
+  WRITE(*,*) "          -roundoff <property> <threshold>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-select") THEN
@@ -1984,6 +1989,28 @@ CASE(2144)
 CASE(2145)
   msg = "..> Applying displacements to atoms..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2146)
+  !strings(1) = name of property that is rounded off
+  msg = ">>> Rounding off the values of"
+  IF( strings(1)=="AUX" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" all auxiliary properties..."
+  ELSEIF( strings(1)=="XYZ" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" all atoms coordinates..."
+  ELSEIF( strings(1)=="X" .OR. strings(1)=="x" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" all X coordinates..."
+  ELSEIF( strings(1)=="Y" .OR. strings(1)=="y" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" all Y coordinates..."
+  ELSEIF( strings(1)=="Z" .OR. strings(1)=="z" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" all Z coordinates..."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//" the property '"//TRIM(ADJUSTL(strings(1)))//"'..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2147)
+  !reals(1) = number of values that were rounded off
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Done, "//TRIM(ADJUSTL(temp))//" values were rounded off."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2771,6 +2798,25 @@ CASE(4069)
   !strings(1) = name of file
   msg = ">>> Computing the central symmetry parameter for: "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4070)
+  !strings(1) = name of file
+  !reals(2) = 1 (reference is a unit cell) or 2 (no reference)
+  IF( NINT(reals(1))==1 ) THEN
+    msg = ">>> Unit cell provided as a reference : "//TRIM(ADJUSTL(strings(1)))//"..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = ">>> No reference system provided. Constructing reference from: "//TRIM(ADJUSTL(strings(1)))//"..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+CASE(4071)
+  !reals(1) = number of different atomic environments found
+  WRITE(temp,*) NINT(reals(1))
+  IF( NINT(reals(1))>1 ) THEN
+    msg = "..> Done, found "//TRIM(ADJUSTL(temp))//" different atomic environments."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> Done, found 1 atomic environment."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"
   WRITE(*,'(a39)',ADVANCE='NO') " Lattice type (sc,bcc,fcc,dia,rs,per): "
@@ -3090,6 +3136,9 @@ CASE(4828)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
   msg = "X!X ERROR: box vectors are not linearly independent, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4830)
+  msg = "X!X ERROR: unable to construct reference environment, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERROR: only one mode can be used at a time."

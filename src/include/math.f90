@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 26 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,6 +36,7 @@ MODULE math
 !* CROSS_PRODUCT       calculates the cross product of two vectors                *
 !* SCALAR_TRIPLE_PRODUCT computes scalar triple product ez (ex ^ ey).             *
 !* ROTMAT_AXIS         provides the matrix for rotation of angle around axis      *
+!* ROTMAT_VECTORS      provides the matrix for rotation between 2 vectors         *
 !* EPS_LEVI_CIVITA     calculates the Levi-Civita symbol, given i,j,k             *
 !* List of subroutines in this file:                                              *
 !* INVMAT              inverts a NxN matrix                                       *
@@ -288,6 +289,58 @@ rot_matrix(3,3) = (1.d0-c)*axis_u(3)**2 + c
 !
 !
 END FUNCTION ROTMAT_AXIS
+!
+!
+!********************************************************
+!  ROTMAT_VECTORS
+!  This function provides the rotation matrix
+!  corresponding to a rotation from a vector a
+!  to a vector b.
+!********************************************************
+!
+FUNCTION ROTMAT_VECTORS(a,b) RESULT(rot_matrix)
+!
+IMPLICIT NONE
+INTEGER:: i
+REAL(dp),DIMENSION(3),INTENT(IN):: a, b  !input vectors
+REAL(dp),DIMENSION(3):: an, bn  !normalized vectors
+REAL(dp),DIMENSION(3):: v
+REAL(dp),DIMENSION(3,3):: vx, vx2
+REAL(dp),DIMENSION(3,3):: rot_matrix !final rotation matrix
+REAL(dp):: c    !cosinus
+!
+!
+rot_matrix(:,:) = 0.d0
+DO i=1,3
+  rot_matrix(i,i) = 1.d0
+ENDDO
+!
+!Normalize vectors
+an(:) = a(:) / VECLENGTH(a)
+bn(:) = b(:) / VECLENGTH(b)
+ c = DOT_PRODUCT(an,bn)
+ !c=DCOS(ANGVEC(a,b))
+!cosinus must be different from -1 to proceed
+!Otherwise just return identity matrix
+IF( DABS(c+1.d0) > 1.d-12 ) THEN
+  !Compute cross-product of vectors a and b
+  v(:) = CROSS_PRODUCT(an,bn)
+  !Compute skew-symmetric matrix
+  vx(:,:) = 0.d0
+  vx(1,2) = -v(3)
+  vx(1,3) = v(2)
+  vx(2,1) = v(3)
+  vx(2,3) = -v(1)
+  vx(3,1) = -v(2)
+  vx(3,2) = v(1)
+  !Compute square of vx
+  vx2 = MATMUL(vx,vx)
+  !Compute final rotation matrix
+  rot_matrix(:,:) = rot_matrix(:,:) + vx(:,:) + vx2(:,:)/(1.d0+c)
+ENDIF
+!
+!
+END FUNCTION ROTMAT_VECTORS
 !
 !
 !********************************************************

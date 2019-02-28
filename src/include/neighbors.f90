@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 April 2018                                    *
+!* Last modification: P. Hirel - 28 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -559,10 +559,6 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H  !vectors of the box
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: PosList
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A !positions of all atoms
 !
-msg = 'entering NEIGHBOR_POS'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-WRITE(msg,*) 'SIZE NeighList = ', SIZE(NeighList,1)
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 selfneighbor=.FALSE.
 IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
@@ -669,8 +665,6 @@ IF( Nneighbors>0 ) THEN
   ENDIF
   !
 ENDIF
-msg = 'exiting NEIGHBOR_POS'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 END SUBROUTINE NEIGHBOR_POS

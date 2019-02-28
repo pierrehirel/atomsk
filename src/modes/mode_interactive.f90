@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 28 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -113,10 +113,10 @@ optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "ad
             &    "prop            ", "rebox           ", "remove-atom     ", "rmatom          ", &
             &    "remove-doubles  ", "rmd             ", "remove-property ", "rmprop          ", &
             &    "remove-shells   ", "roll            ", "rmshells        ", "rotate          ", &
-            &    "rot             ", "select          ", "shear           ", "shift           ", &
-            &    "sort            ", "substitute      ", "sub             ", "swap            ", &
-            &    "torsion         ", "unit            ", "unskew          ", "velocity        ", &
-            &    "wrap            "  &
+            &    "rot             ", "roundoff        ", "round-off       ", "select          ", &
+            &    "shear           ", "shift           ", "sort            ", "substitute      ", &
+            &    "sub             ", "swap            ", "torsion         ", "unit            ", &
+            &    "unskew          ", "velocity        ", "wrap            "  &
             &/)
 !
 !Get user name: this is environment-dependent

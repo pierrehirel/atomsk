@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 18 Jan. 2019                                     *
+!* Last modification: P. Hirel - 28 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -313,6 +313,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Rotiere das System um eine Achse:"
   WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-roundoff" .OR. helpsection=="-round-off") THEN
+  WRITE(*,*) "..> Runden Atomkoordinaten oder die Werte einer Eigenschaft ab:"
+  WRITE(*,*) "          -roundoff <property> <threshold>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-select") THEN
@@ -1938,6 +1943,28 @@ CASE(2144)
 CASE(2145)
   msg = "..> Verschiebung von Atomen anwenden..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2146)
+  !strings(1) = name of property that is rounded off
+  msg = ">>> Rundung der Werte"
+  IF( strings(1)=="AUX" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" der Hilfseigenschaften..."
+  ELSEIF( strings(1)=="XYZ" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" der Atomkoordinaten..."
+  ELSEIF( strings(1)=="X" .OR. strings(1)=="x" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" von X-koordinaten..."
+  ELSEIF( strings(1)=="Y" .OR. strings(1)=="y" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" von Y-koordinaten..."
+  ELSEIF( strings(1)=="Z" .OR. strings(1)=="z" ) THEN
+    msg = TRIM(ADJUSTL(msg))//" von Z-koordinaten..."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//" der Eigenschaft '"//TRIM(ADJUSTL(strings(1)))//"'..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2147)
+  !reals(1) = number of values that were rounded off
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" Werte wurden gerundet."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES
 CASE(2700)
@@ -2758,6 +2785,25 @@ CASE(4069)
   !strings(1) = name of file
   msg = ">>> Berechnen des zentralen Symmetrieparameters für die Datei: "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4070)
+  !strings(1) = name of file
+  !reals(2) = 1 (reference is a unit cell) or 2 (no reference)
+  IF( NINT(reals(1))==1 ) THEN
+    msg = ">>> Elementarzelle als Referenz : "//TRIM(ADJUSTL(strings(1)))//"..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = ">>> Kein Bezugssystem vorhanden. Referenz erstellt aus einer Datei: "//TRIM(ADJUSTL(strings(1)))//"..."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4071)
+  !reals(1) = number of different atomic environments found
+  IF( NINT(reals(1))>1 ) THEN
+    msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" verschiedene atomare Umgebungen gefunden."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> Fertig, 1 atomare Umgebung gefunden."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"
   WRITE(*,'(a39)',ADVANCE='NO') " Gittertyp (sc,bcc,fcc,dia,rs,per): "
@@ -3094,6 +3140,9 @@ CASE(4828)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
   msg = "X!X FEHLER: Boxvektoren sind nicht linear unabhängig, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4830)
+  msg = "X!X FEHLER: Referenzumgebung kann nicht erstellt werden."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."

@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Jan. 2019                                     *
+!* Last modification: P. Hirel - 31 Jan. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,6 +26,8 @@ MODULE exprev
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
+USE comv
+USE constants
 USE messages
 !
 !
@@ -143,7 +145,6 @@ INTEGER:: status
 REAL*8:: low_limit=1.d-15   !in trig.functions, values which are smaller than that
                             !in absolute will be rounded off to zero
 REAL*8:: x, y, z  !to store numbers
-REAL*8,PARAMETER:: pi=4.d0*DATAN(1.d0)
 REAL*8,INTENT(OUT):: value
 !
 !Initialize variables and empty strings

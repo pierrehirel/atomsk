@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Jan. 2019                                     *
+!* Last modification: P. Hirel - 28 Feb. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1182,6 +1182,19 @@ DO WHILE(i<SIZE(cla))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp2)
       READ(temp2,*,END=120,ERR=120) tempreal
     ENDIF
+  !
+  ELSEIF( clarg=='-roundoff' .OR. clarg=='-round-off' ) THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
+    !read property that will be rounded off
+    i=i+1
+    READ(cla(i),'(a)',END=400,ERR=400) temp
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !read threshold value
+    i=i+1
+    READ(cla(i),'(a)',END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-select') THEN
     ioptions = ioptions+1
