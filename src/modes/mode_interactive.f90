@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Feb. 2019                                     *
+!* Last modification: P. Hirel - 01 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,7 @@ CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=4096):: instruction, command   !instruction given by the user
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats
-CHARACTER(LEN=16),DIMENSION(49):: optnames !names of options
+CHARACTER(LEN=16),DIMENSION(51):: optnames !names of options
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment

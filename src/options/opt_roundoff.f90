@@ -76,12 +76,20 @@ CASE('xyz','XYZ')
   Ppoint => P
   jprop = -3
 CASE('aux','AUX')
-  Ppoint => AUX
-  jprop = -1
+  IF( .NOT.ALLOCATED(AUX) .OR. .NOT.ALLOCATED(AUXNAMES) ) THEN
+    !No aux. property defined: skip
+    nwarn = nwarn+1
+    CALL ATOMSK_MSG(2729,(/""/),(/0.d0/))
+    GOTO 1000
+  ELSE
+    Ppoint => AUX
+    jprop = -1
+  ENDIF
 CASE DEFAULT
   IF( .NOT.ALLOCATED(AUX) .OR. .NOT.ALLOCATED(AUXNAMES) ) THEN
-    !No such property defined: skip
+    !No aux. property defined: skip
     nwarn = nwarn+1
+    CALL ATOMSK_MSG(2729,(/""/),(/0.d0/))
     GOTO 1000
   ENDIF
   Ppoint=>AUX
@@ -92,8 +100,9 @@ CASE DEFAULT
   ENDDO
   !
   IF( jprop==0 ) THEN
-    !No such property in AUX: skip
+    !No property with that name in AUX: skip
     nwarn=nwarn+1
+    CALL ATOMSK_MSG(2730,(/TRIM(ADJUSTL(prop))/),(/0.d0/))
     GOTO 1000
   ENDIF
 END SELECT
