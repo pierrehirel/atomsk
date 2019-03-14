@@ -1168,7 +1168,7 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-swap')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, swap_id(1), swap_id(2)
-    CALL SWAP_XYZ(H,P,S,AUX,swap_id)
+    CALL SWAP_XYZ(H,P,S,AUXNAMES,AUX,swap_id,SELECT)
   !
   CASE('-torsion')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle

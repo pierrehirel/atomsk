@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Jan. 2019                                     *
+!* Last modification: P. Hirel - 14 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -311,7 +311,7 @@ DO
         CALL ATOMSK_MSG(999,(/"uy = "//TRIM(func_uxyz(2))/),(/0.d0/))
         CALL ATOMSK_MSG(999,(/"uz = "//TRIM(func_uxyz(3))/),(/0.d0/))
         !Apply displacements immediately to all atoms
-        CALL ATOMSK_MSG(2145,(/""/),(/0.d0/))
+        CALL ATOMSK_MSG(2146,(/""/),(/0.d0/))
         DO i=1,SIZE(P,1)
           IF( .NOT. ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
             !In each function string, replace the  variables x, y, z
@@ -370,7 +370,7 @@ DO
       ELSE
         msg = 'atom displacements'
         !Displacement vectors of atoms (and shells) follow
-        CALL ATOMSK_MSG(2145,(/""/),(/0.d0/))
+        CALL ATOMSK_MSG(2146,(/""/),(/0.d0/))
         !Read the displacement for each atom and apply it immediately
         !Note: the values may not be given for all atoms
         DO

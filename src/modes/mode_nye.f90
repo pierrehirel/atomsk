@@ -310,9 +310,10 @@ IF( .NOT.firstref ) THEN
       ENDIF
     ENDDO
     !
-    !Add atom to average only if number of neighbors is even
-    !Use only the first 1000 atoms to perform averaging (that should save time on very large systems)
-    IF( iat<=1000 .AND. MOD(Nneighbors,2)==0 .AND. MOD(Nneighbors,5)>0 ) THEN
+    !Add atom to average only if number of neighbors is greater than 3,
+    !even, and not multiple of 5 (because an atom in any material is not supposed
+    !to have 5 or 10 neighbors)
+    IF( Nneighbors>3 .AND. MOD(Nneighbors,2)==0 .AND. MOD(Nneighbors,5)>0 ) THEN
       !Add neighbors positions to already known positions for averaging
       IF( NINT(Pref(i,1,5))==1 ) THEN
         !No neighbor was found for this site yet

@@ -368,6 +368,7 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
   WRITE(*,*) "..> Vertauschen zwei Atomen:"
   WRITE(*,*) "          -swap <id1> <id2>"
+  WRITE(*,*) "          -swap <sp1> <sp2>"
   WRITE(*,*) "          -swap <x|y|z> <x|y|z>"
 ENDIF
 !
@@ -1874,7 +1875,15 @@ CASE(2125)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
-  msg = "..> Atomen wurden vertauschen."
+  !reals(1) = number of atoms that were swapped
+  IF( NINT(reals(1))==0 ) THEN
+    msg = "..> Kein solches Atom wurde im System gefunden."
+  ELSEIF( NINT(reals(1))>0 ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" Atomarten wurden geändert."
+  ELSE
+    msg = "..> Atomen wurden vertauschen."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2127)
   !strings(1) = roll axis: x, y or z
@@ -1937,13 +1946,16 @@ CASE(2143)
   msg = ">>> Konvertieren des Systems in eine orthorhombische Zelle..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2144)
+  msg = "..> Es wurde eine geeignete Zelle gefunden, die nun mit Atomen gefüllt wurde..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2145)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Die Zelle ist jetzt orthorhombisch ("//TRIM(ADJUSTL(temp))//" Atome)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2145)
+CASE(2146)
   msg = "..> Verschiebung von Atomen anwenden..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2146)
+CASE(2147)
   !strings(1) = name of property that is rounded off
   msg = ">>> Rundung der Werte"
   IF( strings(1)=="AUX" ) THEN
@@ -1960,7 +1972,7 @@ CASE(2146)
     msg = TRIM(ADJUSTL(msg))//" der Eigenschaft '"//TRIM(ADJUSTL(strings(1)))//"'..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2147)
+CASE(2148)
   !reals(1) = number of values that were rounded off
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" Werte wurden gerundet."
@@ -2249,6 +2261,13 @@ CASE(2818)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2819)
   msg = "X!X FEHLER: nicht in der Lage, eine orthogonale Zelle von anfänglichen Zellenvektoren zu finden."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2820)
+  !reals(1) = estimated number of atoms
+  msg = "X!X FEHLER: Neue Zelle kann nicht mit Atomen gefüllt werden."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "          Schätzung der Anzahl der erforderlichen Atome: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

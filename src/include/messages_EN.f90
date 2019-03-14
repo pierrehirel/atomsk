@@ -394,8 +394,9 @@ IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-su
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
-  WRITE(*,*) "..> Swap two atoms or Cartesian axis:"
+  WRITE(*,*) "..> Swap two atoms or two atom species or two Cartesian axis:"
   WRITE(*,*) "          -swap <id1> <id2>"
+  WRITE(*,*) "          -swap <sp1> <sp2>"
   WRITE(*,*) "          -swap <x|y|z> <x|y|z>"
 ENDIF
 !
@@ -1919,7 +1920,15 @@ CASE(2125)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
-  msg = "..> Swap successful."
+  !reals(1) = number of atoms that were swapped
+  IF( NINT(reals(1))==0 ) THEN
+    msg = "..> No such atom exist in the system."
+  ELSEIF( NINT(reals(1))>0 ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> The chemical species of "//TRIM(ADJUSTL(temp))//" atoms were changed."
+  ELSE
+    msg = "..> Swap successful."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2127)
   !strings(1) = rolled direction: x, y or z
@@ -1983,13 +1992,16 @@ CASE(2143)
   msg = ">>> Converting system into an orthorhombic cell..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2144)
+  msg = "..> A suitable cell was found, now filling it with atoms..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2145)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Cell is now orthorhombic ("//TRIM(ADJUSTL(temp))//" atoms)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2145)
+CASE(2146)
   msg = "..> Applying displacements to atoms..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2146)
+CASE(2147)
   !strings(1) = name of property that is rounded off
   msg = ">>> Rounding off the values of"
   IF( strings(1)=="AUX" ) THEN
@@ -2006,7 +2018,7 @@ CASE(2146)
     msg = TRIM(ADJUSTL(msg))//" the property '"//TRIM(ADJUSTL(strings(1)))//"'..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2147)
+CASE(2148)
   !reals(1) = number of values that were rounded off
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Done, "//TRIM(ADJUSTL(temp))//" values were rounded off."
@@ -2201,7 +2213,7 @@ CASE(2762)
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option
-  msg = "/!\ WARNING: option "//TRIM(ADJUSTL(strings(1)))//" is obsolete and will be removed."
+  msg = "/!\ WARNING: option "//TRIM(ADJUSTL(strings(1)))//" is deprecated and will be removed."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Please use option "//TRIM(ADJUSTL(strings(2)))//" instead."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2284,6 +2296,13 @@ CASE(2818)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2819)
   msg = "X!X ERROR: unable to find an orthogonal cell from initial cell vectors."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2820)
+  !reals(1) = estimated number of atoms
+  msg = "X!X ERROR: unable to fill new cell with atoms."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "          Estimation of number of atoms required: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

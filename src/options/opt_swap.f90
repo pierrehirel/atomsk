@@ -10,7 +10,7 @@ MODULE swap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 April 2016                                    *
+!* Last modification: P. Hirel - 12 March 2018                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,15 +36,20 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE SWAP_XYZ(H,P,S,AUX,swap_id)
+SUBROUTINE SWAP_XYZ(H,P,S,AUXNAMES,AUX,swap_id,SELECT)
 !
 !
 IMPLICIT NONE
 !
 CHARACTER(LEN=128):: msg
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
+INTEGER:: atype, type1, type2
 INTEGER:: i
+INTEGER:: Nswap  !number of atoms that were swapped
 INTEGER,DIMENSION(2):: id   !indices of axis or atoms to swap
 CHARACTER(LEN=16),DIMENSION(2),INTENT(IN):: swap_id  !Cartesian axes or indices of atoms to swap
+REAL(dp),DIMENSION(2):: swap_sp  !atomic numbers to swap
 REAL(dp),DIMENSION(4):: Vtemp
 REAL(dp),DIMENSION(:),ALLOCATABLE:: AUXtemp  !auxiliary properties (temporary)
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
@@ -53,7 +58,9 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties
 !
 !
 !Initialize variables
+atype = 0
 i = 0
+Nswap = -1
 id(:)=0
 !
 !
@@ -69,6 +76,14 @@ IF( swap_id(1) == swap_id(2) ) THEN
   GOTO 1000
 ENDIF
 !
+!Try to read integer numbers from swap_id
+!If it succeeds then it means that two atoms must be swapped
+!If it fails it does not matter
+READ(swap_id(1),*,ERR=100,END=100) id(1)
+READ(swap_id(2),*,ERR=100,END=100) id(2)
+!
+!
+100 CONTINUE
 SELECT CASE(swap_id(1))
 !
 CASE('X','x','Y','y','Z','z')
@@ -104,6 +119,12 @@ CASE('X','x','Y','y','Z','z')
       Vtemp(:) = P(i,:)
       P(i,id(1)) = Vtemp(id(2))
       P(i,id(2)) = Vtemp(id(1))
+      !Swap shell positions (if any)
+      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+        Vtemp(:) = S(i,:)
+        S(i,id(1)) = Vtemp(id(2))
+        S(i,id(2)) = Vtemp(id(1))
+      ENDIF
     ENDDO
     !
   CASE DEFAULT
@@ -115,48 +136,125 @@ CASE('X','x','Y','y','Z','z')
   !
   !
 CASE DEFAULT
-  !Two atoms must be swapped
-  !Read indices of atoms to swap
-  !(at this point swap_id(:) *must* contain integer numbers)
-  READ(swap_id(1),*,ERR=800,END=800) id(1)
-  READ(swap_id(2),*,ERR=800,END=800) id(2)
-  !
-  !If indices of atoms are out of bounds, abort
-  DO i=1,2
-    IF( id(i)<=0 .OR. id(i)>SIZE(P,1) ) THEN
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(2742,(/''/),(/DBLE(id(i))/))
+  IF( id(1)>0 .AND. id(2)>0 ) THEN
+    !Two atoms must be swapped
+    !Read indices of atoms to swap
+    !
+    !If indices of atoms are out of bounds, abort
+    DO i=1,2
+      IF( id(i)<=0 .OR. id(i)>SIZE(P,1) ) THEN
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(2742,(/''/),(/DBLE(id(i))/))
+        GOTO 1000
+      ENDIF
+    ENDDO
+    !
+    !Save position of first atom
+    Vtemp(:) = P(id(1),:)
+    !
+    !Swap atoms
+    P(id(1),:) = P(id(2),:)
+    P(id(2),:) = Vtemp(:)
+    !
+    !Swap shell positions (if any)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      Vtemp(:) = S(id(1),:)
+      S(id(1),:) = S(id(2),:)
+      S(id(2),:) = Vtemp(:)
+    ENDIF
+    !
+    !Swap auxiliary properties (if any)
+    IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(P,1) ) THEN
+      ALLOCATE( AUXtemp( SIZE(AUX,2) ) )
+      AUXtemp(:) = AUX(id(1),:)
+      AUX(id(1),:) = AUX(id(2),:)
+      AUX(id(2),:) = AUXtemp(:)
+      DEALLOCATE(AUXtemp)
+    ENDIF
+    !
+  ELSE
+    !The swap_id(:) must contain atom species to swap
+    Nswap = 0
+    CALL ATOMNUMBER(swap_id(1),swap_sp(1))
+    CALL ATOMNUMBER(swap_id(2),swap_sp(2))
+    IF( swap_sp(1)<0.1d0 ) THEN
+      CALL ATOMSK_MSG(801,(/swap_id(1)/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ELSEIF( swap_sp(2)<0.1d0 ) THEN
+      CALL ATOMSK_MSG(801,(/swap_id(2)/),(/0.d0/))
+      nerr = nerr+1
       GOTO 1000
     ENDIF
-  ENDDO
-  !
-  !Save position of first atom
-  Vtemp(:) = P(id(1),:)
-  !
-  !Swap atoms
-  P(id(1),:) = P(id(2),:)
-  P(id(2),:) = Vtemp(:)
-  !
-  !Swap shell positions (if any)
-  IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-    Vtemp(:) = S(id(1),:)
-    S(id(1),:) = S(id(2),:)
-    S(id(2),:) = Vtemp(:)
-  ENDIF
-  !
-  !Swap auxiliary properties (if any)
-  IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(P,1) ) THEN
-    ALLOCATE( AUXtemp( SIZE(AUX,2) ) )
-    AUXtemp(:) = AUX(id(1),:)
-    AUX(id(1),:) = AUX(id(2),:)
-    AUX(id(2),:) = AUXtemp(:)
-    DEALLOCATE(AUXtemp)
+    !
+    !If "type" is defined as auxiliary property, also exchange the two atom types
+    IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+      !Determine if a column contains "type"
+      atype = 0
+      DO i=1,SIZE(AUXNAMES)
+        IF( AUXNAMES(i)=="type" ) THEN
+          atype = i
+        ENDIF
+      ENDDO
+      !
+      !If "type" was found, determine the type of the atoms to swap
+      IF( atype>0 ) THEN
+        type1 = 0
+        type2 = 0
+        i = 0
+        DO WHILE( type1==0 .OR. type2==0 )
+          i=i+1
+          IF( i>SIZE(P,1) ) EXIT
+          IF( NINT(P(i,4))==NINT(swap_sp(1)) ) THEN
+            type1 = NINT(AUX(i,atype))
+          ELSEIF( NINT(P(i,4))==NINT(swap_sp(2)) ) THEN
+            type2 = NINT(AUX(i,atype))
+          ENDIF
+        ENDDO
+      ENDIF
+    ENDIF
+    !
+    IF( swap_sp(1)>0.d0 .AND. swap_sp(2)>0.d0 ) THEN
+      !Swap species of types 1 and 2
+      DO i=1,SIZE(P,1)
+        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          IF( NINT(P(i,4))==NINT(swap_sp(1)) ) THEN
+            P(i,4) = swap_sp(2)
+            Nswap = Nswap+1
+            !Swap shell positions (if any)
+            IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+              S(i,4) = swap_sp(2)
+            ENDIF
+            !Swap the "type" of atoms (if any)
+            IF( atype>0 ) THEN
+              AUX(i,atype) = DBLE(type2)
+            ENDIF
+          ELSEIF( NINT(P(i,4))==NINT(swap_sp(2)) ) THEN
+            P(i,4) = swap_sp(1)
+            Nswap = Nswap+1
+            !Swap shell positions (if any)
+            IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+              S(i,4) = swap_sp(1)
+            ENDIF
+            !Swap the "type" of atoms (if any)
+            IF( atype>0 ) THEN
+              AUX(i,atype) = DBLE(type1)
+            ENDIF
+          ENDIF
+        ENDIF
+      ENDDO
+    ELSE
+      !Unable to determine species
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    !
   ENDIF
   !
 END SELECT
 !
 !
-CALL ATOMSK_MSG(2126,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(2126,(/''/),(/DBLE(Nswap)/))
 GOTO 1000
 !
 !

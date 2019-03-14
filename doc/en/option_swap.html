@@ -17,14 +17,18 @@
 
 <p><code>-swap &#60;id1&#62; &#60;id2&#62;</code></p>
 
+<p><code>-swap &#60;sp1&#62; &#60;sp2&#62;</code></p>
+
 <p><code>-swap &#60;x|y|z&#62; &#60;x|y|z&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option swaps the positions of the two atoms of the given indices, or swaps the two given Cartesian axes.</p>
+<p>This option swaps the positions of the two atoms of the given indices, or swaps two atom species, or swaps the two given Cartesian axes.</p>
 
-<p>Swapping atoms means that their positions are exchanged. If shells (in the sense of an ionic core-shell model) and/or auxiliary properties are defined, then they are also swapped.</p>
+<p>Swapping atoms indices means that their positions are exchanged. If shells (in the sense of an ionic core-shell model) and/or auxiliary properties are defined, then they are also swapped.</p>
+
+<p>Swapping atomic species means that all atoms of corresponding chemical species are replaced with each other. The positions of atoms are not changed. If one of the two atom species does not exist in the system, then the existing species is replaced by the given species (this has the same effect as the <a href="./option_substitute.html">option "-substitute"</a>).</p>
 
 <p>Swapping Cartesian axes means that the two given vectors of the box are exchanged. For instance, exchanging the Cartesian axes X and Y would result in the following transformation (where H is the old vector and H' the new one):</p>
 
@@ -47,6 +51,9 @@ H'(2,2) = H(1,1)</code></p>
 <ul>
 <li><code class="command">atomsk initial.cfg -swap 530 1065 final.xsf</code>
 <p>This will read the file <code>initial.cfg</code>, and exchange the positions and all properties of atoms 530 and 1065. The final result will be written into <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -swap Mg O final.xsf</code>
+<p>This will read the file <code>initial.cfg</code>, and swap the chemical species of Mg and O atoms. The final result will be written into <code>final.xsf</code>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -swap X Y final.xsf</code>
 <p>This will read the file <code>initial.cfg</code>, and exchange the Cartesian axes X and Y. The final result will be written into <code>final.xsf</code>.</p></li>

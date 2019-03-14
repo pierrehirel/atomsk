@@ -393,8 +393,9 @@ IF(helpsection=="options" .OR. helpsection=="-substitute" .OR. helpsection=="-su
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-swap") THEN
-  WRITE(*,*) "..> Échanger les indices de deux atomes ou des axes cartésiens :"
+  WRITE(*,*) "..> Échanger les indices de deux atomes ou deux espèces chimiques ou deux axes cartésiens :"
   WRITE(*,*) "          -swap <id1> <id2>"
+  WRITE(*,*) "          -swap <sp1> <sp2>"
   WRITE(*,*) "          -swap <x|y|z> <x|y|z>"
 ENDIF
 !
@@ -1976,7 +1977,15 @@ CASE(2125)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
-  msg = "..> Échange réussi."
+  !reals(1) = number of atoms that were swapped
+  IF( NINT(reals(1))==0 ) THEN
+    msg = "..> Aucun atome de ce type dans le système."
+  ELSEIF( NINT(reals(1))>0 ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" atomes ont changé d'espèce chimique."
+  ELSE
+    msg = "..> Échange réussi."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2127)
   !strings(1) = roll axis: x, y or z
@@ -2039,13 +2048,16 @@ CASE(2143)
   msg = ">>> Conversion du système en une boîte orthorhombique..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2144)
+  msg = "..> Une nouvelle boîte a été trouvée, calcul des nouvelles positions atomiques..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2145)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> La boîte est désormais orthorhombique ("//TRIM(ADJUSTL(temp))//" atomes)."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2145)
+CASE(2146)
   msg = "..> Application des déplacements aux atomes..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2146)
+CASE(2147)
   !strings(1) = name of property that is rounded off
   msg = ">>> Arrondissement des valeurs de"
   IF( strings(1)=="AUX" ) THEN
@@ -2062,7 +2074,7 @@ CASE(2146)
     msg = TRIM(ADJUSTL(msg))//" la propriété '"//TRIM(ADJUSTL(strings(1)))//"'..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(2147)
+CASE(2148)
   !reals(1) = number of values that were rounded off
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" valeurs ont été arrondies."
@@ -2341,6 +2353,13 @@ CASE(2818)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2819)
   msg = "X!X ERREUR : impossible de trouver une boîte orthorhombique à partir des vecteurs de boîte initiaux."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2820)
+  !reals(1) = estimated number of atoms
+  msg = "X!X ERREUR : impossible de remplir la nouvelle boîte d'atomes."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "            Estimation du nombre d'atomes requis : "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

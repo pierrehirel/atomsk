@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 June 2018                                     *
+!* Last modification: P. Hirel - 14 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -167,11 +167,12 @@ ELSE
 ENDIF
 !
 ! Define the discrete grid
-! By default use a step dx=dy=dz=0.2 A and compute Nx, Ny and Nz
 ! If Nx, Ny or Nz is too large (i.e. if the box H(:,:) is very wide)
 ! then set Nx, Ny and/or Nz to a smaller value, and increase the step dx, dy and/or dz
 IF( den_type==1 ) THEN
+  ! By default use a step dx=0.2 A
   dx = 0.2d0
+  !Compute Nx
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   IF( Nx<200 .OR. Nx>2000 ) THEN
     Nx = 2000
@@ -179,35 +180,39 @@ IF( den_type==1 ) THEN
   ENDIF
   !
 ELSEIF( den_type==2 ) THEN
-  dx = 0.5d0
-  dy = 0.5d0
+  ! By default use a step dx=dy=1.0 A
+  dx = 1.d0
+  dy = 1.d0
+  !Compute Nx and Ny
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
-  IF( Nx<50 .OR. Nx>200 ) THEN
-    Nx = 200
+  IF( Nx<50 .OR. Nx>100 ) THEN
+    Nx = 100
     dx = H(a1,a1) / DBLE(Nx)
   ENDIF
-  IF( Ny<50 .OR. Ny>200 ) THEN
-    Ny = 200
+  IF( Ny<50 .OR. Ny>100 ) THEN
+    Ny = 100
     dy = H(a2,a2) / DBLE(Ny)
   ENDIF
   !
 ELSE
-  dx = 1.d0
-  dy = 1.d0
-  dz = 1.d0
+  ! By default use a step dx=dy=2.0 A
+  dx = 2.d0
+  dy = 2.d0
+  dz = 2.d0
+  !Compute Nx, Ny, Nz
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
   Nz = NINT( ( MAXVAL(P(:,a3))-MINVAL(P(:,a3)) ) / dz )
-  IF( Nx<40 .OR. Nx>150 ) THEN
+  IF( Nx<40 .OR. Nx>100 ) THEN
     Nx = 100
     dx = H(a1,a1) / DBLE(Nx)
   ENDIF
-  IF( Ny<40 .OR. Ny>150 ) THEN
+  IF( Ny<40 .OR. Ny>100 ) THEN
     Ny = 100
     dy = H(a2,a2) / DBLE(Ny)
   ENDIF
-  IF( Nz<40 .OR. Nz>150 ) THEN
+  IF( Nz<40 .OR. Nz>100 ) THEN
     Nz = 100
     dz = H(a3,a3) / DBLE(Nz)
   ENDIF
@@ -312,7 +317,7 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
         CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
       ENDIF
       !
-      prefactor = PropPoint(i) * A * DEXP(-1.d0*P(i,a3)/VECLENGTH(H(a3,:)))
+      prefactor = PropPoint(i) * A
       !
       DO j=1,Nx
         x = DBLE(j)*dx
@@ -494,8 +499,8 @@ IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
 OPEN(UNIT=30,FILE=outputfile,STATUS="UNKNOWN",FORM="FORMATTED")
 !
 IF( den_type==1 ) THEN
-  WRITE(30,*) "# Linear density of "//TRIM(ADJUSTL(property))//" along "//axis//" computed by atomsk"
-  WRITE(30,*) "# Can be visualized with Gnuplot (see density.gp)"
+  WRITE(30,*) "# Linear density of "//TRIM(ADJUSTL(property))//" along "//axis//" computed with Atomsk"
+  WRITE(30,*) "# Can be visualized with Gnuplot"
   WRITE(30,*) "# Step: ", dx
   WRITE(30,*) "#        x            density"
   DO i=1,Nx
@@ -504,8 +509,8 @@ IF( den_type==1 ) THEN
   ENDDO
   !
 ELSEIF( den_type==2 ) THEN
-  WRITE(30,*) "# 2-D density plot of "//TRIM(ADJUSTL(property))//" computed by atomsk"
-  WRITE(30,*) "# Can be visualized with Gnuplot (see "//TRIM(ADJUSTL(prefix))//"_"//TRIM(ADJUSTL(property))//"_density.gp)"
+  WRITE(30,*) "# 2-D density plot of "//TRIM(ADJUSTL(property))//" computed with Atomsk"
+  WRITE(30,*) "# Can be visualized with Gnuplot"
   WRITE(30,*) "# Step: ", dx, dy
   WRITE(30,*) "#        x               y            density"
   DO j=1,Nx
@@ -518,7 +523,7 @@ ELSEIF( den_type==2 ) THEN
   ENDDO
 !
 ELSE
-  WRITE(30,*) "# 3-D density plot of "//TRIM(ADJUSTL(property))//" computed by atomsk"
+  WRITE(30,*) "# 3-D density plot of "//TRIM(ADJUSTL(property))//" computed with Atomsk"
   WRITE(30,*) "# Step: ", dx, dy, dz
   WRITE(30,*) "#        x               y             z             density"
   DO j=1,Nx

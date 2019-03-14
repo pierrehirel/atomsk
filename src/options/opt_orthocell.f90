@@ -210,6 +210,9 @@ IF( VECLENGTH(uv(1,:))<1.d-3 .OR. VECLENGTH(uv(2,:))<1.d-3 .OR. VECLENGTH(uv(3,:
   ENDIF
 ENDIF
 !
+!At this point, new cell vectors were found
+CALL ATOMSK_MSG(2144,(/""/),(/0.d0/))
+!
 !Make sure vectors are oriented positively along each axis
 !and that non-diagonal elements are all zero
 DO i=1,3
@@ -252,12 +255,18 @@ ELSE
       & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 25
   WRITE(msg,*) "Estimated new number of atoms : ", NP
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  IF( NP>2d9 ) THEN
+    GOTO 801
+  ELSE IF( NP>5000 ) THEN
+    CALL ATOMSK_MSG(3,(/""/),(/0.d0/))
+  ENDIF
+  !
   IF(ALLOCATED(Q)) DEALLOCATE(Q)
   ALLOCATE( Q(NP,4) , STAT=i )
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
     nerr = nerr+1
-    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    CALL ATOMSK_MSG(820,(/''/),(/DBLE(NP)/))
     GOTO 1000
   ENDIF
   Q(:,:) = 0.d0
@@ -389,14 +398,20 @@ DO i=1,3
 ENDDO
 !
 !
-CALL ATOMSK_MSG(2144,(/msg/),(/DBLE(SIZE(P,1))/))
+CALL ATOMSK_MSG(2145,(/msg/),(/DBLE(SIZE(P,1))/))
 GOTO 1000
 !
 !
 !
 800 CONTINUE
 nerr = nerr+1
-CALL ATOMSK_MSG(2819,(/msg/),(/0.d0/))
+CALL ATOMSK_MSG(2819,(/""/),(/0.d0/))
+GOTO 1000
+!
+801 CONTINUE
+nerr = nerr+1
+CALL ATOMSK_MSG(2820,(/""/),(/0.d0/))
+GOTO 1000
 !
 !
 !
