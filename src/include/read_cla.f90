@@ -935,18 +935,21 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !try to read the maximum displacement along Y
     i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp2
-    !Verify that it is a real number
-    READ(temp2,*,END=101,ERR=101) tempreal
-    !No error? It was the max. displacement along Y, save it
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
-    !Proceed with max. disp. along Z
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp2
-    READ(temp2,*,END=101,ERR=101) tempreal
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
-    !We are done reading the 3 real numbers
-    GOTO 110
+    IF( i<=SIZE(cla) ) THEN
+      READ(cla(i),*,END=101,ERR=101) temp2
+      !Verify that it is a real number
+      READ(temp2,*,END=101,ERR=101) tempreal
+      !No error? It was the max. displacement along Y, save it
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
+      !Proceed with max. disp. along Z
+      i=i+1
+      IF(i>SIZE(cla)) GOTO 120
+      READ(cla(i),*,END=120,ERR=120) temp2
+      READ(temp2,*,END=120,ERR=120) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
+      !We are done reading the 3 real numbers
+      GOTO 110
+    ENDIF
     101 CONTINUE
     !There was an error while trying to real max. displacement along Y
     !=> user gave only one value, that will apply in all directions X, Y and Z
