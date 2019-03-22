@@ -6,6 +6,7 @@ Master (development)
 --------------------
 - added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
 - added support for reading and writing files in Comma-Separated Values format (*.csv).
+- in mode "--difference", the differences between matching auxiliary properties is now also computed.
 - in mode "--one-in-all" it is now possible to read all snapshots from LAMMPS custom dump files (*.lmc) and convert them into individual files.
 - in mode "--nye", added possibility to provide a unit cell as a reference, or to work with no reference at all.
 - in mode "--polycrystal", added a warning if a 2-D polycrystal is constructed and the user specified non-zero angles around other Cartesian axes.

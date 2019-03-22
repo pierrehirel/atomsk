@@ -20,7 +20,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 Feb. 2019                                     *
+!* Last modification: P. Hirel - 18 March 2019                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -74,6 +74,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, iat
 INTEGER:: nb_neigh, eps
 INTEGER:: Nneighbors
+INTEGER:: Nsites  !number of atomic environments
 INTEGER:: ok
 INTEGER:: Q_matrix_rank, INFO, LWORK
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
@@ -82,14 +83,16 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE:: siteindex !for each atom, index of its type of site in Pref
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList1, NeighList2  !list of neighbors for systems 1 and 2
 REAL(dp):: alpha, alpha_tmp !angles between two vectors
+REAL(dp):: beta, gamma      !
 REAL(dp):: NeighFactor !%of tolerance in the radius for neighbor search
 REAL(dp):: P1, P2, P3  !coordinates of a neighbor
-REAL(dp),PARAMETER:: angle_th=0.785d0   !threshold to exlude neighbors (0.785 rad = 45 degrees)
+REAL(dp),PARAMETER:: angle_th=pi/5.d0  !threshold to exlude neighbors
 REAL(dp),PARAMETER:: radius=8.d0 !R for neighbor search: 8 A should be enough to find some neighbors in any system
 REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3):: alpha_tensor, test_matrix
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
-REAL(dp),DIMENSION(3,3):: Hfirst,Hsecond !Box vectors of systems 1 and 2
+REAL(dp),DIMENSION(3,3):: Hfirst, Hsecond !Box vectors of systems 1 and 2
+REAL(dp),DIMENSION(3,3):: Hneigh, Hnew    !Base vectors for neighbors
 REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: rot_matrix !a rotation matrix
 REAL(dp),DIMENSION(3,3,3):: A_tensor  !tensor A(IM)
@@ -108,6 +111,7 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: G, Delta_G, Delta_G_matrix, Delta_G_tmp
 
 
 !Initialize variables and arrays
+Nsites = 0
 firstref = .TRUE.
 ucref = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
@@ -242,7 +246,7 @@ IF( .NOT.firstref ) THEN
   !Allocate an array to save, for each atom in system2, the site it belongs to
   ALLOCATE(siteindex(SIZE(Psecond,1)))
   siteindex(:) = 0
-  m = 0  !to count number of different atom sites
+  Nsites = 0  !to count number of different atom sites
   !Loop on atoms in reference system: perform average only on the first 1000 atoms should be sufficient
   DO iat=1,SIZE(Ppoint,1)
     !Get positions of neighbors of this atom
@@ -310,10 +314,10 @@ IF( .NOT.firstref ) THEN
       ENDIF
     ENDDO
     !
-    !Add atom to average only if number of neighbors is greater than 3,
-    !even, and not multiple of 5 (because an atom in any material is not supposed
-    !to have 5 or 10 neighbors)
-    IF( Nneighbors>3 .AND. MOD(Nneighbors,2)==0 .AND. MOD(Nneighbors,5)>0 ) THEN
+    !Add atom to average only if number of neighbors is greater than 3, lower than 14, even, and
+    !not multiple of 5 (because an atom in any material is not supposed to have 5 or 10 neighbors)
+    !i.e. we consider only atoms with 4, 6, 8, 12, 14 neighbors are in "perfect" environments
+    IF( Nneighbors>3 .AND. Nneighbors<=14 .AND. MOD(Nneighbors,2)==0 .AND. MOD(Nneighbors,5)>0 ) THEN
       !Add neighbors positions to already known positions for averaging
       IF( NINT(Pref(i,1,5))==1 ) THEN
         !No neighbor was found for this site yet
@@ -364,14 +368,66 @@ IF( .NOT.firstref ) THEN
   ENDDO ! end loop on iat
   !
   190 CONTINUE
-  m = MAXVAL(siteindex)
-  IF( m<=0 ) THEN
+  Nsites = MAXVAL(siteindex)
+  IF( Nsites<=0 ) THEN
     !No atomic environment found: cannot compute anything
     CALL ATOMSK_MSG(4830,(/""/),(/0.d0/))
     nerr = nerr+1
     GOTO 1000
+  ELSE
+    !Nsites atom sites were found
+    !For each site, perform a rotation so that a neighbors's position vector
+    !is aligned with the Cartesian X axis, another is in XY plane,
+    !and a third one pointing out of XY plane.
+    !Then, express all neighbors positions in this new base
+!     DO i=1,MIN(Nsites,SIZE(Pref,1))
+!       Hneigh(:,:) = 0.d0
+!       !First neighbor is used as first base vector
+!       Hneigh(1,1:3) = Pref(i,2,1:3)
+!       m = 1
+!       !Find two other vectors to form a base of 3 linearly independent vectors
+!       DO j=3,NINT(Pref(i,1,6))+1  !loop on other neighbors
+!         !Compute magnitude of cross product between current vector and first base vector
+!         P1 = VECLENGTH( CROSS_PRODUCT( Pref(i,j,1:3) , Hneigh(1,1:3) ) )
+!         IF( m>=2 ) THEN
+!           !Second base vector was found:
+!           !Compute magnitude of cross product between current vector and second base vector
+!           P2 = VECLENGTH( CROSS_PRODUCT( Pref(i,j,1:3) , Hneigh(2,1:3) ) )
+!         ELSE
+!           !Second base vector not found yet: don't enforce this condition
+!           P2 = 100.d0
+!         ENDIF
+!         !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
+!         !then save it as an additional base vector
+!         IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
+!           m = m+1
+!           Hneigh(m,1:3) = Pref(i,j,1:3)
+!         ENDIF
+!       ENDDO
+!       !
+!       IF( m==3 ) THEN
+!         !Now Hneigh contains the "old base vectors"
+!         !Convert all neighbor positions into fractional coordinates
+!         CALL CART2FRAC(Pref(i,2:,1:3),Hneigh)
+!         !Convert base vectors into "conventional notation"
+!         P1 = VECLENGTH(Hneigh(1,:))
+!         P2 = VECLENGTH(Hneigh(2,:))
+!         P3 = VECLENGTH(Hneigh(3,:))
+!         alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
+!         beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
+!         gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
+!         !Then convert them into vectors
+!         CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
+!         !Convert all neighbor positions back into Cartesian coordinates
+!         CALL FRAC2CART(Pref(i,2:,1:3),Hneigh)
+!         !
+!       ELSE
+!         !m is not equal to 3, meaning that we could not find a suitable base
+!         !of 3 vectors that are linearly independent: just leave neighbor list as it is
+!       ENDIF
+!     ENDDO
   ENDIF
-  CALL ATOMSK_MSG(4071,(/""/),(/DBLE(m)/))
+  CALL ATOMSK_MSG(4071,(/""/),(/DBLE(Nsites)/))
   !Now Pref contains the averaged relative positions of neighbors
   !for each type of atom site
   IF( ucref ) THEN
@@ -385,7 +441,7 @@ IF( .NOT.firstref ) THEN
     !and positions of neighbors into a XYZ file named "site_i.xyz" for visualization
     msg = " ATOMS ENVIRONMENTS DETECTED:"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO i=1,MIN(m,SIZE(Pref,1))
+    DO i=1,MIN(Nsites,SIZE(Pref,1))
       !PRINT*, "Site #", i, ": ", NINT(Pref(i,1,5)), " atoms in this site"
       IF( NINT(Pref(i,1,4))>0 ) THEN
         WRITE(msg,*) i
@@ -508,7 +564,7 @@ DO iat=1,SIZE(Psecond,1)
     IF( siteindex(iat)==0 ) THEN
       !The type of site for this atom was not determined before
       !Determine it now, based on atom species
-      DO k=1,SIZE(Pref,1)
+      DO k=1,MIN(Nsites,SIZE(Pref,1))
         IF( NINT(Psecond(iat,4))==NINT(Pref(k,1,4)) ) THEN
           siteindex(iat) = k
           EXIT
@@ -598,7 +654,57 @@ DO iat=1,SIZE(Psecond,1)
     ENDDO
     DEALLOCATE(V_NN)
     !
-    !Rotate neighbors in P_neigh to match those in Q_neigh (TODO)
+!     IF( .NOT.firstref ) THEN
+!       !A unit cell was provided as reference, or no reference at all
+!       !Rotate neighbors in Q_neigh to match those in P_neigh
+!       Hneigh(:,:) = 0.d0
+!       !First neighbor in Q_neigh is used as first base vector
+!       Hneigh(1,1:3) = Q_neigh(1,1:3)
+!       m = 1
+!       !Find two other vectors to form a base of 3 linearly independent vectors
+!       DO j=2,SIZE(Q_neigh,1)  !loop on other neighbors
+!         !Compute magnitude of cross product between current vector and first base vector
+!         P1 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(1,1:3) ) )
+!         IF( m>=2 ) THEN
+!           !Second base vector was found:
+!           !Compute magnitude of cross product between current vector and second base vector
+!           P2 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(2,1:3) ) )
+!         ELSE
+!           !Second base vector not found yet: don't enforce this condition
+!           P2 = 100.d0
+!         ENDIF
+!         !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
+!         !then save it as an additional base vector
+!         IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
+!           m = m+1
+!           Hneigh(m,1:3) = Q_neigh(j,1:3)
+!         ENDIF
+!       ENDDO
+!       !
+!       IF( m==3 ) THEN
+!         !Now Hneigh contains the "old base vectors"
+!         !Convert all neighbors positions in Q_neigh into reduced coordinates
+!         CALL CART2FRAC(Q_neigh(:,1:3),Hneigh)
+!         !
+!         !Convert the matrix H into conventional notation
+!         P1 = VECLENGTH(Hneigh(1,:))
+!         P2 = VECLENGTH(Hneigh(2,:))
+!         P3 = VECLENGTH(Hneigh(3,:))
+!         alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
+!         beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
+!         gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
+!         !
+!         !Then convert this conventional notation into lower-triangular matrix H
+!         CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
+!         !
+!         !Convert all neighbor positions in P_neigh back into Cartesian coordinates
+!         CALL FRAC2CART(Q_neigh(:,1:3),Hneigh)
+!         !
+!       ELSE
+!         !m is not equal to 3, meaning that we could not find a suitable base
+!         !of 3 vectors that are linearly independent: just leave neighbor list as it is
+!       ENDIF
+!     ENDIF
     !
     !Build a table of correspondance between indices in P_neigh and those in Q_neigh
     ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
@@ -641,6 +747,7 @@ DO iat=1,SIZE(Psecond,1)
     ALLOCATE(P_neigh(SIZE(P_neigh_tmp,1),3))
     P_neigh(:,:) = P_neigh_tmp(:,:)
     DEALLOCATE(P_neigh_tmp)
+    IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
     !
     IF (verbosity==4) THEN
       WRITE(msg,*) '-----Relative positions of neighbors-----'
@@ -665,7 +772,6 @@ DO iat=1,SIZE(Psecond,1)
       CALL ATOMSK_MSG(4709,(/""/),(/ DBLE(iat) , DBLE(nb_neigh) /))
       nwarn = nwarn+1
       DEALLOCATE(P_neigh,Q_neigh)
-      DEALLOCATE(Tab_PQ)
       !
     ELSE
       !
@@ -682,7 +788,6 @@ DO iat=1,SIZE(Psecond,1)
       ENDDO
       !
       DEALLOCATE(P_neigh,Q_neigh)
-      DEALLOCATE(Tab_PQ)
       !
       IF (verbosity==4) THEN
         WRITE(msg,*) '-----Neighbors used for calculation of G----'
@@ -1078,36 +1183,88 @@ DO iat=1,SIZE(Psecond,1)
     ENDDO
     DEALLOCATE(V_NN)
     !
-    !Build a table of correspondance between indices in P_neigh and those in Q_neigh
-    ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
-    Tab_PQ(:)=0
-    nb_neigh = 0
-    !For each neighbor in Q_neigh, find the one in P_neigh that
-    !maximizes the dot product and minimizes the angle
-    DO j=1,SIZE(Q_neigh,1)
-      tempreal = 0.d0
-      m = 0
-      DO k=1,SIZE(P_neigh,1)
-        alpha = DOT_PRODUCT(Q_neigh(j,1:3),P_neigh(k,1:3))
-        alpha_tmp = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
-        IF( alpha>tempreal .AND. alpha_tmp<angle_th ) THEN
-          !This dot product is larger than previous ones
-          !and the angle is smaller than threshold value
-          !=> save this as the most probable candidate
-          m = k
-          tempreal = alpha
-        ENDIF
-      ENDDO
-      IF( m>0 ) THEN
-        !Neighbor #m in P_neigh matches neighbor #j in Q_neigh
-        !Save its index in Tab_PQ
-        nb_neigh = nb_neigh+1
-        Tab_PQ(j) = m
-      ENDIF
-    ENDDO
+!     IF( .NOT.firstref ) THEN
+!       !A unit cell was provided as reference, or no reference at all
+!       !Rotate neighbors in Q_neigh to match those in P_neigh
+!       Hneigh(:,:) = 0.d0
+!       !First neighbor in Q_neigh is used as first base vector
+!       Hneigh(1,1:3) = Q_neigh(1,1:3)
+!       m = 1
+!       !Find two other vectors to form a base of 3 linearly independent vectors
+!       DO j=2,SIZE(Q_neigh,1)  !loop on other neighbors
+!         !Compute magnitude of cross product between current vector and first base vector
+!         P1 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(1,1:3) ) )
+!         IF( m>=2 ) THEN
+!           !Second base vector was found:
+!           !Compute magnitude of cross product between current vector and second base vector
+!           P2 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(2,1:3) ) )
+!         ELSE
+!           !Second base vector not found yet: don't enforce this condition
+!           P2 = 100.d0
+!         ENDIF
+!         !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
+!         !then save it as an additional base vector
+!         IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
+!           m = m+1
+!           Hneigh(m,1:3) = Q_neigh(j,1:3)
+!         ENDIF
+!       ENDDO
+!       !
+!       IF( m==3 ) THEN
+!         !Now Hneigh contains the "old base vectors"
+!         !Convert all neighbors positions in Q_neigh into reduced coordinates
+!         CALL CART2FRAC(Q_neigh(:,1:3),Hneigh)
+!         !
+!         !Convert the matrix H into conventional notation
+!         P1 = VECLENGTH(Hneigh(1,:))
+!         P2 = VECLENGTH(Hneigh(2,:))
+!         P3 = VECLENGTH(Hneigh(3,:))
+!         alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
+!         beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
+!         gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
+!         !
+!         !Then convert this conventional notation into lower-triangular matrix H
+!         CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
+!         !
+!         !Convert all neighbor positions in P_neigh back into Cartesian coordinates
+!         CALL FRAC2CART(Q_neigh(:,1:3),Hneigh)
+!         !
+!       ELSE
+!         !m is not equal to 3, meaning that we could not find a suitable base
+!         !of 3 vectors that are linearly independent: just leave neighbor list as it is
+!       ENDIF
+!     ENDIF
+    !
     !
     IF( firstref ) THEN
-      !Matrix P_matrix and Q_matrix
+      !Build a table of correspondance between indices in P_neigh and those in Q_neigh
+      ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
+      Tab_PQ(:)=0
+      nb_neigh = 0
+      !For each neighbor in Q_neigh, find the one in P_neigh that
+      !maximizes the dot product and minimizes the angle
+      DO j=1,SIZE(Q_neigh,1)
+        tempreal = 0.d0
+        m = 0
+        DO k=1,SIZE(P_neigh,1)
+          alpha = DOT_PRODUCT(Q_neigh(j,1:3),P_neigh(k,1:3))
+          alpha_tmp = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
+          IF( alpha>tempreal .AND. alpha_tmp<angle_th ) THEN
+            !This dot product is larger than previous ones
+            !and the angle is smaller than threshold value
+            !=> save this as the most probable candidate
+            m = k
+            tempreal = alpha
+          ENDIF
+        ENDDO
+        IF( m>0 ) THEN
+          !Neighbor #m in P_neigh matches neighbor #j in Q_neigh
+          !Save its index in Tab_PQ
+          nb_neigh = nb_neigh+1
+          Tab_PQ(j) = m
+        ENDIF
+      ENDDO
+      !
       !Re-write array Delta_G in the "correct" order to match Q_neigh
       ALLOCATE(Delta_G_tmp(SIZE(Q_neigh,1),3,3))
       Delta_G_tmp(:,:,:) = 0.d0
@@ -1146,7 +1303,9 @@ DO iat=1,SIZE(Psecond,1)
       DO j=1,nb_neigh
         IF( Tab_PQ(j)>0 .AND. Tab_PQ(j)<SIZE(Q_matrix,1) ) THEN
           Q_matrix(Tab_PQ(j),:) = Q_neigh(j,:)
-          Delta_G_matrix(Tab_PQ(j),:,:) = Delta_G(j,:,:)
+          IF( firstref ) THEN
+            Delta_G_matrix(Tab_PQ(j),:,:) = Delta_G(j,:,:)
+          ENDIF
         ENDIF
       ENDDO
     ELSE

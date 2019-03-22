@@ -20,9 +20,11 @@
 
 <h4>Description</h4>
 
-<p>This mode computes the difference in atomic positions between two configurations.</p>
+<p>This mode computes the differences between two atomic configurations.</p>
 
 <p>The displacement vectors are defined by the subtraction of the positions of the &#60;file1&#62; from those of the &#60;file2&#62; (in other words disp=&#60;file2&#62;-&#60;file1&#62; ). Both files <em>must</em> have the exact same number of particles, and shall correspond to the same system (i.e. same base vectors, same atom types, etc.) for the computation to make sense. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by Atomsk</a>.</p>
+
+<p>If auxiliary properties exist in both systems, then the difference between matching auxiliary properties is also computed, i.e. for auxiliary properties that have exactly the same name in both input files. Auxiliary properties that exist in one input file but not the other are ignored, and will not appear in the final files.</p>
 
 <p>The results are written in six separate files which names are prefixed with the name of the &#60;file2&#62;:</p>
 
@@ -39,7 +41,6 @@
 
  <li><strong>*_hist.dat</strong>: contains the number of atoms versus the displacement, i.e. the number of atoms that have a displacement between <em>x</em> and <em>x+dx</em>, for <em>x</em> ranging from zero to the maximum value of displacement. Meant to be displayed as a histogram.</li>
 </ul>
-
 
 <p>Note that this mode assumes that coordinates are <em>not wrapped</em>. If they are wrapped (either because the simulation code has written wrapped coordinates in the file, or because you run Atomsk with the <a href="./option_wrap.html">option <code>-wrap</code></a>) then some atoms may seem to teleport from one end of the supercell to another, and displacement vectors may be wrong. If coordinates are wrapped you may unwrap them first with the <a href="./mode_unwrap.html">mode <code>--unwrap</code></a>.</p>
 

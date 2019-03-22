@@ -10,12 +10,15 @@ MODULE mode_difference
 !* The two arrays Pfirst and Psecond must have the same size. They should         *
 !* also contain similar systems (e.g. two snaphots from MD) for the               *
 !* computation to make sense, although this is not checked here.                  *
+!* If auxiliary properties exist in both system, the difference between matching  *
+!* auxiliary properties is also computed. Auxiliary properties that exist in      *
+!* one system but not both are ignored and will not appear in output files.       *
 !**********************************************************************************
 !* (C) March 2010 - Pierre Hirel                                                  *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2014                                     *
+!* Last modification: P. Hirel - 21 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,6 +40,10 @@ USE constants
 USE messages
 USE files
 USE subroutines
+!Module for reading input files
+USE readin
+!Module for applying options
+USE options
 !Output modules
 USE out_cfg
 USE out_xyz
@@ -46,58 +53,48 @@ USE out_xsf
 CONTAINS
 !
 !
-SUBROUTINE DIFF_XYZ(H,Pfirst,Psecond,outputfile)
+SUBROUTINE DIFF_XYZ(filefirst,filesecond,options_array,outputfile)
 !
 !
 IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: filefirst, filesecond
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: outputfile, msg
 CHARACTER(LEN=128):: diffcfgfile, diffxyzfile, diffnormfile, diffxsffile
 CHARACTER(LEN=128):: bothxsffile, histdatfile, stattxtfile
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, AUXNAMES1, AUXNAMES2 !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
-INTEGER:: i, k, l
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
+INTEGER:: i, j, k, l
 INTEGER:: histcount, histcumul !counters for histogram
+INTEGER:: Naux  !number of auxiliary properties that exist in both systems
+INTEGER,DIMENSION(100,2):: tabAUX !correspondance table for aux.prop. (assuming <100 properties)
 REAL(dp):: histstep  !step for histogram in Angstroms
 REAL(dp):: histdown, histup !boundaries for histogram
 REAL(dp):: stat_min, stat_M, stat_A, stat_D, stat_S !statistics on displacements
-REAL(dp), DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
+REAL(dp),DIMENSION(3,3):: H, H1, H2   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation of the system
 REAL(dp),DIMENSION(:),ALLOCATABLE:: spi_table !table containing atomic numbers
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: d21  !displacement vector
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUX1, AUX2  !auxiliary properties of system 1 and 2
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
-REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: Pfirst, Psecond
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pfirst, Psecond !atom positions of system 1 and 2
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S   !shell positions (ignored here)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pboth !atom positions of both systems
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: stattable !table containing norms of displacements
 !
 !
 !Initialize variables
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+Naux=0
+tabAUX(:,:) = 0
 histstep = 1.d0
+Huc(:,:) = 0.d0
+ORIENT(:,:) = 0.d0
 IF(ALLOCATED(Pboth)) DEALLOCATE(Pboth)
-ALLOCATE(d21(SIZE(Pfirst(:,1)),4))
-d21(:,:) = 0.d0
-ALLOCATE( AUXNAMES(4) )
-AUXNAMES(1) = 'dx'
-AUXNAMES(2) = 'dy'
-AUXNAMES(3) = 'dz'
-AUXNAMES(4) = 'dtot'
 ALLOCATE(comment(1))
- comment(1) = '#Differences in atomic positions'
-!
-!
-CALL ATOMSK_MSG(4038,(/''/),(/0.d0/))
-!
-!
-100 CONTINUE
-IF( SIZE(Pfirst(:,1)) .NE. SIZE(Psecond(:,1)) ) THEN
-  CALL ATOMSK_MSG(4810,(/''/), &
-       & (/ DBLE(SIZE(Pfirst(:,1))), DBLE(SIZE(Psecond(:,1))) /))
-  nerr = nerr+1
-  GOTO 1000
-ENDIF
-!
-!
-!
-200 CONTINUE
+ comment(1) = '# Differences in atomic positions'
 !Set file names
 diffcfgfile = TRIM(ADJUSTL(outputfile))//'_diff.cfg'
 diffxyzfile = TRIM(ADJUSTL(outputfile))//'_diff.xyz'
@@ -107,6 +104,83 @@ bothxsffile = TRIM(ADJUSTL(outputfile))//'_both.xsf'
 histdatfile = TRIM(ADJUSTL(outputfile))//'_hist.dat'
 stattxtfile = TRIM(ADJUSTL(outputfile))//'_stat.txt'
 !
+!
+CALL ATOMSK_MSG(4038,(/''/),(/0.d0/))
+!
+!
+100 CONTINUE
+!Read atomic positions from filefirst and store them into Pfirst(:,:)
+CALL READ_AFF(filefirst,H1,Pfirst,S,comment,AUXNAMES1,AUX1)
+!Remove shells
+IF(ALLOCATED(S)) DEALLOCATE(S)
+!Apply options to system 1
+CALL OPTIONS_AFF(options_array,Huc,H1,Pfirst,S,AUXNAMES1,AUX1,ORIENT,SELECT)
+!
+!Read atomic positions from filesecond and store them into Psecond(:,:)
+CALL READ_AFF(filesecond,H2,Psecond,S,comment,AUXNAMES2,AUX2)
+!Remove shells
+IF(ALLOCATED(S)) DEALLOCATE(S)
+!Apply options to system 2
+CALL OPTIONS_AFF(options_array,Huc,H2,Psecond,S,AUXNAMES2,AUX2,ORIENT,SELECT)
+!
+!Verify that both systems contain the same number of atoms
+IF( SIZE(Pfirst,1) .NE. SIZE(Psecond,1) ) THEN
+  CALL ATOMSK_MSG(4810,(/''/), &
+       & (/ DBLE(SIZE(Pfirst(:,1))), DBLE(SIZE(Psecond(:,1))) /))
+  nerr = nerr+1
+  GOTO 1000
+ENDIF
+!
+!Construct a correspondance table between auxiliary properties of systems 1 and 2
+Naux=0
+IF( ALLOCATED(AUXNAMES1) .AND. ALLOCATED(AUXNAMES2) .AND.                  &
+  & ALLOCATED(AUX1) .AND. ALLOCATED(AUX2) .AND. SIZE(AUX1,1)==SIZE(AUX2,1) ) THEN
+  !
+  DO i=1,SIZE(AUXNAMES1)
+    DO j=1,SIZE(AUXNAMES2)
+      IF( AUXNAMES1(i)==AUXNAMES2(j) ) THEN
+        !Auxiliary property #i in AUX1 has same name as au.prop. #j in AUX2
+        Naux = Naux+1
+        tabAUX(Naux,1) = i
+        tabAUX(Naux,2) = j
+      ENDIF
+    ENDDO
+  ENDDO
+  !
+ENDIF
+!
+!
+!
+300 CONTINUE
+!Compute differences and save them in AUX
+ALLOCATE(AUXNAMES(Naux+4))
+DO j=1,Naux
+  AUXNAMES(j) = "diff_"//TRIM(ADJUSTL(AUXNAMES1(tabAUX(j,1))))
+ENDDO
+AUXNAMES(Naux+1) = 'dx'
+AUXNAMES(Naux+2) = 'dy'
+AUXNAMES(Naux+3) = 'dz'
+AUXNAMES(Naux+4) = 'dtot'
+ALLOCATE(AUX(SIZE(Pfirst,1),Naux+4))
+AUX(:,:) = 0.d0
+DO i=1,SIZE(Pfirst,1)
+  IF( Naux>0 ) THEN
+    !Compute differences in auxiliary properties
+    DO j=1,Naux
+      AUX(i,j) = AUX2(i,tabAUX(j,2)) - AUX1(i,tabAUX(j,1))
+    ENDDO
+  ENDIF
+  !Compute displacements
+  !Note: unwrapped cartesian coordinates are assumed here
+  AUX(i,Naux+1) = Psecond(i,1) - Pfirst(i,1)
+  AUX(i,Naux+2) = Psecond(i,2) - Pfirst(i,2)
+  AUX(i,Naux+3) = Psecond(i,3) - Pfirst(i,3)
+  AUX(i,Naux+4) = VECLENGTH(AUX(i,Naux+1:Naux+3))
+ENDDO
+!
+!
+!
+400 CONTINUE
 !Check if files already exist
 IF(.NOT.overw) CALL CHECKFILE(diffxyzfile,'writ')
 IF(.NOT.overw) CALL CHECKFILE(diffnormfile,'writ')
@@ -114,29 +188,13 @@ IF(.NOT.overw) CALL CHECKFILE(diffxsffile,'writ')
 IF(.NOT.overw) CALL CHECKFILE(bothxsffile,'writ')
 IF(.NOT.overw) CALL CHECKFILE(stattxtfile,'writ')
 !
-!
-!
-300 CONTINUE
-!Calculate displacements
-!Note: unwrapped cartesian coordinates are assumed here
-DO i=1,SIZE(Pfirst,1)
-  d21(i,1:3) = Psecond(i,1:3)-Pfirst(i,1:3)
-  d21(i,4) = VECLENGTH( d21(i,1:3) )
-ENDDO
-!
-ALLOCATE(stattable(SIZE(Pfirst,1),2))
-!
-!
-!
-400 CONTINUE
 !Write files
-!d21 is treated as auxiliary properties by all output modules
 !
 !XYZ file containing atom positions of 1st system + displacements
-CALL WRITE_XYZ(H,Pfirst,comment,AUXNAMES,d21,diffxyzfile,'exyz ')
+CALL WRITE_XYZ(H1,Pfirst,comment,AUXNAMES,AUX,diffxyzfile,'exyz ')
 !
 !CFG file containing atom positions of 1st system + displacements
-CALL WRITE_CFG(H,Pfirst,comment,AUXNAMES,d21,diffcfgfile)
+CALL WRITE_CFG(H1,Pfirst,comment,AUXNAMES,AUX,diffcfgfile)
 !
 !XSF file containing both systems
 ALLOCATE( Pboth( SIZE(Pfirst,1)+SIZE(Psecond,1), 4 ) )
@@ -146,26 +204,27 @@ ENDDO
 DO i=1,SIZE(Psecond,1)
   Pboth(SIZE(Pfirst,1)+i,:) = Psecond(i,:)
 ENDDO
-CALL WRITE_XSF(H,Pboth,comment,AUXNAMES,d21,bothxsffile)
+CALL WRITE_XSF(H1,Pboth,comment,AUXNAMES,AUX,bothxsffile)
 DEALLOCATE(Pboth)
 !
 !XSF file containing atom positions of 1st system + displacements
 !Change name to trick module into writing displacements to XSF
-AUXNAMES(1) = 'fx'
-AUXNAMES(2) = 'fy'
-AUXNAMES(3) = 'fz'
-CALL WRITE_XSF(H,Pfirst,comment,AUXNAMES,d21,diffxsffile)
+AUXNAMES(Naux+1) = 'fx'
+AUXNAMES(Naux+2) = 'fy'
+AUXNAMES(Naux+3) = 'fz'
+CALL WRITE_XSF(H1,Pfirst,comment,AUXNAMES,AUX,diffxsffile)
 !
 !Text file containing the norms of displacements
+ALLOCATE(stattable(SIZE(Pfirst,1),2))
 OPEN(UNIT=36,FILE=diffnormfile,FORM='FORMATTED',STATUS='UNKNOWN')
 DO i=1,SIZE(Pfirst,1)
   CALL ATOMSPECIES(Pfirst(i,4),species)
-  WRITE(36,416) i, d21(i,4), species
+  WRITE(36,416) i, AUX(i,Naux+4), species
   !
   !Store norm of displacements in a table
   !for later statistics calculations (see label 450)
   stattable(i,1) = Pfirst(i,4)
-  stattable(i,2) = d21(i,4)
+  stattable(i,2) = AUX(i,Naux+4)
 ENDDO
 416 FORMAT(i6,1X,f12.6,1X,a3)
 CLOSE(36)
@@ -173,7 +232,7 @@ CALL ATOMSK_MSG(4039,(/TRIM(diffnormfile)/),(/0.d0/))
 !
 !
 430 CONTINUE
-IF(ALLOCATED(d21)) DEALLOCATE(d21)
+IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 !
 !
 440 CONTINUE
@@ -279,7 +338,7 @@ GOTO 1000
 !
 1000 CONTINUE
 IF(ALLOCATED(stattable)) DEALLOCATE(stattable)
-IF(ALLOCATED(d21)) DEALLOCATE(d21)
+IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 !
 !
 END SUBROUTINE DIFF_XYZ

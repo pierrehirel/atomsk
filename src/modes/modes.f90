@@ -718,36 +718,36 @@ CASE('average')
 !!!!  MODE DIFFERENCE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('diff')
-  CALL SET_OUTPUT(outfileformats,'all  ',.FALSE.)
-  msg = 'DIFF mode: file1,file2: '//TRIM(file1)//', '//TRIM(file2)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  !
   !Difference mode:
   !in this mode the program reads two files (no matter their format)
   !converts them to extended XYZ, and calculates the difference
   !in atomic positions
-  CALL CHECKFILE(file1,'read')
-  CALL CHECKFILE(file2,'read')
-  !
-  !Read first file
-  CALL READ_AFF(file1,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
-  IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
-  !Read second file
-  CALL READ_AFF(file2,H,Psecond,S,commentsecond,AUXNAMES,AUX)
-  IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
-  !
-  !!Determine if the cell vectors were found or not
-  IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
-    & .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
-    !!If basis vectors H were not found in the input file, then compute them
-    ! (this does not work perfectly yet, see determine_H.f90)
-    CALL ATOMSK_MSG(4701,(/''/),(/0.d0/))
-    !
-    CALL DETERMINE_H(H,Pfirst)
-    !
-  ENDIF
+!   CALL SET_OUTPUT(outfileformats,'all  ',.FALSE.)
+!   msg = 'DIFF mode: file1,file2: '//TRIM(file1)//', '//TRIM(file2)
+!   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!   !
+!   CALL CHECKFILE(file1,'read')
+!   CALL CHECKFILE(file2,'read')
+!   !
+!   !Read first file
+!   CALL READ_AFF(file1,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
+!   IF(nerr>=1) GOTO 10000
+!   CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+!   !Read second file
+!   CALL READ_AFF(file2,H,Psecond,S,commentsecond,AUXNAMES,AUX)
+!   IF(nerr>=1) GOTO 10000
+!   CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+!   !
+!   !!Determine if the cell vectors were found or not
+!   IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
+!     & .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+!     !!If basis vectors H were not found in the input file, then compute them
+!     ! (this does not work perfectly yet, see determine_H.f90)
+!     CALL ATOMSK_MSG(4701,(/''/),(/0.d0/))
+!     !
+!     CALL DETERMINE_H(H,Pfirst)
+!     !
+!   ENDIF
   !
   !Set the name for output file
   strlength = SCAN(file2,'.',BACK=.TRUE.)
@@ -758,7 +758,7 @@ CASE('diff')
   ENDIF
   !
   !Calculate the difference between the two sets of positions
-  CALL DIFF_XYZ(H,Pfirst,Psecond,test)
+  CALL DIFF_XYZ(file1,file2,options_array,test)
 !
 !
 !
