@@ -20,7 +20,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 March 2019                                    *
+!* Last modification: P. Hirel - 29 March 2019                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -76,6 +76,7 @@ INTEGER:: nb_neigh, eps
 INTEGER:: Nneighbors
 INTEGER:: Nsites  !number of atomic environments
 INTEGER:: ok
+INTEGER:: progress      !To show calculation progress
 INTEGER:: Q_matrix_rank, INFO, LWORK
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
 INTEGER,DIMENSION(:),ALLOCATABLE:: TAB_PQ
@@ -161,7 +162,7 @@ CALL FIND_NSP(Psecond(:,4),aentries)
 IF( SIZE(aentries,1)==2 ) THEN
   !Binary material
   !=> the default NeighFactor will probably be too small, use larger value
-  NeighFactor = 1.33d0
+  !NeighFactor = 1.33d0
 ELSE IF( SIZE(aentries,1)>=3 ) THEN
   !Good chances that it is a complex material
   !=> boost NeighFactor
@@ -490,15 +491,25 @@ ALLOCATE(G(SIZE(Psecond,1),3,3))
 G(:,:,:) = 0.d0
 !
 !First, loop on all atoms to compute the tensor G for each atom
+progress=0
+!!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(iat,i,j,k,m,ok,Nneighbors,nb_neigh,PosList1,PosList2,P_neigh,P_neigh_tmp) &
+!!!$OMP& PRIVATE(Idmat,Q_neigh,Q_plus,P_matrix,Q_matrix,Q_matrix_copy,Stemp,test_matrix,V_NN,work_array)
 DO iat=1,SIZE(Psecond,1)
+  !
+  progress = progress+1
   !
   IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
   IF(ALLOCATED(PosList2)) DEALLOCATE(PosList2)
+  IF(ALLOCATED(P_neigh)) DEALLOCATE(P_neigh)
   !
   IF( SIZE(Psecond,1) > 5000 ) THEN
     !If there are many atoms, display a fancy progress bar
-    CALL ATOMSK_MSG(10,(/""/),(/DBLE(iat),DBLE(SIZE(Psecond,1))/))
+    CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(Psecond,1))/))
   ENDIF
+  !
+  WRITE(msg,*) iat
+  WRITE(msg,*) '==========   ATOM # '//TRIM(ADJUSTL(msg))
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   IF( firstref ) THEN
     !The system in "filefirst" is used as reference
@@ -520,6 +531,8 @@ DO iat=1,SIZE(Psecond,1)
           Nneighbors=Nneighbors+1
         ENDIF
       ENDDO
+      !Clean neighbor list for this atom
+      NeighList1(iat,:) = 0
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
@@ -528,6 +541,7 @@ DO iat=1,SIZE(Psecond,1)
           !This neighbor is closer than the 3rd neighbor => keep it
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList1(j,1:3)
+          NeighList1(iat,Nneighbors) = NINT(PosList1(j,5))
         ENDIF
       ENDDO
     ENDIF
@@ -550,7 +564,6 @@ DO iat=1,SIZE(Psecond,1)
     ELSE
       !
       !Save relative positions of neighbors of atom #iat into P_neigh(:,:)
-      IF(ALLOCATED(P_neigh)) DEALLOCATE(P_neigh)
       ALLOCATE (P_neigh(SIZE(V_NN,1),3))
       P_neigh(:,:)=0.d0
       DO j=1,SIZE(V_NN,1)
@@ -612,19 +625,22 @@ DO iat=1,SIZE(Psecond,1)
     !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
     Nneighbors=0
     DO j=1,SIZE(PosList2,1)
-      IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+      IF( j<SIZE(P_neigh,1) .OR. PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
         !This neighbor is about as close as the 3rd neighbor => keep it
         Nneighbors=Nneighbors+1
       ENDIF
     ENDDO
+    !Clean neighbor list for this atom
+    NeighList2(iat,:) = 0
     ALLOCATE(V_NN(Nneighbors,3))
     V_NN(:,:) = 0.d0
     Nneighbors=0
     DO j=1,SIZE(PosList2,1)
-      IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+      IF( j<SIZE(P_neigh,1) .OR. PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
         !This neighbor is closer than the 3rd neighbor => keep it
         Nneighbors=Nneighbors+1
         V_NN(Nneighbors,:) = PosList2(j,1:3)
+        NeighList2(iat,Nneighbors) = NINT(PosList2(j,5))
       ENDIF
     ENDDO
   ENDIF
@@ -645,7 +661,6 @@ DO iat=1,SIZE(Psecond,1)
   ELSE
     !
     !Save positions of neighbors into the array Q_neigh
-    !and shift them so that central atom #iat is at origin (0,0,0)
     IF(ALLOCATED(Q_neigh)) DEALLOCATE(Q_neigh)
     ALLOCATE (Q_neigh(SIZE(V_NN,1),3))
     Q_neigh(:,:)=0.d0
@@ -654,100 +669,68 @@ DO iat=1,SIZE(Psecond,1)
     ENDDO
     DEALLOCATE(V_NN)
     !
-!     IF( .NOT.firstref ) THEN
-!       !A unit cell was provided as reference, or no reference at all
-!       !Rotate neighbors in Q_neigh to match those in P_neigh
-!       Hneigh(:,:) = 0.d0
-!       !First neighbor in Q_neigh is used as first base vector
-!       Hneigh(1,1:3) = Q_neigh(1,1:3)
-!       m = 1
-!       !Find two other vectors to form a base of 3 linearly independent vectors
-!       DO j=2,SIZE(Q_neigh,1)  !loop on other neighbors
-!         !Compute magnitude of cross product between current vector and first base vector
-!         P1 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(1,1:3) ) )
-!         IF( m>=2 ) THEN
-!           !Second base vector was found:
-!           !Compute magnitude of cross product between current vector and second base vector
-!           P2 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(2,1:3) ) )
-!         ELSE
-!           !Second base vector not found yet: don't enforce this condition
-!           P2 = 100.d0
-!         ENDIF
-!         !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
-!         !then save it as an additional base vector
-!         IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
-!           m = m+1
-!           Hneigh(m,1:3) = Q_neigh(j,1:3)
-!         ENDIF
-!       ENDDO
-!       !
-!       IF( m==3 ) THEN
-!         !Now Hneigh contains the "old base vectors"
-!         !Convert all neighbors positions in Q_neigh into reduced coordinates
-!         CALL CART2FRAC(Q_neigh(:,1:3),Hneigh)
-!         !
-!         !Convert the matrix H into conventional notation
-!         P1 = VECLENGTH(Hneigh(1,:))
-!         P2 = VECLENGTH(Hneigh(2,:))
-!         P3 = VECLENGTH(Hneigh(3,:))
-!         alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
-!         beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
-!         gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
-!         !
-!         !Then convert this conventional notation into lower-triangular matrix H
-!         CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
-!         !
-!         !Convert all neighbor positions in P_neigh back into Cartesian coordinates
-!         CALL FRAC2CART(Q_neigh(:,1:3),Hneigh)
-!         !
-!       ELSE
-!         !m is not equal to 3, meaning that we could not find a suitable base
-!         !of 3 vectors that are linearly independent: just leave neighbor list as it is
-!       ENDIF
-!     ENDIF
-    !
     !Build a table of correspondance between indices in P_neigh and those in Q_neigh
+    IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
     ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
     Tab_PQ(:)=0
-    nb_neigh = 0
-    !For each neighbor in Q_neigh, find the one in P_neigh that
-    !maximizes the dot product and minimizes the angle
     DO j=1,SIZE(Q_neigh,1)
-      tempreal = 0.d0
-      m = 0
+      alpha=100
       DO k=1,SIZE(P_neigh,1)
-        alpha = DOT_PRODUCT(Q_neigh(j,1:3),P_neigh(k,1:3))
-        alpha_tmp = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
-        IF( alpha>tempreal .AND. alpha_tmp<angle_th ) THEN
-          !This dot product is larger than previous ones
-          !and the angle is smaller than threshold value
-          !=> save this as the most probable candidate
-          m = k
-          tempreal = alpha
+        alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
+        IF (alpha_tmp.lt.alpha) THEN 
+          Tab_PQ(j)=k
+          alpha=alpha_tmp
         ENDIF
       ENDDO
-      IF( m>0 ) THEN
-        !Neighbor #m in P_neigh matches neighbor #j in Q_neigh
-        !Save m into Tab_PQ
-        nb_neigh = nb_neigh+1
-        Tab_PQ(j) = m
-      ENDIF
     ENDDO
     !
     !Matrix P_matrix and Q_matrix
-    !Re-write array P_neigh in the "correct" order to match Q_neigh
+    IF(ALLOCATED(P_neigh_tmp)) DEALLOCATE(P_neigh_tmp)
     ALLOCATE(P_neigh_tmp(SIZE(Q_neigh,1),3))
-    P_neigh_tmp(:,:) = 0.d0
-    DO j=1,SIZE(P_neigh_tmp,1)
-      IF(Tab_PQ(j)>0) THEN
-        P_neigh_tmp(j,1:3) = P_neigh(Tab_PQ(j),1:3)
+    P_neigh_tmp(:,:)=0.d0
+    DO j=1,SIZE(Q_neigh,1)
+      P_neigh_tmp(j,1:3)=P_neigh(Tab_PQ(j),1:3)
+    ENDDO
+    !
+    !At this stage, the tables P and Q are in the same order
+    !Compute angles between corresponding vectors, and
+    !exclude vectors if the angle is too large
+    Tab_PQ(:)=0
+    nb_neigh=0
+    DO j=1,SIZE(Q_neigh,1)
+      alpha=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh_tmp(j,1:3)))
+      IF (alpha.gt.0.6d0) THEN
+        Tab_PQ(j)=0
+      ELSE
+        ok=0 
+        !boucle sur les voisins
+        DO k=1,SIZE(P_neigh,1)
+          alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
+          IF (alpha_tmp.eq.alpha) ok=ok+1
+        ENDDO
+        IF (ok.eq.1) THEN
+          nb_neigh=nb_neigh+1
+          Tab_PQ(j)=nb_neigh
+        ELSE
+          Tab_PQ(j)=0
+        ENDIF
       ENDIF
     ENDDO
-    DEALLOCATE(P_neigh)
-    ALLOCATE(P_neigh(SIZE(P_neigh_tmp,1),3))
-    P_neigh(:,:) = P_neigh_tmp(:,:)
-    DEALLOCATE(P_neigh_tmp)
-    IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
+    !
+    !Save final positions of neighbors into P_matrix and Q_matrix
+    IF(ALLOCATED(P_matrix)) DEALLOCATE(P_matrix)
+    IF(ALLOCATED(Q_matrix)) DEALLOCATE(Q_matrix)
+    ALLOCATE(Q_matrix(nb_neigh,3))
+    ALLOCATE(P_matrix(nb_neigh,3))
+    Q_matrix(:,:)=0.d0
+    P_matrix(:,:)=0.d0
+    DO j=1,SIZE(Q_neigh,1)
+      IF (Tab_PQ(j).ne.0) THEN
+        Q_matrix(Tab_PQ(j),:) = Q_neigh(j,:)
+        P_matrix(Tab_PQ(j),:) = P_neigh_tmp(j,:)
+      ENDIF
+    ENDDO
+    !
     !
     IF (verbosity==4) THEN
       WRITE(msg,*) '-----Relative positions of neighbors-----'
@@ -771,23 +754,13 @@ DO iat=1,SIZE(Psecond,1)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       CALL ATOMSK_MSG(4709,(/""/),(/ DBLE(iat) , DBLE(nb_neigh) /))
       nwarn = nwarn+1
-      DEALLOCATE(P_neigh,Q_neigh)
+      IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
       !
     ELSE
       !
-      !Save final positions of neighbors into P_matrix and Q_matrix
-      IF(ALLOCATED(P_matrix)) DEALLOCATE(P_matrix)
-      IF(ALLOCATED(Q_matrix)) DEALLOCATE(Q_matrix)
-      ALLOCATE(Q_matrix(nb_neigh,3))
-      ALLOCATE(P_matrix(nb_neigh,3))
-      Q_matrix(:,:)=0.d0
-      P_matrix(:,:)=0.d0
-      DO j=1,nb_neigh  !SIZE(Q_neigh,1)
-        Q_matrix(j,:) = Q_neigh(j,:)
-        P_matrix(j,:) = P_neigh(j,:)
-      ENDDO
-      !
-      DEALLOCATE(P_neigh,Q_neigh)
+      IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
+      IF(ALLOCATED(P_neigh)) DEALLOCATE(P_neigh)
+      IF(ALLOCATED(Q_neigh)) DEALLOCATE(Q_neigh)
       !
       IF (verbosity==4) THEN
         WRITE(msg,*) '-----Neighbors used for calculation of G----'
@@ -812,6 +785,8 @@ DO iat=1,SIZE(Psecond,1)
       Q_matrix_copy(:,:) = Q_matrix(:,:)
       !
       LWORK=3*MIN(nb_neigh,3) + MAX( 2*MIN(nb_neigh,3), MAX(nb_neigh,3), nb_neigh )
+      IF(ALLOCATED(work_array)) DEALLOCATE(work_array)
+      IF(ALLOCATED(Stemp)) DEALLOCATE(Stemp)
       ALLOCATE (work_array(MAX(1,LWORK)))
       ALLOCATE (Stemp(3))
       !
@@ -825,6 +800,7 @@ DO iat=1,SIZE(Psecond,1)
         !
       ELSE
         !Keep only the first 3 rows of output IdMat
+        IF(ALLOCATED(Q_plus)) DEALLOCATE(Q_plus)
         ALLOCATE(Q_plus(3,nb_neigh))
         Q_plus(:,:)=0.d0
         DO j=1,3
@@ -861,8 +837,9 @@ DO iat=1,SIZE(Psecond,1)
         !
         !
         IF( ok.NE.0 ) THEN
-          nwarn=nwarn+1
-          PRINT*, "NOT IDENTITY MATRIX!!!"
+          PRINT*, "ERROR: NOT IDENTITY MATRIX!!!"
+          nerr = nerr+1
+          EXIT
           !
         ELSE
           !
@@ -881,9 +858,14 @@ DO iat=1,SIZE(Psecond,1)
           CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
           WRITE(msg,*) "    ", G(iat,3,:)
           CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+          WRITE(msg,*) '============================================'
+          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
         ENDIF
         !
-        DEALLOCATE (P_matrix,Q_plus,work_array,Stemp)
+        IF(ALLOCATED(P_matrix)) DEALLOCATE(P_matrix)
+        IF(ALLOCATED(Q_plus)) DEALLOCATE(Q_plus)
+        IF(ALLOCATED(work_array)) DEALLOCATE(work_array)
+        IF(ALLOCATED(Stemp)) DEALLOCATE(Stemp)
         !
         !
       ENDIF !end IF(INFO.NE.0)
@@ -895,6 +877,9 @@ DO iat=1,SIZE(Psecond,1)
   290 CONTINUE
   !
 ENDDO
+!!!$OMP END PARALLEL
+!
+IF(nerr>0) GOTO 1000
 !
 IF( verbosity==4 ) THEN
   !Write atom coordinates and per-atom matrix G into a file
@@ -947,14 +932,17 @@ ALLOCATE( AUX(SIZE(Psecond,1),9) )
 AUX(:,:) = 0.d0
 !
 !New Loop on the atoms
+progress=0
 DO iat=1,SIZE(Psecond,1)
+  !
+  progress = progress+1
   !
   !Initialize Nye tensor for atom #iat
   alpha_tensor(:,:) = 0.d0
   !
   IF( SIZE(Psecond,1) > 5000 ) THEN
     !If there are many atoms, display a fancy progress bar
-    CALL ATOMSK_MSG(10,(/""/),(/DBLE(iat),DBLE(SIZE(Psecond,1))/))
+    CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(Psecond,1))/))
   ENDIF
   !
   A_tensor(:,:,:) = 0.d0
@@ -1174,150 +1162,89 @@ DO iat=1,SIZE(Psecond,1)
     !
   ELSE
     !
-    !Save positions of neighbors into the array Q_neigh
+    !Save relative positions of neighbors in Q_neigh
     IF(ALLOCATED(Q_neigh)) DEALLOCATE(Q_neigh)
     ALLOCATE (Q_neigh(SIZE(V_NN,1),3))
-    Q_neigh(:,:) = 0.d0
+    Q_neigh(:,:)=0.d0
     DO j=1,SIZE(V_NN,1)
       Q_neigh(j,:) = V_NN(j,1:3) - Psecond(iat,1:3)
     ENDDO
     DEALLOCATE(V_NN)
     !
-!     IF( .NOT.firstref ) THEN
-!       !A unit cell was provided as reference, or no reference at all
-!       !Rotate neighbors in Q_neigh to match those in P_neigh
-!       Hneigh(:,:) = 0.d0
-!       !First neighbor in Q_neigh is used as first base vector
-!       Hneigh(1,1:3) = Q_neigh(1,1:3)
-!       m = 1
-!       !Find two other vectors to form a base of 3 linearly independent vectors
-!       DO j=2,SIZE(Q_neigh,1)  !loop on other neighbors
-!         !Compute magnitude of cross product between current vector and first base vector
-!         P1 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(1,1:3) ) )
-!         IF( m>=2 ) THEN
-!           !Second base vector was found:
-!           !Compute magnitude of cross product between current vector and second base vector
-!           P2 = VECLENGTH( CROSS_PRODUCT( Q_neigh(j,1:3) , Hneigh(2,1:3) ) )
-!         ELSE
-!           !Second base vector not found yet: don't enforce this condition
-!           P2 = 100.d0
-!         ENDIF
-!         !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
-!         !then save it as an additional base vector
-!         IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
-!           m = m+1
-!           Hneigh(m,1:3) = Q_neigh(j,1:3)
-!         ENDIF
-!       ENDDO
-!       !
-!       IF( m==3 ) THEN
-!         !Now Hneigh contains the "old base vectors"
-!         !Convert all neighbors positions in Q_neigh into reduced coordinates
-!         CALL CART2FRAC(Q_neigh(:,1:3),Hneigh)
-!         !
-!         !Convert the matrix H into conventional notation
-!         P1 = VECLENGTH(Hneigh(1,:))
-!         P2 = VECLENGTH(Hneigh(2,:))
-!         P3 = VECLENGTH(Hneigh(3,:))
-!         alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
-!         beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
-!         gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
-!         !
-!         !Then convert this conventional notation into lower-triangular matrix H
-!         CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
-!         !
-!         !Convert all neighbor positions in P_neigh back into Cartesian coordinates
-!         CALL FRAC2CART(Q_neigh(:,1:3),Hneigh)
-!         !
-!       ELSE
-!         !m is not equal to 3, meaning that we could not find a suitable base
-!         !of 3 vectors that are linearly independent: just leave neighbor list as it is
-!       ENDIF
-!     ENDIF
+    !Generate correspondance table between P_neigh and Q_neigh
+    ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
+    Tab_PQ(:)=0
     !
-    !
-    IF( firstref ) THEN
-      !Build a table of correspondance between indices in P_neigh and those in Q_neigh
-      ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
-      Tab_PQ(:)=0
-      nb_neigh = 0
-      !For each neighbor in Q_neigh, find the one in P_neigh that
-      !maximizes the dot product and minimizes the angle
-      DO j=1,SIZE(Q_neigh,1)
-        tempreal = 0.d0
-        m = 0
-        DO k=1,SIZE(P_neigh,1)
-          alpha = DOT_PRODUCT(Q_neigh(j,1:3),P_neigh(k,1:3))
-          alpha_tmp = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
-          IF( alpha>tempreal .AND. alpha_tmp<angle_th ) THEN
-            !This dot product is larger than previous ones
-            !and the angle is smaller than threshold value
-            !=> save this as the most probable candidate
-            m = k
-            tempreal = alpha
-          ENDIF
-        ENDDO
-        IF( m>0 ) THEN
-          !Neighbor #m in P_neigh matches neighbor #j in Q_neigh
-          !Save its index in Tab_PQ
-          nb_neigh = nb_neigh+1
-          Tab_PQ(j) = m
+    DO j=1,SIZE(Q_neigh,1)
+      alpha=100
+      DO k=1,SIZE(P_neigh,1)
+        alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
+        IF (alpha_tmp.lt.alpha) THEN
+          Tab_PQ(j)=k
+          alpha=alpha_tmp
         ENDIF
       ENDDO
-      !
-      !Re-write array Delta_G in the "correct" order to match Q_neigh
-      ALLOCATE(Delta_G_tmp(SIZE(Q_neigh,1),3,3))
-      Delta_G_tmp(:,:,:) = 0.d0
-      DO j=1,SIZE(Delta_G_tmp,1)
-        IF( Tab_PQ(j)>0 ) THEN
-          Delta_G_tmp(j,:,:) = Delta_G(Tab_PQ(j),:,:)
-        ENDIF
-      ENDDO
-      IF(ALLOCATED(Delta_G)) DEALLOCATE(Delta_G)
-      ALLOCATE(Delta_G(SIZE(Delta_G_tmp,1),3,3))
-      Delta_G(:,:,:) = Delta_G_tmp(:,:,:)
-      DEALLOCATE(Delta_G_tmp)
-    ENDIF
+    ENDDO
     !
-    IF (verbosity==4) THEN
-      WRITE(msg,*) '-----Neighbors used for calculation of Nye tensor----'
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      DO j=1,SIZE(Q_neigh,1)
-        WRITE(msg,'(6f12.4)') P_neigh(j,1:3), Q_neigh(j,1:3)
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      ENDDO
-      WRITE(msg,*) '-----------------------------------------------------'
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    ENDIF
-    IF(ALLOCATED(P_neigh)) DEALLOCATE(P_neigh)
+    IF(ALLOCATED(P_neigh_tmp)) DEALLOCATE(P_neigh_tmp)
+    IF(ALLOCATED(Delta_G_tmp)) DEALLOCATE(Delta_G_tmp)
+    ALLOCATE(P_neigh_tmp(SIZE(Q_neigh,1),3))
+    ALLOCATE(Delta_G_tmp(SIZE(Q_neigh,1),3,3))
+    P_neigh_tmp(:,:)=0.d0
+    Delta_G_tmp(:,:,:)=0.d0
+    !
+    DO j=1,SIZE(Q_neigh,1)
+      P_neigh_tmp(j,1:3) = P_neigh(Tab_PQ(j),1:3)
+      Delta_G_tmp(j,:,:) = Delta_G(Tab_PQ(j),:,:)
+    ENDDO
+    DEALLOCATE(Tab_PQ)
+    !
+    !We won't need Delta_G anymore
+    DEALLOCATE(Delta_G)
     !
     !At this stage, the tables P and Q are in the same order
+    !Compute angles between corresponding vectors, and
+    !exclude vectors if the angle is too large
+    ALLOCATE (Tab_PQ(SIZE(Q_neigh,1)))
+    Tab_PQ(:)=0
+    nb_neigh=0
+    DO j=1,SIZE(Q_neigh,1)
+      alpha = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh_tmp(j,1:3)))
+      IF (alpha.gt.0.6d0) THEN
+        Tab_PQ(j)=0
+      ELSE
+        ok=0 
+        !Loop on neighbors
+        DO k=1,SIZE(P_neigh,1)
+          alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
+          IF (alpha_tmp==alpha) ok=ok+1
+        ENDDO
+        IF (ok==1) THEN
+          nb_neigh=nb_neigh+1
+          Tab_PQ(j)=nb_neigh
+        ELSE
+          Tab_PQ(j)=0
+        ENDIF
+      ENDIF
+    ENDDO
+    !
     !Compute Delta_G(IM) = Q * A(IM)   (Eq.20)
+    IF(ALLOCATED(P_matrix)) DEALLOCATE(P_matrix)
     IF(ALLOCATED(Q_matrix)) DEALLOCATE(Q_matrix)
     ALLOCATE(Q_matrix(nb_neigh,3))
-    Q_matrix(:,:) = 0.d0
+    Q_matrix(:,:)=0.d0
     IF(ALLOCATED(Delta_G_matrix)) DEALLOCATE(Delta_G_matrix)
     ALLOCATE(Delta_G_matrix(nb_neigh,3,3))
-    Delta_G_matrix(:,:,:) = 0.d0
-    IF( firstref ) THEN
-      DO j=1,nb_neigh
-        IF( Tab_PQ(j)>0 .AND. Tab_PQ(j)<SIZE(Q_matrix,1) ) THEN
-          Q_matrix(Tab_PQ(j),:) = Q_neigh(j,:)
-          IF( firstref ) THEN
-            Delta_G_matrix(Tab_PQ(j),:,:) = Delta_G(j,:,:)
-          ENDIF
-        ENDIF
-      ENDDO
-    ELSE
-      DO j=1,nb_neigh
-        Q_matrix(j,:) = Q_neigh(j,:)
-        Delta_G_matrix(j,:,:) = Delta_G(j,:,:)
-      ENDDO
-    ENDIF
+    Delta_G_matrix(:,:,:)=0.d0
+    DO j=1,SIZE(Q_neigh,1)
+      IF (Tab_PQ(j).NE.0) THEN
+        Q_matrix(Tab_PQ(j),:) = Q_neigh(j,:)
+        Delta_G_matrix(Tab_PQ(j),:,:) = Delta_G_tmp(j,:,:)
+      ENDIF
+    ENDDO
     !
-    IF(ALLOCATED(Q_neigh)) DEALLOCATE(Q_neigh)
-    IF(ALLOCATED(Delta_G)) DEALLOCATE(Delta_G)
-    IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
+    DEALLOCATE(P_neigh,Q_neigh,P_neigh_tmp,Delta_G_tmp)
+    DEALLOCATE(Tab_PQ)
     !
     !
     IF ( nb_neigh < 3 ) THEN

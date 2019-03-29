@@ -4,6 +4,7 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
+- parts of the code were parallelized with OpenMP. Thanks to Jian-Hui Zhai, University of Lille, France, for speeding up Atomsk.
 - added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
 - added support for reading and writing files in Comma-Separated Values format (*.csv).
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.

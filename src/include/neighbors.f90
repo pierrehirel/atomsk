@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Jan. 2019                                     *
+!* Last modification: P. Hirel - 28 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -38,6 +38,7 @@ USE functions
 USE subroutines
 USE messages
 USE resize
+USE omp_lib
 !
 !
 CONTAINS
@@ -135,8 +136,9 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
-  & .OR. SIZE(A,1) < 2000 ) THEN
+!IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
+!  & .OR. SIZE(A,1) < 2000 ) THEN
+IF( SIZE(A,1)<2000 ) THEN
   !
   !System is pseudo-2D or contains a small number of atoms
   !=> a simplistic Verlet neighbor search will suffice
@@ -421,6 +423,7 @@ ELSE
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !Construct the neighbor list for atoms
+  !!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,iCell,j,k,n,u,distance,tempList,Nneigh,Vfrac)
   DO i=1,SIZE(A,1)
     !iCell = index of the cell atom #i belongs to
     iCell = Atom_Cell(i)
@@ -490,6 +493,7 @@ ELSE
     ENDDO  !j
     !
   ENDDO  !i
+  !$!!OMP END PARALLEL DO
   !
   !Free memory
   IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)

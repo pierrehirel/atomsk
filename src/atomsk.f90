@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Jan. 2018                                     *
+!* Last modification: P. Hirel - 26 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -243,10 +243,8 @@ ELSE
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) verbosity
     ELSEIF(clarg=='-vv') THEN
-      i=i+1
       verbosity = 3
     ELSEIF(clarg=='-vvv') THEN
-      i=i+1
       verbosity = 4
     ELSEIF(clarg=='-log') THEN
       i=i+1

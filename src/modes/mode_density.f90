@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 March 2019                                    *
+!* Last modification: P. Hirel - 27 March 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,6 +41,7 @@ USE subroutines
 USE readin
 USE options
 USE writeout
+USE omp_lib
 !
 !
 CONTAINS
@@ -69,6 +70,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their p
 LOGICAL:: peak, dip  !is it a peak/dip in the density?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1, a2, a3
+INTEGER:: progress      !To show calculation progress
 INTEGER:: i, j, k, l, m, n, o
 INTEGER:: jmin, jmax, kmin, kmax, lmin, lmax
 INTEGER:: Ninter, Nvac  !Number of detected interstitials, vacancies
@@ -275,10 +277,14 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
   DenGrid1(:) = 0.d0
   A = 1.d0 / DSQRT(2.d0*pi*Sigma**2)
   !
+  progress=0  !to count progress
+  !$omp parallel default(shared) private(i,j,m,x)
+  !$omp do reduction(+:DenGrid1)
   DO i=1,SIZE(P,1)
+    progress = progress+1
     IF( SIZE(P,1)>100000 ) THEN
       !If there are many atoms, display a fancy progress bar
-      CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
+      CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
     ENDIF
     !
     DO j=1,Nx
@@ -301,6 +307,8 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
       ENDIF
     ENDDO
   ENDDO
+  !$omp end do
+  !$omp end parallel
   !
   !
 ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
@@ -309,16 +317,20 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
   DenGrid2(:,:) = 0.d0
   A = 1.d0 / (2.d0*pi*Sigma**2)
   !
+  !
+  progress=0  !to count progress
+  !$omp parallel default(shared) private(i,j,k,m,n,x,y)
+  !$omp do reduction(+:o,tempreal,DenGrid2)
   DO i=1,SIZE(P,1)
+    progress = progress+1
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
       !
       IF( SIZE(P,1)>10000 ) THEN
         !If there are many atoms, display a fancy progress bar
-        CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
+        CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
       ENDIF
       !
       prefactor = PropPoint(i) * A
-      !
       DO j=1,Nx
         x = DBLE(j)*dx
         DO k=1,Ny
@@ -345,9 +357,13 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       !
     ENDIF
   ENDDO !loop on i
+  !$omp end do
+  !$omp end parallel
   !
   !Integrate values in given area
   z = 0.d0
+  !$omp parallel default(shared) private(j,k) shared(Nx,Ny,dx,dy)
+  !$omp do reduction(+:z)
   DO j=1,Nx
     x = DBLE(j)*dx
     DO k=1,Ny
@@ -355,6 +371,8 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       z = z + DenGrid2(j,k)*dx*dy
     ENDDO
   ENDDO
+  !$omp end do
+  !$omp end parallel
   !
   !
 ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
@@ -363,11 +381,15 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
   DenGrid3(:,:,:) = 0.d0
   A = 1.d0 / ( (DSQRT(2.d0*pi*Sigma**2))**3 )
   !
+  progress=0  !to count progress
+  !$omp parallel default(shared) private(i,j,k,l,m,n,o,x,y,z)
+  !$omp do reduction(+:DenGrid3)
   DO i=1,SIZE(P,1)
+    progress = progress+1
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
       IF( SIZE(P,1)>1000 ) THEN
         !If there are many atoms, display a fancy progress bar
-        CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
+        CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
       ENDIF
       !
       prefactor = PropPoint(i) * A
@@ -409,6 +431,8 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
       !
     ENDIF
   ENDDO !loop on i
+  !$omp end do
+  !$omp end parallel
   !
   !
   WRITE(msg,*) 'Detecting peaks and dips in the density...'

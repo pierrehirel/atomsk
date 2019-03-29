@@ -48,12 +48,15 @@ ifndef FORTRAN
   # GNU Fortran as the default Fortran compiler
   # NOTE: use gfortran version 4.4 or greater. Versions prior to gfortran 4.4 may cause problems
   FORTRAN=gfortran
+  
+  # Comment the following line to disable parallelization with OpenMP
+  OPENMP=-fopenmp
 
   # -O2 gives good optimization/performance
   # -fno-backslash prevents backslash characters to be misunderstood
   # -I is used to specify folders where the compiler should look for *.mod files
   # -J is used to specify the folder where the compiler will store the *.mod files
-  FFLAGS=-O2 -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+  FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
   
   # Un-comment the following line to use 8-bits integers by default
   # (number of atoms up to 9x10^18 instead of 2x10^9)

@@ -11,10 +11,13 @@ export
 
 # COMPILER:
 FORTRAN=ifort
+  
+# Comment the following line to disable parallelization with OpenMP
+OPENMP=-openmp
 
 # COMPILATION FLAGS:
 # -module is used to specify the folder where the compiler will store the *.mod files
-FFLAGS=-O2 -module ../OBJ -funroll-loops
+FFLAGS=-O2 $(OPENMP) -module ../OBJ -funroll-loops
 # -g -traceback
 
 # Paths and names of Intel Compiler Libraries
