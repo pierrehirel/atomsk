@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 09 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,6 +73,7 @@ INTEGER:: N1
 INTEGER:: Nfiles     !number of files analyzed
 INTEGER:: Nneighbors !number of neighbors in the skin
 INTEGER:: Nspecies   !number of different atom species in the system
+INTEGER:: progress   !To show calculation progress
 INTEGER:: rdf_Nsteps !number of "skins" for RDF
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !list of neighbours
 REAL(dp):: average_dens !average density of the system
@@ -237,14 +238,16 @@ DO
           ENDIF
           !
           !Compute the partial RDF of atoms sp2 around atoms sp1
+          progress = 0
           DO j=1,MIN(rdf_Nsteps,SIZE(rdf_func,1))
             !Initialize variables
             Nneighbors = 0
             Vskin = 0.d0
+            progress=progress+1
             !
             IF( rdf_Nsteps*aentries(k,2)>10000 ) THEN
               !If there are many atoms, display a fancy progress bar
-              CALL ATOMSK_MSG(10,(/""/),(/DBLE(j),DBLE(rdf_Nsteps)/))
+              CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(rdf_Nsteps)/))
             ENDIF
             !
             !Set radius of current sphere
@@ -254,12 +257,13 @@ DO
             Vsphere = (4.d0/3.d0)*pi*rdf_radius**3
             Vskin = (4.d0/3.d0)*pi*(rdf_radius+rdf_dr)**3 - (4.d0/3.d0)*pi*rdf_radius**3
             !
-            N1=0
+            !$OMP PARALLEL DO DEFAULT(SHARED) &
+            !$OMP& PRIVATE(i,k,l,m,u,v,w,distance) &
+            !$OMP& REDUCTION(+:Nneighbors)
             DO i=1,SIZE(P,1)
               !
               IF( DABS(P(i,4)-sp1number)<1.d-9 ) THEN
                 !Atom i is of the required species sp1
-                N1=N1+1
                 !
                 !First, check for replica of atom i
                 !(only if aom i is of the same species as atom j, and do not count atom i itself)
@@ -316,6 +320,7 @@ DO
 !                 ENDIF
               ENDIF
             ENDDO !i
+            !$OMP END PARALLEL DO
             !
             !Set average density of the system
             average_dens = NINT(aentries(k,2)) / Vsystem

@@ -152,6 +152,12 @@ ENDIF
 !
 !
 100 CONTINUE
+!If user only specified "NULL" instead of an output file name, don't write any file
+IF( prefix=="NULL" .AND. (.NOT.ALLOCATED(outfileformats) .OR. SIZE(outfileformats)<=1) ) THEN
+  CALL ATOMSK_MSG(3007,(/TRIM("")/),(/0.d0/))
+  GOTO 1000
+ENDIF
+!
 !Check that array P is allocated, if not output error message
 IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)==0 ) THEN
   nerr = nerr+1

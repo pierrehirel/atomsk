@@ -676,8 +676,8 @@ CASE(10)
     ENDIF
     !Display the progress bar
     WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//" "//TRIM(temp)
-    IF( NINT(reals(1)) == NINT(reals(2)) ) THEN
-      WRITE(*,*) ""
+    IF( NINT(reals(1)) >= NINT(reals(2)) ) THEN
+      WRITE(*,'(a)',ADVANCE="YES") ""
     ENDIF
   ENDIF
   !
@@ -1994,6 +1994,9 @@ CASE(2143)
 CASE(2144)
   msg = "..> A suitable cell was found, now filling it with atoms..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "    (estimated new number of atoms: "//TRIM(ADJUSTL(temp))//")"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2145)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Cell is now orthorhombic ("//TRIM(ADJUSTL(temp))//" atoms)."
@@ -2354,6 +2357,9 @@ CASE(3005)
 CASE(3006)
   !strings(1) = name of ddplot file
   msg = ">>> Building the ddplot file: "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(3007)
+  msg = ">>> Output is NULL, no file will be written."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !3700-3799: WARNING MESSAGES
@@ -2824,7 +2830,9 @@ CASE(4070)
     msg = ">>> Unit cell provided as a reference : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
-    msg = ">>> No reference system provided. Constructing reference from: "//TRIM(ADJUSTL(strings(1)))//"..."
+    msg = ">>> No reference provided. Generating reference atomic environments"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "    by averaging sites from provided system: "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(4071)

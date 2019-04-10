@@ -210,9 +210,6 @@ IF( VECLENGTH(uv(1,:))<1.d-3 .OR. VECLENGTH(uv(2,:))<1.d-3 .OR. VECLENGTH(uv(3,:
   ENDIF
 ENDIF
 !
-!At this point, new cell vectors were found
-CALL ATOMSK_MSG(2144,(/""/),(/0.d0/))
-!
 !Make sure vectors are oriented positively along each axis
 !and that non-diagonal elements are all zero
 DO i=1,3
@@ -249,12 +246,18 @@ IF( aligned(1) .AND. aligned(2) .AND. aligned(3) ) THEN
   ENDDO
   !
 ELSE
-  !Estimate new number of particles NP by comparing volumes of old and new cells
-  !Allow for +50% and +25 atoms. Actual size of arrays will be adjusted later
-  NP = 1.5d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
-      & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) ) + 25
+  !Estimate new number of particles NP = (density of old cell) / (volume of new cell)
+  NP = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+      & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) )
   WRITE(msg,*) "Estimated new number of atoms : ", NP
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  CALL ATOMSK_MSG(2144,(/""/),(/DBLE(NP)/))
+  !Allow for +50% and +100 atoms to allocate arrays.
+  !Actual size of arrays will be adjusted later
+  NP = NINT(1.5d0*NP) + 100
+  !
+  !At this point, new cell vectors were found
+  !Check that number of atoms does not exceed integer limit
   IF( NP>2d9 ) THEN
     GOTO 801
   ELSE IF( NP>5000 ) THEN
@@ -299,6 +302,8 @@ ELSE
   !
   !Loop over all replica in a wide range
   NP = 0
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,j,k,m,n,o,tempP,new)
   DO i=1,SIZE(P,1)
     DO m=-mminmax,mminmax
       DO n=-nminmax,nminmax
@@ -321,28 +326,31 @@ ELSE
             ENDDO
             !
             IF( new ) THEN
+              j = NP+1
               NP = NP+1
-              IF(NP>SIZE(Q,1)) THEN
-                !Resize array Q
-                CALL RESIZE_DBLEARRAY2(Q,SIZE(Q,1)+10,SIZE(Q,2))
-              ENDIF
-              Q(NP,:) = tempP(:)
-              !
-              IF( doshells ) THEN
-                !Compute position of the replica of this shell
-                tempP(1) = S(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-                tempP(2) = S(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-                tempP(3) = S(i,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-                tempP(4) = S(i,4)
-                T(NP,:) = tempP(:)
-              ENDIF
-              !
-              IF( doaux ) THEN
-                newAUX(NP,:) = AUX(i,:)
-              ENDIF
-              !
-              IF( ALLOCATED(SELECT) ) THEN
-                newSELECT(NP) = SELECT(i)
+              IF(j<=SIZE(Q,1)) THEN
+                Q(j,:) = tempP(:)
+                !
+                IF( doshells ) THEN
+                  !Compute position of the replica of this shell
+                  tempP(1) = S(i,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+                  tempP(2) = S(i,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+                  tempP(3) = S(i,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+                  tempP(4) = S(i,4)
+                  T(j,:) = tempP(:)
+                ENDIF
+                !
+                IF( doaux ) THEN
+                  newAUX(j,:) = AUX(i,:)
+                ENDIF
+                !
+                IF( ALLOCATED(SELECT) ) THEN
+                  newSELECT(j) = SELECT(i)
+                ENDIF
+                !
+              ELSE
+                !i.e. j exceeds the size of array Q
+                nerr=nerr+1
               ENDIF
               !
             ENDIF
@@ -352,6 +360,9 @@ ELSE
       ENDDO !n
     ENDDO !m
   ENDDO !i
+  !$OMP END PARALLEL DO
+  !
+  IF(nerr>0) GOTO 1000
   !
   !Replace old P with the new Q
   IF(ALLOCATED(P)) DEALLOCATE(P)

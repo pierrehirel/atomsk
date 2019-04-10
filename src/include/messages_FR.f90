@@ -674,8 +674,8 @@ CASE(10)
     ENDIF
     !Display the progress bar
     WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//" "//TRIM(temp)
-    IF( NINT(reals(1)) == NINT(reals(2)) ) THEN
-      WRITE(*,*) ""
+    IF( NINT(reals(1)) >= NINT(reals(2)) ) THEN
+      WRITE(*,'(a)',ADVANCE="YES") ""
     ENDIF
   ENDIF
 CASE(11)
@@ -2050,6 +2050,9 @@ CASE(2143)
 CASE(2144)
   msg = "..> Une nouvelle boîte a été trouvée, calcul des nouvelles positions atomiques..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "    (estimation du nouveau nombre d'atomes : "//TRIM(ADJUSTL(temp))//")"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2145)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> La boîte est désormais orthorhombique ("//TRIM(ADJUSTL(temp))//" atomes)."
@@ -2411,6 +2414,9 @@ CASE(3005)
 CASE(3006)
   !strings(1) = name of ddplot file
   msg = ">>> Écriture du fichier ddplot : "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(3007)
+  msg = ">>> Le format de sortie est NULL, aucun fichier ne sera écrit."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !3700-3799: WARNING MESSAGES
@@ -2879,7 +2885,9 @@ CASE(4070)
     msg = ">>> Maille élémentaire utilisée comme référence : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
-    msg = ">>> Aucun système de référence fourni. Construction de la référence depuis : "//TRIM(ADJUSTL(strings(1)))//"..."
+    msg = ">>> Aucune référence fourni. Construction des environnements atomiques de référence"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "    en moyennant les sites du système fourni : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(4071)

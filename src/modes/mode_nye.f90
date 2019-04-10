@@ -11,7 +11,8 @@ MODULE mode_nye
 !* The names "system1" and "system2" refer to the reference system                *
 !* (bulk with no defect) and the system to analyze, respectively.                 *
 !* The reference system 1 can be either:                                          *
-!* - a full reference system containing the same number of atoms as system2;      *
+!* - a full reference system containing the same number of atoms as system2,      *
+!*   and indexed in the exact same order;
 !* - a unit cell of the material in system 2;                                     *
 !* - NULL, in which case the "reference" environments are built on-the-fly        *
 !*   by averaging atomic environments found in the system2.                       *
@@ -20,12 +21,12 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 29 March 2019                                    *
+!* Last modification: P. Hirel - 09 April 2019                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
-!* 200        Compute local deformation tensor G for each atom                    *
-!* 300        Using G, compute gradient of G and Nye tensor for each atom         *
+!* 200        Compute local distortion tensor G for each atom                     *
+!* 300        Using G, compute Nye tensor for each atom                           *
 !* 400        Output final results to file(s)                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
@@ -79,7 +80,7 @@ INTEGER:: ok
 INTEGER:: progress      !To show calculation progress
 INTEGER:: Q_matrix_rank, INFO, LWORK
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
-INTEGER,DIMENSION(:),ALLOCATABLE:: TAB_PQ
+INTEGER,DIMENSION(:),ALLOCATABLE:: Tab_PQ    !correspondance table between neighbor lists
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE:: siteindex !for each atom, index of its type of site in Pref
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList1, NeighList2  !list of neighbors for systems 1 and 2
@@ -492,8 +493,10 @@ G(:,:,:) = 0.d0
 !
 !First, loop on all atoms to compute the tensor G for each atom
 progress=0
-!!!$OMP PARALLEL DEFAULT(SHARED) PRIVATE(iat,i,j,k,m,ok,Nneighbors,nb_neigh,PosList1,PosList2,P_neigh,P_neigh_tmp) &
-!!!$OMP& PRIVATE(Idmat,Q_neigh,Q_plus,P_matrix,Q_matrix,Q_matrix_copy,Stemp,test_matrix,V_NN,work_array)
+!$OMP PARALLEL DO DEFAULT(SHARED) &
+!$OMP& PRIVATE(msg,iat,i,j,k,m,n,ok,Nneighbors,nb_neigh,PosList1,PosList2,P_neigh,P_neigh_tmp,Tab_PQ) &
+!$OMP& PRIVATE(IdMat,Q_neigh,Q_plus,P_matrix,Q_matrix,Q_matrix_copy,Stemp,test_matrix,V_NN,newindex) &
+!$OMP& PRIVATE(Q_matrix_rank,work_array,LWORK,INFO,tempreal,alpha,alpha_tmp)
 DO iat=1,SIZE(Psecond,1)
   !
   progress = progress+1
@@ -572,7 +575,10 @@ DO iat=1,SIZE(Psecond,1)
       !
     ENDIF
     !
-  ELSE
+    IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
+    !
+    !
+  ELSE  !i.e. if .NOT.firstref
     !Unit cell was provided as reference, or no reference at all
     IF( siteindex(iat)==0 ) THEN
       !The type of site for this atom was not determined before
@@ -609,8 +615,6 @@ DO iat=1,SIZE(Psecond,1)
     ENDIF
     !
   ENDIF !end if firstref
-  !
-  IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
   !
   !Now the array P_neigh contains the relative coordinates of neighbors of atom #iat in perfect env.
   !Compute positions of neighbors of atom #iat in second system
@@ -667,7 +671,7 @@ DO iat=1,SIZE(Psecond,1)
     DO j=1,SIZE(V_NN,1)
       Q_neigh(j,:) = V_NN(j,1:3) - Psecond(iat,1:3)
     ENDDO
-    DEALLOCATE(V_NN)
+    IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
     !
     !Build a table of correspondance between indices in P_neigh and those in Q_neigh
     IF(ALLOCATED(Tab_PQ)) DEALLOCATE(Tab_PQ)
@@ -832,14 +836,15 @@ DO iat=1,SIZE(Psecond,1)
           ENDDO
         ENDDO
         !
-        DEALLOCATE(IdMat,Q_matrix)
-        DEALLOCATE(Q_matrix_copy)
+        IF(ALLOCATED(IdMat)) DEALLOCATE(IdMat)
+        IF(ALLOCATED(Q_matrix)) DEALLOCATE(Q_matrix)
+        IF(ALLOCATED(Q_matrix_copy)) DEALLOCATE(Q_matrix_copy)
         !
         !
         IF( ok.NE.0 ) THEN
           PRINT*, "ERROR: NOT IDENTITY MATRIX!!!"
           nerr = nerr+1
-          EXIT
+          !EXIT
           !
         ELSE
           !
@@ -877,7 +882,7 @@ DO iat=1,SIZE(Psecond,1)
   290 CONTINUE
   !
 ENDDO
-!!!$OMP END PARALLEL
+!$OMP END PARALLEL DO
 !
 IF(nerr>0) GOTO 1000
 !
@@ -1038,7 +1043,7 @@ DO iat=1,SIZE(Psecond,1)
       !Now PosList2(:,:) contains the cartesian positions of all neighbors in the radius,
       !their distance to the atom #iat, and their indices.
       !Sort them by increasing distance:
-      CALL BUBBLESORT(PosList2,4,'up  ',newindex)
+      !CALL BUBBLESORT(PosList2,4,'up  ',newindex)
       !Keep only the first neighbors, save them in V_NN
       !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
       Nneighbors=0
@@ -1082,7 +1087,7 @@ DO iat=1,SIZE(Psecond,1)
         !Now PosList2(:,:) contains the cartesian positions of all neighbors of atom #iat,
         !their distance to the central atom #iat, and their indices in Psecond(:,:).
         !Sort them by increasing distance:
-        CALL BUBBLESORT(PosList2,4,'up  ',newindex)
+        !CALL BUBBLESORT(PosList2,4,'up  ',newindex)
         !Keep only the first neighbors, save them in V_NN
         !Make sure to keep at least Nneighbors: compare distances to that of the 3rd neighbor
         nb_neigh=0

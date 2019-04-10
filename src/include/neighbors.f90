@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 March 2019                                    *
+!* Last modification: P. Hirel - 09 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -122,7 +122,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
 !NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
 CALL VOLUME_PARA(H,distance)
-n = MAX( 20 , NINT((DBLE(SIZE(A,1))/distance)*(2.d0/3.d0)*pi*(R**3)) )
+n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*(2.d0/3.d0)*pi*(R**3)) )
 ALLOCATE(NeighList(SIZE(A,1),n))
 NeighList(:,:) = 0
 IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
@@ -136,9 +136,8 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-!IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
-!  & .OR. SIZE(A,1) < 2000 ) THEN
-IF( SIZE(A,1)<2000 ) THEN
+IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
+  & .OR. SIZE(A,1) < 2000 ) THEN
   !
   !System is pseudo-2D or contains a small number of atoms
   !=> a simplistic Verlet neighbor search will suffice
@@ -324,6 +323,8 @@ ELSE
   Atom_Cell(:) = 0
   ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
   Cell_NP(:) = 0
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,Ix,Iy,Iz) REDUCTION(+:Atom_Cell,Cell_NP)
   DO i=1,SIZE(A,1)
     Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
     Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
@@ -335,10 +336,21 @@ ELSE
     !Increment number of atoms of this cell
     Cell_NP(Atom_Cell(i)) = Cell_NP(Atom_Cell(i)) + 1
   ENDDO
+  !$OMP END PARALLEL DO
+  !
+  IF( verbosity==4 ) THEN
+    OPEN(UNIT=56,FILE="atomsk_atomCell.txt",STATUS="UNKNOWN")
+    DO i=1,SIZE(A,1)
+      WRITE(56,*) i, Atom_Cell(i)
+    ENDDO
+    CLOSE(56)
+  ENDIF
   !
   !Save the positions of atoms in each cell
   ALLOCATE( Cell_AtomID( Ncells , MAXVAL(Cell_NP) ) )
   Cell_AtomID(:,:) = 0
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,j,k) REDUCTION(+:Cell_AtomID)
   DO j=1,Ncells
     k=0
     DO i=1,SIZE(A,1)
@@ -349,6 +361,15 @@ ELSE
       ENDIF
     ENDDO
   ENDDO
+  !$OMP END PARALLEL DO
+  !
+  IF( verbosity==4 ) THEN
+    OPEN(UNIT=56,FILE="atomsk_cellAtomID.txt",STATUS="UNKNOWN")
+    DO j=1,Ncells
+      WRITE(56,*) j, Cell_AtomID(j,:)
+    ENDDO
+    CLOSE(56)
+  ENDIF
   !
   !Make a neighbor list for the cells
   !For each cell we consider a cube of 3*3*3 = 27 cells (central cell + neighboring cells)
@@ -423,7 +444,8 @@ ELSE
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   !Construct the neighbor list for atoms
-  !!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,iCell,j,k,n,u,distance,tempList,Nneigh,Vfrac)
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,iCell,j,k,n,u,distance,Vfrac)
   DO i=1,SIZE(A,1)
     !iCell = index of the cell atom #i belongs to
     iCell = Atom_Cell(i)
@@ -442,47 +464,24 @@ ELSE
             !Use the correct periodic image of that cell
             !The position of the atom #n has to be translated by Cell_Neigh(iCell,j,2:4) * (box vectors)
             Vfrac(1,1:3) = A(n,1:3) + DBLE(Cell_Neigh(iCell,j,2))*H(1,:)   &
-                        &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
-                        &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
+                         &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
+                         &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
             !Compute distance between atom #i and the periodic image of atom #n
             distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
             IF( distance < R ) THEN
               !Add atom #n as neighbor of atom #i
               NNeigh(i) = NNeigh(i)+1
-              !If total number of neighbors exceeds size of NeighList, expand NeighList
-              IF( Nneigh(i) > SIZE(NeighList,2) ) THEN
-                !The neighbor list of this atom is full
-                !=> Increase the size of NeighList by NNincrement
-                IF( ALLOCATED(tempList) ) DEALLOCATE(tempList)
-                ALLOCATE( tempList (SIZE(NeighList,1) , SIZE(NeighList,2)+NNincrement ) )
-                tempList(:,:) = 0
-                DO u=1,SIZE(NeighList,2)
-                  tempList(:,u) = NeighList(:,u)
-                ENDDO
-                DEALLOCATE(NeighList)
-                ALLOCATE( NeighList( SIZE(tempList,1) , SIZE(tempList,2) ) )
-                NeighList(:,:) = tempList(:,:)
-                DEALLOCATE(tempList)
+              IF( Nneigh(i) <= SIZE(NeighList,2) ) THEN
+                NeighList(i,Nneigh(i)) = n
               ENDIF
-              NeighList(i,Nneigh(i)) = n
               !
-              !Also add atom #i as neighbor of atom #n
-              NNeigh(n) = NNeigh(n)+1
-              IF( Nneigh(n) > SIZE(NeighList,2) ) THEN
-                !The neighbor list of this atom is full
-                !=> Increase the size of NeighList by NNincrement
-                IF( ALLOCATED(tempList) ) DEALLOCATE(tempList)
-                ALLOCATE( tempList (SIZE(NeighList,1) , SIZE(NeighList,2)+NNincrement ) )
-                tempList(:,:) = 0
-                DO u=1,SIZE(NeighList,2)
-                  tempList(:,u) = NeighList(:,u)
-                ENDDO
-                DEALLOCATE(NeighList)
-                ALLOCATE( NeighList( SIZE(tempList,1) , SIZE(tempList,2) ) )
-                NeighList(:,:) = tempList(:,:)
-                DEALLOCATE(tempList)
+              IF( .NOT. ANY(NeighList(n,:)==i) ) THEN
+                !Also add atom #i as neighbor of atom #n
+                NNeigh(n) = NNeigh(n)+1
+                IF( Nneigh(n) <= SIZE(NeighList,2) ) THEN
+                  NeighList(n,Nneigh(n)) = i
+                ENDIF
               ENDIF
-              NeighList(n,Nneigh(n)) = i
             ENDIF
             !
           ENDIF
@@ -493,7 +492,7 @@ ELSE
     ENDDO  !j
     !
   ENDDO  !i
-  !$!!OMP END PARALLEL DO
+  !$OMP END PARALLEL DO
   !
   !Free memory
   IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)

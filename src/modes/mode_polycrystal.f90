@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Oct. 2018                                     *
+!* Last modification: P. Hirel - 04 April 2019                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1228,6 +1228,9 @@ DO inode=1,Nnodes
   ENDIF
   !
   qi=0 !so far, zero atom in the grain
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,isinpolyhedron,jnode,vnormal,vector) &
+  !$OMP& REDUCTION(+:qi)
   DO i=1,SIZE(Q,1)
     !Shift oriented supercell so that its center of mass is at the position of the node
     Q(i,1:3) = Q(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)
@@ -1256,6 +1259,7 @@ DO inode=1,Nnodes
     ENDIF
     !
   ENDDO
+  !$OMP END PARALLEL DO
   !
   CALL ATOMSK_MSG(4056,(/''/),(/DBLE(qi)/))
   !

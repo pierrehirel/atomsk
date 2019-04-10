@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 June 2018                                     *
+!* Last modification: P. Hirel - 09 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,6 +73,7 @@ INTEGER:: Ngrid    !number of elements in the grid
 INTEGER:: Nperline !number of grid element per line
 INTEGER:: Nselect  !number of atoms selected
 INTEGER:: Nadded, Nrm  !number of atoms added or removed from selection
+INTEGER:: progress !to show calculation progress
 INTEGER:: rand_N   !number of atoms to select randomly
 INTEGER:: sp_N     !number of atoms of the given species that exist in P
 INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be selected
@@ -1833,11 +1834,16 @@ CASE('stl','STL')
     !
     !Loop on all atoms
     td = (/0,0,1/)  !vector of ray
+    progress = 0
+    !$OMP PARALLEL DO DEFAULT(SHARED) &
+    !$OMP& PRIVATE(i,k,keep,txmin,txmax,tymin,tymax,tzmax,e1,e2,ta,tf,th,tu,ts,tq,tv,tt) &
+    !$OMP& REDUCTION(+:Nselect)
     DO i=1,SIZE(P,1)
       !
+      progress = progress+1
       IF( SIZE(P,1)>500000 .OR. SIZE(triangles,1)>100000 ) THEN
         !If there are many atoms and triangles, display a fancy progress bar
-        CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
+        CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
       ENDIF
       !
       IF( P(i,1)<xmin .OR. P(i,1)>xmax .OR. &
@@ -1897,22 +1903,19 @@ CASE('stl','STL')
             !
           ENDIF
           !
-!           IF( triangles(k,6)>P(i,3) ) THEN
-!             n=0
-!           ENDIF
           k = k+1
           !
         ENDDO !end loop on k
         !
         IF( keep ) THEN
           !This atom is inside the 3-D shape
-          !PRINT*, "Keep atom #", i
           SELECT(i) = .TRUE.
           Nselect = Nselect+1
         ENDIF
       ENDIF
       !
     ENDDO !end loop on i
+    !$OMP END PARALLEL DO
     !
     !Free memory
     IF(ALLOCATED(triangles)) DEALLOCATE(triangles)

@@ -647,8 +647,8 @@ CASE(10)
     ENDIF
     !Display the progress bar
     WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//" "//TRIM(temp)
-    IF( NINT(reals(1)) == NINT(reals(2)) ) THEN
-      WRITE(*,*) ""
+    IF( NINT(reals(1)) >= NINT(reals(2)) ) THEN
+      WRITE(*,'(a)',ADVANCE="YES") ""
     ENDIF
   ENDIF
 CASE(11)
@@ -1948,6 +1948,9 @@ CASE(2143)
 CASE(2144)
   msg = "..> Es wurde eine geeignete Zelle gefunden, die nun mit Atomen gefüllt wurde..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(1))
+  msg = "    (geschätzte neue Anzahl von Atomen: "//TRIM(ADJUSTL(temp))//")"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2145)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Die Zelle ist jetzt orthorhombisch ("//TRIM(ADJUSTL(temp))//" Atome)."
@@ -2318,6 +2321,9 @@ CASE(3005)
 CASE(3006)
   !strings(1) = name of ddplot file
   msg = ">>> Erstelle ddplot Datei: "//TRIM(strings(1))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(3007)
+  msg = ">>> Das Ausgabeformat ist NULL, es wird keine Datei geschrieben."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !3700-3799: WARNUNG MESSAGES
@@ -2811,7 +2817,9 @@ CASE(4070)
     msg = ">>> Elementarzelle als Referenz : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
-    msg = ">>> Kein Bezugssystem vorhanden. Referenz erstellt aus einer Datei: "//TRIM(ADJUSTL(strings(1)))//"..."
+    msg = ">>> Kein Bezugssystem vorhanden. Erzeugen atomarer Referenzumgebungen durch Mittelung"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "    von Standorten aus dem bereitgestellten System: "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
