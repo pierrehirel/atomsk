@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 March 2019                                    *
+!* Last modification: P. Hirel - 11 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -82,6 +82,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some s
 LOGICAL:: fileexists, logopened
 INTEGER:: i, j, m, n, ioptions
 INTEGER:: Nmodes   !number of modes in command-line
+INTEGER:: Nthreads !number of OpenMP threads
 INTEGER:: strlength
 INTEGER,DIMENSION(8):: valuesi, valuesf !initial and final time
 REAL(dp):: time_total
@@ -111,6 +112,7 @@ strlength=0
 nwarn = 0
 nerr = 0
 Nmodes = 0
+Nthreads = 0
 ioptions = 0
 j=0
 !
@@ -259,6 +261,12 @@ ELSE
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) lang
+      verbosity = 4
+    ELSEIF(clarg=='-Nthreads') THEN
+      i=i+1
+      CALL GETARG(i,clarg)
+      READ(clarg,*,END=120,ERR=120) Nthreads
+      IF(Nthreads<0) Nthreads=0
       !
     ELSE
       !Store command-line argument(s) in cla(:)
@@ -389,6 +397,11 @@ IF(nerr>0) GOTO 500
 !Deal with options that are not compatible
 !Cannot both ignore and overwrite existing files: set overwrite to false
 IF(overw.AND.ignore) overw=.FALSE.
+!
+!If user specified number of threads, set it now
+IF(Nthreads>0) THEN
+  CALL OMP_SET_NUM_THREADS(Nthreads)
+ENDIF
 !
 !Then deal with the different modes
 IF( mode=="interactive" ) THEN

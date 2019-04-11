@@ -17,9 +17,12 @@ export
 
 # COMPILER
 FORTRAN=gfortran
+  
+# Comment the following line to disable parallelization with OpenMP
+OPENMP=-fopenmp
 
 # COMPILATION FLAGS
-FFLAGS=-O2 -I ../OBJ -J ../OBJ
+FFLAGS=-O2 $(OPENMP) -I ../OBJ -J ../OBJ
 
 # Path to the LAPACK library:
 # replace this with the path where you compiled LAPACK

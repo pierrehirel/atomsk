@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Program behaviour Nthreads - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Program behaviour: Nthreads</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-Nthreads &#60;n&#62; </code></p>
+
+
+<h4>Description</h4>
+
+<p>This option controls the maximum number of threads allowed for the parts of the code that are parallelized with OpenMP. The number &#60;n&#62; must be an integer greater than zero. For better efficiency, &#60;n&#62; should be smaller or equal to the number of CPUs available on the machine.</p>
+
+<p>Note that only some specific parts of the code are actually parallelized. This option will have no effect on the parts of the code that are not programmed to run in parallel.</p>
+
+
+<h4>Default</h4>
+
+<p>By default, OpenMP will use as many threads as possible on the running machine.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.gin cfg -Nthreads 1</code>
+<p>This will force Atomsk to run on only one thread.</p></li>
+
+<li><code class="command">atomsk initial.gin cfg -Nthreads 4</code>
+<p>This will allow Atomsk to run in parallel, but with a maximum of 4 OpenMP threads.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

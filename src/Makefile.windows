@@ -37,10 +37,13 @@ SEP=\\
 
 # COMPILER:
 FORTRAN=gfortran.exe
+  
+# Comment the following line to disable parallelization with OpenMP
+OPENMP=-fopenmp
 
 # COMPILATION FLAGS:
 # (note that the flag "-DWINDOWS" is mandatory for Windows systems)
-FFLAGS=-O2 -DWINDOWS -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+FFLAGS=-DWINDOWS -O2 $(OPENMP) -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
 # Un-comment the following line to produce a static version
 #FFLAGS+=-static
 

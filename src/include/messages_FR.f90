@@ -1703,7 +1703,15 @@ CASE(2094)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2095)
-  msg = "..> Les vecteurs de la boîte ont été ré-estimés."
+  !reals(1) = number of box vectors that were modified
+  IF( NINT(reals(1))==0 ) THEN
+    msg = "..> Les vecteurs de boîte n'ont pas été modifiés."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> Un seul vecteur de boîte a été modifié."
+  ELSE
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" vecteurs de boîte ont été modifiés."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2096)
   msg = "..> Les solutions ont bien été trouvées."

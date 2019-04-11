@@ -12,7 +12,7 @@ MODULE readconf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2014                                     *
+!* Last modification: P. Hirel - 11 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,6 +46,10 @@ IMPLICIT NONE
 CHARACTER(LEN=5):: ext
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to write
 CHARACTER(LEN=128):: conffile, msg, temp
+INTEGER:: Nthreads
+!
+!
+Nthreads = 0
 !
 !
 msg = "reading conffile = "//TRIM(conffile)
@@ -88,6 +92,13 @@ DO
         lang="de"
       ELSE
         lang="en"
+      ENDIF
+    !
+    ELSEIF(temp(1:8)=='Nthreads') THEN
+      !read max. number of OpenMP threads to use
+      READ(temp(9:),*,END=800,ERR=800) Nthreads
+      IF( Nthreads>0 ) THEN
+        CALL OMP_SET_NUM_THREADS(Nthreads)
       ENDIF
     !
     ELSE

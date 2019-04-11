@@ -1656,7 +1656,15 @@ CASE(2094)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2095)
-  msg = "..> Cell vectors were computed."
+  !reals(1) = number of box vectors that were modified
+  IF( NINT(reals(1))==0 ) THEN
+    msg = "..> Cell vectors were not modified."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> Only 1 cell vector was modified."
+  ELSE
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" cell vectors were modified."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2096)
   msg = "..> The solutions were found."

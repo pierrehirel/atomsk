@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 March 2019                                    *
+!* Last modification: P. Hirel - 11 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -312,51 +312,42 @@ DO
         CALL ATOMSK_MSG(999,(/"uz = "//TRIM(func_uxyz(3))/),(/0.d0/))
         !Apply displacements immediately to all atoms
         CALL ATOMSK_MSG(2146,(/""/),(/0.d0/))
+        !$OMP PARALLEL DO DEFAULT(SHARED) &
+        !$OMP& PRIVATE(i,j,func_ui,strlength,status,tempreal,tempreal2,tempreal3)
         DO i=1,SIZE(P,1)
           IF( .NOT. ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
             !In each function string, replace the  variables x, y, z
             !by their actual values for atom i
+            status = 0
+            strlength = 0
+            tempreal = 0.d0
+            tempreal2 = 0.d0
+            tempreal3 = 0.d0
             DO j=1,3
               func_ui(j) = func_uxyz(j)
               CALL STR_EXP2VAL(func_ui(j),"box",H(j,j),strlength)
+              CALL STR_EXP2VAL(func_ui(j),"BOX",H(j,j),strlength)
               CALL STR_EXP2VAL(func_ui(j),"x",P(i,1),strlength)
               CALL STR_EXP2VAL(func_ui(j),"X",P(i,1),strlength)
               CALL STR_EXP2VAL(func_ui(j),"y",P(i,2),strlength)
               CALL STR_EXP2VAL(func_ui(j),"Y",P(i,2),strlength)
               CALL STR_EXP2VAL(func_ui(j),"z",P(i,3),strlength)
               CALL STR_EXP2VAL(func_ui(j),"Z",P(i,3),strlength)
+              !Evaluate the function with those values
+              IF( LEN_TRIM(func_ui(j))>0 ) THEN
+                strlength=0
+                CALL EXPREVAL(func_ui(j),tempreal3,strlength,status)
+              ELSE
+                tempreal3 = 0.d0
+              ENDIF
+              IF(status>0) THEN
+                tempreal3 = 0.d0
+                nerr = nerr+1
+              ENDIF
+              IF(j==1) tempreal = tempreal3
+              IF(j==2) tempreal2 = tempreal3
             ENDDO
-            !Evaluate the function with those values
-            IF( LEN_TRIM(func_ui(1))>0 ) THEN
-              strlength=0
-              CALL EXPREVAL(func_ui(1),tempreal,strlength,status)
-            ELSE
-              tempreal = 0.d0
-            ENDIF
-            IF(status>0) THEN
-              nerr = nerr+1
-              GOTO 1000
-            ENDIF
-            IF( LEN_TRIM(func_ui(2))>0 ) THEN
-              strlength=0
-              CALL EXPREVAL(func_ui(2),tempreal2,strlength,status)
-            ELSE
-              tempreal2 = 0.d0
-            ENDIF
-            IF(status>0) THEN
-              nerr = nerr+1
-              GOTO 1000
-            ENDIF
-            IF( LEN_TRIM(func_ui(3))>0 ) THEN
-              strlength=0
-              CALL EXPREVAL(func_ui(3),tempreal3,strlength,status)
-            ELSE
-              tempreal3 = 0.d0
-            ENDIF
-            IF(status>0) THEN
-              nerr = nerr+1
-              GOTO 1000
-            ENDIF
+            !Check that displacement vector is not too large
             IF( VECLENGTH( (/tempreal,tempreal2,tempreal3/) ) > 100.d0 ) THEN
               nwarn = nwarn+1
               CALL ATOMSK_MSG(2727,(/""/),(/DBLE(i)/))
@@ -367,6 +358,9 @@ DO
             P(i,3) = P(i,3) + tempreal3
           ENDIF  !end if SELECT
         ENDDO
+        !$OMP END PARALLEL DO
+        IF(nerr>0) GOTO 1000
+        !
       ELSE
         msg = 'atom displacements'
         !Displacement vectors of atoms (and shells) follow

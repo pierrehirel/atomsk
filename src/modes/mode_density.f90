@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 March 2019                                    *
+!* Last modification: P. Hirel - 04 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -278,8 +278,8 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
   A = 1.d0 / DSQRT(2.d0*pi*Sigma**2)
   !
   progress=0  !to count progress
-  !$omp parallel default(shared) private(i,j,m,x)
-  !$omp do reduction(+:DenGrid1)
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,m,x) &
+  !$OMP& REDUCTION(+:DenGrid1)
   DO i=1,SIZE(P,1)
     progress = progress+1
     IF( SIZE(P,1)>100000 ) THEN
@@ -307,8 +307,7 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
       ENDIF
     ENDDO
   ENDDO
-  !$omp end do
-  !$omp end parallel
+  !$OMP END PARALLEL DO
   !
   !
 ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
@@ -319,8 +318,8 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
   !
   !
   progress=0  !to count progress
-  !$omp parallel default(shared) private(i,j,k,m,n,x,y)
-  !$omp do reduction(+:o,tempreal,DenGrid2)
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,k,m,n,x,y) &
+  !$OMP& REDUCTION(+:o,tempreal,DenGrid2)
   DO i=1,SIZE(P,1)
     progress = progress+1
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
@@ -357,13 +356,12 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       !
     ENDIF
   ENDDO !loop on i
-  !$omp end do
-  !$omp end parallel
+  !$OMP END PARALLEL DO
   !
   !Integrate values in given area
   z = 0.d0
-  !$omp parallel default(shared) private(j,k) shared(Nx,Ny,dx,dy)
-  !$omp do reduction(+:z)
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,k) &
+  !$OMP& REDUCTION(+:z)
   DO j=1,Nx
     x = DBLE(j)*dx
     DO k=1,Ny
@@ -371,8 +369,7 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
       z = z + DenGrid2(j,k)*dx*dy
     ENDDO
   ENDDO
-  !$omp end do
-  !$omp end parallel
+  !$OMP END PARALLEL DO
   !
   !
 ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
@@ -382,8 +379,8 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
   A = 1.d0 / ( (DSQRT(2.d0*pi*Sigma**2))**3 )
   !
   progress=0  !to count progress
-  !$omp parallel default(shared) private(i,j,k,l,m,n,o,x,y,z)
-  !$omp do reduction(+:DenGrid3)
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,k,l,m,n,o,x,y,z) &
+  !$OMP& REDUCTION(+:DenGrid3)
   DO i=1,SIZE(P,1)
     progress = progress+1
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
@@ -431,8 +428,7 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
       !
     ENDIF
   ENDDO !loop on i
-  !$omp end do
-  !$omp end parallel
+  !$OMP END PARALLEL DO
   !
   !
   WRITE(msg,*) 'Detecting peaks and dips in the density...'
