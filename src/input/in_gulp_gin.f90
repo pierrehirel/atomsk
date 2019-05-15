@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Oct. 2017                                     *
+!* Last modification: P. Hirel - 07 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,13 +45,7 @@ CONTAINS
 SUBROUTINE READ_GIN(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !RESTRICTIONS OF THIS ROUTINE:
-!1- Symmetry operations are not taken into account. So, if
-!   you specify coordinates in a primitive lattice, only
-!   atoms in that primitive cell will be read and output.
-!   Symmetry is a whole other story to implement, so it was
-!   not done in this program.
-!
-!2- since NEB was implemented in GULP (>3.4), the RES file
+!   Since NEB was implemented in GULP (>3.4), the RES file
 !   can contain all atomic positions for all images of NEB.
 !   This is not recognized here, and only the positions
 !   of the 1st NEB image will be read and converted by

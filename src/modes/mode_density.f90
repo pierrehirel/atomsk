@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 April 2019                                    *
+!* Last modification: P. Hirel - 30 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,7 +41,6 @@ USE subroutines
 USE readin
 USE options
 USE writeout
-USE omp_lib
 !
 !
 CONTAINS

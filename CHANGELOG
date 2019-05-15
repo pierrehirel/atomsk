@@ -5,12 +5,14 @@ CHANGELOG FOR ATOMSK
 Master (development)
 --------------------
 - parts of the code were parallelized with OpenMP. Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.
-- added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
 - added support for reading and writing files in Comma-Separated Values format (*.csv).
+- added support for reading and writing files in CRYSTAL format (*.d12).
+- added support for reading and writing files in ABINIT format (*.in).
+- added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.
 - in mode "--one-in-all" it is now possible to read all snapshots from LAMMPS custom dump files (*.lmc) and convert them into individual files.
 - in mode "--nye", added possibility to provide a unit cell as a reference, or to work with no reference at all.
-- in mode "--polycrystal", added a warning if a 2-D polycrystal is constructed and the user specified non-zero angles around other Cartesian axes.
+- in mode "--polycrystal", optimized array handling, making it faster and more memory efficient. Also added a warning if a 2-D polycrystal is constructed and the user specified non-zero angles around other Cartesian axes.
 - in option "-dislocation", modified the keywords for edge dislocations. Now the keyword "edge" corresponds to applying elastic displacements while keeping the number of atoms constant (replaces the former "edge2" keyword); "edge_add" refers to adding a new plane of atoms (replaces the former "edge" keyword); and "edge_rm" is a new method where the edge dislocation is constructed by removing a half-plane of atoms.
 - in option "-properties", added possibility to provide displacements as functions ux, uy, uz, which can be expressed as function of atom coordinates (x,y,z) and box dimensions, for example "uz=10*cos(3*pi*x/H1)". Also, when reading elastic or compliance tensor, the values are now checked, and a warning is displayed if they do not comply with stability criteria.
 - in option "-swap", added possibility to swap two chemical species.

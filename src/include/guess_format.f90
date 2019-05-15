@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Oct. 2018                                     *
+!* Last modification: P. Hirel - 15 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,9 +60,9 @@ LOGICAL:: fileisopened
 INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
-REAL(dp):: isbop, iscfg, iscel, iscif, iscml, iscoorat, iscsv, isdd, isdlp, isfdf, isgin, isimd
-REAL(dp):: isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout, isstr
-REAL(dp):: isvesta, isxsf, isxv,isxmd, isxyz, isexyz, issxyz
+REAL(dp):: isabinit, isbop, iscfg, iscel, iscif, iscml, iscoorat, iscrystal, iscsv, isdd, isdlp, isfdf
+REAL(dp):: isgin, isimd, isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout
+REAL(dp):: isstr, isvesta, isxsf, isxv,isxmd, isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
 REAL(dp):: certainty
@@ -75,12 +75,14 @@ extension = ''
 test=''
 i = 1
 testreal = 0.d0
+isabinit = 0.d0  !ABINIT input format
 isbop = 0.d0     !Bond-Order Potential format
 iscel = 0.d0     !CEL Super-cell file for Dr. Probe
 iscfg = 0.d0     !Atomeye CFG format
 iscif = 0.d0     !Crystallographic Information File
 iscml = 0.d0     !Chemical Markup Language
 iscoorat = 0.d0  !Mixed-Basis PseudoPotential format
+iscrystal = 0.d0 !CRYSTAL file format
 iscsv = 0.d0     !Comma-Separated Values format
 isdd = 0.d0      !ddplot format
 isdlp = 0.d0     !DL_POLY format
@@ -154,12 +156,16 @@ IF( strlength > 0 ) THEN
     iscml = iscml+0.6d0
   CASE('csv','CSV')
     iscsv = iscsv+1.d0
+  CASE('d12')
+    iscrystal = iscrystal+0.6d0
   CASE('DD','dd')
     isdd = isdd+0.6d0
   CASE('FDF','fdf')
     isfdf = isfdf+0.6d0
   CASE('gin','GIN','res','RES','grs','GRS')
     isgin = isgin+0.6d0
+  CASE('in')
+    isabinit = isabinit+0.6d0
   CASE('imd','IMD')
     isimd = isimd+0.6d0
   CASE('jems','JEMS')
@@ -284,6 +290,24 @@ IF(fileexists) THEN
     ELSEIF(test(1:3)=='UNRLD') THEN
       isbop = isbop+0.4d0
     !
+    !Search for patterns corresponding to ABINIT format
+    ELSEIF(test(1:5)=='acell') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:5)=='natom') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:6)=='ntypat') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:5)=='typat') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:5)=='rprim') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:4)=='xred') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:5)=='xcart') THEN
+      isabinit = isabinit+0.6d0
+    ELSEIF(test(1:5)=='znucl') THEN
+      isabinit = isabinit+0.6d0
+    !
     !Search for patterns corresponding to CEL format
     ELSEIF(TRIM(ADJUSTL(test))=='*') THEN
       iscel = iscel+0.5d0 ! EOF signal (short CEL file)
@@ -328,6 +352,40 @@ IF(fileexists) THEN
     !Search for patterns corresponding to COORAT format
     ELSEIF(test(1:6)=='natom=') THEN
       iscoorat = iscoorat+0.4d0
+    !
+    !Search for patterns corresponding to CRYSTAL format
+    !NOTE: keywords "CRYSTAL" and "SLAB" can also correspond
+    !      to XSF file format (see below)
+    ELSEIF(test(1:8)=='ATOMSUBS') THEN
+      iscrystal = iscrystal+0.6d0
+      isxsf = isxsf-0.6d0
+    ELSEIF(test(1:8)=='MOLECULE') THEN
+      iscrystal = iscrystal+0.6d0
+      isxsf = isxsf-0.6d0
+    ELSEIF(test(1:7)=='POLYMER') THEN
+      iscrystal = iscrystal+0.6d0
+      isxsf = isxsf-0.6d0
+    ELSEIF(test(1:8)=='ATOMDISP') THEN
+      iscrystal = iscrystal+0.6d0
+      isxsf = isxsf-0.6d0
+    ELSEIF(test(1:3)=='END') THEN
+      iscrystal = iscrystal+0.4d0
+      isxsf = isxsf-0.4d0
+    ELSEIF(test(1:7)=='OPTGEOM') THEN
+      iscrystal = iscrystal+0.4d0
+      isxsf = isxsf-0.4d0
+    ELSEIF(test(1:8)=='FULLOPTG') THEN
+      iscrystal = iscrystal+0.4d0
+      isxsf = isxsf-0.4d0
+    ELSEIF(test(1:8)=='CELLONLY') THEN
+      iscrystal = iscrystal+0.4d0
+      isxsf = isxsf-0.4d0
+    ELSEIF(test(1:6)=='SHRINK') THEN
+      iscrystal = iscrystal+0.4d0
+      isxsf = isxsf-0.4d0
+    ELSEIF(test(1:7)=='FMIXING') THEN
+      iscrystal = iscrystal+0.4d0
+      isxsf = isxsf-0.4d0
     !
     !Search for patterns corresponding to SIESTA FDF format
     ELSEIF(test(1:10)=='SystemName') THEN
@@ -516,10 +574,12 @@ IF(fileexists) THEN
       isxsf = isxsf+0.4d0
     ELSEIF(test=='CRYSTAL') THEN
       isxsf = isxsf+0.4d0
+      iscrystal = iscrystal+0.4d0
     ELSEIF(test=='ATOMS') THEN
       isxsf = isxsf+0.4d0
     ELSEIF(test=='SLAB') THEN
       isxsf = isxsf+0.4d0
+      iscrystal = iscrystal+0.4d0
     !
     !Search for patterns corresponding to special XYZ format
     ELSEIF(test(1:4)=='alat') THEN
@@ -637,12 +697,14 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isbop,iscfg,iscel,iscif,iscml,iscoorat,iscsv,isdd,isdlp,isfdf,isgin,isimd,isjems, &
-       &     islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,isqeout,isstr,isvesta,isxmd,    &
-       &     isxsf,isxv,isxyz,isexyz,issxyz)
+likely = MAX(isabinit,isbop,iscfg,iscel,iscif,iscml,iscoorat,iscrystal,iscsv,isdd,isdlp,    &
+       &     isfdf,isgin,isimd,isjems,islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,    &
+       &     isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) 'Scores of file formats: '
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   ABINIT ', isabinit
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   ATSK ', isatsk
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -657,6 +719,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   CML ', iscml
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   COORAT ', iscoorat
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   CRYSTAL ', iscrystal
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   CSV ', iscsv
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -715,6 +779,8 @@ ELSE
   !Otherwise we have detected a known file format
   IF(isatsk==likely) THEN
     infileformat = 'atsk'
+  ELSEIF(isabinit==likely) THEN
+    infileformat = 'abin'
   ELSEIF(isbop==likely) THEN
     infileformat = 'bop'
   ELSEIF(iscfg==likely) THEN
@@ -727,6 +793,8 @@ ELSE
     infileformat = 'coo'
   ELSEIF(iscml==likely) THEN
     infileformat = 'cml'
+  ELSEIF(iscrystal==likely) THEN
+    infileformat = 'd12'
   ELSEIF(iscsv==likely) THEN
     infileformat = 'csv'
   ELSEIF(isdd==likely) THEN

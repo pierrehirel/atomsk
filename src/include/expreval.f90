@@ -1063,8 +1063,8 @@ ELSE IF( SCAN(string,"/")>0 .OR. SCAN(string,":")>0 ) THEN
   CALL EXPREVAL(temp2,y,recuri,status)
   IF( DABS(y)<low_limit ) THEN
     IF(verbosity==4) PRINT*, " X ! X ERROR: division by zero: ", TRIM(string)
-    status=1
-    GOTO 900
+    status=10
+    RETURN
   ELSE
     value = x/y
   ENDIF
@@ -1359,8 +1359,10 @@ RETURN
 !
 !
 900 CONTINUE
-CALL ATOMSK_MSG(2813,(/string/),(/0.d0/))
+!CALL ATOMSK_MSG(2813,(/string/),(/0.d0/))
 status = 1
+RETURN
+!
 !
 END SUBROUTINE EXPREVAL
 !

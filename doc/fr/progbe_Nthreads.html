@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" >
 <head>
-    <title>Comportement du programme, Nthreads - Atomsk - Pierre Hirel</title>
+    <title>Comportement du programme, nthreads - Atomsk - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,11 +11,11 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Comportement du programme : Nthreads</h2>
+<h2>Comportement du programme : nthreads</h2>
 
 <h4>Syntaxe</h4>
 
-<p><code>-Nthreads &#60;n&#62; </code></p>
+<p><code>-nthreads &#60;n&#62; </code></p>
 
 
 <h4>Description</h4>
@@ -27,16 +27,16 @@
 
 <h4>Défaut</h4>
 
-<p>Par défaut, OpenMP utilise autant de processus que possible.</p>
+<p>Par défaut, le nombre de processus est contrôlé par la variable d'environnement OMP_NUM_THREADS. Si elle n'est pas définie, alors OpenMP utilise autant de processus que possible.</p>
 
 
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.gin cfg -Nthreads 1</code>
+<li><code class="command">atomsk initial.gin cfg -nthreads 1</code>
 <p>Ceci forcera Atomsk à n'utiliser qu'un seul processus.</p></li>
 
-<li><code class="command">atomsk initial.gin cfg -Nthreads 4</code>
+<li><code class="command">atomsk initial.gin cfg -nthreads 4</code>
 <p>Ceci permettra à Atomsk de s'exécuter en parallèle, mais avec un maximum de 4 processus OpenMP.</p></li>
 
 </ul>

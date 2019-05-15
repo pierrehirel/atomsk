@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Jan. 2018                                     *
+!* Last modification: P. Hirel - 24 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -588,7 +588,8 @@ REAL(dp),DIMENSION(:,:):: A
 !
 IF( SIZE(A(:,1)).NE.0 .AND. SIZE(A(1,:))>=3 ) THEN
     CALL INVMAT(H,G)
-    DO i=1,SIZE(A(:,1))
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,P1,P2,P3)
+    DO i=1,SIZE(A,1)
       P1 = A(i,1)
       P2 = A(i,2)
       P3 = A(i,3)
@@ -596,6 +597,7 @@ IF( SIZE(A(:,1)).NE.0 .AND. SIZE(A(1,:))>=3 ) THEN
       A(i,2) = P1*G(1,2) + P2*G(2,2) + P3*G(3,2)
       A(i,3) = P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
     END DO
+    !$OMP END PARALLEL DO
 ELSE
     WRITE(*,*) 'X!X ERROR: could not transform to fractional,'
     WRITE(*,*) '          inconsistent array size.'
@@ -620,7 +622,8 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H
 REAL(dp),DIMENSION(:,:):: A
 !
 IF( SIZE(A(:,1)).NE.0 .AND. SIZE(A(1,:))>=3 ) THEN
-    DO i=1,SIZE(A(:,1))
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,P1,P2,P3)
+    DO i=1,SIZE(A,1)
       P1 = A(i,1)
       P2 = A(i,2)
       P3 = A(i,3)
@@ -628,6 +631,7 @@ IF( SIZE(A(:,1)).NE.0 .AND. SIZE(A(1,:))>=3 ) THEN
       A(i,2) = P1*H(1,2) + P2*H(2,2) + P3*H(3,2)
       A(i,3) = P1*H(1,3) + P2*H(2,3) + P3*H(3,3)
     ENDDO
+    !$OMP END PARALLEL DO
 ELSE
     WRITE(*,*) 'X!X ERROR: could not transform to cartesian,'
     WRITE(*,*) '          inconsistent array size.'

@@ -11,7 +11,7 @@ MODULE center
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 March 2018                                    *
+!* Last modification: P. Hirel - 24 April 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -100,13 +100,18 @@ WRITE(msg,'(a14,3f9.3)') 'Shift vector: ', Vshift(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Shift all atoms
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
 DO i=1,SIZE(P,1)
   P(i,1:3) = P(i,1:3) + Vshift(:)
 ENDDO
+!$OMP END PARALLEL DO
+!
 IF( ALLOCATED(S) ) THEN
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
   DO i=1,SIZE(S,1)
     S(i,1:3) = S(i,1:3) + Vshift(:)
   ENDDO
+  !$OMP END PARALLEL DO
 ENDIF
 !
 CALL ATOMSK_MSG(2119,(/''/),(/Vshift(1),Vshift(2),Vshift(3)/))

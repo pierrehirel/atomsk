@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-    <title>Program behaviour Nthreads - Atomsk - Pierre Hirel</title>
+    <title>Program behaviour nthreads - Atomsk - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,11 +11,11 @@
 
 <p><a href="./index.html">Back to main menu</a></p>
 
-<h2>Program behaviour: Nthreads</h2>
+<h2>Program behaviour: nthreads</h2>
 
 <h4>Syntax</h4>
 
-<p><code>-Nthreads &#60;n&#62; </code></p>
+<p><code>-nthreads &#60;n&#62; </code></p>
 
 
 <h4>Description</h4>
@@ -27,16 +27,16 @@
 
 <h4>Default</h4>
 
-<p>By default, OpenMP will use as many threads as possible on the running machine.</p>
+<p>By default, the number of threads used by OpenMP is controlled by the environment variable OMP_NUM_THREADS. If it is not defined, then OpenMP will use as many threads as possible on the running machine.</p>
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.gin cfg -Nthreads 1</code>
+<li><code class="command">atomsk initial.gin cfg -nthreads 1</code>
 <p>This will force Atomsk to run on only one thread.</p></li>
 
-<li><code class="command">atomsk initial.gin cfg -Nthreads 4</code>
+<li><code class="command">atomsk initial.gin cfg -nthreads 4</code>
 <p>This will allow Atomsk to run in parallel, but with a maximum of 4 OpenMP threads.</p></li>
 
 </ul>

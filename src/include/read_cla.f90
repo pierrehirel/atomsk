@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Feb. 2019                                     *
+!* Last modification: P. Hirel - 15 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -424,6 +424,9 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='atsk' .OR. clarg=='atomsk' .OR. clarg=='ATSK' .OR. clarg=='ATOMSK' .OR. clarg=='Atomsk') THEN
     Nout = Nout+1
     tempout(Nout) = 'atsk'
+  ELSEIF(clarg=='abinit' .OR. clarg=="ABINIT" .OR. clarg=="Abinit" .OR. clarg=="abin" .OR. clarg=="ABIN") THEN
+    Nout = Nout+1
+    tempout(Nout) = 'abin'
   ELSEIF(clarg=='bop' .OR. clarg=="BOP") THEN
     Nout = Nout+1
     tempout(Nout) = 'bop'
@@ -467,6 +470,9 @@ DO WHILE(i<SIZE(cla))
     ELSE
       pfiles(1) = 'COORAT'
     ENDIF
+  ELSEIF(clarg=='CRYSTAL'.OR. clarg=='crystal' .OR. clarg=='d12' .OR. clarg=='D12') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'd12'
   ELSEIF(clarg=='dd' .OR. clarg=='DD' .OR. clarg=='ddplot') THEN
     Nout = Nout+1
     tempout(Nout) = 'dd'

@@ -340,9 +340,20 @@ DO
               ELSE
                 tempreal3 = 0.d0
               ENDIF
-              IF(status>0) THEN
+              IF(status==10) THEN
+                !There was a division by zero
+                CALL ATOMSK_MSG(816,(/""/),(/0.d0/))
+                !Just consider zero displacement
+                tempreal3 = 0.d0
+              ELSEIF(status>0) THEN
+                !Unable to convert that string into a number
+                CALL ATOMSK_MSG(2813,(/func_ui(j)/),(/0.d0/))
                 tempreal3 = 0.d0
                 nerr = nerr+1
+                IF( nerr>50 ) THEN
+                  !Too many errors, abort
+                  EXIT
+                ENDIF
               ENDIF
               IF(j==1) tempreal = tempreal3
               IF(j==2) tempreal2 = tempreal3
