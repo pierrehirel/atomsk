@@ -11,7 +11,7 @@ MODULE out_abinit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 May 2019                                      *
+!* Last modification: P. Hirel - 21 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,6 +50,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxi
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: isreduced
 INTEGER:: i, j
+INTEGER:: typecol  !column of AUX containing the atom types
 REAL(dp):: a, b, c, alpha, beta, gamma
 REAL(dp):: smass, snumber
 REAL(dp):: P1, P2, P3
@@ -62,8 +63,18 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !Initialize variables
 isreduced = .FALSE.
+typecol = 0
 G(:,:) = 0.d0
 i=1
+!
+IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 .AND. ALLOCATED(AUX) ) THEN
+  DO i=1,SIZE(AUXNAMES)
+    IF( AUXNAMES(i)=="type" ) THEN
+      typecol = i
+      EXIT
+    ENDIF
+  ENDDO
+ENDIF
 !
 100 CONTINUE
 msg = 'entering WRITE_ABINIT'
@@ -93,14 +104,13 @@ DO i=1,SIZE(comment)
   WRITE(40,*) comment(i)
 ENDDO
 !
-!Write cell parameters
-!Here "CRYSTAL" is always assumed
-WRITE(40,'(a19)') "acell    3*1.000000"
+!Write lattice constant
+WRITE(40,'(a12)') "acell    3*1"
 !
 !Write cell parameters
-WRITE(40,'(a9,3(f12.8,2X))') "rprim    ", H(1,1), H(1,2), H(1,3)
-WRITE(40,'(9X,3(f12.8,2X))') H(2,1), H(2,2), H(2,3)
-WRITE(40,'(9X,3(f12.8,2X))') H(3,1), H(3,2), H(3,3)
+WRITE(40,'(a9,3(f12.8,2X))') "rprim    ", H(1,1), H(2,1), H(3,1)
+WRITE(40,'(9X,3(f12.8,2X))') H(1,2), H(2,2), H(3,2)
+WRITE(40,'(9X,3(f12.8,2X))') H(1,3), H(2,3), H(3,3)
 !
 !Write number of atoms
 WRITE(temp,*) SIZE(P,1)
@@ -112,15 +122,25 @@ WRITE(40,'(a)') "ntypat   "//TRIM(ADJUSTL(temp))
 !
 !Write the type of each atom
 temp = " "
-DO i=1,SIZE(P,1)
-  DO j=1,SIZE(atypes,1)
-    IF( NINT(P(i,4))==NINT(atypes(j,1)) ) THEN
-      WRITE(msg,*) j
-      temp = TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(msg))
-      EXIT
-    ENDIF
+IF( typecol>0 ) THEN
+  !The "type" is defined as auxiliary property: use it
+  DO j=1,SIZE(AUX,1)
+    WRITE(msg,*) NINT(AUX(j,typecol))
+    temp = TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(msg))
   ENDDO
-ENDDO
+  !
+ELSE
+  !The "type" is not defined: use the index of this atom species in aentries
+  DO i=1,SIZE(P,1)
+    DO j=1,SIZE(atypes,1)
+      IF( NINT(P(i,4))==NINT(atypes(j,1)) ) THEN
+        WRITE(msg,*) j
+        temp = TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(msg))
+        EXIT
+      ENDIF
+    ENDDO
+  ENDDO
+ENDIF
 WRITE(40,'(a)') "typat    "//TRIM(ADJUSTL(temp))
 !
 !Write atomic number for each type

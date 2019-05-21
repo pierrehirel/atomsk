@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>ABINIT format - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: ABINIT</h2>
+
+<p><strong>Name:</strong> ABINIT input file</p>
+
+<p><strong>Extension:</strong> in</p>
+
+<p><strong>Specification:</strong> <a href="https://www.abinit.org/">ABINIT documentation</a></p>
+
+<p><strong>Visualization programs:</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Atomsk can read ABINIT input files (*.in). If coordinates are reduced (i.e. if they appear after <code>xred</code>) then Atomsk will immediately convert them to cartesian coordinates. To convert back to reduced coordinates one can use the <a href="./option_fractional.html">option <code>-frac</code></a>.</p>
+
+<p>When writing a file in the ABINIT input format, Atomsk writes atom positions as Cartesian coordinates (using the keyword <code>xcart</code>). If the atom types are defined as an auxiliary properties, then Atomsk will use it. That file is just a draft and will have to be edited, it is NOT fully set for a simulation.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg abinit</code>
+<p>This will read the file <code>my_system.cfg</code>, and write the final result to <code>my_system.in</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

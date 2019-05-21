@@ -26,7 +26,7 @@
 
 <p>A file in the Comma-Separated Values (CSV) format is a plain-text file containing values separated by commas (,), as its name suggests. Such files can be easily imported or produced in spreadsheets (like Microsoft Excel or LibreOffice Calc), and also in some Web applications.</p>
 
-<p>When writing a CSV file, Atomsk writes the fields names in the first line, followed by lines containing values. All informations are written in a CSV file: the atom species, coordinates (x,y,z), the shells coordinates if any, the auxiliary properties if any, the cell vectors, and the comments.</p>
+<p>When writing a CSV file, Atomsk writes the names of the fields in the first line (species,x,y,z, and so on), followed by lines containing values. All available informations are written in a CSV file: the atom species, coordinates (x,y,z), the shells coordinates if any, the auxiliary properties if any, the cell vectors, and the comments.</p>
 
 <p>When reading CSV file, Atomsk will determine the field separator from the first line. By default, values are expected to be separated by commas (,). However, if the first line contains semicolons (;) or pipe (|) characters, then Atomsk will assume that these are the separators throughout the whole file.</p>
 

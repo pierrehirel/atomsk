@@ -165,7 +165,7 @@ IF( strlength > 0 ) THEN
   CASE('gin','GIN','res','RES','grs','GRS')
     isgin = isgin+0.6d0
   CASE('in')
-    isabinit = isabinit+0.6d0
+    isabinit = isabinit+0.15d0
   CASE('imd','IMD')
     isimd = isimd+0.6d0
   CASE('jems','JEMS')
@@ -179,7 +179,7 @@ IF( strlength > 0 ) THEN
   CASE('pdb','PDB')
     ispdb = ispdb+0.6d0
   CASE('pw','PW')
-    isqepw = isqepw+0.15d0
+    isqepw = isqepw+0.6d0
   CASE('str','STR','stru','STRU')
     isstr = isstr+0.6d0
   CASE('vesta')

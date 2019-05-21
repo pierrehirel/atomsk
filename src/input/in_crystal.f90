@@ -12,7 +12,7 @@ MODULE in_crystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 May 2019                                      *
+!* Last modification: P. Hirel - 16 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -51,7 +51,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary prope
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: symop_list  !list of symmetry operations
 INTEGER:: dimens  !dimensionality of the system: 3-D, 2-D, 1-D or 0-D
-INTEGER:: i, j, k, l
+INTEGER:: i, j, k, l, m
 INTEGER:: NP  !counter for total number of particles
 INTEGER:: sgnumber  !space group number
 INTEGER:: symconv, symtype, symsetting
@@ -252,6 +252,69 @@ DO
       P(l,3) = P(l,3) + c
     ENDDO
     !
+  ELSEIF( line(1:8)=='ATOMINSE' ) THEN
+    !Read number of atoms to insert
+    READ(30,*,ERR=190,END=190) k
+    !Increase size of array P
+    IF( ALLOCATED(P) ) THEN
+      ALLOCATE(S(SIZE(P,1)+j,4))
+      S(:,:) = 0.d0
+      DO k=1,NP
+        S(k,:) = P(k,:)
+      ENDDO
+      DEALLOCATE(P)
+      ALLOCATE(P(SIZE(S,1),4))
+      P(:,:) = S(:,:)
+      DEALLOCATE(S)
+    ELSE
+      ALLOCATE(P(j,4))
+      P(:,:) = 0.d0
+    ENDIF
+    !Read positions of new atoms
+    DO j=1,k
+      NP = NP+1
+      READ(30,*,ERR=190,END=190) P(NP,4), P(NP,1), P(NP,2), P(NP,3)
+      P(l,4) = a
+    ENDDO
+    !
+  ELSEIF( line(1:8)=='ATOMREMO' ) THEN
+    IF( ALLOCATED(P).AND.SIZE(P,1)>1 ) THEN
+      !Read number of atoms to remove
+      READ(30,*,ERR=190,END=190) k
+      !Read labels of atoms to remove
+      DO j=1,k
+        READ(30,*,ERR=190,END=190) l
+        IF(l>0 .AND. l<=SIZE(P,1) ) THEN
+          NP = NP-1
+          DO m=l,SIZE(P,1)-1
+            P(m,:) = P(m+1,:)
+          ENDDO
+        ELSE
+          !Index l is out of range
+          nwarn = nwarn+1
+          CALL ATOMSK_MSG(2742,(/""/),(/DBLE(l)/))
+        ENDIF
+      ENDDO
+      IF( NP<SIZE(P,1) ) THEN
+        !Decrease size of array P
+        IF( ALLOCATED(P) ) THEN
+          ALLOCATE(S(SIZE(P,1)-k,4))
+          S(:,:) = 0.d0
+          DO k=1,NP
+            S(k,:) = P(k,:)
+          ENDDO
+          DEALLOCATE(P)
+          ALLOCATE(P(SIZE(S,1),4))
+          P(:,:) = S(:,:)
+          DEALLOCATE(S)
+        ENDIF
+      ENDIF
+      !
+    ELSE  !i.e. P is not allocated
+      nwarn = nwarn+1
+      CALL ATOMSK_MSG(1709,(/"ATOMINSE    ","remove atoms"/),(/0.d0/))
+    ENDIF
+    !
     !
   ELSEIF( line(1:3)=='END' ) THEN
     !End of geometry section defining the crystal
@@ -296,8 +359,7 @@ GOTO 1000
 !
 !
 800 CONTINUE
-801 CONTINUE
-CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
+CALL ATOMSK_MSG(807,(/''/),(/DBLE(i)/))
 nerr = nerr+1
 !
 !

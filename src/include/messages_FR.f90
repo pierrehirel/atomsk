@@ -441,11 +441,13 @@ WRITE(*,*) "    coo (COORAT/MBPP)       |   oui  |  oui"
 WRITE(*,*) "    cfg (Atomeye)           |   oui  |  oui"
 WRITE(*,*) "    cif (Cryst.Info.File)   |   oui  |  oui"
 WRITE(*,*) "    csv (Comma-Sep.Values)  |   oui  |  oui"
+WRITE(*,*) "    d12 (CRYSTAL)           |   oui  |  oui"
 WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
 WRITE(*,*) "    fdf (fichier SIESTA)    |   oui  |  oui"
 WRITE(*,*) "    gin (fichier GULP)      |   oui  |  oui"
 WRITE(*,*) "    imd (fichier IMD)       |   oui  |  oui"
+WRITE(*,*) "    in (ABINIT input)       |   oui  |  oui"
 WRITE(*,*) "    jems (fichier JEMS)     |   oui  |  oui"
 WRITE(*,*) "    lmc (LAMMPS output)     |   oui  |  non"
 WRITE(*,*) "    lmp (LAMMPS data)       |   oui  |  oui"
@@ -764,7 +766,7 @@ CASE(806)
 CASE(807)
   !reals(1) = index of line in file that caused the error on read
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X ERREUR en essayant de lire la ligne #"//TRIM(ADJUSTL(msg))
+  msg = "X!X ERREUR : format de données incorrect. L'erreur semble provenir de la ligne "//TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(808)
   !strings(1) = string where conversion failed
@@ -937,6 +939,20 @@ CASE(1708)
     ENDIF
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
+CASE(1709)
+  !strings(1) = keyword
+  !strings(2) = type of transformation that cannot be performed
+  msg = "/!\ ALERTE : mot-clé '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  IF( strings(2)=="remove atoms" ) THEN
+    msg = "          Impossible de supprimer des atomes car aucune position n'a été lue."
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
+CASE(1799)
+  msg = "/!\ ALERTE : le fichier d'entrée avait un format inconnu. Atomsk a essayé d'en extraire"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            les données, mais il est possible qu'elles soient incorrectes. Procédez avec précaution !"
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !1800-1899: ERROR MESSAGES
 CASE(1800)

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format CRYSTAL - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : CRYSTAL</h2>
+
+<p><strong>Nom :</strong> fichier d'entrée CRYSTAL</p>
+
+<p><strong>Extension :</strong> d12</p>
+
+<p><strong>Spécification :</strong> <a href="http://www.crystal.unito.it/">documentation de CRYSTAL</a></p>
+
+<p><strong>Programmes de visualisation :</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Atomsk peut lire des fichiers au format CRYSTAL (*.d12). Dans un tel fichier, les coordonnées sont réduites, et Atomsk les convertit immédiatement en coordonnées cartésiennes. Pour les convertir de nouveau en coordonnées réduites, il est possible d'utiliser l'<a href="./option_fractional.html">option <code>-frac</code></a>. Les opérations de symétrie associées au groupe d'espace donné dans le fichier d'entrée sont appliquées immédiatement. Si des transformations sont définies dans le fichier (avec les mots-clés ATOMSUBS, ATOMDISP, ATOMREMO), alors ces transformations sont également appliquées immédiatement à la lecture du fichier.</p>
+
+<p>Lorsqu'il écrit un fichier au format CRYSTAL, Atomsk écrit les positions des atomes en coordonnées réduites. Le groupe d'espace est toujours 1 (P1). Un tel fichier est juste un brouillon et devra être édité, il n'est PAS suffisant pour une simulation.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk systeme.d12 visual.cfg</code>
+<p>Ceci va lire le fichier <code>systeme.d12</code> (en appliquant les opérations de symétrie et les transformations s'il y en a), et écrira le résultat final dans le fichier <code>visual.cfg</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

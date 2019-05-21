@@ -12,7 +12,7 @@ MODULE spacegroups
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 30 Jan. 2017                                     *
+!* Last modification: P. Hirel - 16 May 2019                                      *
 !**********************************************************************************
 !* Notes on the model and on how to use it.                                       *
 !* The space group data can be accessed from its number 1 ... 230 and from its    *
@@ -2976,7 +2976,7 @@ sg_symmetry(29, 166) = '1/3+x-y,2/3-y,2/3-z'
 sg_symmetry(30, 166) = '1/3-x,2/3+y-x,2/3-z'
 sg_symmetry(31, 166) = '1/3-x,2/3-y,2/3-z'
 sg_symmetry(32, 166) = '1/3+y,2/3+y-x,2/3-z'
-sg_symmetry(33, 166) = '1/3x-y,2/3+x,2/3-z'
+sg_symmetry(33, 166) = '1/3+x-y,2/3+x,2/3-z'
 sg_symmetry(34, 166) = '1/3-y,2/3-x,2/3+z'
 sg_symmetry(35, 166) = '1/3+y-x,2/3+y,2/3+z'
 sg_symmetry(36, 166) = '1/3+x,2/3+x-y,2/3+z'

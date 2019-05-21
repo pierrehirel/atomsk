@@ -413,19 +413,21 @@ WRITE(*,*) "    cel (Dr. Probe/EMS)     |  ja    |  ja "
 WRITE(*,*) "    coo (COORAT/MBPP)       |  ja    |  ja "
 WRITE(*,*) "    cfg (Atomeye)           |  ja    |  ja "
 WRITE(*,*) "    cif (Cryst.Info.File)   |  ja    |  ja "
-WRITE(*,*) "    dd  (ddplot)            |  nein  |  ja (1)"
+WRITE(*,*) "    d12 (CRYSTAL)           |  ja    |  ja"
+WRITE(*,*) "    dd  (ddplot)            | nein   | ja (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  ja    |  ja "
 WRITE(*,*) "    fdf (SIESTA format)     |  ja    |  ja "
 WRITE(*,*) "    gin (GULP input)        |  ja    |  ja "
 WRITE(*,*) "    imd (IMD input)         |  ja    |  ja "
+WRITE(*,*) "    in (ABINIT input)       |  ja    |  ja"
 WRITE(*,*) "    jems (JEMS input)       |  ja    |  ja "
-WRITE(*,*) "    lmc (LAMMPS output)     |  ja    |  nein"
+WRITE(*,*) "    lmc (LAMMPS output)     |  ja    | nein"
 WRITE(*,*) "    lmp (LAMMPS data)       |  ja    |  ja "
 WRITE(*,*) "    mol (MOLDY format)      |  ja    |  ja "
 WRITE(*,*) "    pdb (Protein Data Bank) |  ja    |  ja "
 WRITE(*,*) "    pos (POSCAR/VASP)       |  ja    |  ja "
 WRITE(*,*) "    pw (Quantum Espresso)   |  ja    |  ja "
-WRITE(*,*) "    pwout (QE output file)  |  ja (2)|  nein"
+WRITE(*,*) "    pwout (QE output file)  | ja (2) | nein"
 WRITE(*,*) "    str (PDFFIT)            |  ja    |  ja"
 WRITE(*,*) "    vesta (VESTA file)      |  ja    |  ja"
 WRITE(*,*) "    xmd (XMD file)          |  ja    |  ja "
@@ -737,7 +739,7 @@ CASE(806)
 CASE(807)
   !reals(1) = index of line in file that caused the error on read
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X FEHLER beim Versuch, Zeile #"//TRIM(ADJUSTL(msg))//" zu lesen."
+  msg = "X!X FEHLER: falsches Datenformat. Fehler ist anscheinend in Zeile "//TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(808)
   !strings(1) = string where conversion failed
@@ -910,6 +912,20 @@ CASE(1708)
     ENDIF
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
+CASE(1709)
+  !strings(1) = keyword
+  !strings(2) = type of transformation that cannot be performed
+  msg = "/!\ WARNUNG: vom Schlüsselwort '"//TRIM(ADJUSTL(strings(1)))//"':"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  IF( strings(2)=="remove atoms" ) THEN
+    msg = "            Atome können nicht entfernt werden, da noch keine Atomposition gelesen wurde."
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
+CASE(1799)
+  msg = "/!\ WARNUNG: Die Datendatei hatte ein unbekanntes Format. Atomsk hat versucht,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            atomare Daten daraus zu extrahieren, aber es ist möglicherweise falsch. Vorsichtig auftreten!"
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !1800-1899: FEHLER MESSAGES
 CASE(1800)

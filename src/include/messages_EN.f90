@@ -442,11 +442,13 @@ WRITE(*,*) "    coo (COORAT/MBPP)       |   yes  |  yes"
 WRITE(*,*) "    cfg (Atomeye)           |   yes  |  yes"
 WRITE(*,*) "    cif (Cryst.Info.File)   |   yes  |  yes"
 WRITE(*,*) "    csv (Comma-Sep.Values)  |   yes  |  yes"
+WRITE(*,*) "    d12 (CRYSTAL)           |   yes  |  yes"
 WRITE(*,*) "    dd  (ddplot)            |    no  | yes (1)"
 WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   yes  |  yes"
 WRITE(*,*) "    fdf (SIESTA format)     |   yes  |  yes"
 WRITE(*,*) "    gin (GULP input)        |   yes  |  yes"
 WRITE(*,*) "    imd (IMD input)         |   yes  |  yes"
+WRITE(*,*) "    in (ABINIT input)       |   yes  |  yes"
 WRITE(*,*) "    jems (JEMS input)       |   yes  |  yes"
 WRITE(*,*) "    lmc (LAMMPS output)     |   yes  |   no"
 WRITE(*,*) "    lmp (LAMMPS data)       |   yes  |  yes"
@@ -767,7 +769,7 @@ CASE(806)
 CASE(807)
   !reals(1) = index of line in file that caused the error on read
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X ERROR while trying to read line #"//TRIM(ADJUSTL(msg))
+  msg = "X!X ERROR: incorrect data format. Error is apparently on line "//TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(808)
   !strings(1) = string where conversion failed
@@ -941,6 +943,13 @@ CASE(1708)
     ENDIF
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
+CASE(1709)
+  !strings(1) = keyword
+  !strings(2) = type of transformation that cannot be performed
+  msg = "/!\ WARNING: from keyword '"//TRIM(ADJUSTL(strings(1)))//"':"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Cannot "//TRIM(ADJUSTL(strings(2)))//" because no atom position was read yet."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1799)
   msg = "/!\ WARNING: the data file had an unknown format. Atomsk tried to extract"
   CALL DISPLAY_MSG(1,msg,logfile)

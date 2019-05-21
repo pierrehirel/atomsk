@@ -17,8 +17,9 @@ Master (development)
 - in option "-properties", added possibility to provide displacements as functions ux, uy, uz, which can be expressed as function of atom coordinates (x,y,z) and box dimensions, for example "uz=10*cos(3*pi*x/H1)". Also, when reading elastic or compliance tensor, the values are now checked, and a warning is displayed if they do not comply with stability criteria.
 - in option "-swap", added possibility to swap two chemical species.
 - new option "-roundoff" allows to round off an atom coordinate or the values of a property.
-- new option "-Nthreads" to control the number of OpenMP threads.
+- new option "-nthreads" to control the number of OpenMP threads.
 - new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on. This module lifts the previous limitation on expressions as function of box coordinates (previously, only one operation could be used, like "0.5*box" or "box-20"); now more complex expressions can be used, like "0.5*box+0.6".
+- fixed a bug in the symmetry operations of space group 166 (R-3m).
 - fixed a bug when writing LAMMPS data files (*.lmp): if atom types were defined, the types written in the "Masses" section did not match the atom types used in the "Atoms" section.
 - fixed a bug when reading Quantum Espresso output files (*.out) in mode "--one-in-all".
 

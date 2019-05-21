@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format ABINIT - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : ABINIT</h2>
+
+<p><strong>Nom :</strong> fichier d'entrée ABINIT</p>
+
+<p><strong>Extension :</strong> in</p>
+
+<p><strong>Spécification :</strong> <a href="https://www.abinit.org/">documentation d'ABINIT</a></p>
+
+<p><strong>Programmes de visualisation :</strong> N/A</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Atomsk peut lire les fichiers d'entrée d'ABINIT (*.in). Si les coordonnées sont réduites (avec le mot-clé <code>xred</code>) alors Atomsk les convertit immédiatement en coordonnées cartésiennes. Pour les convertir de nouveau en coordonnées réduites, il est possible d'utiliser l'<a href="./option_fractional.html">option <code>-frac</code></a>.</p>
+
+<p>Lorsqu'il écrit un fichier au format ABINIT, Atomsk écrit les positions atomiques en coordonnées cartésiennes (avec le mot-clé <code>xcart</code>). Si le "type" des atomes est défini comme propriété auxiliaire, alors Atomsk l'utilise. Le fichier produit est juste un brouillon et devra être édité, il n'est PAS suffisant pour une simulation.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg abinit</code>
+<p>Ceci va lire le fichier <code>my_system.cfg</code>, et écrira le résultat final dans <code>my_system.in</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

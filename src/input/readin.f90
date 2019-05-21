@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 May 2019                                      *
+!* Last modification: P. Hirel - 20 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,6 +62,7 @@ USE subroutines
 USE guess_form
 !
 !Modules managing input files
+USE in_abinit
 USE in_atsk
 USE in_bop
 USE in_cfg
@@ -162,6 +163,8 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !!Then, read input file
 ! by calling the module corresponding to the input format
 SELECT CASE(infileformat)
+CASE('abin')
+  CALL READ_ABINIT(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('atsk')
   CALL READ_ATSK(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('bop')
@@ -222,9 +225,11 @@ CASE('pwo')
 !
 !
 CASE DEFAULT
-  GOTO 800
+  !Unknown/unsupported data format
+  CALL ATOMSK_MSG(1804,(/""/),(/0.d0/))
+  GOTO 1000
 END SELECT
-IF(nerr>=1) GOTO 800
+IF(nerr>=1) GOTO 1000
 !
 IF(verbosity==4) THEN
   msg = "Finished reading input file, size of arrays:"
@@ -309,7 +314,7 @@ GOTO 1000
 !!  ERROR MESSAGES
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 800 CONTINUE
-CALL ATOMSK_MSG(1801,(/TRIM(inputfile)/),(/0.d0/))
+!CALL ATOMSK_MSG(1801,(/TRIM(inputfile)/),(/0.d0/))
 !
 !
 !

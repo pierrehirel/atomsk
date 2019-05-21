@@ -264,6 +264,9 @@ Mixed-Basis Pseudo Potential (MBPP) coordinates.
 .B csv
 Comma-Separated Values file.
 .TP
+.B d12
+CRYSTAL input file.
+.TP
 .B fdf
 SIESTA Flexible Data Format.
 .TP
@@ -272,6 +275,9 @@ GULP input file.
 .TP
 .B imd
 IMD configuration.
+.TP
+.B in
+ABINIT input file.
 .TP
 .B lmc
 LAMMPS custom format.
@@ -336,6 +342,9 @@ Mixed-Basis Pseudo Potential (MBPP) coordinates.
 .B csv
 Comma-Separated Values file.
 .TP
+.B d12
+CRYSTAL input file.
+.TP
 .B ddplot
 DDplot format (ddplot mode only).
 .TP
@@ -347,6 +356,9 @@ GULP input file.
 .TP
 .B imd
 IMD configuration.
+.TP
+.B in
+ABINIT input file.
 .TP
 .B jems
 JEMS Files.
