@@ -24,7 +24,11 @@
 
 <h4>Restrictions</h4>
 
-<p>Atomsk peut lire des fichiers au format CRYSTAL (*.d12). Dans un tel fichier, les coordonnées sont réduites, et Atomsk les convertit immédiatement en coordonnées cartésiennes. Pour les convertir de nouveau en coordonnées réduites, il est possible d'utiliser l'<a href="./option_fractional.html">option <code>-frac</code></a>. Les opérations de symétrie associées au groupe d'espace donné dans le fichier d'entrée sont appliquées immédiatement. Si des transformations sont définies dans le fichier (avec les mots-clés ATOMSUBS, ATOMDISP, ATOMREMO), alors ces transformations sont également appliquées immédiatement à la lecture du fichier.</p>
+<p>Atomsk peut lire des fichiers au format CRYSTAL (*.d12). Dans un tel fichier, les coordonnées sont réduites, et Atomsk les convertit immédiatement en coordonnées cartésiennes. Pour les convertir de nouveau en coordonnées réduites, il est possible d'utiliser l'<a href="./option_fractional.html">option <code>-frac</code></a>.</p>
+
+<p>Si le système est périodique dans les trois dimensions (mot-clé "CRYSTAL"), alors les opérations de symétrie du groupe d'espace donné sont appliquées immédiatement. Pour les systèmes 2-D ("SLAB"), 1-D ("POLYMER"), ou 0-D ("MOLECULE"), les opérations de symétrie ne sont pas supportées et ne seront pas appliquées.</p>
+
+<p>Si des transformations sont définies dans le fichier (avec les mots-clés ATOMSUBS, ATOMDISP, ATOMREMO), alors ces transformations sont appliquées immédiatement à la lecture du fichier.</p>
 
 <p>Lorsqu'il écrit un fichier au format CRYSTAL, Atomsk écrit les positions des atomes en coordonnées réduites. Le groupe d'espace est toujours 1 (P1). Un tel fichier est juste un brouillon et devra être édité, il n'est PAS suffisant pour une simulation.</p>
 

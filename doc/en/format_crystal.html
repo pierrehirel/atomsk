@@ -24,7 +24,11 @@
 
 <h4>Restrictions</h4>
 
-<p>Atomsk can read CRYSTAL input files (*.d12). In such a file, the coordinates are reduced, and Atomsk will immediately convert them to cartesian coordinates. To convert back to reduced coordinates one can use the <a href="./option_fractional.html">option <code>-frac</code></a>. The symmetry operations associated with the given space group are applied immediately. If some transformations exist in the file (associated with the keyword ATOMSUBS, ATOMDISP, ATOMREMO), then these transformations are also applied immediately upon reading the file.</p>
+<p>Atomsk can read CRYSTAL input files (*.d12). In such a file, the coordinates are reduced, and Atomsk will immediately convert them to cartesian coordinates. To convert back to reduced coordinates one can use the <a href="./option_fractional.html">option <code>-frac</code></a>.</p>
+
+<p>In case of 3-D periodic system (keyword "CRYSTAL"), then the symmetry operations associated with the given space group are applied immediately. For 2-D ("SLAB"), 1-D ("POLYMER"), or 0-D ("MOLECULE") systems, symmetry operations are not supported and will not be applied.</p>
+
+<p>If some transformations are defined in the file (associated with the keyword ATOMSUBS, ATOMDISP, ATOMREMO, SLAB or SLABCUT), then these transformations are applied immediately upon reading the file.</p>
 
 <p>When writing a file in the CRYSTAL format, Atomsk writes atom positions as reduced coordinates. The space group is always 1 (P1). That file is just a draft and will have to be edited, it is NOT fully set for a simulation.</p>
 
