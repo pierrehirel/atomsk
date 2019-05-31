@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 June 2018                                     *
+!* Last modification: P. Hirel - 23 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE CUTCELL(P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
+SUBROUTINE CUTCELL(H,P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
 !
 IMPLICIT NONE
 CHARACTER(LEN=5):: cut_dir   !above or below (or empty)
@@ -48,7 +48,9 @@ INTEGER:: i, j, NPcut, NP
 REAL(dp),INTENT(IN):: cutdistance
 REAL(dp):: tempreal
 REAL(dp):: V1, V2, V3  !vector components
+REAL(dp),DIMENSION(3):: MILLER       !Miller indices
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !box vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of cores, shells
@@ -146,14 +148,18 @@ CASE("x","X","y","Y","z","Z")
 CASE DEFAULT
   !cutdir should contain a crystallographic direction
   !convert it to a vector and save it in Vplane(1,:)
-  CALL INDEX_MILLER(cutdir,Vplane(1,:),j)
+  MILLER(:) = 0.d0
+  CALL INDEX_MILLER(cutdir,MILLER,j)
   IF(j>0) GOTO 800
   !Check that Vplane is not [000]
-  IF( VECLENGTH(Vplane(1,:))<1.d-12 ) THEN
+  IF( VECLENGTH(MILLER)<1.d-12 ) THEN
     CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
     nerr=nerr+1
     GOTO 1000
   ENDIF
+  !
+  !Use Miller indices to define normal to plane of cut
+  Vplane(1,:) = MILLER(1)*H(1,:) + MILLER(2)*H(2,:) + MILLER(3)*H(3,:)
   !
   !If the system has a defined crystallographic orientation ORIENT,
   !then Vplane(1,:) is defined in that basis
@@ -169,6 +175,7 @@ CASE DEFAULT
     Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
     Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
   ENDIF
+  !
   !Normalize Vplane
   Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
   WRITE(msg,'(a8,3f12.3)') 'Vplane: ', Vplane(1,:)

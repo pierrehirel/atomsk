@@ -1244,7 +1244,7 @@ DO inode=1,Nnodes
   qi=0 !so far, zero atom in the grain
   !$OMP PARALLEL DO DEFAULT(SHARED) &
   !$OMP& PRIVATE(i,j,qi,isinpolyhedron,jnode,vnormal,vector) &
-  !$OMP& REDUCTION(+:NP,NPgrains)
+  !$OMP& REDUCTION(+:NPgrains)
   DO i=1,SIZE(Pt2,1)
     !Shift oriented supercell so that its center of mass is at the position of the node
     Pt2(i,1:3) = Pt2(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)

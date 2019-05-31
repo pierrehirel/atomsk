@@ -22,6 +22,7 @@ Master (development)
 - fixed a bug in the symmetry operations of space group 166 (R-3m).
 - fixed a bug when writing LAMMPS data files (*.lmp): if atom types were defined, the types written in the "Masses" section did not match the atom types used in the "Atoms" section.
 - fixed a bug when reading Quantum Espresso output files (*.out) in mode "--one-in-all".
+- fixed a bug in option "-cut", where Miller indices were assumed to refer to an orthogonal box. Now the actual box vectors are used.
 
 
 Beta 0.10.6 (07 Sept. 2018)

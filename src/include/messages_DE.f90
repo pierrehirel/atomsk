@@ -527,23 +527,23 @@ CASE(1)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF( nwarn>0 .OR. nerr>0 ) THEN
     !In case of warning or error, display a big box
-    msg = " _________________________________________"
+    msg = " _______________________________________________"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     IF( nwarn>0 ) THEN
       WRITE(temp,*) nwarn
       temp = ADJUSTL(temp)
       msg = "|  /!\ WARNUNGEN: "//TRIM(temp)
-      msg = msg(1:42)//"|"
+      msg = msg(1:48)//"|"
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
     IF( nerr>0 ) THEN
       WRITE(temp,*) nerr
       temp = ADJUSTL(temp)
       msg = "|  X!X FEHLER:    "//TRIM(temp)
-      msg = msg(1:42)//"|"
+      msg = msg(1:48)//"|"
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
-    msg = "|_________________________________________|"
+    msg = "|_______________________________________________|"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   !

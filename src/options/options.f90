@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Feb. 2019                                     *
+!* Last modification: P. Hirel - 23 May 2019                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -457,7 +457,7 @@ DO ioptions=1,SIZE(options_array)
     ELSE
       cut_dir=""
     ENDIF
-    CALL CUTCELL(P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
+    CALL CUTCELL(H,P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
   !
   CASE('-def', '-deform')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
