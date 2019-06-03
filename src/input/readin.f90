@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 May 2019                                      *
+!* Last modification: P. Hirel - 03 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -277,11 +277,12 @@ IF(verbosity==4) THEN
   !Write positions of cores/shells and auxiliary properties into a file
   OPEN(UNIT=23,FILE="readin.adbg",FORM="FORMATTED",STATUS="UNKNOWN")
   WRITE(23,*) SIZE(P,1)
+  WRITE(23,*) "# Atomsk debug: atom positions at end of READ_AFF routine"
   DO i=1,SIZE(P,1)
     IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      WRITE(23,'(i6,6(1X,f9.3))') i, P(i,:), S(i,:)
+      WRITE(23,'(8(1X,f9.3))') P(i,4), P(i,1:3), S(i,1:4)
     ELSE
-      WRITE(23,'(i6,3(1X,f9.3))') i, P(i,:)
+      WRITE(23,'(4(1X,f9.3))') P(i,4), P(i,1:3)
     ENDIF
   ENDDO
   WRITE(23,*) ""

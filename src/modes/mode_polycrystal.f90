@@ -1241,7 +1241,9 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
-  qi=0 !so far, zero atom in the grain
+  !qi=0 !so far, zero atom in the grain
+  !For each atom of the template Pt2, find out if it is located inside the grain
+  !If so, then save it to the array Q; if not, discard it
   !$OMP PARALLEL DO DEFAULT(SHARED) &
   !$OMP& PRIVATE(i,j,qi,isinpolyhedron,jnode,vnormal,vector) &
   !$OMP& REDUCTION(+:NPgrains)
@@ -1256,7 +1258,7 @@ DO inode=1,Nnodes
       vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
       !Compute vector between atom and current node
       vector(:) = Pt2(i,1:3) - vnodes(inode,:)
-      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= -1.d-12 ) THEN
+      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= 0.d0 ) THEN
         !Atom is above this plane of cut, hence out of the polyhedron
         !=> exit the loop on jnode
         isinpolyhedron = .FALSE.
@@ -1266,13 +1268,15 @@ DO inode=1,Nnodes
     !
     IF( isinpolyhedron ) THEN
       !Atom is inside the polyhedron
+      !$OMP CRITICAL
       NP = NP+1
       qi = NP
+      !$OMP END CRITICAL
       !
       !Increment number of atoms in this grain
       NPgrains(inode) = NPgrains(inode)+1
       !
-      IF( qi<= SIZE(Q,1) ) THEN
+      IF( qi <= SIZE(Q,1) ) THEN
         Q(qi,:) = Pt2(i,:)
         IF(doshells) T(qi,:) = St2(i,:)
         IF(doaux) THEN
