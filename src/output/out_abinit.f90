@@ -11,7 +11,7 @@ MODULE out_abinit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 May 2019                                      *
+!* Last modification: P. Hirel - 04 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -101,7 +101,7 @@ ENDIF
 CONTINUE
 !Write comments
 DO i=1,SIZE(comment)
-  WRITE(40,*) comment(i)
+  WRITE(40,*) TRIM(ADJUSTL(comment(i)))
 ENDDO
 !
 !Write lattice constant

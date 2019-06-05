@@ -1258,7 +1258,7 @@ DO inode=1,Nnodes
       vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
       !Compute vector between atom and current node
       vector(:) = Pt2(i,1:3) - vnodes(inode,:)
-      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= 0.d0 ) THEN
+      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= -1.d-12 ) THEN
         !Atom is above this plane of cut, hence out of the polyhedron
         !=> exit the loop on jnode
         isinpolyhedron = .FALSE.

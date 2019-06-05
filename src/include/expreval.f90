@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 Jan. 2019                                     *
+!* Last modification: P. Hirel - 04 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -657,6 +657,82 @@ ELSE IF( INDEX(string,"atan(")>0 ) THEN
   !Perform the calculation of the arctangent
   value = DATAN(x)
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: atan("//TRIM(ADJUSTL(temp))//") = ", value
+  !Write the result into temp
+  WRITE(temp,*) value
+  !Re-write the string by concatenating string1, temp, and string2
+  string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
+  !Evaluate the resulting string
+  CALL EXPREVAL(string,value,recuri,status)
+  !
+ELSE IF( INDEX(string,"atan2(")>0 ) THEN
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ARCTANGENT2: ", TRIM(string)
+  !Save position of the expression "atan"
+  i = INDEX(string,"atan2(")
+  !Save everything that is before function name into string1
+  !(only if function name is not the first thing in string)
+  IF( i>1 ) THEN
+    string1 = TRIM(ADJUSTL(string(1:i-1)))
+  ENDIF
+  !Save position of the opening parenthesis
+  p1 = i+5
+  !Save everything after opening parenthesis into temp
+  temp = TRIM(ADJUSTL(string(p1+1:)))
+  !Find position of matching closing parenthesis
+  m=0
+  i=0
+  j=1
+  p2 = LEN_TRIM(string)
+  DO WHILE( m==0 .AND. i<=LEN_TRIM(temp) )
+    i=i+1
+    IF( temp(i:i)=="(" ) THEN
+      j=j+1
+    ELSEIF( temp(i:i)==")" ) THEN
+      j=j-1
+    ENDIF
+    IF( j==0 ) THEN
+      !i is the position of the matching closing parenthesis
+      p2=i
+      m=1
+      EXIT
+    ENDIF
+  ENDDO
+  !Save everything after closing parenthesis into string2
+  string2 = TRIM(ADJUSTL(temp(p2+1:)))
+  !Remove from temp everything that is after closing parenthesis
+  !NOTE: if no matching closing parenthesis was found, then temp
+  !      will contain everything that is after opening parenthesis
+  temp = temp(1:p2-1)
+  !Get position of the division sign (/ or :)
+  i = SCAN(temp,"/")
+  IF( i==0 ) THEN
+    i = SCAN(temp,":")
+  ENDIF
+  IF( i>1 ) THEN
+    !Save numerator into temp1
+    temp1 = temp(1:i-1)
+    !Interpret this expression, save result in y
+    CALL EXPREVAL(temp1,y,recuri,status)
+    !Save denominator into temp2
+    temp2 = temp(i+1:)
+    !Interpret this expression, save result in x
+    CALL EXPREVAL(temp2,x,recuri,status)
+    !Perform the calculation of the arctangent
+    IF( DABS(x)>1.d-12 ) THEN
+      value = DATAN2(y,x)
+    ELSE
+      IF(verbosity==4) PRINT*, " X ! X ERROR: division by zero: ", TRIM(string)
+      status=10
+      RETURN
+    ENDIF
+  ELSE
+    !No division: cannot compute an arctan2
+    !Perform the calculation of a regular arctangent
+    !Interpret the expression that is inside the parenthesis, save result in x
+    CALL EXPREVAL(temp,x,recuri,status)
+    !Perform the calculation of the arctangent
+    value = DATAN(x)
+  ENDIF
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: atan2("//TRIM(ADJUSTL(temp))//") = ", value
   !Write the result into temp
   WRITE(temp,*) value
   !Re-write the string by concatenating string1, temp, and string2
