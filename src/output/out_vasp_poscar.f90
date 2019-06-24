@@ -171,7 +171,7 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 !
 !Write header of POSCAR file
-WRITE(40,*) TRIM(ADJUSTL(comment(1)))
+WRITE(40,'(a)') TRIM(ADJUSTL(comment(1)))
 WRITE(40,'(a8)') '1.000000'
 WRITE(40,201) H(1,1), H(1,2), H(1,3)
 WRITE(40,201) H(2,1), H(2,2), H(2,3)
