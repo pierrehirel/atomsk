@@ -1,0 +1,17 @@
+# Makefile for compiling Atomsk serially, i.e. without OpenMP.
+# All defaults are used (see main Makefile)
+# except the variable "OPENMP" which is blank.
+
+# USAGE:
+#    make -f Makefile.serial
+
+export
+
+# Define compiler flags for serial compilation
+FORTRAN=gfortran -z muldefs
+OPENMP=
+FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+LAPACK=-llapack -lblas
+
+# Goto main Makefile
+include Makefile

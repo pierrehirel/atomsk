@@ -4,13 +4,13 @@
 # except the compilation flags, defined below.
 
 # USAGE:
-#    make -f Makefile.static all
+#    make -f Makefile.static
 
 export
 
 # Define compiler flags for static compilation
 FORTRAN=gfortran -z muldefs
-OPENMP=-fopenmp
+OPENMP=-DOPENMP -fopenmp
 FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -static -fPIC
 LAPACK=-llapack -lblas
 

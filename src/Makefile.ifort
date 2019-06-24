@@ -1,6 +1,6 @@
 # Makefile for compiling Atomsk on a Unix/Linux machine
 # using Intel Fortran Compiler (ifort) and Intel MKL library.
-# Tested and works with GNU make and ifort 13.0
+# Tested and works with GNU make and ifort 19.0
 
 # USAGE:
 #    make -f Makefile.ifort
@@ -13,7 +13,7 @@ export
 FORTRAN=ifort
   
 # Comment the following line to disable parallelization with OpenMP
-OPENMP=-openmp
+OPENMP=-DOPENMP -qopenmp
 
 # COMPILATION FLAGS:
 # -module is used to specify the folder where the compiler will store the *.mod files

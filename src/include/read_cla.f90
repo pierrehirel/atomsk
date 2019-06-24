@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 May 2019                                      *
+!* Last modification: P. Hirel - 11 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1552,11 +1552,24 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     READ(temp,*,END=120,ERR=120) tempreal
-    !Read the separation distance
+    !Read the translation distance/vector
+    !Read first real number
     i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
+    READ(cla(i),*,END=110,ERR=110) temp
+    temp = ADJUSTL(temp)
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    READ(temp,*,END=120,ERR=120) tempreal
+    !Try to read a second real number
+!     i=i+1
+!     READ(cla(i),*,END=110,ERR=110,IOSTAT=j) temp
+!     READ(temp,*,END=110,ERR=110,IOSTAT=j) tempreal
+!     IF( j==0 ) THEN
+!       !Succeeded reading 2nd number: there MUST be a third
+!       i=i+1
+!       READ(cla(i),*,END=400,ERR=400) temp
+!       READ(temp,*,END=120,ERR=120) tempreal
+!     ELSE
+!       i=i-1
+!     ENDIF
   !
   ELSEIF(clarg=='-shear') THEN
     ioptions = ioptions+1

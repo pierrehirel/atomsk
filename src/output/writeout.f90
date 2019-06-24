@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 May 2019                                      *
+!* Last modification: P. Hirel - 12 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,12 +111,14 @@ CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN),OPTIONAL:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,OPTIONAL:: comment
 LOGICAL:: fileexists
-INTEGER:: i, j, q, qs
+INTEGER:: i, j, k
+INTEGER:: q, qs, itypes  !position of charges, shell charges, atom types in AUX
 INTEGER,DIMENSION(8):: values
 REAL(dp):: Q_total  !total electric charge of the cell
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P          !positions of atoms (or ionic cores)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),OPTIONAL:: S !positions of ionic shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes    !atom types and their number
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
@@ -297,7 +299,7 @@ IF(SIZE(outfileformats)>1) THEN
   ENDDO
 ENDIF
 !
-!Check for the total electric charge
+!Check for the total electric charge and atom types
 IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
   DO i=1,SIZE(AUXNAMES)
     msg = TRIM(ADJUSTL(AUXNAMES(i)))
@@ -305,6 +307,8 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
       q = i
     ELSEIF( msg(1:3)=='qs ' ) THEN
       qs = i
+    ELSEIF( msg(1:5)=='type ' ) THEN
+      itypes = i
     ENDIF
   ENDDO
   !
@@ -327,6 +331,48 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     nwarn = nwarn+1
     CALL ATOMSK_MSG(3717,(/""/),(/Q_total/))
   ENDIF
+  !
+  !If output is activated for file formats that depend on atom "type",
+  !then check against atoms that have different species but same type
+  !(again, only for relatively small systems)
+  IF( SIZE(P,1)<30000 ) THEN
+    IF( itypes>0 .AND. itypes<=SIZE(AUX,2) ) THEN
+      fileexists = .FALSE.
+      !Check if user wants to write to a file format that doesn't support shells
+      DO i=1,SIZE(outfileformats)
+        IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
+          SELECT CASE( outfileformats(i) )
+          CASE('abinit','in','imd','IMD','fdf','FDF','siesta','lmp','LMP','lammps','LAMMPS','xmd','XMD')
+            !Those file formats require atom "type"
+            fileexists = .TRUE.
+          CASE DEFAULT
+            !Other file formats don't
+          END SELECT
+        ENDIF
+      ENDDO
+      IF(fileexists) THEN
+        WRITE(msg,*) 'Checking against shared atom types...'
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        k = 0
+        DO i=1,SIZE(P,1)-1
+          DO j=SIZE(P,1),i+1,-1
+            IF( NINT(P(i,4)).NE.NINT(P(j,4)) .AND. NINT(AUX(i,itypes))==NINT(AUX(j,itypes)) ) THEN
+              k = k+1
+              EXIT
+            ENDIF
+          ENDDO
+        ENDDO
+        !
+        IF( k>0 ) THEN
+          !The same "type" was given to atoms of different species
+          !Display a warning
+          nwarn = nwarn+1
+          CALL ATOMSK_MSG(3718,(/""/),(/0.d0/))
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+  !
 ENDIF
 !
 !

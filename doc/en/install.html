@@ -81,7 +81,9 @@ please turn to the LAPACK community.</p>
 
 <p>In order to optimize the program you may also change the <strong>compilation flags</strong>, depending on your machine's architecture, by modifying the <code>FFLAGS</code> variable. Note that <code>-O3</code> can introduce very aggressive optimizations that can compromise the behavior of the code, a maximum optimization level <code>-O2</code> is recommended. When compiling on Microsoft&reg; Windows&reg; systems the compilation flag <code>-DWINDOWS</code> is required.</p>
 
-<p>If compilation results in <strong>errors</strong>, first have a look at the <a href="./faq.html#compil">FAQ</a>, and second ask your local system administrator to help you. If you believe that the problem is directly related to the source code of the program, then you can send a bug report to <a href="./contact.html">the author</a>. Please be sure to specify which module caused a compilation error.</p>
+<p>The default Makefile enables <strong>OpenMP</strong>, which means that some parts of the code can run in parallel on multiple cores. For OpenMP support to be enabled, the Makefile must contain the line "<code>OPENMP=-DOPENMP -openmp</code>". The last keyword "<code>-openmp</code>" enables OpenMP for GNU Fortran compiler, and must be replaced by the appropriate keyword if another compiler is used. To disable OpenMP, just comment that line.</p>
+
+<p><strong>If compilation results in errors</strong>, first have a look at the <a href="./faq.html#compil">FAQ</a>, and second ask your local system administrator to help you. If you believe that the problem is directly related to the source code of the program, then you can send a bug report to <a href="./contact.html">the author</a>. Please be sure to specify which module caused a compilation error.</p>
 
 <p>When successfull the compilation will result in an executable binary named "Atomsk" under UNIX/Linux, or "<code>atomsk.exe</code>" under Microsoft&reg; Windows&reg;. You may copy this executable in a folder of your choice in order to run it.</p>
 

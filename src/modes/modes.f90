@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Jan. 2019                                     *
+!* Last modification: P. Hirel - 06 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -406,7 +406,7 @@ CASE('create')
           IF( k==2 ) THEN
             !The error was because i is not equal to -h-k
             nerr=nerr+1
-            CALL ATOMSK_MSG(815,(/""/),(/0.d0/))
+            CALL ATOMSK_MSG(815,(/TRIM(temp)/),(/0.d0/))
             GOTO 10000
           ELSE
             !Other error, unable to convert this string into a proper vector

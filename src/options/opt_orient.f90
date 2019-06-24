@@ -11,7 +11,7 @@ MODULE ORIENT
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2018                                    *
+!* Last modification: P. Hirel - 06 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -38,15 +38,18 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE ORIENT_XYZ(H,P,S,Hstart,Hend,SELECT,C_tensor)
+SUBROUTINE ORIENT_XYZ(H,P,S,oldvec,newvec,SELECT,C_tensor)
 !
 !
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
+CHARACTER(LEN=32),DIMENSION(3),INTENT(IN):: oldvec, newvec
+LOGICAL:: cubic, hcp  !are Miller indices given for hexagonal lattice?
 LOGICAL,DIMENSION(3):: orthovec  !are vectors orthogonal?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: i, j
 REAL(dp):: H1, H2, H3
+REAL(dp):: u, v, w, x, z1, z2
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: Hstart, Hend  !Initial and final orientations
 REAL(dp),DIMENSION(3,3):: Gstart   !inverse of Hstart
@@ -56,6 +59,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !atom positions
 !
 !
 !Initialize variables
+ cubic = .FALSE.
+hcp = .FALSE.
 orthovec(:) = .FALSE.
 i = 0
 Gstart(:,:) = 0.d0
@@ -66,8 +71,134 @@ CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
 CALL ATOMSK_MSG(2071,(/''/),(/0.d0/))
 !
 !
+!
+100 CONTINUE
+!Convert old vectors into proper matrix Hstart
+!First, assume regular [hkl] Miller notation
+!If it does not work, assume hexagonal [hkil] notation
+!If it still doesn't work, abort everything and quit
+DO i=1,3
+  CALL INDEX_MILLER(oldvec(i),Hstart(i,:),j)
+  IF(j>0) THEN
+    !Failed to read [hkl]: try to read [hkil] indices
+    CALL INDEX_MILLER_HCP(oldvec(i),Hstart(i,:),j)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/oldvec(i)/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(oldvec(i))/),(/0.d0/))
+        GOTO 1000
+      ENDIF
+    ELSE
+      !Succeeded reading [hkil]
+      hcp = .TRUE.
+    ENDIF
+  ELSE
+    !Succeeded reading [hkl]
+    cubic = .TRUE.
+  ENDIF
+ENDDO
+!
+!Convert new vectors into proper matrix Hend
+DO i=1,3
+  CALL INDEX_MILLER(newvec(i),Hend(i,:),j)
+  IF(j>0) THEN
+    !Failed to read [hkl]: try to read [hkil] indices
+    CALL INDEX_MILLER_HCP(newvec(i),Hend(i,:),j)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/newvec(i)/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(newvec(i))/),(/0.d0/))
+        GOTO 1000
+      ENDIF
+    ELSE
+      !Succeeded reading [hkil]
+      hcp = .TRUE.
+    ENDIF
+  ELSE
+    !Succeeded reading [hkl]
+    cubic = .TRUE.
+  ENDIF
+ENDDO
+!
+IF( hcp .AND. cubic ) THEN
+  !Error: user used both [hkl] and [hkil] notations
+  CALL ATOMSK_MSG(820,(/""/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ENDIF
+!
+IF(hcp) THEN
+  !Convert [hkil] notation into [uvw] in Hstart
+  DO i=1,3
+    u = 2.d0*Hstart(i,1) + Hstart(i,2)
+    v = Hstart(i,1) + 2.d0*Hstart(i,2)
+    w = Hstart(i,3)
+    !Check for common divisor
+    IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+      z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+    ELSE
+      z1 = MAX(DABS(u),DABS(v))
+    ENDIF
+    IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+      z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+    ELSE
+      z2 = MAX(DABS(u),DABS(w))
+    ENDIF
+    IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+      x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
+    ELSE  !i.e. z1==0 or z2==0
+      x = MAX( DABS(z1) , DABS(z2) )
+    ENDIF
+    IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+    !Set box vector
+    Hstart(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
+  ENDDO
+  !
+  !Convert [hkil] notation into [uvw] in Hstart
+  DO i=1,3
+    u = 2.d0*Hend(i,1) + Hend(i,2)
+    v = Hend(i,1) + 2.d0*Hend(i,2)
+    w = Hend(i,3)
+    !Check for common divisor
+    IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+      z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+    ELSE
+      z1 = MAX(DABS(u),DABS(v))
+    ENDIF
+    IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+      z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+    ELSE
+      z2 = MAX(DABS(u),DABS(w))
+    ENDIF
+    IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+      x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
+    ELSE  !i.e. z1==0 or z2==0
+      x = MAX( DABS(z1) , DABS(z2) )
+    ENDIF
+    IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+    !Set box vector
+    Hend(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
+  ENDDO
+ENDIF
+!
 IF(verbosity==4) THEN
   !Some debug messages
+  IF( hcp ) THEN
+    msg = 'Hexagonal Miller notation [hkil]'
+  ELSE
+    msg = 'Miller notation [hkl]'
+  ENDIF
+  CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
   msg = 'Hstart:'
   CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
   DO i=1,3
@@ -80,7 +211,7 @@ IF(verbosity==4) THEN
     WRITE(msg,'(3(f6.2,2X))') (Hend(i,j), j=1,3)
     CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
   ENDDO
-  WRITE(msg,*) 'Angles in Hstart, Hend (degrees):'
+  WRITE(msg,*) 'Angles(degrees)   in Hstart   and    in Hend :'
   CALL ATOMSK_MSG(999,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
   WRITE(msg,*) 'alpha: ', 180.d0*ANGVEC(Hstart(2,:),Hstart(3,:))/pi, &
       &                     180.d0*ANGVEC(Hend(2,:),Hend(3,:))/pi
@@ -94,8 +225,6 @@ IF(verbosity==4) THEN
 ENDIF
 !
 !
-!
-100 CONTINUE
 !Check that no vector in Hstart and Hend is [000]
 IF( VECLENGTH(Hstart(1,:))<1.d-12 .OR. VECLENGTH(Hstart(2,:))<1.d-12 .OR. &
   & VECLENGTH(Hstart(3,:))<1.d-12 .OR. VECLENGTH(Hend(1,:))<1.d-12   .OR. &

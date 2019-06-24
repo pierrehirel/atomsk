@@ -2,7 +2,9 @@
 
 # This script uninstalls Atomsk from system directories.
 # Note that Atomsk should have been installed with its script "install.sh".
-# This script must be run with root permissions.
+# If run with super-user permissions (su or sudo), then atomsk
+# and associated tools and doc are removed from /usr/local/ directory.
+# Otherwise, the folder ~/bin/atomsk/ in user's home directory is deleted.
 
 BINPATH=/usr/local/bin/
 DOCPATH=/usr/local/share/doc/
@@ -39,12 +41,32 @@ if [ -w ${BINPATH} ] ; then
   
   else
   
-    echo ">>> Uninstallation aborted."
+    echo ">>> Uninstallation cancelled."
   
   fi
 
 else
 
-  echo "X!X ERROR: this script must be run as root or with sudo."
+  BINPATH=~/bin/atomsk/
+  DOCPATH=~/bin/atomsk/doc/
+
+  echo "<?> Atomsk will be REMOVED from ${BINPATH}. Continue? (y/n)"
+  read answer
+
+  if [ "${answer}" = "y" ] ; then
+
+    # Remove the whole folder /atomsk/ in user's ~/bin/
+    rm -rf ${BINPATH}
+
+    echo ">>> Program was successfuly removed."
+    echo ">>> You may also delete the file ~/.config/atomsk.conf"
+    echo "    and edit your ~/.bashrc file to remove the folder"
+    echo "    ${BINPATH} from your PATH environment variable."
+  
+  else
+  
+    echo ">>> Uninstallation cancelled."
+  
+  fi
 
 fi

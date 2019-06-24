@@ -29,7 +29,7 @@ else
           sed -i '/Atoms/ c\Atoms  # charge' $f
         fi
         # Add a column of zero after column 2
-        awk '{if(NR>9 && $1>0 && $2>0)
+        awk '{if(NR>9 && NF>4 && $1>0 && $2>0)
                 {print $1 "\t" $2 "\t0.0\t" $(NF-2) "\t" $(NF-1) "\t" $NF}
               else
                 {print}

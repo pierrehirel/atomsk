@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 April 2019                                    *
+!* Last modification: P. Hirel - 24 June 2019                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -67,6 +67,7 @@ CHARACTER(LEN=128):: or1, or2, or3
 CHARACTER(LEN=128):: lattice  !if grains are organized according to a lattice
 CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
+CHARACTER(LEN=32),DIMENSION(3):: oldvec, newvec !new vectors after orient
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES    !names of auxiliary properties of atoms
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary properties of atoms (temporary)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -79,10 +80,11 @@ LOGICAL:: outparam        !were parameters saved in a text file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER:: grainID       !position of the auxiliary property "grainID" in AUX
-INTEGER:: i, j
+INTEGER:: i, j, k
 INTEGER:: linenumber    !line number when reading a file
 INTEGER:: m, n, o
-INTEGER:: maxvertex   !max. number of vertices to look for
+INTEGER:: maxvertex   !max. number of vertices to look for (defined for 3-D or 2-D)
+INTEGER:: Nvertexmax  !max number of neighboring vertices found
 INTEGER:: NP   !total number of atoms in the final system
 INTEGER:: qi   !used to count atoms in a grain
 INTEGER:: inode, jnode
@@ -103,7 +105,7 @@ REAL(dp),DIMENSION(3):: vnormal   !vector normal to grain boundary
 REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell (seed)
 REAL(dp),DIMENSION(3,3):: Ht        !Base vectors of the oriented unit cell
 REAL(dp),DIMENSION(3,3):: Gt        !Inverse of Ht
-REAL(dp),DIMENSION(3,3):: Hn        !Normalized Ht
+REAL(dp),DIMENSION(3,3):: Hn, Hend  !Normalized Ht
 REAL(dp),DIMENSION(3,3):: H         !Base vectors of the final supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
 REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
@@ -311,6 +313,7 @@ DO
       !Read total number of grains
       READ(line(7:),*,END=800,ERR=800) Nnodes
       paramrand = .TRUE.
+      !
     ELSE
       !Unknown command => display warning
       nwarn=nwarn+1
@@ -904,7 +907,7 @@ ALLOCATE( NPgrains(Nnodes) )
 NPgrains(:) = 0
 !
 !Construct template supercell Pt(:,:)
-!By default the template grain fills the whole box
+!By default the template grain is a bit larger than max.cell size * sqrt(3)
 !This template grain will be cut later to construct each grain
 expandmatrix(:) = 1
 DO i=1,3
@@ -912,8 +915,8 @@ DO i=1,3
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
     !
-    m = CEILING( 1.1d0*MAX( VECLENGTH(H(1,:))/Huc(i,i) , &
-               & VECLENGTH(H(2,:))/Huc(i,i) , VECLENGTH(H(3,:))/Huc(i,i) ) )
+    m = CEILING( 1.8d0*MAX( VECLENGTH(H(1,:))/VECLENGTH(Huc(:,i)) , &
+               & VECLENGTH(H(2,:))/VECLENGTH(Huc(:,i)) , VECLENGTH(H(3,:))/VECLENGTH(Huc(:,i)) ) )
     !If the number of grains is small, the template grain may not be large enough
     IF( Nnodes<=4 ) THEN
       m = NINT( 1.5d0*DBLE(m) )
@@ -957,7 +960,7 @@ ELSEIF( m <= 0.d0 ) THEN
   GOTO 1000
 ENDIF
 !
-WRITE(msg,'(a32,3i6)') "Creating template grain, expand:", expandmatrix(:)
+WRITE(msg,'(a32,3i6)') "Allocating arrays..."
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 m = PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1)
@@ -996,8 +999,9 @@ ELSE
     GOTO 1000
   ENDIF
 ENDIF
+!
 AUX_Q(:,:) = 0.d0
-WRITE(msg,'(a32,3i3)') "Creating template grain, expand:", expandmatrix(:)
+WRITE(msg,'(a32,3i6)') "Creating template grain, expand:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 qi=0
 DO o = 0 , expandmatrix(3)
@@ -1024,6 +1028,17 @@ DO o = 0 , expandmatrix(3)
     ENDDO
   ENDDO
 ENDDO
+!
+!
+! IF( verbosity==4 ) THEN
+!   OPEN(UNIT=40,FILE="atomsk_template.xyz",STATUS="UNKNOWN")
+!   WRITE(40,'(i9)') SIZE(Pt,1)
+!   WRITE(40,*) "# Template used by Atomsk to construct polycrystal"
+!   DO i=1,SIZE(Pt,1)
+!     WRITE(40,'(i4,2X,3(f12.6))') NINT(Pt(i,4)), Pt(i,1), Pt(i,2), Pt(i,3)
+!   ENDDO
+!   CLOSE(40)
+! ENDIF
 !
 !
 !Estimate new number of particles NP = (density of unit cell) / (volume of final cell)
@@ -1053,33 +1068,9 @@ DO inode=1,Nnodes
   !Compute number of vertices surrounding current node
   Nvertices = 0
   maxdnodes = 0.d0
-  !First, check if current node is a neighbor of itself due to periodic boundary conditions
   expandmatrix(:) = 1
-  IF( twodim>0 ) THEN
-    !System is pseudo 2-D => do not look along the short distance
-    expandmatrix(twodim) = 1
-  ENDIF
-  DO o=-expandmatrix(3),expandmatrix(3)
-    DO n=-expandmatrix(2),expandmatrix(2)
-      DO m=-expandmatrix(1),expandmatrix(1)
-        IF( .NOT.(m==0 .AND. n==0 .AND. o==0) .AND.           &
-          & (m.NE.n .OR. n.NE.o .OR. o.NE.m)         ) THEN
-          !Position of the periodic image of node #inode
-          P1 = vnodes(inode,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-          P2 = vnodes(inode,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-          P3 = vnodes(inode,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-          vector = (/ P1 , P2 , P3 /)
-          !This image is a neighbor if distance is smaller than max. box size
-          distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-          IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
-            Nvertices = Nvertices+1
-            IF( distance > maxdnodes ) maxdnodes = distance
-          ENDIF
-        ENDIF
-      ENDDO
-    ENDDO
-  ENDDO
-  !Then search neighbor list
+  !
+  !Search neighbors from neighbor list
   IF( twodim>0 ) THEN
     !System is pseudo 2-D => do not look along the short distance
     expandmatrix(twodim) = 0
@@ -1099,7 +1090,7 @@ DO inode=1,Nnodes
               vector = (/ P1 , P2 , P3 /)
               !This image is a neighbor if distance is smaller than max. box size
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-              IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
+              IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
                 Nvertices = Nvertices+1
                 IF( distance > maxdnodes ) maxdnodes = distance
               ENDIF
@@ -1109,40 +1100,13 @@ DO inode=1,Nnodes
       ENDIF
     ENDDO
   ENDIF
+  !
   !Allocate memory for vertices
+  !NOTE: at this stage Nvertices over-estimates the number of neighboring vertices
   ALLOCATE( vvertex(Nvertices,4) )
   vvertex(:,:) = 0.d0
-  !Save the positions of neighbor vertices for current node
-  IF( twodim>0 ) THEN
-    !System is pseudo 2-D => do not look along the short distance
-    expandmatrix(twodim) = 1
-  ENDIF
+  !
   Nvertices = 0
-  DO o=-expandmatrix(3),expandmatrix(3)
-    DO n=-expandmatrix(2),expandmatrix(2)
-      DO m=-expandmatrix(1),expandmatrix(1)
-        IF( .NOT.(m==0 .AND. n==0 .AND. o==0) .AND.           &
-          & (m.NE.n .OR. n.NE.o .OR. o.NE.m)         ) THEN
-          !Position of the periodic image of node #inode
-          P1 = vnodes(inode,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-          P2 = vnodes(inode,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-          P3 = vnodes(inode,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-          vector = (/ P1 , P2 , P3 /)
-          !This image is a neighbor if distance is smaller than max. box size
-          distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-          IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
-            Nvertices = Nvertices+1
-            vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-            vvertex(Nvertices,4) = distance
-          ENDIF
-        ENDIF
-      ENDDO
-    ENDDO
-  ENDDO
-  IF( twodim>0 ) THEN
-    !System is pseudo 2-D => do not look along the short distance
-    expandmatrix(twodim) = 0
-  ENDIF
   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
     DO i=1,SIZE( vnodesNeighList,2 )
       IF( vnodesNeighList(inode,i).NE.0 ) THEN
@@ -1156,16 +1120,39 @@ DO inode=1,Nnodes
               P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
               P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
               vector = (/ P1 , P2 , P3 /)
-              !This image is a neighbor if distance is smaller than max. box size
+              !Compute distance between current node and this vertex
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-              IF( distance>1.d-12 .AND. distance <= boxmax ) THEN
-                Nvertices = Nvertices+1
-                vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                vvertex(Nvertices,4) = distance
+              !This image is a neighbor if distance is smaller than max. box size,
+              !and if it is not colinear with an existing vector
+              !Check if it is not colinear with an existing vertex
+              P1 = 1.d12
+              k=0
+              DO j=1,Nvertices
+                P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
+                IF( P2<P1 ) THEN
+                  P1=P2
+                  k=j
+                ENDIF
+              ENDDO
+              IF( P1<0.1d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
+                !Vertex vector #k is colinear with current vector
+                !If new one is closer, replace the older one
+                IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
+                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                  vvertex(k,4) = distance
+                ENDIF
+              ELSE
+                !No colinear vertex was found: add a new one to the list
+                IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
+                  Nvertices = Nvertices+1
+                  vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                  vvertex(Nvertices,4) = distance
+                ENDIF
               ENDIF
             ENDDO
           ENDDO
         ENDDO
+        !
       ENDIF
     ENDDO
   ENDIF
@@ -1180,22 +1167,56 @@ DO inode=1,Nnodes
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes
   IF( SIZE(vvertex,1)>maxvertex ) THEN
     maxdnodes = vvertex(maxvertex,4)
+    WRITE(msg,*) maxdnodes
+    msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
+  !
+  !Get index of last atom that is closer than maxdnodes
+  i=1
+  DO WHILE( i<=SIZE(vvertex,1) .AND. i<=maxvertex .AND. vvertex(i,4)<=maxdnodes )
+    i = i+1
+  ENDDO
+  !Resize array vvertex to get rid of unused vertices
+  CALL RESIZE_DBLEARRAY2(vvertex,i+26,4,status)
+  !
+  !Append vertices corresponding to the 26 replicas of current node
+  DO o=-1,1
+    DO n=-1,1
+      DO m=-1,1
+        IF( o.NE.0 .OR. n.NE.0 .OR. m.NE.0 ) THEN
+          !Position of the periodic image of node #inode
+          P1 = vnodes(inode,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+          P2 = vnodes(inode,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+          P3 = vnodes(inode,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+          vector = (/ P1 , P2 , P3 /)
+          !Compute distance
+          distance = VECLENGTH( vector(:) - vnodes(inode,:) )
+          IF( distance>1.d-3 ) THEN
+            i = i+1
+            vvertex(i,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+            vvertex(i,4) = distance
+          ENDIF
+        ENDIF
+      ENDDO
+    ENDDO
+  ENDDO
+  Nvertexmax = i
   !
   IF(verbosity==4) THEN
     !Debug messages
-    msg = "List of neighboring vertices:"
+    msg = "List of neighboring vertices after cleanup:"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    msg = "   N       x           y          z        dist.to current node"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO i=1,SIZE(vvertex,1)
       WRITE(msg,'(i4,6f12.3)') i, vvertex(i,:)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
-    WRITE(msg,*) maxdnodes
-    msg = "Max. distance to a node: "//TRIM(ADJUSTL(msg))
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
   !Copy template supercell Pt(:,:) into Pt2(:,:)
+  !Convert to reduced coordinates
   Ht(:,:) = H(:,:)
   IF(ALLOCATED(Pt2)) DEALLOCATE(Pt2)
   IF(ALLOCATED(St2)) DEALLOCATE(St2)
@@ -1207,6 +1228,7 @@ DO inode=1,Nnodes
     GOTO 1000
   ENDIF
   Pt2(:,:) = Pt(:,:)
+  CALL CART2FRAC(Pt2,Ht)
   IF(doshells) THEN
     !Copy shells from template into St2(:,:)
     ALLOCATE( St2( SIZE(St,1) , SIZE(St,2) ) , STAT=n )
@@ -1217,11 +1239,49 @@ DO inode=1,Nnodes
       GOTO 1000
     ENDIF
     St2(:,:) = St(:,:)
+    CALL CART2FRAC(St2,Ht)
   ENDIF
   !
   !Rotate this cell to obtain the desired crystallographic orientation
-  CALL ORIENT_XYZ(Ht,Pt2,St2,Ht,vorient(inode,:,:),SELECT,C_tensor)
-  IF(nerr>0) GOTO 1000
+  CALL ATOMSK_MSG(2071,(/''/),(/0.d0/))
+  DO i=1,3
+    IF( VECLENGTH(Ht(i,:)) .NE. 0.d0 ) THEN
+      Hn(i,:) = Ht(i,:)/VECLENGTH(Ht(i,:))
+    ELSE
+      !we have a problem
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    IF( VECLENGTH(vorient(inode,i,:)) .NE. 0.d0 ) THEN
+      Hend(i,:) = vorient(inode,i,:)/VECLENGTH(vorient(inode,i,:))
+    ELSE
+      !we have a problem
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+  ENDDO
+  CALL INVMAT(Hn,Gt)
+  DO i=1,3
+    P1 = Ht(i,1)
+    P2 = Ht(i,2)
+    P3 = Ht(i,3)
+    Ht(i,1) = Gt(1,1)*P1 + Gt(1,2)*P2 + Gt(1,3)*P3
+    Ht(i,2) = Gt(2,1)*P1 + Gt(2,2)*P2 + Gt(2,3)*P3
+    Ht(i,3) = Gt(3,1)*P1 + Gt(3,2)*P2 + Gt(3,3)*P3
+    P1 = Ht(i,1)
+    P2 = Ht(i,2)
+    P3 = Ht(i,3)
+    Ht(i,1) = P1*Hend(1,1) + P2*Hend(1,2) + P3*Hend(1,3)
+    Ht(i,2) = P1*Hend(2,1) + P2*Hend(2,2) + P3*Hend(2,3)
+    Ht(i,3) = P1*Hend(3,1) + P2*Hend(3,2) + P3*Hend(3,3)
+  ENDDO
+  !
+  !Convert back to Cartesian coordinates
+  CALL FRAC2CART(Pt2,Ht)
+  IF(doshells) THEN
+    CALL FRAC2CART(St2,Ht)
+  ENDIF
+  CALL ATOMSK_MSG(2072,(/''/),(/0.d0/))
   !
   !Shift oriented supercell so that its center of mass is at the center of the box
   CALL CENTER_XYZ(H,Pt2,St2,0,SELECT)
@@ -1252,7 +1312,7 @@ DO inode=1,Nnodes
     Pt2(i,1:3) = Pt2(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)
     !Determine if this position is inside of the polyhedron
     isinpolyhedron = .TRUE.
-    DO jnode = 1 , MIN( SIZE(vvertex,1) , maxvertex )
+    DO jnode = 1 , SIZE(vvertex,1)
       !Compute vector between the vertex and current node
       !By definition this vector is normal to the grain boundary
       vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
@@ -1288,6 +1348,7 @@ DO inode=1,Nnodes
       ELSE
         !qi exceeds the size of arrays Q, T and AUX_Q
         !we have a problem: abort
+        PRINT*, "ERROR qi larger than size of Q"
         nerr = nerr+1
       ENDIF
     ELSE
@@ -1314,13 +1375,15 @@ DO inode=1,Nnodes
     WRITE(temp,*) inode
     msg = 'atomsk_grain'//TRIM(ADJUSTL(temp))//'.xyz'
     OPEN(UNIT=36,FILE=msg,STATUS="UNKNOWN",FORM="FORMATTED")
-    WRITE(36,*) MIN(SIZE(Pt2,1),NPgrains(inode))
+    WRITE(36,*) NPgrains(inode)
     msg = '# Debug file for Atomsk, mode --polycrystal, grain # '//TRIM(ADJUSTL(temp))
     WRITE(36,*) TRIM(msg)
     IF(NPgrains(inode)>0) THEN
       DO i=1,MIN(SIZE(Pt2,1),NPgrains(inode))
-        CALL ATOMSPECIES(Pt2(i,4),species)
-        WRITE(36,'(a2,2X,3(f16.8,1X))') species, Pt2(i,1:3)
+        IF( Pt2(i,4)>0.d0 ) THEN
+          CALL ATOMSPECIES(Pt2(i,4),species)
+          WRITE(36,'(a2,2X,3(f16.8,1X))') species, Pt2(i,1:3)
+        ENDIF
       ENDDO
     ENDIF
     WRITE(36,'(a4)') 'alat'

@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 April 2019                                    *
+!* Last modification: P. Hirel - 14 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -136,9 +136,9 @@ ignore=.FALSE. !By default, don't ignore files already converted
 verbosity = 1
 !
 !
-!Environment will be set at compilation time (use flag -cpp).
+!Environment is set at compilation time (use flag -cpp).
 !When compiling for Microsoft Windows(R), use the flag -DWINDOWS
-!otherwise UNIX/Linux setup will be assumed
+!otherwise UNIX/Linux setup is assumed
 #if defined(WINDOWS)
   !COMPILATION FOR MICROSOFT WINDOWS
   !Set path of personal config file (%HOMEPATH%\atomsk.ini)
@@ -383,6 +383,7 @@ options_array(:) = ''
 !
 !Print a nice message
 CALL DISPLAY_HEADER()
+!Print message of the day
 CALL DATE_MSG()
 !
 !
@@ -400,7 +401,11 @@ IF(overw.AND.ignore) overw=.FALSE.
 !
 !If user specified number of threads, set it now
 IF(Nthreads>0) THEN
+#if defined(OPENMP)
   CALL OMP_SET_NUM_THREADS(Nthreads)
+#else
+  CALL ATOMSK_MSG(751,(/"command line"/),(/0.d0/))
+#endif
 ENDIF
 !
 !Then deal with the different modes

@@ -26,9 +26,13 @@
 
 <p>Le &#60;fichier&#62; est un fichier texte qui doit contenir des mots-clés, suivis des valeurs correspondantes. Les lignes vides, et les lignes commençant avec un croisillon (&#35;), sont ignorées. Si une propriété est définie plusieurs fois, la dernière occurence écrase les précédentes.</p>
 
-<p><em>Les propriétés individuelles des atomes</em> sont définies pour chaque atome, c'est le cas par ex. des déplacements ou des vitesses des atomes. S'il s'agit de propriétés auxiliaires (càd qui ne s'appliquent pas aux positions des atomes : les vitesses, charges électriques...), elles sont écrites dans certains formats de fichiers, voir <a href="./formats.html">cette page</a>. <em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
+<p><em>Les propriétés individuelles des atomes</em> sont définies pour chaque atome, c'est le cas par ex. de l'énergie, des déplacements, ou des vitesses des atomes. Si elles ne modifient pas la position des atomes alors on parle de "propriétés auxiliaires" (par exemple l'énergie, les vitesses, charges électriques...), et elles sont écrites dans certains formats de fichiers comme les fichiers CFG (voir <a href="./formats.html">cette page</a> pour plus d'informations).</p>
 
-<p>Voici la liste des <strong>propriétés atomiques individuelles</strong> qui s'appliquent aux atomes :</p>
+<p><em>Les propriétés globales du système</em> ne s'appliquent pas à chaque atome individuellement, mais au système dans son ensemble, comme les vecteurs de boîte ou le tenseur élastique. Ces propriétés peuvent affecter certaines options appelées après l'option <code>-properties</code>, ainsi que les fichiers de sortie.</p>
+
+<hr>
+
+<p>Voici la liste des <strong>propriétés atomiques individuelles</strong>, ou "propriétés auxiliaires", qui peuvent être définies ou s'appliquer à chaque atome&nbsp;:</p>
 
 <ul>
   
@@ -44,7 +48,24 @@
             ux = &#60;fonction&#62;<br/>
             uy = &#60;fonction&#62;<br/>
             uz = &#60;fonction&#62;<br/></code></p>
-  <p>Les fonctions peuvent contenir&nbsp;: des nombres entiers ou réels&nbsp;; des opérateurs (+, -, *, /, %, ^, e)&nbsp;; des fonctions mathématiques (abs, sqrt, cos, acos, sin, asin, tan, atan)&nbsp;; le mot-clé "pi"&nbsp;; les mots-clés Hx, Hy, Hz, qui correspondent aux dimensions de la boîte suivant X, Y, Z&nbsp;; et/ou les variables x, y, z, qui correspondent aux coordonnées des atomes. Pour chaque atome, les fonctions ux, uy et uz sont évaluées en utilisant ses coordonnées x, y, z, et l'atome est immédiatement déplacé de la quantité calculée. Des exemples sont donnés ci-dessous.</p></li>
+  <p>Les fonctions peuvent être composées d'opérateurs mathématiques (+, -, *, /, %, ^, e, !)&nbsp;; de nombres entiers ou réels&nbsp;; du mot-clé "pi"&nbsp;; des mots-clés Hx, Hy, Hz, qui désignent les dimensions de la boîte suivant les axes cartésiens X, Y, Z respectivement&nbsp;; des variables x, y, z, qui font référence à la position de l'atome&nbsp;; et/ou de fonctions mathématiques. Les fonctions suivantes sont supportées&nbsp;:</p>
+  
+  <ul>
+    <li>abs(x)&emsp;&emsp;&emsp;Valeur absolue de x</li>
+    <li>sqrt(x)&emsp;&emsp;&emsp;Racine carrée de x</li>
+    <li>exp(x)&emsp;&emsp;&emsp;Exponentielle de x</li>
+    <li>ln(x)&emsp;&emsp;&emsp;Logarithme naturel de x</li>
+    <li>log(x)&emsp;&emsp;&emsp;Logarithme base-10 de x</li>
+    <li>cos(x)&emsp;&emsp;&emsp;Cosinus de x (x doit être en degrés)</li>
+    <li>acos(x)&emsp;&emsp;&emsp;Arccosinus de x (x doit être compris entre -1 et 1)</li>
+    <li>sin(x)&emsp;&emsp;&emsp;Sinus de x (x doit être en degrés)</li>
+    <li>asin(x)&emsp;&emsp;&emsp;Arccosinus de x (x doit être compris entre -1 et 1)</li>
+    <li>tan(x)&emsp;&emsp;&emsp;Tangent de x (x doit être compris entre -1 et 1)</li>
+    <li>atan(x)&emsp;&emsp;&emsp;Arctangent de x (x doit être compris entre -1 et 1)</li>
+    <li>atan2(x,y)&emsp;&emsp;&emsp;<a href="https://fr.wikipedia.org/wiki/Atan2">Arctangente à 2 arguments</a> (x doit être différent de zéro)</li>
+  </ul>
+  
+  <p>Pour chaque atome, les fonctions ux, uy et uz sont évaluées en utilisant ses coordonnées x, y, z, et l'atome est immédiatement déplacé de la quantité calculée. Des exemples sont donnés ci-dessous.</p></li>
   
   <li><strong>Les charges des ions</strong> peuvent être définies grâce au mot-clé "charge", suivi de lignes contenant le symbole chimique de l'ion et sa charge (généralement en unités de charges élémentaires <em>e</em>, bien que <code>atomsk</code> travaillera quel que soit le nombre donné). Dans le cas d'un modèle ionique c&oelig;ur-coquille, la charge Q du c&oelig;ur et la charge q de la coquille peuvent être données :<br/>
       <p><code>charge<br/>
@@ -83,6 +104,7 @@
 </ul>
 
 <br/>
+<hr>
 <p>Et voici la liste des <strong>propriétés globales</strong> :</p>
 
 <ul>

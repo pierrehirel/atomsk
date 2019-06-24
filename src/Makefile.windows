@@ -39,7 +39,7 @@ SEP=\\
 FORTRAN=gfortran.exe
   
 # Comment the following line to disable parallelization with OpenMP
-OPENMP=-fopenmp
+OPENMP=-DOPENMP -fopenmp
 
 # COMPILATION FLAGS:
 # (note that the flag "-DWINDOWS" is mandatory for Windows systems)

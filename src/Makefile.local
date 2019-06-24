@@ -4,7 +4,7 @@
 # except the installation path which is defined below.
 
 # USAGE:
-#    make -f Makefile.local all
+#    make -f Makefile.local
 
 export
 

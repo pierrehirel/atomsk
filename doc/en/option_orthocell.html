@@ -30,7 +30,7 @@
 
 <p>After this option is applied, the total number of atoms may differ from that of the initial system. In the particular case where box vectors are already all aligned with the Cartesian directions, but one or more of them point towards negative coordinates, this option will flip them so that they all point towards positive coordinates. The number of atoms will remain unchanged, but atoms will be translated by the appropriate box vector(s). Similarly, if <strong><em>H</em><sub>1</sub></strong> is aligned with the Cartesian Y axis and <strong><em>H</em><sub>2</sub></strong> with X, then this option will exchange these vectors so that <strong><em>H</em><sub>1</sub></strong> is aligned with X and <strong><em>H</em><sub>2</sub></strong> with Y.</p>
 
-<p>Note that in certain conditions (for instance, if the initial box vectors form very small angles with Cartesian axes), then Atomsk may fail to find a suitable set of orthogonal vectors.</p>
+<p>It is recommended to call this option <em>before</em> duplicating the system with the option "-duplicate". Note that in certain conditions (for instance, if the initial box vectors form very small angles with Cartesian axes), then Atomsk may fail to find a suitable set of orthogonal vectors.</p>
 
 
 

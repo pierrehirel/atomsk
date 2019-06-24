@@ -28,7 +28,7 @@ else
           sed -i '/Atoms/ c\Atoms  # atomic' $f
         fi
         # Keep only columns 1, 2, and three last columns
-        awk '{if(NR>9 && $1>0 && $2>0)
+        awk '{if(NR>9 && NF>4 && $1>0 && $2>0)
                 {print $1 "\t" $2 "\t" $(NF-2) "\t" $(NF-1) "\t" $NF}
               else
                 {print}

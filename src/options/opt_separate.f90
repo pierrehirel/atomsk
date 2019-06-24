@@ -78,25 +78,26 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
   !Now PosList(:,:) contains the cartesian positions of all neighbors in the rmd_radius,
   !their distance to the atom #i, and their indices.
   !
-  !If a neighboring atom is within the rmd_radius, mark them for elimination
-  !(they will be effectively removed from the array later)
+  !If a neighboring atom is within the rmd_radius, displace the 2 atoms
   IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
     DO j=1,SIZE(PosList,1)
       iat = NINT(PosList(j,5))  !index of current neighbor
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(iat) ) THEN  !remove only selected atoms
-        Pvector(:) = P(i,1:3) - PosList(j,1:3)
-        vl = VECLENGTH(Pvector(:))
-        IF( vl > 0.1d0 ) THEN
-          !Normalize vector length
-          Pvector(:) = Pvector(:) / VECLENGTH(Pvector(:))
-        ELSE
-          !Atoms are extremely close
-          !Make sure that Pvector has a length 1
-          Pvector(:) = DSQRT(3.d0)
+      IF( iat>0 .AND. iat<=SIZE(P,1) ) THEN
+        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(iat) ) THEN  !remove only selected atoms
+          Pvector(:) = P(i,1:3) - PosList(j,1:3)
+          vl = VECLENGTH(Pvector(:))
+          IF( vl > 1d-6 ) THEN
+            !Normalize vector length
+            Pvector(:) = Pvector(:) / VECLENGTH(Pvector(:))
+          ELSE
+            !Atoms are extremely close
+            !Make sure that Pvector has a length 1
+            Pvector(:) = DSQRT(3.d0)
+          ENDIF
+          P(i,1:3) = P(i,1:3) + sep_dist*Pvector(:)
+          P(iat,1:3) = P(iat,1:3) - sep_dist*Pvector(:)
+          Nsep = Nsep+1
         ENDIF
-        P(i,1:3) = P(i,1:3) + sep_dist*Pvector(:)
-        P(iat,1:3) = P(iat,1:3) - sep_dist*Pvector(:)
-        Nsep = Nsep+1
       ENDIF
     ENDDO
     DEALLOCATE(PosList)

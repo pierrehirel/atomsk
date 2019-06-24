@@ -16,6 +16,8 @@
 #    make atomsk
 # Or, to use parallel compilation:
 #    make -j3 atomsk
+# If you wish to use another makefile, e.g. Intel compiler:
+#    make -f Makefile.ifort atomsk
 
 export
 
@@ -50,7 +52,7 @@ ifndef FORTRAN
   FORTRAN=gfortran
   
   # Comment the following line to disable parallelization with OpenMP
-  OPENMP=-fopenmp
+  OPENMP=-DOPENMP -fopenmp
 
   # -O2 gives good optimization/performance
   # -fno-backslash prevents backslash characters to be misunderstood

@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# This script installs Atomsk in system directories
-# so that all users can use it. This script must be run
-# with root permissions.
+# This script installs Atomsk on the local computer.
+# If run with super-user rights (su or sudo), then the
+# program and documentation are installed in /usr/local/.
+# Otherwise they are installed in the user's home directory.
 
 BINPATH=/usr/local/bin/
 DOCPATH=/usr/local/share/doc/
@@ -45,16 +46,62 @@ else
       mkdir -p ${MPATH}
       gzip -c ./man/atomsk >${MPATH}/atomsk.1.gz
     
-    
     else
     
-      echo ">>> Installation aborted."
+      echo ">>> Installation cancelled."
     
     fi
 
   else
+  
+    # Install program in user's home directory
 
-    echo "X!X ERROR: this script must be run as root or with sudo."
+    BINPATH=~/bin/atomsk/
+    DOCPATH=~/bin/atomsk/doc/
+
+    echo "<!> INFO: run this script with super-user rights (su or sudo)"
+    echo "         to install Atomsk system-wide."
+    echo ""
+    echo "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n)"
+    read answer
+
+    if [ "${answer}" = "y" ] ; then
+      # Create the target folder
+      mkdir -p ${BINPATH}
+      
+      # System configuration file
+      cp -rf ./etc/atomsk.conf ~/.config/
+
+      # Atomsk binary
+      chmod +x atomsk
+      cp atomsk ${BINPATH}
+
+      # Atomsk tools
+      chmod +x ./tools/*.sh
+      cp ./tools/* ${BINPATH}
+      echo ">>> The program was successfuly installed in ${BINPATH}"
+      echo "    To run it, enter 'atomsk' in a terminal."
+
+      # Atomsk documentation
+      mkdir -p ${DOCPATH}
+      rm -rf ${DOCPATH}/*
+      cp -rf ./doc/* ${DOCPATH}
+      chmod -R a+r ${DOCPATH}
+      echo ">>> The html documentation was installed. You may read it by entering the"
+      echo "    following address in your Web browser: ${DOCPATH}index.html"
+      
+      # Create alias
+      n=$(grep "atomsk" ~/.bashrc | wc -l)
+      if [ $n -eq 0 ] ; then
+        echo "export PATH=\"\$PATH:${BINPATH}\"" >> ~/.bashrc
+        echo ">>> ${BINPATH} was added to your PATH environment variable."
+      fi
+    
+    else
+    
+      echo ">>> Installation cancelled."
+
+    fi
 
   fi
 

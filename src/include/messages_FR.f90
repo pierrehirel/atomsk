@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Feb. 2019                                     *
+!* Last modification: P. Hirel - 14 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -739,6 +739,17 @@ CASE(750)
   ENDDO
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(751)
+  !strings(1) = name of file that will be ignored
+  IF(strings(1)=="command line") THEN
+    temp = "de la ligne de commande"
+  ELSE
+    temp = "dans "//TRIM(ADJUSTL(strings(1)))
+  ENDIF
+  msg = "/!\ ALERTE : directive 'nthreads' "//TRIM(ADJUSTL(temp))//" ignorée."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    Cette version de Atomsk a été compilée sans support OpenMP."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 800- 899: ERROR MESSAGES
 CASE(800)
@@ -801,7 +812,8 @@ CASE(814)
   msg = "X!X ERREUR : un vecteur de Miller ne peut pas être [000]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(815)
-  msg = "X!X ERREUR : dans les mailles hexagonales, les indices de Miller [hkil] doivent respecter h+k+i=0."
+  !strings(1) = Miller indices provided by the user
+  msg = "X!X ERREUR : les indices de Miller fournis ne satifont pas h+k+i=0 : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X ERREUR : division par zero."
@@ -840,6 +852,9 @@ CASE(819)
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
   msg = "          Essayez avec un ordinateur qui possède davantage de mémoire."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(820)
+  msg = "X!X ERREUR : ne pas mélanger les notations de Miller [hkl] et [hkil]."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2106,6 +2121,12 @@ CASE(2148)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" valeurs ont été arrondies."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2600)
+  !strings(1) = first option
+  !strings(2) = second option
+  msg = "<!> INFO : pour de meilleures performances, utilisez l'option '"//TRIM(ADJUSTL(strings(2)))// &
+      & "' avant l'option '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2308,9 +2329,9 @@ CASE(2800)
   msg = "X!X ERREUR : axe inconnu: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2801)
-  WRITE(msg,*) "X!X ERREUR : la base Hend n'est pas une rotation de Hstart."
+  msg = "X!X ERREUR : la base Hend n'est pas une rotation de Hstart."
   CALL DISPLAY_MSG(1,msg,logfile)
-  WRITE(msg,*) "    Vérifiez que les angles sont égaux dans Hstart et Hend."
+  msg = "    Vérifiez que les angles sont égaux dans Hstart et Hend."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
   !strings(1) = property that was not read properly
@@ -2548,6 +2569,13 @@ CASE(3717)
   !reals(1) = total charge
   WRITE(temp,'(f9.3)') reals(1)
   msg = "/!\ ALERTE : la boîte a une charge électrique non nulle : Q_total = "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3718)
+  msg = "/!\ ALERTE : certains atomes d'espèces différentes ont le même 'type'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Vous pouvez utiliser l'option '-remove-property type' pour supprimer les types,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            ou l'option '-properties' pour les définir manuellement."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Feb. 2019                                     *
+!* Last modification: P. Hirel - 14 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -742,6 +742,12 @@ CASE(750)
   ENDDO
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(751)
+  !strings(1) = origin of "nthreads": command-line or config. file
+  msg = "/!\ WARNING: ignoring directive 'nthreads' from "//TRIM(ADJUSTL(strings(1)))//"."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    This version of Atomsk was compiled without OpenMP support."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 800- 899: ERROR MESSAGES
 CASE(800)
@@ -804,7 +810,8 @@ CASE(814)
   msg = "X!X ERROR: Miller vector cannot be [000]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(815)
-  msg = "X!X ERROR: in hexagonal lattices, Miller indices [hkil] must have h+k+i=0."
+  !strings(1) = Miller indices provided by the user
+  msg = "X!X ERROR: provided Miller indices do not satisfy h+k+i=0: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X ERROR: division by zero."
@@ -843,6 +850,9 @@ CASE(819)
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
   msg = "          Try on a computer with more memory."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(820)
+  msg = "X!X ERROR: cannot mix [hkl] and [hkil] Miller notations."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2043,6 +2053,12 @@ CASE(2148)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Done, "//TRIM(ADJUSTL(temp))//" values were rounded off."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2600)
+  !strings(1) = first option
+  !strings(2) = second option
+  msg = "<!> INFO: for better performance, use option '"//TRIM(ADJUSTL(strings(2)))// &
+      & "' before option '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNING MESSAGES
 CASE(2700)
@@ -2244,9 +2260,9 @@ CASE(2800)
   msg = "X!X ERROR: unknown axis: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2801)
-  WRITE(msg,*) "X!X ERROR: the base Hend is not a rotation of Hstart."
+  msg = "X!X ERROR: the base Hend is not a rotation of Hstart."
   CALL DISPLAY_MSG(1,msg,logfile)
-  WRITE(msg,*) "    Check that angles are equal in Hstart and Hend."
+  msg = "    Check that angles are equal in Hstart and Hend."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
   !strings(1) = property that was not read properly
@@ -2484,6 +2500,13 @@ CASE(3717)
   !reals(1) = total charge
   WRITE(temp,'(f9.3)') reals(1)
   msg = "/!\ WARNING: cell has a non-zero electric charge: Q_total = "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3718)
+  msg = "/!\ WARNING: some atoms of different species have the same 'type'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            You may use the option '-remove-property type' to remove atom types,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            or the option '-properties' to set atom types manually."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

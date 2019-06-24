@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 28 Feb. 2019                                     *
+!* Last modification: P. Hirel - 14 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -712,6 +712,17 @@ CASE(750)
   ENDDO
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(751)
+  !strings(1) = origin of "nthreads": command-line or config. file
+  IF(strings(1)=="command line") THEN
+    temp = "der Kommandozeile"
+  ELSE
+    temp = "der Datei "//TRIM(ADJUSTL(strings(1)))
+  ENDIF
+  msg = "/!\ WARNING: Ignorieren der Direktive 'nthreads' von "//TRIM(ADJUSTL(strings(1)))//"."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "    Diese Version von Atomsk wurde ohne OpenMP-Unterstützung kompiliert."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 800- 899: FEHLER MESSAGES
 CASE(800)
@@ -773,7 +784,8 @@ CASE(814)
   msg = "X!X FEHLER: Miller Vektor kann nicht [000] sein."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(815)
-  msg = "X!X FEHLER: in hexagonal lattices, Miller indices [hkil] must have h+k+i=0."
+  !strings(1) = Miller indices provided by the user
+  msg = "X!X FEHLER: angegebenen Miller-Indizes erfüllen h+k+i=0 nicht: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(816)
   msg = "X!X FEHLER: Durch Null teilen."
@@ -812,6 +824,9 @@ CASE(819)
     CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
   msg = "          Versuchen Sie einen Computer mit mehr Speicher."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(820)
+  msg = "X!X FEHLER: kann nicht [hkl] und [hkil] Miller-Notationen mischen."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -2004,6 +2019,12 @@ CASE(2148)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" Werte wurden gerundet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2600)
+  !strings(1) = first option
+  !strings(2) = second option
+  msg = "<!> INFO: für eine bessere Leistung, verwenden Sie Option '"//TRIM(ADJUSTL(strings(2)))// &
+      & "' vor Option '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !2700-2799: WARNUNG MESSAGES
 CASE(2700)
@@ -2211,10 +2232,10 @@ CASE(2800)
   msg = "X!X FEHLER: Unbekannte Achse: "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2801)
-  WRITE(msg,*) "X!X FEHLER: Die Basis Hend kann nicht auf"// &
+  msg = "X!X FEHLER: Die Basis Hend kann nicht auf"// &
              & " Hstart gedreht werden."
   CALL DISPLAY_MSG(1,msg,logfile)
-  WRITE(msg,*) "    Ueberpruefen Sie bitte, ob die Winkel in"// &
+  msg = "    Ueberpruefen Sie bitte, ob die Winkel in"// &
              & " Hstart and Hend identisch sind."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
@@ -2465,6 +2486,13 @@ CASE(3717)
   !reals(1) = total charge
   WRITE(temp,'(f9.3)') reals(1)
   msg = "/!\ WARNUNG: Zelle hat eine von Null verschiedene elektrische Ladung: Q_total = "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3718)
+  msg = "/!\ WARNUNG: einige Atome verschiedener Arten haben den gleichen 'type'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Sie können die Option '-remove-property type' verwenden, um Atomtypen zu entfernen,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            oder die Option '-properties', um Atomtypen manuell festzulegen."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES

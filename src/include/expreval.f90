@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 June 2019                                     *
+!* Last modification: P. Hirel - 12 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -702,11 +702,8 @@ ELSE IF( INDEX(string,"atan2(")>0 ) THEN
   !NOTE: if no matching closing parenthesis was found, then temp
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
-  !Get position of the division sign (/ or :)
-  i = SCAN(temp,"/")
-  IF( i==0 ) THEN
-    i = SCAN(temp,":")
-  ENDIF
+  !Get position of the comma
+  i = SCAN(temp,",")
   IF( i>1 ) THEN
     !Save numerator into temp1
     temp1 = temp(1:i-1)

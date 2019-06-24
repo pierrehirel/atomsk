@@ -30,7 +30,7 @@
 
 <p>Après l'application de cette option, le nombre total d'atomes dans le système peut être différent du nombre initial. Dans le cas particulier où les vecteurs de boîte sont déjà tous alignés avec les directions cartésiennes, mais où l'un ou plusieurs d'entre eux pointent vers les coordonnées négatives, cette option aura pour effet de retourner le(s) vecteur(s) de boîte de façon à ce qu'ils pointent vers les coordonnées positives. Le nombre d'atomes restera inchangé, mais les atomes seront translatés du (des) vecteur(s) de boîte correspondant(s). Par ailleurs, si <strong><em>H</em><sub>1</sub></strong> est aligné avec l'axe cartésien Y et <strong><em>H</em><sub>2</sub></strong> avec X, alors cette option échangera ces vecteurs de façon à ce que <strong><em>H</em><sub>1</sub></strong> soit aligné avec X et <strong><em>H</em><sub>2</sub></strong> avec Y.</p>
 
-<p>Notez que dans certaines conditions (par exemple si les vecteurs de boîte initiaux forment un angle très petit avec les axes cartésiens), alors Atomsk peut échouer à trouver une boîte orthogonale équivalente.</p>
+<p>Il est recommandé d'appeler cette option <em>avant</em> de dupliquer le système avec l'option "-duplicate". Notez que dans certaines conditions (par exemple si les vecteurs de boîte initiaux forment un angle très petit avec les axes cartésiens), alors Atomsk peut échouer à trouver une boîte orthogonale équivalente.</p>
 
 
 

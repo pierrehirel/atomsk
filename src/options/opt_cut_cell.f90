@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 May 2019                                      *
+!* Last modification: P. Hirel - 06 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,6 +47,7 @@ INTEGER:: a1
 INTEGER:: i, j, NPcut, NP
 REAL(dp),INTENT(IN):: cutdistance
 REAL(dp):: tempreal
+REAL(dp):: u, v, w, x, z1, z2
 REAL(dp):: V1, V2, V3  !vector components
 REAL(dp),DIMENSION(3):: MILLER       !Miller indices
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
@@ -150,7 +151,49 @@ CASE DEFAULT
   !convert it to a vector and save it in Vplane(1,:)
   MILLER(:) = 0.d0
   CALL INDEX_MILLER(cutdir,MILLER,j)
-  IF(j>0) GOTO 800
+  IF(j>0) THEN
+    !Try to read [hkil Miller indices
+    CALL INDEX_MILLER_HCP(cutdir,MILLER,j)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/cutdir/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(cutdir)/),(/0.d0/))
+        GOTO 1000
+      ENDIF
+    ELSE
+      !Convert [hkil] notation into [uvw] in MILLER
+      u = 2.d0*MILLER(1) + MILLER(2)
+      v = MILLER(1) + 2.d0*MILLER(2)
+      w = MILLER(3)
+      !Check for common divisor
+      IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+        z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+      ELSE
+        z1 = MAX(DABS(u),DABS(v))
+      ENDIF
+      IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+        z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+      ELSE
+        z2 = MAX(DABS(u),DABS(w))
+      ENDIF
+      IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+        x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
+      ELSE  !i.e. z1==0 or z2==0
+        x = MAX( DABS(z1) , DABS(z2) )
+      ENDIF
+      IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+      !Set normal to plane of cut
+      MILLER(:) = ( u*H(:,1) + v*H(:,2) + w*H(:,3) ) / x
+      !
+    ENDIF
+    !
+  ENDIF
+  !
   !Check that Vplane is not [000]
   IF( VECLENGTH(MILLER)<1.d-12 ) THEN
     CALL ATOMSK_MSG(814,(/""/),(/0.d0/))

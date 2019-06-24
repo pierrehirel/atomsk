@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 May 2019                                      *
+!* Last modification: P. Hirel - 06 June 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -188,8 +188,7 @@ CHARACTER(LEN=16):: mirror_dir   !x, y, z, or crystallographic direction
 REAL(dp):: mirror_d  !distance between mirror plane and origin of coordinates
 !
 !Variables relative to Option: orient
-CHARACTER(LEN=16):: oldvec1, oldvec2, oldvec3, newvec1, newvec2, newvec3
-REAL(dp),DIMENSION(3,3):: Hstart, Hend
+CHARACTER(LEN=32),DIMENSION(3):: oldvec, newvec !old and new Miller indices
 !
 !Variables relative to Option: properties
 CHARACTER(LEN=128):: propfile  !file containing the properties
@@ -299,6 +298,16 @@ IF( .NOT.ALLOCATED(P) .OR. SIZE(P)<=0 ) THEN
   CALL ATOMSK_MSG(2814,(/''/),(/0.d0/))
   GOTO 1000
 ENDIF
+!
+!Verify the order of options
+DO ioptions=1,SIZE(options_array)-1
+  READ(options_array(ioptions),*,END=1000,ERR=1000) temp
+  READ(options_array(ioptions+1),*,END=1000,ERR=1000) msg
+  IF( temp=="-duplicate" .AND. (msg=="-orthocell" .OR. msg=="-wrap")  ) THEN
+    !Advise to use other options BEFORE "-duplicate"
+    CALL ATOMSK_MSG(2600,(/temp,msg/),(/0.d0/))
+  ENDIF
+ENDDO
 !
 !
 !
@@ -693,21 +702,9 @@ DO ioptions=1,SIZE(options_array)
     CALL MIRROR_XYZ(P,S,AUXNAMES,AUX,mirror_dir,mirror_d,ORIENT,SELECT)
   !
   CASE('-orient')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, oldvec1, oldvec2,  &
-        & oldvec3, newvec1, newvec2, newvec3
-    CALL INDEX_MILLER(oldvec1,Hstart(1,:),j)
-    IF(j>0) GOTO 800
-    CALL INDEX_MILLER(oldvec2,Hstart(2,:),j)
-    IF(j>0) GOTO 800
-    CALL INDEX_MILLER(oldvec3,Hstart(3,:),j)
-    IF(j>0) GOTO 800
-    CALL INDEX_MILLER(newvec1,Hend(1,:),j)
-    IF(j>0) GOTO 800
-    CALL INDEX_MILLER(newvec2,Hend(2,:),j)
-    IF(j>0) GOTO 800
-    CALL INDEX_MILLER(newvec3,Hend(3,:),j)
-    IF(j>0) GOTO 800
-    CALL ORIENT_XYZ(H,P,S,Hstart,Hend,SELECT,C_tensor)
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, oldvec(1), oldvec(2),  &
+        & oldvec(3), newvec(1), newvec(2), newvec(3)
+    CALL ORIENT_XYZ(H,P,S,oldvec,newvec,SELECT,C_tensor)
   !
   CASE('-orthogonal-cell','-orthorhombic-cell','-orthogonal-box','-orthorhombic-box','-orthocell','-orthobox')
     CALL ORTHOCELL_XYZ(H,P,S,AUX,SELECT)
