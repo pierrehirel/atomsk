@@ -856,6 +856,13 @@ CASE(819)
 CASE(820)
   msg = "X!X ERREUR : ne pas mélanger les notations de Miller [hkl] et [hkil]."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(821)
+  !reals(1) = estimated number of atoms
+  WRITE(temp,'(f18.0)') reals(1)
+  msg = "X!X ERREUR : cette opération produit un très grand nombre d'atomes : "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Ce nombre dépasse le nombre maximal d'atomes que Atomsk peut traiter."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -3279,6 +3286,9 @@ CASE(4829)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4830)
   msg = "X!X ERREUR : impossible de construire un environnement de référence, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4831)
+  msg = "X!X ERREUR : aucun noeud n'est défini dans le fichier de paramètres '"//TRIM(ADJUSTL(strings(1)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERREUR : un seul mode peut être utilisé à la fois."

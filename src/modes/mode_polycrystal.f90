@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 June 2019                                     *
+!* Last modification: P. Hirel - 27 June 2019                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -707,7 +707,11 @@ DO
       ENDIF
       !Read total number of grains
       READ(line(7:),*,END=830,ERR=830) Nnodes
-      IF(Nnodes<1) GOTO 800
+      IF(Nnodes<1) THEN
+        CALL ATOMSK_MSG(4831,(/vfile/),(/0.d0/))
+        nerr=nerr+1
+        GOTO 1000
+      ENDIF
       !Generate a list of 6*Nnodes random numbers
       CALL GEN_NRANDNUMBERS( 6*Nnodes , randarray )
       !randarray now contains 6*Nnodes real numbers between 0 and 1
@@ -808,6 +812,13 @@ DO
 ENDDO
 250 CONTINUE
 CLOSE(31)
+!
+!Check that number of nodes is not zero
+IF(Nnodes<1) THEN
+  CALL ATOMSK_MSG(4831,(/vfile/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ENDIF
 !
 CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
 !
@@ -910,26 +921,30 @@ NPgrains(:) = 0
 !By default the template grain is a bit larger than max.cell size * sqrt(3)
 !This template grain will be cut later to construct each grain
 expandmatrix(:) = 1
+WRITE(msg,*) "Determining expansion factors:"
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 DO i=1,3
   IF( VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(1,:)) .OR.  &
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
     !
-    m = CEILING( 1.8d0*MAX( VECLENGTH(H(1,:))/VECLENGTH(Huc(:,i)) , &
+    P1 = CEILING( 1.8d0*MAX( VECLENGTH(H(1,:))/VECLENGTH(Huc(:,i)) , &
                & VECLENGTH(H(2,:))/VECLENGTH(Huc(:,i)) , VECLENGTH(H(3,:))/VECLENGTH(Huc(:,i)) ) )
+    WRITE(msg,'(a11,i1,a4,i6)') "    expand(", i, ") = ", NINT(P1)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !If the number of grains is small, the template grain may not be large enough
     IF( Nnodes<=4 ) THEN
-      m = NINT( 1.5d0*DBLE(m) )
+      P1 = 1.5d0*P1
     ENDIF
     !Make sure duplication factors are not crazy
-    IF(m==0) THEN
-      m = 1
-    ELSEIF(m==2) THEN
-      m=3
-    ELSEIF(m>1000) THEN
-      m=999
+    IF(P1==0) THEN
+      P1 = 1
+    ELSEIF(P1==2) THEN
+      P1=3
+    ELSEIF(P1>2000) THEN
+      P1=1999
     ENDIF
-    expandmatrix(i) = m
+    expandmatrix(i) = NINT(P1)
   ENDIF
 ENDDO
 WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
@@ -940,23 +955,27 @@ IF( twodim>0 ) THEN
   expandmatrix(twodim) = 0
 ENDIF
 !Compute how many particles the template will contain
-m = MAX(1,expandmatrix(1)) * MAX(1,expandmatrix(2)) * MAX(1,expandmatrix(3)) * SIZE(Puc,1)
-WRITE(msg,'(a25,i18)') "Expected NP for template:", m
+P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
+WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!If m is very large, reduce some values in expandmatrix(:)
-IF( m > 1.d8 ) THEN
+!If expected number of particles is very large, reduce some values in expandmatrix(:)
+IF( P1 > 2.147d9 ) THEN
+  WRITE(msg,'(a25,f18.0)') "NP is too large, reducing expansion factors...:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   IF( Nnodes>8 ) THEN
     !Many nodes in the box => reduce drastically the size of template grain
-    expandmatrix(:) = 0.8d0 * expandmatrix(:)
+    expandmatrix(:) = NINT(0.7d0 * expandmatrix(:))
   ELSE
     !There are not many grains => do not reduce too much
-    expandmatrix(:) = NINT( 0.8d0 * expandmatrix(:) )
+    expandmatrix(:) = NINT( 0.9d0 * expandmatrix(:) )
   ENDIF
-ELSEIF( m <= 0.d0 ) THEN
-  ! If m is negative, it's probably because it exceeded the accuracy of INTEGER
-  ! => cannot allocate so much memory
+ENDIF
+!Re-calculate expected number of atoms
+P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
+!If expected NP is too large, abort completely
+IF( P1 > 2.147d9 ) THEN
+  CALL ATOMSK_MSG(821,(/""/),(/P1/))
   nerr = nerr+1
-  CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
@@ -1001,7 +1020,7 @@ ELSE
 ENDIF
 !
 AUX_Q(:,:) = 0.d0
-WRITE(msg,'(a32,3i6)') "Creating template grain, expand:", expandmatrix(:)
+WRITE(msg,'(a47,3i6)') "Final corrected expansion factors for template:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 qi=0
 DO o = 0 , expandmatrix(3)

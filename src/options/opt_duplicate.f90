@@ -46,6 +46,7 @@ INTEGER:: i, newNP
 INTEGER:: m, n, o, qi
 INTEGER:: Nmem  !total number of atoms loaded in memory
 INTEGER, DIMENSION(3):: dupmatrix
+REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T
@@ -89,7 +90,7 @@ ENDIF
 200 CONTINUE
 IF( .NOT.ALLOCATED(SELECT) ) THEN
   !All atoms must be duplicated
-  newNP = SIZE(P,1)*ABS(dupmatrix(1)*dupmatrix(2)*dupmatrix(3))
+  tempreal = DBLE(SIZE(P,1))*DABS(DBLE(dupmatrix(1))*DBLE(dupmatrix(2))*DBLE(dupmatrix(3)))
 ELSE
   !Only selected atoms will be duplicated
   !Count how many atoms are selected in the original system
@@ -97,18 +98,19 @@ ELSE
   DO i=1,SIZE(SELECT)
     IF(SELECT(i)) qi=qi+1
   ENDDO
-  newNP = SIZE(P,1) + qi*( ABS(dupmatrix(1)*dupmatrix(2)*dupmatrix(3)) - 1)
+  tempreal = DBLE(SIZE(P,1)) + DBLE(qi)*( DABS(DBLE(dupmatrix(1))*DBLE(dupmatrix(2))*DBLE(dupmatrix(3))) - 1.d0)
 ENDIF
-WRITE(msg,*) "new NP = ", newNP
+WRITE(msg,*) "new NP = ", tempreal
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-IF( newNP<=0 ) THEN
-  !Negative number of atoms, probably because it exceeds the limit of INTEGER
+IF( tempreal<=0 .OR. tempreal>2.147d9 ) THEN
+  !Exceeds number of atoms that can be treated
   nerr=nerr+1
-  CALL ATOMSK_MSG(819,(/''/),(/DBLE(0.d0)/))
+  CALL ATOMSK_MSG(821,(/''/),(/tempreal/))
   GOTO 1000
 ENDIF
 !
+newNP = NINT(tempreal)
 Nmem = Nmem+newNP
 ALLOCATE(Q(newNP,4),STAT=i)
 IF( i>0 ) THEN

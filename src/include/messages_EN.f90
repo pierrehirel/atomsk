@@ -854,6 +854,13 @@ CASE(819)
 CASE(820)
   msg = "X!X ERROR: cannot mix [hkl] and [hkil] Miller notations."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(821)
+  !reals(1) = estimated number of atoms
+  WRITE(temp,'(f18.0)') reals(1)
+  msg = "X!X ERROR: this operation results in a very large number of atoms: "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          This number exceeds the number of atoms that Atomsk can handle."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -3206,6 +3213,9 @@ CASE(4829)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4830)
   msg = "X!X ERROR: unable to construct reference environment, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4831)
+  msg = "X!X ERROR: no node defined in the parameter file '"//TRIM(ADJUSTL(strings(1)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERROR: only one mode can be used at a time."

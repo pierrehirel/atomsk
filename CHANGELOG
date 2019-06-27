@@ -21,6 +21,7 @@ Master (development)
 - new option "-roundoff" allows to round off an atom coordinate or the values of a property.
 - new option "-nthreads" to control the number of OpenMP threads.
 - new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on. This module lifts the previous limitation on expressions as function of box coordinates (previously, only one operation could be used, like "0.5*box" or "box-20"); now more complex expressions can be used, like "0.5*box+0.6".
+- improved checking of number of atoms and memory allocations.
 - fixed a bug in the symmetry operations of space group 166 (R-3m).
 - fixed a bug when writing LAMMPS data files (*.lmp): if atom types were defined, the types written in the "Masses" section did not match the atom types used in the "Atoms" section.
 - fixed a bug when reading Quantum Espresso output files (*.out) in mode "--one-in-all".

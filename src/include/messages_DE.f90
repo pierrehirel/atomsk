@@ -828,6 +828,13 @@ CASE(819)
 CASE(820)
   msg = "X!X FEHLER: kann nicht [hkl] und [hkil] Miller-Notationen mischen."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(821)
+  !reals(1) = estimated number of atoms
+  WRITE(temp,'(f18.0)') reals(1)
+  msg = "X!X ERROR: Diese Operation führt zu einer sehr großen Anzahl von Atomen: "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Diese Anzahl übersteigt die Anzahl der Atome, die Atomsk verarbeiten kann."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -3222,6 +3229,9 @@ CASE(4829)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4830)
   msg = "X!X FEHLER: Referenzumgebung kann nicht erstellt werden."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4831)
+  msg = "X!X FEHLER: In der Parameterdatei ist kein Knoten definiert: '"//TRIM(ADJUSTL(strings(1)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."

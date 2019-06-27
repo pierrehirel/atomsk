@@ -17,7 +17,7 @@ else
 
   if [ -w ${BINPATH} ] ; then
 
-    echo "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n)"
+    printf "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n) "
     read answer
 
     if [ "${answer}" = "y" ] ; then
@@ -62,7 +62,7 @@ else
     echo "<!> INFO: run this script with super-user rights (su or sudo)"
     echo "         to install Atomsk system-wide."
     echo ""
-    echo "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n)"
+    printf "<?> Atomsk will be installed in ${BINPATH}. Continue? (y/n) "
     read answer
 
     if [ "${answer}" = "y" ] ; then
@@ -94,6 +94,7 @@ else
       n=$(grep "atomsk" ~/.bashrc | wc -l)
       if [ $n -eq 0 ] ; then
         echo "export PATH=\"\$PATH:${BINPATH}\"" >> ~/.bashrc
+        source ~/.bashrc
         echo ">>> ${BINPATH} was added to your PATH environment variable."
       fi
     
