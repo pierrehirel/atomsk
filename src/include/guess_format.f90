@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 May 2019                                      *
+!* Last modification: P. Hirel - 10 July 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,9 +60,10 @@ LOGICAL:: fileisopened
 INTEGER:: strlength, i
 INTEGER:: NP
 REAL(dp):: isatsk
-REAL(dp):: isabinit, isbop, iscfg, iscel, iscif, iscml, iscoorat, iscrystal, iscsv, isdd, isdlp, isfdf
-REAL(dp):: isgin, isimd, isjems, islmp, islmpc, ismoldy, ispdb, isposcar, isqepw, isqeout
-REAL(dp):: isstr, isvesta, isxsf, isxv,isxmd, isxyz, isexyz, issxyz
+REAL(dp):: isabinit, isbop, isbx, iscfg, iscel, iscif, iscml, iscoorat, iscrystal, iscsv
+REAL(dp):: isdd, isdlp, isfdf, isgin, isimd, isjems, islmp, islmpc, ismoldy, ispdb
+REAL(dp):: isposcar, isqepw, isqeout, isstr, isvesta, isxsf, isxv, isxmd
+REAL(dp):: isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
 REAL(dp):: certainty
@@ -77,6 +78,7 @@ i = 1
 testreal = 0.d0
 isabinit = 0.d0  !ABINIT input format
 isbop = 0.d0     !Bond-Order Potential format
+isbx = 0.d0      !BOPfox format
 iscel = 0.d0     !CEL Super-cell file for Dr. Probe
 iscfg = 0.d0     !Atomeye CFG format
 iscif = 0.d0     !Crystallographic Information File
@@ -145,6 +147,8 @@ IF( strlength > 0 ) THEN
   SELECT CASE(extension)
   CASE('atsk','ATSK')
     isatsk = isatsk+0.6d0
+  CASE('bx','BX')
+    isbx = isbx+0.6d0
   CASE('cfg','CFG')
     iscfg = iscfg+0.6d0
     iscoorat = iscoorat-0.4d0
@@ -289,6 +293,20 @@ IF(fileexists) THEN
       isbop = isbop+0.4d0
     ELSEIF(test(1:3)=='UNRLD') THEN
       isbop = isbop+0.4d0
+    !
+    !Search for patterns corresponding to BOPfox format
+    ELSEIF(test(1:6)=='aLat =') THEN
+      isbx = isbx+0.2d0
+    ELSEIF(test(1:4)=='a1 =') THEN
+      isbx = isbx+0.4d0
+    ELSEIF(test(1:4)=='a2 =') THEN
+      isbx = isbx+0.4d0
+    ELSEIF(test(1:4)=='a3 =') THEN
+      isbx = isbx+0.4d0
+    ELSEIF(test(1:7)=='coord =') THEN
+      isbx = isbx+0.4d0
+    ELSEIF(test(1:15)=='magnetisation =') THEN
+      isbx = isbx+0.4d0
     !
     !Search for patterns corresponding to ABINIT format
     ELSEIF(test(1:5)=='acell') THEN
@@ -697,9 +715,9 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isabinit,isbop,iscfg,iscel,iscif,iscml,iscoorat,iscrystal,iscsv,isdd,isdlp,    &
-       &     isfdf,isgin,isimd,isjems,islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,isqepw,    &
-       &     isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
+likely = MAX(isabinit,isbop,isbx,iscfg,iscel,iscif,iscml,iscoorat,iscrystal,iscsv,isdd,    &
+       &     isdlp,isfdf,isgin,isimd,isjems,islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,    &
+       &     isqepw,isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) 'Scores of file formats: '
@@ -709,6 +727,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   ATSK ', isatsk
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   BOP ', isbop
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   BOPFOX ', isbx
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   CFG ', iscfg
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -783,6 +803,8 @@ ELSE
     infileformat = 'abin'
   ELSEIF(isbop==likely) THEN
     infileformat = 'bop'
+  ELSEIF(isbx==likely) THEN
+    infileformat = 'bx'
   ELSEIF(iscfg==likely) THEN
     infileformat = 'cfg'
   ELSEIF(iscel==likely) THEN

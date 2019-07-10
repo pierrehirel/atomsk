@@ -246,6 +246,9 @@ Specific atomsk binary format.
 .B bop
 Bond-Order Potential (BOP) format.
 .TP
+.B bx
+BOPfox format.
+.TP
 .B cfg
 Atomeye configuration.
 .TP
@@ -323,6 +326,9 @@ Specific atomsk binary format.
 .TP
 .B bop
 Bond-Order Potential (BOP) format.
+.TP
+.B bx
+BOPfox format.
 .TP
 .B cfg
 Atomeye configuration.

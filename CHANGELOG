@@ -5,6 +5,7 @@ CHANGELOG FOR ATOMSK
 Master (development)
 --------------------
 - parts of the code were parallelized with OpenMP. Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.
+- added support for reading and writing files in BOPfox format (*.bx).
 - added support for reading and writing files in Comma-Separated Values format (*.csv).
 - added support for reading and writing files in CRYSTAL format (*.d12).
 - added support for reading and writing files in ABINIT format (*.in).

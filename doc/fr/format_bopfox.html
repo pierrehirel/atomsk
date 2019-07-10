@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Format BOPfox - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : bopfox</h2>
+
+<p><strong>Nom :</strong> fichier BOPfox</p>
+
+<p><strong>Extension :</strong> .bx</p>
+
+<p><strong>Spécification :</strong> <a href="http://bopfox.de/">documentation de BOPfox</a></p>
+
+<p><strong>Programmes de visualisation :</strong> none</p>
+
+
+<p>BOPfox est un programme conçu pour les calculs de liaisons fortes et de potentiels d'ordre de liaison. Lorsqu'il lit un fichier au format BOPfox, Atomsk détecte si des mots-clés (T ou F) sont présents en fin de ligne pour indiquer si les atomes sont figés suivant les directions X, Y, et/ou Z, et les enregistre en tant que propriétés auxiliaires. Si une section "magnetisation" existe, alors son contenu sera aussi enregistré comme propriétés auxiliaires. Notez que ces propriétés ne sont transférables que vers certains formats de fichiers (référez-vous à la <a href="./formats.html">liste des formats supportés</a>).</p>
+
+<p>Lors de l'écriture d'un fichier au format BOPfox, Atomsk utilise le modèle suivant&nbsp;:</p>
+
+<code class="txtfile"><h5>exemple.bx</h5>
+<p>aLat = 1.0<br/>
+a1 = &#60;H(1,1)&#62; &#60;H(1,2)&#62; &#60;H(1,3)&#62; <br/>
+a2 = &#60;H(2,1)&#62; &#60;H(2,2)&#62; &#60;H(2,3)&#62; <br/>
+a3 = &#60;H(3,1)&#62; &#60;H(3,2)&#62; &#60;H(3,3)&#62; <br/>
+coord = Cartesian<br/>
+# Natoms = &#60;NP&#62;<br/>
+&#60;species1&#62; &#60;x1&#62; &#60;y1&#62; &#60;z1&#62;  [&#60;F|T&#62; &#60;F|T&#62; &#60;F|T&#62;]<br/>
+&#60;species2&#62; &#60;x2&#62; &#60;y2&#62; &#60;z2&#62;  [&#60;F|T&#62; &#60;F|T&#62; &#60;F|T&#62;]<br/>
+...<br/>
+&#60;speciesNP&#62; &#60;xNP&#62; &#60;yNP&#62; &#60;zNP&#62;  [&#60;F|T&#62; &#60;F|T&#62; &#60;F|T&#62;]<br/>
+magnetisation = true
+&#60;µx1&#62; &#60;µy1&#62; &#60;µz1&#62;<br/>
+&#60;µx2&#62; &#60;µy2&#62; &#60;µz2&#62;<br/>
+...<br/>
+&#60;µxNP&#62; &#60;µyNP&#62; &#60;µzNP&#62;<br/><br/>
+</p></code>
+
+<p>Le paramètre de maille (après le mot-clé aLat) est toujours égal à 1. Si certains atomes sont figés (comme définis dans le fichier d'entrée ou avec l'<a href="./option_fix.html">option <code>-fix</code></a>) alors le trio de lettres (T ou F) seront écrits en fin de ligne&nbsp;; sinon elles seront simplement omises. La section "magnetisation" sera écrite seulement si les moments magnétiques (magx, magy, magz) sont définis.</p>
+
+
+
+<h4>Exemples</h4>
+<ul>
+<li><code class="command">atomsk mon_systeme.cfg bx</code>
+<p>Ceci va lire le fichier <code>mon_systeme.cfg</code>, et le convertira vers <code>mon_systeme.bx</code>.</p></li>
+
+<li><code class="command">atomsk unitcell.xsf -duplicate 20 20 1 -disloc 0.5*BOX 0.5*BOX screw z y 4.2 0.33 -select out box 10 10 -INF BOX-10 BOX-10 INF -fix all above -100 x mon_systeme.bx</code>
+<p>Ceci va lire le fichier <code>unitcell.xsf</code>, <a href="./option_duplicate.html">le dupliquer</a> pour former une super-cellule 20x20x1, puis <a href="./option_disloc.html">insérer une dislocation vis</a> au milieu de la boîte, <a href="./option_select.html">sélectionner</a> les atomes qui sont à moins de 10&nbsp;&Aring; des bords de boîte, <a href="./option_fix.html">figer ces atomes</a>, et enfin écrire la configuration finale dans le fichier <code>mon_systeme.bx</code>.</p></li>
+
+<li><code class="command">atomsk relaxe.bx cfg</code>
+<p>Ceci va lire le fichier <code>relaxe.bx</code>, et le convertir en <code>relaxe.cfg</code> pour être visualisé avec Atomeye ou OVITO.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

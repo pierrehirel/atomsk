@@ -59,10 +59,10 @@ INTEGER:: verbosity          !level of verbosity of the program
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are added to Atomsk
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(26),PARAMETER:: listofformats =                             &
-& (/'atsk ','abin ','bop  ','cfg  ','cif  ','cel  ','coo  ','csv  ','d12  ','dlp  ',   &
-&   'fdf  ','gin  ','imd  ','jems ','lmp  ','mol  ','pos  ','pw   ','vesta','xmd  ',   &
-&   'xsf  ','xv   ','xyz  ','exyz ','sxyz ','stru '    &
+CHARACTER(LEN=5),DIMENSION(27),PARAMETER:: listofformats =                             &
+& (/'atsk ','abin ','bop  ','bx   ','cfg  ','cif  ','cel  ','coo  ','csv  ','d12  ',   &
+&   'dlp  ','fdf  ','gin  ','imd  ','jems ','lmp  ','mol  ','pos  ','pw   ','vesta',   &
+&   'xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz ','stru '    &
 & /)
 !
 END MODULE comv

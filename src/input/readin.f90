@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 June 2019                                     *
+!* Last modification: P. Hirel - 10 July 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -65,6 +65,7 @@ USE guess_form
 USE in_abinit
 USE in_atsk
 USE in_bop
+USE in_bopfox
 USE in_cfg
 USE in_cel
 USE in_cif
@@ -169,6 +170,8 @@ CASE('atsk')
   CALL READ_ATSK(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CASE('bop')
   CALL READ_BOP(inputfile,H,P,comment,AUXNAMES,AUX)
+CASE('bx')
+  CALL READ_BOPFOX(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('cfg')
   CALL READ_CFG(inputfile,H,P,comment,AUXNAMES,AUX)
 CASE('cel')

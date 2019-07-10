@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>BOPfox format - Atomsk - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: bopfox</h2>
+
+<p><strong>Name:</strong> BOPfox file</p>
+
+<p><strong>Extension:</strong> .bx</p>
+
+<p><strong>Specification:</strong> <a href="http://bopfox.de/">BOPfox documentation</a></p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+
+<p>BOPfox is a program for tight-binding and analytic bond-order potential calculations. When reading files in the BOPfox format, Atomsk will detect if flags are present at the end of each line to define if atoms are fixed along the X, Y, and/or Z direction, and save it as auxiliary properties. If a "magnetization" section exists, then it will also be stored as auxiliary property. Beware that this information is transferable to some file formats only (see the <a href="./formats.html">list of formats</a>). </p>
+
+<p>When writing to the BOPfox format, Atomsk follows the following template:</p>
+
+<code class="txtfile"><h5>example.bx</h5>
+<p>aLat = 1.0<br/>
+a1 = &#60;H(1,1)&#62; &#60;H(1,2)&#62; &#60;H(1,3)&#62; <br/>
+a2 = &#60;H(2,1)&#62; &#60;H(2,2)&#62; &#60;H(2,3)&#62; <br/>
+a3 = &#60;H(3,1)&#62; &#60;H(3,2)&#62; &#60;H(3,3)&#62; <br/>
+coord = Cartesian<br/>
+# Natoms = &#60;NP&#62;<br/>
+&#60;species1&#62; &#60;x1&#62; &#60;y1&#62; &#60;z1&#62;  [&#60;F|T&#62; &#60;F|T&#62; &#60;F|T&#62;]<br/>
+&#60;species2&#62; &#60;x2&#62; &#60;y2&#62; &#60;z2&#62;  [&#60;F|T&#62; &#60;F|T&#62; &#60;F|T&#62;]<br/>
+...<br/>
+&#60;speciesNP&#62; &#60;xNP&#62; &#60;yNP&#62; &#60;zNP&#62;  [&#60;F|T&#62; &#60;F|T&#62; &#60;F|T&#62;]<br/>
+magnetisation = true
+&#60;µx1&#62; &#60;µy1&#62; &#60;µz1&#62;<br/>
+&#60;µx2&#62; &#60;µy2&#62; &#60;µz2&#62;<br/>
+...<br/>
+&#60;µxNP&#62; &#60;µyNP&#62; &#60;µzNP&#62;<br/><br/>
+</p></code>
+
+<p>The lattice constant (following the keyword aLat) will always be equal to 1. If some atoms are fixed (as defined in the input file or with the <a href="./option_fix.html">option <code>-fix</code></a>) then the three flags (T or F) will appear at the end of each line, otherwise they are omitted. The section "magnetisation" will be written only if magnetizations (magx, magy, magz) are defined.</p>
+
+
+
+<h4>Examples</h4>
+<ul>
+<li><code class="command">atomsk my_system.cfg bx</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.bx</code>.</p></li>
+
+<li><code class="command">atomsk unitcell.xsf -duplicate 20 20 1 -disloc 0.5*BOX 0.5*BOX screw z y 4.2 0.33 -select out box 10 10 -INF BOX-10 BOX-10 INF -fix all above -100 x my_system.bx</code>
+<p>This will read the file <code>unitcell.xsf</code>, <a href="./option_duplicate.html">duplicate it</a> to form a 20x20x1 supercell, then <a href="./option_disloc.html">insert a screw dislocation</a> in the middle of the box and along the Z direction, <a href="./option_select.html">select atoms</a> that are within 10 &Aring; to the box edges, <a href="./option_fix.html">fix these atoms</a>, and write the final configuration to <code>my_system.bx</code>.</p></li>
+
+<li><code class="command">atomsk relaxed.bx cfg</code>
+<p>This will read the file <code>relaxed.bx</code>, and convert it to <code>relaxed.cfg</code> for visualization with Atomeye or OVITO.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>
