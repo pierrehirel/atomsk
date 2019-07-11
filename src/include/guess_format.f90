@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 July 2019                                     *
+!* Last modification: P. Hirel - 11 July 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -147,6 +147,8 @@ IF( strlength > 0 ) THEN
   SELECT CASE(extension)
   CASE('atsk','ATSK')
     isatsk = isatsk+0.6d0
+  CASE('bop','BOP')
+    isbop = isbop+0.6d0
   CASE('bx','BX')
     isbx = isbx+0.6d0
   CASE('cfg','CFG')

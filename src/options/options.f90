@@ -289,20 +289,26 @@ IF( verbosity==4 ) THEN
     ENDDO
   ENDIF
 ENDIF
-IF(SIZE(options_array)<=0) GOTO 1000
+IF(SIZE(options_array)<=0) THEN
+  WRITE(msg,*) 'options_array has zero size, skipping'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  GOTO 1000
+ENDIF
 !
 IF( .NOT.ALLOCATED(P) .OR. SIZE(P)<=0 ) THEN
   !The user wants to apply an option, but no system exists in memory
   !=> error
   nerr=nerr+1
+  WRITE(msg,*) 'ERROR array P is unallocated or has zero size'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   CALL ATOMSK_MSG(2814,(/''/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
 !Verify the order of options
 DO ioptions=1,SIZE(options_array)-1
-  READ(options_array(ioptions),*,END=1000,ERR=1000) temp
-  READ(options_array(ioptions+1),*,END=1000,ERR=1000) msg
+  READ(options_array(ioptions),*,END=100,ERR=100) temp
+  READ(options_array(ioptions+1),*,END=100,ERR=100) msg
   IF( temp=="-duplicate" .AND. (msg=="-orthocell" .OR. msg=="-wrap")  ) THEN
     !Advise to use other options BEFORE "-duplicate"
     CALL ATOMSK_MSG(2600,(/temp,msg/),(/0.d0/))
@@ -313,10 +319,13 @@ ENDDO
 !
 100 CONTINUE
 !Loop on all options
-!NOTE: options must be applied to shells and auxiliary properties at the same time
+!NOTE: each option must be applied to shells and auxiliary properties at the same time
 !     as they are applied to atoms! All modules that change the number
 !     of atoms or change their order in the array P must also add, remove or
 !     re-order the shells in S and/or auxiliary properties in AUX accordingly.
+!
+WRITE(msg,*) '===   NOW APPLYING OPTIONS IN SEQUENTIAL ORDER   ==='
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 DO ioptions=1,SIZE(options_array)
   !Initialisations

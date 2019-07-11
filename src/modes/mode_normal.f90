@@ -172,7 +172,14 @@ msg = 'APPLYING OPTIONS TO THE SYSTEM:'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 IF( ALLOCATED(options_array) ) THEN
+  WRITE(msg,*) "SIZE OF ARRAY options: ", SIZE(options_array)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !
   CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+  !
+ELSE
+  msg = "ARRAY options NOT ALLOCATED"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !
 450 CONTINUE

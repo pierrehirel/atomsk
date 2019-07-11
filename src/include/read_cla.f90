@@ -1900,6 +1900,14 @@ IF( ALLOCATED(options_array) ) THEN
   ENDIF
 ENDIF
 !
+IF( ALLOCATED(options_array) ) THEN
+  WRITE(msg,*) "SIZE OF ARRAY options: ", SIZE(options_array)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ELSE
+  msg = "ARRAY options NOT ALLOCATED"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
+!
 !
 END SUBROUTINE GET_CLA
 !
