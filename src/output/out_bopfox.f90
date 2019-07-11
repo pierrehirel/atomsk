@@ -120,6 +120,9 @@ WRITE(40,102) 'a2 = ', H(2,1), H(2,2), H(2,3)
 WRITE(40,102) 'a3 = ', H(3,1), H(3,2), H(3,3)
 102 FORMAT(a5,2X,3(f16.8,2X))
 !
+WRITE(msg,*) "# Natoms = ", SIZE(P,1)
+WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+!
 !Write atom coordinates
 IF(isreduced) THEN
   WRITE(40,'(a14)') 'coord = Direct'
@@ -128,9 +131,6 @@ ELSE
 ENDIF
 !
 !Write atomic coordinates
-WRITE(msg,*) "# Natoms = ", SIZE(P,1)
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
-!
 DO i=1,SIZE(P,1)
   CALL ATOMSPECIES(P(i,4),species)
   IF(isreduced) THEN

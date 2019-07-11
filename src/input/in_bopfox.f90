@@ -131,43 +131,45 @@ DO
         DO
           READ(30,'(a128)',ERR=105,END=105) test
           test = TRIM(ADJUSTL(test))
-          !Remove comments if any
-          j = SCAN(test,"/")
-          IF( j<=0 ) THEN
-            j = SCAN(test,"#")
-          ENDIF
-          IF( j>0 ) THEN
-            test = test(:j-1)
-          ENDIF
-          !Detect if there are "T" or "F" flags on the line
-          !NOTE: do not try to detect an isolated "F",
-          !      because it may be fluorine atom at the beginning of line
-          j = INDEX(test,"T ")
-          IF( j<=0 ) THEN
-            j = INDEX(test," T")
-          ENDIF
-          IF( j<=0 ) THEN
-            j = INDEX(test,"F F")
-          ENDIF
-          IF( j<=0 ) THEN
-            j = INDEX(test,"T F")
-          ENDIF
-          IF( j<=0 ) THEN
-            j = INDEX(test,"F T")
-          ENDIF
-          IF( j>0 ) THEN
-            dofix = .TRUE.
-          ENDIF
-          !Try to interpret the first 2 characters as a chemical symbol
-          species = test(1:2)
-          CALL ATOMNUMBER(species,snumber)
-          IF( NINT(snumber)>0 ) THEN
-            !Success: increment number of atoms
-            NP = NP+1
-          ELSE
-            !Failed: we are done counting atoms
-            test = ""
-            EXIT
+          IF( test(1:1).NE."#" .AND. test(1:1).NE."/" ) THEN
+            !Remove comments at end of line if any
+            j = SCAN(test,"/")
+            IF( j<=0 ) THEN
+              j = SCAN(test,"#")
+            ENDIF
+            IF( j>0 ) THEN
+              test = test(:j-1)
+            ENDIF
+            !Detect if there are "T" or "F" flags on the line
+            !NOTE: do not try to detect an isolated "F",
+            !      because it may be fluorine atom at the beginning of line
+            j = INDEX(test,"T ")
+            IF( j<=0 ) THEN
+              j = INDEX(test," T")
+            ENDIF
+            IF( j<=0 ) THEN
+              j = INDEX(test,"F F")
+            ENDIF
+            IF( j<=0 ) THEN
+              j = INDEX(test,"T F")
+            ENDIF
+            IF( j<=0 ) THEN
+              j = INDEX(test,"F T")
+            ENDIF
+            IF( j>0 ) THEN
+              dofix = .TRUE.
+            ENDIF
+            !Try to interpret the first 2 characters as a chemical symbol
+            species = test(1:2)
+            CALL ATOMNUMBER(species,snumber)
+            IF( NINT(snumber)>0 ) THEN
+              !Success: increment number of atoms
+              NP = NP+1
+            ELSE
+              !Failed: we are done counting atoms
+              test = ""
+              EXIT
+            ENDIF
           ENDIF
         ENDDO
       ENDIF
@@ -267,18 +269,24 @@ DO
   IF( test(1:5)=='coord') THEN
     WRITE(msg,*) 'Reading atom coordinates...'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO i=1,SIZE(P,1)
+    i=0
+    DO
       READ(30,'(a128)',END=250,ERR=400) test
-      IF( dofix ) THEN
-        !Read flags: F=atom is fixed along that direction (=1); T=free to move (=0)
-        READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3), flagx, flagy, flagz
-        IF(flagx=="F") AUX(i,fixx) = 1.d0
-        IF(flagy=="F") AUX(i,fixy) = 1.d0
-        IF(flagz=="F") AUX(i,fixz) = 1.d0
-      ELSE
-        READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3)
+      IF( test(1:1).NE."#" .AND. test(1:1).NE."/" ) THEN
+        i=i+1
+        IF( i<=SIZE(P,1) ) THEN
+          IF( dofix ) THEN
+            !Read flags: F=atom is fixed along that direction (=1); T=free to move (=0)
+            READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3), flagx, flagy, flagz
+            IF(flagx=="F") AUX(i,fixx) = 1.d0
+            IF(flagy=="F") AUX(i,fixy) = 1.d0
+            IF(flagz=="F") AUX(i,fixz) = 1.d0
+          ELSE
+            READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3)
+          ENDIF
+          CALL ATOMNUMBER(species,P(i,4))
+        ENDIF
       ENDIF
-      CALL ATOMNUMBER(species,P(i,4))
     ENDDO
     !
   ELSEIF( test(1:13)=='magnetisation' .OR. test(1:13)=='magnetization') THEN
