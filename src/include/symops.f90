@@ -215,8 +215,10 @@ ENDIF
 DO isym=1,Nsym ! apply each symmetry op. ...
   !Get current transformation parameters
   trf(:) = symops_trf(:,isym)
-  WRITE(msg,'(a9,i3,a3,96e10.3)') "Sym.op. #", isym, " : ", trf(:)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  IF( verbosity==4 ) THEN
+    WRITE(msg,'(a9,i3,a3,10e10.3)') "Sym.op. #", isym, " : ", (trf(j),j=1,MIN(SIZE(trf),8))
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
   !Apply this transformation from S1 to S2
   DO i=1,n1 ! ... to each of the current positions
     ! get current atomic position in fractional coordinates
