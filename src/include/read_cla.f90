@@ -430,7 +430,7 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='bop' .OR. clarg=="BOP") THEN
     Nout = Nout+1
     tempout(Nout) = 'bop'
-  ELSEIF(clarg=='bx' .OR. clarg=="BX") THEN
+  ELSEIF(clarg=='bx' .OR. clarg=="BX" .OR. clarg=="bopfox" .OR. clarg=="BOPfox" .OR. clarg=="BOPFOX") THEN
     Nout = Nout+1
     tempout(Nout) = 'bx'
   ELSEIF( clarg=='cfg' .OR. clarg=='CFG' .OR. clarg=='atomeye' .OR. clarg=='Atomeye' .OR. &
