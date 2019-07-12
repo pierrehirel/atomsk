@@ -343,8 +343,13 @@ DO ioptions=1,SIZE(options_array)
   region_1(:) = 0.d0
   region_2(:) = 0.d0
   !
-  msg = 'option: '//TRIM(options_array(ioptions))
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  IF( verbosity==4 ) THEN
+    WRITE(msg,*) '===================================================='
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(temp,*) ioptions
+    msg = 'OPTION # '//TRIM(ADJUSTL(temp))//" : "//TRIM(options_array(ioptions))
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
   !
   READ(options_array(ioptions),*,END=1000,ERR=1000) optionname
   optionname = TRIM(ADJUSTL(optionname))
@@ -1362,7 +1367,7 @@ GOTO 1000
 !
 !
 1000 CONTINUE
-msg = 'EXITING OPTIONS'
+WRITE(msg,*) '===                END OF OPTIONS                ==='
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 END SUBROUTINE OPTIONS_AFF
