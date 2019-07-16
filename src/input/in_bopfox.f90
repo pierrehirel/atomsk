@@ -13,7 +13,7 @@ MODULE in_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 10 July 2019                                     *
+!* Last modification: P. Hirel - 16 July 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -276,11 +276,11 @@ DO
         i=i+1
         IF( i<=SIZE(P,1) ) THEN
           IF( dofix ) THEN
-            !Read flags: F=atom is fixed along that direction (=1); T=free to move (=0)
+            !Read flags: T=atom is fixed along that direction (=1); F=free to move (=0)
             READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3), flagx, flagy, flagz
-            IF(flagx=="F") AUX(i,fixx) = 1.d0
-            IF(flagy=="F") AUX(i,fixy) = 1.d0
-            IF(flagz=="F") AUX(i,fixz) = 1.d0
+            IF(flagx=="T") AUX(i,fixx) = 1.d0
+            IF(flagy=="T") AUX(i,fixy) = 1.d0
+            IF(flagz=="T") AUX(i,fixz) = 1.d0
           ELSE
             READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3)
           ENDIF

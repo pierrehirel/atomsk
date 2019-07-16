@@ -13,7 +13,7 @@ MODULE out_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 10 July 2019                                     *
+!* Last modification: P. Hirel - 16 July 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -148,34 +148,34 @@ DO i=1,SIZE(P,1)
   !If some atoms are fixed, add flags at the end of line
   temp = ""
   !Note: internally if AUX(i,fix)==1 then atom is fixed, if it is 0 it is mobile
-  !In BOPfox if atom is fixed it is marked by F, mobile by T
+  !In BOPfox, T indicates that atom is fixed along a direction, and F that it is free to move
   IF( fixx>0 .OR. fixy>0 .OR. fixz>0 ) THEN
     IF( fixx>0 ) THEN
       IF( AUX(i,fixx)>0.5d0 ) THEN
-        temp = "F"
-      ELSE
         temp = "T"
+      ELSE
+        temp = "F"
       ENDIF
     ELSE
-      temp = "T"
+      temp = "F"
     ENDIF
     IF( fixy>0 ) THEN
       IF( AUX(i,fixy)>0.5d0 ) THEN
-        temp = TRIM(temp)//" F"
-      ELSE
         temp = TRIM(temp)//" T"
+      ELSE
+        temp = TRIM(temp)//" F"
       ENDIF
     ELSE
-      temp = TRIM(temp)//" T"
+      temp = TRIM(temp)//" F"
     ENDIF
     IF( fixz>0 ) THEN
       IF( AUX(i,fixz)>0.5d0 ) THEN
-        temp = TRIM(temp)//" F"
-      ELSE
         temp = TRIM(temp)//" T"
+      ELSE
+        temp = TRIM(temp)//" F"
       ENDIF
     ELSE
-      temp = TRIM(temp)//" T"
+      temp = TRIM(temp)//" F"
     ENDIF
     temp = "   "//TRIM(ADJUSTL(temp))
   ENDIF
