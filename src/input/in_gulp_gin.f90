@@ -74,7 +74,7 @@ INTEGER:: vx, vy, vz !columns in AUX where velocities are defined
 INTEGER:: i, j, k
 INTEGER:: icoordtemp1, icoordtemp3
 INTEGER:: Ncol, icol  !number of columns for each core (or shell), index of volumn
-INTEGER:: NP, NS  !number of cores, shells
+INTEGER:: NP, NS, NS2  !number of cores, shells
 INTEGER:: sgroupnum
 INTEGER:: strlength
 REAL(dp):: alpha, beta, gamma
@@ -325,11 +325,12 @@ ENDDO
 30 CONTINUE
 NP=0
 NS=0
-!Count the total number of atoms NP
+!Count the total number of atoms NP and shells NS is any
 DO
   READ(30,*,ERR=31,END=31) test, test2
   test = ADJUSTL(test)
-  IF(test(1:1).NE.'#') THEN
+  test2 = TRIM(ADJUSTL(test2))
+  IF( test(1:1).NE.'#' .AND. LEN_TRIM(test)>0 .AND. LEN_TRIM(test)<6 ) THEN
     !In all cases if the first two characters do not correspond
     !to a recognizable species then we are done counting
     species = test(1:2)
@@ -341,19 +342,18 @@ DO
     IF( DABS(snumber) < 0.1d0 ) GOTO 31
     !
     !If cores and/or shells exist, count them separately
-    IF(TRIM(ADJUSTL(test2))=='core') THEN
+    IF( test2(1:4)=='core' ) THEN
       NP=NP+1
-    ELSEIF(TRIM(ADJUSTL(test2))=='shel') THEN
+    ELSEIF( test2(1:4)=='shel' ) THEN
       NS=NS+1
     ELSE
       !If there is only atom species (i.e. "core" or "shell" are not specified)
       !then consider it a core
       NP=NP+1
     ENDIF
-    !If there is no 'shel' or 'core' on the line,
-    !then we are done counting
-    !IF( TRIM(ADJUSTL(test2)).NE.'core' .AND.                &
-    !  & TRIM(ADJUSTL(test2)).NE.'shel'       ) GOTO 31
+    !
+  ELSEIF( LEN_TRIM(test)>6 ) THEN
+    EXIT
   ENDIF
 ENDDO
 !
@@ -373,6 +373,8 @@ ENDIF
 !
 IF(NS>0) THEN
   !Allocate array for shells (same size as P)
+  !NOTE: in Atomsk array S must have the same size as array P, i.e. NP x 4
+  !     even if all atoms do not have shells
   ALLOCATE(S(NP,4))
   S(:,:) = 0.d0
 ENDIF
@@ -392,13 +394,18 @@ species = ''
 !
 i=0  !Counter for cores
 j=0  !Counter for shells
-DO WHILE(i<NP .OR. j<NS)
+NS2=0
+DO WHILE(i<NP .OR. NS2<NS)
   strlength = 0
   READ(30,'(a128)',ERR=800,END=800) temp
   temp = ADJUSTL(temp)
   !
+  READ(temp,*,ERR=45,END=45) test
+  test = ADJUSTL(test)
+  !
   !If it is a comment then skip the whole thing and read next line
-  IF(temp(1:1).NE.'#' .AND. LEN_TRIM(temp).NE.0) THEN
+  !IF( temp(1:1).NE.'#' .AND. LEN_TRIM(temp)>0 ) THEN
+  IF( test(1:1).NE.'#' .AND. LEN_TRIM(test)>0 .AND. LEN_TRIM(test)<=6 ) THEN
     READ(temp,*,END=800,ERR=800) test
     test = ADJUSTL(test)
     !Remove trailing comment if any
@@ -426,13 +433,15 @@ DO WHILE(i<NP .OR. j<NS)
     !
     !Determine if it is a core or shell
     READ(temp,*,END=800,ERR=800) test, test2
-    IF(TRIM(ADJUSTL(test2))=='core') THEN
+    test2 = TRIM(ADJUSTL(test2))
+    IF( test2(1:4)=='core' ) THEN
       ptype = 'core'
       i=i+1
       !Save the line in "temp2" for later
       strlength = INDEX(temp,'core')+5
-    ELSEIF(TRIM(ADJUSTL(test2))=='shel') THEN
+    ELSEIF( test2(1:4)=='shel' ) THEN
       ptype = 'shel'
+      NS2 = NS2+1
       IF( i>=NP .AND. j<1 ) THEN
         !All cores were read, but no shell yet, this is the first
         !=> all shells positions are after all core positions
@@ -444,7 +453,7 @@ DO WHILE(i<NP .OR. j<NS)
         !core that has the same atom species as this shell.
         !This assumes that the following sequence of shells will
         !match the sequence of cores.
-        DO k=j,NP
+        DO k=j+1,NP
           IF( DABS(snumber-P(k,4))<0.1d0 ) THEN
             j=k
             EXIT
@@ -467,7 +476,7 @@ DO WHILE(i<NP .OR. j<NS)
     temp2 = temp(strlength:)
     !
     !
-    WRITE(msg,*) 'Read '//TRIM(ptype)//' coordinates: ', species, ' ', TRIM(temp2)
+    WRITE(msg,*) i, "|", j, ' Read '//TRIM(ptype)//' coordinates: ', species, ' ', TRIM(temp2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     IF(coord=='cart') THEN
@@ -553,10 +562,10 @@ DO WHILE(i<NP .OR. j<NS)
     !CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     IF(ptype=='core') THEN
       IF( i>0 .AND. i<=SIZE(P,1) ) THEN
-        P(i,4) = snumber
         P(i,1) = P1
         P(i,2) = P2
         P(i,3) = P3
+        P(i,4) = snumber
       ELSE
         !out-of-bounds
         nwarn=nwarn+1
@@ -564,10 +573,10 @@ DO WHILE(i<NP .OR. j<NS)
       ENDIF
     ELSE
       IF( j>0 .AND. j<=SIZE(S,1) ) THEN
-        S(j,4) = snumber
         S(j,1) = P1
         S(j,2) = P2
         S(j,3) = P3
+        S(j,4) = snumber
       ELSE
         !out-of-bounds
         nwarn=nwarn+1
@@ -890,6 +899,8 @@ DO WHILE(i<NP .OR. j<NS)
       !
     ENDIF
     !
+  ELSEIF( LEN_TRIM(test)>6 ) THEN
+    EXIT
   ENDIF
   !
   45 CONTINUE
@@ -898,6 +909,8 @@ ENDDO
 !
 !
 500 CONTINUE
+WRITE(msg,*) 'FiNAL  NP, NS = ', NP, NS2
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Convert fractional coordinates to cartesian
 IF(coord=='frac') THEN
   msg = 'converting to cartesian coordinates'
