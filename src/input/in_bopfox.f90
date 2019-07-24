@@ -211,7 +211,7 @@ IF( dofix ) THEN
   WRITE(msg,*) 'Flags for fixed atoms were detected'
 ENDIF
 IF( domag ) THEN
-  WRITE(msg,*) 'Magnetization section weas detected'
+  WRITE(msg,*) 'Magnetization section was detected'
 ENDIF
 !
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -270,30 +270,36 @@ DO
     WRITE(msg,*) 'Reading atom coordinates...'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     i=0
-    DO
-      READ(30,'(a128)',END=250,ERR=400) test
+    DO WHILE( i<SIZE(P,1) )
+      READ(30,'(a128)',END=220,ERR=400) test
+    CALL ATOMSK_MSG(999,(/TRIM(test)/),(/0.d0/))
       IF( test(1:1).NE."#" .AND. test(1:1).NE."/" ) THEN
         i=i+1
-        IF( i<=SIZE(P,1) ) THEN
-          IF( dofix ) THEN
-            !Read flags: T=atom is fixed along that direction (=1); F=free to move (=0)
-            READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3), flagx, flagy, flagz
-            IF(flagx=="T") AUX(i,fixx) = 1.d0
-            IF(flagy=="T") AUX(i,fixy) = 1.d0
-            IF(flagz=="T") AUX(i,fixz) = 1.d0
-          ELSE
-            READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3)
-          ENDIF
-          CALL ATOMNUMBER(species,P(i,4))
+        IF( dofix ) THEN
+          !Read flags: T=atom is fixed along that direction (=1); F=free to move (=0)
+          !NOTE: if some flags are missing, just read the atom positions and skip the flags
+          READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3)
+          READ(test,*,END=210,ERR=210) species, P(i,1), P(i,2), P(i,3), flagx, flagy, flagz
+          IF(flagx=="T") AUX(i,fixx) = 1.d0
+          IF(flagy=="T") AUX(i,fixy) = 1.d0
+          IF(flagz=="T") AUX(i,fixz) = 1.d0
+        ELSE
+          READ(test,*,END=400,ERR=400) species, P(i,1), P(i,2), P(i,3)
         ENDIF
+        CALL ATOMNUMBER(species,P(i,4))
       ENDIF
+      210 CONTINUE
     ENDDO
+    220 CONTINUE
+    WRITE(msg,*) 'Finished reading atom coordinates'
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    BACKSPACE(30)
     !
-  ELSEIF( test(1:13)=='magnetisation' .OR. test(1:13)=='magnetization') THEN
+  ELSEIF( test(1:13)=='magnetisation' .OR. test(1:13)=='magnetization' ) THEN
     WRITE(msg,*) 'Reading magnetization...'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO i=1,SIZE(AUX,1)
-      READ(30,'(a128)',END=250,ERR=400) test
+      READ(30,'(a128)',END=250,ERR=250) test
       j = INDEX(test,"orbital")
       IF( j>0 ) THEN
         test = ADJUSTL(test(j+8:))
@@ -302,6 +308,7 @@ DO
     ENDDO
     !
   ENDIF
+  240 CONTINUE
 ENDDO
 !
 250 CONTINUE
