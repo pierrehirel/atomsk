@@ -55,10 +55,11 @@
 <p>Une fois le polycristal généré, Atomsk produira les fichiers supplémentaires suivants :</p>
 
 <ul>
-  <li><strong>*.dat</strong> : fichier de données contenant la distribution de tailles de grains.</li>
-  <li><strong>*_nodes.xsf</strong> : fichier au format XSF contenant les positions des n&oelig;uds utilisées pour générer le polycrystal. Chaque n&oelig;ud est représenté par un atome d'hydrogène.</li>
-  <li><strong>*_grains-com.xsf</strong> : fichier au format XSF contenant les positions des centres de masse de chaque grain du polycrystal. Chaque centre de masse est représenté par un atome d'hydrogène.</li>
-  <li><strong>*_param.txt</strong> (seulement si le mot-clé "random" a été utilisé) : fichier texte contenant les nombres aléatoires générés par Atomsk. Ce fichier a le format d'un fichier de paramètres (&#60;fichier_param&#62;), et peut donc être utilisé pour générer un polycrystal identique.</li>
+  <li><strong>*_id-size.txt</strong>&nbsp;: fichier texte contenant les numéros de grains (grainID), le nombre d'atomes qu'ils contiennent, et leur volume.</li>
+  <li><strong>*_size-dist.dat</strong>&nbsp;: fichier de données (fichier texte) contenant la distribution de tailles de grains.</li>
+  <li><strong>*_nodes.xsf</strong>&nbsp;: fichier au format XSF contenant les positions des n&oelig;uds utilisées pour générer le polycrystal. Chaque n&oelig;ud est représenté par un atome d'hydrogène.</li>
+  <li><strong>*_grains-com.xsf</strong>&nbsp;: fichier au format XSF contenant les positions des centres de masse de chaque grain du polycrystal. Chaque centre de masse est représenté par un atome d'hydrogène.</li>
+  <li><strong>*_param.txt</strong> (seulement si le mot-clé "random" a été utilisé)&nbsp;: fichier texte contenant les nombres aléatoires générés par Atomsk. Ce fichier a le format d'un fichier de paramètres (&#60;fichier_param&#62;), et peut donc être utilisé pour générer un polycrystal identique.</li>
 </ul>
 
 <p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a>, celles-ci seront appliquées au polycristal.</p>

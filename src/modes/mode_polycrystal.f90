@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 June 2019                                     *
+!* Last modification: P. Hirel - 23 July 2019                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -61,12 +61,12 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to o
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 !
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=128):: distfile   !name of file containing grain size distribution
 CHARACTER(LEN=128):: line
 CHARACTER(LEN=128):: or1, or2, or3
 CHARACTER(LEN=128):: lattice  !if grains are organized according to a lattice
-CHARACTER(LEN=128):: msg, temp
-CHARACTER(LEN=128):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
+CHARACTER(LEN=4096):: msg, temp
+CHARACTER(LEN=4096):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
+CHARACTER(LEN=4096):: distfile, idsizefile !name of file containing grain size distribution, grain sizes
 CHARACTER(LEN=32),DIMENSION(3):: oldvec, newvec !new vectors after orient
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES    !names of auxiliary properties of atoms
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary properties of atoms (temporary)
@@ -127,10 +127,11 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: vorient !crystallographic orientation of
 !
 !
 !Initialize variables
-CALL NAME_OUTFILE(prefix,distfile,"dat  ")
 CALL NAME_OUTFILE(prefix,temp,"     ")
 i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
 temp = temp(1:i-1)
+distfile = TRIM(ADJUSTL(temp))//"_size-dist.txt"
+idsizefile = TRIM(ADJUSTL(temp))//"_id-size.txt"
 outparamfile = TRIM(ADJUSTL(temp))//"_param.txt"
 outparam = .FALSE.
 Nnodes = 0
@@ -1543,6 +1544,18 @@ IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 WRITE(msg,*) "Min, max. volume occupied by a grain: ", Vmin, Vmax
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF( Vmax > 0.d0 ) THEN
+  !Write grain ID and their sizes into a file
+  IF(.NOT.overw) CALL CHECKFILE(idsizefile,'writ')
+  OPEN(UNIT=41,FILE=idsizefile,FORM="FORMATTED",STATUS="UNKNOWN")
+  WRITE(41,*) "# grainID   ;   N.atoms   ;   Grain volume (A^3)"
+  DO i=1,SIZE(NPgrains)  !loop on all grains
+    !Estimate volume occupied by that grain
+    CALL VOLUME_PARA(Huc,Volume)
+    Volume = DBLE(NPgrains(i)) * Volume / DBLE(SIZE(Puc,1))
+    WRITE(41,*) i, NPgrains(i), Volume
+  ENDDO
+  CLOSE(41)
+  !
   !Compute the grain size distribution and write it to a file
   !with the format:  ( Grain size ; Number of grains with that size )
   Vstep = (Vmax-Vmin)/20.d0  !step for grain size distribution
