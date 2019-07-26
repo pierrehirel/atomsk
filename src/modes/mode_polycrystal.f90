@@ -286,15 +286,17 @@ DO
       lattice = TRIM(ADJUSTL(line(8:)))
       !Set the number of nodes according to the lattice type
       !Beware of pseudo-2D systems
-      IF( lattice=="bcc" ) THEN
+      IF( lattice=="sc" ) THEN
+        Nnodes = 1
+      ELSEIF( lattice=="bcc" ) THEN
         Nnodes = 2
       ELSEIF( lattice=="fcc" ) THEN
         IF(twodim>0) THEN
-          Nnodes = 2
+          Nnodes = 3
         ELSE
           Nnodes = 4
         ENDIF
-      ELSEIF( lattice=="diamond" ) THEN
+      ELSEIF( lattice=="diamond" .OR. lattice=="dia"  ) THEN
         IF(twodim>0) THEN
           Nnodes = 6
         ELSE
@@ -384,7 +386,10 @@ DO
       ENDIF
       !
       lattice = TRIM(ADJUSTL(line(8:)))
-      IF( lattice=="bcc" ) THEN
+      IF( lattice=="sc" ) THEN
+        Nnodes = 1
+        vnodes(1,:) = 0.d0
+      ELSEIF( lattice=="bcc" ) THEN
         Nnodes = 2
         vnodes(1,:) = 0.d0          !(0,0,0)
         vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,1/2)
@@ -395,13 +400,26 @@ DO
         ENDIF
       ELSEIF( lattice=="fcc" ) THEN
         IF(twodim>0) THEN
-          !System is 2-D => define only 2 nodes
-          Nnodes = 2
+          !System is 2-D => define only 3 nodes
+          Nnodes = 3
           vnodes(1,:) = 0.d0          !(0,0)
-          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2)
-          vnodes(2,2) = 0.5d0*H(2,2)
-          vnodes(2,3) = 0.5d0*H(3,3)
-          vnodes(2,twodim) = 0.d0
+          IF(twodim==1) THEN
+            vnodes(2,2) = 0.d0*H(2,2)  !(0,0)
+            vnodes(2,3) = 0.5d0*H(3,3)
+            vnodes(3,2) = 0.5d0*H(2,2) !(1/2,0)
+            vnodes(3,3) = 0.d0*H(3,3)
+          ELSEIF(twodim==2) THEN
+            vnodes(2,1) = 0.d0*H(1,1)  !(0,0)
+            vnodes(2,3) = 0.5d0*H(3,3)
+            vnodes(3,1) = 0.5d0*H(1,1) !(1/2,0)
+            vnodes(3,3) = 0.d0*H(3,3)
+          ELSEIF(twodim==3) THEN
+            vnodes(2,1) = 0.d0*H(1,1)  !(0,0)
+            vnodes(2,2) = 0.5d0*H(2,2)
+            vnodes(3,1) = 0.5d0*H(1,1) !(1/2,0)
+            vnodes(3,2) = 0.d0*H(2,2)
+          ENDIF
+          vnodes(:,twodim) = 0.5d0
         ELSE
           !System is 3-D => define fcc lattice
           Nnodes = 4
@@ -418,34 +436,32 @@ DO
           !System is 2-D => define only 6 nodes
           Nnodes = 6
           vnodes(:,:) = 0.d0
-          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2)
+          vnodes(2,:) = 0.5d0*H(1,1)  !(1/2,1/2)
           vnodes(2,2) = 0.5d0*H(2,2)
           vnodes(2,3) = 0.5d0*H(3,3)
-          vnodes(2,twodim) = 0.d0
           vnodes(3,1) = 0.25d0*H(1,1) !(1/4,1/4)
           vnodes(3,2) = 0.25d0*H(2,2)
           vnodes(3,3) = 0.25d0*H(3,3)
-          vnodes(3,twodim) = 0.d0
           vnodes(4,1) = 0.75d0*H(1,1) !(3/4,3/4)
           vnodes(4,2) = 0.75d0*H(2,2)
           vnodes(4,3) = 0.75d0*H(3,3)
-          vnodes(4,twodim) = 0.d0
           IF(twodim==1) THEN
             vnodes(5,2) = 0.25d0*H(2,2)  !(1/4,3/4)
             vnodes(5,3) = 0.75d0*H(3,3)
-            vnodes(6,2) = 0.75d0*H(2,2)  !(1/4,3/4)
+            vnodes(6,2) = 0.75d0*H(2,2)  !(3/4,1/4)
             vnodes(6,3) = 0.25d0*H(3,3)
           ELSEIF(twodim==2) THEN
             vnodes(5,1) = 0.25d0*H(1,1)  !(1/4,3/4)
             vnodes(5,3) = 0.75d0*H(3,3)
-            vnodes(6,1) = 0.75d0*H(1,1)  !(1/4,3/4)
+            vnodes(6,1) = 0.75d0*H(1,1)  !(3/4,1/4)
             vnodes(6,3) = 0.25d0*H(3,3)
           ELSE   !i.e. twodim==3
             vnodes(5,1) = 0.25d0*H(1,1)  !(1/4,3/4)
             vnodes(5,2) = 0.75d0*H(2,2)
-            vnodes(6,1) = 0.75d0*H(1,1)  !(1/4,3/4)
+            vnodes(6,1) = 0.75d0*H(1,1)  !(3/4,1/4)
             vnodes(6,2) = 0.25d0*H(2,2)
           ENDIF
+          vnodes(:,twodim) = 0.5d0
         ELSE
           !System is 3-D => define diamond lattice
           Nnodes = 8
@@ -874,11 +890,11 @@ IF(verbosity==4) THEN
   msg = "Rotation matrices of nodes:"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO i=1,SIZE(vnodes,1)
-    WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,1,j),j=1,3), ']'
+    WRITE(msg,'(a2,i4,a5,3f9.3,a1)') 'R[', i, '] = [', (vorient(i,1,j),j=1,3), ']'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,2,j),j=1,3), ']'
+    WRITE(msg,'(a2,i4,a5,3f9.3,a1)') 'R[', i, '] = [', (vorient(i,2,j),j=1,3), ']'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    WRITE(msg,'(i4,a1,3f9.3,a1)') i, '[', (vorient(i,3,j),j=1,3), ']'
+    WRITE(msg,'(a2,i4,a5,3f9.3,a1)') 'R[', i, '] = [', (vorient(i,3,j),j=1,3), ']'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDDO
 ENDIF
@@ -1064,11 +1080,12 @@ ENDDO
 !Estimate new number of particles NP = (density of unit cell) / (volume of final cell)
 NP = CEILING( SIZE(Puc,1) * DABS( DABS(H(1,1)*H(2,2)*H(3,3)) / &
       & DABS(VECLENGTH(Huc(1,:))*VECLENGTH(Huc(2,:))*VECLENGTH(Huc(3,:))) ) )
-WRITE(msg,*) "Estimated new number of atoms : ", NP
+WRITE(msg,*) "Estimated number of atoms in polycrystal: NP = ", NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!Allow for +50% and +100 atoms to allocate arrays.
+!Allow for +50% and +1000 atoms to allocate arrays.
 !Actual size of arrays will be adjusted later
-NP = NINT(1.5d0*NP) + 100
+NP = NINT(1.74d0*NP) + 1000
+WRITE(msg,*) "Allocating arrays with size: NP = ", NP
 ALLOCATE(Q(NP,4))
 Q(:,:) = 0.d0
 IF(doshells) THEN
@@ -1147,13 +1164,15 @@ DO inode=1,Nnodes
               !Check if it is not colinear with an existing vertex
               P1 = 1.d12
               k=0
-              DO j=1,Nvertices
-                P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
-                IF( P2<P1 ) THEN
-                  P1=P2
-                  k=j
-                ENDIF
-              ENDDO
+              IF( Nvertices>0 ) THEN
+                DO j=1,Nvertices
+                  P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
+                  IF( P2<P1 ) THEN
+                    P1=P2
+                    k=j
+                  ENDIF
+                ENDDO
+              ENDIF
               IF( P1<0.1d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
                 !Vertex vector #k is colinear with current vector
                 !If new one is closer, replace the older one
@@ -1180,6 +1199,13 @@ DO inode=1,Nnodes
   WRITE(msg,'(a,i6)') "N neighbors for this grain:", Nvertices
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
+  !Fill the rest of the list with very large distances (will be removed soon)
+  IF( Nvertices<SIZE(vvertex,1) ) THEN
+    DO i=Nvertices+1,SIZE(vvertex,1)
+      vvertex(i,4) = 1.d12
+    ENDDO
+  ENDIF
+  !
   !Sort vertices by increasing distance
   CALL BUBBLESORT(vvertex,4,"up  ",newindex)
   !
@@ -1192,18 +1218,22 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
-  !Get index of last atom that is closer than maxdnodes
-  i=1
-  DO WHILE( i<=SIZE(vvertex,1) .AND. i<=maxvertex .AND. vvertex(i,4)<=maxdnodes )
-    i = i+1
+  !Get index of last vertex that is closer than maxdnodes
+  Nvertices=1
+  DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices,4)<=maxdnodes )
+    Nvertices = Nvertices+1
   ENDDO
   !Resize array vvertex to get rid of unused vertices
-  CALL RESIZE_DBLEARRAY2(vvertex,i+26,4,status)
+  IF(twodim>0) THEN
+    CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+8,4,status)
+  ELSE
+    CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+26,4,status)
+  ENDIF
   !
-  !Append vertices corresponding to the 26 replicas of current node
-  DO o=-1,1
-    DO n=-1,1
-      DO m=-1,1
+  !Append vertices corresponding to the replicas of current node
+  DO o=-expandmatrix(3),expandmatrix(3)
+    DO n=-expandmatrix(2),expandmatrix(2)
+      DO m=-expandmatrix(1),expandmatrix(1)
         IF( o.NE.0 .OR. n.NE.0 .OR. m.NE.0 ) THEN
           !Position of the periodic image of node #inode
           P1 = vnodes(inode,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
@@ -1213,15 +1243,15 @@ DO inode=1,Nnodes
           !Compute distance
           distance = VECLENGTH( vector(:) - vnodes(inode,:) )
           IF( distance>1.d-3 ) THEN
-            i = i+1
-            vvertex(i,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-            vvertex(i,4) = distance
+            Nvertices = Nvertices+1
+            vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+            vvertex(Nvertices,4) = distance
           ENDIF
         ENDIF
       ENDDO
     ENDDO
   ENDDO
-  Nvertexmax = i
+  Nvertexmax = Nvertices
   !
   IF(verbosity==4) THEN
     !Debug messages
@@ -1368,7 +1398,7 @@ DO inode=1,Nnodes
       ELSE
         !qi exceeds the size of arrays Q, T and AUX_Q
         !we have a problem: abort
-        PRINT*, "ERROR qi larger than size of Q"
+        PRINT*, "ERROR qi larger than size of Q: ", qi, "> ", SIZE(Q,1)
         nerr = nerr+1
       ENDIF
     ELSE
@@ -1399,7 +1429,7 @@ DO inode=1,Nnodes
     msg = '# Debug file for Atomsk, mode --polycrystal, grain # '//TRIM(ADJUSTL(temp))
     WRITE(36,*) TRIM(msg)
     IF(NPgrains(inode)>0) THEN
-      DO i=1,MIN(SIZE(Pt2,1),NPgrains(inode))
+      DO i=1,SIZE(Pt2,1)
         IF( Pt2(i,4)>0.d0 ) THEN
           CALL ATOMSPECIES(Pt2(i,4),species)
           WRITE(36,'(a2,2X,3(f16.8,1X))') species, Pt2(i,1:3)
