@@ -302,6 +302,12 @@ DO
         ELSE
           Nnodes = 8
         ENDIF
+      ELSEIF( lattice=="hcp" ) THEN
+        IF(twodim>0) THEN
+          Nnodes = 2
+        ELSE
+          Nnodes = 4
+        ENDIF
       ELSE
         !Unrecognized lattice type => abort
         nerr=nerr+1
@@ -423,7 +429,7 @@ DO
         ELSE
           !System is 3-D => define fcc lattice
           Nnodes = 4
-          vnodes(1,:) = 0.d0          !(0,0,0)
+          vnodes(:,:) = 0.d0          !(0,0,0)
           vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
           vnodes(2,2) = 0.5d0*H(2,2)
           vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,0,1/2)
@@ -484,6 +490,27 @@ DO
           vnodes(8,1) = 0.25d0*H(1,1) !(1/4,3/4,3/4)
           vnodes(8,2) = 0.75d0*H(2,2)
           vnodes(8,3) = 0.75d0*H(3,3)
+        ENDIF
+      ELSEIF( lattice=="hcp" ) THEN
+        IF(twodim>0) THEN
+          !System is 2-D => define only 2 nodes
+          Nnodes = 2
+          vnodes(:,:) = 0.d0          !(0,0,0)
+          vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,1/2)
+          vnodes(2,2) = 0.5d0*H(2,2)
+          vnodes(2,3) = 0.5d0*H(3,3)
+          vnodes(2,twodim) = 0.d0
+        ELSE
+          !System is 3-D => define hcp lattice
+          Nnodes = 4
+          vnodes(:,:) = 0.d0          !(0,0,0)
+          vnodes(2,2) = H(2,2)/3.d0   !(0,1/3,1/2)
+          vnodes(2,3) = 0.5d0*H(3,3)
+          vnodes(3,1) = 0.5d0*H(1,1)  !(1/2,1/2,0)
+          vnodes(3,2) = 0.5d0*H(2,2)
+          vnodes(4,1) = 0.5d0*H(1,1)  !(1/2,5/6,1/2)
+          vnodes(4,2) = 5.d0*H(2,2)/6.d0
+          vnodes(4,3) = 0.5d0*H(3,3)
         ENDIF
       ELSE
         !unrecognized lattice type (already dealt with before)
@@ -837,6 +864,24 @@ IF(Nnodes<1) THEN
   GOTO 1000
 ENDIF
 !
+!Make sure that all nodes are inside the final box H(:,:)
+CALL CART2FRAC(vnodes,H)
+k = 0
+DO i=1,SIZE(vnodes,1) !loop on all nodes
+  m=0
+  DO j=1,3  !loop on xyz
+    DO WHILE( vnodes(i,j)>=1.d0 )
+      vnodes(i,j) = vnodes(i,j)-1.d0
+    ENDDO
+    DO WHILE( vnodes(i,j)<0.d0 )
+      vnodes(i,j) = vnodes(i,j)+1.d0
+    ENDDO
+  ENDDO
+  IF(m>0) k=k+1
+ENDDO
+CALL FRAC2CART(vnodes,H)
+IF(k>0) PRINT*, "WARNING: wrapped ", k, " nodes"
+!
 CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
 !
 !
@@ -874,7 +919,7 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 20
 ELSE
-  maxvertex = 65
+  maxvertex = 66
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -1103,7 +1148,7 @@ DO inode=1,Nnodes
   CALL ATOMSK_MSG(4055,(/''/),(/DBLE(inode)/))
   !
   !Compute number of vertices surrounding current node
-  Nvertices = 0
+  Nvertices = 1000
   maxdnodes = 0.d0
   expandmatrix(:) = 1
   !
@@ -1112,34 +1157,35 @@ DO inode=1,Nnodes
     !System is pseudo 2-D => do not look along the short distance
     expandmatrix(twodim) = 0
   ENDIF
-  IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
-    DO i=1,SIZE(vnodesNeighList,2)  !loop on neighboring nodes
-      IF( vnodesNeighList(inode,i).NE.0 ) THEN
-        !This node is neighbor of node #inode
-        !Check which periodic image(s) are actually neighbor
-        DO o=-expandmatrix(3),expandmatrix(3)
-          DO n=-expandmatrix(2),expandmatrix(2)
-            DO m=-expandmatrix(1),expandmatrix(1)
-              !Position of the periodic image of the i-th neighboring node of node #inode
-              P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-              P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-              P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-              vector = (/ P1 , P2 , P3 /)
-              !This image is a neighbor if distance is smaller than max. box size
-              distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-              IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
-                Nvertices = Nvertices+1
-                IF( distance > maxdnodes ) maxdnodes = distance
-              ENDIF
-            ENDDO
-          ENDDO
-        ENDDO
-      ENDIF
-    ENDDO
-  ENDIF
+!   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
+!     DO i=1,SIZE(vnodesNeighList,2)  !loop on neighboring nodes
+!       IF( vnodesNeighList(inode,i).NE.0 ) THEN
+!         !This node is neighbor of node #inode
+!         !Check which periodic image(s) are actually neighbor
+!         DO o=-expandmatrix(3),expandmatrix(3)
+!           DO n=-expandmatrix(2),expandmatrix(2)
+!             DO m=-expandmatrix(1),expandmatrix(1)
+!               !Position of the periodic image of the i-th neighboring node of node #inode
+!               P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+!               P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+!               P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+!               vector = (/ P1 , P2 , P3 /)
+!               !This image is a neighbor if distance is smaller than max. box size
+!               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
+!               IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
+!                 Nvertices = Nvertices+1
+!                 IF( distance > maxdnodes ) maxdnodes = distance
+!               ENDIF
+!             ENDDO
+!           ENDDO
+!         ENDDO
+!       ENDIF
+!     ENDDO
+!   ENDIF
   !
   !Allocate memory for vertices
-  !NOTE: at this stage Nvertices over-estimates the number of neighboring vertices
+  !NOTE: at this stage Nvertices=1000 is expected to over-estimate the number
+  !      of neighboring vertices. This array will be resized later
   ALLOCATE( vvertex(Nvertices,4) )
   vvertex(:,:) = 0.d0
   !
@@ -1167,13 +1213,13 @@ DO inode=1,Nnodes
               IF( Nvertices>0 ) THEN
                 DO j=1,Nvertices
                   P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
-                  IF( P2<P1 ) THEN
+                  IF( P2>0.d0 .AND. P2<P1 ) THEN
                     P1=P2
                     k=j
                   ENDIF
                 ENDDO
               ENDIF
-              IF( P1<0.1d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
+              IF( P1<1.d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
                 !Vertex vector #k is colinear with current vector
                 !If new one is closer, replace the older one
                 IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
@@ -1184,6 +1230,10 @@ DO inode=1,Nnodes
                 !No colinear vertex was found: add a new one to the list
                 IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
                   Nvertices = Nvertices+1
+                  IF( Nvertices>SIZE(vvertex,1) ) THEN
+                    !Increase size of array vvertex
+                    CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+10,4)
+                  ENDIF
                   vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
                   vvertex(Nvertices,4) = distance
                 ENDIF
@@ -1199,7 +1249,9 @@ DO inode=1,Nnodes
   WRITE(msg,'(a,i6)') "N neighbors for this grain:", Nvertices
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
-  !Fill the rest of the list with very large distances (will be removed soon)
+  !Fill the rest of the list with very large distances before sorting.
+  !This way, after sorting they will be at the end of the list
+  !(those artefacts will be removed later)
   IF( Nvertices<SIZE(vvertex,1) ) THEN
     DO i=Nvertices+1,SIZE(vvertex,1)
       vvertex(i,4) = 1.d12
@@ -1212,15 +1264,15 @@ DO inode=1,Nnodes
   !All neighboring vertices will not be used, only the maxvertex first ones
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes
   IF( SIZE(vvertex,1)>maxvertex ) THEN
-    maxdnodes = vvertex(maxvertex,4)
+    maxdnodes = vvertex(MIN(maxvertex,Nvertices),4)
     WRITE(msg,*) maxdnodes
     msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
   !Get index of last vertex that is closer than maxdnodes
-  Nvertices=1
-  DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices,4)<=maxdnodes )
+  Nvertices=0
+  DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices+1,4)<=maxdnodes )
     Nvertices = Nvertices+1
   ENDDO
   !Resize array vvertex to get rid of unused vertices
@@ -1231,6 +1283,8 @@ DO inode=1,Nnodes
   ENDIF
   !
   !Append vertices corresponding to the replicas of current node
+  WRITE(msg,'(a,i6)') "Adding self neighbors (=periodic replica of current grain)"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO o=-expandmatrix(3),expandmatrix(3)
     DO n=-expandmatrix(2),expandmatrix(2)
       DO m=-expandmatrix(1),expandmatrix(1)
@@ -1354,9 +1408,9 @@ DO inode=1,Nnodes
   !qi=0 !so far, zero atom in the grain
   !For each atom of the template Pt2, find out if it is located inside the grain
   !If so, then save it to the array Q; if not, discard it
-  !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,qi,isinpolyhedron,jnode,vnormal,vector) &
-  !$OMP& REDUCTION(+:NPgrains)
+  !!!$OMP PARALLEL DO DEFAULT(SHARED) &
+  !!!$OMP& PRIVATE(i,j,qi,isinpolyhedron,jnode,vnormal,vector) &
+  !!!$OMP& REDUCTION(+:NPgrains)
   DO i=1,SIZE(Pt2,1)
     !Shift oriented supercell so that its center of mass is at the position of the node
     Pt2(i,1:3) = Pt2(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)
@@ -1378,10 +1432,10 @@ DO inode=1,Nnodes
     !
     IF( isinpolyhedron ) THEN
       !Atom is inside the polyhedron
-      !$OMP CRITICAL
+      !!!$OMP CRITICAL
       NP = NP+1
       qi = NP
-      !$OMP END CRITICAL
+      !!!$OMP END CRITICAL
       !
       !Increment number of atoms in this grain
       NPgrains(inode) = NPgrains(inode)+1
@@ -1407,7 +1461,7 @@ DO inode=1,Nnodes
     ENDIF
     !
   ENDDO
-  !$OMP END PARALLEL DO
+  !!!$OMP END PARALLEL DO
   !
   IF(nerr>0) GOTO 1000
   !
