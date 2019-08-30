@@ -815,16 +815,11 @@ CASE('in','out')
 CASE('prop','property')
   !Select atoms according to the given property
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-  IF( .NOT. ALLOCATED(AUXNAMES) .OR. .NOT.ALLOCATED(AUX) ) THEN
-    !No auxiliary property defined => abort
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(2729,(/""/),(/0.d0/))
-    !
-  ELSE
+  IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     !Search the index j for the given property
     i=0
     j=0
-    DO WHILE(j==0)
+    DO WHILE( j==0 .AND. i<SIZE(AUXNAMES) )
       i=i+1
       IF( TRIM(ADJUSTL(AUXNAMES(i))) == TRIM(ADJUSTL(region_geom)) ) THEN
         j=i
@@ -899,6 +894,11 @@ CASE('prop','property')
         ENDDO
       ENDIF
     ENDIF
+    !
+  ELSE
+    !No auxiliary property defined => abort
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2729,(/""/),(/0.d0/))
   ENDIF
   !
   !
