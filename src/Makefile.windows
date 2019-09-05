@@ -1,5 +1,5 @@
 # Makefile for compiling Atomsk on a Microsoft(R) Windows(R) environment
-# using GNU make and GNU MinGW/gfortran.
+# using MinGW with GNU make and gfortran.
 
 # USAGE
 #    make.exe -f Makefile.windows
@@ -22,7 +22,7 @@
 #     please refer to Intel documentation.
 #
 # Note that these links are provided as indications.
-# The author of atomsk will NOT provide any support for
+# The author of Atomsk will NOT provide any support for
 # MinGW, nor Fortran compilers, nor BLAS/LAPACK libraries.
 
 # NOTE: make sure that the paths containing the
@@ -47,10 +47,12 @@ FFLAGS=-DWINDOWS -O2 $(OPENMP) -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
 # Un-comment the following line to produce a static version
 #FFLAGS+=-static
 
-# Path to the LAPACK library
-# The following assumes that the LAPACK and BLAS libraries
-# for Windows are in "C:\Windows\System32\"
-LAPACK=C:\Windows\System32\liblapack.a C:\Windows\System32\librefblas.a
+# Path to the LAPACK library (actually LAPACK+BLAS)
+# Replace by the actual path to the libraries on your system
+LAPATH=C:\Windows\System32
+
+# Names of LAPACK and BLAS shared libraries (*.a)
+LAPACK=$(LAPATH)\liblapack.a $(LAPATH)\librefblas.a
 
 # INSTALL PATHS:
 # (do NOT insert antislash \ at the end of the paths)

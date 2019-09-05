@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 Jan. 2019                                     *
+!* Last modification: P. Hirel - 05 Sept. 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1075,6 +1075,17 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
           IF( doshells ) THEN
             S(i,1:3) = S(i,1:3) + disp(:)
           ENDIF
+          !
+          !Compute stress
+          CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
+          !
+          !Add stresses due to this disloc. to existing stresses in AUX
+          AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
+          AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
+          AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
+          AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
+          AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
+          AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
         ENDIF
       ENDDO
       !

@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 July 2019                                     *
+!* Last modification: P. Hirel - 30 Aug. 2019                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -153,7 +153,8 @@ CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !     e.g. a unit cell of fcc or bcc crystal. Here, no such assumption is made,
 !     and the seed can be anything: a unit cell, a supercell, a large system containing
 !     defects, dislocations or whatsoever. Also, the seed may be smaller or larger
-!     than the final polycrystal, i.e. Huc(:,:) may be larger than H(:,:).
+!     than the final polycrystal, i.e. Huc(:,:) may be smaller than H(:,:), but
+!     it might also be larger. Keep that in mind if you modify this routine
 CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
 !
 !Check if seed contains shells (in the sense of core-shell model) and/or auxiliary properties
@@ -1157,31 +1158,6 @@ DO inode=1,Nnodes
     !System is pseudo 2-D => do not look along the short distance
     expandmatrix(twodim) = 0
   ENDIF
-!   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
-!     DO i=1,SIZE(vnodesNeighList,2)  !loop on neighboring nodes
-!       IF( vnodesNeighList(inode,i).NE.0 ) THEN
-!         !This node is neighbor of node #inode
-!         !Check which periodic image(s) are actually neighbor
-!         DO o=-expandmatrix(3),expandmatrix(3)
-!           DO n=-expandmatrix(2),expandmatrix(2)
-!             DO m=-expandmatrix(1),expandmatrix(1)
-!               !Position of the periodic image of the i-th neighboring node of node #inode
-!               P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-!               P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-!               P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
-!               vector = (/ P1 , P2 , P3 /)
-!               !This image is a neighbor if distance is smaller than max. box size
-!               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-!               IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
-!                 Nvertices = Nvertices+1
-!                 IF( distance > maxdnodes ) maxdnodes = distance
-!               ENDIF
-!             ENDDO
-!           ENDDO
-!         ENDDO
-!       ENDIF
-!     ENDDO
-!   ENDIF
   !
   !Allocate memory for vertices
   !NOTE: at this stage Nvertices=1000 is expected to over-estimate the number
