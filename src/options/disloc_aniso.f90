@@ -13,7 +13,7 @@ MODULE dislocation_aniso
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 10 Sept. 2019                                    *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* ANISO_DISP          applies anisotropic disp. of a disloc. to 1 atom           *
@@ -703,6 +703,7 @@ DO i=1,3
                   & ( (P(a1)-pos1)+Pn(n)*(P(a2)-pos2) )
       ENDDO
     ENDDO
+    tempcmplx = (-1.d0/(2.d0*DCMPLX(0.d0,1.d0)*pi))*tempcmplx
     !Keep only the real part
     sigma(i,j) = DBLE(tempcmplx)
   ENDDO

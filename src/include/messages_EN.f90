@@ -2411,14 +2411,19 @@ CASE(3701)
   msg = "/!\ WARNING: I could not guess the format for the output file: " &
       & //TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "<?> Please specify a format for the output file:"
+  msg = "<?> Please specify a format for the output file among the following:"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = '    ('//TRIM(listofformats(1))
-  DO i=2,SIZE(listofformats)
-    msg = TRIM(msg)//','//TRIM(listofformats(i))
+  j=0
+  DO i=1,CEILING(SIZE(listofformats)/10.0)
+    msg = ""
+    DO j=1,10
+      IF( 10*(i-1)+j <= SIZE(listofformats) ) THEN
+        msg = TRIM(msg)//' '//listofformats(10*(i-1)+j)
+      ENDIF
+    ENDDO
+    msg = "        "//TRIM(ADJUSTL(msg))
+    CALL DISPLAY_MSG(1,msg,logfile)
   ENDDO
-  msg = TRIM(msg)//')'
-  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3702)
   msg = "/!\ WARNING: ddplot format is available only when using DDPLOT mode."
   CALL DISPLAY_MSG(1,msg,logfile)

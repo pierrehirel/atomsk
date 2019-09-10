@@ -26,7 +26,7 @@ Master (development)
 - fixed a bug in the symmetry operations of space group 166 (R-3m).
 - fixed a bug when writing LAMMPS data files (*.lmp): if atom types were defined, the types written in the "Masses" section did not match the atom types used in the "Atoms" section.
 - fixed a bug when reading Quantum Espresso output files (*.out) in mode "--one-in-all".
-- fixed a bug in option "-dislocation" where the theoretical stresses were not computed for mixed dislocations.
+- fixed a bug in option "-dislocation" where the theoretical stresses were not correct when using anisotropic elasticity. Thanks to Min Shi, University of Minnesotta, USA, for pointing out this bug.
 - fixed a bug in option "-cut", where Miller indices were assumed to refer to an orthogonal box. Now the actual box vectors are used.
 - fixed a bug in option "-separate", that caused a segfault when the radius was too large.
 - program now warns when atoms of same species have the same value of "type" defined as auxiliary property.
