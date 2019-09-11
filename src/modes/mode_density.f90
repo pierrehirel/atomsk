@@ -182,17 +182,17 @@ IF( den_type==1 ) THEN
   !
 ELSEIF( den_type==2 ) THEN
   ! By default use a step dx=dy=1.0 A
-  dx = 1.d0
-  dy = 1.d0
+  dx = 0.1d0
+  dy = 0.1d0
   !Compute Nx and Ny
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
-  IF( Nx<50 .OR. Nx>100 ) THEN
-    Nx = 100
+  IF( Nx<50 .OR. Nx>300 ) THEN
+    Nx = 300
     dx = H(a1,a1) / DBLE(Nx)
   ENDIF
-  IF( Ny<50 .OR. Ny>100 ) THEN
-    Ny = 100
+  IF( Ny<50 .OR. Ny>300 ) THEN
+    Ny = 300
     dy = H(a2,a2) / DBLE(Ny)
   ENDIF
   !

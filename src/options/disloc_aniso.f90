@@ -687,6 +687,7 @@ REAL(dp),INTENT(IN):: pos1, pos2 !Position of the dislocation in the plane
 REAL(dp),DIMENSION(3),INTENT(IN):: P  !Atom position
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: sigma   !dislocation theoretical elastic stresses
 COMPLEX(dp):: tempcmplx
+COMPLEX(dp),PARAMETER:: frac2ipi = DCMPLX(0.d0,-1.d0/(2.d0*pi))  ! -1/(2*i*pi)
 COMPLEX(dp),DIMENSION(3),INTENT(IN):: Dn, Pn    !anisotropy coefficients: D(n), P(n)...
 COMPLEX(dp),DIMENSION(3,3),INTENT(IN):: A_kn    !... A_k(n) ...
 COMPLEX(dp),DIMENSION(9,3,3),INTENT(IN):: B_ijk !... and B_ijk(n)
@@ -697,14 +698,16 @@ DO i=1,3
   DO j=1,3
     r = ELASTINDEX(i,j)    ! r = ij
     tempcmplx = DCMPLX(0.d0,0.d0)
+    !Compute the SUM(n=1,3)
     DO n=1,3
       DO k=1,3
         tempcmplx = tempcmplx + B_ijk(r,k,n)*A_kn(k,n)*Dn(n)/ &
                   & ( (P(a1)-pos1)+Pn(n)*(P(a2)-pos2) )
       ENDDO
     ENDDO
-    tempcmplx = (-1.d0/(2.d0*DCMPLX(0.d0,1.d0)*pi))*tempcmplx
-    !Keep only the real part
+    !Multiply by -1/(2*i*pi)
+    tempcmplx = tempcmplx * frac2ipi
+    !Save the real part in sigma(i,j)
     sigma(i,j) = DBLE(tempcmplx)
   ENDDO
 ENDDO
