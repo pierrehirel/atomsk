@@ -299,9 +299,9 @@ DO
     CASE("charge")
       Ncol = 5
       Naux = Naux+1  !charge
-    CASE("body","edpd","ellipsoid","full","peri","sphere")
+    CASE("body","edpd","ellipsoid","peri","sphere")
       Ncol = 6
-    CASE("electron","line","meso","template","tri")
+    CASE("electron","full","line","meso","template","tri")
       Ncol = 7
     CASE("dipole")
       Ncol = 8
@@ -394,7 +394,7 @@ DO
           datatype = "charge"
           Naux = Naux+1
           q = Naux
-        ELSEIF( Ncol==6 ) THEN
+        ELSEIF( Ncol==7 ) THEN
           !Assume "atom_style full" = atom-ID molecule-ID atom-type q x y z
           !Column #3 contains charge
           datatype = "full"

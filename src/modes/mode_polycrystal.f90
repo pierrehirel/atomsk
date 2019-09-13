@@ -781,7 +781,7 @@ DO
           o = 3*Nnodes + 3*(i-1) + 3
           randarray(m) = randarray(m)*2.d0*pi - pi
           randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
-          randarray(o) = randarray(o)*2.d0*pi - pi
+          randarray(o) = 0.d0
         ENDDO
       ENDIF
       !
@@ -963,6 +963,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 300 CONTINUE
 !Construct a neighbor list of nodes
 CALL NEIGHBOR_LIST(H,vnodes,boxmax,vnodesNeighList)
+IF(nerr>0) GOTO 1000
 !WARNING: if user asks for only one grain, then vnodesNeighList is NOT ALLOCATED!
 IF(verbosity==4) THEN
   !Debug messages
@@ -977,7 +978,13 @@ IF(verbosity==4) THEN
 ENDIF
 !
 !Allocate array containing number of atoms in each grain
-ALLOCATE( NPgrains(Nnodes) )
+ALLOCATE( NPgrains(Nnodes) , STAT=i )
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nnodes)/))
+  GOTO 1000
+ENDIF
 NPgrains(:) = 0
 !
 !Construct template supercell Pt(:,:)

@@ -2305,6 +2305,10 @@ CASE(2807)
 CASE(2808)
   msg = "X!X ERROR: cannot build a mixed dislocation with isotropic elasticity."
   CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          You may either combine an edge and a screw dislocations,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          or define the elastic tensor to use anisotropic elasticity."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2809)
   msg = "X!X ERROR: the elastic tensor contains NaN values, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)

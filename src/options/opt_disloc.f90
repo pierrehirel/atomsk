@@ -1095,47 +1095,10 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
       !
       !
     ELSE
-      !Isotropic elasticity: add screw component along dislocline
-      !+ edge component in the direction normal to dislocline
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          !Compute displacements: add screw + edge components
-          disp = DISPSCREW(i,P(i,:),a1,a2,a3,b(a3),pos(1),pos(2)) &
-               & + DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
-          !
-          !Apply total displacement
-          P(i,1:3) = P(i,1:3) + disp(:)
-          !
-          bsign = b(a1)/DABS(b(a1))
-          IF( P(i,a1)>pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
-            P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
-            IF( doshells ) THEN
-              S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
-            ENDIF
-          ENDIF
-          !
-          !Same if shells exist
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
-          !
-          !Compute stress:
-          !Screw contribution
-          CALL STRESSSCREW(P(i,1:3),a1,a2,b(a3),nu,pos(1),pos(2),sigma)
-          AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
-          AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
-          !Edge contribution
-          CALL STRESSEDGE(P(i,1:3),a1,a2,b(a1),nu,pos(1),pos(2),sigma)
-          AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
-          AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-          AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
-          AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ISO_EFACTOR(b(a3),nu,pi/4.d0) + ISO_EFACTOR(b(a1),nu,0.d0)
-      CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
+      !Isotropic elasticity: cannot build mixed dislocation
+      CALL ATOMSK_MSG(2808,(/""/),(/0.d0/))
+      nerr=nerr+1
+      GOTO 1000
       !
     ENDIF
     !

@@ -2280,6 +2280,10 @@ CASE(2808)
   msg = "X!X FEHLER: Kann keine gemischte Versetzung mit isotroper"// &
       & " Elastizitaet bilden."
   CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Sie können eine Kanten- und eine Schraubenversetzung kombinieren,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          oder den elastischen Tensor definieren, um die anisotrope Elastizität zu verwenden.."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2809)
   msg = "X!X FEHLER: Elastizitaetstensor enthaelt NaN Werte. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)

@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 April 2019                                    *
+!* Last modification: P. Hirel - 12 Sept. 2019                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -115,14 +115,26 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !Initialize variables
 NcellsX(:) = 3
 IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
-ALLOCATE(NNeigh(SIZE(A,1)))
+ALLOCATE(NNeigh(SIZE(A,1)) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/-1.d0/))
+  RETURN
+ENDIF
 NNeigh(:) = 0
 IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
 !NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
 CALL VOLUME_PARA(H,distance)
 n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*(2.d0/3.d0)*pi*(R**3)) )
-ALLOCATE(NeighList(SIZE(A,1),n))
+ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/-1.d0/))
+  RETURN
+ENDIF
 NeighList(:,:) = 0
 IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
 IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)

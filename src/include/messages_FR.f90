@@ -2374,6 +2374,10 @@ CASE(2807)
 CASE(2808)
   msg = "X!X ERREUR : impossible de construire une dislocation mixte en élasticité isotrope."
   CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Vous pouvez combiner deux dislocations de caractères vis et coin,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          ou bien définir le tenseur élastique afin d'utiliser l'élasticité anisotrope."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2809)
   msg = "X!X ERREUR : le tenseur élastique contient des valeurs NaN, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
