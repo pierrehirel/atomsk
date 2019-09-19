@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 Aug. 2019                                     *
+!* Last modification: P. Hirel - 19 Sept. 2019                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -781,7 +781,7 @@ DO
           o = 3*Nnodes + 3*(i-1) + 3
           randarray(m) = randarray(m)*2.d0*pi - pi
           randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
-          randarray(o) = 0.d0
+          randarray(o) = randarray(o)*2.d0*pi - pi
         ENDDO
       ENDIF
       !
@@ -808,14 +808,14 @@ DO
       WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
       !
       DO i=1,Nnodes
-        P1 = randarray(3*Nnodes+3*(i-1)+1)
-        P2 = randarray(3*Nnodes+3*(i-1)+2)
-        P3 = randarray(3*Nnodes+3*(i-1)+3)
-        WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
-        !
+        !Initialize
+        P1 = 0.d0
+        P2 = 0.d0
+        P3 = 0.d0
         vorient(i,:,:) = Id_Matrix(:,:) !unity matrix
         IF( twodim==0 .OR. twodim==1 ) THEN
           !Construct the rotation matrix around X
+          P1 = randarray(3*Nnodes+3*(i-1)+1)
           rotmat(:,:) = 0.d0
           rotmat(1,1) = 1.d0
           rotmat(2,2) = DCOS(P1)
@@ -826,6 +826,7 @@ DO
         ENDIF
         IF( twodim==0 .OR. twodim==2 ) THEN
           !Construct the rotation matrix around Y
+          P2 = randarray(3*Nnodes+3*(i-1)+2)
           rotmat(:,:) = 0.d0
           rotmat(2,2) = 1.d0
           rotmat(3,3) = DCOS(P2)
@@ -836,6 +837,7 @@ DO
         ENDIF
         IF( twodim==0 .OR. twodim==3 ) THEN
           !Construct the rotation matrix around Z
+          P3 = randarray(3*Nnodes+3*(i-1)+3)
           rotmat(:,:) = 0.d0
           rotmat(3,3) = 1.d0
           rotmat(1,1) = DCOS(P3)
@@ -844,6 +846,8 @@ DO
           rotmat(2,2) = DCOS(P3)
           vorient(i,:,:) = MATMUL( rotmat(:,:) , vorient(i,:,:) )
         ENDIF
+        !Write rotation vectors into parameter file
+        WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
       ENDDO
       !
       CLOSE(41)
