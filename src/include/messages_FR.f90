@@ -2432,9 +2432,9 @@ CASE(3000)
   IF( NINT(reals(2))>0 ) THEN
     WRITE(temp2,*) NINT(reals(2))
     msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" cœurs + "// &
-        & TRIM(ADJUSTL(temp2))//" coquilles):"
+        & TRIM(ADJUSTL(temp2))//" coquilles) :"
   ELSE
-    msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" atomes):"
+    msg = ">>> Écriture des fichiers ("//TRIM(ADJUSTL(temp))//" atomes) :"
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3001)
@@ -2481,7 +2481,7 @@ CASE(3700)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3701)
   !strings(1) = name of output file
-  msg = "/!\ ALERTE : je n'ai pas pu déterminer le format de ce fichier de sortie: " &
+  msg = "/!\ ALERTE : je n'ai pas pu déterminer le format de ce fichier de sortie : " &
       & //TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Veuillez indiquer un format pour ce fichier parmi les suivants :"
@@ -3049,10 +3049,11 @@ CASE(4705)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4706)
   !strings(1) = atomic species of absent neighbours
+  !strings(2) = atomic species of central atom
   !reals(1) = index of atom that has no neighbour
   WRITE(msg,*) NINT(reals(1))
   msg = "/!\ ALERTE : je n'ai pas trouvé d'atome "//TRIM(strings(1))// &
-      &       " voisin de l'atome #"//TRIM(ADJUSTL(msg))
+      &       " voisin de l'atome #"//TRIM(ADJUSTL(msg))//" ("//TRIM(strings(2))//")"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4707)
   !reals(1) = index of atom that has a shell with zero charge

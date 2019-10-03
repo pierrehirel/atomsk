@@ -303,7 +303,7 @@ ELSE
   !Loop over all replica in a wide range
   NP = 0
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,k,m,n,o,tempP,new)
+  !$OMP& PRIVATE(i,j,k,m,n,o,tempP,new) REDUCTION(+:NP)
   DO i=1,SIZE(P,1)
     DO m=-mminmax,mminmax
       DO n=-nminmax,nminmax
@@ -326,7 +326,9 @@ ELSE
             ENDDO
             !
             IF( new ) THEN
+              !$OMP CRITICAL
               j = NP+1
+              !$OMP END CRITICAL
               NP = NP+1
               IF(j<=SIZE(Q,1)) THEN
                 Q(j,:) = tempP(:)

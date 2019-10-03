@@ -2982,10 +2982,11 @@ CASE(4705)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4706)
   !strings(1) = atomic species of absent neighbors
+  !strings(2) = atomic species of central atom
   !reals(1) = index of atom that has no neighbour
   WRITE(msg,*) NINT(reals(1))
   msg = "/!\ WARNUNG: Konnte keinen "//TRIM(strings(1))// &
-      &       " Nachbarn fuer #"//TRIM(ADJUSTL(msg))//" finden."
+      &       " Nachbarn fuer #"//TRIM(ADJUSTL(msg))//" ("//TRIM(strings(2))//") finden."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4707)
   !reals(1) = index of atom that has a shell with zero charge
