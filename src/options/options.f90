@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2019                                     *
+!* Last modification: P. Hirel - 11 Oct. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -309,9 +309,13 @@ ENDIF
 DO ioptions=1,SIZE(options_array)-1
   READ(options_array(ioptions),*,END=100,ERR=100) temp
   READ(options_array(ioptions+1),*,END=100,ERR=100) msg
+  IF( msg=="-orthogonal-cell" .OR. msg=="-orthorhombic-cell" .OR. &
+    & msg=="-orthogonal-box" .OR. msg=="-orthorhombic-box" .OR. msg=="-orthobox" ) THEN
+    msg="-orthocell"
+  ENDIF
   IF( temp=="-duplicate" .AND. (msg=="-orthocell" .OR. msg=="-wrap")  ) THEN
     !Advise to use other options BEFORE "-duplicate"
-    CALL ATOMSK_MSG(2600,(/temp,msg/),(/0.d0/))
+    CALL ATOMSK_MSG(2600,(/temp,options_array(ioptions+1)/),(/0.d0/))
   ENDIF
 ENDDO
 !
@@ -436,7 +440,7 @@ DO ioptions=1,SIZE(options_array)
     CALL ALIGN_X(H,P,S,C_tensor)
   !
   CASE('-bind-shells','-bs')
-    CALL BSHELLS_XYZ(H,P,S)
+    CALL BSHELLS_XYZ(H,P,S,AUXNAMES,AUX,SELECT)
   !
   CASE('-center')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, center_atom

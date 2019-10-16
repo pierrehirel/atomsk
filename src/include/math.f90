@@ -29,6 +29,7 @@ MODULE math
 !* VECLENGTH           calculates the length of a vector                          *
 !* VEC_PLANE           determines if a point is above or below a plane            *
 !* VEC_ANGLE           computes angle between 2 vectors                           *
+!* VECMAT              computes the product of a row and column vectors           *
 !* GCD                 calculates the greatest common divisor of two integers     *
 !* ANGVEC              calculates angle between 2 vectors                         *
 !* DEG2RAD             converts angles from degrees to radians                    *
@@ -170,6 +171,28 @@ phi = SIGN( ACOS( DOT_PRODUCT(u1, u2)/ &
     &  ( VECLENGTH(u1)*VECLENGTH(u2) ) ), SCALAR_TRIPLE_PRODUCT(u1,u2,n) )
 !
 END FUNCTION VEC_ANGLE
+!
+!
+!********************************************************
+! VECMAT
+! This function takes in two vectors u1 and u2,
+! assuming that u1 is a row vector and u2 a column vector,
+! multiplies them and returns the resulting matrix m.
+!********************************************************
+FUNCTION VECMAT(u1,u2) RESULT(m)
+
+IMPLICIT NONE
+INTEGER:: i, j
+REAL(dp),DIMENSION(3),INTENT(IN):: u1, u2
+REAL(dp),DIMENSION(3,3):: m
+!
+DO i=1,3
+  DO j=1,3
+    m(i,j) = u1(i)*u2(j)
+  ENDDO
+ENDDO
+!
+END FUNCTION VECMAT
 !
 !
 !********************************************************

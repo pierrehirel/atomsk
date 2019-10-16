@@ -24,7 +24,7 @@
 <p>This allows you to change the level of verbosity of the program. The integer <code>&#60;n&#62;</code> can be set up as:</p>
 
 <ul>
-  <li><strong>0</strong>: silent, no message is ever displayed nor written in log file (except for error messages);</li>
+  <li><strong>0</strong>: silent, no message is ever displayed nor written in log file (errors and warnings still appear on screen);</li>
   <li><strong>1</strong>: all messages are written on the screen only;</li>
   <li><strong>2</strong>: all messages are written in log file only;</li>
   <li><strong>3</strong>: messages are written in log file and on screen;</li>
@@ -34,6 +34,8 @@
 <p>By default the logfile is <code>atomsk.log</code> but you can <a href="./progbe_log.html">change it</a>.</p>
 
 <p>When running in <a href="./mode_interactive.html">interactive mode</a> the verbosity level is automatically reset to 1 if it is set to 0 or 2.</p>
+
+<p>To make this change permanent, you may set up a <a href="./progbe_configfile.html">configuration file</a>.</p>
 
 
 

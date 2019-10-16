@@ -73,6 +73,7 @@ INTEGER:: i, j, k
 INTEGER:: qcol, qscol  !column containing charges in AUX array
 INTEGER:: N1, N2   !number of particles #1 and #2 in the system
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours (not used here)
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !neighbor list
 REAL(dp):: mi, M, A, D, T  !for statistics
 REAL(dp):: mass1, mass2 !mass of atoms of type #1 and #2
 REAL(dp):: Q1, Q2 !charge of current species#1, of Pspecies
@@ -183,8 +184,19 @@ DO WHILE(Q2==0.d0)
 ENDDO
 WRITE(msg,*) "Q2 = ", Q2
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!Count atoms of type #2 in the system
+!
+!Make a list of atom types and their number
 CALL FIND_NSP(P(:,4),aentries)
+IF( verbosity==4 ) THEN
+  msg = "  At.Number    N.atoms"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  DO i=1,SIZE(aentries,1)
+    WRITE(msg,*) NINT(aentries(i,1)), "        ", NINT(aentries(i,2))
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDDO
+ENDIF
+!
+!Count number of atoms of type #2 in the system
 DO i=1,SIZE(aentries,1)
   IF( DABS(aentries(i,1)-sp2number)<1.d-9 ) THEN
     N2 = NINT(aentries(i,2))
@@ -198,6 +210,13 @@ IF(N2==0) THEN
   CALL ATOMSK_MSG(4809,(/TRIM(ion2)/),(/0.d0/))
   GOTO 1000
 ENDIF
+!
+!Construct neighbor list
+! IF( NNN<0.d0 ) THEN
+!   CALL NEIGHBOR_LIST(H,P,DABS(NNN),NeighList)
+! ELSE
+!   CALL NEIGHBOR_LIST(H,P,8.d0,NeighList)
+! ENDIF
 !
 !
 !
@@ -341,6 +360,8 @@ DO i=1,SIZE(aentries,1)
       !Compute the ionic polarization vectors
       N1=0
       !Loop on all atoms
+      !$OMP PARALLEL DO DEFAULT(SHARED) &
+      !$OMP& PRIVATE(msg,j,k,center,Nlist,V_NN,exceeds100) REDUCTION(+:N1)
       DO j=1,SIZE(P,1)
         !
         !We want only atoms of type 1
@@ -367,13 +388,16 @@ DO i=1,SIZE(aentries,1)
           !
           IF( verbosity==4 ) THEN
             WRITE(msg,*) j
-            WRITE(msg,*) 'Atom #'//TRIM(ADJUSTL(msg)), P(j,1), P(j,2), P(j,3)
+            WRITE(msg,*) 'Atom #'//TRIM(ADJUSTL(msg)),' (',TRIM(species),'):', P(j,1), P(j,2), P(j,3)
             CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
             WRITE(msg,*) SIZE(V_NN(:,1))
             WRITE(msg,*) 'Number of neighbours: '//TRIM(ADJUSTL(msg))
             CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+            WRITE(msg,*) 'List of neighbours, relative positions, distance to central atom:'
+            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
             DO k=1,SIZE(V_NN(:,1))
-              WRITE(msg,'(i2,3f9.3)') k, V_NN(k,1), V_NN(k,2), V_NN(k,3)
+              WRITE(msg,'(i2,3f9.3,a2,f9.3)') k, V_NN(k,1)-P(j,1), V_NN(k,2)-P(j,2), &
+                                            & V_NN(k,3)-P(j,3), " |", VECLENGTH(V_NN(k,1:3)-P(j,1:3))
               CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
             ENDDO
           ENDIF
@@ -396,11 +420,18 @@ DO i=1,SIZE(aentries,1)
               pola(j,1:3) = pola(j,1:3) + Q2*(V_NN(k,1:3)-center(:))
             ENDDO
             !
+            !If shells are present, add the contribution of core-shell polarization
+!             IF( qscol>0 .AND. NINT(S(j,4))==NINT(P(j,4)) ) THEN
+!               pola(j,1:3) = pola(j,1:3) + 0.5d0*( DABS(AUX(j,qcol))+DABS(AUX(j,qscol)) ) * (P(j,1:3)-S(j,1:3))
+!             ENDIF
+            !
             !Compute norm of current pola. vector
             normpola(j) = VECLENGTH(pola(j,:))
             !
             !Compute total polarization
+            !$OMP CRITICAL
             totpola(:) = totpola(:)+pola(j,:)
+            !$OMP END CRITICAL
             !
             !Output
             !XSF file
@@ -411,12 +442,14 @@ DO i=1,SIZE(aentries,1)
           ELSE
             !SIZE(V_NN) is zero => no neighbour was found
             nwarn=nwarn+1
-            CALL ATOMSK_MSG(4706,(/TRIM(Pspecies)/),(/DBLE(j)/))
+            CALL ATOMSK_MSG(4706,(/Pspecies,species/),(/DBLE(j)/))
           ENDIF
         ENDIF
       ENDDO
+      !$OMP END PARALLEL DO
       !
       CLOSE(40)
+      CLOSE(41)
       CALL ATOMSK_MSG(4035,(/pxsf/),(/0.d0/))
       CALL ATOMSK_MSG(4036,(/pnorm/),(/0.d0/))
       !
@@ -426,6 +459,13 @@ DO i=1,SIZE(aentries,1)
     !
     250 CONTINUE
     !
+    !
+  ELSE
+    !This type of atom
+    !Polarization is just the contribution of core-shell polarization
+!     IF( qscol>0 ) THEN
+!       pola(j,1:3) = 0.5d0*( DABS(AUX(j,qcol))+DABS(AUX(j,qscol)) ) * (P(j,1:3)-S(j,1:3))
+!     ENDIF
     !
   ENDIF
 ENDDO  !End of big loop on all species
@@ -458,10 +498,10 @@ DEALLOCATE(fakeAUXNAMES)
 !Write CFG file with norm as auxiliary property
 pcfg = TRIM(outputfile)//'_edm_all.cfg'
 ALLOCATE(CFGEDMNAME(4))
- CFGEDMNAME(1) = 'edm X (e.A)'
- CFGEDMNAME(2) = 'edm Y (e.A)'
- CFGEDMNAME(3) = 'edm Z (e.A)'
- CFGEDMNAME(4) = 'edm norm (e.A)'
+ CFGEDMNAME(1) = 'edm_X (e.A)'
+ CFGEDMNAME(2) = 'edm_Y (e.A)'
+ CFGEDMNAME(3) = 'edm_Z (e.A)'
+ CFGEDMNAME(4) = 'edm_norm (e.A)'
 ALLOCATE( CFGEDMAUX(SIZE(P(:,1)),4) )
  CFGEDMAUX(:,1:3) = pola(:,1:3)
  CFGEDMAUX(:,4) = normpola(:)
