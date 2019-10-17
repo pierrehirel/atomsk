@@ -595,10 +595,8 @@ DO
           DO i=1,Nnodes
             m = 3*(i-1) + 1
             n = 3*(i-1) + 2
-            o = 3*(i-1) + 3
             randarray(m) = randarray(m)*2.d0*pi - pi
-            randarray(n) = DACOS(2.d0*randarray(n) - 1.d0)
-            randarray(o) = randarray(o)*2.d0*pi - pi
+            randarray(n) = randarray(n)*2.d0*pi - pi
           ENDDO
         ENDIF
       ENDIF
@@ -625,41 +623,48 @@ DO
       !Read crystallographic orientation of that grain
       !(can be explicitely given as Miller indices, or random)
       IF( line(1:6)=="random" ) THEN
+        !Generated random parameters will be written into a file later
+        outparam = .TRUE.
         !
-        vorient(Nnodes,:,:) = Id_Matrix(:,:)  !unity matrix
-        !
-        IF( twodim==0 .OR. twodim==1 ) THEN
-          !Construct the rotation matrix around X
+        IF( twodim>0 ) THEN
+          !Pick a random angle from randarray
           P1 = randarray(3*(Nnodes-1)+1)
+          !Get indices
+          m = twodim
+          n = twodim+1
+          IF(n>3) n=n-3
+          o = twodim+2
+          IF(o>3) o=o-3
+          !Construct the rotation matrix around short axis
           rotmat(:,:) = 0.d0
-          rotmat(1,1) = 1.d0
-          rotmat(2,2) = DCOS(P1)
-          rotmat(2,3) = -1.d0*DSIN(P1)
-          rotmat(3,2) = DSIN(P1)
-          rotmat(3,3) = DCOS(P1)
+          rotmat(m,m) = 1.d0
+          rotmat(n,n) = DCOS(P1)
+          rotmat(n,o) = -1.d0*DSIN(P1)
+          rotmat(o,n) = DSIN(P1)
+          rotmat(o,o) = DCOS(P1)
+          !Save rotation matrix in vorient
           vorient(Nnodes,:,:) = rotmat(:,:)
-        ENDIF
-        IF( twodim==0 .OR. twodim==2 ) THEN
-          !Construct the rotation matrix around Y
-          P1 = randarray(3*(Nnodes-1)+2)
+        ELSE
+          !Generate a random rotation matrix for this grain, using random numbers generated before
+          !Method is from "Fast random rotation matrices", James Arvo, Cornell University
+          !NOTE: the distribution of orientations will be completely random only at the
+          !     condition that all grain orientations are specified as "random".
+          !     If specific angles or Miller indices are given explicitely by the user
+          !     for some grains, then the distribution will not be completely random.
+          !Compute vector V
+          P1 = randarray(3*(i-1)+3)
+          vector(1) = DSQRT(P1)*DCOS(randarray(3*(i-1)+1))
+          vector(2) = DSQRT(P1)*DSIN(randarray(3*(i-1)+1))
+          vector(3) = DSQRT(1.d0-P1)
+          !Compute matrix R
           rotmat(:,:) = 0.d0
-          rotmat(2,2) = 1.d0
-          rotmat(3,3) = DCOS(P1)
-          rotmat(3,1) = -1.d0*DSIN(P1)
-          rotmat(1,3) = DSIN(P1)
-          rotmat(1,1) = DCOS(P1)
-          vorient(Nnodes,:,:) = MATMUL( rotmat(:,:) , vorient(Nnodes,:,:) )
-        ENDIF
-        IF( twodim==0 .OR. twodim==3 ) THEN
-          !Construct the rotation matrix around Z
-          P1 = randarray(3*(Nnodes-1)+3)
-          rotmat(:,:) = 0.d0
+          rotmat(1,1) = DCOS(randarray(3*(i-1)+2))
+          rotmat(1,2) = DSIN(randarray(3*(i-1)+2))
+          rotmat(2,1) = -1.d0*DSIN(randarray(3*(i-1)+2))
+          rotmat(2,2) = DCOS(randarray(3*(i-1)+2))
           rotmat(3,3) = 1.d0
-          rotmat(1,1) = DCOS(P1)
-          rotmat(1,2) = -1.d0*DSIN(P1)
-          rotmat(2,1) = DSIN(P1)
-          rotmat(2,2) = DCOS(P1)
-          vorient(Nnodes,:,:) = MATMUL( rotmat(:,:) , vorient(Nnodes,:,:) )
+          !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
+          vorient(Nnodes,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
         ENDIF
         !
       ELSE
@@ -747,6 +752,8 @@ DO
       !
     ELSEIF( line(1:6)=="random" ) THEN
       !Position and orientations of grains are random
+      !Generated random parameters will be written into a file later
+      outparam = .TRUE.
       !Check that the box was defined
       IF( .NOT.Hset ) THEN
         GOTO 820
@@ -772,50 +779,51 @@ DO
       !Modify them to generate angles
       IF( twodim>0 ) THEN
         !Grains are rotated only around one axis
+        !Multiply all random numbers by 2*pi to generate random angles
         randarray(3*Nnodes:) = randarray(3*Nnodes:)*2.d0*pi - pi
+        !Pick a random angle
+        P1 = randarray(3*Nnodes+3*(i-1)+1)
+        !Get indices
+        m = twodim
+        n = twodim+1
+        IF(n>3) n=n-3
+        o = twodim+2
+        IF(o>3) o=o-3
+        !Construct the rotation matrix around short axis
+        rotmat(:,:) = 0.d0
+        rotmat(m,m) = 1.d0
+        rotmat(n,n) = DCOS(P1)
+        rotmat(n,o) = -1.d0*DSIN(P1)
+        rotmat(o,n) = DSIN(P1)
+        rotmat(o,o) = DCOS(P1)
+        !Save rotation matrix in vorient
+        vorient(Nnodes,:,:) = rotmat(:,:)
       ELSE
-        !Two angles are required; third random number will be used below
+        !Generate a random rotation matrix for each grain
+        !Method is from "Fast random rotation matrices", James Arvo, Cornell University
         DO i=1,Nnodes
+          !Generate two random angles; third random number will be used below
           m = 3*Nnodes + 3*(i-1) + 1
           n = 3*Nnodes + 3*(i-1) + 2
           randarray(m) = randarray(m)*2.d0*pi - pi
           randarray(n) = randarray(n)*2.d0*pi - pi
+          !Compute vector V
+          P1 = randarray(3*Nnodes+3*(i-1)+3)
+          vector(1) = DSQRT(P1)*DCOS(randarray(3*Nnodes+3*(i-1)+1))
+          vector(2) = DSQRT(P1)*DSIN(randarray(3*Nnodes+3*(i-1)+1))
+          vector(3) = DSQRT(1.d0-P1)
+          !Compute matrix R
+          rotmat(:,:) = 0.d0
+          rotmat(1,1) = DCOS(randarray(3*Nnodes+3*(i-1)+2))
+          rotmat(1,2) = DSIN(randarray(3*Nnodes+3*(i-1)+2))
+          rotmat(2,1) = -1.d0*DSIN(randarray(3*Nnodes+3*(i-1)+2))
+          rotmat(2,2) = DCOS(randarray(3*Nnodes+3*(i-1)+2))
+          rotmat(3,3) = 1.d0
+          !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
+          vorient(i,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
         ENDDO
       ENDIF
       !
-      !Positions and orientations will be written in a parameter file
-      OPEN(41,FILE=outparamfile,STATUS="UNKNOWN")
-      WRITE(41,'(a62)') "# Random positions and rotations of grains generated by Atomsk"
-      WRITE(41,'(a66)') "# This parameter file can be used to generate the same polycrystal"
-      WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
-      !
-      DO i=1,Nnodes
-        !Generate a random rotation matrix for each grain
-        !Method is from "Fast random rotation matrices", James Arvo, Cornell University
-        !Compute vector V
-        P1 = randarray(3*Nnodes+3*(i-1)+3)
-        vector(1) = DSQRT(P1)*DCOS(randarray(3*Nnodes+3*(i-1)+1))
-        vector(2) = DSQRT(P1)*DSIN(randarray(3*Nnodes+3*(i-1)+1))
-        vector(3) = DSQRT(1.d0-P1)
-        !Compute matrix R
-        rotmat(:,:) = 0.d0
-        rotmat(1,1) = DCOS(randarray(3*Nnodes+3*(i-1)+2))
-        rotmat(1,2) = DSIN(randarray(3*Nnodes+3*(i-1)+2))
-        rotmat(2,1) = -1.d0*DSIN(randarray(3*Nnodes+3*(i-1)+2))
-        rotmat(2,2) = DCOS(randarray(3*Nnodes+3*(i-1)+2))
-        rotmat(3,3) = 1.d0
-        !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
-        vorient(i,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
-        !
-        !Compute corresponding rotation vectors and write them into parameter file
-        P1 = DATAN2( vorient(i,3,2) , vorient(i,3,3) )
-        P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,3,2)**2 + vorient(i,3,3)**2) )
-        P3 = DATAN2( vorient(i,2,1) , vorient(i,1,1) )
-        WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
-      ENDDO
-      !
-      CLOSE(41)
-      outparam = .TRUE.
       !
       IF( verbosity==4 ) THEN
         !Write angles into a file for visualization/debug purposes
@@ -895,6 +903,22 @@ ELSEIF( twodim==2 ) THEN
   vnodes(:,2) = 0.5d0*H(twodim,twodim)
 ELSEIF( twodim==3 ) THEN
   vnodes(:,3) = 0.5d0*H(twodim,twodim)
+ENDIF
+!
+IF( outparam ) THEN
+  !Write positions and orientations in a parameter file
+  OPEN(41,FILE=outparamfile,STATUS="UNKNOWN")
+  WRITE(41,'(a62)') "# Random positions and rotations of grains generated by Atomsk"
+  WRITE(41,'(a66)') "# This parameter file can be used to generate the same polycrystal"
+  WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
+  DO i=1,SIZE(vorient,1)
+    !Compute corresponding rotation vectors and write them into parameter file
+    P1 = DATAN2( vorient(i,3,2) , vorient(i,3,3) )
+    P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,3,2)**2 + vorient(i,3,3)**2) )
+    P3 = DATAN2( vorient(i,2,1) , vorient(i,1,1) )
+    WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
+  ENDDO
+  CLOSE(41)
 ENDIF
 !
 !The maximum number of faces of any polyhedron should be 11 in 2-D,
@@ -1399,10 +1423,10 @@ DO inode=1,Nnodes
     !
     IF( isinpolyhedron ) THEN
       !Atom is inside the polyhedron
-      !!!$OMP CRITICAL
+      !$OMP CRITICAL
       NP = NP+1
       qi = NP
-      !!!$OMP END CRITICAL
+      !$OMP END CRITICAL
       !
       !Increment number of atoms in this grain
       NPgrains(inode) = NPgrains(inode)+1
