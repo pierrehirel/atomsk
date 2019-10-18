@@ -1039,27 +1039,39 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(clarg)
     !read the 1st vector of ancient base
     i=i+1
+    IF(i>SIZE(cla)) GOTO 120
     READ(cla(i),'(a128)',END=400,ERR=400) temp
+    IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read the 2nd vector of ancient base
     i=i+1
+    IF(i>SIZE(cla)) GOTO 120
     READ(cla(i),'(a128)',END=400,ERR=400) temp
+    IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read the 3rd vector of ancient base
     i=i+1
+    IF(i>SIZE(cla)) GOTO 120
     READ(cla(i),'(a128)',END=400,ERR=400) temp
+    IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read the 1st vector of new base
     i=i+1
+    IF(i>SIZE(cla)) GOTO 120
     READ(cla(i),'(a128)',END=400,ERR=400) temp
+    IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read the 2nd vector of new base
     i=i+1
+    IF(i>SIZE(cla)) GOTO 120
     READ(cla(i),'(a128)',END=400,ERR=400) temp
+    IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !read the 3rd vector of new base
     i=i+1
+    IF(i>SIZE(cla)) GOTO 120
     READ(cla(i),'(a128)',END=400,ERR=400) temp
+    IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-orthogonal-cell' .OR. clarg=='-orthorhombic-cell' .OR. &

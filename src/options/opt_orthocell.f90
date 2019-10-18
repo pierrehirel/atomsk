@@ -300,10 +300,10 @@ ELSE
   WRITE(msg,*) "Atom duplication min/max = ", mminmax, nminmax, ominmax
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
-  !Loop over all replica in a wide range
+  !Loop over all atoms replica in a wide range
   NP = 0
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,k,m,n,o,tempP,new) REDUCTION(+:NP)
+  !$OMP& PRIVATE(i,j,k,m,n,o,tempP,new)
   DO i=1,SIZE(P,1)
     DO m=-mminmax,mminmax
       DO n=-nminmax,nminmax
@@ -328,8 +328,8 @@ ELSE
             IF( new ) THEN
               !$OMP CRITICAL
               j = NP+1
-              !$OMP END CRITICAL
               NP = NP+1
+              !$OMP END CRITICAL
               IF(j<=SIZE(Q,1)) THEN
                 Q(j,:) = tempP(:)
                 !
