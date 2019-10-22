@@ -325,7 +325,7 @@ ENDIF
 !
 !
 400 CONTINUE
-CALL ATOMSK_MSG(2072,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(2072,(/newvec(1),newvec(2),newvec(3)/),(/0.d0/))
 GOTO 1000
 !
 !

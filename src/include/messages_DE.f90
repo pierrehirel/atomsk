@@ -1230,10 +1230,11 @@ CASE(2070)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2071)
-  msg = ">>> Richte das System aus..."
+  msg = ">>> Drehen des Systems, um die Kristallorientierung zu ändern..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2072)
-  msg = "..> System erfolgreich ausgerichtet."
+  msg = "..> System erfolgreich gedreht. Neuausrichtung:"// &
+      & TRIM(ADJUSTL(strings(1)))//" "//TRIM(ADJUSTL(strings(2)))//" "//TRIM(ADJUSTL(strings(3)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2073)
   !strings(1) = file containing properties

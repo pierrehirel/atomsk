@@ -1253,10 +1253,12 @@ CASE(2070)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2071)
-  msg = ">>> Orienting the system..."
+  msg = ">>> Rotating the system to change the crystal orientation..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2072)
-  msg = "..> System was successfully oriented."
+  !strings(1:3) = Miller indices for new orientation
+  msg = "..> System was successfully rotated, new orientation: "// &
+      & TRIM(ADJUSTL(strings(1)))//" "//TRIM(ADJUSTL(strings(2)))//" "//TRIM(ADJUSTL(strings(3)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2073)
   !strings(1) = file containing properties

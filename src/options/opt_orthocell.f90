@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 June 2018                                     *
+!* Last modification: P. Hirel - 22 Oct. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,12 +45,14 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 LOGICAL:: doshells, doaux !are shells/auxiliary properties present?
 LOGICAL:: new  !is the duplicated atom new?
+LOGICAL,DIMENSION(3):: vfound  !did we find a suitable vector along X, Y, Z?
 LOGICAL,DIMENSION(3):: aligned, reversed !is box vector aligned along X,Y,Z? Did we just reverse it?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, o
 INTEGER:: mminmax, nminmax, ominmax, lminmax
 INTEGER:: mfinal, nfinal, ofinal
 INTEGER:: NP
+INTEGER,DIMENSION(3,3):: mno  !integers used for linear combination
 REAL(dp):: vlen  !length of a vector
 REAL(dp),DIMENSION(3):: vector !just a vector
 REAL(dp),DIMENSION(4):: tempP  !temporary atom position and species
@@ -65,9 +67,11 @@ doshells = .FALSE.
 doaux = .FALSE.
 aligned(:) = .FALSE.
 reversed(:) = .FALSE.
+vfound(:) = .FALSE.
 mminmax = 10
 nminmax = 10
 ominmax = 10
+mno(:,:) = 0
 uv(:,:) = 1.d12
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
@@ -93,9 +97,9 @@ IF( verbosity>=4 ) THEN
 ENDIF
 !
 !Check if cell vectors are already aligned with Cartesian axes
-IF( DABS(VECLENGTH(H(1,:))-DABS(H(1,1))) < 1.d-3 .AND. H(1,1)>0.d0 .AND. &
-  & DABS(VECLENGTH(H(2,:))-DABS(H(2,2))) < 1.d-3 .AND. H(2,2)>0.d0 .AND. &
-  & DABS(VECLENGTH(H(3,:))-DABS(H(3,3))) < 1.d-3 .AND. H(3,3)>0.d0        ) THEN
+IF( DABS(VECLENGTH(H(1,:))-DABS(H(1,1))) < 1.d-6 .AND. H(1,1)>0.d0 .AND. &
+  & DABS(VECLENGTH(H(2,:))-DABS(H(2,2))) < 1.d-6 .AND. H(2,2)>0.d0 .AND. &
+  & DABS(VECLENGTH(H(3,:))-DABS(H(3,3))) < 1.d-6 .AND. H(3,3)>0.d0        ) THEN
   !Cell vectors already orthogonal => skip to the end
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2760,(/msg/),(/0.d0/))
@@ -118,6 +122,7 @@ ENDIF
 !  This should ensure a fast search for simple systems/orientations
 !  If it fails, these values are increased and the loops are parsed again (see label 200 below)
 DO i=1,3
+  new=.FALSE.
   mfinal = 0
   nfinal = 0
   ofinal = 0
@@ -132,53 +137,77 @@ DO i=1,3
     k = 2
   ENDIF
   !
-  IF( DABS(VECLENGTH(H(i,:))-DABS(H(i,i))) < 1.d-3 ) THEN
-    !Vector H is already aligned with Cartesian axis => save it in uv
+  IF( DABS(VECLENGTH(H(i,:))-DABS(H(i,i))) < 1.d-6 .OR. aligned(i) ) THEN
+    !Vector H is already aligned with Cartesian axis
+    !Mark it as "already aligned"
     aligned(i) = .TRUE.
+    !Mark it as "found"
+    vfound(i) = .TRUE.
+    !Check if it has to be inverted along its axis
     IF( H(i,i)<0.d0 ) THEN
       !The new cell vector will just be uv(i,:) = -H(i,:)
       reversed = .TRUE.
     ENDIF
-    uv(i,:) = DABS(H(i,:))
-    WRITE(msg,'(a3,i1,a17)') "uv(", i, ") already aligned"
+    !Save it in uv(:,)
+    uv(i,:) = 0.d0
+    uv(i,i) = VECLENGTH(H(i,:))
+    WRITE(msg,'(a3,i1,a19)') "uv(", i, ") : already aligned"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  ELSE
+    !
+  ELSEIF( .NOT.vfound(i) ) THEN
     !This vector is not aligned along correct Cartesian axis
     !Search for the smallest linear combination that produces a vector aligned with i
+    uv(i,i) = 1.d12
+    !$OMP PARALLEL DO DEFAULT(SHARED) &
+    !$OMP& PRIVATE(m,n,o,vector,vlen)
     DO m=-mminmax,mminmax
       DO n=-nminmax,nminmax
         DO o=-ominmax,ominmax
           vector(:) = m*H(1,:) + n*H(2,:) + o*H(3,:)
           vlen = VECLENGTH(vector)
-          IF( DABS(vector(j))<1.d-3 .AND. DABS(vector(k))<1.d-3 .AND. vlen>1.d0 ) THEN
+          IF( DABS(vector(j))<1.d-1 .AND. DABS(vector(k))<1.d-1 .AND. vlen>1.d0 ) THEN
             !This vector is (almost) aligned with the Cartesian axis
+            new = .TRUE.
             IF( vlen < VECLENGTH(uv(i,:)) ) THEN
               !Vector is shorter => save it into uv
+              !$OMP CRITICAL
               uv(i,:) = DABS(vector(:))
               mfinal = m
               nfinal = n
               ofinal = o
-            !ELSEIF( VECLENGTH(vector) > 3.d0*VECLENGTH(uv(i,:)) ) THEN
-              !Vector is much longer => we won't find a shorter vector, exit loop
-             ! GOTO 150
+              !$OMP END CRITICAL
             ENDIF
-          ELSEIF( DABS(vector(j))<1.d-1 .AND. DABS(vector(k))<1.d-1 .AND. vlen>1.d0 ) THEN
+          ELSEIF( DABS(vector(j))<1.d-3 .AND. DABS(vector(k))<1.d-3 .AND. vlen>1.d0 ) THEN
             IF( DABS(vector(j))<uv(i,j) .AND. DABS(vector(k))<uv(i,k) ) THEN
               !This vector is better aligned with Cartesian axis than previously found vector
               !(although this may mean that it is longer)
+              !$OMP CRITICAL
+              new = .TRUE.
               uv(i,:) = DABS(vector(:))
               mfinal = m
               nfinal = n
               ofinal = o
+              !$OMP END CRITICAL
             ENDIF
           ENDIF
           !
         ENDDO !o
       ENDDO !n
     ENDDO !m
+    !$OMP END PARALLEL DO
+    !
     150 CONTINUE
-    WRITE(msg,'(a3,i1,a4,3(i4,a6),3e16.6)') "uv(", i, ") = ", mfinal, "*H1 + ", nfinal, "*H2 + ", ofinal, "*H3 = ", uv(i,:)
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    IF(new) THEN
+      vfound(i) = .TRUE.
+      mno(i,1) = mfinal
+      mno(i,2) = nfinal
+      mno(i,3) = ofinal
+      WRITE(msg,'(a3,i1,a4,3(i4,a6),3e16.6)') "uv(", i, ") = ", mfinal, "*H1 + ", nfinal, "*H2 + ", ofinal, "*H3 = ", uv(i,:)
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ELSE
+      WRITE(msg,'(a3,i1,a32)') "uv(", i, ") : no new suitable vector found"
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDIF
     !
   ENDIF
 ENDDO
@@ -186,23 +215,35 @@ ENDDO
 !
 !
 200 CONTINUE
-!At this point we should have new cell vectors
-IF( VECLENGTH(uv(1,:))<1.d-3 .OR. VECLENGTH(uv(2,:))<1.d-3 .OR. VECLENGTH(uv(3,:))<1.d-3 .OR. &
-  & VECLENGTH(uv(1,:))>1.d10 .OR. VECLENGTH(uv(2,:))>1.d10 .OR. VECLENGTH(uv(3,:))>1.d10     ) THEN
+!If 3 suitable new vectors were not found, increase loop boundaries
+IF( ANY(.NOT.vfound(:) ) ) THEN
   !We don't have appropriate cell vectors
   IF( mminmax+nminmax+ominmax < 80 ) THEN
     !The first attempt with small loops did not work => try to expand the loop
+    WRITE(msg,*) "No suitable vector found, searching with larger vectors (N=200)..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     mminmax = 200
     nminmax = 200
     ominmax = 200
     GOTO 110
-  ELSEIF( mminmax+nminmax+ominmax < 620 ) THEN
+  ELSEIF( mminmax+nminmax+ominmax < 800 ) THEN
     !The second attempt with larger loops did not work => try to expand the loop again
     !(this may take a long time)
     CALL ATOMSK_MSG(3,(/""/),(/0.d0/))
-    mminmax = 500
-    nminmax = 500
-    ominmax = 500
+    WRITE(msg,*) "No suitable vector found, searching with larger vectors (N=400)..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    mminmax = 400
+    nminmax = 400
+    ominmax = 400
+    GOTO 110
+  ELSEIF( mminmax+nminmax+ominmax < 1500 ) THEN
+    !The second attempt with larger loops did not work => try to expand the loop again
+    !(this may take a VERY long time)
+    WRITE(msg,*) "No suitable vector found, searching with even larger vectors (N=800)..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    mminmax = 600
+    nminmax = 600
+    ominmax = 600
     GOTO 110
   ELSE
     !Even the larger loops did not work => abort
@@ -289,13 +330,16 @@ ELSE
   !
   !Set min/max replica search
   IF( mminmax.NE.1 ) THEN
-    mminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+    !mminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+    mminmax = MAX( 1, 2*MAX( ABS(mno(1,1)) , ABS(mno(2,1)) , ABS(mno(3,1)) ) )
   ENDIF
   IF( nminmax.NE.1 ) THEN
-    nminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+    !nminmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+    nminmax = MAX( 1, 2*MAX( ABS(mno(1,2)) , ABS(mno(2,2)) , ABS(mno(3,2)) ) )
   ENDIF
   IF( ominmax.NE.1 ) THEN
-    ominmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+    !ominmax = 10 * NINT( MAXVAL(uv(:,:)) / MIN(VECLENGTH(H(:,1)),VECLENGTH(H(:,2)),VECLENGTH(H(:,3))) )
+    ominmax = MAX( 1, 2*MAX( ABS(mno(1,3)) , ABS(mno(2,3)) , ABS(mno(3,3)) ) )
   ENDIF
   WRITE(msg,*) "Atom duplication min/max = ", mminmax, nminmax, ominmax
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))

@@ -1266,10 +1266,11 @@ CASE(2070)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2071)
-  msg = ">>> Orientation du système..."
+  msg = ">>> Rotation du système pour changer l'orientation cristallographique..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2072)
-  msg = "..> L'orientation du système a bien été changée."
+  msg = "..> Le système a bien été tourné, nouvelle orientation : "// &
+      & TRIM(ADJUSTL(strings(1)))//" "//TRIM(ADJUSTL(strings(2)))//" "//TRIM(ADJUSTL(strings(3)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2073)
   !strings(1) = file containing properties
