@@ -10,7 +10,7 @@ MODULE disturb
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 22 Oct. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -92,6 +92,7 @@ randarray(:) = ( randarray(:) - 0.5d0 ) * 2.d0
 !randarray(2*SIZE(P,1)+1,3*SIZE(P,1)) contains displacements along Z
 !At this point all values in randarray(:) are positive.
 !Adjust them so that total displacement in each direction is zero.
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,drift)
 DO i=1,3 !x,y,z
   !Compute global drift along that direction
   drift = SUM( randarray( (i-1)*NP+1 : i*NP) ) * dmax(i)
@@ -100,12 +101,14 @@ DO i=1,3 !x,y,z
     randarray((i-1)*NP+j) = randarray((i-1)*NP+j) * dmax(i) - drift/DBLE(SIZE(randarray))
   ENDDO
 ENDDO
+!$OMP END PARALLEL DO
 WRITE(msg,*) 'SIZE randarray = ', SIZE(randarray)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
 !Use random numbers as displacements along X, Y, Z
 j=0
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:j)
 DO i=1,SIZE(P,1)
   IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
     j=j+1
@@ -119,6 +122,7 @@ DO i=1,SIZE(P,1)
     ENDIF
   ENDIF
 ENDDO
+!$OMP END PARALLEL DO
 !
 CALL ATOMSK_MSG(2115,(/''/),(/0.d0/))
 GOTO 1000

@@ -295,7 +295,8 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
   !
 ELSE
   !Large system => use a cell list algorithm
-  Maxcells = NINT( SIZE(A,1)**(1.d0/3.d0) )
+  !Define max. number of cells (max. 8 cells along any given direction)
+  Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
   msg = 'algorithm: CELL DECOMPOSITION'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
@@ -348,11 +349,11 @@ ELSE
     CLOSE(56)
   ENDIF
   !
-  !Save the positions of atoms in each cell
+  !Save the indexes of atoms in each cell
   ALLOCATE( Cell_AtomID( Ncells , MAXVAL(Cell_NP) ) )
   Cell_AtomID(:,:) = 0
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,k) REDUCTION(+:Cell_AtomID)
+  !$OMP& PRIVATE(i,j,k)
   DO j=1,Ncells
     k=0
     DO i=1,SIZE(A,1)
@@ -479,10 +480,12 @@ ELSE
               !
               IF( .NOT. ANY(NeighList(n,:)==i) ) THEN
                 !Also add atom #i as neighbor of atom #n
+                !$OMP CRITICAL
                 NNeigh(n) = NNeigh(n)+1
                 IF( Nneigh(n) <= SIZE(NeighList,2) ) THEN
                   NeighList(n,Nneigh(n)) = i
                 ENDIF
+                !$OMP END CRITICAL
               ENDIF
             ENDIF
             !

@@ -740,7 +740,7 @@ DO ioptions=1,SIZE(options_array)
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rmatom_prop
     CALL RMATOM_XYZ(P,S,AUX,rmatom_prop,SELECT)
   !
-  CASE('-remove-doubles', '-rmd')
+  CASE('-remove-doubles', '-remove-double', '-rmd')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
         & rmd_radius
     CALL REMDOUBLES_XYZ(H,P,S,AUX,rmd_radius,SELECT)
