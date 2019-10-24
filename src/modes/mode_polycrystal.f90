@@ -652,16 +652,16 @@ DO
           !     If specific angles or Miller indices are given explicitely by the user
           !     for some grains, then the distribution will not be completely random.
           !Compute vector V
-          P1 = randarray(3*(i-1)+3)
-          vector(1) = DSQRT(P1)*DCOS(randarray(3*(i-1)+1))
-          vector(2) = DSQRT(P1)*DSIN(randarray(3*(i-1)+1))
+          P1 = randarray(3*(Nnodes-1)+3)
+          vector(1) = DSQRT(P1)*DCOS(randarray(3*(Nnodes-1)+1))
+          vector(2) = DSQRT(P1)*DSIN(randarray(3*(Nnodes-1)+1))
           vector(3) = DSQRT(1.d0-P1)
           !Compute matrix R
           rotmat(:,:) = 0.d0
-          rotmat(1,1) = DCOS(randarray(3*(i-1)+2))
-          rotmat(1,2) = DSIN(randarray(3*(i-1)+2))
-          rotmat(2,1) = -1.d0*DSIN(randarray(3*(i-1)+2))
-          rotmat(2,2) = DCOS(randarray(3*(i-1)+2))
+          rotmat(1,1) = DCOS(randarray(3*(Nnodes-1)+2))
+          rotmat(1,2) = DSIN(randarray(3*(Nnodes-1)+2))
+          rotmat(2,1) = -1.d0*DSIN(randarray(3*(Nnodes-1)+2))
+          rotmat(2,2) = DCOS(randarray(3*(Nnodes-1)+2))
           rotmat(3,3) = 1.d0
           !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
           vorient(Nnodes,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )

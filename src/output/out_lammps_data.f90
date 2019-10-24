@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Nov. 2018                                     *
+!* Last modification: P. Hirel - 23 Oct. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -373,8 +373,8 @@ IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
   WRITE(40,161) tilt(1), tilt(2), tilt(3), ' xy xz yz'
 ENDIF
 WRITE(40,*) ''
-160 FORMAT(f16.8,1X,f16.8,a9)
-161 FORMAT(3(f16.8,1X),a9)
+160 FORMAT(f20.12,1X,f20.12,a9)
+161 FORMAT(3(f20.12,1X),a9)
 !
 !
 !
@@ -617,9 +617,9 @@ ELSE
   ENDIF
   !
 ENDIF
-210 FORMAT(i10,2X,i3,2X,f9.6,2X,3(f16.8,1X))
-211 FORMAT(i10,2X,i3,2X,3(f16.8,1X))
-212 FORMAT(i10,2X,i5,2X,i3,2X,f9.6,2X,3(f16.8,1X))
+210 FORMAT(i10,2X,i3,2X,f9.6,2X,3(f20.12,1X))
+211 FORMAT(i10,2X,i3,2X,3(f20.12,1X))
+212 FORMAT(i10,2X,i5,2X,i3,2X,f9.6,2X,3(f20.12,1X))
 !
 !Write velocities
 IF( velocities ) THEN
