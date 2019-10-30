@@ -924,11 +924,12 @@ ENDIF
 !The maximum number of faces of any polyhedron should be 11 in 2-D,
 !and 59 in 3-D, for proof see e.g.:
 !   http://www.ericharshbarger.org/voronoi.html
+!To that we must add 26 self-neighbors in 3-D
 !This will be used to limit the number of iterations in the loops on jnode below
 IF( twodim > 0 ) THEN
   maxvertex = 20
 ELSE
-  maxvertex = 66
+  maxvertex = 120
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -1182,17 +1183,23 @@ DO inode=1,Nnodes
   !
   Nvertices = 0
   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
-    DO i=1,SIZE( vnodesNeighList,2 )
-      IF( vnodesNeighList(inode,i).NE.0 ) THEN
-        !This node is neighbor of node #inode
-        !Check which periodic image(s) are actually neighbor
+    !
+    !Loop on all neighboring nodes
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(m,n,o,P1,P2,P3,vector,distance,i,j,k,jnode)
+    DO i=1,SIZE(vnodesNeighList,2)
+      !Save index of the i-th neighbor as jnode
+      jnode = vnodesNeighList(inode,i)
+      !Check if jnode is a valid node index
+      IF( jnode>0 ) THEN
+        !Node #jnode is neighbor of node #inode
+        !Check which periodic image(s) are actually neighbors
         DO o=-expandmatrix(3),expandmatrix(3)
           DO n=-expandmatrix(2),expandmatrix(2)
             DO m=-expandmatrix(1),expandmatrix(1)
-              !Position of the periodic image of the i-th neighboring node of node #inode
-              P1 = vnodes(vnodesNeighList(inode,i),1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
-              P2 = vnodes(vnodesNeighList(inode,i),2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
-              P3 = vnodes(vnodesNeighList(inode,i),3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
+              !Position of the periodic image of neighbor #jnode
+              P1 = vnodes(jnode,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
+              P2 = vnodes(jnode,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
+              P3 = vnodes(jnode,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
               vector = (/ P1 , P2 , P3 /)
               !Compute distance between current node and this vertex
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
@@ -1204,13 +1211,13 @@ DO inode=1,Nnodes
               IF( Nvertices>0 ) THEN
                 DO j=1,Nvertices
                   P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
-                  IF( P2>0.d0 .AND. P2<P1 ) THEN
+                  IF( P2<P1 ) THEN
                     P1=P2
                     k=j
                   ENDIF
                 ENDDO
               ENDIF
-              IF( P1<1.d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
+              IF( Nvertices>0 .AND. P1<1.d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
                 !Vertex vector #k is colinear with current vector
                 !If new one is closer, replace the older one
                 IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
@@ -1220,21 +1227,27 @@ DO inode=1,Nnodes
               ELSE
                 !No colinear vertex was found: add a new one to the list
                 IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
+                  !$OMP CRITICAL
                   Nvertices = Nvertices+1
-                  IF( Nvertices>SIZE(vvertex,1) ) THEN
+                  k = Nvertices
+                  !$OMP END CRITICAL
+                  IF( k>SIZE(vvertex,1) ) THEN
                     !Increase size of array vvertex
-                    CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+10,4)
+                    CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
                   ENDIF
-                  vvertex(Nvertices,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                  vvertex(Nvertices,4) = distance
+                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                  vvertex(k,4) = distance
                 ENDIF
               ENDIF
+              !
             ENDDO
           ENDDO
         ENDDO
         !
       ENDIF
     ENDDO
+    !$OMP END PARALLEL DO
+    !
   ENDIF
   !
   WRITE(msg,'(a,i6)') "N neighbors for this grain:", Nvertices

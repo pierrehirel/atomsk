@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Sept. 2019                                    *
+!* Last modification: P. Hirel - 28 Oct. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -664,7 +664,7 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
   !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
   ! Method 2: insert a plane of atoms
   ! (NP is increased so we have to use a new array Q)
-  ELSEIF(disloctype=='edge_add') THEN
+  ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
     bsign = b(a1)/DABS(b(a1))
     !First, insert a plane of atoms by copying an existing plane
     !Count k = number of atoms that will be inserted
@@ -893,7 +893,7 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
   !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
   ! Method 3: remove a half-plane of atoms
   ! (NP is decreased so we have to use a new array Q)
-  ELSEIF(disloctype=='edge_rm') THEN
+  ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
     bsign = b(a1)/DABS(b(a1))
     !
     !Allocate Q to store atom positions

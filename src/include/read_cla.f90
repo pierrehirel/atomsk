@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 July 2019                                     *
+!* Last modification: P. Hirel - 28 Oct. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -875,7 +875,8 @@ DO WHILE(i<SIZE(cla))
       temp2 = temp !important for reading the Burgers vector afterwards
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF( TRIM(temp).NE.'screw' .AND. TRIM(temp).NE.'edge' .AND. TRIM(temp).NE.'edge_add' &
-        & .AND. TRIM(temp).NE.'edge_rm' .AND. TRIM(temp).NE.'mixed' ) GOTO 120
+        & .AND. TRIM(temp).NE.'edge-add' .AND. TRIM(temp).NE.'edge_rm' .AND. TRIM(temp).NE.'edge-rm' &
+        & .AND. TRIM(temp).NE.'mixed' ) GOTO 120
       IF( temp(1:4)=="edge" ) m=1
       !read the dislocation line direction (x, y or z)
       i=i+1
