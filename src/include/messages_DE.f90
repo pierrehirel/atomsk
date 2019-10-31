@@ -3372,17 +3372,63 @@ ELSEIF(values(2)==14 .AND. values(3)==07) THEN
 !
 !8 August: international cat day
 ELSEIF(values(2)==8 .AND. values(3)==8) THEN
-  msg = "             /'---'\"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "            ( o   o )"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "            = ._Y_. ="
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  CALL GEN_NRANDNUMBERS(1,randarray)
+  IF( randarray(1)<0.25d0 ) THEN
+    msg = "             /'---'\"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "            ( o   o )"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "            = ._Y_. ="
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( randarray(1)<0.5d0 ) THEN
+    msg = "   _                ___       _.--."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "   \`.|\..----...-'`   `-._.-'_.-'`"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "   /  ' `         ,       __.--'"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "   )/' _/     \   `-_,   /"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "   `-'"//'" `"\_  ,_.-;_.-\_ '//"'"//',"'
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       _.-'_./   {_.'   ; /"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "      {_.-``-'         {_/"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( randarray(1)<0.75d0 ) THEN
+    msg = "        |\___/|"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        ) . . ("
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       =\  :  /="
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "         )===(    _"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        /     \  //"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        |  |  | (("
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       / \ | / \ ))"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       \  |||  ///"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        \_M_M_/_/"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "     _._     _,-'""`-._"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "    (,-.`._,'(       |\`-/|"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        `-.-' \ )-`( , o o)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "              `-    \`_`"//'"'//"'-"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
 !
 !31 October: Halloween
 ELSEIF(values(2)==10 .AND. values(3)==31) THEN
   CALL GEN_NRANDNUMBERS(1,randarray)
-  IF( randarray(1)<0.3333d0 ) THEN
+  IF( randarray(1)<0.25d0 ) THEN
     msg = "                ,"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "           ,---'---,"
@@ -3393,7 +3439,7 @@ ELSEIF(values(2)==10 .AND. values(3)==31) THEN
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "          \ ^~~^~~^ /"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSEIF( randarray(1)<0.6666d0 ) THEN
+  ELSEIF( randarray(1)<0.5d0 ) THEN
     msg = "               _/\_"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "               ((°>"
@@ -3403,6 +3449,25 @@ ELSEIF(values(2)==10 .AND. values(3)==31) THEN
     msg = "          =>--/__|m--"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "               ^^"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( randarray(1)<0.75d0 ) THEN
+    msg = "        |\___/|"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        ) . . ("
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       =\  :  /="
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "         )===(    _"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        /     \  //"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        |  |  | (("
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       / \ | / \ ))"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "       \  |||  ///"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        \_M_M_/_/"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     msg = "_______________"

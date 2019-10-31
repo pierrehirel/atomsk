@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Sept. 2019                                    *
+!* Last modification: P. Hirel - 31 Oct. 2019                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -929,7 +929,8 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 20
 ELSE
-  maxvertex = 120
+  !maxvertex = 86
+  maxvertex = Nnodes*26
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -1196,7 +1197,7 @@ DO inode=1,Nnodes
         DO o=-expandmatrix(3),expandmatrix(3)
           DO n=-expandmatrix(2),expandmatrix(2)
             DO m=-expandmatrix(1),expandmatrix(1)
-              !Position of the periodic image of neighbor #jnode
+              !Position of the periodic image of neighbor #jnode along this Cartesian axis
               P1 = vnodes(jnode,1) + DBLE(m)*H(1,1) + DBLE(n)*H(2,1) + DBLE(o)*H(3,1)
               P2 = vnodes(jnode,2) + DBLE(m)*H(1,2) + DBLE(n)*H(2,2) + DBLE(o)*H(3,2)
               P3 = vnodes(jnode,3) + DBLE(m)*H(1,3) + DBLE(n)*H(2,3) + DBLE(o)*H(3,3)
@@ -1213,11 +1214,12 @@ DO inode=1,Nnodes
                   P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
                   IF( P2<P1 ) THEN
                     P1=P2
+                    P3 = DOT_PRODUCT(vector(:),vvertex(j,1:3))
                     k=j
                   ENDIF
                 ENDDO
               ENDIF
-              IF( Nvertices>0 .AND. P1<1.d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
+              IF( Nvertices>0 .AND. P1<1.d0 .AND. P3>0.d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
                 !Vertex vector #k is colinear with current vector
                 !If new one is closer, replace the older one
                 IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
@@ -1226,7 +1228,7 @@ DO inode=1,Nnodes
                 ENDIF
               ELSE
                 !No colinear vertex was found: add a new one to the list
-                IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
+                IF( distance>1.d-3 ) THEN
                   !$OMP CRITICAL
                   Nvertices = Nvertices+1
                   k = Nvertices
@@ -1235,14 +1237,15 @@ DO inode=1,Nnodes
                     !Increase size of array vvertex
                     CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
                   ENDIF
+                  !Save vertex position = middle point between nodes #inode and #jnode
                   vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
                   vvertex(k,4) = distance
                 ENDIF
               ENDIF
-              !
-            ENDDO
-          ENDDO
-        ENDDO
+            !
+            ENDDO  ! end loop on m
+          ENDDO    ! end loop on n
+        ENDDO      ! end loop on o
         !
       ENDIF
     ENDDO
@@ -1267,18 +1270,18 @@ DO inode=1,Nnodes
   !
   !All neighboring vertices will not be used, only the maxvertex first ones
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes
-  IF( SIZE(vvertex,1)>maxvertex ) THEN
-    maxdnodes = vvertex(MIN(maxvertex,Nvertices),4)
-    WRITE(msg,*) maxdnodes
-    msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  ENDIF
-  !
-  !Get index of last vertex that is closer than maxdnodes
-  Nvertices=0
-  DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices+1,4)<=maxdnodes )
-    Nvertices = Nvertices+1
-  ENDDO
+!   IF( SIZE(vvertex,1)>maxvertex ) THEN
+!     maxdnodes = vvertex(MIN(maxvertex,Nvertices),4)
+!     WRITE(msg,*) maxdnodes
+!     msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
+!     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!   ENDIF
+!   !
+!   !Get index of last vertex that is closer than maxdnodes
+!   Nvertices=0
+!   DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices+1,4)<=maxdnodes )
+!     Nvertices = Nvertices+1
+!   ENDDO
   !Resize array vvertex to get rid of unused vertices
   IF(twodim>0) THEN
     CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+8,4,status)
@@ -1502,6 +1505,8 @@ DO inode=1,Nnodes
     WRITE(36,'(3f16.6)') H(3,:)
     CLOSE(36)
     WRITE(msg,*) "Wrote atom positions"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(msg,*) "   o  o  o  o  o  o  o  o  o  o  o  o  o  o  o"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
