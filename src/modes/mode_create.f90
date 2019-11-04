@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2019                                      *
+!* Last modification: P. Hirel - 04 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -122,29 +122,6 @@ CASE('wu','Wu','WU','wz','Wz','WZ')
   create_struc = 'wurtzite'
 END SELECT
 !
-!Determine if structure is cubic or not
-SELECT CASE(create_struc)
-CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
-    & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine')
-  cubic = .TRUE.
-CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','limo2','LiMO2')
-  hexagonal = .TRUE.
-  cubic = .FALSE.
-CASE DEFAULT
-  cubic = .FALSE.
-  hexagonal = .FALSE.
-END SELECT
-IF( verbosity==4 ) THEN
-  IF( cubic ) THEN
-    WRITE(msg,*) "System is cubic:", cubic
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  ENDIF
-  IF( hexagonal ) THEN
-    WRITE(msg,*) "System is hexagonal:", hexagonal
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  ENDIF
-ENDIF
-!
 !Determine the number of species
 nspecies=0
 DO i=1,SIZE(create_species)
@@ -159,6 +136,7 @@ SELECT CASE(create_struc)
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  CUBIC LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('sc')
+  cubic = .TRUE.
   IF(nspecies.NE.1) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
     GOTO 810
@@ -178,6 +156,7 @@ CASE('sc')
 !
 !
 CASE('bcc','CsCl')
+  cubic = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -213,6 +192,7 @@ CASE('bcc','CsCl')
 !
 !
 CASE('fcc')
+  cubic = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -253,6 +233,7 @@ CASE('fcc')
 !
 !
 CASE('L12','L1_2')
+  cubic = .TRUE.
   IF(nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -285,6 +266,7 @@ CASE('L12','L1_2')
 !
 !
 CASE('dia','diamond','zincblende','zc')
+  cubic = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -341,6 +323,7 @@ CASE('dia','diamond','zincblende','zc')
 !
 !
 CASE('rocksalt','rs','B1')
+  cubic = .TRUE.
   IF(nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 2.d0 /))
     GOTO 810
@@ -377,6 +360,7 @@ CASE('rocksalt','rs','B1')
 !
 !
 CASE('fluorite','fluorine')
+  cubic = .TRUE.
   IF(nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -444,6 +428,7 @@ CASE('fluorite','fluorine')
 !
 !
 CASE('per','perovskite')
+  cubic = .TRUE.
   IF(nspecies.NE.3) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
     GOTO 810
@@ -473,9 +458,104 @@ CASE('per','perovskite')
   temp = TRIM(create_species(1))//TRIM(create_species(2))//TRIM(create_species(3))//'3'
   WRITE(comment(1),*) 'Cubic perovskite '//TRIM(temp)
 !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  TETRAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+CASE('st')
+  IF(nspecies.NE.1) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(1,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) 'Simple tetragonal '//TRIM(ADJUSTL((create_species(1))))
+!
+!
+CASE('bct')
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(2,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(2,1) = 0.5d0
+  P(2,2) = 0.5d0
+  P(2,3) = 0.5d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  IF(nspecies==2) THEN
+    CALL ATOMNUMBER(create_species(2),P(2,4))
+  ELSE
+    P(2,4) = P(1,4)
+  ENDIF
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))
+  IF(nspecies==1) THEN
+    comment(1) = 'Tetragonal body-centered'//TRIM(ADJUSTL(comment(1)))
+  ELSE
+    comment(1) = 'Tetragonal body-centered'//TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' alloy'
+  ENDIF
+!
+!
+CASE('fct')
+  IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(4,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(2,1) = 0.5d0
+  P(2,2) = 0.5d0
+   P(3,2) = 0.5d0
+   P(3,3) = 0.5d0
+  P(4,1) = 0.5d0
+  P(4,3) = 0.5d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(:,4) = P(1,4)
+  IF(nspecies==2) THEN
+    CALL ATOMNUMBER(create_species(2),P(3,4))
+  ELSE
+    P(3,4) = P(1,4)
+  ENDIF
+  P(4,4) = P(3,4)
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))
+  IF(nspecies==1) THEN
+    comment(1) = 'Tetragonal face-centered '//TRIM(ADJUSTL(comment(1)))
+  ELSE
+    comment(1) = 'Tetragonal face-centered'//TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' alloy'
+  ENDIF
+!
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!  HEXAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('hcp')
+  hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -512,6 +592,7 @@ CASE('hcp')
   ENDIF
 !
 CASE('wurtzite','wz')
+  hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -555,6 +636,7 @@ CASE('wurtzite','wz')
 !
 !
 CASE('graphite')
+  hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -590,6 +672,7 @@ CASE('graphite')
 !
 !
 CASE('c14','C14')
+  hexagonal = .TRUE.
   IF(nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -657,6 +740,7 @@ CASE('c14','C14')
 !
 !
 CASE('limo2','LiMO2')
+  hexagonal = .TRUE.
   IF(nspecies.NE.3) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
     GOTO 810
@@ -898,6 +982,17 @@ END SELECT
 !
 !
 300 CONTINUE
+IF( verbosity==4 ) THEN
+  IF( cubic ) THEN
+    WRITE(msg,*) "System is cubic:", cubic
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
+  IF( hexagonal ) THEN
+    WRITE(msg,*) "System is hexagonal:", hexagonal
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
+ENDIF
+!
 !Orient the system according to ORIENT(:,:) - CUBIC SYSTEMS ONLY!
 IF( cubic ) THEN
   IF( VECLENGTH(ORIENT(1,:))>1.d-12 .OR. VECLENGTH(ORIENT(2,:))>1.d-12 &

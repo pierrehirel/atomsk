@@ -150,7 +150,27 @@ IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Mode création :"
-  WRITE(*,*) "          atomsk --create <structure> <a0> <species> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
+  WRITE(*,*) "          atomsk --create <structure> <a> [<c>] <species> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
+  WRITE(*,*) "                            <structure> | N.param. maille| N.esp.at."
+  WRITE(*,*) "                           -------------+----------------+----------"
+  WRITE(*,*) "             MAILLES                sc  |       1        |     1"
+  WRITE(*,*) "             CUBIQUES              bcc  |       1        |   1 ou 2"
+  WRITE(*,*) "                                   fcc  |       1        |   1 ou 2"
+  WRITE(*,*) "                               diamond  |       1        |   1 ou 2"
+  WRITE(*,*) "                                  L1_2  |       1        |     2"
+  WRITE(*,*) "                              fluorite  |       1        |     2"
+  WRITE(*,*) "                             rock-salt  |       1        |     2"
+  WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                           -------------+----------------+----------"
+  WRITE(*,*) "             MAILLES                st  |  2 (a and c)   |   1 ou 2"
+  WRITE(*,*) "             TETRAGONALES          bct  |  2 (a and c)   |   1 ou 2"
+  WRITE(*,*) "                                   fct  |  2 (a and c)   |   1 ou 2"
+  WRITE(*,*) "                           -------------+----------------+----------"
+  WRITE(*,*) "             MAILLES               hcp  |  2 (a and c)   |   1 ou 2"
+  WRITE(*,*) "             HEXAGONALES      wurtzite  |  2 (a and c)   |     2"
+  WRITE(*,*) "                              graphite  |  2 (a and c)   |   1 ou 2"
+  WRITE(*,*) "                                   L14  |  2 (a and c)   |     2"
+  WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> Mode DDplot :"

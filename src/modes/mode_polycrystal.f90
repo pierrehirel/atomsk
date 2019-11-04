@@ -929,8 +929,7 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 20
 ELSE
-  !maxvertex = 86
-  maxvertex = Nnodes*26
+  maxvertex = 86
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -964,7 +963,7 @@ IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
 ENDIF
 !
 !Compute boxmax = maximum distance from one end of the box to another
-boxmax = 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  )
+boxmax = 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  ) + 2.d0
 WRITE(msg,*) "Max. distance for neighbor search:", boxmax
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
@@ -1206,43 +1205,47 @@ DO inode=1,Nnodes
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
               !This image is a neighbor if distance is smaller than max. box size,
               !and if it is not colinear with an existing vector
-              !Check if it is not colinear with an existing vertex
-              P1 = 1.d12
-              k=0
-              IF( Nvertices>0 ) THEN
-                DO j=1,Nvertices
-                  P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
-                  IF( P2<P1 ) THEN
-                    P1=P2
+              IF( distance <= boxmax ) THEN
+                !Check if it is not colinear with an existing vertex
+                P1 = 1.d12
+                k=0
+                IF( Nvertices>0 ) THEN
+                  DO j=1,Nvertices
+                    P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
                     P3 = DOT_PRODUCT(vector(:),vvertex(j,1:3))
-                    k=j
-                  ENDIF
-                ENDDO
-              ENDIF
-              IF( Nvertices>0 .AND. P1<1.d0 .AND. P3>0.d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
-                !Vertex vector #k is colinear with current vector
-                !If new one is closer, replace the older one
-                IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
-                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                  vvertex(k,4) = distance
+                    IF( P2<P1 .AND. P3>0.d0 ) THEN
+                      P1=P2
+                      k=j
+                    ENDIF
+                  ENDDO
                 ENDIF
-              ELSE
-                !No colinear vertex was found: add a new one to the list
-                IF( distance>1.d-3 ) THEN
-                  !$OMP CRITICAL
-                  Nvertices = Nvertices+1
-                  k = Nvertices
-                  !$OMP END CRITICAL
-                  IF( k>SIZE(vvertex,1) ) THEN
-                    !Increase size of array vvertex
-                    CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
+                !
+                IF( Nvertices>0 .AND. P1<0.1d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
+                  !Vertex vector #k is colinear with current vector
+                  !If new one is closer, replace the older one
+                  IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
+                    vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                    vvertex(k,4) = distance
                   ENDIF
-                  !Save vertex position = middle point between nodes #inode and #jnode
-                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                  vvertex(k,4) = distance
+                ELSE
+                  !No colinear vertex was found: add a new one to the list
+                  IF( distance>1.d-3 ) THEN
+                    !$OMP CRITICAL
+                    Nvertices = Nvertices+1
+                    k = Nvertices
+                    !$OMP END CRITICAL
+                    IF( k>SIZE(vvertex,1) ) THEN
+                      !Increase size of array vvertex
+                      CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
+                    ENDIF
+                    !Save vertex position = middle point between nodes #inode and #jnode
+                    vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                    vvertex(k,4) = distance
+                  ENDIF
                 ENDIF
-              ENDIF
-            !
+                !
+              ENDIF  !end if distance<maxboxsize
+              !
             ENDDO  ! end loop on m
           ENDDO    ! end loop on n
         ENDDO      ! end loop on o
@@ -1253,7 +1256,7 @@ DO inode=1,Nnodes
     !
   ENDIF
   !
-  WRITE(msg,'(a,i6)') "N neighbors for this grain:", Nvertices
+  WRITE(msg,'(a,i6)') "N vertices for this grain:", Nvertices
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Fill the rest of the list with very large distances before sorting.
@@ -1270,18 +1273,18 @@ DO inode=1,Nnodes
   !
   !All neighboring vertices will not be used, only the maxvertex first ones
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes
-!   IF( SIZE(vvertex,1)>maxvertex ) THEN
-!     maxdnodes = vvertex(MIN(maxvertex,Nvertices),4)
-!     WRITE(msg,*) maxdnodes
-!     msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
-!     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!   ENDIF
-!   !
-!   !Get index of last vertex that is closer than maxdnodes
-!   Nvertices=0
-!   DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices+1,4)<=maxdnodes )
-!     Nvertices = Nvertices+1
-!   ENDDO
+  IF( SIZE(vvertex,1)>maxvertex ) THEN
+    maxdnodes = vvertex(MIN(maxvertex,Nvertices),4)
+    WRITE(msg,*) maxdnodes
+    msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+  !
+  !Get index of last vertex that is closer than maxdnodes
+  Nvertices=0
+  DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices+1,4)<=maxdnodes )
+    Nvertices = Nvertices+1
+  ENDDO
   !Resize array vvertex to get rid of unused vertices
   IF(twodim>0) THEN
     CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+8,4,status)

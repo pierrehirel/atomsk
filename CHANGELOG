@@ -10,6 +10,7 @@ Master (development)
 - added support for reading and writing files in CRYSTAL format (*.d12).
 - added support for reading and writing files in ABINIT format (*.in).
 - added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
+- in mode "--create", added possibility to create tetragonal lattices (simple, body-centered, or face-centered tetragonal).
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.
 - in mode "--one-in-all" it is now possible to read all snapshots from LAMMPS custom dump files (*.lmc) and convert them into individual files.
 - in mode "--nye", added possibility to provide a unit cell as a reference, or to work with no reference at all.

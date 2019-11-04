@@ -149,7 +149,27 @@ IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Create mode:"
-  WRITE(*,*) "          atomsk --create <structure> <a0> <species> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
+  WRITE(*,*) "          atomsk --create <structure> <a> [<c>] <species> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
+  WRITE(*,*) "                            <structure> | N.lattice cst. | N.at.sp."
+  WRITE(*,*) "                           -------------+----------------+----------"
+  WRITE(*,*) "             CUBIC                  sc  |       1        |     1"
+  WRITE(*,*) "             LATTICES              bcc  |       1        |   1 or 2"
+  WRITE(*,*) "                                   fcc  |       1        |   1 or 2"
+  WRITE(*,*) "                               diamond  |       1        |   1 or 2"
+  WRITE(*,*) "                                  L1_2  |       1        |     2"
+  WRITE(*,*) "                              fluorite  |       1        |     2"
+  WRITE(*,*) "                             rock-salt  |       1        |     2"
+  WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                           -------------+----------------+----------"
+  WRITE(*,*) "             TETRAGONAL             st  |  2 (a and c)   |   1 or 2"
+  WRITE(*,*) "             LATTICES              bct  |  2 (a and c)   |   1 or 2"
+  WRITE(*,*) "                                   fct  |  2 (a and c)   |   1 or 2"
+  WRITE(*,*) "                           -------------+----------------+----------"
+  WRITE(*,*) "             HEXAGONAL             hcp  |  2 (a and c)   |   1 or 2"
+  WRITE(*,*) "             LATTICES         wurtzite  |  2 (a and c)   |     2"
+  WRITE(*,*) "                              graphite  |  2 (a and c)   |   1 or 2"
+  WRITE(*,*) "                                   L14  |  2 (a and c)   |     2"
+  WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> DDplot mode:"

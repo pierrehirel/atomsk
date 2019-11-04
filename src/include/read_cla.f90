@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Oct. 2019                                     *
+!* Last modification: P. Hirel - 04 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -148,10 +148,12 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp' .OR.            &
-      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'  .OR.            &
-      & mode_param(1)=='c14' .OR.  mode_param(1)=='C14'     .OR.            &
-      & mode_param(1)=='limo2' .OR.  mode_param(1)=='LiMO2'          ) THEN
+    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'    .OR.  &
+      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'     .OR.  &
+      & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'    .OR.  &
+      & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'  .OR.  &
+      & mode_param(1)=='st'       .OR. mode_param(1)=='bct'    .OR.  &
+      & mode_param(1)=='fct'         ) THEN
       !Get lattice constant c
       i=i+1
       m=m+1
@@ -168,9 +170,17 @@ DO WHILE(i<SIZE(cla))
     !Get the atomic species for the structure
     DO
       i=i+1
-      temp = ADJUSTL(cla(i))
+      temp=""
+      IF(i<=SIZE(cla)) temp = ADJUSTL(cla(i))
       IF( LEN_TRIM(temp)>0 ) THEN
-        IF(LEN_TRIM(temp)<=2 .AND. temp(1:1).NE.'-' ) THEN
+        IF( SCAN(temp,'0123456789')>0 ) THEN
+          !It is a number: user probably entered too many lattice constants
+          GOTO 130
+        ELSEIF(LEN_TRIM(temp)>2 .OR. temp(1:1)=='-' ) THEN
+          !It is not an atom species => go back and exit the loop
+          i=i-1
+          EXIT
+        ELSE
           !it may be an atom species => try it
           m=m+1
           READ(temp,*,ERR=130,END=130) species
@@ -183,10 +193,6 @@ DO WHILE(i<SIZE(cla))
             !save this atom species and try the next argument
             WRITE(mode_param(m),*) species
           ENDIF
-        ELSE
-          !It is not an atom species => go back and exit the loop
-          i=i-1
-          EXIT
         ENDIF
       ELSE
         !Empty entry => exit
@@ -228,7 +234,7 @@ DO WHILE(i<SIZE(cla))
         m=m+1
         READ(cla(i),*,END=130,ERR=130) mode_param(m)
       CASE DEFAULT
-        !Lattice is not cubic: crystal orientation not implemented yet
+        !Lattice is not cubic nor hexagonal: crystal orientation not implemented yet
         !Display error message and exit
         CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
         nerr = nerr+1

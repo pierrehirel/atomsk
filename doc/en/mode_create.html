@@ -15,7 +15,7 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --create &#60;lattice&#62; &#60;a0&#62; [&#60;c0&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] [options] &#60;outputfile&#62; [&#60;formats&#62;]</code></p>
+<p><code>atomsk --create &#60;lattice&#62; &#60;a&#62; [&#60;c&#62;] &#60;sp1&#62; [&#60;sp2&#62; &#60;sp3&#62;...] [orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub>] [options] &#60;outputfile&#62; [&#60;formats&#62;]</code></p>
 
 <p>Special syntax for nanotubes:</p>
 <p><code>atomsk --create nanotube &#60;a0&#62; &#60;m&#62; &#60;n&#62; &#60;sp1&#62; [&#60;sp2&#62;] [options] &#60;outputfile&#62; [&#60;formats&#62;]</code></p>
@@ -27,8 +27,8 @@
 <p>The parameters associated with the <code>create</code> mode are:</p>
 <ul>
   <li><strong>lattice</strong>: type of lattice (see table below);</li>
-  <li><strong>a0</strong>: lattice parameter (in &Aring;);</li>
-  <li><strong>c0</strong>: lattice parameter (in &Aring;, only needed for some structures);</li>
+  <li><strong>a</strong>: lattice parameter (in &Aring;);</li>
+  <li><strong>c</strong>: lattice parameter (in &Aring;, only needed for some structures);</li>
   <li><strong>sp1, sp2...</strong>: atomic species constituting the material (one- or two-characters symbol); the number of species that must be specified depends on the lattice, see table below.</li>
   <li><strong>orient (<em>hkl</em>)<sub>X</sub> (<em>hkl</em>)<sub>Y</sub> (<em>hkl</em>)<sub>Z</sub></strong>: crystallographic orientation of the created lattice (cubic and hexagonal lattices only).</li>
 </ul>
@@ -47,6 +47,11 @@
   <tr> <th align="left">Diamond<br/>Zincblende</th>   <td align="right">diamond, dia<br/>zincblende, zb</td>   <td align="right">1</td> <td align="right">1 or 2</td> </tr>
   <tr> <th align="left">Cubic rock-salt</th>     <td align="right">rocksalt</td>   <td align="right">1</td> <td align="right">2</td> </tr>
   <tr> <th align="left">Cubic perovskite</th>     <td align="right">perovskite, per</td>   <td align="right">1</td> <td align="right">3</td> </tr>
+  
+  <tr> <th colspan="4" class="ftype">Tetragonal lattices</th> </tr>
+  <tr> <th align="left">Simple tetragonal</th>         <td align="right">st</td>    <td align="right">2 (a and c)</td> <td align="right">1</td> </tr>
+  <tr> <th align="left">Body-centered tetragonal</th>  <td align="right">bct</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
+  <tr> <th align="left">Face-centered tetragonal</th>  <td align="right">fct</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
   
   <tr> <th colspan="4" class="ftype">Hexagonal lattices</th> </tr>
   <tr> <th align="left">Hexagonal close-packed</th>  <td align="right">hcp</td>   <td align="right">2 (a and c)</td> <td align="right">1 or 2</td> </tr>
