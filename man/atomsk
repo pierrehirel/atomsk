@@ -6,11 +6,7 @@ Atomsk - Atom/Molecule/Material Software Kit
 .SH SYNOPSIS
 .B atomsk
 
-.B atomsk <inputfile> <outputfile>
-
-.B atomsk <inputfile> <formats>
-
-.B atomsk <inputfile> <formats> <options>
+.B atomsk <inputfile> [options] <outputfile>
 
 .B atomsk --mode <parameters> [-options] [formats]
 
@@ -22,7 +18,7 @@ Atomsk is a command-line program that aims at creating, manipulating, and conver
 
 
 .SH MODES
-Modes decide how the files will be treated. Only one mode can be used at a time. Running atomsk without any argument will trigger the interactive mode, which offers a command-line interpreter. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
+Modes decide how the files will be treated. Only one mode can be used at a time. Running Atomsk without any argument will trigger the interactive mode, which offers a command-line interpreter. Else, if no special mode is specified (see below) then normal mode is assumed, i.e. the program will convert a file. Finally the program can be run in one of the special modes described below.
 .TP
 .B --all-in-one, -AI1
 Converts several files to one file containing all snapshots.
@@ -241,7 +237,7 @@ Wraps atoms back into the supercell.
 .SS Input:
 .TP
 .B atsk
-Specific atomsk binary format.
+Specific Atomsk binary format.
 .TP
 .B bop
 Bond-Order Potential (BOP) format.
@@ -435,7 +431,7 @@ http://atomsk.univ-lille1.fr/
 
 .SH AUTHOR
 .P
-Dr. Pierre Hirel (pierre.hirel@univ-lille1.fr)
+Dr. Pierre Hirel (pierre.hirel@univ-lille.fr)
 .P
 Universite de Lille Sciences et Technologies, UMR CNRS 8207 - UMET, 59650 Villeneuve d'Ascq, France
 
