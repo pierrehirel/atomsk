@@ -2667,11 +2667,11 @@ CASE(4029)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4030)
   !strings(1) = merge direction
-  !reals(1) >0 if systems are concatenated, <0 otherwise
+  !reals(1) >0 if systems are stacked along a direction, <0 otherwise
   IF( reals(1)>0.d0 ) THEN
-    msg = ">>> Concatenating the systems along "//TRIM(strings(1))//"..."
+    msg = ">>> Stacking the systems along "//TRIM(strings(1))//"..."
   ELSE
-    msg = ">>> Merging the systems..."
+    msg = ">>> Merging the systems in the same box..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4031)

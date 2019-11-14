@@ -1205,7 +1205,7 @@ DO inode=1,Nnodes
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
               !This image is a neighbor if distance is smaller than max. box size,
               !and if it is not colinear with an existing vector
-              IF( distance <= boxmax ) THEN
+              IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
                 !Check if it is not colinear with an existing vertex
                 P1 = 1.d12
                 k=0
@@ -1213,7 +1213,7 @@ DO inode=1,Nnodes
                   DO j=1,Nvertices
                     P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
                     P3 = DOT_PRODUCT(vector(:),vvertex(j,1:3))
-                    IF( P2<P1 .AND. P3>0.d0 ) THEN
+                    IF( P2<P1 .AND. P3>1.d-3 ) THEN
                       P1=P2
                       k=j
                     ENDIF
@@ -1229,19 +1229,17 @@ DO inode=1,Nnodes
                   ENDIF
                 ELSE
                   !No colinear vertex was found: add a new one to the list
-                  IF( distance>1.d-3 ) THEN
-                    !$OMP CRITICAL
-                    Nvertices = Nvertices+1
-                    k = Nvertices
-                    !$OMP END CRITICAL
-                    IF( k>SIZE(vvertex,1) ) THEN
-                      !Increase size of array vvertex
-                      CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
-                    ENDIF
-                    !Save vertex position = middle point between nodes #inode and #jnode
-                    vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                    vvertex(k,4) = distance
+                  !$OMP CRITICAL
+                  Nvertices = Nvertices+1
+                  k = Nvertices
+                  !$OMP END CRITICAL
+                  IF( k>SIZE(vvertex,1) ) THEN
+                    !Increase size of array vvertex
+                    CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
                   ENDIF
+                  !Save vertex position = middle point between nodes #inode and #jnode
+                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                  vvertex(k,4) = distance
                 ENDIF
                 !
               ENDIF  !end if distance<maxboxsize

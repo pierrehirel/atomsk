@@ -10,12 +10,15 @@ export
 
 # COMPILER:
 FORTRAN=g95
+  
+# Comment the following line to disable parallelization with OpenMP
+OPENMP=-DOPENMP -fopenmp
 
 # COMPILATION FLAGS:
 # -fmod is used to specify the folder where the compiler will store the *.mod files
 # -B/usr/lib/x86_64-linux-gnu/  for 64-bits systems
 # -B/usr/lib/i386-linux-gnu/    for 32-bits systems
-FFLAGS=-O2 -I../OBJ -fmod=../OBJ -B/usr/lib/x86_64-linux-gnu/
+FFLAGS=-O2 $(OPENMP) -I../OBJ -fmod=../OBJ -B/usr/lib/x86_64-linux-gnu/
 
 # Path to the LAPACK library
 # If it is installed system-wide just use "-llapack"

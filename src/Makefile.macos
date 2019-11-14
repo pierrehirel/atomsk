@@ -23,10 +23,11 @@ OPENMP=-DOPENMP -fopenmp
 
 # COMPILATION FLAGS
 FFLAGS=-O2 $(OPENMP) -I ../OBJ -J ../OBJ
+FFLAGS+=-static-libgfortran
 
 # Path to the LAPACK library:
 # replace this with the path where you compiled LAPACK
-LAPACK=-L/usr/local/lib/lapack/ -llapack -lrefblas
+LAPACK=-L/usr/local/lib/ -llapack -lrefblas
 
 # Goto main Makefile
 include Makefile

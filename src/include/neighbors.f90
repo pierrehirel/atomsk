@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Sept. 2019                                    *
+!* Last modification: P. Hirel - 12 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -94,6 +94,7 @@ INTEGER:: iCell  !index of a cell (cell-list algorithm)
 INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
 INTEGER:: Maxcells !max number of cells along one direction (cell-list algorithm)
 INTEGER:: Ncells   !total number of cells (cell-list algorithm)
+INTEGER:: OMP_GET_NUM_THREADS
 INTEGER,DIMENSION(3):: shift
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(3):: NcellsX  !number of cells along X, Y, Z (cell-list algorithm)
@@ -295,10 +296,19 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
   !
 ELSE
   !Large system => use a cell list algorithm
-  !Define max. number of cells (max. 8 cells along any given direction)
-  Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
   msg = 'algorithm: CELL DECOMPOSITION'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !Define max. number of cells along each direction
+#if defined(OPENMP)
+  !Parallel version: use Nthreads to define max. number of cells along each direction
+  !$OMP PARALLEL
+  Maxcells = OMP_GET_NUM_THREADS()
+  !$OMP END PARALLEL
+  Maxcells = MAX( 4 , Maxcells*2 )
+#else
+  !Serial version: use max. 8 cells along any given direction
+  Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
+#endif
   WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
@@ -320,6 +330,8 @@ ELSE
   Ncells = PRODUCT( NcellsX(:) )  !total number of cells
   WRITE(msg,*) 'Actual number of cells along X, Y, Z: ', NcellsX(1), NcellsX(2), NcellsX(3)
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !WRITE(*,*) '    Maxcells = ', Maxcells
+  !WRITE(*,*) ' Total cells = ', Ncells
   !
   !For each atom, find the index of the cell it belongs to
   ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to

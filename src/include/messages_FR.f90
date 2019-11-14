@@ -2738,7 +2738,7 @@ CASE(4030)
   IF( reals(1)>0.d0 ) THEN
     msg = ">>> Collage des systèmes suivant "//TRIM(strings(1))//"..."
   ELSE
-    msg = ">>> Fusion des systèmes..."
+    msg = ">>> Fusion des systèmes dans la même boîte..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4031)

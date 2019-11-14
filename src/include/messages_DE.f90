@@ -2660,9 +2660,9 @@ CASE(4030)
   !strings(1) = merge direction
   !reals(1) >0 if systems are concatenated, <0 otherwise
   IF( reals(1)>0.d0 ) THEN
-    msg = ">>> Verbinde die Systeme entlang "//TRIM(strings(1))//"..."
+    msg = ">>> Stapeln der Systeme entlang "//TRIM(strings(1))//"..."
   ELSE
-    msg = ">>> Verbinde die Systeme..."
+    msg = ">>> Verbinde die Systeme in der gleichen Box..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4031)
