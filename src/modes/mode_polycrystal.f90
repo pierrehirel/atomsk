@@ -781,23 +781,25 @@ DO
         !Grains are rotated only around one axis
         !Multiply all random numbers by 2*pi to generate random angles
         randarray(3*Nnodes:) = randarray(3*Nnodes:)*2.d0*pi - pi
-        !Pick a random angle
-        P1 = randarray(3*Nnodes+3*(i-1)+1)
-        !Get indices
-        m = twodim
-        n = twodim+1
-        IF(n>3) n=n-3
-        o = twodim+2
-        IF(o>3) o=o-3
-        !Construct the rotation matrix around short axis
-        rotmat(:,:) = 0.d0
-        rotmat(m,m) = 1.d0
-        rotmat(n,n) = DCOS(P1)
-        rotmat(n,o) = -1.d0*DSIN(P1)
-        rotmat(o,n) = DSIN(P1)
-        rotmat(o,o) = DCOS(P1)
-        !Save rotation matrix in vorient
-        vorient(Nnodes,:,:) = rotmat(:,:)
+        DO i=1,Nnodes
+          !Pick a random angle
+          P1 = randarray(3*Nnodes+3*(i-1)+1)
+          !Get indices
+          m = twodim
+          n = twodim+1
+          IF(n>3) n=n-3
+          o = twodim+2
+          IF(o>3) o=o-3
+          !Construct the rotation matrix around short axis
+          rotmat(:,:) = 0.d0
+          rotmat(m,m) = 1.d0
+          rotmat(n,n) = DCOS(P1)
+          rotmat(n,o) = -1.d0*DSIN(P1)
+          rotmat(o,n) = DSIN(P1)
+          rotmat(o,o) = DCOS(P1)
+          !Save rotation matrix in vorient
+          vorient(i,:,:) = rotmat(:,:)
+        ENDDO
       ELSE
         !Generate a random rotation matrix for each grain
         !Method is from "Fast random rotation matrices", James Arvo, Cornell University
