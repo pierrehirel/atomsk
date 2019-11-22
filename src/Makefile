@@ -116,20 +116,20 @@ vpath %.f90 include:input:options:output:modes
 # Default target is to display help
 .DEFAULT: help
 help:
-	@echo "       o---o                     O"
-	@echo "      o---o|   _____________     |"
-	@echo "      |   |o    A T O M S K     ,0;-o"
-	@echo "      o---o                   o'   'O"
-	@echo "             Version ${VER}"
-	@echo "Available targets for make:"
+	@echo "       o---o     ___________"
+	@echo "      o---o|     A T O M S K"
+	@echo "      |   |o"
+	@echo "      o---o      Version ${VER}"
+	@echo ""
+	@echo "  Available targets for make:"
         ifeq ($(MF),Makefile)
-	  @echo "- make help         display this message"
 	  @echo "- make atomsk       compile the program using ${FORTRAN}"
+	  @echo "- make help         display this message"
         else
-	  @echo "- make -f ${MF} help"
-	  @echo "                    display this message"
 	  @echo "- make -f ${MF} atomsk"
 	  @echo "                    compile the program using ${FORTRAN}"
+	  @echo "- make -f ${MF} help"
+	  @echo "                    display this message"
         endif
 	@echo "- make install      install the program in ${BINPATH}"
 	@echo "                    (requires SuperUser rights)"

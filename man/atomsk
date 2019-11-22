@@ -426,7 +426,7 @@ This will compute the displacement vectors between the atomic systems described 
 .SH SEE ALSO
 .TP
 This man page only summarizes the capabilities of Atomsk. A more complete documentation in html format is provided with the program and available at:
-http://atomsk.univ-lille1.fr/
+http://atomsk.univ-lille.fr/
 
 
 .SH AUTHOR

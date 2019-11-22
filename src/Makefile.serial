@@ -8,9 +8,9 @@
 export
 
 # Define compiler flags for serial compilation
-FORTRAN=gfortran -z muldefs
+FORTRAN=gfortran
 OPENMP=
-FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
+FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -z muldefs
 LAPACK=-llapack -lblas
 
 # Goto main Makefile

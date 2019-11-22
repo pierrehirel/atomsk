@@ -489,7 +489,7 @@ ENDIF
 !
 WRITE(*,*) ""
 WRITE(*,*) ">>> Look at the /doc folder provided with the program"
-WRITE(*,*) "    or go to: http://atomsk.univ-lille1.fr/"
+WRITE(*,*) "    or go to: http://atomsk.univ-lille.fr/"
 WRITE(*,*) ""
 !
 !

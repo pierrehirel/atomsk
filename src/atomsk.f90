@@ -17,7 +17,7 @@ PROGRAM atomsk
 !*                                                                                *
 !* Please refer to the contents of /doc for a detailed description, or go to:     *
 !*                                                                                *
-!*     http://atomsk.univ-lille1.fr/                                              *
+!*     http://atomsk.univ-lille.fr/                                               *
 !*                                                                                *
 !**********************************************************************************
 !* Version of the program: see "/include/comv.f90"                                *

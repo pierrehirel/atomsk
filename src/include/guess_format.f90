@@ -221,13 +221,16 @@ IF( strlength > 0 ) THEN
 ELSE
   !Special case for POSCAR/CONTCAR files
   IF( filename=='POSCAR' .OR. filename=='CONTCAR' ) THEN
-    isposcar = certainty+0.4d0
+    isposcar = certainty+0.6d0
+  ENDIF
+  IF( fstatus=="read" .AND. ( INDEX(filename,'POSCAR')>0 .OR. INDEX(filename,'CONTCAR')>0 ) ) THEN
+    isposcar = certainty+0.5d0
   ENDIF
   !Special case for COORAT files
   IF( filename=='COORAT' ) THEN
     iscoorat = certainty+0.4d0
   ENDIF
-  IF( fstatus=="read" .AND. INDEX(filename,'COORAT').NE.0 ) THEN
+  IF( fstatus=="read" .AND. INDEX(filename,'COORAT')>0 ) THEN
     iscoorat = iscoorat+0.2d0
   ENDIF
   !Special case for DL_POLY CONFIG files
@@ -235,11 +238,11 @@ ELSE
     & filename=='CFGMIN' .OR. filename=='HISTORY'     ) THEN
     isdlp = certainty+0.4d0
   ENDIF
-  IF( fstatus=="read" .AND.                    &
-      & INDEX(filename,'CONFIG').NE.0    .OR.  &
-      & INDEX(filename,'REVCON').NE.0    .OR.  &
-      & INDEX(filename,'CFGMIN').NE.0    .OR.  &
-      & INDEX(filename,'HISTORY').NE.0         ) THEN
+  IF( fstatus=="read" .AND.                  &
+      & ( INDEX(filename,'CONFIG')>0  .OR.   &
+      &   INDEX(filename,'REVCON')>0  .OR.   &
+      &   INDEX(filename,'CFGMIN')>0  .OR.   &
+      &   INDEX(filename,'HISTORY')>0     )   ) THEN
     isdlp = isdlp+0.2d0
   ENDIF
 ENDIF

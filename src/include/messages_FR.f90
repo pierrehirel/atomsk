@@ -487,7 +487,7 @@ ENDIF
 !
 WRITE(*,*) ""
 WRITE(*,*) ">>> Référez-vous à la documentation dans le dossier /doc fourni avec le programme"
-WRITE(*,*) "    ou à cette adresse : http://atomsk.univ-lille1.fr/fr/"
+WRITE(*,*) "    ou à cette adresse : http://atomsk.univ-lille.fr/fr/"
 WRITE(*,*) ""
 !
 !

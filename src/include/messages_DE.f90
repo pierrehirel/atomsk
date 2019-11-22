@@ -460,7 +460,7 @@ ENDIF
 !
 WRITE(*,*) ""
 WRITE(*,*) ">>> Schau im mitgelieferten /doc Ordner nach oder "
-WRITE(*,*) "    besuche: http://atomsk.univ-lille1.fr/"
+WRITE(*,*) "    besuche: http://atomsk.univ-lille.fr/"
 WRITE(*,*) ""
 !
 !
