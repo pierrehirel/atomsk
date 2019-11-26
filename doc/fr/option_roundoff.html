@@ -15,39 +15,37 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-round-off &#60;propriété&#62; &#60;seuil&#62;</code></p>
+<p><code>-round-off &#60;propriété&#62; &#60;précision&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet d'arrondir les valeurs de la &#60;propriété&#62; donnée à l'entier le plus proche. Pour la &#60;propriété&#62; donnée, si elle prend des valeurs qui sont plus proches que le &#60;seuil&#62; de l'entier le plus proche, alors ces valeurs sont arrondies à l'entier le plus proche. Cette option peut être utile pour éliminer les erreurs d'arrondis après avoir construit un système ou suite à une simulation.</p>
+<p>Cette option permet d'arrondir les valeurs de la &#60;propriété&#62; donnée à la &#60;précision&#62; donnée.</p>
 
-<p>La &#60;propriété&#62; peut être X, Y, Z (faisant référence aux coordonnées cartésiennes des atomes), ou bien le nom de n'importe quelle propriété auxiliaire. Si elle est définie en tant que "XYZ", alors les trois coordonnées des atomes seront arrondies&nbsp;; si elle est définie comme "AUX", alors toutes les propriétés auxiliaires seront arrondies. Le &#60;seuil&#62; doit être un nombre réel positif.</p>
-
-<p>Les valeurs qui diffèrent de l'entier le plus proche d'une quantité supérieure au &#60;seuil&#62; donné ne sont pas modifiées par cette option.</p>
+<p>La &#60;propriété&#62; peut être X, Y, Z (faisant référence aux coordonnées cartésiennes des atomes), ou bien le nom de n'importe quelle propriété auxiliaire. Si elle est définie en tant que "XYZ", alors les trois coordonnées des atomes seront arrondies&nbsp;; si elle est définie comme "AUX", alors toutes les propriétés auxiliaires seront arrondies. La &#60;précision&#62; doit être un nombre réel positif, et peut être donnée en notation exponentielle (voir exemples ci-dessous).</p>
 
 <p>Si une sélection était définie (avec l'<a href="./option_select.html">option <code>-select</code></a>), alors cette option n'affectera que les valeurs des atomes sélectionnées.</p>
 
 
 <h4>Défaut</h4>
 
-<p>Par défaut les nombres ne sont pas arrondis.</p>
+<p>Par défaut les nombres ne sont pas arrondis, ils sont stockés en mémoire comme entiers double précisions (c'est-à-dire avec au moins 15 chiffres significatifs).</p>
 
 
 <h4>Exemples</h4>
 
 <ul>
 <li><code class="command">atomsk initial.cfg -round-off x 1e-6 final.cfg</code>
-<p>Ceci va lire le fichier <code>initial.cfg</code>, et va arrondir les coordonnées X de tous les atomes, si nécessaire. Par exemple, si un atome a une coordonnée X égale à 0.00000023, alors elle sera arrondie à zéro. Si un atome a une coordonnée X=0.9999999967, elle sera arrondie à 1, et ainsi de suite. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et va arrondir les coordonnées X de tous les atomes, si nécessaire. Par exemple, si un atome a une coordonnée X égale à 112.593725936, alors elle sera arrondie à 112.593726. Si un atome a une coordonnée X=54.329378216, elle sera arrondie à 54.329378, et ainsi de suite. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -round-off xyz 1e-9 final.cfg</code>
-<p>Ceci va lire le fichier <code>initial.cfg</code>, et arrondira toutes les coordonnées (X, Y et Z) de tous les atomes, si elles sont proches d'un entier à 10<sup>-9</sup> près. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -round-off xyz 0.01 final.cfg</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et arrondira toutes les coordonnées (X, Y et Z) de tous les atomes à la deuxième décimale. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -round-off energy 5.0e-4 final.cfg</code>
-<p>Ceci va lire le fichier <code>initial.cfg</code>, et arrondira la propriété auxiliaire appelée "energy", si elle prend des valeurs proches d'un entier à 5&nbsp;10<sup>-4</sup> près. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -round-off energy 1.0e-4 final.cfg</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et arrondira la propriété auxiliaire appelée "energy" à la quatrième décimale. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -round-off AUX 1.0e-8 final.cfg</code>
-<p>Ceci va lire le fichier <code>initial.cfg</code>, et arrondira toutes les propriétés auxiliaires. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -round-off AUX 0.001 final.cfg</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et arrondira toutes les propriétés auxiliaires à la troisième décimale. Le résultat final sera écrit dans <code>final.cfg</code>.</p></li>
 
 </ul>
 

@@ -49,12 +49,10 @@ CHARACTER(LEN=128):: msg
 INTEGER:: i, j, iloop
 INTEGER:: Nunskewed !number of 
 REAL(dp):: tiltbefore
-REAL(dp),DIMENSION(6):: tilt
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 !
 !Initialize variables
 Nunskewed = 0
-tilt(:) = 0.d0
 !
 WRITE(msg,*) 'Entering UNSKEW_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -73,67 +71,48 @@ ENDIF
 !
 !
 100 CONTINUE
-tilt(1) = H(2,1)
-tilt(2) = H(3,1)
-tilt(3) = H(3,2)
-tilt(4) = H(1,2)
-tilt(5) = H(1,3)
-tilt(6) = H(2,3)
-DO i=1,6
-  IF(i==1) THEN
-    j = 1
-    skew = 'xy'
-  ELSEIF(i==2) THEN
-    j = 1
-    skew = 'xz'
-  ELSEIF(i==3) THEN
-    j = 2
-    skew = 'yz'
-  ELSEIF(i==4) THEN
-    j = 2
-    skew = 'yx'
-  ELSEIF(i==5) THEN
-    j = 3
-    skew = 'zx'
-  ELSEIF(i==6) THEN
-    j = 3
-    skew = 'zy'
-  ENDIF
+DO i=1,3
+  skew(2:2)='x'
+  IF(i==2) skew(2:2)='y'
+  IF(i==3) skew(2:2)='z'
   !
-  IF( DABS(tilt(i))>0.5d0*H(j,j) ) THEN
-    tiltbefore = tilt(i)
-    iloop=0
-    DO WHILE( tilt(i)>0.5d0*H(j,j) )
-      tilt(i) = tilt(i)-H(j,j)
-      iloop=iloop+1
-      IF(iloop>100) EXIT
-    ENDDO
-    !
-    DO WHILE( tilt(i)<-0.5d0*H(j,j) )
-      tilt(i) = tilt(i)+H(j,j)
-      iloop=iloop+1
-      IF(iloop>100) EXIT
-    ENDDO
-    !
-    IF(iloop>100) THEN
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(3706,(/skew/),(/0.d0/))
-      tilt(i) = tiltbefore
-    ELSE
-      CALL ATOMSK_MSG(3004,(/skew/),(/0.d0/))
-      Nunskewed=Nunskewed+1
+  DO j=3,1,-1
+    !Don't consider diagonal elements
+    IF(i.NE.j) THEN
+      skew(1:1)='x'
+      IF(j==2) skew(1:1)='y'
+      IF(j==3) skew(1:1)='z'
+      !
+      !Unskew tilt H(i,j)
+      tiltbefore = H(i,j)
+      iloop=0
+      !If tilt is too large, remove the matching box vector
+      DO WHILE( H(i,j)>0.5d0*H(j,j) )
+        H(i,:) = H(i,:) - H(j,:)
+        iloop=iloop+1
+        IF(iloop>100) EXIT
+      ENDDO
+      !If tilt is too negative, add the matching box vector
+      DO WHILE( H(i,j)<-0.5d0*H(j,j) )
+        H(i,:) = H(i,:) + H(j,:)
+        iloop=iloop+1
+        IF(iloop>100) EXIT
+      ENDDO
+      !Check that the loops did not go crazy
+      IF(iloop>100) THEN
+        !After 100 loops no solution was found
+        !Display a warning and restore initial value
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(3706,(/skew/),(/0.d0/))
+        H(i,j) = tiltbefore
+      ELSEIF(iloop>0) THEN
+        !This tilt was corrected: display message
+        CALL ATOMSK_MSG(3004,(/skew/),(/0.d0/))
+        Nunskewed=Nunskewed+1
+      ENDIF
     ENDIF
-    !
-  ENDIF
+  ENDDO
 ENDDO
-!
-!Save final tilts into H(:,:)
-H(2,1) = tilt(1)
-H(3,1) = tilt(2)
-H(3,2) = tilt(3)
-H(1,2) = tilt(4)
-H(1,3) = tilt(5)
-H(2,3) = tilt(6)
 !
 CALL ATOMSK_MSG(2104,(/''/),(/DBLE(Nunskewed)/))
 !

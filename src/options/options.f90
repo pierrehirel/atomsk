@@ -773,7 +773,7 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-roundoff','-round-off')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, tempreal
-    CALL ROUNDOFF_XYZ(P,S,AUXNAMES,AUX,temp,tempreal,SELECT)
+    CALL ROUNDOFF_XYZ(H,P,S,AUXNAMES,AUX,temp,tempreal,SELECT)
   !
   CASE('-select')
     select_multiple = ""

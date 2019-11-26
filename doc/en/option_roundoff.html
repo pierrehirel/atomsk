@@ -15,39 +15,37 @@
 
 <h4>Syntax</h4>
 
-<p><code>-round-off &#60;property&#62; &#60;threshold&#62;</code></p>
+<p><code>-round-off &#60;property&#62; &#60;accuracy&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to round off the values of the given &#60;property&#62; to the nearest integer. For the given &#60;property&#62;, if a value is closer than the &#60;threshold&#62; from the nearest integer, then the value is rounded off to the nearest integer. This option can be useful to eliminate round-off errors after constructing an atomic system, or after a simulation.</p>
+<p>This option allows to round off the values of the given &#60;property&#62; to the given &#60;accuracy&#62;.</p>
 
-<p>The &#60;property&#62; can be X, Y or Z (referring to Cartesian coordinates of atoms), or any per-atom auxiliary property. If it is defined as "XYZ", then all three coordinates will be rounded off; if it is "AUX", then all auxiliary properties will be rounded off. The &#60;threshold&#62; should be a positive real number.</p>
+<p>The &#60;property&#62; can be X, Y or Z (referring to Cartesian coordinates of atoms), H (referring to box vectors), or any per-atom auxiliary property. If it is defined as "XYZ", then all three coordinates will be rounded off; if it is "AUX", then all auxiliary properties will be rounded off. The &#60;accuracy&#62; should be a positive real number, and can be given using the exponent notation (see examples below).</p>
 
-<p>Values that are different from the nearest integer by an amount larger than the given &#60;threshold&#62; will not be modified by this option.</p>
-
-<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rounding off will affect only the property of the selected atoms.</p>
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the rounding off will affect only the selected atoms.</p>
 
 
 <h4>Default</h4>
 
-<p>By default numbers are not rounded off.</p>
+<p>By default numbers are not rounded off, they are stored as double precision real numbers (i.e. at least 15 significant numbers).</p>
 
 
 <h4>Examples</h4>
 
 <ul>
 <li><code class="command">atomsk initial.cfg -round-off x 1e-6 final.cfg</code>
-<p>This will read the file <code>initial.cfg</code>, and round off the X coordinates of all atoms, if necessary. For instance, if an atom has a X coordinate equal to 0.00000023, it will be rounded off to zero. If an atom has a coordinate X=0.9999999967, it will be rounded off to 1, and so on. The final result will be saved into <code>final.cfg</code>.</p></li>
+<p>This will read the file <code>initial.cfg</code>, and round off the X coordinates of all atoms to the sixth decimal number. For instance, if an atom has a X coordinate equal to 112.593725936, it will be rounded off to 112.593726. If an atom has a coordinate 54.329378216, it will be rounded off to 54.329378, and so on. The final result will be saved into <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -round-off xyz 1e-9 final.cfg</code>
-<p>This will read the file <code>initial.cfg</code>, and round off all coordinates (X, Y and Z) of all atoms, if they are closer to an integer than 10<sup>-9</sup>. The final result will be saved into <code>final.cfg</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -round-off xyz 0.01 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off all coordinates (X, Y and Z) of all atoms to the second decimal. The final result will be saved into <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -round-off energy 5.0e-4 final.cfg</code>
-<p>This will read the file <code>initial.cfg</code>, and round off the auxiliary property called "energy", if it takes values closer to an integer than 5&nbsp;10<sup>-4</sup>. The final result will be saved into <code>final.cfg</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -round-off energy 1.0e-4 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off the auxiliary property called "energy" to the fourth decimal number. The final result will be saved into <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -round-off AUX 1.0e-8 final.cfg</code>
-<p>This will read the file <code>initial.cfg</code>, and round off all auxiliary properties. The final result will be saved into <code>final.cfg</code>.</p></li>
+<li><code class="command">atomsk initial.cfg -round-off AUX 0.001 final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and round off all auxiliary properties to the third decimal number. The final result will be saved into <code>final.cfg</code>.</p></li>
 
 </ul>
 
