@@ -20,7 +20,9 @@
 
 <h4>Description</h4>
 
-<p>Cette option permet de "détordre" la boîte. Soient les vecteurs de boîte suivants :</p>
+<p>Cette option permet de "détordre" la boîte, c'est-à-dire qu'elle modifie les vecteurs de boîte s'ils forment un angle trop grand. La boîte résultante est équivalente à la boîte initiale, mais elle apparaît moins inclinée.</p>
+
+<p>Soient les vecteurs de boîte suivants :</p>
 
 <p>
 <code>
@@ -29,9 +31,11 @@
 | H(3,1) H(3,2) H(3,3) |</code>
 </p>
 
-<p>Si un élément non-diagonal a une valeur supérieure à son composant principal (c-à-d. si <code>|H(i,j)|&#62;0.5*H(j,j)</code> pour i&ne;j) alors la boîte est considérée comme "tordue". Cette option "détord" la boîte (c-à-d. ajoute ou soustrait <code>H(j,j)</code> à la composante inciminée).</p>
+<p>Si un élément non-diagonal a une valeur supérieure à son composant principal alors la boîte est considérée comme "tordue". Par exemple, si <code>|H(2,1)|&#62;0.5*H(1,1)</code>, alors cette option ajoute ou soustrait <code>H(1,1)</code> jusqu'à ce que ce ne soit plus le cas.</p>
 
 <p>Notez que les coordonnées (cartésiennes) des atomes ne sont pas modifiées par cette option, certains atomes peuvent donc se retrouver à l'extérieur de la nouvelle boîte. Pour les replacer à l'intérieur de la boîte il est possible d'utiliser l'<a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+<p>Cette option est surtout utile lors de la production de <a href="./format_lmp.html">fichiers de données LAMMPS</a>, qui requièrent que la boîte ne soit pas trop inclinée. Il est recommandé d'utiliser l'<a href="./option_alignx.html">option <code>-alignx</code></a> avant l'option <code>-unskew</code>.</p>
 
 
 
@@ -43,8 +47,8 @@
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk system.xsf -unskew lmp</code>
-<p>Ceci lira le fichier <code>system.xsf</code>, détordra la boîte, et écrira le résultat final dans le fichier de données de LAMMPS <code>system.lmp</code>.</p></li>
+<li><code class="command">atomsk system.xsf -alignx -unskew -wrap lmp</code>
+<p>Ceci lira le fichier <code>system.xsf</code>, <a href="./option_alignx.html">tournera le système pour aligner le premier vecteur de boîte avec l'axe X</a>, détordra la boîte, <a href="./option_wrap.html">replacera les atomes dans la boîte</a>, et écrira le résultat final dans le fichier de données de LAMMPS <code>system.lmp</code>.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

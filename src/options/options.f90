@@ -316,6 +316,9 @@ DO ioptions=1,SIZE(options_array)-1
   IF( temp=="-duplicate" .AND. (msg=="-orthocell" .OR. msg=="-wrap")  ) THEN
     !Advise to use other options BEFORE "-duplicate"
     CALL ATOMSK_MSG(2600,(/temp,options_array(ioptions+1)/),(/0.d0/))
+  ELSEIF( temp=="-unskew" .AND. msg=="-alignx"  ) THEN
+    !Advise to use other option "-alignx"  BEFORE "-unskew"
+    CALL ATOMSK_MSG(2600,(/temp,msg/),(/0.d0/))
   ENDIF
 ENDDO
 !

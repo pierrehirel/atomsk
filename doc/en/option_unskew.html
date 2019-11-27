@@ -20,7 +20,9 @@
 
 <h4>Description</h4>
 
-<p>This option "unskews" the box. Consider the following supercell vectors:</p>
+<p>This option "unskews" the box, i.e. it modifies box vectors if they form an angle that is very large. The resulting box is equivalent to the starting one, but it appears to be less tilted.</p>
+
+<p>Consider the following supercell vectors:</p>
 
 <p>
 <code>
@@ -29,9 +31,11 @@
 | H(3,1) H(3,2) H(3,3) |</code>
 </p>
 
-<p>If a non-diagonal element is larger than its main component (i.e. <code>|H(i,j)|&#62;0.5*H(j,j)</code> for i&ne;j) then the box is considered "skewed". This option reduces the skew (i.e. add or subtract <code>H(j,j)</code> to it) until it is not the case.</p>
+<p>If a non-diagonal element is larger than its main component then the box is considered "skewed". For example, if <code>|H(2,1)|&#62;0.5*H(1,1)</code>, then <code>H(1,1)</code> will be added or subtracted to it until it is not the case.</p>
 
 <p>Note that the (Cartesian) coordinates of atoms are not affected by this option, so some atoms may be outside of the box after this option is applied, which can be fixed with the <a href="./option_wrap.html">option <code>-wrap</code></a>.</p>
+
+<p>This option is mainly useful when producing <a href="./format_lmp.html">LAMMPS data files</a>, which require that the box is not tilted too much. It is recommended to use the <a href="./option_alignx.html">option <code>-alignx</code></a> before the option <code>-unskew</code>.</p>
 
 
 
@@ -43,8 +47,8 @@
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk system.xsf -unskew lmp</code>
-<p>This will read the file <code>system.xsf</code>, reduce the skew, and write the final result to the LAMMPS data file <code>system.lmp</code>.</p></li>
+<li><code class="command">atomsk system.xsf -alignx -unskew -wrap lmp</code>
+<p>This will read the file <code>system.xsf</code>, <a href="./option_alignx.html">rotate the system</a> to align the first box vector with the X axis, reduce the "skewness" (the tilt) of the box, <a href="./option_wrap.html">wrap atoms</a>, and write the final result to the LAMMPS data file <code>system.lmp</code>.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

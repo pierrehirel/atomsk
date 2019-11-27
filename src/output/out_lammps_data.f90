@@ -72,7 +72,6 @@ REAL(dp):: Qcore, Qshell !electric charge of core, shell
 REAL(dp):: smass         !mass of an atom
 REAL(dp):: Smassratio=0.1d0  !ratio (mass of shell)/(mass of core)
 REAL(dp):: tiltbefore
-REAL(dp),DIMENSION(3):: tilt  !xy, xz, yz
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: K   !copy of H
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: typemass  !array for storing the mass of each atom type
@@ -104,7 +103,6 @@ Nbond = 0
 Nshells = 0
 Nshelltypes = 0
 Nspecies = 0
-tilt(:) = 0.d0
 K=H
 IF(ALLOCATED(atypes)) DEALLOCATE(atypes)
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
@@ -320,57 +318,59 @@ IF( VECLENGTH(K(3,:)) > 1.d-12 ) THEN
   WRITE(40,160) zero, K(3,3), '  zlo zhi'
 ENDIF
 !
+!LAMMPS requires that skew parameters are less than half the box
+!length in each direction. If it is not the case, warn the user, and
+!propose to "unskew" the box
 IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
-  !LAMMPS requires that skew parameters are less than half the box
-  !length in each direction. If it is not the case, warn the user.
-  tilt(1) = K(2,1)
-  tilt(2) = K(3,1)
-  tilt(3) = K(3,2)
-  DO i=1,3
-    IF(i==1) THEN
-      j = 1
-      skew = 'xy'
-    ELSEIF(i==2) THEN
-      j = 1
-      skew = 'xz'
-    ELSEIF(i==3) THEN
-      j = 2
-      skew = 'yz'
-    ENDIF
+  DO i=2,3
+    IF(i==2) skew(2:2)='y'
+    IF(i==3) skew(2:2)='z'
     !
-    IF( DABS(tilt(i))>0.5d0*K(j,j) ) THEN
-      nwarn=nwarn+1
-      !Ask if the skew should be reduced
-      CALL ATOMSK_MSG(3705,(/skew/),(/0.d0/))
-      READ(*,*) answer
-      IF(answer==langyes .OR. answer==langBigYes) THEN
-        tiltbefore = tilt(i)
-        iloop=0
-        DO WHILE( tilt(i)>0.5d0*K(j,j) )
-          tilt(i) = tilt(i)-K(j,j)
-          iloop=iloop+1
-          IF(iloop>100) EXIT
-        ENDDO
+    DO j=i-1,1,-1
+      !Don't consider diagonal elements
+      IF(i.NE.j) THEN
+        IF(j==1) skew(1:1)='x'
+        IF(j==2) skew(1:1)='y'
         !
-        DO WHILE( tilt(i)<-0.5d0*K(j,j) )
-          tilt(i) = tilt(i)+K(j,j)
-          iloop=iloop+1
-          IF(iloop>100) EXIT
-        ENDDO
-        !
-        IF(iloop>100) THEN
+        !Check if tilt is too large
+        IF( DABS(K(i,j))>0.5d0*K(j,j) ) THEN
           nwarn=nwarn+1
-          CALL ATOMSK_MSG(3706,(/skew/),(/0.d0/))
-          tilt(i) = tiltbefore
-        ELSE
-          CALL ATOMSK_MSG(3004,(/skew/),(/0.d0/))
+          !Tilt is too large: ask if it should be reduced
+          CALL ATOMSK_MSG(3705,(/skew/),(/0.d0/))
+          READ(*,*) answer
+          IF(answer==langyes .OR. answer==langBigYes) THEN
+            !Unskew tilt K(i,j)
+            tiltbefore = K(i,j)
+            iloop=0
+            !If tilt is too large, remove the matching box vector
+            DO WHILE( K(i,j)>0.5d0*K(j,j) )
+              K(i,:) = K(i,:) - K(j,:)
+              iloop=iloop+1
+              IF(iloop>100) EXIT
+            ENDDO
+            !If tilt is too negative, add the matching box vector
+            DO WHILE( K(i,j)<-0.5d0*K(j,j) )
+              K(i,:) = K(i,:) + K(j,:)
+              iloop=iloop+1
+              IF(iloop>100) EXIT
+            ENDDO
+            !Check that the loops did not go crazy
+            IF(iloop>100) THEN
+              !After 100 loops no solution was found
+              !Display a warning and restore initial value
+              nwarn=nwarn+1
+              CALL ATOMSK_MSG(3706,(/skew/),(/0.d0/))
+              K(i,j) = tiltbefore
+            ELSEIF(iloop>0) THEN
+              !This tilt was corrected: display message
+              CALL ATOMSK_MSG(3004,(/skew/),(/0.d0/))
+            ENDIF
+          ENDIF
         ENDIF
-      ELSE
-        CALL ATOMSK_MSG(3005,(/skew/),(/0.d0/))
       ENDIF
-    ENDIF
+    ENDDO
   ENDDO
-  WRITE(40,161) tilt(1), tilt(2), tilt(3), ' xy xz yz'
+  WRITE(40,161) K(2,1), K(3,1), K(3,2), ' xy xz yz'
 ENDIF
 WRITE(40,*) ''
 160 FORMAT(f20.12,1X,f20.12,a9)
