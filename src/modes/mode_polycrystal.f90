@@ -1211,45 +1211,21 @@ DO inode=1,Nnodes
               vector = (/ P1 , P2 , P3 /)
               !Compute distance between current node and this vertex
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
-              !This image is a neighbor if distance is smaller than max. box size,
-              !and if it is not colinear with an existing vector
+              !This image is a neighbor if distance is smaller than max. box size
               IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
-                !Check if it is not colinear with an existing vertex
-                P1 = 1.d12
-                k=0
-                IF( Nvertices>0 ) THEN
-                  DO j=1,Nvertices
-                    P2 = VECLENGTH( CROSS_PRODUCT(vector(:),vvertex(j,1:3)) )
-                    P3 = DOT_PRODUCT(vector(:),vvertex(j,1:3))
-                    IF( P2<P1 .AND. P3>1.d-3 ) THEN
-                      P1=P2
-                      k=j
-                    ENDIF
-                  ENDDO
+                !$OMP CRITICAL
+                Nvertices = Nvertices+1
+                k = Nvertices
+                !$OMP END CRITICAL
+                IF( k>SIZE(vvertex,1) ) THEN
+                  !Increase size of array vvertex
+                  CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
                 ENDIF
+                !Save vertex position = middle point between nodes #inode and #jnode
+                vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                vvertex(k,4) = distance
                 !
-                IF( Nvertices>0 .AND. P1<1.d-3 .AND. k>0 .AND. k<=SIZE(vvertex,1) &
-                  & .AND. distance < VECLENGTH(vvertex(k,1:3))    ) THEN
-                  !Vertex vector #k is colinear with current vector but farther away
-                  !Replace it with current vector
-                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                  vvertex(k,4) = distance
-                ELSE
-                  !No colinear vertex was found: add a new one to the list
-                  !$OMP CRITICAL
-                  Nvertices = Nvertices+1
-                  k = Nvertices
-                  !$OMP END CRITICAL
-                  IF( k>SIZE(vvertex,1) ) THEN
-                    !Increase size of array vvertex
-                    CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
-                  ENDIF
-                  !Save vertex position = middle point between nodes #inode and #jnode
-                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                  vvertex(k,4) = distance
-                ENDIF
-                !
-              ENDIF  !end if distance<maxboxsize
+              ENDIF  !end if distance<boxmax
               !
             ENDDO  ! end loop on m
           ENDDO    ! end loop on n
@@ -1332,6 +1308,15 @@ DO inode=1,Nnodes
       WRITE(msg,'(i4,6f12.3)') i, vvertex(i,:)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
+    WRITE(msg,*) inode
+    OPEN(UNIT=40,FILE="atomsk_grain"//TRIM(ADJUSTL(msg))//"_vertices.xyz")
+    WRITE(40,*) SIZE(vvertex,1)+1
+    WRITE(40,*) "# Position of node # "//TRIM(ADJUSTL(msg))//" and its vertices"
+    WRITE(40,*) 2, vnodes(inode,:)
+    DO i=1,SIZE(vvertex,1)
+      WRITE(40,'(i4,6f12.3)') 1, vvertex(i,:)
+    ENDDO
+    CLOSE(40)
   ENDIF
   !
   !Copy template supercell Pt(:,:) into Pt2(:,:)
