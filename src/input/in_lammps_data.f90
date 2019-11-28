@@ -72,6 +72,7 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE:: BONDS   !(1) atom 1, (2) atom 2, (3) bond t
 REAL(dp):: alpha, beta, gamma
 REAL(dp):: a, b, c
 REAL(dp):: atomtype
+REAL(dp):: charge
 REAL(dp):: xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz !triclinic box parameters
 REAL(dp),DIMENSION(3):: vector  !temporary vector
 REAL(dp),DIMENSION(20):: column
@@ -105,6 +106,7 @@ q = 0
 vx = 0
 vy = 0
 vz = 0
+ charge = 0.d0
  column(:) = 0.d0
 xlo = 0.d0
 xhi = 0.d0
@@ -265,7 +267,7 @@ DO
         CASE("angle","atomic","body","bond","charge","dipole","dpd","edpd","mdpd","tdpd",   &
             & "electron","ellipsoid","full","line","meso","molecular","peri","smd","sphere", &
             & "template","tri","wavepacket","hybrid")
-          datatype = temp(1:16)
+          datatype = ADJUSTL(temp(1:16))
         CASE DEFAULT
           !Unknown data type or garbage => ignore it and proceed
           datatype = ""
@@ -390,14 +392,15 @@ DO
           datatype = "atomic"
         ELSEIF( Ncol==5 ) THEN
           !Assume "atom_style charge" = atom-ID atom-type q x y z
-          !Column #3 contains charge
           datatype = "charge"
           Naux = Naux+1
+          !Column #3 contains charge
           q = Naux
         ELSEIF( Ncol==7 ) THEN
           !Assume "atom_style full" = atom-ID molecule-ID atom-type q x y z
-          !Column #3 contains charge
           datatype = "full"
+          !Column #4 contains charge
+          q = Naux
         ENDIF
         !
         IF( .NOT. ALLOCATED(AUX) ) THEN
@@ -481,6 +484,12 @@ DO
         ELSE
           atomtype = column(1)
         ENDIF
+        !Save atom charge as an auxiliary property
+        IF ( datatype=="charge" ) THEN
+          charge = column(2)
+        ELSEIF ( datatype=="full" ) THEN
+          charge = column(3)
+        ENDIF
         !Save atom species
         IF( ALLOCATED(Masses) .AND. SIZE(Masses,1)>0 ) THEN
           !Look for the mass of this type of atom
@@ -563,9 +572,9 @@ DO
 !         IF(molecule) THEN
 !           AUX(id,molID) = molID
 !         ENDIF
-!         IF(q>0) THEN
-!           AUX(id,q) = column(1)
-!         ENDIF
+        IF(q>0) THEN
+          AUX(id,q) = charge
+        ENDIF
       ENDIF
       !
     ENDDO  !end loop on particles positions
