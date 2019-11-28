@@ -867,15 +867,21 @@ DO i=1,SIZE(vnodes,1) !loop on all nodes
   DO j=1,3  !loop on xyz
     DO WHILE( vnodes(i,j)>=1.d0 )
       vnodes(i,j) = vnodes(i,j)-1.d0
+      m=m+1
     ENDDO
     DO WHILE( vnodes(i,j)<0.d0 )
       vnodes(i,j) = vnodes(i,j)+1.d0
+      m=m+1
     ENDDO
   ENDDO
   IF(m>0) k=k+1
 ENDDO
 CALL FRAC2CART(vnodes,H)
-IF(k>0) PRINT*, "WARNING: wrapped ", k, " nodes"
+IF(k>0) THEN
+  !Some nodes were wrapped: display message
+  nwarn=nwarn+1
+  CALL ATOMSK_MSG(4716,(/''/),(/DBLE(k)/))
+ENDIF
 !
 CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
 !
@@ -931,7 +937,7 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 20
 ELSE
-  maxvertex = 186
+  maxvertex = 200
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -1222,13 +1228,12 @@ DO inode=1,Nnodes
                   ENDDO
                 ENDIF
                 !
-                IF( Nvertices>0 .AND. P1<0.1d0 .AND. k>0 .AND. k<=SIZE(vvertex,1) ) THEN
-                  !Vertex vector #k is colinear with current vector
-                  !If new one is closer, replace the older one
-                  IF( distance < VECLENGTH(vvertex(k,1:3)) ) THEN
-                    vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
-                    vvertex(k,4) = distance
-                  ENDIF
+                IF( Nvertices>0 .AND. P1<1.d-3 .AND. k>0 .AND. k<=SIZE(vvertex,1) &
+                  & .AND. distance < VECLENGTH(vvertex(k,1:3))    ) THEN
+                  !Vertex vector #k is colinear with current vector but farther away
+                  !Replace it with current vector
+                  vvertex(k,1:3) = vnodes(inode,:) + (vector(:)-vnodes(inode,:))/2.d0
+                  vvertex(k,4) = distance
                 ELSE
                   !No colinear vertex was found: add a new one to the list
                   !$OMP CRITICAL

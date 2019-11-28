@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2019                                     *
+!* Last modification: P. Hirel - 28 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3071,6 +3071,11 @@ CASE(4715)
   msg = "            but you specified rotation angles around the other Cartesian axes."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Are you sure that you know what you are doing?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4716)
+  !reals(1) = number of polycrystal nodes that were wrapped
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNING: "//TRIM(ADJUSTL(temp))//" nodes were out of bounds and were wrapped back into the box."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES

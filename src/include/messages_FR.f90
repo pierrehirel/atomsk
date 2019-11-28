@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2019                                     *
+!* Last modification: P. Hirel - 28 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3146,6 +3146,11 @@ CASE(4715)
   msg = "            mais vous avez entré des angles de rotation autour des autres axes cartésiens."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4716)
+  !reals(1) = number of polycrystal nodes that were wrapped
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ ALERTE : "//TRIM(ADJUSTL(temp))//" nœuds étaient hors limites et ont été replacés dans la boîte."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES

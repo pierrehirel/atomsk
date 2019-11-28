@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 14 June 2019                                     *
+!* Last modification: P. Hirel - 28 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3070,11 +3070,16 @@ CASE(4715)
   ELSE
     temp = "Z"
   ENDIF
-  msg = "/!\ WARNING: a 2-D polycrystal is to be constructed normal to the "//TRIM(temp)//" axis,"
+  msg = "/!\ WARNUNG: Ein 2-D-Polykristall soll normal zur "//TRIM(temp)//"-Achse konstruiert werden,"
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            but you specified rotation angles around the other Cartesian axes."
+  msg = "            aber Sie haben Rotationswinkel um die anderen kartesischen Achsen angegeben."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "            Are you sure that you know what you are doing?"
+  msg = "            Bitte ueberpruefen!"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4716)
+  !reals(1) = number of polycrystal nodes that were wrapped
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNUNG: "//TRIM(ADJUSTL(temp))//" Knoten waren außerhalb der Grenzen und wurden zurück in die Schachtel gelegt."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES
