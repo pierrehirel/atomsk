@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Oct. 2018                                     *
+!* Last modification: P. Hirel - 25 Dec. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -145,8 +145,20 @@ DO
       tempcomment(Ncomment) = TRIM(ADJUSTL(temp))
     ENDIF
   ELSEIF(temp(strlength-4:)=='atoms') THEN
-    READ(temp,*,ERR=820,END=820) NP
-    ALLOCATE(P(NP,4))
+    READ(temp,*,ERR=820,END=820) a
+    IF( a > NATOMS_MAX ) THEN
+      nerr = nerr+1
+      CALL ATOMSK_MSG(821,(/""/),(/a/))
+      GOTO 1000
+    ENDIF
+    NP = NINT(a)
+    ALLOCATE(P(NP,4) , STAT=i)
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+      GOTO 1000
+    ENDIF
   ELSEIF(temp(strlength-9:)=='atom types') THEN
     READ(temp,*,ERR=820,END=820) Nspieces
   ELSEIF(temp(strlength-4:)=='bonds') THEN

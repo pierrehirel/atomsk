@@ -30,6 +30,7 @@ MODULE comv
 CHARACTER(LEN=24),PARAMETER:: version = 'master'
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
+INTEGER,PARAMETER:: NATOMS_MAX = HUGE(1)  !maximum number of atoms that Atomsk can handle
 !
 !**********************************
 !*  ENVIRONMENT-DEPENDENT VARIABLES
