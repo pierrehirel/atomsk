@@ -879,7 +879,8 @@ CASE(821)
   WRITE(temp,'(f18.0)') reals(1)
   msg = "X!X ERROR: this operation results in a very large number of atoms: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "          This number exceeds the number of atoms that Atomsk can handle."
+  WRITE(temp,*) NATOMS_MAX
+  msg = "          Maximum number of atoms that Atomsk can handle: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
@@ -1026,12 +1027,11 @@ CASE(1804)
 CASE(1805)
   !reals(1) = number of particles read
   !reals(2) = number of particles declared
-  msg = "X!X ERROR: number of atoms read differs from the number"
-  CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(temp,*) NINT(reals(1))
-  WRITE(msg,*) NINT(reals(2))
-  msg = "           of atoms declared: "// &
-      & TRIM(ADJUSTL(temp))//"/"//TRIM(ADJUSTL(msg))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "X!X ERROR: number of atoms read ("//TRIM(ADJUSTL(temp))//") differs from the number"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          of atoms declared ("//TRIM(ADJUSTL(temp2))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1806)
   !reals(1) = index of atom

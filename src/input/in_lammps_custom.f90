@@ -14,7 +14,7 @@ MODULE in_lmp_c
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Jan. 2019                                     *
+!* Last modification: P. Hirel - 25 Dec. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -118,8 +118,20 @@ DO WHILE(.NOT.finished)
       ALLOCATE(comment(1))
       comment(1) = "# LAMMPS timestep "//TRIM(ADJUSTL(msg))
     ELSEIF(temp2(1:15)=='NUMBER OF ATOMS') THEN
-      READ(30,*,END=820,ERR=820) NP
-      ALLOCATE(P(NP,4))
+      READ(30,*,END=820,ERR=820) a
+      IF( a > NATOMS_MAX ) THEN
+        nerr = nerr+1
+        CALL ATOMSK_MSG(821,(/""/),(/a/))
+        GOTO 1000
+      ENDIF
+      NP = NINT(a)
+      ALLOCATE(P(NP,4) , STAT=i)
+      IF( i>0 ) THEN
+        ! Allocation failed (not enough memory)
+        nerr = nerr+1
+        CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+        GOTO 1000
+      ENDIF
       P(:,:) = 0.d0
     ELSEIF(temp2(1:10)=='BOX BOUNDS') THEN
       IF( temp2(12:19)=='xy xz yz' ) THEN

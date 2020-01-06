@@ -287,30 +287,31 @@ IF( aligned(1) .AND. aligned(2) .AND. aligned(3) ) THEN
   ENDDO
   !
 ELSE
-  !Estimate new number of particles NP = (density of old cell) / (volume of new cell)
-  NP = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
+  !Estimate new number of particles = (density of old cell) / (volume of new cell)
+  vlen = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
       & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) )
-  WRITE(msg,*) "Estimated new number of atoms : ", NP
+  WRITE(msg,*) "Estimated new number of atoms : ", vlen
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  CALL ATOMSK_MSG(2144,(/""/),(/DBLE(NP)/))
+  CALL ATOMSK_MSG(2144,(/""/),(/vlen/))
   !Allow for +50% and +100 atoms to allocate arrays.
   !Actual size of arrays will be adjusted later
-  NP = NINT(1.5d0*NP) + 100
+  vlen = NINT(1.5d0*vlen) + 100
   !
   !At this point, new cell vectors were found
   !Check that number of atoms does not exceed integer limit
-  IF( NP>2d9 ) THEN
+  IF( vlen>NATOMS_MAX ) THEN
     GOTO 801
-  ELSE IF( NP>5000 ) THEN
+  ELSE IF( vlen>5000 ) THEN
     CALL ATOMSK_MSG(3,(/""/),(/0.d0/))
   ENDIF
+  NP = NINT(vlen)
   !
   IF(ALLOCATED(Q)) DEALLOCATE(Q)
   ALLOCATE( Q(NP,4) , STAT=i )
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
     nerr = nerr+1
-    CALL ATOMSK_MSG(820,(/''/),(/DBLE(NP)/))
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
     GOTO 1000
   ENDIF
   Q(:,:) = 0.d0

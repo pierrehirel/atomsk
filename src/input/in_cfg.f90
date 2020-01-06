@@ -11,7 +11,7 @@ MODULE in_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 March 2016                                    *
+!* Last modification: P. Hirel - 24 Dec. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -91,8 +91,20 @@ DO WHILE(.NOT.Hset .OR. NP==0)
   IF(temp(1:1).NE.'#') THEN
     !Check if it is a new species
     IF(temp(1:21)=='Number of particles =' .OR. temp(1:20)=='Number of particles=') THEN
-        READ(temp(22:128),*,ERR=420,END=420) NP
-        ALLOCATE(P(NP,4))
+        READ(temp(22:128),*,ERR=420,END=420) snumber
+        IF( snumber > NATOMS_MAX ) THEN
+          nerr = nerr+1
+          CALL ATOMSK_MSG(821,(/""/),(/snumber/))
+          GOTO 1000
+        ENDIF
+        NP = NINT(snumber)
+        ALLOCATE(P(NP,4) , STAT=i)
+        IF( i>0 ) THEN
+          ! Allocation failed (not enough memory)
+          nerr = nerr+1
+          CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+          GOTO 1000
+        ENDIF
     ELSEIF(temp(1:2)=='A=' .OR. temp(1:3)=='A =') THEN
         READ(temp(4:128),*,ERR=400,END=400) testreal
         a0 = testreal
@@ -191,7 +203,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF(cfgformat==0.d0) THEN
   nerr=nerr+1
   CALL ATOMSK_MSG(1804,(/''/),(/0.d0/))
-  GOTO 500
+  GOTO 1000
 ENDIF
 !
 !Go back to the beginning of the file
@@ -352,7 +364,7 @@ ELSE
   !Convert coordinates to cartesian
   CALL FRAC2CART(P,H)
 ENDIF
-GOTO 500
+GOTO 1000
 !
 !
 !
@@ -364,16 +376,16 @@ CALL ATOMSK_MSG(802,(/''/),(/DBLE(NPcount)/))
 410 CONTINUE
 CALL ATOMSK_MSG(1809,(/''/),(/0.d0/))
 nerr = nerr+1
-GOTO 500
+GOTO 1000
 !
 420 CONTINUE
 CALL ATOMSK_MSG(1810,(/''/),(/0.d0/))
 nerr = nerr+1
-GOTO 500
+GOTO 1000
 !
 !
 !
-500 CONTINUE
+1000 CONTINUE
 !
 END SUBROUTINE READ_CFG
 !

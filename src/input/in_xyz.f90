@@ -104,7 +104,22 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 OPEN(UNIT=30,FILE=inputfile,FORM='FORMATTED',STATUS='OLD')
 REWIND(30)
 !First line is always the number of atoms
-READ(30,*,ERR=820,END=820) NP
+READ(30,*,ERR=820,END=820) a
+IF( a > NATOMS_MAX ) THEN
+  nerr = nerr+1
+  CALL ATOMSK_MSG(821,(/""/),(/a/))
+  GOTO 1000
+ENDIF
+NP = NINT(a)
+IF(NP==0) GOTO 800
+ALLOCATE(P(NP,4) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+  GOTO 1000
+ENDIF
+!
 !In case of special XYZ format, we have to read info at end of file
 !This is only possible if the XYZ file contains a single system,
 !i.e. if the mode is different from "1-in-all".
@@ -167,8 +182,6 @@ ENDIF
 REWIND(30)
 !Read the file
 READ(30,*,ERR=820,END=820) NP
-IF(NP==0) GOTO 800
-ALLOCATE(P(NP,4))
 READ(30,'(a1024)',ERR=830,END=830) properties !Properties if extended XYZ, comment otherwise
 !
 !Parse this second line for keywords
