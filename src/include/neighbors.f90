@@ -494,10 +494,10 @@ ELSE
                 !Also add atom #i as neighbor of atom #n
                 !$OMP CRITICAL
                 NNeigh(n) = NNeigh(n)+1
+                !$OMP END CRITICAL
                 IF( Nneigh(n) <= SIZE(NeighList,2) ) THEN
                   NeighList(n,Nneigh(n)) = i
                 ENDIF
-                !$OMP END CRITICAL
               ENDIF
             ENDIF
             !
@@ -537,6 +537,18 @@ ELSE
   msg = 'NeighList UNALLOCATED'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
+!
+IF( verbosity==4 ) THEN
+  !Verbose mode: write neighbor list in a text file
+  IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
+    OPEN(UNIT=51,FILE="atomsk_neighborlist.txt",STATUS="UNKNOWN",FORM="FORMATTED)
+    DO i=1,SIZE(NeighList,1)
+      WRITE(51,*) (NeighList(i,j),j=1,SIZE(NeighList,2))
+    ENDDO
+    CLOSE(51)
+  ENDIF
+ENDIF
+!
 msg = 'exiting NEIGHBOR_LIST'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !

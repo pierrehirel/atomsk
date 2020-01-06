@@ -1875,23 +1875,23 @@ CASE('stl','STL')
             th = CROSS_PRODUCT(td,e2)
             ta = DOT_PRODUCT(e1,th)
             !
-            IF( DABS(ta) >= 0.d0 ) THEN
+            IF( DABS(ta) > 1.d-6 ) THEN
               tf = 1.d0/ta
               ts(:) = P(i,1:3) - triangles(k,4:6)
               tu = tf * DOT_PRODUCT(ts,th)
               !
-              IF( tu > 1.d-6 .AND. tu < 1.000001d0 ) THEN
+              IF( tu > -1.d-6 .AND. tu < 1.d0-1.d-6 ) THEN
                 !Ray seems to intersect triangle
                 tq = CROSS_PRODUCT(ts,e1)
                 tv = tf * DOT_PRODUCT(td,tq)
                 !
-                IF( tv > 1.d-6 .AND. tu+tv < 1.000003d0 ) THEN
+                IF( tv > -1.d-6 .AND. tu+tv < 1.d0-1.d-6 ) THEN
                   !There is a line or ray intersection
                   ! at this stage we can compute t to find out where
                   ! the intersection point is on the line
                   tt = tf * DOT_PRODUCT(e2,tq)
                   !
-                  IF( tt >= 0.d0 ) THEN
+                  IF( tt > 1.d-6 ) THEN
                     !The ray intersects the triangle
                     !=> invert status of atom
                     keep = .NOT.keep

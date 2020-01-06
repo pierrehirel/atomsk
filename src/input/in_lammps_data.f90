@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Oct. 2018                                     *
+!* Last modification: P. Hirel - 29 Nov. 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -484,12 +484,6 @@ DO
         ELSE
           atomtype = column(1)
         ENDIF
-        !Save atom charge as an auxiliary property
-        IF ( datatype=="charge" ) THEN
-          charge = column(2)
-        ELSEIF ( datatype=="full" ) THEN
-          charge = column(3)
-        ENDIF
         !Save atom species
         IF( ALLOCATED(Masses) .AND. SIZE(Masses,1)>0 ) THEN
           !Look for the mass of this type of atom
@@ -572,6 +566,12 @@ DO
 !         IF(molecule) THEN
 !           AUX(id,molID) = molID
 !         ENDIF
+        !Save atom charge as an auxiliary property
+        IF ( datatype=="charge" ) THEN
+          charge = column(2)
+        ELSEIF ( datatype=="full" ) THEN
+          charge = column(3)
+        ENDIF
         IF(q>0) THEN
           AUX(id,q) = charge
         ENDIF

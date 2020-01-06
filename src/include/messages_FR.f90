@@ -150,8 +150,8 @@ IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Mode création :"
-  WRITE(*,*) "          atomsk --create <structure> <a> [<c>] <species> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
-  WRITE(*,*) "                            <structure> | N.param. maille| N.esp.at."
+  WRITE(*,*) "          atomsk --create <structure> <a> [<c>] <espèces> <outputfile> [orient hkl hkl hkl] [<formats>] [options]"
+  WRITE(*,*) "                            <structure> | N.param.maille | N.esp.at."
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             MAILLES                sc  |       1        |     1"
   WRITE(*,*) "             CUBIQUES              bcc  |       1        |   1 ou 2"
@@ -162,14 +162,14 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
   WRITE(*,*) "                           -------------+----------------+----------"
-  WRITE(*,*) "             MAILLES                st  |  2 (a and c)   |   1 ou 2"
-  WRITE(*,*) "             TETRAGONALES          bct  |  2 (a and c)   |   1 ou 2"
-  WRITE(*,*) "                                   fct  |  2 (a and c)   |   1 ou 2"
+  WRITE(*,*) "             MAILLES                st  |   2 (a et c)   |   1 ou 2"
+  WRITE(*,*) "             TETRAGONALES          bct  |   2 (a et c)   |   1 ou 2"
+  WRITE(*,*) "                                   fct  |   2 (a et c)   |   1 ou 2"
   WRITE(*,*) "                           -------------+----------------+----------"
-  WRITE(*,*) "             MAILLES               hcp  |  2 (a and c)   |   1 ou 2"
-  WRITE(*,*) "             HEXAGONALES      wurtzite  |  2 (a and c)   |     2"
-  WRITE(*,*) "                              graphite  |  2 (a and c)   |   1 ou 2"
-  WRITE(*,*) "                                   L14  |  2 (a and c)   |     2"
+  WRITE(*,*) "             MAILLES               hcp  |   2 (a et c)   |   1 ou 2"
+  WRITE(*,*) "             HEXAGONALES      wurtzite  |   2 (a et c)   |     2"
+  WRITE(*,*) "                              graphite  |   2 (a et c)   |   1 ou 2"
+  WRITE(*,*) "                                   L14  |   2 (a et c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
@@ -486,8 +486,8 @@ WRITE(*,*) "        (2) Mode one-in-all seulement."
 ENDIF
 !
 WRITE(*,*) ""
-WRITE(*,*) ">>> Référez-vous à la documentation dans le dossier /doc fourni avec le programme"
-WRITE(*,*) "    ou à cette adresse : http://atomsk.univ-lille.fr/fr/"
+WRITE(*,*) ">>> Référez-vous à la documentation dans le dossier /doc/ fourni avec le programme"
+WRITE(*,*) "    ou à cette adresse : https://atomsk.univ-lille.fr/fr/"
 WRITE(*,*) ""
 !
 !

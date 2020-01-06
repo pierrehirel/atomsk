@@ -9,6 +9,12 @@ BINPATH=/usr/local/bin/
 DOCPATH=/usr/local/share/doc/
 MPATH=/usr/local/share/man/man1/
 
+clear
+
+printf "___________________________________________________________\n"
+printf "\e[1m              Atomsk Installation Setup\e[0m\n"
+printf "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n"
+
 if [ ! -e 'atomsk' ] ; then
 
   echo "X!X ERROR: the program 'atomsk' does not exist in current directory."
@@ -107,3 +113,5 @@ else
   fi
 
 fi
+
+printf "___________________________________________________________\n"

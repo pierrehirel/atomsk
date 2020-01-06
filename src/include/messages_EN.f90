@@ -488,8 +488,8 @@ WRITE(*,*) "        (2) Mode one-in-all only."
 ENDIF
 !
 WRITE(*,*) ""
-WRITE(*,*) ">>> Look at the /doc folder provided with the program"
-WRITE(*,*) "    or go to: http://atomsk.univ-lille.fr/"
+WRITE(*,*) ">>> Look at the /doc/ folder provided with the program"
+WRITE(*,*) "    or go to: https://atomsk.univ-lille.fr/"
 WRITE(*,*) ""
 !
 !

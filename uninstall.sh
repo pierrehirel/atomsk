@@ -3,6 +3,11 @@
 # This script uninstalls Atomsk from system directories.
 # Note that Atomsk should have been installed with its script "install.sh".
 
+clear
+printf "___________________________________________________________\n"
+printf "\e[1m              Atomsk Uninstaller\e[0m\n"
+printf "_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _\n"
+
 # Get path to atomsk executable
 BINPATH="$(which atomsk)"
 
@@ -57,9 +62,12 @@ elif [ -w ${BINPATH} ] ; then
 
       # Display information for the user
       echo ">>> Program was successfuly removed."
-      echo ">>> You may also delete the file ~/.config/atomsk.conf"
-      echo "    and edit your ~/.bashrc file to remove the folder"
-      echo "    ${BINPATH} from your PATH environment variable."
+      
+      n=$(grep "atomsk" ~/.bashrc | wc -l)
+      if [ $n -gt 0 ] ; then
+        echo "<i> INFO: your file '~/.bashrc' still contains an alias or the path"
+        echo "          related to Atomsk. You may edit this file to remove it."
+      fi
       
     else
 
@@ -68,6 +76,14 @@ elif [ -w ${BINPATH} ] ; then
       # Only delete Atomsk executable (that was already done)
       echo ">>> Program was successfuly removed."
         
+    fi
+    
+    if [ -e "~/.config/atomsk.conf" ] ; then
+    
+      echo "<i> INFO: a file '~/.config/atomsk.conf' still exists in your personal folder."
+      echo "          You may either leave it, or remove it with the following command:"
+      echo "            rm -f ~/.config/atomsk.conf"
+    
     fi
     
   else
@@ -79,7 +95,7 @@ elif [ -w ${BINPATH} ] ; then
   
 else
 
-  # User does not have the right to access £BINPATH  
+  # User does not have the right to access $BINPATH  
   echo "X!X ERROR: Atomsk is installed in ${BINPATH}, but you do not have"
   echo "          the rights to un-install it. Run this script with super-user"
   echo "          rights (su or sudo) to un-install it."
