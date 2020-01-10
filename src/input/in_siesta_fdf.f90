@@ -18,7 +18,7 @@ MODULE in_siesta_fdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Jan. 2019                                     *
+!* Last modification: P. Hirel - 08 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -137,7 +137,13 @@ DO
       !
     ELSEIF( temp(1:13)=="numberofatoms" ) THEN
       !Read number of atoms
-      IF( NP==0 ) READ(line(14:),*,ERR=190,END=190) NP
+      IF( NP==0 ) READ(line(14:),*,ERR=190,END=190) a
+      IF( a > NATOMS_MAX ) THEN
+        nerr = nerr+1
+        CALL ATOMSK_MSG(821,(/""/),(/a/))
+        GOTO 1000
+      ENDIF
+      NP = NINT(a)
       !
     ELSEIF( temp(1:15)=="latticeconstant" ) THEN
       !Read lattice constant
@@ -204,7 +210,13 @@ DO
           !Read atom coordinates
           IF( NP>0 ) THEN
             !Allocate array to store atom coordinates
-            ALLOCATE( P(NP,4) )
+            ALLOCATE(P(NP,4) , STAT=i)
+            IF( i>0 ) THEN
+              ! Allocation failed (not enough memory)
+              nerr = nerr+1
+              CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+              GOTO 1000
+            ENDIF
             P(:,:) = 0.d0
             !Allocate array to store atom type as auxiliary property
             ALLOCATE( AUX(NP,1) )

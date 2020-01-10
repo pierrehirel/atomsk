@@ -13,7 +13,7 @@ MODULE in_siesta_xv
 !* (C) Jan. 2012 - Eva Marie Kalivoda                                             *
 !*     Fraunhofer Institute für Werkstoffmechanik IWM                             *
 !*     Wöhlerstr. 11, 79108 Freiburg im Breisgau                                  *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 08 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,6 +47,7 @@ CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 INTEGER:: i, NP
+REAL(dp):: a
 REAL(dp), DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
 REAL(dp), DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
@@ -65,9 +66,21 @@ REWIND(30)
 READ(30,*,ERR=400,END=400) H(1,1), H(1,2), H(1,3)
 READ(30,*,ERR=400,END=400) H(2,1), H(2,2), H(2,3)
 READ(30,*,ERR=400,END=400) H(3,1), H(3,2), H(3,3)
-READ(30,*,ERR=400,END=400) NP
+READ(30,*,ERR=400,END=400) a
+IF( a > NATOMS_MAX ) THEN
+  nerr = nerr+1
+  CALL ATOMSK_MSG(821,(/""/),(/a/))
+  GOTO 1000
+ENDIF
+NP = NINT(a)
 !
-ALLOCATE(P(NP,4))
+ALLOCATE(P(NP,4) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+  GOTO 1000
+ENDIF
 P(:,:) = 0.d0
 !
 ALLOCATE(AUX(NP,4))
@@ -82,16 +95,16 @@ DO i=1,NP
   READ(30,*,ERR=400,END=400) AUX(i,1), P(i,4), P(i,1), P(i,2), P(i,3), &
                            & AUX(i,2), AUX(i,3), AUX(i,4)
 ENDDO
-GOTO 500
+GOTO 1000
 !
 400 CONTINUE
 CALL ATOMSK_MSG(1801,(/''/),(/0.d0/))
 nerr = nerr+1
-GOTO 500
+GOTO 1000
 !
 !
 !
-500 CONTINUE
+1000 CONTINUE
 CLOSE(30)
 !
 END SUBROUTINE READ_XV

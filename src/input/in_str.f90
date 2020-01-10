@@ -137,7 +137,13 @@ DO
     !Save cell vectors into H(:,:)
     CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
   ELSEIF( temp(1:5)=="ncell" .OR. temp(1:5)=="NCELL" ) THEN
-    READ(temp(6:),*,ERR=207,END=207) Nx, Ny, Nz, NP
+    READ(temp(6:),*,ERR=207,END=207) Nx, Ny, Nz, a
+    IF( a > NATOMS_MAX ) THEN
+      nerr = nerr+1
+      CALL ATOMSK_MSG(821,(/""/),(/a/))
+      GOTO 1000
+    ENDIF
+    NP = NINT(a)
   ELSEIF( temp(1:5)=="atoms" .OR. temp(1:5)=="ATOMS" ) THEN
     IF( NP==0 ) THEN
       !Number of atoms is unknown => count them
@@ -179,7 +185,13 @@ WRITE(msg,*) 'File format is pdffit: ', pdffit
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 ! Allocate the atom data P and auxiliary data AUX and AUXNAMES
-ALLOCATE(P(NP,4))
+ALLOCATE(P(NP,4) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+  GOTO 1000
+ENDIF
 P = 0.d0
 ALLOCATE(AUX(NP,8),AUXNAMES(8))
 AUX = 0.d0

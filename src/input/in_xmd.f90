@@ -11,7 +11,7 @@ MODULE in_xmd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 08 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,7 @@ INTEGER:: typecol, vx, vy, vz !columns for atom types, velocities
 INTEGER,DIMENSION(30,2):: atypes !relationship between atom types and atom species
                                  !(assuming there are no more than 30 different species in the system)
 REAL(dp):: snumber  !atomic number
-                                 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
@@ -129,14 +129,27 @@ DO
       !
     ELSEIF( temp(1:8)=="POSITION" .OR. temp(1:8)=="PARTICLE" .OR. temp(1:6)=="POSVEL" ) THEN
       IF( temp(1:8)=="POSITION" .OR. temp(1:8)=="PARTICLE" ) THEN
-        READ(temp(9:),*,ERR=800,END=800) NP
+        READ(temp(9:),*,ERR=800,END=800) snumber
         velocities = .FALSE.
       ELSE
-        READ(temp(7:),*,ERR=800,END=800) NP
+        READ(temp(7:),*,ERR=800,END=800) snumber
         velocities = .TRUE.
       ENDIF
+      ! 
+      IF( snumber > NATOMS_MAX ) THEN
+        nerr = nerr+1
+        CALL ATOMSK_MSG(821,(/""/),(/snumber/))
+        GOTO 1000
+      ENDIF
+      NP = NINT(snumber)
       !
-      ALLOCATE(P(NP,4))
+      ALLOCATE(P(NP,4) , STAT=i)
+      IF( i>0 ) THEN
+        ! Allocation failed (not enough memory)
+        nerr = nerr+1
+        CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+        GOTO 1000
+      ENDIF
       P(:,:) = 0.d0
       ALLOCATE(AUX(NP,SIZE(AUXNAMES)))
       AUX(:,:) = 0.d0

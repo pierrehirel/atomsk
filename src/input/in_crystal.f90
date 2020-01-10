@@ -12,7 +12,7 @@ MODULE in_crystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2019                                      *
+!* Last modification: P. Hirel - 08 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,6 +59,7 @@ INTEGER:: NP  !counter for total number of particles
 INTEGER:: sgnumber  !space group number
 INTEGER:: symconv, symtype, symsetting
 REAL(dp):: a, b, c, alpha, beta, gamma !supercell (conventional notation)
+REAL(dp):: tempreal
 REAL(dp),DIMENSION(6):: values   !values read
 REAL(dp),DIMENSION(1,4):: tempP  !temporary position
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H    !Base vectors of the supercell
@@ -238,8 +239,21 @@ DO
     ENDIF
     !
     !Read number of atoms to follow
-    READ(30,*,ERR=800,END=800) j
+    READ(30,*,ERR=800,END=800) tempreal
+    IF( tempreal > NATOMS_MAX ) THEN
+      nerr = nerr+1
+      CALL ATOMSK_MSG(821,(/""/),(/tempreal/))
+      GOTO 1000
+    ENDIF
+    j = NINT(tempreal)
     IF(j<=0) GOTO 800
+    ALLOCATE(P(j,4) , STAT=i)
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(j)/))
+      GOTO 1000
+    ENDIF
     !
     !Allocate memory to store atoms
     IF( ALLOCATED(P) ) THEN

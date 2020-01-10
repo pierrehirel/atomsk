@@ -541,7 +541,7 @@ ENDIF
 IF( verbosity==4 ) THEN
   !Verbose mode: write neighbor list in a text file
   IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
-    OPEN(UNIT=51,FILE="atomsk_neighborlist.txt",STATUS="UNKNOWN",FORM="FORMATTED)
+    OPEN(UNIT=51,FILE="atomsk_neighborlist.txt",STATUS="UNKNOWN",FORM="FORMATTED")
     DO i=1,SIZE(NeighList,1)
       WRITE(51,*) (NeighList(i,j),j=1,SIZE(NeighList,2))
     ENDDO

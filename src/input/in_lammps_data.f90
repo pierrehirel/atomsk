@@ -12,11 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-<<<<<<< HEAD
-!* Last modification: P. Hirel - 29 Nov. 2019                                     *
-=======
-!* Last modification: P. Hirel - 25 Dec. 2019                                     *
->>>>>>> bd383e96065e5ddd42cd2e56a918e2dd0bef40ba
+!* Last modification: P. Hirel - 08 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

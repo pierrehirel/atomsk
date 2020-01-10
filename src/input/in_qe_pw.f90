@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 May 2018                                      *
+!* Last modification: P. Hirel - 08 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -174,7 +174,13 @@ DO
           IF( fields(i)(1:3)=='nat' .OR. fields(i)(1:3)=='Nat' .OR. fields(i)(1:3)=='NAT' ) THEN
             !Read number of atoms NP
             strlength = SCAN(fields(i),'=')
-            READ(fields(i)(strlength+1:),*,END=800,ERR=800) NP
+            READ(fields(i)(strlength+1:),*,END=800,ERR=800) a
+            IF( a > NATOMS_MAX ) THEN
+              nerr = nerr+1
+              CALL ATOMSK_MSG(821,(/""/),(/a/))
+              GOTO 1000
+            ENDIF
+            NP = NINT(a)
           ELSEIF( fields(i)(1:5)=='ibrav' .OR. fields(i)(1:5)=='IBRAV' ) THEN
             !Defines the type of lattice: read it
             strlength = SCAN(fields(i),'=')
@@ -266,8 +272,14 @@ WRITE(msg,*) 'NP:', NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 REWIND(30)
 !
-IF( NP.NE.0 ) THEN
-  ALLOCATE(P(NP,4))
+IF( NP>0 ) THEN
+  ALLOCATE(P(NP,4) , STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+    GOTO 1000
+  ENDIF
   IF( Naux>0 ) THEN
     ALLOCATE(AUXNAMES(Naux))
     ALLOCATE(AUX(SIZE(P,1),Naux))
