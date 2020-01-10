@@ -13,7 +13,7 @@ MODULE out_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 16 July 2019                                     *
+!* Last modification: P. Hirel - 10 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,7 +54,6 @@ INTEGER:: i, NPd, NPinert
 REAL(dp):: len1, len2, len3
 REAL(dp):: P1, P2, P3
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(3,3):: G   !Inverse of H
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
@@ -80,9 +79,6 @@ OPEN(UNIT=40,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
 CALL FIND_IF_REDUCED(P,isreduced)
 WRITE(msg,*) 'isreduced:', isreduced
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!
-!Inverse matrix H
-CALL INVMAT(H,G)
 !
 !Check if some atoms are fixed
 IF(ALLOCATED(AUX)) THEN
@@ -133,17 +129,7 @@ ENDIF
 !Write atomic coordinates
 DO i=1,SIZE(P,1)
   CALL ATOMSPECIES(P(i,4),species)
-  IF(isreduced) THEN
-    WRITE(msg,201) species, P(i,1), P(i,2), P(i,3)
-  ELSE
-    P1 = P(i,1)
-    P2 = P(i,2)
-    P3 = P(i,3)
-    WRITE(msg,201) species,  &
-                 & P1*G(1,1) + P2*G(2,1) + P3*G(3,1),     &
-                 & P1*G(1,2) + P2*G(2,2) + P3*G(3,2),     &
-                 & P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
-  ENDIF
+  WRITE(msg,201) species, P(i,1), P(i,2), P(i,3)
   !
   !If some atoms are fixed, add flags at the end of line
   temp = ""
