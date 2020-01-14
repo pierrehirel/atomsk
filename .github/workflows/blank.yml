@@ -18,6 +18,10 @@ jobs:
     - name: Compile Atomsk
       run: |
         cd src
+        rm -f atomsk
         make atomsk
+        sudo make install
     - name: Display Atomsk version
-      run: ./atomsk --version
+      run: |
+        ls
+        atomsk --version
