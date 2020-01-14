@@ -9,7 +9,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Run a multi-line script
+    - name: Install gfortran and LAPACK
+      run: |
+        sudo apt update
+        sudo apt-get install gfortran liblapack-dev
+    - name: Display gfortran version
+      run: gfortran --version
+    - name: Compile Atomsk
       run: |
         cd src
         make atomsk
+    - name: Display Atomsk version
+      run: ./atomsk --version
