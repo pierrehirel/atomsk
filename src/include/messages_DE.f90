@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 28 Nov. 2019                                     *
+!* Last modification: P. Hirel - 14 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -333,6 +333,8 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Rotiere das System um eine Achse:"
   WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
+  WRITE(*,*) "          -rotate [com] [hkl] <angle>"
+  WRITE(*,*) "          -rotate [com] vx vy vz <angle>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-roundoff" .OR. helpsection=="-round-off") THEN
@@ -1525,8 +1527,12 @@ CASE(2081)
   !strings(1) = rotation axis: x, y or z
   !reals(1) = rotation angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rotatiere das System um "//TRIM(ADJUSTL(msg)) &
-      & //"° um die Achse "//TRIM(strings(1))
+  msg = ">>> Rotatiere das System um "//TRIM(ADJUSTL(msg))//"°"
+  IF( SCAN(strings(1),'xXyYzZ[]')>0 ) THEN
+    msg = TRIM(msg)//" um die Achse "//TRIM(strings(1))//"."
+  ELSE
+    msg = TRIM(msg)//" um die Vektor ("//TRIM(strings(1))//")."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2082)
   msg = "..> System erfolgreich rotiert."

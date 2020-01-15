@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 April 2019                                    *
+!* Last modification: P. Hirel - 14 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -694,8 +694,8 @@ END SUBROUTINE COUNT_OUTBOX
 SUBROUTINE INDEX_MILLER(planestring,planeindices,ifail)
 !
 IMPLICIT NONE
-CHARACTER(LEN=16),INTENT(IN):: planestring
-CHARACTER(LEN=16):: temp, temp2
+CHARACTER(LEN=*),INTENT(IN):: planestring
+CHARACTER(LEN=LEN_TRIM(planestring)):: temp, temp2
 INTEGER:: i, m, mint
 INTEGER:: ifail
 INTEGER:: strpos

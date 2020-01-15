@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Oct. 2016                                     *
+!* Last modification: P. Hirel - 14 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,11 +36,11 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE ROTATE_XYZ(H,P,S,AUXNAMES,AUX,com,rot_axis,rot_angle,SELECT,C_tensor)
+SUBROUTINE ROTATE_XYZ(H,P,S,AUXNAMES,AUX,com,rot_axis,rot_angle,ORIENT,SELECT,C_tensor)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=1),INTENT(IN):: rot_axis  ! cartesian x, y or z axis
+CHARACTER(LEN=*),INTENT(IN):: rot_axis  ! Cartesian x, y or z axis, Miller vector, or 3 real numbers
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
@@ -50,12 +50,18 @@ INTEGER:: i
 INTEGER,DIMENSION(3):: Fxyz, Vxyz !columns of AUX containing forces, velocities
 LOGICAL:: velocities, forces
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
-REAL(dp):: H2, H3
+REAL(dp):: H1, H2, H3
 REAL(dp):: rot_angle      !angle in degrees
 REAL(dp):: smass          !mass of an atom
 REAL(dp):: totmass        !mass of all (or selected) atoms
+REAL(dp):: V1, V2, V3
+REAL(dp):: u, v, w, x, z1, z2
+REAL(dp),DIMENSION(3):: MILLER       !Miller indices
 REAL(dp),DIMENSION(3):: Vcom !position of center of rotation
+REAL(dp),DIMENSION(3):: Vrot !vector around which the rotation is made
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
+REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(3,3):: rot_matrix
 REAL(dp),DIMENSION(9,9),INTENT(INOUT):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of cores, shells
@@ -64,12 +70,17 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties o
 !Initialize variables
 forces=.FALSE.
 velocities=.FALSE.
+a1=0
+a2=0
+a3=0
 i = 0
 Fxyz(:)=0
 Vxyz(:)=0
 H2 = 0.d0
 H3 = 0.d0
+MILLER(:) = 0.d0
 Vcom(:) = 0.d0
+Vrot(:) = 0.d0
 rot_matrix(:,:) = 0.d0
 DO i=1,3
   rot_matrix(i,i) = 1.d0
@@ -107,9 +118,6 @@ IF( com .NE. 0 ) THEN
   Vcom(:) = Vcom(:) / totmass
 ENDIF
 !
-!convert the angle into radians
-rot_angle = DEG2RAD(rot_angle)
-!
 !Define the axes
 IF(rot_axis=='x' .OR. rot_axis=='X') THEN
   a1 = 1
@@ -124,18 +132,102 @@ ELSEIF(rot_axis=='z' .OR. rot_axis=='Z') THEN
   a2 = 1
   a3 = 2
 ELSE
-  CALL ATOMSK_MSG(2800,(/rot_axis/),(/0.d0/))
-  nerr = nerr+1
-  GOTO 1000
+  !Directions will be simply a1=X, a2=Y, a3=Z
+  a1 = 1
+  a2 = 2
+  a3 = 3
+  !
+  IF( SCAN(rot_axis,'[]_')>0 ) THEN
+    !It may be a Miller direction
+    CALL INDEX_MILLER(rot_axis,MILLER,i)
+    IF( i>0 ) THEN
+      !Miller direction may be given for hexagonal
+      CALL INDEX_MILLER_HCP(rot_axis,MILLER,i)
+      IF(i==0) THEN
+        !Convert [hkil] notation into [uvw] in MILLER
+        u = 2.d0*MILLER(1) + MILLER(2)
+        v = MILLER(1) + 2.d0*MILLER(2)
+        w = MILLER(3)
+        !Check for common divisor
+        IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+          z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+        ELSE
+          z1 = MAX(DABS(u),DABS(v))
+        ENDIF
+        IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+          z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+        ELSE
+          z2 = MAX(DABS(u),DABS(w))
+        ENDIF
+        IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+          x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
+        ELSE  !i.e. z1==0 or z2==0
+          x = MAX( DABS(z1) , DABS(z2) )
+        ENDIF
+        IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+        !Set normal to plane of cut
+        MILLER(:) = ( u*H(:,1) + v*H(:,2) + w*H(:,3) ) / x
+      ENDIF
+    ENDIF
+    IF(i==0) THEN
+      !It was a Miller direction
+      !Check that it is not [000]
+      IF( VECLENGTH(MILLER)<1.d-12 ) THEN
+        CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
+        nerr=nerr+1
+        GOTO 1000
+      ENDIF
+      !
+      !If the system has a defined crystallographic orientation ORIENT,
+      !then Vrot(1,:) is defined in that basis
+      !=> rotate Vrot(1,:) to express it in cartesian basis
+      IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+        DO i=1,3
+          ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+        ENDDO
+        V1 = MILLER(1)
+        V2 = MILLER(2)
+        V3 = MILLER(3)
+        MILLER(1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+        MILLER(2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+        MILLER(3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+      ENDIF
+      !
+      Vrot(:) = MILLER(:)
+    ELSE
+      !It was not a Miller vector: impossible to understand, abort
+      GOTO 801
+    ENDIF
+    !
+  ELSE
+    !Last possibility: rot_axis should contain 3 real numbers
+    READ(rot_axis,*,ERR=801,END=801) V1, V2, V3
+    Vrot(:) = (/ V1 , V2 , V3 /)
+  ENDIF
 ENDIF
 !
-!set the rotation matrix
-rot_matrix(:,:) = 0.d0
-rot_matrix(a1,a1) = 1.d0
-rot_matrix(a2,a2) = DCOS(rot_angle)
-rot_matrix(a2,a3) = -DSIN(rot_angle)
-rot_matrix(a3,a2) = DSIN(rot_angle)
-rot_matrix(a3,a3) = DCOS(rot_angle)
+WRITE(msg,'(a6,3f12.3)') 'Vrot: ', Vrot(:)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+IF( VECLENGTH(Vrot(:))<1.d-6 ) THEN
+  !convert the angle into radians
+  rot_angle = DEG2RAD(rot_angle)
+  !set the rotation matrix
+  rot_matrix(:,:) = 0.d0
+  rot_matrix(a1,a1) = 1.d0
+  rot_matrix(a2,a2) = DCOS(rot_angle)
+  rot_matrix(a2,a3) = -DSIN(rot_angle)
+  rot_matrix(a3,a2) = DSIN(rot_angle)
+  rot_matrix(a3,a3) = DCOS(rot_angle)
+  !
+ELSE
+  !Direction was Miller index or a vector
+  !Normalize Vrot
+  Vrot(:) = Vrot(:)/VECLENGTH(Vrot(:))
+  !
+  !Construct rotation matrix
+  rot_matrix = ROTMAT_AXIS(Vrot,rot_angle)
+ENDIF
 !
 IF(verbosity==4) THEN
   msg = 'debug --> Rotation matrix:'
@@ -182,56 +274,74 @@ ENDIF
 !
 100 CONTINUE
 !Rotate the atomic positions
-!P(a1) is untouched and we rotate only atoms that are selected in SELECT
+!Rotate only atoms that are selected in SELECT
 DO i=1,SIZE(P,1)
   IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    H1 = P(i,a1) - Vcom(a1)
     H2 = P(i,a2) - Vcom(a2)
     H3 = P(i,a3) - Vcom(a3)
-    P(i,a2) = Vcom(a2) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-    P(i,a3) = Vcom(a3) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+    P(i,a1) = Vcom(a1) + H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+    P(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+    P(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+    !
     !Same with shell if they exist
     IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+      H1 = S(i,a1) - Vcom(a1)
       H2 = S(i,a2) - Vcom(a2)
       H3 = S(i,a3) - Vcom(a3)
-      S(i,a2) = Vcom(a2) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      S(i,a3) = Vcom(a3) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      S(i,a1) = Vcom(a1) + H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+      S(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+      S(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
     ENDIF
+    !
     !Same with forces if they exist
     IF( forces ) THEN
+      H1 = AUX(i,Fxyz(a1))
       H2 = AUX(i,Fxyz(a2))
       H3 = AUX(i,Fxyz(a3))
-      AUX(i,Fxyz(a2)) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      AUX(i,Fxyz(a3)) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      AUX(i,Fxyz(a1)) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+      AUX(i,Fxyz(a2)) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+      AUX(i,Fxyz(a3)) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
     ENDIF
+    !
     !Same with velocities if they exist
     IF( velocities ) THEN
+      H1 = AUX(i,Vxyz(a1))
       H2 = AUX(i,Vxyz(a2))
       H3 = AUX(i,Vxyz(a3))
-      AUX(i,Vxyz(a2)) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      AUX(i,Vxyz(a3)) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      AUX(i,Vxyz(a1)) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+      AUX(i,Vxyz(a2)) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+      AUX(i,Vxyz(a3)) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
     ENDIF
+    !
   ENDIF
 ENDDO
 !
 IF( .NOT.ALLOCATED(SELECT) .AND. com==0 ) THEN
   !Rotate the base vectors of the system (only if no selection is defined)
   !The H(:,a1) are left untouched
+  H1 = H(a1,a1)
   H2 = H(a1,a2)
   H3 = H(a1,a3)
-  H(a1,a2) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-  H(a1,a3) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+  H(a1,a1) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+  H(a1,a2) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+  H(a1,a3) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+  H1 = H(a2,a1)
   H2 = H(a2,a2)
   H3 = H(a2,a3)
-  H(a2,a2) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-  H(a2,a3) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+  H(a2,a1) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+  H(a2,a2) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+  H(a2,a3) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+  H1 = H(a3,a1)
   H2 = H(a3,a2)
   H3 = H(a3,a3)
-  H(a3,a2) = H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-  H(a3,a3) = H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+  H(a3,a1) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+  H(a3,a2) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+  H(a3,a3) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
 ENDIF
 !
 !If elastic tensor is set, rotate it
-IF( C_tensor(1,1).NE.0.d0 ) THEN
+IF( DABS(C_tensor(1,1))>1.d-6 ) THEN
   C_tensor = ROTELAST( C_tensor, rot_matrix )
   CALL ATOMSK_MSG(2099,(/""/),(/0.d0/))
 ENDIF
@@ -246,6 +356,13 @@ GOTO 1000
 800 CONTINUE
 CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
 nerr = nerr+1
+GOTO 1000
+!
+801 CONTINUE
+!Nothing worked: impossible to understand this direction
+CALL ATOMSK_MSG(2800,(/rot_axis/),(/0.d0/))
+nerr = nerr+1
+GOTO 1000
 !
 !
 !

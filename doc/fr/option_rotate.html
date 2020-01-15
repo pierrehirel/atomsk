@@ -17,12 +17,16 @@
 
 <p><code>-rotate [com] &#60;axe&#62; &#60;&theta;&#62;</code></p>
 
+<p><code>-rotate [com] [<em>hkl</em>] &#60;&theta;&#62;</code></p>
+
+<p><code>-rotate [com] &#60;v<sub>x</sub>&#62; &#60;v<sub>y</sub>&#62; &#60;v<sub>z</sub>&#62; &#60;&theta;&#62;</code></p>
+
 
 <h4>Description</h4>
 
-<p>Cette option permet de pivoter le système (i.e. la boîte et les atomes) autour d'un axe cartésien.</p>
+<p>Cette option permet de pivoter le système (la boîte et/ou les atomes) autour d'un axe donné.</p>
 
-<p>Il est nécessaire de fournir l'axe de rotation (x, y ou z), et l'angle de rotation &theta; (en degrés).</p>
+<p>L'&#60;axe&#62; de rotation peut être 'x', 'y', 'z' (axes cartésiens), ou une direction cristallographique définie par ses indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation crystallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001]. Il est également possible de donner n'importe quelle direction en entrant les coordonnées d'un vecteur (v<sub>x</sub>;v<sub>y</sub>;v<sub>z</sub>) en angströms. L'angle de rotation &theta; doit être donné en degrés.</p>
 
 <p>Si le mot-clé "com" est utilisé, alors la rotation s'effectuera autour du centre de masse du système. Sinon (s'il est omis), la rotation s'effectuera autour de l'origine (0,0,0) par défaut.</p>
 
@@ -51,6 +55,12 @@
 
 <li><code class="command">atomsk initial.cfg -select in cylinder Z 0.5*box 0.5*box 25 -rotate com Z 24° final.xyz</code>
 <p>Cette commande va <a href="./option_select.html">sélectionner un cylindre</a> de rayon 25 &Aring; suivant Z, puis va pivoter ce cylindre autour de son centre de masse d'un angle de 24 degrés autour de l'axe Z. La boîte ne sera pas pivotée.</p></li>
+
+<li><code class="command">atomsk initial.cfg -rotate [111] 45 final.xyz</code>
+<p>Cette commande va tourner le système (atomes et boîte) de 45 degrés autour de la direction cristalline [111].</p></li>
+
+<li><code class="command">atomsk initial.cfg -rotate 1.2 0.0 3.9 21.7 final.xyz</code>
+<p>Cette commande va tourner le système de 21.7 degrés autour du vecteur cartésien (1.2;0.0;3.9).</p></li>
 
 
 </ul>

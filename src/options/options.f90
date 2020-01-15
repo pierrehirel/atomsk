@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Nov. 2019                                     *
+!* Last modification: P. Hirel - 14 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -208,7 +208,7 @@ CHARACTER(LEN=32):: rmprop_prop  !property that must be erased
 CHARACTER(LEN=6):: rmshells_prop  !species on which shells are removed
 !
 !Variables relative to Option: rotate
-CHARACTER(LEN=1):: rot_axis     !(x, y or z)
+CHARACTER(LEN=1024):: rot_axis    !Cartesian x, y or z, Miller vector, or 3 real coordinates
 REAL(dp):: rot_angle              !in degrees
 !
 !Variables relative to Option: select
@@ -762,17 +762,27 @@ DO ioptions=1,SIZE(options_array)
     CALL ROLL_XYZ(H,P,S,AUXNAMES,AUX,shift_dir,rot_angle,rot_axis,SELECT)
   !
   CASE('-rot', '-rotate')
-    j=0
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
-    temp=TRIM(ADJUSTL(temp))
+    j=SCAN(options_array(ioptions),' ')
+    temp =  TRIM(ADJUSTL( options_array(ioptions)(j:) ))
     IF( temp(1:3)=="com" ) THEN
+      j=INDEX(options_array(ioptions),'com') + 3
+      temp = TRIM(ADJUSTL( options_array(ioptions)(j:) ))
       j=1
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, rot_axis, rot_angle
     ELSE
       j=0
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, rot_axis, rot_angle
     ENDIF
-    CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,j,rot_axis,rot_angle,SELECT,C_tensor)
+    READ(temp,*,END=800,ERR=800) msg
+    msg = TRIM(ADJUSTL(msg))
+    IF( SCAN(msg,'xXyYzZ[]')>0 ) THEN
+      READ(temp,*,END=800,ERR=800) rot_axis, rot_angle
+    ELSEIF( SCAN(msg,'1234567890')>0 ) THEN
+      READ(temp,*,END=800,ERR=800) treal(1), treal(2), treal(3), rot_angle
+      rot_axis = TRIM(treal(1))//' '//TRIM(treal(2))//' '//TRIM(treal(3))
+    ELSE
+      !Inconsistent parameters
+      GOTO 800
+    ENDIF
+    CALL ROTATE_XYZ(H,P,S,AUXNAMES,AUX,j,rot_axis,rot_angle,ORIENT,SELECT,C_tensor)
   !
   CASE('-roundoff','-round-off')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, tempreal

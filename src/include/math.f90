@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2019                                     *
+!* Last modification: P. Hirel - 14 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -289,25 +289,25 @@ axis_u(:) = axis(:) / VECLENGTH(axis)
 !
 rot_matrix(:,:) = 0.d0
 !
-!ux²(1-c) + c
+!ux²*(1-c) + c
 rot_matrix(1,1) = (1.d0-c)*axis_u(1)**2 + c
-!ux*uy(1-c) - uz*s
+!ux*uy*(1-c) - uz*s
 rot_matrix(1,2) = (1.d0-c)*axis_u(1)*axis_u(2) - s*axis_u(3)
 !ux*uz*(1-c) + uy*s
 rot_matrix(1,3) = (1.d0-c)*axis_u(1)*axis_u(3) + s*axis_u(2)
 !
 !ux*uy*(1-c) + uz*s
 rot_matrix(2,1) = (1.d0-c)*axis_u(1)*axis_u(2) + s*axis_u(3)
-!uy²(1-c) + c
+!uy²*(1-c) + c
 rot_matrix(2,2) = (1.d0-c)*axis_u(2)**2 + c
-!uy*uz(1-c) - ux*s
-rot_matrix(2,3) = (1.d0-c)*axis_u(2) - s*axis_u(1)
+!uy*uz*(1-c) - ux*s
+rot_matrix(2,3) = (1.d0-c)*axis_u(2)*axis_u(3) - s*axis_u(1)
 !
 !ux*uz*(1-c) - uy*s
 rot_matrix(3,1) = (1.d0-c)*axis_u(1)*axis_u(3) - s*axis_u(2)
-!uy*uz(1-c) + ux*s
+!uy*uz*(1-c) + ux*s
 rot_matrix(3,2) = (1.d0-c)*axis_u(2)*axis_u(3) + s*axis_u(1)
-!uz²(1-c) + c
+!uz²*(1-c) + c
 rot_matrix(3,3) = (1.d0-c)*axis_u(3)**2 + c
 !
 !

@@ -1178,40 +1178,57 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     IF( temp(1:3)=="com" ) THEN
       options_array(ioptions) = TRIM(options_array(ioptions))//' com '
-      !read the axis of rotation (x, y or z) and the angle of rotation
+      !read the axis of rotation (x, y, z, or Miller vector, or 3 real numbers)
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      temp = TRIM(ADJUSTL(temp))
     ENDIF
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp2
-    temp = TRIM(ADJUSTL(temp))
-    temp2 = TRIM(ADJUSTL(temp2))
-    j=SCAN(temp,"°")
-    IF(j>0) THEN
-      temp = temp(1:j-1)
-    ENDIF
-    j=SCAN(temp2,"°")
-    IF(j>0) THEN
-      temp2 = temp2(1:j-1)
-    ENDIF
-    !User may have entered "-rotate axis angle" or "-rotate angle axis"
-    !detect which is which and save "-rotate axis angle" in options_array
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') THEN
-      IF( temp2(1:1).NE.'x' .AND. temp2(1:1).NE.'y' .AND. temp2(1:1).NE.'z' .AND.  &
-      & temp2(1:1).NE.'X' .AND. temp2(1:1).NE.'Y' .AND. temp2(1:1).NE.'Z') THEN
-        !No axis detected => error
-        GOTO 120
-      ELSE
-        !Axis is in temp2
-        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)//' '//TRIM(temp)
-        READ(temp,*,END=120,ERR=120) tempreal
-      ENDIF
-      !
-    ELSE
-      !Axis is in temp
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp2)
+    !
+    IF( temp=='x' .OR. temp=='X' .OR. temp=='y' .OR. temp=='Y' .OR. temp=='z' .OR.temp=='Z') THEN
+      !Read the rotation angle
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp2
+      !Verify that it is a real number
+      j=SCAN(temp2,'°')
+      IF(j>0) temp2=temp2(:j-1)
       READ(temp2,*,END=120,ERR=120) tempreal
+      !Save it into options_array
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp2)
+    ELSEIF( (SCAN(temp,'[')>0 .OR. SCAN(temp,']')>0 .OR. SCAN(temp,'_')>0) .AND. SCAN(temp,'.')==0 ) THEN
+      !It should be a Miller vector
+      !Read the rotation angle
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp2
+      !Verify that it is a real number
+      j=SCAN(temp2,'°')
+      IF(j>0) temp2=temp2(:j-1)
+      READ(temp2,*,END=120,ERR=120) tempreal
+      !Save it into options_array
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp2)
+    ELSE
+      !There should be 3 real numbers, the first one is already in temp
+      !Verify that it is a real number
+      READ(temp,*,END=120,ERR=120) tempreal
+      !Read the second real number
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp2
+      !Verify that it is a real number
+      READ(temp2,*,END=120,ERR=120) tempreal
+      !Read the third real number
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp3
+      !Verify that it is a real number
+      READ(temp3,*,END=120,ERR=120) tempreal
+      !Read the rotation angle
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp4
+      !Verify that it is a real number
+      j=SCAN(temp4,'°')
+      IF(j>0) temp4=temp4(:j-1)
+      READ(temp4,*,END=120,ERR=120) tempreal
+      !Save it into options_array
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//&
+                              TRIM(temp2)//' '//TRIM(temp3)//' '//TRIM(temp4)
     ENDIF
   !
   ELSEIF( clarg=='-roundoff' .OR. clarg=='-round-off' ) THEN

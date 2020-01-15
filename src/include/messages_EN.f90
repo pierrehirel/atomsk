@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Nov. 2019                                     *
+!* Last modification: P. Hirel - 14 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -355,6 +355,8 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-rotate" .OR. helpsection=="-rot") THEN
   WRITE(*,*) "..> Rotate the system around an axis:"
   WRITE(*,*) "          -rotate [com] <x|y|z> <angle>"
+  WRITE(*,*) "          -rotate [com] [hkl] <angle>"
+  WRITE(*,*) "          -rotate [com] vx vy vz <angle>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-roundoff" .OR. helpsection=="-round-off") THEN
@@ -1558,8 +1560,12 @@ CASE(2081)
   !strings(1) = rotation axis: x, y or z
   !reals(1) = rotation angle in degrees
   WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rotating the system by "//TRIM(ADJUSTL(msg)) &
-      & //"° around "//TRIM(strings(1))
+  msg = ">>> Rotating the system by "//TRIM(ADJUSTL(msg))//"° "
+  IF( SCAN(strings(1),'xXyYzZ[]')>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" around the "//TRIM(strings(1))//" axis."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//" around the vector ("//TRIM(strings(1))//")."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2082)
   msg = "..> System was successfully rotated."
