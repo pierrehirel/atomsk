@@ -195,10 +195,27 @@ DO
     DO WHILE( k<SIZE(Masses,1) )
       READ(30,'(a128)',ERR=120,END=120) temp
       IF( LEN_TRIM(temp)>0 ) THEN
+        species=""
+        !Check if there is a comment at the end of the line
+        j=SCAN(temp,'#')
+        IF( j>0 ) THEN
+          !There is a comment: try to read an atom species
+          msg = TRIM(ADJUSTL(temp(j+1:)))
+          IF( LEN_TRIM(msg)==2 ) THEN
+            species = msg(1:2)
+            !Verify that it is an actual atom species
+            CALL ATOMNUMBER(species,c)
+            !If not, delete the string in species
+            IF(c==0) species=""
+          ENDIF
+        ENDIF
         READ(temp,*,ERR=120,END=120) i, a
+        IF( LEN_TRIM(species)==0 ) THEN
+          !Use atom mass to determine species
+          CALL ATOMMASSSPECIES(a,species)
+        ENDIF
         k=k+1
         Masses(k,1) = i       !Atom type is saved in Masses(:,1)
-        CALL ATOMMASSSPECIES(a,species)
         CALL ATOMNUMBER(species,b)
         Masses(k,2) = NINT(b) !Atomic number is saved in Masses(:,2)
         Masses(k,3) = 0       !by default the particle is an atom

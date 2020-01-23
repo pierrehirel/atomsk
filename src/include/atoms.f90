@@ -952,7 +952,12 @@ CASE(35,36)
 CASE(39)
       species = 'K'
 CASE(40)
-      species = 'Ca'  !could also be Ar
+    !Can be ambiguous: mass(Ar)=39.948; mass(Ca)=40.078
+    IF( smass<40.d0 ) THEN
+      species = 'Ar'
+    ELSE
+      species = 'Ca'
+    ENDIF
 CASE(44,45)
       species = 'Sc'
 CASE(47,48)
@@ -968,7 +973,12 @@ CASE(56)
 CASE(58)
       species = 'Ni'
 CASE(59)
+    !Can be ambiguous: mass(Ni)=58.6934; mass(Co)=58.93319500
+    IF( DABS(smass-59.d0) < 0.2d0 ) THEN
       species = 'Co'
+    ELSE
+      species = 'Ni'
+    ENDIF
 CASE(63,64)
       species = 'Cu'
 CASE(65,66)
