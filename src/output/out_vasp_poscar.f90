@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 27 Jan. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -48,6 +48,7 @@ SUBROUTINE WRITE_POSCAR(H,P,comment,AUXNAMES,AUX,outputfile)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=1):: answer
+CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
@@ -179,14 +180,13 @@ WRITE(40,201) H(3,1), H(3,2), H(3,3)
 201 FORMAT(3(f16.8,2X))
 !
 !!!  VASP 5.x: write the element symbol for each species
-!!!  Uncomment the following lines to enable this feature
-!!!  NOTE: this makes the POSCAR file incompatible with VASP 4.x !!!!!
-!temp=""
-!DO i=1,SIZE(atypes,1)
-!  CALL ATOMSPECIES(atypes(i,1),species)
-!  temp = TRIM(ADJUSTL(temp))//"  "//species
-!ENDDO
-!WRITE(40,*) TRIM(ADJUSTL(temp))
+!!!  Comment the following lines to disable this feature (for VASP 4.x)
+temp=""
+DO i=1,SIZE(atypes,1)
+  CALL ATOMSPECIES(atypes(i,1),species)
+  temp = TRIM(ADJUSTL(temp))//"  "//species
+ENDDO
+WRITE(40,*) TRIM(ADJUSTL(temp))
 !!!  END OF VASP 5.x
 !
 !Write the number of atoms for each species

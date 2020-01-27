@@ -974,7 +974,7 @@ CASE(58)
       species = 'Ni'
 CASE(59)
     !Can be ambiguous: mass(Ni)=58.6934; mass(Co)=58.93319500
-    IF( DABS(smass-59.d0) < 0.2d0 ) THEN
+    IF( smass>58.8d0 ) THEN
       species = 'Co'
     ELSE
       species = 'Ni'
