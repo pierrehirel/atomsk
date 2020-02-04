@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2020                                     *
+!* Last modification: P. Hirel - 03 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -236,7 +236,7 @@ REAL(dp):: shift_dist       !distance of the "cut plane" to the origin
 REAL(dp):: shift_tau1, shift_tau2, shift_tau3  !shift vector
 !
 !Variables relative to Option: sort
-CHARACTER(LEN=4):: sortorder
+CHARACTER(LEN=6):: sortorder
 CHARACTER(LEN=16):: sortcol
 !
 !Variables relative to Option: stress
@@ -1172,7 +1172,13 @@ DO ioptions=1,SIZE(options_array)
     CALL SHIFT_XYZ(P,S,shift_dir,shift_dist,shift_axis,shift_tau1,shift_tau2,shift_tau3,ORIENT,SELECT)
   !
   CASE('-sort')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, sortcol, sortorder
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
+    IF( temp=="random" ) THEN
+      sortorder="random"
+      sortcol=""
+    ELSE
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, sortcol, sortorder
+    ENDIF
     CALL SORT_XYZ(P,S,AUXNAMES,AUX,SELECT,sortcol,sortorder)
   !
   CASE('-spacegroup')

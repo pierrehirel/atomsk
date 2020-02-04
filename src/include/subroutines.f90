@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2020                                     *
+!* Last modification: P. Hirel - 03 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,6 +34,7 @@ MODULE subroutines
 !* CHECKNAN            checks an array for NaN (Not a Number) values              *
 !* GEN_NRANDNUMBERS    generate a list of N random real numbers in [0.0,1.0]      *
 !* GEN_NRANDGAUSS      generate a list of N numbers with gaussian distribution    *
+!* GEN_NRANDINDEX      generate a list of int. numbers sorted randomly            *
 !* DO_STATS            do some statistics on a 1-dimensional array                *
 !* CHECK_ORTHOVEC      checks if two vectors are normal to each other             *
 !* CART2FRAC           converts cartesian coordinates to fractional               *
@@ -509,6 +510,52 @@ DO i=1,N
 ENDDO
 !
 END SUBROUTINE GEN_NRANDGAUSS
+!
+!
+!********************************************************
+! GEN_NRANDINDEX
+! This subroutine generates an array of N integers
+! from 1 to N in a random order.
+!********************************************************
+SUBROUTINE GEN_NRANDINDEX(N,idlist)
+!
+INTEGER:: i, j, k
+INTEGER,INTENT(IN):: N  !number of index to generate
+INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: idlist !random indices
+REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers from 0 to 1
+!
+IF(ALLOCATED(idlist)) DEALLOCATE(idlist)
+!
+IF( N >= 1 ) THEN
+  !Initialize the list with sorted values from 1 to N
+  ALLOCATE(idlist(N))
+  DO i=1,N
+    idlist(i) = i
+  ENDDO
+  !
+  IF( N>1 ) THEN
+    !Generate N random numbers
+    CALL GEN_NRANDNUMBERS( N , randarray )
+    !
+    !Use the random list to sort idlist
+    DO i=1,N
+      !Pick a random element j
+      j = FLOOR(N*randarray(i))
+      IF(j==0) j=1
+      IF(j>N) j=N
+      IF( i.NE.j ) THEN
+        !Exchange elements i and j
+        k = idlist(i)
+        idlist(i) = idlist(j)
+        idlist(j) = k
+      ENDIF
+    ENDDO
+    !
+  ENDIF
+  !
+ENDIF
+!
+END SUBROUTINE GEN_NRANDINDEX
 !
 !
 !********************************************************

@@ -1584,21 +1584,25 @@ CASE(2086)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2087)
   !strings(1) = property to be sorted
-  !strings(2) = sort order: up, down, pack
-  IF(strings(1)=="s") THEN
-    temp = "atomare Masse"
-  ELSEIF( strings(1)=="x" .OR. strings(1)=="y" .OR. strings(1)=="z" .OR. &
-        & strings(1)=="X" .OR. strings(1)=="Y" .OR. strings(1)=="Z"  ) THEN
-    temp = TRIM(strings(1))//" Koordinate"
+  !strings(2) = sort order: up, down, pack, random
+  IF( strings(2)=="random" ) THEN
+    msg = ">>> Mischen der Atomliste in zufälliger Reihenfolge..."
   ELSE
-    temp = TRIM(strings(1))
-  ENDIF
-  IF(strings(2)=="up") temp = "anwachsend "//TRIM(temp)
-  IF(strings(2)=="down") temp = "abfallend "//TRIM(temp)
-  IF(strings(2)=="up" .OR. strings(2)=="down") THEN
-    msg = ">>> Sortiere Atome nach "//TRIM(ADJUSTL(temp))//"."
-  ELSE
-    msg = ">>> Fasse Atome nach "//TRIM(ADJUSTL(temp))//" zusammen."
+    IF(strings(1)=="s") THEN
+      temp = "atomare Masse"
+    ELSEIF( strings(1)=="x" .OR. strings(1)=="y" .OR. strings(1)=="z" .OR. &
+          & strings(1)=="X" .OR. strings(1)=="Y" .OR. strings(1)=="Z"  ) THEN
+      temp = TRIM(strings(1))//" Koordinate"
+    ELSE
+      temp = TRIM(strings(1))
+    ENDIF
+    IF(strings(2)=="up") temp = "anwachsend "//TRIM(temp)
+    IF(strings(2)=="down") temp = "abfallend "//TRIM(temp)
+    IF(strings(2)=="up" .OR. strings(2)=="down") THEN
+      msg = ">>> Sortiere Atome nach "//TRIM(ADJUSTL(temp))//"."
+    ELSE
+      msg = ">>> Fasse Atome nach "//TRIM(ADJUSTL(temp))//" zusammen."
+    ENDIF
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2088)

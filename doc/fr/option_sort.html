@@ -15,7 +15,9 @@
 
 <h4>Syntaxe</h4>
 
-<code>-sort &#60;propriété&#62; &#60;ordre&#62;</code>
+<p><code>-sort &#60;propriété&#62; &#60;ordre&#62;</code></p>
+
+<p><code>-sort random</code></p>
 
 
 <h4>Description</h4>
@@ -28,6 +30,8 @@
   <li><strong>propriété</strong> : la propriété suivant laquelle les atomes seront triés, peut être 'species' ou 's' pour les trier par espèce chimique, 'x', 'y', 'z' pour les trier suivant une coordonnée, ou bien n'importe quelle propriété auxiliaire (telle que lue depuis le fichier d'entrée ou définie avec l'<a href="./option_properties.html">option <code>-properties</code></a>).</li>
   <li><strong>ordre</strong> : peut être 'up' pour trier les atomes par propriété croissante, 'down' pour les trier par ordre décroissant, ou 'pack' pour simplement rassembler les atomes ayant la même valeur de la propriété donnée (mais sans les trier).</li>
 </ul>
+
+<p>Si cette option est appelée avec "-sort random", alors la liste des atomes est mélangée dans un ordre aléatoire.</p>
 
 <p>Cette option ne transforme pas le système ni ne modifie les positions atomiques. Elle modifie les <em>indices</em> des atomes, et donc l'ordre dans lequel les atomes apparaissent dans le fichier de sortie.</p>
 
@@ -52,6 +56,9 @@
 
 <li><code class="command">atomsk initial.lmc -sort vx up final.xyz exyz</code>
 <p>Ceci lira le fichier <code>initial.lmc</code> et triera les atomes par valeur croissante de leur vitesse suivant X. Le résultat final sera écrit dans le fichier <code>final.xyz</code> au format XYZ étendu.</p></li>
+
+<li><code class="command">atomsk initial.lmc -sort random final.cfg</code>
+<p>Ceci va mélanger aléatoirement les atomes, c'est-à-dire que tous leurs indices seront échangés de telle sorte à apparaître dans un ordre aléatoire.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

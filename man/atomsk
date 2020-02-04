@@ -206,7 +206,9 @@ Applies shear strain to the system.
 Shifts some or all atoms by the given vector.
 .TP
 .B -sort <property> <order>
-Sorts the atoms according to one <property>. <order> can be "up", "down", or "pack".
+.TP
+.B -sort random
+Sorts the atoms according to the <property>. <order> can be "up", "down", or "pack". Using "-sort random" shuffles the atom list so they appear in random order.
 .TP
 .B -spacegroup <group>
 Applies the symmetry operations of the given space group.

@@ -10,6 +10,7 @@ Master (development)
 - added support for reading and writing files in CRYSTAL format (*.d12).
 - added support for reading and writing files in ABINIT format (*.in).
 - added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
+- when writing VASP POSCAR files, atomic species are now written so as to comply to VASP version 5.x. They can simply be removed to comply with VASP 4.x and earlier.
 - in mode "--create", added possibility to create tetragonal lattices (simple, body-centered, or face-centered tetragonal).
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.
 - in mode "--one-in-all" it is now possible to read all snapshots from LAMMPS custom dump files (*.lmc) and convert them into individual files.
@@ -20,11 +21,12 @@ Master (development)
 - in option "-orthogonal-cell", improved the search for atoms to fill the new box.
 - in option "-properties", added possibility to provide displacements as functions ux, uy, uz, which can be expressed as function of atom coordinates (x,y,z) and box dimensions, for example "uz=10*cos(3*pi*x/H1)". Also, when reading elastic or compliance tensor, the values are now checked, and a warning is displayed if they do not comply with stability criteria.
 - in option "-rotate", added possibility to rotate around a crystal direction [hkl], or around a vector of arbitrary coordinates.
+- in option "-sort", added possibility to shuffle atom list in random order.
 - in option "-swap", added possibility to swap two chemical species.
 - the order of options is now checked, and when possible, the program displays a recommendation to improve performance (e.g. when option "-duplicate" is called before "-orthocell", it is recommended to swap them).
 - new option "-roundoff" allows to round off atom coordinates or the values of a property.
 - new option "-nthreads" to control the number of OpenMP threads.
-- new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on. This module lifts the previous limitation on expressions as function of box coordinates (previously, only one operation could be used, like "0.5*box" or "box-20"); now more complex expressions can be used, like "0.5*box+0.6".
+- new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on.
 - improved checking of number of atoms and memory allocations.
 - fixed a bug in the symmetry operations of space group 166 (R-3m).
 - fixed a bug when reading LAMMPS data files where the atom charges were not read.

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 Nov. 2019                                     *
+!* Last modification: P. Hirel - 03 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1698,11 +1698,13 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    !Read how to sort it
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp.NE.'up' .AND. temp.NE.'down' .AND. temp.NE.'pack') GOTO 120
+    IF( temp.NE."random" ) THEN
+      !Read how to sort it
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( temp.NE.'up' .AND. temp.NE.'down' .AND. temp.NE.'pack') GOTO 120
+    ENDIF
   !
   ELSEIF(clarg=='-spacegroup' .OR. clarg=='-space-group' .OR. clarg=='-sgroup' &
         &.OR. clarg=='-sg') THEN

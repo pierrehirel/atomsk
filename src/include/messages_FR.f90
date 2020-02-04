@@ -1670,23 +1670,27 @@ CASE(2086)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2087)
   !strings(1) = property to be sorted
-  !strings(2) = sort order: up, down, pack
-  IF( strings(1)=="s" .OR. strings(1)=="species" ) THEN
-    temp = "numéros atomiques"
-    IF(strings(2)=="up") temp = TRIM(temp)//" croissants"
-    IF(strings(2)=="down") temp = TRIM(temp)//" décroissants"
-  ELSEIF( strings(1)=="x" .OR. strings(1)=="y" .OR. strings(1)=="z" .OR. &
-        & strings(1)=="X" .OR. strings(1)=="Y" .OR. strings(1)=="Z"  ) THEN
-    temp = " coordonnées "//TRIM(strings(1))
-    IF(strings(2)=="up") temp = TRIM(temp)//" croissantes"
-    IF(strings(2)=="down") temp = TRIM(temp)//" décroissantes"
+  !strings(2) = sort order: up, down, pack, random
+  IF( strings(2)=="random" ) THEN
+    msg = ">>> Mélange de la liste des atomes dans un ordre aléatoire..."
   ELSE
-    temp = TRIM(strings(1))
-  ENDIF
-  IF(strings(2)=="up" .OR. strings(2)=="down") THEN
-    msg = ">>> Rangement des atomes par "//TRIM(ADJUSTL(temp))//"."
-  ELSE
-    msg = ">>> Entassement des atomes par "//TRIM(ADJUSTL(temp))//"."
+    IF( strings(1)=="s" .OR. strings(1)=="species" ) THEN
+      temp = "numéros atomiques"
+      IF(strings(2)=="up") temp = TRIM(temp)//" croissants"
+      IF(strings(2)=="down") temp = TRIM(temp)//" décroissants"
+    ELSEIF( strings(1)=="x" .OR. strings(1)=="y" .OR. strings(1)=="z" .OR. &
+          & strings(1)=="X" .OR. strings(1)=="Y" .OR. strings(1)=="Z"  ) THEN
+      temp = " coordonnées "//TRIM(strings(1))
+      IF(strings(2)=="up") temp = TRIM(temp)//" croissantes"
+      IF(strings(2)=="down") temp = TRIM(temp)//" décroissantes"
+    ELSE
+      temp = TRIM(strings(1))
+    ENDIF
+    IF(strings(2)=="up" .OR. strings(2)=="down") THEN
+      msg = ">>> Rangement des atomes par "//TRIM(ADJUSTL(temp))//"."
+    ELSE
+      msg = ">>> Entassement des atomes par "//TRIM(ADJUSTL(temp))//"."
+    ENDIF
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2088)

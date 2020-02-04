@@ -15,7 +15,9 @@
 
 <h4>Syntax</h4>
 
-<code>-sort &#60;property&#62; &#60;order&#62;</code>
+<p><code>-sort &#60;property&#62; &#60;order&#62;</code></p>
+
+<p><code>-sort random</code></p>
 
 
 <h4>Description</h4>
@@ -28,6 +30,8 @@
   <li><strong>property</strong>: atom property to be sorted; can be one of 'species' (or 's'), 'x', 'y', 'z', or any per-atom auxiliary property (read from the input file or defined with the <a href="./option_properties.html">option <code>-properties</code></a>);</li>
   <li><strong>order</strong>: if 'up' or 'down' the property is sorted by increasing or decreasing values, respectively. If 'pack', identical values of the property is packed so that they are contiguous (but without sorting them by increasing or decreasing values).</li>
 </ul>
+
+<p>If the option is called as "-sort random", then the list of atoms is shuffled in random order.</p>
 
 <p>This option does not transform the system or move atoms. It changes the <em>index</em> of atoms, i.e. the order in which they appear in the final file.</p>
 
@@ -52,6 +56,9 @@
 
 <li><code class="command">atomsk initial.lmc -sort vx up final.xyz exyz</code>
 <p>This will read the file <code>initial.lmc</code> and sort atoms by increasing values of their velocity along X. These data will then be written to the file <code>final.xyz</code> in extended XYZ format.</p></li>
+
+<li><code class="command">atomsk initial.lmc -sort random final.cfg</code>
+<p>This will randomize the list of atoms, i.e. the index of all atoms will change so that they appear in a completely random order.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>
