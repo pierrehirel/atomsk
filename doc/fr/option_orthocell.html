@@ -24,13 +24,13 @@
 
 <p>Le système initial peut être défini par des vecteurs de boîtes arbitraires <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>. Cette option recherche les combinaisons linéaires de ces vecteurs, m&#8901;<strong><em>H</em><sub>1</sub></strong>+n&#8901;<strong><em>H</em><sub>2</sub></strong>+o&#8901;<strong><em>H</em><sub>3</sub></strong> (où m,n,o sont des entiers) qui produisent des vecteurs de boîte alignés avec les axes Cartésiens X, Y, Z. Puis, les positions des atomes sont dupliquées en utilisant les vecteurs de translation <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>, afin de remplir la boîte orthorombique. Finalement, les vecteurs de boîte initiaux sont remplacés par les vecteurs de la boîte orthogonale. Puisque ces nouveaux vecteurs de boîte sont une combinaison linéaire des anciens, la périodicité de la maille est préservée.</p>
 
+<p>Dans le cas particulier où les vecteurs de boîte sont déjà tous alignés avec les directions cartésiennes, mais où l'un ou plusieurs d'entre eux pointent vers les coordonnées négatives, cette option aura pour effet de retourner le(s) vecteur(s) de boîte de façon à ce qu'ils pointent vers les coordonnées positives. Le nombre d'atomes restera inchangé, mais les atomes seront translatés du (des) vecteur(s) de boîte correspondant(s). Par ailleurs, si <strong><em>H</em><sub>1</sub></strong> est aligné avec l'axe cartésien Y et <strong><em>H</em><sub>2</sub></strong> avec X, alors cette option échangera ces vecteurs de façon à ce que <strong><em>H</em><sub>1</sub></strong> soit aligné avec X et <strong><em>H</em><sub>2</sub></strong> avec Y.</p>
+
 <p>Si des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) et/ou des propriétés auxiliaires existent dans le système, alors elles sont aussi dupliquées.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>), alors les atomes équivalents dans la nouvelle boîte seront sélectionnés.</p>
 
-<p>Après l'application de cette option, le nombre total d'atomes dans le système peut être différent du nombre initial. Dans le cas particulier où les vecteurs de boîte sont déjà tous alignés avec les directions cartésiennes, mais où l'un ou plusieurs d'entre eux pointent vers les coordonnées négatives, cette option aura pour effet de retourner le(s) vecteur(s) de boîte de façon à ce qu'ils pointent vers les coordonnées positives. Le nombre d'atomes restera inchangé, mais les atomes seront translatés du (des) vecteur(s) de boîte correspondant(s). Par ailleurs, si <strong><em>H</em><sub>1</sub></strong> est aligné avec l'axe cartésien Y et <strong><em>H</em><sub>2</sub></strong> avec X, alors cette option échangera ces vecteurs de façon à ce que <strong><em>H</em><sub>1</sub></strong> soit aligné avec X et <strong><em>H</em><sub>2</sub></strong> avec Y.</p>
-
-<p>Il est recommandé d'appeler cette option <em>avant</em> de dupliquer le système avec l'option "-duplicate". Notez que dans certaines conditions (par exemple si les vecteurs de boîte initiaux forment un angle très petit avec les axes cartésiens), alors Atomsk peut échouer à trouver une boîte orthogonale équivalente.</p>
+<p>Après l'application de cette option, le nombre total d'atomes dans le système peut être différent du nombre initial. Il est recommandé d'appeler cette option <em>avant</em> de dupliquer le système avec l'option "-duplicate". Notez que dans certaines conditions (par exemple si les vecteurs de boîte initiaux forment un angle très petit avec les axes cartésiens), alors Atomsk peut échouer à trouver une boîte orthogonale équivalente.</p>
 
 <p>Cette option est parallélisée avec OpenMP. Pour contrôler le nombre de processus utilisés par Atomsk, vous pouvez utiliser l'<a href="./progbe_Nthreads.html">option <code>-nthreads</code></a>.</p>
 
@@ -44,6 +44,9 @@
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk --create hcp 3.21 5.213 Mg -orthocell Mg.cfg</code>
+<p>Avec cette commande, Atomsk va <a href="./mode_create.html">créer une maille élémentaire</a> de magnésium hexagonale, puis va la transformer en une boîte orthorhombique. Les vecteurs de la boîte orthorhombique seront des combinaisons linéaires des vecteurs de la boîte hexagonale, de sorte que la symétrie du cristal sera conservée. Le résultat final est écrit dans le fichier <code>Mg.cfg</code>.</p></li>
+
 <li><code class="command">atomsk initial.cfg -rotate 45 z -orthocell final.cfg</code>
 <p>Le système initial (<code>initial.cfg</code>) est tourné de 45° autour de l'axe Z. Puis, une boîte orthogonale équivalente est trouvée, et les atomes sont dupliqués afin de remplir cette boîte. Le résultat final est écrit dans le fichier <code>final.cfg</code>.</p></li>
 

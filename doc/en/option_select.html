@@ -51,7 +51,7 @@
 
 <p><code>-select stl [center] &#60;file&#62;</code></p>
 
-<p><code>-select [add|rm|intersect|xor] &#60;any of the above&#62;</code></p>
+<p><code>-select [add|rm|intersect|xor|among] &#60;any of the above&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -125,6 +125,7 @@ dimension. If the keyword "center" appears before the name of the &#60;file&#62;
   <li><strong>rm</strong>: atoms belonging to group A, but not to group B, are selected (A or not B);</li>
   <li><strong>intersect</strong>: atoms belonging to both groups A and B are selected (AND operator);</li>
   <li><strong>xor</strong>: atoms belonging to group A or group B, but not both, are selected (exclusive OR or XOR).</li>
+  <li><strong>among</strong>: atoms to be selected are picked only among the atoms that were already previously selected. This keyword is useful only for selections of types "prop" and "random"; for other types it is equivalent to "intersect".</li>
 </ul>
 
 <p>The other options called after the option <code>-select</code> will be applied only to the atoms that are selected by the present option, refer to their documentation to know how each option treats selected atoms. Beware that some options can result in strange (i.e. non-physical) results when applied to some atoms only.</p>

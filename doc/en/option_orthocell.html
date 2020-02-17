@@ -24,13 +24,13 @@
 
 <p>The initial system may have any arbitrary vectors <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>. This option searches for linear combinations m&#8901;<strong><em>H</em><sub>1</sub></strong>+n&#8901;<strong><em>H</em><sub>2</sub></strong>+o&#8901;<strong><em>H</em><sub>3</sub></strong> (with m,n,o integers) that produce vectors aligned with the Cartesian directions X, Y, Z. Then, atom positions are duplicated using the translation vectors <strong><em>H</em><sub>1</sub></strong>, <strong><em>H</em><sub>2</sub></strong>, <strong><em>H</em><sub>3</sub></strong>, so as to fill this new orthogonal cell. Finally, the initial cell vectors are replaced by the vectors of the orthorhombic cell. Since the new cell vectors are linear combinations of the initial cell vectors, they respect the lattice periodicity.</p>
 
+<p>In the particular case where box vectors are already all aligned with the Cartesian directions, but one or more of them point towards negative coordinates, this option will flip them so that they all point towards positive coordinates. The number of atoms will remain unchanged, but atoms will be translated by the appropriate box vector(s). Similarly, if <strong><em>H</em><sub>1</sub></strong> is aligned with the Cartesian Y axis and <strong><em>H</em><sub>2</sub></strong> with X, then this option will exchange these vectors so that <strong><em>H</em><sub>1</sub></strong> is aligned with X and <strong><em>H</em><sub>2</sub></strong> with Y.</p>
+
 <p>If shells (in the sense of an ionic core-shell model) and/or auxiliary properties are present, then they are also duplicated.</p>
 
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>), then the equivalent atoms in the new cell will be selected.</p>
 
-<p>After this option is applied, the total number of atoms may differ from that of the initial system. In the particular case where box vectors are already all aligned with the Cartesian directions, but one or more of them point towards negative coordinates, this option will flip them so that they all point towards positive coordinates. The number of atoms will remain unchanged, but atoms will be translated by the appropriate box vector(s). Similarly, if <strong><em>H</em><sub>1</sub></strong> is aligned with the Cartesian Y axis and <strong><em>H</em><sub>2</sub></strong> with X, then this option will exchange these vectors so that <strong><em>H</em><sub>1</sub></strong> is aligned with X and <strong><em>H</em><sub>2</sub></strong> with Y.</p>
-
-<p>It is recommended to call this option <em>before</em> duplicating the system with the option "-duplicate". Note that in certain conditions (for instance, if the initial box vectors form very small angles with Cartesian axes), then Atomsk may fail to find a suitable set of orthogonal vectors.</p>
+<p>After this option is applied, the total number of atoms may differ from that of the initial system. It is recommended to call this option <em>before</em> duplicating the system with the option "-duplicate". Note that in certain conditions (for instance, if the initial box vectors form very small angles with Cartesian axes), then Atomsk may fail to find a suitable set of orthogonal vectors.</p>
 
 <p>This option is parallelized with OpenMP. To control the number of parallel threads used by Atomsk, you may use the <a href="./progbe_Nthreads.html">option <code>-nthreads</code></a>.</p>
 
@@ -43,6 +43,9 @@
 <h4>Examples</h4>
 
 <ul>
+<li><code class="command">atomsk --create hcp 3.21 5.213 Mg -orthocell Mg.cfg</code>
+<p>With this command, Atomsk will <a href="./mode_create.html">create a unit cell</a> of haxagonal magnesium, and then will transform it into a rectangular box. The vectors of the orthogonal box will be linear combinations of the hexagonal box vectors, so that the symmetries of the crystal are preserved. The final result is written in the file <code>Mg.cfg</code>.</p></li>
+
 <li><code class="command">atomsk initial.cfg -rotate 45 z -orthocell final.cfg</code>
 <p>The initial system (<code>initial.cfg</code>) is rotated by 45° around the Z axis. Then, a suitable equivalent orthogonal cell is found, and atoms are duplicated to fill the new orthogonal cell. The final result will be output to <code>final.cfg</code>.</p></li>
 

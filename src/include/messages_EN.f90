@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2020                                     *
+!* Last modification: P. Hirel - 11 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1300,7 +1300,7 @@ CASE(2077)
   !strings(1) = region_side: in or out
   !strings(2) = region_geom: sphere or box or cylinder
   !strings(3) = region_dir: axis of cylinder, or "min" or "max"
-  !strings(4) = select_multiple: empty or "add" or "rm" or "intersect" or "xor"
+  !strings(4) = select_multiple: empty or "add" or "rm" or "intersect" or "xor" or "among"
   !reals(1) = region_1(1)
   !reals(2) = region_1(2)
   !reals(3) = region_1(3)
@@ -1430,10 +1430,12 @@ CASE(2077)
       msg = TRIM(ADJUSTL(msg))//" "//TRIM(strings(3))//"imum."
     ELSEIF( reals(4)>2.d0 ) THEN
       WRITE(temp2,"(f16.3)") reals(2)
-      msg = TRIM(ADJUSTL(msg))//" between "//TRIM(ADJUSTL(temp))//" and "//TRIM(ADJUSTL(temp2))//"."
+      msg = TRIM(ADJUSTL(msg))//" between "//TRIM(ADJUSTL(temp))//" and "//TRIM(ADJUSTL(temp2))
     ELSE
-      msg = TRIM(ADJUSTL(msg))//" equal to "//TRIM(ADJUSTL(temp))//"."
+      msg = TRIM(ADJUSTL(msg))//" equal to "//TRIM(ADJUSTL(temp))
     ENDIF
+    IF(strings(4)=="among") msg = TRIM(ADJUSTL(msg))//" among selected atoms"
+    msg = TRIM(ADJUSTL(msg))//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random" .OR. strings(1)=="rand" ) THEN
     WRITE(temp,*) NINT(reals(1))
@@ -1446,6 +1448,7 @@ CASE(2077)
     IF( strings(2).NE."any" .AND. strings(2).NE."all" ) THEN
       msg = TRIM(msg)//" of "//TRIM(strings(2))
     ENDIF
+    IF(strings(4)=="among") msg = TRIM(ADJUSTL(msg))//" among selected atoms"
     msg = TRIM(msg)//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="random%" ) THEN
@@ -1454,6 +1457,7 @@ CASE(2077)
     IF( strings(2).NE."any" .AND. strings(2).NE."all" ) THEN
       msg = TRIM(msg)//" of "//TRIM(strings(2))
     ENDIF
+    IF(strings(4)=="among") msg = TRIM(ADJUSTL(msg))//" among selected atoms"
     msg = TRIM(msg)//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="neigh" ) THEN

@@ -51,7 +51,7 @@
 
 <p><code>-select stl [center] &#60;fichier&#62;</code></p>
 
-<p><code>-select [add|rm|intersect|xor] &#60;n'importe quel critère ci-dessus&#62;</code></p>
+<p><code>-select [add|rm|intersect|xor|among] &#60;n'importe quel critère ci-dessus&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -121,10 +121,11 @@ petit rapport entre la dimension de la boîte atomique et la dimension correspon
 <p>Pour tous les cas ci-dessus (sauf "-select all" et "-select invert"), il est possible d'utiliser l'un des mots-clés optionnels "add", "rm", "intersect", ou "xor", juste après le mot-clé "-select". Ces mots-clés permettent de modifier une sélection précédente, en la combinant avec de nouveaux critères. Supposons que l'option "-select" ait déjà été appelée et ait sélectionné un groupe d'atomes A&nbsp;; supposons qu'un nouvel appel sélectionne les atomes d'un groupe B&nbsp;; alors les mots clés correspondent aux opérations logiques suivantes&nbsp;:</p>
 
 <ul>
-  <li><strong>add</strong> : les atomes appartenant au groupe A ou au groupe B sont sélectionnés (opération OU) ;</li>
-  <li><strong>rm</strong> : les atomes appartenant au groupe A, mais pas au groupe B, sont sélectionnés (A ou non-B) ;</li>
-  <li><strong>intersect</strong> : les atomes appartenant à la fois au groupe A et au groupe B sont sélectionnés (opérateur ET) ;</li>
-  <li><strong>xor</strong> : les atomes appartenant soit au groupe A, soit au groupe B, mais pas aux deux, sont sélectionnés (opération OU exclusif, ou XOR).</li>
+  <li><strong>add</strong>&nbsp;: les atomes appartenant au groupe A ou au groupe B sont sélectionnés (opération OU) ;</li>
+  <li><strong>rm</strong>&nbsp;: les atomes appartenant au groupe A, mais pas au groupe B, sont sélectionnés (A ou non-B) ;</li>
+  <li><strong>intersect</strong>&nbsp;: les atomes appartenant à la fois au groupe A et au groupe B sont sélectionnés (opérateur ET) ;</li>
+  <li><strong>xor</strong>&nbsp;: les atomes appartenant soit au groupe A, soit au groupe B, mais pas aux deux, sont sélectionnés (opération OU exclusif, ou XOR).</li>
+  <li><strong>among</strong>&nbsp;: les atomes à sélectionner sont choisis parmi la sélection précédente. Ce mot-clé n'est utile que pour les sélections de types "prop" et "random"&nbsp;; pour les autres types de sélection, cela revient à utiliser le mot-clé "intersect".</li>
 </ul>
 
 <p>Les autres options invoquées après l'option <code>-select</code> ne seront appliquées qu'aux atomes sélectionnés, référez-vous à la page de chaque option pour savoir comment elles traitent les atomes sélectionnés. Attention : certaines options peuvent produire des résultats étranges (c-à-d. non physiques) lorsqu'elles ne sont appliquées qu'à certains atomes.</p>
