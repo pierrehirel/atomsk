@@ -15,13 +15,13 @@
 
 <p>Options are operations that allow to transform the system, e.g. rotate it, add, remove or displace atoms, etc.</p>
 
-<p><strong>Several options can be called in a single command-line.</strong> They are applied to the system consecutively, in the order in which they are called. Options can appear anywhere in the command-line (i.e. before or after the input file or the formats to output), however when an option is invoked it <em>must</em> be followed by its parameters in the correct order.</p>
+<p><strong>Several options can be called in a single command-line.</strong> They are applied to the atomic system sequentially, i.e. one after the other in the same order as they are called. Options can appear anywhere in the command-line (i.e. before or after the input file or the formats to output), however when an option is invoked it <em>must</em> be followed by its parameters in the correct order.</p>
 
 <p>Options apply to all files converted in one run. For instance, if the <a href="mode_filelist.html">mode 'list'</a> is used, options apply to all files in the list. Please refer to the page describing each <a href="modes.html">mode</a> for more details about how they deal with options.</p>
 
 <p>A special case is the <a href="./option_select.html"><strong>option <code>-select</code></strong></a>, which can be used to restrict the following options to only some atoms. Please read the corresponding page to know more.</p>
 
-<p>In options using <strong>crystallographic directions</strong>, Miller indices must be given in square brackets, either as a <em>contiguous string</em>, or as <em>values separated with underscores</em>. For instance, the direction <code>[1<span class="over">1</span>0]</code> can be specified as "<code>[1-10]</code>" or "<code>[1_-1_0]</code>" (without quotation marks). Note that the indices must never be separated by blank spaces. Similarly, for hexagonal systems it is possible to use the four-indices notation [<em>hkil</em>], where <em>h</em>+<em>k</em>+<em>i</em>=0.</p>
+<p>In options using <strong>crystallographic directions</strong>, Miller indices must be given either as a <em>contiguous string</em>, or as <em>values separated with underscores</em>; square brackets are optional. For instance, the direction <code>[1<span class="over">1</span>0]</code> can be specified as "<code>[1-10]</code>", or "<code>[1_-1_0]</code>", or "<code>1-10</code>" (without quotation marks). Note that the indices must never be separated by blank spaces. Similarly, for hexagonal systems it is possible to use the four-indices notation [<em>hkil</em>], where <em>h</em>+<em>k</em>+<em>i</em>=0.</p>
 
 <p>In some options that require a position, it is possible to provide a cartesian position in angströms, or a relative position thanks to the keyword BOX. See <a href="./box.html">this page</a> to know more.</p>
 

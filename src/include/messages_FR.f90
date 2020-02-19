@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 11 Feb. 2020                                     *
+!* Last modification: P. Hirel - 19 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -375,6 +375,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+  WRITE(*,*) "          -select <i> modulo <j>"
   WRITE(*,*) "          -select [add|rm|intersect|xor] <any of the above>"
 ENDIF
 !
@@ -1501,6 +1502,13 @@ CASE(2077)
     IF(strings(4)=="among") msg = TRIM(ADJUSTL(msg))//" parmi les atomes sélectionnés"
     msg = TRIM(msg)//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="modulo" .OR. strings(1)=="mod" ) THEN
+    !reals(1) = index of an atom
+    !reals(2) = modulo
+    WRITE(temp,*) NINT(reals(1))
+    WRITE(temp2,*) NINT(reals(2))
+    msg = TRIM(ADJUSTL(msg))//" des atomes d'indice égal à "//TRIM(ADJUSTL(temp))//" modulo "//TRIM(ADJUSTL(temp2))//"."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="neigh" ) THEN
     !strings(2) = species of neighbors
     !reals(1) = number of neighbors or cutoff radius for neighbor search
@@ -2355,7 +2363,10 @@ CASE(2761)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2762)
   !strings(1) = elastic tensor stability criterion
-  msg = "/!\ ALERTE: le tenseur élastique ne respecte pas ce critère de stabilité : "//TRIM(ADJUSTL(strings(1)))
+  msg = "/!\ ALERTE : le tenseur élastique ne respecte pas ce critère de stabilité : "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2763)
+  msg = "/!\ ALERTE : le modulo est égal à 1, sélection de tous les atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -2455,6 +2466,9 @@ CASE(2820)
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(temp,*) NINT(reals(1))
   msg = "            Estimation du nombre d'atomes requis : "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2821)
+  msg = "X!X ERREUR : le modulo ne peut pas être nul (division par zero)."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

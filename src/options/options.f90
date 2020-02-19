@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Feb. 2020                                     *
+!* Last modification: P. Hirel - 19 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1093,6 +1093,15 @@ DO ioptions=1,SIZE(options_array)
       ELSE
         READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
             & region_side, region_1(1), region_geom, region_1(2)
+      ENDIF
+    ELSEIF( region_side=="modulo" .OR. region_side=="mod" ) THEN
+      !Store index into region_1(1) and modulo into region_1(2)
+      IF( LEN_TRIM(select_multiple)>0 ) THEN
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, &
+            & region_side, region_1(1), region_1(2)
+      ELSE
+        READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
+            & region_side, region_1(1), region_1(2)
       ENDIF
     ELSEIF( region_side=="list" .OR. region_side=="grid" ) THEN
       !store the name of file containing list of atoms in "region_geom"

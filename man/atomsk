@@ -189,9 +189,13 @@ Rounds off the values of the <property>.
 .TP
 .B -select <N> <species> neighbor <index>
 .TP
+.B -select <i> modulo <j>
+.TP
 .B -select grid <file>
 .TP
 .B -select stl [center] <file>
+.TP
+.B -select [add|rm|intersect|xor|among] <any of the above>
 Selects atoms according to the given criteria.
 .TP
 .B -separate <distance> <shift>

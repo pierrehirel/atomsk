@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 11 Feb. 2020                                     *
+!* Last modification: P. Hirel - 19 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -353,6 +353,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
+  WRITE(*,*) "          -select <i> modulo <j>"
   WRITE(*,*) "          -select [add|rm|intersect|xor] <any of the above>"
 ENDIF
 !
@@ -1427,6 +1428,13 @@ CASE(2077)
     IF(strings(4)=="among") msg = TRIM(ADJUSTL(msg))//" unter ausgewählten Atomen"
     msg = TRIM(msg)//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( strings(1)=="modulo" .OR. strings(1)=="mod" ) THEN
+    !reals(1) = index of an atom
+    !reals(2) = modulo
+    WRITE(temp,*) NINT(reals(1))
+    WRITE(temp2,*) NINT(reals(2))
+    msg = TRIM(ADJUSTL(msg))//" Atomen mit einem Index von "//TRIM(ADJUSTL(temp))//" Modulo "//TRIM(ADJUSTL(temp2))//"."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="neigh" ) THEN
     !strings(2) = species of neighbors
     !reals(1) = number of neighbors or cutoff radius for neighbor search
@@ -2258,6 +2266,9 @@ CASE(2762)
   !strings(1) = elastic tensor stability criterion
   msg = "/!\ WARNUNG: das Kriterium der elastischen Tensorstabilität ist nicht erfüllt: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2763)
+  msg = "/!\ WARNUNG: Modulo ist gleich 1 und wählt alle Atome aus."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
@@ -2363,6 +2374,9 @@ CASE(2820)
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(temp,*) NINT(reals(1))
   msg = "          Schätzung der Anzahl der erforderlichen Atome: "//TRIM(ADJUSTL(temp))
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2821)
+  msg = "X!X FEHLER: Modulo kann nicht umsonst sein (Division durch Null)."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

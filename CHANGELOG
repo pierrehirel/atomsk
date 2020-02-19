@@ -21,6 +21,7 @@ Master (development)
 - in option "-orthogonal-cell", improved the search for atoms to fill the new box.
 - in option "-properties", added possibility to provide displacements as functions ux, uy, uz, which can be expressed as function of atom coordinates (x,y,z) and box dimensions, for example "uz=10*cos(3*pi*x/H1)". Also, when reading elastic or compliance tensor, the values are now checked, and a warning is displayed if they do not comply with stability criteria.
 - in option "-rotate", added possibility to rotate around a crystal direction [hkl], or around a vector of arbitrary coordinates.
+- in option "-select", added possibility to select atoms among a previous selection. Also added possibility to select atoms that have an index equal to a number modulo another number.
 - in option "-sort", added possibility to shuffle atom list in random order.
 - in option "-swap", added possibility to swap two chemical species.
 - the order of options is now checked, and when possible, the program displays a recommendation to improve performance (e.g. when option "-duplicate" is called before "-orthocell", it is recommended to swap them).

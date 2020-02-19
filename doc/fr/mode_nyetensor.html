@@ -30,9 +30,9 @@
   <li><strong>NULL</strong>, ce qui signifie qu'aucun système de référence n'est fourni. Atomsk construira alors les environnements atomiques de référence à la volée, en moyennant les environnements trouvés dans le système à analyser.</li>
 </ul>
 
-<p>Les deux fichiers &#60;fichier1&#62; et &#60;fichier2&#62; peuvent être du même format, ou bien de formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par <code>atomsk</code></a>.</p>
+<p>Les deux fichiers &#60;fichier1&#62; et &#60;fichier2&#62; peuvent être du même format, ou bien de formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par Atomsk</a>.</p>
 
-<p>Les neuf composantes du tenseur de Nye (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), sont enregistrées comme propriétés auxiliaires pour chaque atome. Notez que <code>atomsk</code> n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
+<p>Les neuf composantes du tenseur de Nye (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), sont enregistrées comme propriétés auxiliaires pour chaque atome. Notez que Atomsk n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
 
 <p>Si ce mode est utilisé avec une ou plusieurs <a href="./options.html">options</a> alors celles-ci seront appliquées au &#60;fichier1&#62; et au &#60;fichier2&#62; <em>avant</em> que le tenseur de Nye ne soit calculé.</p>
 

@@ -27,7 +27,7 @@
 
 <p>Les paramètres associés avec le mode <code>edm</code> sont :</p>
 <ul>
-  <li><strong>fichier</strong> : fichier contenant les positions atomiques ; doit être dans l'un des <a href="./formats.html">formats supportés par <code>atomsk</code></a>.</li>
+  <li><strong>fichier</strong> : fichier contenant les positions atomiques ; doit être dans l'un des <a href="./formats.html">formats supportés par Atomsk</a>.</li>
   <li><strong>Pespèce</strong> : espèce chimique des atomes situés aux coins du polyèdre (voir ci-dessous).</li>
   <li><strong>NNN</strong> : nombre de premiers voisins, ou rayon de coupure pour la recherche des voisins (voir ci-dessous).</li>
 </ul>
@@ -49,7 +49,7 @@ C -2<br/>
 
 <p><strong>Une valeur négative de NNN</strong> peut être un nombre réel. Sa valeur absolue sera utilisée comme rayon de coupure pour la recherche de voisins, autrement dit tous les atomes C situés dans ce rayon seront utilisés dans le calcul. Ceci est recommandé si les atomes A et B occupent des sites différents.</p>
 
-<p>Si <strong>NNN=0</strong> alors <code>atomsk</code> tentera de trouver les premiers voisins de chaque atome. Notez que si les polyèdres sont très déformés cette recherche peut échouer ou fournir un nombre incorrect de voisins, et les moments calculés seront incorrects.</p>
+<p>Si <strong>NNN=0</strong> alors Atomsk tentera de trouver les premiers voisins de chaque atome. Notez que si les polyèdres sont très déformés cette recherche peut échouer ou fournir un nombre incorrect de voisins, et les moments calculés seront incorrects.</p>
 
 <p>La recherche de voisins prend en compte les images périodiques (en utilisant les vecteurs de boîte contenus dans le &#60;fichier&#62;). Notez que cette recherche peut être lente, surtout pour les gros systèmes. Ce temps peut être diminué en <a href="./option_cut.html">coupant le système</a> pour ne conserver que la partie intéressante. Si le nombre de voisins dépasse 100 pour un atome, un message d'avertissement le signalera, il est donc recommandé de ne pas utiliser NNN&#62;100 ni un rayon de coupure qui engloberait plus de cent atomes. Par ailleurs, il peut être nécessaire d'<a href="./option_wrap.html">emballer les atomes</a> pour que la recherche de voisins donne de bons résultats.</p>
 
@@ -91,7 +91,7 @@ Na 1<br/>
 Cl -1<br/>
 </code></p></div>
 <code class="command">atomsk --edm NaCl.xsf Cl 6 -properties nacl.txt</code>
-<p><code>atomsk</code> va lire les positions des atomes depuis <code>NaCl.xsf</code> et les charges des ions depuis <code>nacl.txt</code>. Puis les moments dipolaires électriques seront calculés pour les octahèdre NaCl<sub>6</sub> (parce que Pespèce=Cl et NNN=6).</p></li>
+<p>Atomsk va lire les positions des atomes depuis <code>NaCl.xsf</code> et les charges des ions depuis <code>nacl.txt</code>. Puis les moments dipolaires électriques seront calculés pour les octahèdre NaCl<sub>6</sub> (parce que Pespèce=Cl et NNN=6).</p></li>
 
 <li><div class="txtfile"><h5>sto.txt</h5>
 <p><code>charge<br/>

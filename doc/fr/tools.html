@@ -13,7 +13,7 @@
 
 <h2>Outils companion</h2>
 
-<p>Le dossier <code>/tools/</code> fourni avec le programme contient des scripts bash qui peuvent être utilisés pour opérer des transformations simples sur des fichiers. Lors de l'<a href="./install.html">installation de <code>atomsk</code></a> (soit avec le script "install.sh", soit avec la commande "<code>make install</code>"), ces scripts sont rendus exécutables et placés dans le dossier <em>/usr/local/bin</em>. Exécuter l'un de ces scripts sans argument affichera son utilisation.</p>
+<p>Le dossier <code>/tools/</code> fourni avec le programme contient des scripts bash qui peuvent être utilisés pour opérer des transformations simples sur des fichiers. Lors de l'<a href="./install.html">installation de Atomsk</a> (soit avec le script "install.sh", soit avec la commande "<code>make install</code>"), ces scripts sont rendus exécutables et placés dans le dossier <em>/usr/local/bin</em>. Exécuter l'un de ces scripts sans argument affichera son utilisation.</p>
 
 <p>Comme le reste du code, ces scripts bash sont fournis tels quels et sans aucune garantie. Il est recommandé de les éditer pour vérifier ce qu'ils font et/ou les adapter à vos besoins.</p>
 
@@ -81,7 +81,7 @@
 <hr>
 <h4>qepw_bohr.sh</h4>
 
-<p>Ce script bash modifie les lignes "<code>CELL PARAMETERS</code>" et "<code>ATOMIC_POSITIONS</code>" pour leur ajouter le mot "bohr", dans un ou plusieurs <a href="./format_qepw.html">fichiers d'entrée pour Quantum Espresso pwscf (*.pw)</a>. En effet lorsqu'il écrit un fichier au format PW <code>atomsk</code> ne connaît pas les unités des coordonnées et suppose toujours qu'il s'agit d'angstroms. Ce script permet de corriger cela si les coordonnées sont en réalité en Bohrs. Pour convertir le fichier "monfichier.pw", entrez :</p>
+<p>Ce script bash modifie les lignes "<code>CELL PARAMETERS</code>" et "<code>ATOMIC_POSITIONS</code>" pour leur ajouter le mot "bohr", dans un ou plusieurs <a href="./format_qepw.html">fichiers d'entrée pour Quantum Espresso pwscf (*.pw)</a>. En effet lorsqu'il écrit un fichier au format PW, Atomsk ne connaît pas les unités des coordonnées et suppose toujours qu'il s'agit d'angstroms. Ce script permet de corriger cela si les coordonnées sont en réalité en Bohrs. Pour convertir le fichier "monfichier.pw", entrez :</p>
 
 <p><code class="command">qepw_bohr.sh monfichier.pw</code></p>
 

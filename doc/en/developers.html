@@ -40,7 +40,7 @@
    <img src="../img/deptree.png" alt="Dependence tree" title="" />
 </object >
 
-<p>A good way to start digging into the source code is to look at the structure of the file <code>mode_normal.f90</code>. One can see that this module reads in a file (by calling the reading module <code>readin.f90</code>), applies options if any (by calling the module <code>options.f90</code>), and then outputs one or several files (by calling <code>writeout.f90</code>). This is exactly what <code>atomsk</code> does when converting a file.</p>
+<p>A good way to start digging into the source code is to look at the structure of the file <code>mode_normal.f90</code>. One can see that this module reads in a file (by calling the reading module <code>readin.f90</code>), applies options if any (by calling the module <code>options.f90</code>), and then outputs one or several files (by calling <code>writeout.f90</code>). This is exactly what Atomsk does when converting a file.</p>
 
 <p>In other modes, these modules are called in more or less different ways.</p>
 
@@ -48,7 +48,7 @@
 
 <h4>Arrays</h4>
 
-<p>Most variables and arrays are allocated dynamically and passed between modules. The following describes some arrays commonly used in <code>atomsk</code> and passed between modules:</p>
+<p>Most variables and arrays are allocated dynamically and passed between modules. The following describes some arrays commonly used in Atomsk and passed between modules:</p>
 
 <ul>
   <li><strong>H(3,3)</strong>: the three vectors of the supercell H(1,:), H(2,:) and H(3,:) (cartesian coordinates in &Aring;).</li>

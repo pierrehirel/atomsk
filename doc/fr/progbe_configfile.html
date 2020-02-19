@@ -20,7 +20,7 @@
 
 <h4>Description</h4>
 
-<p>Le comportement par défaut de <code>atomsk</code> peut être personnalisé grâce à un fichier de configuration.</p>
+<p>Le comportement par défaut de Atomsk peut être personnalisé grâce à un fichier de configuration.</p>
 
 <p><strong>Sur les systèmes UNIX/Linux</strong>, le comportement du programme peut être modifié pour l'ensemble des utilisateurs du système grâce au fichier de configuration <code>/etc/atomsk.conf</code>. De plus, chaque utilisateur peut posséder son propre fichier de configuration dans son dossier personnel (défini par la variable d'environnement <code>&#36;XDG_CONFIG_HOME</code> ou, le cas échéant, défini comme étant le dossier caché <code>&#36;HOME/.config/</code>) et nommé <code>atomsk.conf</code>.</p>
 
@@ -29,11 +29,11 @@
 <p>Ce fichier de configuration est un fichier texte. Les lignes vides ou commençant avec un croisillon (&#35;) sont ignorées, et les mots-clé suivants peuvent être utilisés :</p>
 
 <ul>
-  <li><strong>format &#60;format&#62;</strong> : indique un format pour lequel <code>atomsk</code> doit toujours créer un fichier de sortie ; plusieurs formats peuvent être indiqués en utilisant ce mot-clé plusieurs fois (un par ligne).</li>
+  <li><strong>format &#60;format&#62;</strong> : indique un format pour lequel Atomsk doit toujours créer un fichier de sortie ; plusieurs formats peuvent être indiqués en utilisant ce mot-clé plusieurs fois (un par ligne).</li>
   
-  <li><strong>overw &#60;valeur&#62;</strong> : si &#60;valeur&#62; vaut "YES" alors les fichiers de sortie sont toujours écrasés sans demander à l'utilisateur, sinon <code>atomsk</code> demande avant d'écraser un fichier ; identique à l'option <a href="./progbe_ow.html"><code>-overw</code></a>.</li>
+  <li><strong>overw &#60;valeur&#62;</strong> : si &#60;valeur&#62; vaut "YES" alors les fichiers de sortie sont toujours écrasés sans demander à l'utilisateur, sinon Atomsk demande avant d'écraser un fichier ; identique à l'option <a href="./progbe_ow.html"><code>-overw</code></a>.</li>
   
-  <li><strong>ignore &#60;valeur&#62;</strong> : si &#60;valeur&#62; vaut "YES" alors les fichiers de sortie qui existent déjà ne sont pas réécrits, sinon <code>atomsk</code> demande ; identique à l'option <a href="./progbe_ig.html"><code>-ignore</code></a>.</li>
+  <li><strong>ignore &#60;valeur&#62;</strong> : si &#60;valeur&#62; vaut "YES" alors les fichiers de sortie qui existent déjà ne sont pas réécrits, sinon Atomsk demande ; identique à l'option <a href="./progbe_ig.html"><code>-ignore</code></a>.</li>
   
   <li><strong>nthreads &#60;n&#62;</strong> : limite à &#60;n&#62; le nombre maximum de processus OpenMP utilisés par Atomsk&nbsp;; identique à l'option <a href="./progbe_Nthreads.html"><code>-nthreads</code></a>;</li>
   

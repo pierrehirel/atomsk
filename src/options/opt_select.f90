@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 Feb. 2020                                     *
+!* Last modification: P. Hirel - 19 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -51,7 +51,7 @@ CHARACTER(LEN=16):: select_multiple  !empty or 'add' or 'rm' or 'xor' or 'among'
 CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: temp
-CHARACTER(LEN=128):: region_side  !'in' or 'out' or 'all' or 'inv' or 'neigh' or 'list' or 'grid' or 'stl'
+CHARACTER(LEN=128):: region_side  !'all' or 'grid' or 'in' or 'out' or 'inv' or 'list' or 'modulo' or 'neigh' or 'stl'
 CHARACTER(LEN=4096):: region_geom !geometry of the region: "box" or "sphere". If "neighbors" then
                                   !neighbors of an atom must be searched. If region_side=="list" then
                                   !region_geom contains the name of the file.
@@ -138,7 +138,8 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 SELECT CASE(region_side)
 !
-CASE('all','any','none','above','below','invert','inv','in','list','out','prop','property','random','rand','random%','rand%','stl')
+CASE( 'all','any','none','above','below','invert','inv','in','list','modulo','mod', &
+    & 'out','prop','property','random','rand','random%','rand%','stl')
   CONTINUE
   !
 CASE DEFAULT
@@ -1213,6 +1214,41 @@ CASE("list")
   ENDDO
   281 CONTINUE
   CLOSE(30)
+  !
+  !
+CASE("modulo","mod")
+  !All atoms with index j +/- n*k must be selected (j,n,k integers)
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+  ALLOCATE( SELECT( SIZE(P,1) ) )
+  SELECT(:) = .FALSE.
+  Nselect=0
+  !region(1) = index of an atom (=j)
+  !region(2) = modulo (=k)
+  j=NINT(region_1(1))
+  k=NINT(region_1(2))
+  IF( k==0 ) THEN
+    !Error: division by zero
+    CALL ATOMSK_MSG(2821,(/""/),(/0.d0/))
+    nerr=nerr+1
+    GOTO 1000
+  ELSEIF( k==1 ) THEN
+    !Modulo 1 means all atoms will be selected
+    SELECT(:) = .TRUE.
+    Nselect = SIZE(P,1)
+    CALL ATOMSK_MSG(2763,(/""/),(/0.d0/))
+    nwarn=nwarn+1
+  ELSE
+    !Loop on all atoms
+    DO i=1,SIZE(P,1)
+      IF(i>0) THEN
+        !Check if (i-j) is equal to j modulo k
+        IF( MOD(i-j,k)==0 ) THEN
+          SELECT(i) = .TRUE.
+          Nselect = Nselect+1
+        ENDIF
+      ENDIF
+    ENDDO
+  ENDIF
   !
   !
 CASE("neigh","neighbors")

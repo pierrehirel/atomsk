@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Feb. 2020                                     *
+!* Last modification: P. Hirel - 19 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,7 +42,8 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=5),DIMENSION(100):: tempout !temporary list of formats to write
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: outfileformats !list of formats to write
 CHARACTER(LEN=12),INTENT(OUT):: mode     !mode in which the program runs
-CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere"
+CHARACTER(LEN=16):: region_geom  !geometry of the region: "box" or "sphere" or "cylinder" or... etc.
+CHARACTER(LEN=16):: select_mul   !keyword for multiple selection ("add" or "rm" or "intersect" etc.)
 CHARACTER(LEN=4096):: clarg      !one command-line argument
 CHARACTER(LEN=4096):: msg, temp, temp2, temp3, temp4
 CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
@@ -1245,6 +1246,7 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-select') THEN
+    select_mul = ""
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read first keyword
@@ -1256,6 +1258,7 @@ DO WHILE(i<SIZE(cla))
       & temp=="subtract" .OR. temp=="SUBTRACT" .OR. temp=="intersect" .OR.               &
       & temp=="INTERSECT" .OR. temp=="xor" .OR. temp=="XOR" .OR.                         &
       & temp=="among" .OR. temp=="AMONG"                                        ) THEN
+      select_mul = TRIM(ADJUSTL(temp))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       i=i+1
       temp = ADJUSTL(cla(i))
@@ -1518,9 +1521,9 @@ DO WHILE(i<SIZE(cla))
       IF( temp(1:6)=="center" ) THEN
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
-        options_array(ioptions) = '-select stl center '//TRIM(temp)
+        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" stl center "//TRIM(temp)
       ELSE
-        options_array(ioptions) = '-select stl '//TRIM(temp)
+        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" stl "//TRIM(temp)
       ENDIF
       !
     ELSEIF( temp=='random' .OR. temp=='rand' ) THEN
@@ -1536,10 +1539,27 @@ DO WHILE(i<SIZE(cla))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       IF(LEN_TRIM(temp)>3) GOTO 120
       !
+    ELSEIF( i+1<=SIZE(cla) .AND. ( cla(i+1)=="modulo" .OR. cla(i+1)=="mod" ) ) THEN
+      options_array(ioptions) = "-select "//TRIM(select_mul)//" modulo "
+      !Read index
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal  !check that it is a number
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      !Read modulo
+      i=i+2
+      READ(cla(i),'(a)',END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal  !check that it is a number
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      IF( NINT(tempreal)==0 ) THEN
+        !Display error message and abort (division by zero)
+        CALL ATOMSK_MSG(2821,(/""/),(/0.d0/))
+        GOTO 120
+      ENDIF
+      !
     ELSEIF( i+2<=SIZE(cla) .AND.                                                           &
           &  ( cla(i+2)=="neighbors" .OR. cla(i+2)=="neighbours" .OR. cla(i+2)=="neigh" )  &
           & ) THEN
-      options_array(ioptions) = '-select neigh '
+      options_array(ioptions) = "-select "//TRIM(select_mul)//" neigh "
       !Read number of neighbors, or cutoff radius for neighbor search
       READ(cla(i),'(a)',END=400,ERR=400) temp
       READ(temp,*,END=120,ERR=120) tempreal  !check that it is a number
