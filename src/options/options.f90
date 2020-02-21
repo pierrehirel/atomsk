@@ -1302,12 +1302,26 @@ DO ioptions=1,SIZE(options_array)
     ENDIF
     !
     IF( ALLOCATED(SELECT) .AND. SIZE(SELECT)>0 ) THEN
+      !Write positions of selected atoms to "atomsk_select.xyz"
+      temp = 'atomsk.xyz'
+      OPEN(UNIT=36,FILE=temp,STATUS="UNKNOWN",FORM="FORMATTED")
+      WRITE(36,*) SIZE(P,1)
+      msg = '#Debug file for Atomsk: SELECTed atoms only'
       j=0
       DO i=1,SIZE(SELECT)
         IF( SELECT(i) ) THEN
           j = j+1
+          CALL ATOMSPECIES(P(i,4),species)
+          WRITE(36,'(a2,2X,3(f16.8,1X))') species, P(i,1:3)
         ENDIF
       ENDDO
+      WRITE(36,'(a4)') 'alat'
+      WRITE(36,'(a3)') '1.0'
+      WRITE(36,'(a9)') 'supercell'
+      WRITE(36,'(3f16.6)') H(1,:)
+      WRITE(36,'(3f16.6)') H(2,:)
+      WRITE(36,'(3f16.6)') H(3,:)
+      CLOSE(36)
       WRITE(msg,*) 'SELECTed atoms:', j
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF

@@ -162,6 +162,8 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
     d_border(i) = MAX( 0.1d0 , R/VECLENGTH(H(i,:)) )
   ENDDO
   !
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,j,k,l,m,kmin,kmax,lmin,lmax,mmin,mmax,distance,Vfrac,IsCloseToBorder)
   DO i=1,SIZE(A,1)-1
     !Save fractional coordinate of atom i in Vfrac
     Vfrac(1,:) = A(i,1:3)
@@ -255,6 +257,7 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
             !
             IF ( distance < R ) THEN
               !Atom j is neighbor of atom i
+              !$OMP CRITICAL
               NNeigh(i) = NNeigh(i)+1
               !If total number of neighbors exceeds size of NeighList, expand NeighList
               IF( NNeigh(i) > SIZE(NeighList,2) ) THEN
@@ -274,6 +277,7 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
               ENDIF
               !Add atom i to the list of neighbors of atom j
               NeighList(j,NNeigh(j)) = i
+              !$OMP END CRITICAL
               !
               !We already found that j is neighbor of i
               !=> no need to keep on looking for replica of atom j
@@ -290,6 +294,7 @@ IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3
     ENDDO !j
     !
   ENDDO !i
+  !$OMP END PARALLEL DO
   !
   IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
   !
@@ -299,16 +304,8 @@ ELSE
   msg = 'algorithm: CELL DECOMPOSITION'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !Define max. number of cells along each direction
-#if defined(OPENMP)
-  !Parallel version: use Nthreads to define max. number of cells along each direction
-  !$OMP PARALLEL
-  Maxcells = OMP_GET_NUM_THREADS()
-  !$OMP END PARALLEL
-  Maxcells = MAX( 4 , Maxcells*2 )
-#else
-  !Serial version: use max. 8 cells along any given direction
+  !Use max. 8 cells along any given direction
   Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
-#endif
   WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
@@ -339,7 +336,7 @@ ELSE
   ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
   Cell_NP(:) = 0
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,Ix,Iy,Iz) REDUCTION(+:Atom_Cell,Cell_NP)
+  !$OMP& PRIVATE(i,Ix,Iy,Iz) REDUCTION(+:Cell_NP)
   DO i=1,SIZE(A,1)
     Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
     Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
@@ -364,8 +361,6 @@ ELSE
   !Save the indexes of atoms in each cell
   ALLOCATE( Cell_AtomID( Ncells , MAXVAL(Cell_NP) ) )
   Cell_AtomID(:,:) = 0
-  !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,k)
   DO j=1,Ncells
     k=0
     DO i=1,SIZE(A,1)
@@ -376,7 +371,6 @@ ELSE
       ENDIF
     ENDDO
   ENDDO
-  !$OMP END PARALLEL DO
   !
   IF( verbosity==4 ) THEN
     OPEN(UNIT=56,FILE="atomsk_cellAtomID.txt",STATUS="UNKNOWN")
@@ -460,7 +454,7 @@ ELSE
   !
   !Construct the neighbor list for atoms
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,iCell,j,k,n,u,distance,Vfrac)
+  !$OMP& PRIVATE(i,iCell,j,k,n,distance,Vfrac)
   DO i=1,SIZE(A,1)
     !iCell = index of the cell atom #i belongs to
     iCell = Atom_Cell(i)
@@ -484,6 +478,7 @@ ELSE
             !Compute distance between atom #i and the periodic image of atom #n
             distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
             IF( distance < R ) THEN
+              !$OMP CRITICAL
               !Add atom #n as neighbor of atom #i
               NNeigh(i) = NNeigh(i)+1
               IF( Nneigh(i) <= SIZE(NeighList,2) ) THEN
@@ -492,13 +487,12 @@ ELSE
               !
               IF( .NOT. ANY(NeighList(n,:)==i) ) THEN
                 !Also add atom #i as neighbor of atom #n
-                !$OMP CRITICAL
                 NNeigh(n) = NNeigh(n)+1
-                !$OMP END CRITICAL
                 IF( Nneigh(n) <= SIZE(NeighList,2) ) THEN
                   NeighList(n,Nneigh(n)) = i
                 ENDIF
               ENDIF
+              !$OMP END CRITICAL
             ENDIF
             !
           ENDIF
@@ -797,7 +791,7 @@ IF(NNN>100.d0) THEN
 ELSE
   !If NNN is positive then it corresponds to the number of neighbours
   !the program has to find
-  ALLOCATE( V_NN( NNN,SIZE(A(1,:)) ) )
+  ALLOCATE( V_NN( NNN,SIZE(A,2) ) )
   V_NN(:,:) = 0.d0
   ALLOCATE(Nlist(NNN))
   Nlist(:) = 0
@@ -809,7 +803,7 @@ ELSE
     i=i+1
     tempreal = 1.d9
     !
-    DO j=1,SIZE(A(:,1))  !Loop on all atoms
+    DO j=1,SIZE(A,1)  !Loop on all atoms
       !
       !We need to look for periodic images only for atoms close to a boundary
       !The purpose is to minimize the ranges [min,max] in which periodic
@@ -873,7 +867,7 @@ ELSE
             !but only if it is also different from the previous neighbour found
             !If distance is close to zero, ignore it: it means that we found the atom
             !that is exactly at position V(:), we don't want to count itself as its own neighbor
-            IF( distance<tempreal .AND. diff_from_prev_NN .AND. distance>1.d-12 ) THEN
+            IF( distance>1.d-12 .AND. distance<tempreal .AND. diff_from_prev_NN ) THEN
               tempreal = distance
               !Copy contents of currA to V_100 (coordinates)
               V_100(i,:) = currA(:)

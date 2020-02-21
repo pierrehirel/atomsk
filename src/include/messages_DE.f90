@@ -1446,20 +1446,20 @@ CASE(2077)
     ENDIF
     !
     IF( reals(1)==0.d0 ) THEN
-      msg = "erste naechste"//TRIM(temp2)//" Nachbarn"
+      msg = TRIM(ADJUSTL(msg))//" erste naechste"//TRIM(temp2)//" Nachbarn"
     ELSEIF( reals(1)>0.d0 .AND. DBLE(NINT(reals(1)))-reals(1)<1.d-12 ) THEN
       WRITE(temp,*) NINT(reals(1))
       IF( NINT(reals(1))==1 ) THEN
-        msg = "der erste"//TRIM(temp2)//" Nachbar"
+        msg = TRIM(ADJUSTL(msg))//" der erste"//TRIM(temp2)//" Nachbar"
       ELSE
-        msg = "die "//TRIM(ADJUSTL(temp))//" naehsten"//TRIM(temp2)//" Nachbarn"
+        msg = TRIM(ADJUSTL(msg))//" die "//TRIM(ADJUSTL(temp))//" naehsten"//TRIM(temp2)//" Nachbarn"
       ENDIF
     ELSE
       WRITE(temp,'(f16.3)') DABS(reals(1))
-      msg = TRIM(ADJUSTL(temp2))//" Nachbarn innerhalb eines Radius von "//TRIM(ADJUSTL(temp))//" A"
+      msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp2))//" Nachbarn innerhalb eines Radius von "//TRIM(ADJUSTL(temp))//" A"
     ENDIF
     WRITE(temp,*) NINT(reals(2))
-    msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(msg))//" von Atom #"//TRIM(ADJUSTL(temp))//"..."
+    msg = TRIM(ADJUSTL(msg))//" von Atom #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="stl" ) THEN
     msg = TRIM(ADJUSTL(msg))//" atoms inside the 3-D shape from the STL file: "//TRIM(ADJUSTL(strings(2)))
@@ -3088,7 +3088,7 @@ CASE(4714)
   !strings(1) = direction along which cell is small
   !reals(1) = new cell size along that direction
   msg = "/!\ WARNUNG: Die letzte Zelle hat eine kleine Dimension entlang " &
-      & //TRIM(ADJUSTL(strings(1)))//", einstellung auf  "//TRIM(ADJUSTL(temp))
+      & //TRIM(ADJUSTL(strings(1)))//", einstellung auf  "//TRIM(ADJUSTL(temp))//" Å."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4715)
   !reals(1) = index of rotation axis

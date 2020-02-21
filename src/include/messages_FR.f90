@@ -1520,20 +1520,20 @@ CASE(2077)
     ENDIF
     !
     IF( reals(1)==0.d0 ) THEN
-      msg = " des premiers"//TRIM(temp2)//" voisins"
+      msg = TRIM(ADJUSTL(msg))//" des premiers"//TRIM(temp2)//" voisins"
     ELSEIF( reals(1)>0.d0 .AND. DBLE(NINT(reals(1)))-reals(1)<1.d-12 ) THEN
       WRITE(temp,*) NINT(reals(1))
       IF( NINT(reals(1))==1 ) THEN
-        msg = "du premier"//TRIM(temp2)//" voisin"
+        msg = TRIM(ADJUSTL(msg))//" du premier"//TRIM(temp2)//" voisin"
       ELSE
-        msg = "des "//TRIM(ADJUSTL(temp))//" premiers"//TRIM(temp2)//" voisins"
+        msg = TRIM(ADJUSTL(msg))//" des "//TRIM(ADJUSTL(temp))//" premiers"//TRIM(temp2)//" voisins"
       ENDIF
     ELSE
       WRITE(temp,'(f16.3)') DABS(reals(1))
-      msg = "des"//TRIM(temp2)//" voisins dans un rayon de "//TRIM(ADJUSTL(temp))//" A"
+      msg = TRIM(ADJUSTL(msg))//" des "//TRIM(temp2)//" voisins dans un rayon de "//TRIM(ADJUSTL(temp))//" A"
     ENDIF
     WRITE(temp,*) NINT(reals(2))
-    msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(msg))//" de l'atome #"//TRIM(ADJUSTL(temp))//"..."
+    msg = TRIM(ADJUSTL(msg))//" de l'atome #"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="stl" ) THEN
     msg = TRIM(ADJUSTL(msg))//" des atomes dans l'objet 3-D défini dans le fichier STL : "//TRIM(ADJUSTL(strings(2)))
@@ -3003,7 +3003,7 @@ CASE(4070)
     msg = ">>> Maille élémentaire utilisée comme référence : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
-    msg = ">>> Aucune référence fourni. Construction des environnements atomiques de référence"
+    msg = ">>> Aucune référence fournie. Construction des environnements atomiques de référence"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "    en moyennant les sites du système fourni : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3159,7 +3159,7 @@ CASE(4714)
   !reals(1) = new cell size along that direction
   WRITE(temp,'(f16.3)') reals(1)
   msg = "/!\ ALERTE : la boîte finale a une petite dimension suivant "&
-      & //TRIM(ADJUSTL(strings(1)))//", ajustement à "//TRIM(ADJUSTL(temp))
+      & //TRIM(ADJUSTL(strings(1)))//", ajustement à "//TRIM(ADJUSTL(temp))//" Å."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4715)
   !reals(1) = index of rotation axis

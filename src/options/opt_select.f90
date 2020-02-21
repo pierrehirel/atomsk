@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2020                                     *
+!* Last modification: P. Hirel - 21 Feb. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1374,11 +1374,6 @@ CASE("neigh","neighbors")
   ELSEIF( region_1(1)>0.d0 .AND. IS_INTEGER(region_1(1)) ) THEN
     !Search for the N closest neighbors
     k=NINT(region_1(1))
-    IF( snumber<0.1d0 .OR. DABS(P(atomrank,4)-snumber)<1.d-12 ) THEN
-      !Look for 1 more neighbor because the central atom will be found as its own neighbor
-      !(this will be corrected for afterwards)
-      k = k+1
-    ENDIF
     !
     IF( snumber>0.1d0 .AND. ALLOCATED(Q) .AND. SIZE(Q,1)>0 ) THEN
       CALL FIND_NNN(H,Q,P(atomrank,:),k,V_NN,Nlist,exceeds100)
@@ -1430,7 +1425,7 @@ CASE("neigh","neighbors")
     !
   ELSE
     !Search for all neighbors in the radius R=DABS(region_1(1))
-    !This is similar to "-select in sphere"
+    !This is similar to "-select in sphere", except that the central atom is not selected
     !P(atomrank,:) = center of the sphere
     !region_1(1) = radius of the sphere
     DO i=1,SIZE(P,1)
