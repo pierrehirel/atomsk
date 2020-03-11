@@ -427,6 +427,110 @@ CASE('fluorite','fluorine')
   comment(1) = "Fluorite "//TRIM(ADJUSTL(comment(1)))
 !
 !
+CASE('c15','C15')
+  cubic = .TRUE.
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(24,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  !Consider the prototype Cu2Mg
+  !Cu atoms
+  P(1,1:3) = 0.5d0
+    P(2,1) = 0.5d0
+    P(2,2) = 0.75d0
+    P(2,3) = 0.75d0
+  P(3,1) = 0.75d0
+  P(3,2) = 0.5d0
+  P(3,3) = 0.75d0
+    P(4,1) = 0.75d0
+    P(4,2) = 0.75d0
+    P(4,3) = 0.5d0
+  P(5,1) = 0.25d0
+  P(5,2) = 0.5d0
+  P(5,3) = 0.25d0
+    P(6,1) = 0.5d0
+    P(6,2) = 0.25d0
+    P(6,3) = 0.25d0
+  P(7,1) = 0.25d0
+  P(7,2) = 0.25d0
+  P(7,3) = 0.5d0
+    P(8,1) = 0.25d0
+    P(8,2) = 0.75d0
+    P(8,3) = 0.d0
+  P(9,1) = 0.5d0
+  P(9,2) = 0.d0
+  P(9,3) = 0.d0
+    P(10,1) = 0.25d0
+    P(10,2) = 0.d0
+    P(10,3) = 0.75d0
+  P(11,1) = 0.d0
+  P(11,2) = 0.5d0
+  P(11,3) = 0.d0
+    P(12,1) = 0.75d0
+    P(12,2) = 0.25d0
+    P(12,3) = 0.d0
+  P(13,1) = 0.d0
+  P(13,2) = 0.25d0
+  P(13,3) = 0.75d0
+    P(14,1) = 0.d0
+    P(14,2) = 0.75d0
+    P(14,3) = 0.25d0
+  P(15,1) = 0.75d0
+  P(15,2) = 0.d0
+  P(15,3) = 0.25d0
+    P(16,1) = 0.d0
+    P(16,2) = 0.d0
+    P(16,3) = 0.5d0
+  !Mg atoms are at positions of the diamond lattice
+   P(17,1) = 0.125d0
+   P(17,2) = 0.125d0
+   P(17,3) = 0.125d0
+  P(18,1) = 0.875d0
+  P(18,2) = 0.875d0
+  P(18,3) = 0.875d0
+   P(19,1) = 0.875d0
+   P(19,2) = 0.375d0
+   P(19,3) = 0.375d0
+  P(20,1) = 0.375d0
+  P(20,2) = 0.875d0
+  P(20,3) = 0.375d0
+   P(21,1) = 0.625d0
+   P(21,2) = 0.125d0
+   P(21,3) = 0.625d0
+  P(22,1) = 0.375d0
+  P(22,2) = 0.375d0
+  P(22,3) = 0.875d0
+   P(23,1) = 0.125d0
+   P(23,2) = 0.625d0
+   P(23,3) = 0.625d0
+  P(24,1) = 0.625d0
+  P(24,2) = 0.625d0
+  P(24,3) = 0.125d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  DO i=2,16
+    P(i,4) = P(1,4)
+  ENDDO
+  CALL ATOMNUMBER(create_species(2),P(17,4))
+  DO i=18,24
+    P(i,4) = P(17,4)
+  ENDDO
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))//"2"//TRIM(create_species(2))
+  comment(1) = TRIM(ADJUSTL(comment(1)))//' with C15 Laves structure'
+!
+!
 CASE('per','perovskite')
   cubic = .TRUE.
   IF(nspecies.NE.3) THEN
@@ -457,6 +561,7 @@ CASE('per','perovskite')
   !Set up the messages
   temp = TRIM(create_species(1))//TRIM(create_species(2))//TRIM(create_species(3))//'3'
   WRITE(comment(1),*) 'Cubic perovskite '//TRIM(temp)
+!
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  TETRAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('st')
@@ -736,7 +841,7 @@ CASE('c14','C14')
   P(:,3) = H(3,3)*P(:,3)
   !Set up the messages
   WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
-  comment(1) = 'C14 '//TRIM(ADJUSTL(comment(1)))
+  comment(1) = TRIM(ADJUSTL(comment(1)))//' with C14 Laves structure'
 !
 !
 CASE('limo2','LiMO2')

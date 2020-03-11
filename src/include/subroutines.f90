@@ -1048,7 +1048,7 @@ REAL(dp):: mi, M, A, D, S  !statistics
 REAL(dp),DIMENSION(3):: cm
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array
 !
-IF( SIZE(array,1) > 4 ) THEN
+IF( SIZE(array,1) > 100 ) THEN
   cm(:) = 0.d0
   !We read the columns of array and compute the normal deviation of all values
   !- if array has one, two or three columns we read them

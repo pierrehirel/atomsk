@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2019                                     *
+!* Last modification: P. Hirel - 10 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -351,7 +351,7 @@ CASE('create')
   i=2
   IF( create_struc=='graphite' .OR. create_struc=='hcp'    .OR.  &
     & create_struc=='wurtzite' .OR. create_struc=='wz'     .OR.  &
-    & create_struc=='c14'      .OR. create_struc=='c14'    .OR.  &
+    & create_struc=='c14'      .OR. create_struc=='C14'    .OR.  &
     & create_struc=='limo2'    .OR. create_struc=='LiMO2'  .OR.  &
     & create_struc=='st'       .OR. create_struc=='bct'    .OR.  &
     & create_struc=="fct"      ) THEN
@@ -449,19 +449,22 @@ CASE('create')
   outputfile = TRIM(ADJUSTL(file1))
   IF(LEN_TRIM(outputfile)==0) outputfile = TRIM(ADJUSTL(filefirst))
   IF(LEN_TRIM(outputfile)==0) THEN
-    IF(create_struc=='L12') THEN
+    SELECT CASE(create_struc)
+    CASE('L12')
       outputfile = TRIM(create_species(1))//'3'//TRIM(create_species(2))
-    ELSE
+    CASE('c15','C15')
+      outputfile = TRIM(create_species(1))//'2'//TRIM(create_species(2))
+    CASE('fluorite','fluorine','c14','C14')
       DO i=1,SIZE(create_species)
         outputfile = TRIM(outputfile)//TRIM(create_species(i))
       ENDDO
-      IF(create_struc=='fluorite' .OR. create_struc=='fluorine') THEN
-        outputfile = TRIM(outputfile)//'2'
-      ENDIF
-      IF(create_struc=='per' .OR. create_struc=='perovskite') THEN
-        outputfile = TRIM(outputfile)//'3'
-      ENDIF
-    ENDIF
+      outputfile = TRIM(outputfile)//'2'
+    CASE('per','perovskite')
+      DO i=1,SIZE(create_species)
+        outputfile = TRIM(outputfile)//TRIM(create_species(i))
+      ENDDO
+      outputfile = TRIM(outputfile)//'3'
+    END SELECT
   ENDIF
   msg = 'CREATE mode: outputfile: '//TRIM(outputfile)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

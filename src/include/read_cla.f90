@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2020                                     *
+!* Last modification: P. Hirel - 10 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -169,15 +169,16 @@ DO WHILE(i<SIZE(cla))
       READ(cla(i),*,END=130,ERR=130) mode_param(m)
     ENDIF
     !Get the atomic species for the structure
-    DO
+    DO WHILE( i+1<=SIZE(cla) )
       i=i+1
       temp=""
       IF(i<=SIZE(cla)) temp = ADJUSTL(cla(i))
       IF( LEN_TRIM(temp)>0 ) THEN
-        IF( SCAN(temp,'0123456789')>0 ) THEN
-          !It is a number: user probably entered too many lattice constants
-          GOTO 130
-        ELSEIF(LEN_TRIM(temp)>2 .OR. temp(1:1)=='-' ) THEN
+!         IF( SCAN(temp,'0123456789')>0 ) THEN
+!           !It is a number: user probably entered too many lattice constants
+!           GOTO 130
+!         ELSE
+        IF(LEN_TRIM(temp)>2 .OR. temp(1:1)=='-' ) THEN
           !It is not an atom species => go back and exit the loop
           i=i-1
           EXIT
@@ -201,48 +202,50 @@ DO WHILE(i<SIZE(cla))
       ENDIF
     ENDDO
     !Look for crystallographic orientation (if any)
-    i=i+1
-    temp = ADJUSTL(cla(i))
-    IF( temp=="orient" ) THEN
-      SELECT CASE(mode_param(1))
-      CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
-          & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine')
-        !Cubic lattice => read crystal orientation
-        m=m+1
-        mode_param(m) = "orient"
-        !Get Miller indices [hkl] of the crystal orientation along X, Y, Z
-        i=i+1
-        m=m+1
-        READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        i=i+1
-        m=m+1
-        READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        i=i+1
-        m=m+1
-        READ(cla(i),*,END=130,ERR=130) mode_param(m)
-      CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','limo2','LiMO2')
-        !Hexagonal lattice => read crystal orientation
-        m=m+1
-        mode_param(m) = "orient"
-        !Get Miller indices [hkil] of the crystal orientation
-        i=i+1
-        m=m+1
-        READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        i=i+1
-        m=m+1
-        READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        i=i+1
-        m=m+1
-        READ(cla(i),*,END=130,ERR=130) mode_param(m)
-      CASE DEFAULT
-        !Lattice is not cubic nor hexagonal: crystal orientation not implemented yet
-        !Display error message and exit
-        CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
-        nerr = nerr+1
-        GOTO 1000
-      END SELECT
-    ELSE
-      i=i-1
+    IF( i+1 <= SIZE(cla)-3 ) THEN
+      i=i+1
+      temp = ADJUSTL(cla(i))
+      IF( temp=="orient" ) THEN
+        SELECT CASE(mode_param(1))
+        CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
+            & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine','c15','C15')
+          !Cubic lattice => read crystal orientation
+          m=m+1
+          mode_param(m) = "orient"
+          !Get Miller indices [hkl] of the crystal orientation along X, Y, Z
+          i=i+1
+          m=m+1
+          READ(cla(i),*,END=130,ERR=130) mode_param(m)
+          i=i+1
+          m=m+1
+          READ(cla(i),*,END=130,ERR=130) mode_param(m)
+          i=i+1
+          m=m+1
+          READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','limo2','LiMO2')
+          !Hexagonal lattice => read crystal orientation
+          m=m+1
+          mode_param(m) = "orient"
+          !Get Miller indices [hkil] of the crystal orientation
+          i=i+1
+          m=m+1
+          READ(cla(i),*,END=130,ERR=130) mode_param(m)
+          i=i+1
+          m=m+1
+          READ(cla(i),*,END=130,ERR=130) mode_param(m)
+          i=i+1
+          m=m+1
+          READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        CASE DEFAULT
+          !Lattice is not cubic nor hexagonal: crystal orientation not implemented yet
+          !Display error message and exit
+          CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
+          nerr = nerr+1
+          GOTO 1000
+        END SELECT
+      ELSE
+        i=i-1
+      ENDIF
     ENDIF
     IF(LEN_TRIM(mode_param(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !

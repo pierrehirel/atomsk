@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2020                                     *
+!* Last modification: P. Hirel - 04 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -372,7 +372,7 @@ DO ioptions=1,SIZE(options_array)
     !empty entry => just ignore it
     CONTINUE
     !
-  CASE('-add-atom','add-atoms','addatom','addatoms')
+  CASE('-add-atom','-add-atoms','-addatom','-addatoms')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, addatom_species, &
         & addatom_type
     IF( addatom_type=="at" .OR. addatom_type=="AT" .OR. addatom_type=="@" ) THEN

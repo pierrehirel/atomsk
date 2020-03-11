@@ -161,6 +161,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                              fluorite  |       1        |     2"
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                                   C15  |       1        |     2"
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             MAILLES                st  |   2 (a et c)   |   1 ou 2"
   WRITE(*,*) "             TETRAGONALES          bct  |   2 (a et c)   |   1 ou 2"
@@ -169,7 +170,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             MAILLES               hcp  |   2 (a et c)   |   1 ou 2"
   WRITE(*,*) "             HEXAGONALES      wurtzite  |   2 (a et c)   |     2"
   WRITE(*,*) "                              graphite  |   2 (a et c)   |   1 ou 2"
-  WRITE(*,*) "                                   L14  |   2 (a et c)   |     2"
+  WRITE(*,*) "                                   C14  |   2 (a et c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
@@ -1786,13 +1787,28 @@ CASE(2094)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2095)
   !reals(1) = number of box vectors that were modified
+  !reals(2) = index of first box vector that was modified
+  !reals(3) = index of second box vector that was modified
+  IF( NINT(reals(2))==1 ) THEN
+    temp = "Le premier"
+  ELSEIF( NINT(reals(2))==2 ) THEN
+    temp = "Le deuxième"
+  ELSEIF( NINT(reals(2))==3 ) THEN
+    temp = "Le troisième"
+  ENDIF
   IF( NINT(reals(1))==0 ) THEN
-    msg = "..> Les vecteurs de boîte n'ont pas été modifiés."
+    msg = "..> Aucun vecteur de boîte n'a été modifié."
   ELSEIF( NINT(reals(1))==1 ) THEN
-    msg = "..> Un seul vecteur de boîte a été modifié."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" vecteur de boîte a été modifié."
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    IF( NINT(reals(3))==2 ) THEN
+      temp2 = "le deuxième"
+    ELSEIF( NINT(reals(3))==3 ) THEN
+      temp2 = "le troisième"
+    ENDIF
+    msg = "..> "//TRIM(ADJUSTL(temp))//" et "//TRIM(ADJUSTL(temp2))//" vecteurs de boîte ont été modifiés."
   ELSE
-    WRITE(temp,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(temp))//" vecteurs de boîte ont été modifiés."
+    msg = "..> Les vecteurs de boîte ont été modifiés."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2096)

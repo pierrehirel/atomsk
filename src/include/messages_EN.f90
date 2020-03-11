@@ -160,6 +160,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                              fluorite  |       1        |     2"
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                                   C15  |       1        |     2"
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             TETRAGONAL             st  |  2 (a and c)   |   1 or 2"
   WRITE(*,*) "             LATTICES              bct  |  2 (a and c)   |   1 or 2"
@@ -168,7 +169,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             HEXAGONAL             hcp  |  2 (a and c)   |   1 or 2"
   WRITE(*,*) "             LATTICES         wurtzite  |  2 (a and c)   |     2"
   WRITE(*,*) "                              graphite  |  2 (a and c)   |   1 or 2"
-  WRITE(*,*) "                                   L14  |  2 (a and c)   |     2"
+  WRITE(*,*) "                                   C14  |  2 (a and c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
@@ -1727,13 +1728,28 @@ CASE(2094)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2095)
   !reals(1) = number of box vectors that were modified
+  !reals(2) = index of first box vector that was modified
+  !reals(3) = index of second box vector that was modified
+  IF( NINT(reals(2))==1 ) THEN
+    temp = "First"
+  ELSEIF( NINT(reals(2))==2 ) THEN
+    temp = "Second"
+  ELSEIF( NINT(reals(2))==3 ) THEN
+    temp = "Third"
+  ENDIF
   IF( NINT(reals(1))==0 ) THEN
     msg = "..> Cell vectors were not modified."
   ELSEIF( NINT(reals(1))==1 ) THEN
-    msg = "..> Only 1 cell vector was modified."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" cell vector was modified."
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    IF( NINT(reals(3))==2 ) THEN
+      temp2 = "second"
+    ELSEIF( NINT(reals(3))==3 ) THEN
+      temp2 = "third"
+    ENDIF
+    msg = "..> "//TRIM(ADJUSTL(temp))//" and "//TRIM(ADJUSTL(temp2))//" cell vectors were modified."
   ELSE
-    WRITE(temp,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(temp))//" cell vectors were modified."
+    msg = "..> Cell vectors were modified."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2096)

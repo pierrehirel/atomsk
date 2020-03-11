@@ -161,6 +161,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                              fluorite  |       1        |     2"
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                                   C15  |       1        |     2"
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             TETRAGONALE            st  |  2 (a und c)   | 1 oder 2"
   WRITE(*,*) "             GITTER                bct  |  2 (a und c)   | 1 oder 2"
@@ -1687,13 +1688,28 @@ CASE(2094)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2095)
   !reals(1) = number of box vectors that were modified
+  !reals(2) = index of first box vector that was modified
+  !reals(3) = index of second box vector that was modified
+  IF( NINT(reals(2))==1 ) THEN
+    temp = "Der erste"
+  ELSEIF( NINT(reals(2))==2 ) THEN
+    temp = "Der zweite"
+  ELSEIF( NINT(reals(2))==3 ) THEN
+    temp = "Der dritte"
+  ENDIF
   IF( NINT(reals(1))==0 ) THEN
     msg = "..> Zellvektoren wurden nicht modifiziert."
   ELSEIF( NINT(reals(1))==1 ) THEN
-    msg = "..> Nur 1 Zellvektor wurde modifiziert."
-  ELSE
-    WRITE(temp,*) NINT(reals(1))
     msg = "..> "//TRIM(ADJUSTL(temp))//" Zellvektoren wurden modifiziert."
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    IF( NINT(reals(3))==2 ) THEN
+      temp2 = "zweite"
+    ELSEIF( NINT(reals(3))==3 ) THEN
+      temp2 = "dritte"
+    ENDIF
+    msg = "..> "//TRIM(ADJUSTL(temp))//" und "//TRIM(ADJUSTL(temp2))//" Zellvektoren wurden modifiziert."
+  ELSE
+    msg = "..> Zellvektoren wurden modifiziert."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2096)
