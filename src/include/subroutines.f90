@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Feb. 2020                                     *
+!* Last modification: P. Hirel - 30 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1054,15 +1054,15 @@ IF( SIZE(array,1) > 100 ) THEN
   !- if array has one, two or three columns we read them
   !- if array has four or more columns we read only the 3 first columns
   DO i=1, MIN( SIZE(array,2),3 )
-    !Compute the statistics on coordinates in this column
+    !Compute the statistics on coordinates in column #i
     CALL DO_STATS(array(:,i),mi,M,A,D,S)
-    !Save deviation on atom positions
-    cm(i) = S
+    !Save max difference (max-min) in atom positions
+    cm(i) = M-mi
   ENDDO
   !
-  !If deviation is smaller than 1 in all
-  !directions, then it is reduced coordinates
-  IF( cm(1)<=0.9d0 .AND. cm(2)<=0.9d0 .AND. cm(3)<=0.9d0 ) THEN
+  !If difference is smaller than 1 in all
+  !directions, then coordinates are reduced
+  IF( cm(1)<1.d0 .AND. cm(2)<1.d0 .AND. cm(3)<1.d0 ) THEN
     isreduced = .TRUE.
   ELSE
     isreduced = .FALSE.
