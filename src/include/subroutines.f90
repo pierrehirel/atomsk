@@ -1045,11 +1045,11 @@ IMPLICIT NONE
 LOGICAL,INTENT(OUT):: isreduced  !does A contain reduced coordinates?
 INTEGER:: i
 REAL(dp):: mi, M, A, D, S  !statistics
-REAL(dp),DIMENSION(3):: cm
+REAL(dp),DIMENSION(3):: minmax, sd
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array
 !
 IF( SIZE(array,1) > 100 ) THEN
-  cm(:) = 0.d0
+  minmax(:) = 0.d0
   !We read the columns of array and compute the normal deviation of all values
   !- if array has one, two or three columns we read them
   !- if array has four or more columns we read only the 3 first columns
@@ -1057,14 +1057,19 @@ IF( SIZE(array,1) > 100 ) THEN
     !Compute the statistics on coordinates in column #i
     CALL DO_STATS(array(:,i),mi,M,A,D,S)
     !Save max difference (max-min) in atom positions
-    cm(i) = M-mi
+    minmax(i) = M-mi
+    !Save standard deviation
+    sd(i) = S
   ENDDO
   !
-  !If difference is smaller than 1 in all
-  !directions, then coordinates are reduced
-  IF( cm(1)<1.d0 .AND. cm(2)<1.d0 .AND. cm(3)<1.d0 ) THEN
+  IF( minmax(1)<1.d0 .AND. minmax(2)<1.d0 .AND. minmax(3)<1.d0 ) THEN
+    !Max. difference in atom positions is smaller than 1 in all directions => coordinates are reduced
+    isreduced = .TRUE.
+  ELSEIF( sd(1)<0.7d0 .AND. minmax(2)<0.7d0 .AND. minmax(3)<0.7d0 ) THEN
+    !Standard deviation is small in all directions => coordinates are reduced
     isreduced = .TRUE.
   ELSE
+    !All other cases => coordinates are not reduced
     isreduced = .FALSE.
   ENDIF
   !
