@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Option reduce cell - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option: reduce-cell</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-reduce-cell</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option tente de réduire la taille du système en une cellule plus petite.</p>
+
+<p>Cette option parcourt la liste des atomes à la recherche d'atomes équivalents. Si le vecteur joignant deux atomes équivalents est parallèle à un vecteur de boîte initial mais qu'il est plus court, alors il le remplace.</p>
+
+<p>Notez que cette option préserve l'orientation du cristal et des vecteurs de boîte, elle tente juste de les raccourcir si c'est possible. La boîte finale ne sera peut-être pas la cellule élémentaire du cristal, seulement la plus petite trouvée pour cette orientation et ces vecteurs de boîte donnés.</p>
+
+<p>Si le système a été tourné et que vous souhaitez obtenir une boîte orthogonale équivalente, alors utilisez l'<a href="./option_orthocell">option <code>-orthogonal-cell</code></a> avant celle-ci.</p>
+
+<p>Les vecteurs de boîte peuvent changer après avoir appliqué cette option. Les positions et propriétés des atomes ne changent pas, mais si la boîte a été raccourcie alors les atomes qui se retrouvent en dehors de la nouvelle boîte sont éliminés, ainsi que leurs coquilles et leurs propriétés auxiliaires s'ils en avaient.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut Atomsk ne réduit pas les vecteurs de boîte.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk system.cfg -reduce-cell xsf</code>
+<p>Ceci va lire le fichier <code>system.cfg</code> et tentera de raccourcir les vecteurs de boîte. Le résultat sera écrit dans <code>system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -rotate Z 45 -orthogonal-cell -reduce-cell final.cfg</code>
+<p>Ceci va <a href="./option_rotate.html">tourner le système</a> de 45° autour de l'axe Z, recherchera une <a href="./option_orthocell.html">boîte orthogonale équivalente</a>, et finalement tentera de réduire la taille de cette boîte. Le résultat sera écrit dans <code>final.cfg</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

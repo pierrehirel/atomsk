@@ -141,6 +141,9 @@ Reads some properties of the system from <file>.
 .B -rebox
 Attempts to determine the supercell parameters.
 .TP
+.B -reduce-cell
+Attempts to reduce the size of the cell.
+.TP
 .B -remove-atom <index|species>, -rmatom <index|species>
 Removes an atom given its index, or all atoms of a given species.
 .TP

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 March 2020                                    *
+!* Last modification: P. Hirel - 30 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1100,6 +1100,10 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-rebox') THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
+  !
+  ELSEIF(clarg=='-reduce-cell' .OR. clarg=='-reducecell' .OR. clarg=='-reduce-box' .OR. clarg=='-reducebox') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !

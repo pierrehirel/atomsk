@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 19 Feb. 2020                                     *
+!* Last modification: P. Hirel - 30 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -304,6 +304,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-prop") THEN
   WRITE(*,*) "..> Lese Systemeigenschaften ein:"
   WRITE(*,*) "          -prop <file>"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
+  WRITE(*,*) "..> Reduzieren Sie das System in eine Einheitszelle:"
+  WRITE(*,*) "          -reduce-cell"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
@@ -2086,6 +2091,43 @@ CASE(2148)
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" Werte wurden gerundet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2149)
+  msg = ">>> System in eine Einheitszelle reduzieren..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2150)
+  !reals(1) = 1 if cell was reduced along X, 0 otherwise
+  !reals(2) = 1 if cell was reduced along Y, 0 otherwise
+  !reals(3) = 1 if cell was reduced along Z, 0 otherwise
+  !reals(4) = new number of atoms
+  j=0
+  IF( ANY( NINT(reals(1:3))==0 ) ) THEN
+    temp = ""
+    IF( NINT(reals(1))==1 ) THEN
+      temp = "erste"
+      j=j+1
+    ENDIF
+    IF( NINT(reals(2))==1 ) THEN
+      IF( NINT(reals(1))==1 ) temp = TRIM(ADJUSTL(temp))//" und der"
+      temp = TRIM(ADJUSTL(temp))//" zweite"
+      j=j+1
+    ENDIF
+    IF( NINT(reals(3))==1 ) THEN
+      IF( NINT(reals(1))==1 ) temp = TRIM(ADJUSTL(temp))//" und der"
+      temp = TRIM(ADJUSTL(temp))//" dritte"
+      j=j+1
+    ENDIF
+    IF(j==1) THEN
+      temp2 = "Zellvektor wurde reduziert"
+    ELSE
+      temp2 = "Zellvektoren wurden reduziert"
+    ENDIF
+    msg = "..> Der "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))
+  ELSE
+    msg = "..> Die Zelle wurde reduziert"
+  ENDIF
+  WRITE(temp,*) NINT(reals(4))
+  msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(temp))//" Atomen)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
   !strings(2) = second option
@@ -2284,6 +2326,9 @@ CASE(2762)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2763)
   msg = "/!\ WARNUNG: Modulo ist gleich 1 und wählt alle Atome aus."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2764)
+  msg = "/!\ WARNUNG: es wurde kein kürzerer periodischer Vektor gefunden, das System bleibt das gleiche."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

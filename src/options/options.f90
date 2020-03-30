@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 March 2020                                    *
+!* Last modification: P. Hirel - 30 March 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -82,8 +82,9 @@ USE mirror
 USE orient
 USE orthocell
 USE properties
-USE rmatom
+USE reduce_cell
 USE remdoubles
+USE rmatom
 USE rmprop
 USE rmshells
 USE roll
@@ -738,6 +739,9 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-rebox')
     CALL DETERMINE_H(H,P)
+  !
+  CASE('-reduce-cell','-reducecell','-reduce-box','-reducebox')
+    CALL REDUCECELL(H,P,S,AUX,SELECT)
   !
   CASE('-remove-atom','-remove-atoms','-rmatom','-rmatoms','-delete-atoms','-delete_atoms')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rmatom_prop

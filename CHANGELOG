@@ -25,8 +25,9 @@ Master (development)
 - in option "-sort", added possibility to shuffle atom list in random order.
 - in option "-swap", added possibility to swap two chemical species.
 - the order of options is now checked, and when possible, the program displays a recommendation to improve performance (e.g. when option "-duplicate" is called before "-orthocell", it is recommended to swap them).
-- new option "-roundoff" allows to round off atom coordinates or the values of a property.
 - new option "-nthreads" to control the number of OpenMP threads.
+- new option "-reduce-cell" allows to find an equivalent smaller cell to a system.
+- new option "-roundoff" allows to round off atom coordinates or the values of a property.
 - new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on.
 - improved checking of number of atoms and memory allocations.
 - fixed a bug in the symmetry operations of space group 166 (R-3m).
