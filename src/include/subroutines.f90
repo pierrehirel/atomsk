@@ -1077,7 +1077,7 @@ ELSE
   !another method is used.
   isreduced = .TRUE.
   DO i=2,SIZE(array,1)
-    IF( VECLENGTH( array(i,1:3)-array(1,1:3) ) > 1.25d0 ) THEN
+    IF( VECLENGTH( array(i,1:3)-array(1,1:3) ) > 1.75d0 ) THEN
       isreduced = .FALSE.
     ENDIF
   ENDDO

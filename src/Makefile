@@ -115,12 +115,7 @@ vpath %.f90 include:input:options:output:modes
 
 # Default target is to display help
 .DEFAULT: help
-help:
-	@echo "       o---o     ___________"
-	@echo "      o---o|     A T O M S K"
-	@echo "      |   |o"
-	@echo "      o---o      Version ${VER}"
-	@echo ""
+help: message
 	@echo "  Available targets for make:"
         ifeq ($(MF),Makefile)
 	  @echo "- make atomsk       compile the program using ${FORTRAN}"
@@ -140,6 +135,12 @@ help:
 	@echo "                    (requires tar and gzip programs)"
 	@echo ""
 
+message:
+	@echo "       o---o     ___________"
+	@echo "      o---o|     A T O M S K"
+	@echo "      |   |o"
+	@echo "      o---o      Version ${VER}"
+	@echo ""
 
 # All = compile the code
 all: atomsk
@@ -147,12 +148,13 @@ all: atomsk
 
 # Compile the program
 # Note that the preprocessor must be called (-cpp)
-atomsk: modes
+atomsk: message modes
 	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 -I $(OBJ) $(LAPACK)
-	@echo "\o/ Compilation was successful!"
 	@echo ""
-	@echo "<i> To install Atomsk system-wide, you may now run:"
-	@echo "      sudo make install"
+	@echo "    \o/ Compilation was successful!"
+	@echo ""
+	@echo "    <i> To install Atomsk system-wide, you may now run:"
+	@echo "          sudo make install"
 	@echo ""
 
 # Compile modes modules
