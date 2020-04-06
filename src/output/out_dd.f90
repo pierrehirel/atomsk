@@ -12,7 +12,7 @@ MODULE out_dd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 June 2018                                     *
+!* Last modification: P. Hirel - 06 April 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -100,7 +100,7 @@ WRITE(40,'(a8)') 'COOR_REL'
 DO i=1,SIZE(Psecond,1)
   WRITE(40,110) Psecond(i,1), Psecond(i,2), Psecond(i,3)
 ENDDO
-110 FORMAT(3(f16.8,1X),f6.2)
+110 FORMAT(3(f16.8,1X),i3)
 !
 CLOSE(40)
 msg = "ddplot"
