@@ -108,6 +108,8 @@ msg = msg(1:48)//"|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = "|    o---o     (C) 2010 Pierre Hirel            |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
+msg = "|              https://atomsk.univ-lille.fr     |"
+CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = "|_______________________________________________|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !

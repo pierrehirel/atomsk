@@ -24,11 +24,13 @@
 
 <p>This option parses the list of atoms to find pairs of equivalent atoms. If the vector joining two equivalent atoms is parallel to and shorter than an initial cell vector, then it replaces it.</p>
 
-<p>Note that this option preserves the crystal orientation and the cell vectors as they are, it just attempts to shorten them when it is possible. The final cell may not be the smallest unit cell, just the shortest along these directions.</p>
+<p>This option preserves the crystal orientation and the cell vectors as they are, it just attempts to shorten them when it is possible. The final cell may not be the smallest unit cell, just the shortest along these directions.</p>
+
+<p>Cell vectors may change after this option is applied. The positions and properties of atoms will not change, but if the cell is reduced then atoms that are outside of the final cell will be deleted, along with their shells and auxiliary properties if they had any.</p>
 
 <p>If the system is rotated and you wish to obtain an orthorhombic unit cell, then use the <a href="./option_orthocell">option <code>-orthogonal-cell</code></a> before this one.</p>
 
-<p>Cell vectors may change after this option is applied. The positions and properties of atoms will not change, but if the cell is reduced then atoms that are outside of the final cell will be deleted, along with their shells and auxiliary properties if they had any.</p>
+<p>Note that this option is meant for use with perfect crystals. It cannot be expected to give good results in crystals containing defects, nor on non-crystalline or disordered systems.</p>
 
 
 <h4>Default</h4>

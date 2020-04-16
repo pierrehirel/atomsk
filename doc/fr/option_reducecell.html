@@ -26,9 +26,11 @@
 
 <p>Notez que cette option préserve l'orientation du cristal et des vecteurs de boîte, elle tente juste de les raccourcir si c'est possible. La boîte finale ne sera peut-être pas la cellule élémentaire du cristal, seulement la plus petite trouvée pour cette orientation et ces vecteurs de boîte donnés.</p>
 
+<p>Les vecteurs de boîte peuvent changer après avoir appliqué cette option. Les positions et propriétés des atomes ne changent pas, mais si la boîte a été raccourcie alors les atomes qui se retrouvent en dehors de la nouvelle boîte sont éliminés, ainsi que leurs coquilles et leurs propriétés auxiliaires s'ils en avaient.</p>
+
 <p>Si le système a été tourné et que vous souhaitez obtenir une boîte orthogonale équivalente, alors utilisez l'<a href="./option_orthocell">option <code>-orthogonal-cell</code></a> avant celle-ci.</p>
 
-<p>Les vecteurs de boîte peuvent changer après avoir appliqué cette option. Les positions et propriétés des atomes ne changent pas, mais si la boîte a été raccourcie alors les atomes qui se retrouvent en dehors de la nouvelle boîte sont éliminés, ainsi que leurs coquilles et leurs propriétés auxiliaires s'ils en avaient.</p>
+<p>Notez que cette option est prévue pour être utilisée sur des systèmes cristallins parfaits. Elle risque de ne pas donner de bons résultats sur des cristaux qui contiennent des défauts, ni sur les systèmes non cristallins ou désordonnés.</p>
 
 
 <h4>Défaut</h4>
