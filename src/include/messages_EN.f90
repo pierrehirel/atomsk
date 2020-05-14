@@ -1319,7 +1319,7 @@ CASE(2077)
   ELSE
     msg = ">>> Selecting"
   ENDIF
-  IF( strings(1)=="all" ) THEN
+  IF( strings(1)=="all" .OR. strings(1)=="none" ) THEN
     msg = TRIM(ADJUSTL(msg))//" all atoms."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="invert" ) THEN
@@ -1622,7 +1622,7 @@ CASE(2085)
     msg = ">>> Shifting atoms "//TRIM(strings(1))//" "//TRIM(ADJUSTL(msg))//  &
           & "A along "//TRIM(strings(2))//" by ("//TRIM(ADJUSTL(temp))//","//     &
           & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
-  ELSEIF( strings(1)=="select" ) THEN
+  ELSEIF( strings(1)=="selec" ) THEN
     msg = ">>> Shifting selected atoms by ("//TRIM(ADJUSTL(temp))//","//     &
           & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   ELSE

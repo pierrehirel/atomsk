@@ -95,22 +95,20 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 !
 !Print a nice message
-msg = " _______________________________________________"
+msg = " ___________________________________________________"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|                    ___________                |"
+msg = "|              ___________                          |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|     o---o          A T O M S K                |"
+msg = "|     o---o    A T O M S K                          |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|    o---o|                                     |"
+msg = "|    o---o|    Version "//TRIM(ADJUSTL(version))
+msg = msg(1:52)//"|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|    |   |o    Version "//TRIM(ADJUSTL(version))
-msg = msg(1:48)//"|"
+msg = "|    |   |o    (C) 2010 Pierre Hirel                |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|    o---o     (C) 2010 Pierre Hirel            |"
+msg = "|    o---o     https://atomsk.univ-lille.fr         |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|              https://atomsk.univ-lille.fr     |"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|_______________________________________________|"
+msg = "|___________________________________________________|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 END SUBROUTINE DISPLAY_HEADER

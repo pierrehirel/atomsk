@@ -45,7 +45,8 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT             !mask for atom list (te
 INTEGER,DIMENSION(3):: reduce
 INTEGER:: i, iref, j, k, NP, m, n, o
 REAL(dp):: cp, vp, tempreal
-REAL(dp),PARAMETER:: tol=1.d-6  !tolerance on atom positions
+REAL(dp),PARAMETER:: rtol=1.d-3  !relative tolerance on atom positions
+REAL(dp),DIMENSION(3):: tol      !tolerance on atom positions along X,Y,Z (angströms)
 REAL(dp),DIMENSION(3):: V
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H      !box vectors
 REAL(dp),DIMENSION(3,3):: Hnew
@@ -59,6 +60,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties 
 !Initialize variables
 i = 0
 NP=0
+tol(:) = 0.d0
 IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
@@ -152,7 +154,7 @@ DO i=1,3
     reduce(i) = 1
     !Eliminate approximations in cell vectors components
     DO j=1,3
-      IF( DABS(H(i,j)) < tol ) H(i,j) = 0.d0
+      IF( DABS(H(i,j)) < rtol ) H(i,j) = 0.d0
     ENDDO
   ENDIF
 ENDDO
@@ -165,6 +167,11 @@ IF( verbosity==4 ) THEN
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDDO
 ENDIF
+!
+!Set tolerance on atom position along X, Y, Z
+DO i=1,3
+  tol(i) = MIN( 1.d-3 , rtol / VECLENGTH(H(i,:)) )
+ENDDO
 !
 IF( ANY( reduce(:)>0 ) ) THEN
   !One or more cell vectors were changed: remove all atoms that are not inside the new cell
@@ -202,8 +209,8 @@ IF( ANY( reduce(:)>0 ) ) THEN
       !Compute relative position of this atom
       V(:) = P(i,1:3) - P(iref,1:3)
       !Check if this atom is in the new box
-      IF( V(1)>-tol .AND. V(2)>-tol .AND. V(3)>-tol .AND.  &
-        & V(1)<1.d0-tol .AND. V(2)<1.d0-tol .AND. V(3)<1.d0-tol        ) THEN
+      IF( V(1)>-tol(1) .AND. V(2)>-tol(2) .AND. V(3)>-tol(3) .AND.  &
+        & V(1)<=1.d0-tol(1) .AND. V(2)<=1.d0-tol(2) .AND. V(3)<=1.d0-tol(3)        ) THEN
         !Yes, it is in the box: add it to the list
         NP = NP+1
         IF(NP<=SIZE(Q,1)) THEN

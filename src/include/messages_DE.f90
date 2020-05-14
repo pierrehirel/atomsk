@@ -1295,7 +1295,7 @@ CASE(2077)
   ELSE
     msg = ">>> Waehle"
   ENDIF
-  IF( strings(1)=="all" ) THEN
+  IF( strings(1)=="all" .OR. strings(1)=="none" ) THEN
     msg = ">>> Waehle alle Atome aus."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="invert" ) THEN

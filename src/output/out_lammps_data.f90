@@ -391,14 +391,14 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     !=> write that information
     DO i=1,Ntypes-Nshelltypes
       CALL ATOMSPECIES(typemass(i,1),species)
-      WRITE(temp,'(f16.8)') typemass(i,2)
+      WRITE(temp,'(f16.8)') typemass(i,2)*(1.d0-Smassratio)
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species//" core"
       WRITE(40,*) TRIM(msg)
     ENDDO
     DO i=Ntypes-Nshelltypes+1,Ntypes
       CALL ATOMSPECIES(typemass(i,1),species)
-      WRITE(temp,'(f16.8)') typemass(i,2)
+      WRITE(temp,'(f16.8)') typemass(i,2)*Smassratio
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species//" shell"
       WRITE(40,*) TRIM(msg)
@@ -410,7 +410,7 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       !Determine the mass of this type of atom
       CALL ATOMSPECIES(aentries(i,1),species)
       CALL ATOMMASS(species,smass)
-      WRITE(temp,'(f16.8)') smass
+      WRITE(temp,'(f16.8)') smass*(1.d0-Smassratio)
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species//" core"
       WRITE(40,*) TRIM(msg)

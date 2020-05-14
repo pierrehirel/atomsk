@@ -1348,7 +1348,7 @@ CASE(2077)
   ENDIF
   temp = ""
   temp2 = ""
-  IF( strings(1)=="all" ) THEN
+  IF( strings(1)=="all" .OR. strings(1)=="none" ) THEN
     msg = ">>> Selection de tous les atomes."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSEIF( strings(1)=="invert" ) THEN
@@ -1668,7 +1668,7 @@ CASE(2085)
     msg = ">>> Translation des atomes "//TRIM(ADJUSTL(msg))//"A suivant "  &
           & //TRIM(strings(2))//" de ("//TRIM(ADJUSTL(temp))//","//        &
           & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
-  ELSEIF( strings(1)=="select" ) THEN
+  ELSEIF( strings(1)=="selec" ) THEN
     msg = ">>> Translation des atomes sélectionnés de ("//TRIM(ADJUSTL(temp))//","//     &
           & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")"
   ELSE

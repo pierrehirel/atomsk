@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 March 2020                                    *
+!* Last modification: P. Hirel - 14 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -448,22 +448,30 @@ CASE('create')
   !Make sure we have an output file name
   outputfile = TRIM(ADJUSTL(file1))
   IF(LEN_TRIM(outputfile)==0) outputfile = TRIM(ADJUSTL(filefirst))
+  !If user didn't specify a name (filefirst), generate one based on lattice and atom species
   IF(LEN_TRIM(outputfile)==0) THEN
     SELECT CASE(create_struc)
-    CASE('L12')
+    CASE('L12','L1_2')
+      !L12 lattice: generate a name of the type "Cu3Au"
       outputfile = TRIM(create_species(1))//'3'//TRIM(create_species(2))
     CASE('c15','C15')
+      !C15 lattice: generate a name of the type "Cu2Mg"
       outputfile = TRIM(create_species(1))//'2'//TRIM(create_species(2))
     CASE('fluorite','fluorine','c14','C14')
+      !fluorite or c14 lattice: generate a name of the type "CaF2"
       DO i=1,SIZE(create_species)
         outputfile = TRIM(outputfile)//TRIM(create_species(i))
       ENDDO
       outputfile = TRIM(outputfile)//'2'
     CASE('per','perovskite')
+      !Perovskite lattice: generate a name of the type "SrTiO3"
       DO i=1,SIZE(create_species)
         outputfile = TRIM(outputfile)//TRIM(create_species(i))
       ENDDO
       outputfile = TRIM(outputfile)//'3'
+    CASE DEFAULT
+      !Default (bcc, fcc, diamond, rocksalt, hcp...): generate a name of the type "Al" or "NiAl"
+      outputfile = TRIM(create_species(1))//TRIM(create_species(2))
     END SELECT
   ENDIF
   msg = 'CREATE mode: outputfile: '//TRIM(outputfile)

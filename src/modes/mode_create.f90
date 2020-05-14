@@ -1301,11 +1301,19 @@ IF( cubic ) THEN
     CASE('fcc','FCC','diamond','dia','zincblende','zb','rocksalt','rs')
       !in fcc, diamond/zb, and rocksalt structures,
       !period along a <110> direction is actually 1/2<110>
+      !period along a <310> direction is actually 1/2<310>
       !period along a <112> direction is actually 1/2<112>
       DO i=1,3
         IF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
           & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
           & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
+          uv(i,i) = uv(i,i)/2.d0
+        ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(3.d0*DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
+              & NINT(DABS(ORIENT(i,2)))==NINT(3.d0*DABS(ORIENT(i,1))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
+              & NINT(DABS(ORIENT(i,1)))==NINT(3.d0*DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
+              & NINT(DABS(ORIENT(i,3)))==NINT(3.d0*DABS(ORIENT(i,1))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
+              & NINT(DABS(ORIENT(i,2)))==NINT(3.d0*DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0 .OR.   &
+              & NINT(DABS(ORIENT(i,3)))==NINT(3.d0*DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
           uv(i,i) = uv(i,i)/2.d0
         ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2)))    .AND.             &
               & NINT(DABS(ORIENT(i,3)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &

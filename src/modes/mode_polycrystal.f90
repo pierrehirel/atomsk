@@ -709,18 +709,44 @@ DO
           !Read and interpret the angles,
           !save the rotation matrix in vorient(Nnodes,:,:)
           !Rotation will be done in the order X, Y, Z
-          !Read the three angles from or1, or2, or3
+          !Read the first angle from or1
           j=SCAN(or1,"°")
           IF(j>0) or1(j:j)=" "
           READ(or1,*,END=830,ERR=830) P1
+          !Make sure angle lies between -180° and 180°
+          DO WHILE( P1<=-180.d0 )
+            P1 = P1+360.d0
+          ENDDO
+          DO WHILE( P1>180.d0 )
+            P1 = P1-360.d0
+          ENDDO
+          !Convert into radians
           P1 = DEG2RAD(P1)
+          !Read the second angle from or2
           j=SCAN(or2,"°")
           IF(j>0) or2(j:j)=" "
           READ(or2,*,END=830,ERR=830) P2
+          !Make sure angle lies between -180° and 180°
+          DO WHILE( P2<=-180.d0 )
+            P2 = P2+360.d0
+          ENDDO
+          DO WHILE( P2>180.d0 )
+            P2 = P2-360.d0
+          ENDDO
+          !Convert into radians
           P2 = DEG2RAD(P2)
+          !Read the third angle from or3
           j=SCAN(or3,"°")
           IF(j>0) or3(j:j)=" "
           READ(or3,*,END=830,ERR=830) P3
+          !Make sure angle lies between -180° and 180°
+          DO WHILE( P3<=-180.d0 )
+            P3 = P3+360.d0
+          ENDDO
+          DO WHILE( P3>180.d0 )
+            P3 = P3-360.d0
+          ENDDO
+          !Convert into radians
           P3 = DEG2RAD(P3)
           !Construct the rotation matrix around X
           rotmat(:,:) = 0.d0
@@ -1349,14 +1375,14 @@ DO inode=1,Nnodes
   !Rotate this cell to obtain the desired crystallographic orientation
   CALL ATOMSK_MSG(2071,(/''/),(/0.d0/))
   DO i=1,3
-    IF( VECLENGTH(Ht(i,:)) .NE. 0.d0 ) THEN
+    IF( VECLENGTH(Ht(i,:)) > 1.d-12 ) THEN
       Hn(i,:) = Ht(i,:)/VECLENGTH(Ht(i,:))
     ELSE
       !we have a problem
       nerr = nerr+1
       GOTO 1000
     ENDIF
-    IF( VECLENGTH(vorient(inode,i,:)) .NE. 0.d0 ) THEN
+    IF( VECLENGTH(vorient(inode,i,:)) > 1.d-12 ) THEN
       Hend(i,:) = vorient(inode,i,:)/VECLENGTH(vorient(inode,i,:))
     ELSE
       !we have a problem
@@ -1422,7 +1448,7 @@ DO inode=1,Nnodes
       vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
       !Compute vector between atom and current node
       vector(:) = Pt2(i,1:3) - vnodes(inode,:)
-      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) >= -1.d-12 ) THEN
+      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d-12 ) THEN
         !Atom is above this plane of cut, hence out of the polyhedron
         !=> exit the loop on jnode
         isinpolyhedron = .FALSE.
