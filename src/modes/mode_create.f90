@@ -1111,6 +1111,36 @@ IF( cubic ) THEN
       GOTO 1000
     ENDIF
     !
+    !Reduce Miller indices
+    !For example direction [333] will be replaced by [111],
+    !direction [840] replaced by [210], and so on
+    DO i=1,3
+      u = ORIENT(i,1)
+      v = ORIENT(i,2)
+      w = ORIENT(i,3)
+      IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+        z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+      ELSE
+        z1 = MAX(DABS(u),DABS(v))
+      ENDIF
+      IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+        z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+      ELSE
+        z2 = MAX(DABS(u),DABS(w))
+      ENDIF
+      IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+        x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
+      ELSE  !i.e. z1==0 or z2==0
+        x = MAX( DABS(z1) , DABS(z2) )
+      ENDIF
+      IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+      !Set box vector
+      ORIENT(i,1) = u / x
+      ORIENT(i,2) = v / x
+      ORIENT(i,3) = w / x
+    ENDDO
+    !
+    !Generate text with target orientation
     oriented = .TRUE.
     comment(1) = TRIM(comment(1))//' oriented'
     DO i=1,3
@@ -1291,38 +1321,26 @@ IF( cubic ) THEN
     !Correct cell length for some special orientations to find the minimal repetition unit
     SELECT CASE(create_struc)
     CASE('bcc','BCC')
-      !in bcc structure, period along a <111> direction is actually 1/2<111>
+      !in bcc structure, shortest period along a <hkl> direction is actually 1/2<hkl> if h, k, l are all odd
+      !Examples: [111] is replaced by 1/2[111], [531] becomes 1/2[531], etc.
       DO i=1,3
-        IF( DABS(ORIENT(i,1))==DABS(ORIENT(i,2)) .AND. DABS(ORIENT(i,1))==DABS(ORIENT(i,3)) ) THEN
+        IF( MOD(NINT(DABS(ORIENT(i,1))),2).NE.0 .AND. MOD(NINT(DABS(ORIENT(i,2))),2).NE.0  &
+          & .AND. MOD(NINT(DABS(ORIENT(i,3))),2).NE.0 ) THEN
           uv(i,i) = uv(i,i)/2.d0
         ENDIF
       ENDDO
       !
     CASE('fcc','FCC','diamond','dia','zincblende','zb','rocksalt','rs')
       !in fcc, diamond/zb, and rocksalt structures,
-      !period along a <110> direction is actually 1/2<110>
-      !period along a <310> direction is actually 1/2<310>
-      !period along a <112> direction is actually 1/2<112>
+      !shortest period along a <hkl> direction is actually 1/2<hkl> if h and k are odd and l is even
+      !Examples: [110] is replaced by 1/2[110], [112] becomes 1/2[112], etc.
       DO i=1,3
-        IF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
-          & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
-          & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
-          uv(i,i) = uv(i,i)/2.d0
-        ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(3.d0*DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
-              & NINT(DABS(ORIENT(i,2)))==NINT(3.d0*DABS(ORIENT(i,1))) .AND. NINT(DABS(ORIENT(i,3)))==0 .OR.   &
-              & NINT(DABS(ORIENT(i,1)))==NINT(3.d0*DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
-              & NINT(DABS(ORIENT(i,3)))==NINT(3.d0*DABS(ORIENT(i,1))) .AND. NINT(DABS(ORIENT(i,2)))==0 .OR.   &
-              & NINT(DABS(ORIENT(i,2)))==NINT(3.d0*DABS(ORIENT(i,3))) .AND. NINT(DABS(ORIENT(i,1)))==0 .OR.   &
-              & NINT(DABS(ORIENT(i,3)))==NINT(3.d0*DABS(ORIENT(i,2))) .AND. NINT(DABS(ORIENT(i,1)))==0      ) THEN
-          uv(i,i) = uv(i,i)/2.d0
-        ELSEIF( NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,2)))    .AND.             &
-              & NINT(DABS(ORIENT(i,3)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
-              & .OR.                                                                  &
-              & NINT(DABS(ORIENT(i,1)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
-              & NINT(DABS(ORIENT(i,2)))==NINT(2.d0*DABS(ORIENT(i,1)))                 &
-              & .OR.                                                                  &
-              & NINT(DABS(ORIENT(i,2)))==NINT(DABS(ORIENT(i,3)))    .AND.             &
-              & NINT(DABS(ORIENT(i,1)))==NINT(2.d0*DABS(ORIENT(i,2)))       ) THEN
+        IF(  MOD(NINT(DABS(ORIENT(i,1))),2).NE.0 .AND. MOD(NINT(DABS(ORIENT(i,2))),2).NE.0  &
+          &  .AND. MOD(NINT(DABS(ORIENT(i,3))),2)==0 .OR.                                   &
+          &  MOD(NINT(DABS(ORIENT(i,1))),2).NE.0 .AND. MOD(NINT(DABS(ORIENT(i,3))),2).NE.0  &
+          &  .AND. MOD(NINT(DABS(ORIENT(i,2))),2)==0 .OR.                                   &
+          &  MOD(NINT(DABS(ORIENT(i,2))),2).NE.0 .AND. MOD(NINT(DABS(ORIENT(i,3))),2).NE.0  &
+          &  .AND. MOD(NINT(DABS(ORIENT(i,1))),2)==0   ) THEN
           uv(i,i) = uv(i,i)/2.d0
         ENDIF
       ENDDO
