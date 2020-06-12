@@ -15,7 +15,7 @@ MODULE mode_unwrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,12 +66,14 @@ REAL(dp):: distance
 REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pfirst  !positions of "reference"
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Psecond !positions of "configuration"
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S       !positions of shells in "configuration"
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX     !positions of "configuration"
 !
 ORIENT(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 !
 !
 msg = 'ENTERING UNWRAP_XYZ...'
@@ -93,13 +95,13 @@ CALL CHECKFILE(filesecond,'read')
 !Read first file
 CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
 IF(nerr>=1) GOTO 1000
-CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>=1) GOTO 1000
 !
 !Read second file
 CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
 IF(nerr>=1) GOTO 1000
-CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>=1) GOTO 1000
 !
 !!Determine if the cell vectors were found or not

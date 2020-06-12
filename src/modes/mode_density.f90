@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 April 2019                                    *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -85,6 +85,7 @@ REAL(dp):: x, y, z      !coordinates along the <axis> / in the grid
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: DenGrid1     !density grid (1-D)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: DenGrid2   !density grid (2-D)
 REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: DenGrid3 !density grid (3-D)
@@ -107,6 +108,7 @@ dx = 0.2d0
 dy = 0.2d0
 dz = 0.2d0
 Huc(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 snumber = 0.d0
 IF(ALLOCATED(DenGrid1)) DEALLOCATE(DenGrid1)
 IF(ALLOCATED(DenGrid2)) DEALLOCATE(DenGrid2)
@@ -121,7 +123,7 @@ CALL ATOMSK_MSG(4066,(/property/),(/DBLE(den_type),Sigma/))
 CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !
 ! Apply options if any
-CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>0) GOTO 1000
 !
 !

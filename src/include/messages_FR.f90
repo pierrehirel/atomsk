@@ -2767,25 +2767,36 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "Seules les commandes suivantes sont disponibles :"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help               Affiche cette aide"
+  msg = "help                       Affiche cette aide"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "cd                 Changer de dossier"
+  msg = "cd                         Changer de dossier"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls//"                Affiche la liste des fichiers du dossier courant"
+  msg = system_ls
+  msg(28:) = "Affiche la liste des fichiers du dossier courant"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "pwd                Affiche le dossier courant"
+  msg = "pwd                        Affiche le dossier courant"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory             Résumé du contenu de la mémoire"
+  msg = "print                      Affiche les vecteurs de boîte et positions des atomes"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "create             Créer un système atomique"
+  msg = "memory                     Résumé du contenu de la mémoire"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <fichier>     Lit le <fichier> et charge son contenu en mémoire"
+  msg = "create                     Créer un système atomique"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <fichier>    Ecrit le système courant dans le <fichier>"
+  msg = "read <fichier>             Lit le <fichier> et charge son contenu en mémoire"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear              Efface la mémoire (détruit le système atomique)"
+  msg = "write <fichier>            Ecrit le système courant dans le <fichier>"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit               Quitte Atomsk"
+  msg = "box <H11> <H22> <H33>      Définit les dimensions d'une boîte orthogonale"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "atom <sp> <x> <y> <z>      Ajoute un nouvel atome de l'espèce donnée aux coordonnées données"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "C11 <value>                Définit la valeur d'une constante élastique (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "Cij                        Construit le tenseur élastique à partir des valeurs données précédemment"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "clear                      Efface la mémoire (détruit le système atomique)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "quit                       Quitte Atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "OPTIONS : les options de Atomsk peuvent être utilisées,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

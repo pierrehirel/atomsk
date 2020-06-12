@@ -2685,28 +2685,36 @@ CASE(4022)
 CASE(4023)
   msg = "Verfuegbare Kommandos:"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help              Zeigt diese Hilfe"
+  msg = "help                       Zeigt diese Hilfe"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "cd                Ändern das aktuelle Arbeitsverzeichnis"
+  msg = "cd                         Ändern das aktuelle Arbeitsverzeichnis"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls//"               Zeigt Dateien im aktuellen"// &
-      & " Verzeichnis"
+  msg = system_ls
+  msg(28:) = "Zeigt Dateien im aktuellen Verzeichnis"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "pwd               Zeigt das aktuelle Arbeitsverzeichnis an"
+  msg = "pwd                        Zeigt das aktuelle Arbeitsverzeichnis an"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory            Zeigt Speicheruebersicht"
+  msg = "print                      Zeigt die aktuelle Boxvektoren und Atompositionen"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "create            Erstellt ein atomares System"
+  msg = "memory                     Zeigt Speicheruebersicht"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <file>       Datei <file> in den Speicher einlesen"
+  msg = "create                     Erstellt ein atomares System"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <file>      Schreibt aktuelles System in die Datei"// &
-      & " <file>"
+  msg = "read <file>                Datei <file> in den Speicher einlesen"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear             Loescht den Speicher"// &
-      & " (zerstoert atomares System)"
+  msg = "write <file>               Schreibt aktuelles System in die Datei <file>"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit              Beendet atomsk"
+  msg = "box <H11> <H22> <H33>      Definiert die Abmessungen der orthogonalen Box"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "atom <sp> <x> <y> <z>      Fügen dem System ein neues Atom mit bestimmten Arten und Koordinaten hinzu"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "C11 <value>                Einstellt der elastischen Konstante (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "Cij                        Erstellt einen Steifheitstensor basierend auf vorherigen Werten"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "clear                      Loescht den Speicher (zerstoert atomares System)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "quit                       Beendet atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "OPTIONS: Atomsk Anweisungen fuer den Command-Line Interpreter,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

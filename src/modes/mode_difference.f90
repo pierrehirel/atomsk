@@ -18,7 +18,7 @@ MODULE mode_difference
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 March 2019                                    *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -76,6 +76,7 @@ REAL(dp):: stat_min, stat_M, stat_A, stat_D, stat_S !statistics on displacements
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H, H1, H2   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation of the system
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: spi_table !table containing atomic numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUX1, AUX2  !auxiliary properties of system 1 and 2
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
@@ -91,6 +92,7 @@ Naux=0
 tabAUX(:,:) = 0
 histstep = 1.d0
 Huc(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(Pboth)) DEALLOCATE(Pboth)
 ALLOCATE(comment(1))
@@ -114,14 +116,14 @@ CALL READ_AFF(filefirst,H1,Pfirst,S,comment,AUXNAMES1,AUX1)
 !Remove shells
 IF(ALLOCATED(S)) DEALLOCATE(S)
 !Apply options to system 1
-CALL OPTIONS_AFF(options_array,Huc,H1,Pfirst,S,AUXNAMES1,AUX1,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H1,Pfirst,S,AUXNAMES1,AUX1,ORIENT,SELECT,C_tensor)
 !
 !Read atomic positions from filesecond and store them into Psecond(:,:)
 CALL READ_AFF(filesecond,H2,Psecond,S,comment,AUXNAMES2,AUX2)
 !Remove shells
 IF(ALLOCATED(S)) DEALLOCATE(S)
 !Apply options to system 2
-CALL OPTIONS_AFF(options_array,Huc,H2,Psecond,S,AUXNAMES2,AUX2,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H2,Psecond,S,AUXNAMES2,AUX2,ORIENT,SELECT,C_tensor)
 !
 !Verify that both systems contain the same number of atoms
 IF( SIZE(Pfirst,1) .NE. SIZE(Psecond,1) ) THEN

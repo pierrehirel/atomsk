@@ -87,6 +87,7 @@ INTEGER:: strlength
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !positions of cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
@@ -99,6 +100,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 Huc(:,:) = 0.d0
 H(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 infileformat=''
 strlength=0
@@ -175,7 +177,7 @@ IF( ALLOCATED(options_array) ) THEN
   WRITE(msg,*) "SIZE OF ARRAY options: ", SIZE(options_array)
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
-  CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
   !
 ELSE
   msg = "ARRAY options NOT ALLOCATED"

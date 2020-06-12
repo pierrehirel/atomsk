@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 03 June 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,6 +66,7 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(3)=filefirst
                                           !pfiles(4)=filesecond
                                           !pfiles(5)=listfile
+INTEGER:: a1, a2, a3
 INTEGER:: i, j, k
 INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
@@ -74,14 +75,18 @@ LOGICAL:: exists !does file or directory exist?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 REAL(dp):: smass, snumber  !atomic mass, atomic number
+REAL(dp):: C11, C22, C33, C12, C13, C23, C44, C55, C66  !elastic constants
+REAL(dp):: x, y, z  !coordinates of an atom
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(3,3):: rot_matrix  !rotation matrix
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, N atoms
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P     !atomic positions
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S     !shell positions (is any)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Ptemp !atomic positions
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S        !shell positions (is any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
 
 !
@@ -103,6 +108,7 @@ IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 maxtries=5
 H(:,:) = 0.d0
 Huc(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
             &    "alignx          ", "bind-shells     ", "bs              ", "center          ", &
@@ -164,6 +170,11 @@ DO
   !Try to interpret the instruction and act accordingly
   IF( LEN_TRIM(instruction) > 0 ) THEN
     !
+    !Remove equal sign if any
+    i = SCAN(instruction,"=")
+    IF(i>0) THEN
+      instruction(i:i) = " "
+    ENDIF
     READ(instruction,*,END=400,ERR=400) command
     command = ADJUSTL(command)
     !
@@ -243,6 +254,56 @@ DO
       CASE("ls","dir")
         CALL SYSTEM(system_ls)
         !
+      CASE("print")
+        !Print information about the system on the screen
+        temp = TRIM(ADJUSTL( instruction(6:) ))
+        IF( temp=="atoms" ) THEN
+          IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+            WRITE(temp,*) SIZE(P,1)
+            WRITE(*,*) "  "//TRIM(ADJUSTL(temp))//" atoms"
+            DO i=1,MIN(20,SIZE(P,1))
+              CALL ATOMSPECIES(P(i,4),species)
+              WRITE(*,'(2X,a2,2X,3(f12.6,2X))') species, P(i,1), P(i,2), P(i,3)
+            ENDDO
+            IF( SIZE(P,1)>20 ) THEN
+              WRITE(*,*) "  (...discontinued...)"
+            ENDIF
+          ENDIF
+          !
+        ELSEIF( temp=="box" ) THEN
+          DO i=1,3
+            WRITE(*,'(a4,i1,a3,3f12.6)') "   H", i, " = ", H(i,1), H(i,2), H(i,3)
+          ENDDO
+          !
+        ELSEIF( temp=="Cij" ) THEN
+          IF( ANY(C_tensor(:,:).NE.0.d0) ) THEN
+            !Print elastic tensor
+            WRITE(*,*) "  Current elastic tensor Cij (GPa):"
+            DO i=1,9
+              WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+            ENDDO
+          ELSE
+            WRITE(*,*) "Cij not set"
+          ENDIF
+          !
+        ELSE
+          !Default: print box vectors and atom positions
+          IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+            DO i=1,3
+              WRITE(*,'(a4,i1,a3,3f12.6)') "   H", i, " = ", H(i,1), H(i,2), H(i,3)
+            ENDDO
+            WRITE(temp,*) SIZE(P,1)
+            WRITE(*,*) "  "//TRIM(ADJUSTL(temp))//" atoms"
+            DO i=1,MIN(20,SIZE(P,1))
+              CALL ATOMSPECIES(P(i,4),species)
+              WRITE(*,'(2X,a2,2X,3(f12.6,2X))') species, P(i,1), P(i,2), P(i,3)
+            ENDDO
+            IF( SIZE(P,1)>20 ) THEN
+              WRITE(*,*) "  (...discontinued...)"
+            ENDIF
+          ENDIF
+        ENDIF
+        !
       CASE("pwd","PWD")
         CALL SYSTEM("pwd")
         !
@@ -308,7 +369,7 @@ DO
           !Write atoms species and their number
           CALL FIND_NSP(P(:,4),aentries)
           IF( SIZE(aentries,1)>0 ) THEN
-            msg = " Species:"
+            msg = "  Species:"
             DO j=1,SIZE(aentries,1)
               CALL ATOMSPECIES(aentries(j,1) , species)
               msg = TRIM(msg)//" "//species
@@ -359,6 +420,140 @@ DO
         CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
         WrittenToFile = .TRUE.
         !
+      CASE("box","H")
+        !User wants to define an orthogonal box
+        READ(*,*,END=400,ERR=400) x, y, z
+        H(1,1) = x
+        H(2,2) = y
+        H(3,3) = z
+        !
+      CASE("atom")
+        !User adds an atom
+        READ(instruction(5:),*,END=400,ERR=400) species, x, y, z
+        IF( .NOT. ALLOCATED(P) ) THEN
+          ALLOCATE(P(1,4))
+          k=1
+        ELSE
+          IF(ALLOCATED(Ptemp)) DEALLOCATE(Ptemp)
+          k=SIZE(P,1)
+          ALLOCATE(Ptemp(k,4))
+          Ptemp(:,:) = P(:,:)
+          DEALLOCATE(P)
+          ALLOCATE(P(k+1,4))
+          DO i=1,k
+            P(i,:) = Ptemp(i,:)
+          ENDDO
+          DEALLOCATE(Ptemp)
+          k=k+1
+        ENDIF
+        P(k,1) = x
+        P(k,2) = y
+        P(k,3) = z
+        CALL ATOMNUMBER(species,P(k,4))
+        WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
+        !
+      CASE("C11")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) C11
+        ENDIF
+        WRITE(temp,'(f12.6)') C11
+        WRITE(*,*) "  C11 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C22")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          IF( command=="C11" ) THEN
+            C22 = C11
+          ELSE
+            READ(command,*,END=400,ERR=400) C22
+          ENDIF
+        ENDIF
+        WRITE(temp,'(f12.6)') C22
+        WRITE(*,*) "  C22 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C33")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          IF( command=="C11" ) THEN
+            C33 = C11
+          ELSEIF( command=="C22" ) THEN
+            C33 = C22
+          ELSE
+            READ(command,*,END=400,ERR=400) C33
+          ENDIF
+        ENDIF
+        WRITE(temp,'(f12.6)') C33
+        WRITE(*,*) "  C33 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C12","C21")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) C12
+        ENDIF
+        WRITE(temp,'(f12.6)') C12
+        WRITE(*,*) "  C12 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C13","C31")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) C13
+        ENDIF
+        WRITE(temp,'(f12.6)') C13
+        WRITE(*,*) "  C13 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C23","C32")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) C23
+        ENDIF
+        WRITE(temp,'(f12.6)') C23
+        WRITE(*,*) "  C23 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C44")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) C44
+        ENDIF
+        WRITE(temp,'(f12.6)') C44
+        WRITE(*,*) "  C44 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C55")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          IF( command=="C44" ) THEN
+            C55 = C44
+          ELSE
+            READ(command,*,END=400,ERR=400) C55
+          ENDIF
+        ENDIF
+        WRITE(temp,'(f12.6)') C55
+        WRITE(*,*) "  C55 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("C66")
+        command = TRIM(ADJUSTL(instruction(4:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          IF( command=="C44" ) THEN
+            C66 = C44
+          ELSEIF( command=="C55" ) THEN
+            C66 = C55
+          ELSE
+            READ(command,*,END=400,ERR=400) C66
+          ENDIF
+        ENDIF
+        WRITE(temp,'(f12.6)') C66
+        WRITE(*,*) "  C66 = "//TRIM(ADJUSTL(temp))//" GPa"
+        !
+      CASE("Cij","Ctensor")
+        !Convert elastic constants into a proper 9x9 elastic tensor
+        CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
+        !Check tensor for stability criteria
+        CALL CTENSOR_STABILITY(C_tensor)
+        !Print elastic tensor
+        WRITE(*,*) "  Current elastic tensor Cij (GPa):"
+        DO i=1,9
+          WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+        ENDDO
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -617,13 +812,54 @@ DO
         !
         !
       CASE DEFAULT
-        IF( ANY( command == optnames(:) ) ) THEN
+        IF( command=="rotate" .AND. .NOT.ALLOCATED(P) .AND. ANY(C_tensor(:,:).NE.0.d0) ) THEN
+          !User asks for rotation, no atomic system is defined, elastic tensor is defined
+          !Read axis of rotation and angle of rotation
+          READ(instruction(7:),*,ERR=400,END=400) answer, smass
+          IF(answer=='x' .OR. answer=='X') THEN
+            a1 = 1
+            a2 = 2
+            a3 = 3
+          ELSEIF(answer=='y' .OR. answer=='Y') THEN
+            a1 = 2
+            a2 = 3
+            a3 = 1
+          ELSEIF(answer=='z' .OR. answer=='Z') THEN
+            a1 = 3
+            a2 = 1
+            a3 = 2
+          ELSE
+            !Directions will be simply a1=X, a2=Y, a3=Z
+            a1 = 1
+            a2 = 2
+            a3 = 3
+          ENDIF
+          !convert the angle into radians
+          smass = DEG2RAD(smass)
+          !set the rotation matrix
+          rot_matrix(:,:) = 0.d0
+          rot_matrix(a1,a1) = 1.d0
+          rot_matrix(a2,a2) = DCOS(smass)
+          rot_matrix(a2,a3) = -DSIN(smass)
+          rot_matrix(a3,a2) = DSIN(smass)
+          rot_matrix(a3,a3) = DCOS(smass)
+          !Rotate elastic tensor
+          C_tensor = ROTELAST( C_tensor, rot_matrix )
+          !Print elastic tensor
+          WRITE(*,*) "Current elastic tensor Cij (GPa):"
+          DO i=1,9
+            WRITE(*,'(9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+          ENDDO
+          !
+        ELSEIF( ANY( command == optnames(:) ) ) THEN
           !Apply the option
           IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
           ALLOCATE(options_array(1))
           options_array(1) = "-"//TRIM(ADJUSTL(instruction))
-          CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+          CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
           DEALLOCATE(options_array)
+          !System was changed: consider that modified version was not written to a file
+          WrittenToFile = .FALSE.
           !
         ELSE
           !Unknown command

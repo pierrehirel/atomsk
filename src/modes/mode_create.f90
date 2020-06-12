@@ -78,6 +78,7 @@ REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ips, uv     !interplanar spacing, unit vectors corresponding to new orientation ORIENT(:,:)
 REAL(dp),DIMENSION(3,3):: ORIENTN     !normalized ORIENT
 REAL(dp),DIMENSION(3,3):: rot_matrix, rot_matrix2  !rotation matrices
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S  !positions of atoms, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q     !positions of atoms (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
@@ -90,6 +91,7 @@ IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 nspecies = 0
 Huc(:,:) = 0.d0
 H(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 ips(:,:) = 0.d0
 uv(:,:) = 0.d0
 IF(ALLOCATED(P)) DEALLOCATE(P)
@@ -1640,7 +1642,7 @@ IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)==0 ) THEN
   GOTO 1000
 ENDIF
 !Apply options to the created system
-CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>0) GOTO 1000
 !
 !

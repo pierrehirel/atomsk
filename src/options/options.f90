@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -110,7 +110,7 @@ USE wrap
 !
 CONTAINS
 !
-SUBROUTINE OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+SUBROUTINE OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 !
 !Declare variables
 IMPLICIT NONE
@@ -128,6 +128,7 @@ REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: HS  !Copy of H for shells
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
+REAL(dp),DIMENSION(9,9):: C_tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P  !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S  !shell positions (if any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUXdummy !auxiliary properties of atoms/shells
@@ -194,7 +195,7 @@ CHARACTER(LEN=32),DIMENSION(3):: oldvec, newvec !old and new Miller indices
 !Variables relative to Option: properties
 CHARACTER(LEN=128):: propfile  !file containing the properties
 REAL(dp),DIMENSION(3):: lat_a0   !lattice constants a, b, c
-REAL(dp),DIMENSION(9,9):: C_tensor, C_tensor_dummy !elastic tensor (and dummy)
+REAL(dp),DIMENSION(9,9):: C_tensor_dummy !elastic tensor (dummy)
 !
 !Variables relative to Option: rmatom
 CHARACTER(LEN=32):: rmatom_prop  !what atom(s) to erase
@@ -275,7 +276,7 @@ IF( NINT(VECLENGTH(ORIENT(1,:))) == 0 .OR.          &
   ENDDO
 ENDIF
 !By default the elastic tensor is not set
- C_tensor(:,:) = 0.d0
+ !C_tensor(:,:) = 0.d0
  C_tensor_dummy(:,:) = 0.d0
 !
 !If there is no option then exit this module

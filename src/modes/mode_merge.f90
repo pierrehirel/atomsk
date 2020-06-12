@@ -61,6 +61,7 @@ INTEGER:: i, j, k
 INTEGER:: Nfiles  !number of files merged
 REAL(dp),DIMENSION(3,3):: H, Htemp      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT        !Crystallographic orientation of the system
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S !Coordinates read from one file (atoms/shells)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T !Final coordinates of atoms/shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: R, U !Temporary arrays storing coordinates of atoms/shells
@@ -80,6 +81,7 @@ IF(ALLOCATED(U)) DEALLOCATE(U)
 ALLOCATE(comment(1))
  comment(1)=''
 ORIENT(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 !
 !
 100 CONTINUE
@@ -323,7 +325,7 @@ CALL ATOMSK_MSG(4031,(/''/),(/DBLE(Nfiles)/))
 !
 !Apply options to the final system
 Htemp(:,:) = 0.d0
-CALL OPTIONS_AFF(options_array,Htemp,H,Q,T,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Htemp,H,Q,T,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 !
 !Write final system into file(s)
 CALL WRITE_AFF(outputfile,outfileformats,H,Q,T,comment,AUXNAMES,AUX)

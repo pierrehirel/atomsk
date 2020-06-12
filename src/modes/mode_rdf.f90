@@ -86,6 +86,7 @@ REAL(dp):: Vsystem               !volume of the system
 REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX          !auxiliary properties of atoms (not used)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P            !atom positions
@@ -99,6 +100,7 @@ msg = 'ENTERING RDF_XYZ...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 Huc(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 !
 CALL ATOMSK_MSG(4051,(/""/),(/rdf_dr/))
 !
@@ -144,7 +146,7 @@ DO
       IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
       !
       !Apply options to the system
-      CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+      CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
       IF(nerr>0) GOTO 1000
       !
       !Compute total volume of the system

@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Jan. 2020                                     *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -343,7 +343,7 @@ DO
     CASE("wavepacket")
       Ncol = 10
     CASE DEFAULT
-      !Unknown data type of garbage => ignore it and proceed
+      !Unknown data type or garbage => ignore it and proceed
       Ncol = 0
     END SELECT
     WRITE(msg,*) "Number of columns in Atoms section: ", Ncol
@@ -419,7 +419,7 @@ DO
         IF( Ncol==4 ) THEN
           !Only one possibility: data type is "atomic"
           datatype = "atomic"
-        ELSEIF( Ncol==5 ) THEN
+        ELSEIF( Ncol==6 ) THEN
           !Assume "atom_style charge" = atom-ID atom-type q x y z
           datatype = "charge"
           Naux = Naux+1

@@ -10,7 +10,7 @@ MODULE mode_average
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -65,6 +65,7 @@ REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 her
 REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: Htemp   !Base vectors of the supercell (temporary)
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX          !auxiliary properties of atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXtemp      !auxiliary properties of atoms (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S         !positions of atoms, shells
@@ -78,6 +79,7 @@ CALL ATOMSK_MSG(4064,(/listfile/),(/0.d0/))
 !Initialize variables
 H(:,:) = 0.d0
 Huc(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 !
@@ -260,7 +262,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
 ENDIF
 !
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>0) GOTO 1000
 !
 !

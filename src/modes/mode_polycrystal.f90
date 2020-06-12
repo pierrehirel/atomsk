@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 Oct. 2019                                     *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1566,7 +1566,7 @@ ENDDO
 DEALLOCATE(newAUX)
 !
 !Apply options to the final system
-CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 !
 !Write final system to file(s)
 CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 12 June 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1528,9 +1528,9 @@ DO WHILE(i<SIZE(cla))
       IF( temp(1:6)=="center" ) THEN
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
-        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" stl center "//TRIM(temp)
+        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" center "//TRIM(temp)
       ELSE
-        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" stl "//TRIM(temp)
+        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" "//TRIM(temp)
       ENDIF
       !
     ELSEIF( temp=='random' .OR. temp=='rand' ) THEN

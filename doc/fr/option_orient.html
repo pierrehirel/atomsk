@@ -24,13 +24,13 @@
 
 <p>Cette option effectue une rotation du système, depuis une orientation cristallographique donnée vers une autre.</p>
 
-<p>Les vecteurs pour chaque orientation cristallographique doivent être donnés sous forme d'indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Seuls les vecteurs définis par 3 indices de Miller sont supportés (correspondant à une maille cubique)&nbsp;; les directions des mailles hexagonales, définies par 4 indices de Miller, ne sont pas supportées.</p>
+<p>Les vecteurs pour chaque orientation cristallographique doivent être donnés sous forme d'indices de Miller (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Les notations de type [<em>hkl</em>] (en supposant un réseau cubique), ainsi que [<em>hkil</em>] (mailles hexagonales), sont supportées par cette option.</p>
 
 <p>Notez que les directions cristallographiques d'arrivée doivent former des angles égaux à celles de départ.</p>
 
 <p>Cette option affectera certaines propriétés du système (par ex. le tenseur élastique) si elles ont précédemment été définies par l'<a href="./option_properties.html">option <code>-properties</code></a>.</p>
 
-<p>Notez que cette option ne modifie pas le système, elle n'effectue qu'une rotation. Pour créer une cellule unité avec une certaine orientation cristallographique il est possible d'utiliser le <a href="./mode_create.html">mode <code>--create</code></a>. Pour trouver une boîte orthogonale équivalente au système tourné, vous pouvez utiliser l'<a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a>.</p>
+<p>Notez que cette option ne modifie pas la taille de boîte ni le nombre d'atomes, elle n'effectue qu'une rotation rigide de l'ensemble du système (boîte et atomes). Si vous souhaitez créer une cellule élémentaire avec une certaine orientation cristallographique, il est possible d'utiliser le <a href="./mode_create.html">mode <code>--create</code></a>. Pour trouver une boîte orthogonale équivalente au système tourné, vous pouvez utiliser l'<a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a>.</p>
 
 
 

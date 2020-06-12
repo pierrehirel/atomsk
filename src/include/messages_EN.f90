@@ -2699,25 +2699,36 @@ CASE(4023)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "Only the following commands are available:"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help              Display this help"
+  msg = "help                       Display this help"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "cd                Change working directory"
+  msg = "cd                         Change working directory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls//"               List files in current directory"
+  msg = system_ls
+  msg(28:) = "List files in current directory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "pwd               Print current working directory"
+  msg = "pwd                        Print current working directory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory            Summary of what is in memory"
+  msg = "print                      Print current box vectors and atom positions"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "create            Create an atomic system"
+  msg = "memory                     Summary of what is in memory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <file>       Read the <file> and load its content in memory"
+  msg = "create                     Create an atomic system"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <file>      Write current system into <file>"
+  msg = "read <file>                Read the <file> and load its content in memory"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear             Clear memory (destroy atomic system)"
+  msg = "write <file>               Write current system into <file>"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit              Exit Atomsk"
+  msg = "box <H11> <H22> <H33>      Define dimensions of orthogonal box"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "atom <sp> <x> <y> <z>      Add a new atom in the system with given species and coordinates"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "C11 <value>                Set value of elastic constant (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "Cij                        Construct elastic tensor based on previous values, and print it"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "clear                      Clear memory (destroy atomic system)"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "quit                       Exit Atomsk"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "OPTIONS: the options of Atomsk can be used in this command-line interpreter,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

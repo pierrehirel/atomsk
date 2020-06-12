@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 May 2020                                      *
+!* Last modification: P. Hirel - 25 May 2020                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -114,6 +114,7 @@ REAL(dp),DIMENSION(3):: create_a0
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system (mode create)
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Pfirst, Psecond, S
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties of atoms
 !
@@ -130,6 +131,7 @@ filesecond = pfiles(4)
 listfile = pfiles(5)
  create_species(:) = ''
 Huc(:,:) = 0.d0
+ C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 !Setup the files correctly for some modes
 IF(mode=='list') THEN
@@ -262,10 +264,10 @@ CASE('ddplot')
   !Read the two input files and apply options if any
   CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
   CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
   IF(nerr>=1) GOTO 10000
-  CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
   !
   !!Determine if the cell vectors were found or not
   IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 &
@@ -827,7 +829,7 @@ CASE('edm')
   ENDIF
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
   IF(nerr>0) GOTO 10000
   !
   !Compute polarization
@@ -879,7 +881,7 @@ CASE('PE')
   ENDIF
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
   IF(nerr>0) GOTO 10000
   !
   !Compute polarization
