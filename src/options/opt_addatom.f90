@@ -134,32 +134,42 @@ CASE("at","AT","@")
   !
   !
 CASE("relative","rel")
-  WRITE(msg,'(a3,3f9.3)') 'RELATIVE ', addatom_prop(1), addatom_prop(2), addatom_prop(3)
+  WRITE(msg,'(a9,i9,3f9.3)') 'RELATIVE ', NINT(addatom_prop(1)), addatom_prop(2), addatom_prop(3), addatom_prop(4)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !A new atom must be added near atom with the index addatom_prop(1)
   !Get index of atom
   atomindex = NINT(addatom_prop(1))
   !
-  !Place atom at the given vector relatively to given atom
-  x = P(atomindex,1) + addatom_prop(2)
-  y = P(atomindex,2) + addatom_prop(3)
-  z = P(atomindex,3) + addatom_prop(4)
-  !
-  !Save position of new atom in newP
-  ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
-  DO i=1,SIZE(P,1)
-    newP(i,:) = P(i,:)
-    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      IF( NINT(S(i,4))==NINT(snumber) ) THEN
-        hasShells = .TRUE.
+  !Check that index corresponds to an existing atom
+  IF( atomindex>0 .AND. atomindex<=SIZE(P,1) ) THEN
+    !Place atom at the given vector relatively to given atom
+    x = P(atomindex,1) + addatom_prop(2)
+    y = P(atomindex,2) + addatom_prop(3)
+    z = P(atomindex,3) + addatom_prop(4)
+    WRITE(msg,'(a9,3f9.3)') 'POSITION ', x, y, z
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !
+    !Save position of new atom in newP
+    ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
+    DO i=1,SIZE(P,1)
+      newP(i,:) = P(i,:)
+      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+        IF( NINT(S(i,4))==NINT(snumber) ) THEN
+          hasShells = .TRUE.
+        ENDIF
       ENDIF
-    ENDIF
-  ENDDO
-  newP(SIZE(newP,1),1) = x
-  newP(SIZE(newP,1),2) = y
-  newP(SIZE(newP,1),3) = z
-  newP(SIZE(newP,1),4) = snumber
-  addedatoms = 1
+    ENDDO
+    newP(SIZE(newP,1),1) = x
+    newP(SIZE(newP,1),2) = y
+    newP(SIZE(newP,1),3) = z
+    newP(SIZE(newP,1),4) = snumber
+    addedatoms = 1
+    !
+  ELSE
+    !Atom index provided by user is out of bounds
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2742,(/""/),(/DBLE(atomindex)/))
+  ENDIF
   !
   !
 CASE("near","NEAR")

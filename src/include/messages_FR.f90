@@ -1997,6 +1997,13 @@ CASE(2116)
     WRITE(temp3,"(f16.3)") reals(3)
     msg = ">>> Ajout d'un atome de "//TRIM(ADJUSTL(strings(1)))//" en ("//TRIM(ADJUSTL(temp))//","//     &
         & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")."
+  CASE("relative","rel")
+    WRITE(temp,"(f16.3)") reals(2)
+    WRITE(temp2,"(f16.3)") reals(3)
+    WRITE(temp3,"(f16.3)") reals(4)
+    WRITE(temp4,*) NINT(reals(1))
+    msg = ">>> Ajout d'un atome de "//TRIM(ADJUSTL(strings(1)))//" en ("//TRIM(ADJUSTL(temp))//","//     &
+        & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//") relatif à l'atome #"//TRIM(ADJUSTL(temp4))//"."
   CASE("near","NEAR")
     WRITE(temp,*) NINT(reals(1))
     msg = ">>> Ajout d'un atome de "//TRIM(ADJUSTL(strings(1)))//" près de l'atome #"//TRIM(ADJUSTL(temp))

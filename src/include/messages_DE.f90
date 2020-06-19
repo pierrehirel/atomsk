@@ -1884,6 +1884,13 @@ CASE(2116)
     msg = ">>> Fuege ein "//TRIM(ADJUSTL(strings(1)))//" Atom bei ("// &
         & TRIM(ADJUSTL(temp))//","//     &
         & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//") ein."
+  CASE("relative","rel")
+    WRITE(temp,"(f16.3)") reals(2)
+    WRITE(temp2,"(f16.3)") reals(3)
+    WRITE(temp3,"(f16.3)") reals(4)
+    WRITE(temp4,*) NINT(reals(1))
+    msg = ">>> Fuege ein "//TRIM(ADJUSTL(strings(1)))//" Atom bei ("//TRIM(ADJUSTL(temp))//","//     &
+        & TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//") relativ zum Atom #"//TRIM(ADJUSTL(temp4))//"."
   CASE("near","NEAR")
     WRITE(temp,*) NINT(reals(1))
     msg = ">>> Fuege ein "//TRIM(ADJUSTL(strings(1)))// &

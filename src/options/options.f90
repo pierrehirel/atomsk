@@ -1297,7 +1297,7 @@ DO ioptions=1,SIZE(options_array)
       WRITE(msg,*) (TRIM(ADJUSTL(AUXNAMES(i)))//'  ', i=1,MIN(SIZE(AUXNAMES),6) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO i=1,MIN( 20,SIZE(AUX(:,1)) )
-        WRITE(msg,'(6(f10.3,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
+        WRITE(msg,'(6(e9.6,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
       IF(i>=20) THEN
