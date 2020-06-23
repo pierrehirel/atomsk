@@ -723,6 +723,9 @@ CASE(12)
 CASE(14)
   msg = "<i> Selected atoms were removed: the selection previously defined was cleared."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(15)
+  msg = "..> Done."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
 CASE(700)
@@ -1087,6 +1090,9 @@ CASE(1814)
   ELSE
     msg = "X!X ERROR: files in "//TRIM(ADJUSTL(strings(1)))//" format cannot be read."
   ENDIF
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1815)
+  msg = "X!X ERROR: neighbor list is empty, probably because atoms are too far from one another."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

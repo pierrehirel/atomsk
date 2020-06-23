@@ -116,7 +116,7 @@ SUBROUTINE OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tens
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32):: optionname
-CHARACTER(LEN=256):: temp, msg
+CHARACTER(LEN=4096):: temp, msg
 CHARACTER(LEN=4096),DIMENSION(10):: treal !text containing a real number and maybe a word
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
@@ -127,8 +127,8 @@ REAL(dp):: tempreal !temporary real number
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: HS  !Copy of H for shells
-REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
-REAL(dp),DIMENSION(9,9):: C_tensor
+REAL(dp),DIMENSION(3,3):: ORIENT    !crystalographic orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !stiffness tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P  !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S  !shell positions (if any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUXdummy !auxiliary properties of atoms/shells

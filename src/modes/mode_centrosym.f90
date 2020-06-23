@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 23 June 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -135,7 +135,7 @@ ELSE
   AUX(:,:) = 0.d0
 ENDIF
 !
-AUXNAMES(c) = "central symm."
+AUXNAMES(c) = "central_symmetry"
 !
 !
 !
@@ -206,21 +206,29 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Construct neighbor list
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
-CALL NEIGHBOR_LIST(H,P,8.d0,NeighList)
+CALL NEIGHBOR_LIST(H,P,6.d0,NeighList)
+CALL ATOMSK_MSG(15,(/""/),(/0.d0/))
 !PRINT*, "SIZE NeighList = ", SIZE(NeighList,1), SIZE(NeighList,2)
+IF( .NOT.ALLOCATED(NeighList) .OR. SIZE(NeighList)<1 ) THEN
+  nerr=nerr+1
+  CALL ATOMSK_MSG(1815,(/""/),(/0.d0/))
+  GOTO 1000
+ENDIF
 !
 IF( verbosity==4 ) THEN
   !Some debug messages
-  WRITE(msg,*) "Sample of neighbor list:"
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  DO i=1,MIN(10,SIZE(NeighList,1))
-    WRITE(msg,'(i5,a3,20i5)') i, " | ", NeighList(i,1:MIN(SIZE(NeighList,2),16))
-    msg = TRIM(ADJUSTL(msg))//' (...)'
+  IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
+    WRITE(msg,*) "Sample of neighbor list:"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  ENDDO
-  IF( i>=10 ) THEN
-    WRITE(msg,*) '      (...discontinued...)'
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    DO i=1,MIN(10,SIZE(NeighList,1))
+      WRITE(msg,'(i5,a3,20i5)') i, " | ", NeighList(i,1:MIN(SIZE(NeighList,2),16))
+      msg = TRIM(ADJUSTL(msg))//' (...)'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
+    IF( i>=10 ) THEN
+      WRITE(msg,*) '      (...discontinued...)'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDIF
   ENDIF
 ENDIF
 !
@@ -255,6 +263,8 @@ ENDIF
 WRITE(msg,*) "Most common number of neighbors: ", Mdefault
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
+!$OMP PARALLEL DO DEFAULT(SHARED) &
+!$OMP& PRIVATE(i,j,k,ipairs,Nneigh,sum_dj,PosList,newindex,pairs,pairs_distances,Dmin,ktemp,distance,msg,temp)
 DO i=1,SIZE(P,1)
   !i is the index of the central atom
   !Initialize variables and arrays for atom #i
@@ -335,6 +345,8 @@ DO i=1,SIZE(P,1)
     WRITE(temp,*) Nneigh
     WRITE(msg,*) "Number of neighbors of atom # "//TRIM(ADJUSTL(msg))//": "//TRIM(ADJUSTL(temp))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(msg,*) "   j |      x        y        z    |     d_ij    at.number"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO j=1,MIN(20,Nneigh)
       WRITE(msg,'(i5,a3,3f9.3,a3,2f9.3)') j, " | ", PosList(j,1:3), " | ", PosList(j,4), P(NINT(PosList(j,5)),4)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -397,7 +409,7 @@ DO i=1,SIZE(P,1)
       WRITE(msg,*) i
       WRITE(msg,*) "Pairs of atoms around atom # "//TRIM(ADJUSTL(msg))//" :"
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      WRITE(msg,*) "   i    j   distance "
+      WRITE(msg,*) "   j    k      |dj+dk|² "
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO j=1,SIZE(pairs,1)
         WRITE(msg,'(2i5,f12.3)') pairs(j,1), pairs(j,2), pairs_distances(j)
@@ -407,6 +419,7 @@ DO i=1,SIZE(P,1)
     !
     !Compute the central symmetry parameter c of atom #i
     AUX(i,c) = SUM(pairs_distances(:)) / (2.d0*sum_dj)
+    !
     !
   ELSEIF( Nneigh==1 ) THEN
     !Atom #i has only one neighbor
@@ -429,6 +442,7 @@ DO i=1,SIZE(P,1)
     AUX(i,c) = 0.d0
   ENDIF
 ENDDO
+!$OMP END PARALLEL DO
 !
 !
 !

@@ -21,7 +21,7 @@ MODULE edm
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 22 June 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -498,10 +498,10 @@ DEALLOCATE(fakeAUXNAMES)
 !Write CFG file with norm as auxiliary property
 pcfg = TRIM(outputfile)//'_edm_all.cfg'
 ALLOCATE(CFGEDMNAME(4))
- CFGEDMNAME(1) = 'edm_X (e.A)'
- CFGEDMNAME(2) = 'edm_Y (e.A)'
- CFGEDMNAME(3) = 'edm_Z (e.A)'
- CFGEDMNAME(4) = 'edm_norm (e.A)'
+ CFGEDMNAME(1) = 'Px (e.A)'
+ CFGEDMNAME(2) = 'Py (e.A)'
+ CFGEDMNAME(3) = 'Pz (e.A)'
+ CFGEDMNAME(4) = 'P_norm (e.A)'
 ALLOCATE( CFGEDMAUX(SIZE(P(:,1)),4) )
  CFGEDMAUX(:,1:3) = pola(:,1:3)
  CFGEDMAUX(:,4) = normpola(:)

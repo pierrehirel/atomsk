@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 April 2019                                    *
+!* Last modification: P. Hirel - 23 June 2020                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -95,9 +95,10 @@ REAL(dp),DIMENSION(3,3):: alpha_tensor, test_matrix
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: Hfirst, Hsecond !Box vectors of systems 1 and 2
 REAL(dp),DIMENSION(3,3):: Hneigh, Hnew    !Base vectors for neighbors
-REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation of the system
+REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation (not used here but necessary for some calls)
 REAL(dp),DIMENSION(3,3):: rot_matrix !a rotation matrix
 REAL(dp),DIMENSION(3,3,3):: A_tensor  !tensor A(IM)
+REAL(dp),DIMENSION(9,9):: C_tensor    !stiffness tensor (not used here but necessary for some calls)
 REAL(dp),DIMENSION(:),ALLOCATABLE:: Stemp
 REAL(dp),DIMENSION(:),ALLOCATABLE:: work_array
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
@@ -121,7 +122,8 @@ NeighFactor = 1.1d0 !distance to 1st neighbor times 1.1 ensures to exclude secon
                     !1.1 is expected to be robust for simple lattices (fcc, bcc) but fails for complex
                     !or distorted systems
 Huc(:,:) = 0.d0
-ORIENT(:,:) = 0.d0
+ORIENT(:,:) = 0.d0     !crystallographic orientation (not used, set to zero)
+ C_tensor(:,:) = 0.d0  !stiffness tensor (not used, set to zero)
 !
 !
 CALL ATOMSK_MSG(4061,(/""/),(/0.d0/))
@@ -144,7 +146,7 @@ ELSE
   IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
   IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
   !Apply options to system 1
-  CALL OPTIONS_AFF(options_array,Huc,Hfirst,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,Hfirst,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 ENDIF
 !
 !Read atomic positions from filesecond and store them into Psecond(:,:)
@@ -155,7 +157,7 @@ IF (ALLOCATED(comment)) DEALLOCATE(comment)
 IF (ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
 !Apply options to system 2
-CALL OPTIONS_AFF(options_array,Huc,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT)
+CALL OPTIONS_AFF(options_array,Huc,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 !
 !
 !Search how many atom types exist in the system2
@@ -226,6 +228,7 @@ IF( verbosity==4 ) THEN
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
 ENDIF
+CALL ATOMSK_MSG(15,(/""/),(/0.d0/))
 !
 !
 IF( .NOT.firstref ) THEN
