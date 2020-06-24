@@ -10,7 +10,7 @@ MODULE reduce_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2020                                    *
+!* Last modification: P. Hirel - 24 June 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,7 +87,9 @@ IF( verbosity==4 ) THEN
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !
-! Loop on all atoms
+! Loop on all atoms to find an atom equivalent to atom #iref
+! NOTE: here "equivalent" just means it has the same species.
+!      The environment of atoms is not checked
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,k,cp,vp,V)
 DO i=1,SIZE(P,1)
   !
@@ -150,7 +152,9 @@ ENDIF
 reduce(:)=0
 DO i=1,3
   IF( VECLENGTH(Hnew(i,:)) < VECLENGTH(H(i,:)) .AND. VECLENGTH(Hnew(i,:)) > 0.5d0 ) THEN
+    !Replace cell vector H(i,:) with new one
     H(i,:) = H(i,:)*VECLENGTH(Hnew(i,:)) / VECLENGTH(H(i,:))
+    !Mark it as modified
     reduce(i) = 1
     !Eliminate approximations in cell vectors components
     DO j=1,3
@@ -209,8 +213,11 @@ IF( ANY( reduce(:)>0 ) ) THEN
       !Compute relative position of this atom
       V(:) = P(i,1:3) - P(iref,1:3)
       !Check if this atom is in the new box
-      IF( V(1)>-tol(1) .AND. V(2)>-tol(2) .AND. V(3)>-tol(3) .AND.  &
-        & V(1)<=1.d0-tol(1) .AND. V(2)<=1.d0-tol(2) .AND. V(3)<=1.d0-tol(3)        ) THEN
+      !Along each direction, atom is counted as being inside the box if
+      !the box was not reduced along that direction, or if atom is within the new boundaries
+      IF( ( reduce(1)==0 .OR. (V(1)>-tol(1) .AND. V(1)<=1.d0-tol(1)) ) .AND. &
+        & ( reduce(2)==0 .OR. (V(2)>-tol(2) .AND. V(2)<=1.d0-tol(2)) ) .AND. &
+        & ( reduce(3)==0 .OR. (V(3)>-tol(3) .AND. V(3)<=1.d0-tol(3)) )       ) THEN
         !Yes, it is in the box: add it to the list
         NP = NP+1
         IF(NP<=SIZE(Q,1)) THEN

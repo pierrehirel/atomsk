@@ -234,39 +234,6 @@ CASE('fcc')
   ENDIF
 !
 !
-CASE('L10','L1_0')
-  cubic = .TRUE.
-  IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
-    GOTO 810
-  ENDIF
-  ALLOCATE(P(4,4))
-  !Set up atom positions
-  P(:,:) = 0.d0
-  P(1,1) = 0.5d0
-  P(1,2) = 0.5d0
-  P(2,2) = 0.5d0
-  P(2,3) = 0.5d0
-  P(3,1) = 0.5d0
-  P(3,3) = 0.5d0
-  P(:,1) = create_a0(1)*P(:,1)
-  P(:,2) = create_a0(2)*P(:,2)
-  P(:,3) = create_a0(3)*P(:,3)
-  !Set up atom species
-  CALL ATOMNUMBER(create_species(1),P(1,4))
-  P(4,4) = P(1,4)
-  CALL ATOMNUMBER(create_species(2),P(2,4))
-  P(3,4) = P(2,4)
-  !Set up the unit cell
-  H(1,1) = create_a0(1)
-  H(2,2) = create_a0(2)
-  H(3,3) = create_a0(3)
-  Huc(:,:) = H(:,:)
-  !Set up the messages
-  WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))
-  comment(1) = 'L10 '//TRIM(ADJUSTL(comment(1)))
-!
-!
 CASE('L12','L1_2')
   cubic = .TRUE.
   IF(nspecies.NE.2) THEN
@@ -691,6 +658,38 @@ CASE('fct')
   ELSE
     comment(1) = 'Tetragonal face-centered'//TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' alloy'
   ENDIF
+!
+!
+CASE('L10','L1_0')
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  ALLOCATE(P(4,4))
+  !Set up atom positions
+  P(:,:) = 0.d0
+  P(1,1) = 0.5d0
+  P(1,2) = 0.5d0
+  P(2,2) = 0.5d0
+  P(2,3) = 0.5d0
+  P(3,1) = 0.5d0
+  P(3,3) = 0.5d0
+  P(:,1) = create_a0(1)*P(:,1)
+  P(:,2) = create_a0(2)*P(:,2)
+  P(:,3) = create_a0(3)*P(:,3)
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(4,4) = P(1,4)
+  CALL ATOMNUMBER(create_species(2),P(2,4))
+  P(3,4) = P(2,4)
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,2) = create_a0(2)
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))
+  comment(1) = 'L10 '//TRIM(ADJUSTL(comment(1)))
 !
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!  HEXAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
