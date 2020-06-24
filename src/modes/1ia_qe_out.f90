@@ -74,6 +74,7 @@ REAL(dp),DIMENSION(6):: celldm
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H, Htemp   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P,S  !positions of cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
@@ -87,6 +88,7 @@ Nsys = 0
 snap = -1  !so that snap index will start at 0
 alat = 0.d0
 Huc(:,:) = 0.d0
+C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(P)) DEALLOCATE(P)
@@ -358,7 +360,7 @@ DO  !loop on all snapshots
   Htemp = H
   !
   !Apply options
-  CALL OPTIONS_AFF(options_array,Huc,Htemp,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,Htemp,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
   !
   !Output snapshot to one or several format(s)
   outfileformat=''

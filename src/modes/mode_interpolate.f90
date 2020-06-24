@@ -61,6 +61,7 @@ REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 her
 REAL(dp),DIMENSION(3,3):: H1, H2   !Base vectors of the supercells of initial, final images
 REAL(dp),DIMENSION(3,3):: Himg     !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX1, AUX2 !auxiliary properties of initial, final images
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P1, P2  !positions of initial, final images
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S1, S2  !positions of initial, final shells
@@ -71,6 +72,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXimg     !auxiliary properties of an ima
 !Initialize variables
 doshells = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 !
 !
@@ -139,7 +141,7 @@ DO i=1,Nimages
   ENDIF
   !
   !Apply options to current image
-  CALL OPTIONS_AFF(options_array,Huc,Himg,Pimg,Simg,AUXNAMESimg,AUXimg,ORIENT,SELECT)
+  CALL OPTIONS_AFF(options_array,Huc,Himg,Pimg,Simg,AUXNAMESimg,AUXimg,ORIENT,SELECT,C_tensor)
   !
   !Write current image to file(s)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)
