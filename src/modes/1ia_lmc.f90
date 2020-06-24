@@ -70,6 +70,7 @@ REAL(dp):: xlo_bound, xhi_bound, ylo_bound, yhi_bound, zlo_bound, zhi_bound
 REAL(dp):: xy, xz, yz  !for triclinic boxes
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
+REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
@@ -79,6 +80,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 outputfile=''
 Nsnap = 0
 H(:,:) = 0.d0
+C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 !
 !
@@ -438,7 +440,7 @@ DO
   !
   IF( finished ) THEN
     !Apply options
-    CALL OPTIONS_AFF(options_array,H,H,P,S,AUXNAMES,AUX,ORIENT,SELECT)
+    CALL OPTIONS_AFF(options_array,H,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
     !
     !Output snapshot to one or several format(s)
     outfileformat=''
