@@ -152,6 +152,7 @@ DO WHILE(i<SIZE(cla))
     IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'    .OR.  &
       & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'     .OR.  &
       & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'    .OR.  &
+      & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'   .OR.  &
       & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'  .OR.  &
       & mode_param(1)=='st'       .OR. mode_param(1)=='bct'    .OR.  &
       & mode_param(1)=='fct'         ) THEN
@@ -207,7 +208,7 @@ DO WHILE(i<SIZE(cla))
       temp = ADJUSTL(cla(i))
       IF( temp=="orient" ) THEN
         SELECT CASE(mode_param(1))
-        CASE('sc','SC','fcc','FCC','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
+        CASE('sc','SC','fcc','FCC','L10','L1_0','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
             & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine','c15','C15')
           !Cubic lattice => read crystal orientation
           m=m+1

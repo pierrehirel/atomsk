@@ -354,6 +354,7 @@ CASE('create')
   IF( create_struc=='graphite' .OR. create_struc=='hcp'    .OR.  &
     & create_struc=='wurtzite' .OR. create_struc=='wz'     .OR.  &
     & create_struc=='c14'      .OR. create_struc=='C14'    .OR.  &
+    & create_struc=='L10'      .OR. create_struc=='L1_0'   .OR.  &
     & create_struc=='limo2'    .OR. create_struc=='LiMO2'  .OR.  &
     & create_struc=='st'       .OR. create_struc=='bct'    .OR.  &
     & create_struc=="fct"      ) THEN
