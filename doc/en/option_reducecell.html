@@ -20,13 +20,11 @@
 
 <h4>Description</h4>
 
-<p>This option attempts to reduce the system into a shorter cell.</p>
+<p>This option reduces the system into a shorter cell, while maintaining the periodicity.</p>
 
-<p>This option parses the list of atoms to find pairs of equivalent atoms. If the vector joining two equivalent atoms is parallel to and shorter than an initial cell vector, then it replaces it.</p>
+<p>This option searches for pairs of equivalent atoms. If the vector joining two equivalent atoms is parallel to and shorter than an initial cell vector, then it replaces it. The box may be shortened in one, two, or in all three directions. Then, atoms that are out of the new box are removed, along with their shells and auxiliary properties if they had any.</p>
 
-<p>This option preserves the crystal orientation and the cell vectors as they are, it just attempts to shorten them when it is possible. The final cell may not be the smallest unit cell, just the shortest along these directions.</p>
-
-<p>Cell vectors may change after this option is applied. The positions and properties of atoms will not change, but if the cell is reduced then atoms that are outside of the final cell will be deleted, along with their shells and auxiliary properties if they had any.</p>
+<p>This option preserves the crystal orientation, it just attempts to shorten the cell vectors when it is possible. The resulting final cell should be the shortest for this crystal orientation.</p>
 
 <p>If the system is rotated and you wish to obtain an orthorhombic unit cell, then use the <a href="./option_orthocell">option <code>-orthogonal-cell</code></a> before this one.</p>
 

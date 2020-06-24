@@ -20,13 +20,11 @@
 
 <h4>Description</h4>
 
-<p>Cette option tente de réduire la taille du système en une cellule plus petite.</p>
+<p>Cette option réduit la taille du système en une cellule plus petite, tout en préservant la périodicité du cristal.</p>
 
-<p>Cette option parcourt la liste des atomes à la recherche d'atomes équivalents. Si le vecteur joignant deux atomes équivalents est parallèle à un vecteur de boîte initial mais qu'il est plus court, alors il le remplace.</p>
+<p>Cette option recherche des paires d'atomes équivalents. Si le vecteur joignant deux atomes équivalents est parallèle à un vecteur de boîte initial mais qu'il est plus court, alors il le remplace. La boîte peut ainsi être raccourcie suivant une, deux, ou les trois directions de l'espace. Ensuite, les atomes se trouvant en dehors de la nouvelle boîte sont supprimés, ainsi que leurs coquilles et leurs propriétés auxiliaires s'ils en avaient.</p>
 
-<p>Notez que cette option préserve l'orientation du cristal et des vecteurs de boîte, elle tente juste de les raccourcir si c'est possible. La boîte finale ne sera peut-être pas la cellule élémentaire du cristal, seulement la plus petite trouvée pour cette orientation et ces vecteurs de boîte donnés.</p>
-
-<p>Les vecteurs de boîte peuvent changer après avoir appliqué cette option. Les positions et propriétés des atomes ne changent pas, mais si la boîte a été raccourcie alors les atomes qui se retrouvent en dehors de la nouvelle boîte sont éliminés, ainsi que leurs coquilles et leurs propriétés auxiliaires s'ils en avaient.</p>
+<p>Notez que cette option préserve l'orientation du cristal, elle tente juste de raccourcir chaque vecteur de boîte si c'est possible. La boîte finale devrait être la plus petite pour cette orientation et ces vecteurs de boîte donnés.</p>
 
 <p>Si le système a été tourné et que vous souhaitez obtenir une boîte orthogonale équivalente, alors utilisez l'<a href="./option_orthocell">option <code>-orthogonal-cell</code></a> avant celle-ci.</p>
 
