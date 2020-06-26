@@ -32,6 +32,8 @@
 
 <p>Après l'application de cette option, le nombre total d'atomes dans le système peut être différent du nombre initial. Il est recommandé d'appeler cette option <em>avant</em> de dupliquer le système avec l'option "-duplicate". Notez que dans certaines conditions (par exemple si les vecteurs de boîte initiaux ont des normes très légèrement différentes ou incommensurables, ou s'ils forment un angle très petit entre eux ou avec les axes cartésiens), alors Atomsk peut échouer à trouver une boîte orthogonale équivalente.</p>
 
+<p>Remarquez que cette option ne recherche que des combinaisons linéaires des vecteurs de boîte initiaux, mais ignore complètement les autres symétries possibles du cristal. La boîte finale ne sera donc peut-être pas la plus petite possible pour cette orientation cristallographique. Vous pouvez tenter de réduire la taille de la boîte en invoquant l'<a href="./option_reducecell.html">option <code>"-reduce-cell"</code></a> après celle-ci.</p>
+
 <p>Cette option est parallélisée avec OpenMP. Pour contrôler le nombre de processus utilisés par Atomsk, vous pouvez utiliser l'<a href="./progbe_Nthreads.html">option <code>-nthreads</code></a>.</p>
 
 

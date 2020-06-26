@@ -32,6 +32,8 @@
 
 <p>After this option is applied, the total number of atoms may differ from that of the initial system. It is recommended to call this option <em>before</em> duplicating the system with the option "-duplicate". Note that in certain conditions (for instance, if the initial box vectors have slightly different norms or are incommensurate, or if they form very small angles between them or with Cartesian axes), then Atomsk may fail to find a suitable set of orthogonal vectors.</p>
 
+<p>Note that this option only searches for linear combinations of the initial cell vectors, but it is completely unaware of any additional crystal symmetries. The resulting cell may not be the smallest cell for that crystal orientation. You may attempt to reduce the final cell size by calling the <a href="./option_reducecell.html">option <code>"-reduce-cell"</code></a> after this one.</p>
+
 <p>This option is parallelized with OpenMP. To control the number of parallel threads used by Atomsk, you may use the <a href="./progbe_Nthreads.html">option <code>-nthreads</code></a>.</p>
 
 

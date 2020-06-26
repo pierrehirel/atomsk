@@ -26,7 +26,7 @@
 
 <p>This option preserves the crystal orientation, it just attempts to shorten the cell vectors when it is possible. The resulting final cell should be the shortest for this crystal orientation.</p>
 
-<p>If the system is rotated and you wish to obtain an orthorhombic unit cell, then use the <a href="./option_orthocell">option <code>-orthogonal-cell</code></a> before this one.</p>
+<p>If the system is rotated and you wish to obtain an orthorhombic unit cell, then use the <a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a> before this one.</p>
 
 <p>Note that this option is meant for use with perfect crystals. It cannot be expected to give good results in crystals containing defects, nor on non-crystalline or disordered systems.</p>
 
@@ -42,6 +42,9 @@
 <ul>
 <li><code class="command">atomsk system.cfg -reduce-cell xsf</code>
 <p>This will read the file <code>system.cfg</code> and re-calculate the supercell base vectors. The result will be output in <code>system.xsf</code>.</p></li>
+
+<li><code class="command">atomsk --create fcc 4.02 Al -duplicate 10 10 10 -reduce-cell final.cfg</code>
+<p>With this command, Atomsk will <a href="./mode_create.html">create a unit cell</a> of fcc aluminium, which contains 4&nbsp;atoms. Then it will <a href="./option_duplicate.html">duplicate it</a> ten times along each direction, resulting in a supercell containing 4000&nbsp;atoms. Then, the option "-reduce-cell" will try to reduce the size of this system while preserving its periodicity, and it will find that the smallest matching system is the unit cell containing just 4&nbsp;atoms. Finally, Atomsk will write the final result in the file "final.cfg".</p></li>
 
 <li><code class="command">atomsk initial.cfg -rotate Z 45 -orthogonal-cell -reduce-cell final.cfg</code>
 <p>This will <a href="./option_rotate.html">rotate the system</a> by 45° around Z, search for an <a href="./option_orthocell.html">equivalent orthogonal cell</a>, and finally attempt to reduce the size of this cell. The result will be output in <code>final.cfg</code>.</p></li>

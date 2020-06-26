@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2020                                     *
+!* Last modification: P. Hirel - 26 June 2020                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -70,6 +70,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 LOGICAL:: firstref  !is the first file used as reference system? (default: yes)
+LOGICAL:: lowp      !does an environment have a low probability?
 LOGICAL:: ucref     !is the reference a unit cell? (default: no)
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, iat
@@ -379,62 +380,110 @@ IF( .NOT.firstref ) THEN
     CALL ATOMSK_MSG(4830,(/""/),(/0.d0/))
     nerr = nerr+1
     GOTO 1000
-  ELSE
-    !Nsites atom sites were found
-    !For each site, perform a rotation so that a neighbors's position vector
-    !is aligned with the Cartesian X axis, another is in XY plane,
-    !and a third one pointing out of XY plane.
-    !Then, express all neighbors positions in this new base
-!     DO i=1,MIN(Nsites,SIZE(Pref,1))
-!       Hneigh(:,:) = 0.d0
-!       !First neighbor is used as first base vector
-!       Hneigh(1,1:3) = Pref(i,2,1:3)
-!       m = 1
-!       !Find two other vectors to form a base of 3 linearly independent vectors
-!       DO j=3,NINT(Pref(i,1,6))+1  !loop on other neighbors
-!         !Compute magnitude of cross product between current vector and first base vector
-!         P1 = VECLENGTH( CROSS_PRODUCT( Pref(i,j,1:3) , Hneigh(1,1:3) ) )
-!         IF( m>=2 ) THEN
-!           !Second base vector was found:
-!           !Compute magnitude of cross product between current vector and second base vector
-!           P2 = VECLENGTH( CROSS_PRODUCT( Pref(i,j,1:3) , Hneigh(2,1:3) ) )
-!         ELSE
-!           !Second base vector not found yet: don't enforce this condition
-!           P2 = 100.d0
-!         ENDIF
-!         !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
-!         !then save it as an additional base vector
-!         IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
-!           m = m+1
-!           Hneigh(m,1:3) = Pref(i,j,1:3)
-!         ENDIF
-!       ENDDO
-!       !
-!       IF( m==3 ) THEN
-!         !Now Hneigh contains the "old base vectors"
-!         !Convert all neighbor positions into fractional coordinates
-!         CALL CART2FRAC(Pref(i,2:,1:3),Hneigh)
-!         !Convert base vectors into "conventional notation"
-!         P1 = VECLENGTH(Hneigh(1,:))
-!         P2 = VECLENGTH(Hneigh(2,:))
-!         P3 = VECLENGTH(Hneigh(3,:))
-!         alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
-!         beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
-!         gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
-!         !Then convert them into vectors
-!         CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
-!         !Convert all neighbor positions back into Cartesian coordinates
-!         CALL FRAC2CART(Pref(i,2:,1:3),Hneigh)
-!         !
+  ENDIF
+  !
+!   !Nsites atom sites were found
+!   !For each site, perform a rotation so that a neighbors's position vector
+!   !is aligned with the Cartesian X axis, another is in XY plane,
+!   !and a third one pointing out of XY plane.
+!   !Then, express all neighbors positions in this new base
+!   DO i=1,MIN(Nsites,SIZE(Pref,1))
+!     Hneigh(:,:) = 0.d0
+!     !First neighbor is used as first base vector
+!     Hneigh(1,1:3) = Pref(i,2,1:3)
+!     m = 1
+!     !Find two other vectors to form a base of 3 linearly independent vectors
+!     DO j=3,NINT(Pref(i,1,6))+1  !loop on other neighbors
+!       !Compute magnitude of cross product between current vector and first base vector
+!       P1 = VECLENGTH( CROSS_PRODUCT( Pref(i,j,1:3) , Hneigh(1,1:3) ) )
+!       IF( m>=2 ) THEN
+!         !Second base vector was found:
+!         !Compute magnitude of cross product between current vector and second base vector
+!         P2 = VECLENGTH( CROSS_PRODUCT( Pref(i,j,1:3) , Hneigh(2,1:3) ) )
 !       ELSE
-!         !m is not equal to 3, meaning that we could not find a suitable base
-!         !of 3 vectors that are linearly independent: just leave neighbor list as it is
+!         !Second base vector not found yet: don't enforce this condition
+!         P2 = 100.d0
+!       ENDIF
+!       !If current vector is not aligned with an existing "base vector" (cross product.NE.0),
+!       !then save it as an additional base vector
+!       IF( m<3 .AND. P1>1.d0 .AND. P2>1.d0 ) THEN
+!         m = m+1
+!         Hneigh(m,1:3) = Pref(i,j,1:3)
 !       ENDIF
 !     ENDDO
+!     !
+!     IF( m==3 ) THEN
+!       !Now Hneigh contains the "old base vectors"
+!       !Convert all neighbor positions into fractional coordinates
+!       CALL CART2FRAC(Pref(i,2:,1:3),Hneigh)
+!       !Convert base vectors into "conventional notation"
+!       P1 = VECLENGTH(Hneigh(1,:))
+!       P2 = VECLENGTH(Hneigh(2,:))
+!       P3 = VECLENGTH(Hneigh(3,:))
+!       alpha = ANGVEC(Hneigh(2,:),Hneigh(3,:))
+!       beta  = ANGVEC(Hneigh(3,:),Hneigh(1,:))
+!       gamma = ANGVEC(Hneigh(1,:),Hneigh(2,:))
+!       !Then convert them into vectors
+!       CALL CONVMAT(P1,P2,P3,alpha,beta,gamma,Hneigh)
+!       !Convert all neighbor positions back into Cartesian coordinates
+!       CALL FRAC2CART(Pref(i,2:,1:3),Hneigh)
+!       !
+!     ELSE
+!       !m is not equal to 3, meaning that we could not find a suitable base
+!       !of 3 vectors that are linearly independent: just leave neighbor list as it is
+!     ENDIF
+!   ENDDO
+  !
+  !Check the occurrence of environments, and remove those that have a very low occurrence
+  IF( Nsites>0 ) THEN
+    !Double loop on all types of sites
+    DO i=1,SIZE(Pref,1)-1
+      DO j=i+1,SIZE(Pref,1)
+        !Compare the atomic number of central atoms in sites #i and #j
+        IF( NINT(Pref(i,1,4))>0 .AND. NINT(Pref(i,1,4)) == NINT(Pref(j,1,4)) ) THEN
+          !Sites i and j have the same central atom
+          !Verify if one of them has a very low occurrence
+          IF( Pref(i,1,5) <= MAX(10,NINT(Pref(j,1,5)/10.d0)) ) THEN
+            !Site of type #i has a very low occurrence compared to site #j
+            !Add its occurrence to the site type #j
+            Pref(j,1,5) = Pref(j,1,5)+Pref(i,1,5)
+            !Delete this type of site from the list
+            Pref(i,:,:) = 0.d0
+            !Update total number of types of sites
+            Nsites = Nsites-1
+            !Update siteindex: for all atoms in site #i, change site to type #j
+            DO k=1,SIZE(siteindex)
+              IF(siteindex(k)==i) siteindex = j
+            ENDDO
+          ELSEIF( Pref(j,1,5) <= MAX(10,NINT(Pref(i,1,5)/10.d0)) ) THEN
+            !Site of type #j has a very low occurrence compared to site #i
+            !Add its occurrence to the site type #i
+            Pref(i,1,5) = Pref(i,1,5)+Pref(j,1,5)
+            !Delete it from the list
+            Pref(j,:,:) = 0.d0
+            !Update total number of types of sites
+            Nsites = Nsites-1
+            !Update siteindex: for all atoms in site #j, change site to type #i
+            DO k=1,SIZE(siteindex)
+              IF(siteindex(k)==j) siteindex = i
+            ENDDO
+          ENDIF
+        ENDIF
+      ENDDO
+    ENDDO
   ENDIF
+  !
+  IF( Nsites<=0 ) THEN
+    !No atomic environment found: cannot compute anything
+    CALL ATOMSK_MSG(4830,(/""/),(/0.d0/))
+    nerr = nerr+1
+    GOTO 1000
+  ENDIF
+  !
+  !Display number of environments on screen
   CALL ATOMSK_MSG(4071,(/""/),(/DBLE(Nsites)/))
-  !Now Pref contains the averaged relative positions of neighbors
-  !for each type of atom site
+  !
+  !Now Pref contains the averaged relative positions of neighbors for each type of atom site
   IF( ucref ) THEN
     !Index of first atoms in system2 may not match those of unit cell
     !Wipe out the "siteindex" array, atom sites will be found later
