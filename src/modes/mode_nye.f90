@@ -21,11 +21,11 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 June 2020                                     *
+!* Last modification: P. Hirel - 30 June 2020                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
-!* 200        Compute local distortion tensor G for each atom                     *
+!* 200        Compute lattice correspondence tensor G for each atom               *
 !* 300        Using G, compute Nye tensor for each atom                           *
 !* 400        Output final results to file(s)                                     *
 !**********************************************************************************
@@ -315,7 +315,8 @@ IF( .NOT.firstref ) THEN
         EXIT
       ENDIF
       IF(i>SIZE(Pref,1)) THEN
-        PRINT*, "ERROR index i exceeds size of array Pref"
+        nerr=nerr+1
+        CALL ATOMSK_MSG(4070,(/""/),(/DBLE(i)/))
         GOTO 1000
       ENDIF
     ENDDO
@@ -536,7 +537,7 @@ ENDIF
 !
 200 CONTINUE
 !**********************************************************************************
-!                            COMPUTE  PER-ATOM  G-MATRIX
+!         COMPUTE  LATTICE  CORRESPONDENCE  TENSOR  G  FOR  EACH  ATOM
 !**********************************************************************************
 CALL ATOMSK_MSG(4062,(/""/),(/0.d0/))
 !
@@ -554,6 +555,7 @@ DO iat=1,SIZE(Psecond,1)
   progress = progress+1
   !
   IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
+  IF(ALLOCATED(PosList1)) DEALLOCATE(PosList1)
   IF(ALLOCATED(PosList2)) DEALLOCATE(PosList2)
   IF(ALLOCATED(P_neigh)) DEALLOCATE(P_neigh)
   !
@@ -579,8 +581,10 @@ DO iat=1,SIZE(Psecond,1)
       !
       !Keep only the first neighbors, save them in V_NN
       !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
+      !The neighbor list NeighList1 is cleaned up to keep only neighbors
+      !(this will speed up things when the Nye tensor is computed below)
       Nneighbors=0
-      DO j=1,SIZE(PosList1,1)
+      DO j=1,MIN(20,SIZE(PosList1,1))
         IF( PosList1(j,4) <= NeighFactor*PosList1(3,4) ) THEN
           !This neighbor is about as close as the 3rd neighbor => keep it
           Nneighbors=Nneighbors+1
@@ -591,14 +595,21 @@ DO iat=1,SIZE(Psecond,1)
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
-      DO j=1,SIZE(PosList1,1)
+      m=0
+      DO j=1,MIN(20,SIZE(PosList1,1))
         IF( PosList1(j,4) <= NeighFactor*PosList1(3,4) ) THEN
           !This neighbor is closer than the 3rd neighbor => keep it
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList1(j,1:3)
-          NeighList1(iat,Nneighbors) = NINT(PosList1(j,5))
+          !Add the index of this neighbor to the neighbor list NeighList1
+          IF( PosList1(j,5).NE.iat .AND. .NOT.ANY(NeighList1(iat,:)==NINT(PosList1(j,5))) ) THEN
+            m=m+1
+            NeighList1(iat,m) = NINT(PosList1(j,5))
+          ENDIF
         ENDIF
       ENDDO
+      !We don't need PosList1 for this atom anymore
+      IF(ALLOCATED(PosList1)) DEALLOCATE(PosList1)
     ENDIF
     !
     WRITE(msg,*) "SYSTEM 1: atom #", iat, "(", SIZE(V_NN,1), " neighbors)"
@@ -632,6 +643,7 @@ DO iat=1,SIZE(Psecond,1)
     !
   ELSE  !i.e. if .NOT.firstref
     !Unit cell was provided as reference, or no reference at all
+    !The "reference" for atom #iat is constructed on-the-fly from the environments in Pref(:,:,:)
     IF( siteindex(iat)==0 ) THEN
       !The type of site for this atom was not determined before
       !Determine it now, based on atom species
@@ -653,9 +665,9 @@ DO iat=1,SIZE(Psecond,1)
         P_neigh(:,:) = 0.d0
         DO i=1,Nneighbors
           P_neigh(i,:) = Pref(siteindex(iat),i+1,1:3)
-          !PRINT*, iat, i, P_neigh(i,:)
         ENDDO
       ELSE
+        !Not enough neighbors for atom #iat
         CALL ATOMSK_MSG(4709,(/""/),(/ DBLE(iat) , DBLE(Nneighbors) /))
         nwarn = nwarn+1
         GOTO 290
@@ -677,29 +689,69 @@ DO iat=1,SIZE(Psecond,1)
     !and their distance to the atom #i.
     !Sort them by increasing distance:
     CALL BUBBLESORT(PosList2,4,'up  ',newindex)
-    !Keep only the first neighbors, save them in V_NN
-    !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
-    Nneighbors=0
-    DO j=1,SIZE(PosList2,1)
-      IF( j<SIZE(P_neigh,1) .OR. PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
-        !This neighbor is about as close as the 3rd neighbor => keep it
-        Nneighbors=Nneighbors+1
-      ENDIF
-    ENDDO
-    !Clean neighbor list for this atom
-    NeighList2(iat,:) = 0
-    ALLOCATE(V_NN(Nneighbors,3))
-    V_NN(:,:) = 0.d0
-    Nneighbors=0
-    DO j=1,SIZE(PosList2,1)
-      IF( j<SIZE(P_neigh,1) .OR. PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
-        !This neighbor is closer than the 3rd neighbor => keep it
-        Nneighbors=Nneighbors+1
-        V_NN(Nneighbors,:) = PosList2(j,1:3)
-        NeighList2(iat,Nneighbors) = NINT(PosList2(j,5))
-      ENDIF
-    ENDDO
-  ENDIF
+    !
+    IF( firstref ) THEN
+      !The system in "filefirst" is used as reference
+      !Keep only the first neighbors, save them in V_NN
+      !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
+      Nneighbors=0
+      DO j=1,SIZE(PosList2,1)
+        IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+          !This neighbor is about as close as the 3rd neighbor => keep it
+          Nneighbors=Nneighbors+1
+        ENDIF
+      ENDDO
+      !Clean neighbor list for this atom
+      NeighList2(iat,:) = 0
+      ALLOCATE(V_NN(Nneighbors,3))
+      V_NN(:,:) = 0.d0
+      Nneighbors=0
+      m=0
+      DO j=1,SIZE(PosList2,1)
+        IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+          !This neighbor is closer than the 3rd neighbor => keep it
+          Nneighbors=Nneighbors+1
+          V_NN(Nneighbors,:) = PosList2(j,1:3)
+          !Add the index of this neighbor to the neighbor list NeighList1
+          IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
+            m=m+1
+            NeighList2(iat,m) = NINT(PosList2(j,5))
+          ENDIF
+        ENDIF
+      ENDDO
+      !
+    ELSE  !i.e. if .NOT.firstref
+      !Unit cell was provided as reference, or no reference at all
+      !The "reference" for atom #iat is constructed on-the-fly from the environments in Pref(:,:,:)
+      Nneighbors=0
+      DO j=1,SIZE(PosList2,1)
+        IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+          !This neighbor is about as close as the 3rd neighbor => keep it
+          Nneighbors=Nneighbors+1
+        ENDIF
+      ENDDO
+      !Clean neighbor list for this atom
+      NeighList2(iat,:) = 0
+      ALLOCATE(V_NN(Nneighbors,3))
+      V_NN(:,:) = 0.d0
+      Nneighbors=0
+      k=0
+      DO j=1,SIZE(PosList2,1)
+        IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+          !This neighbor is closer than the 3rd neighbor => keep it
+          Nneighbors=Nneighbors+1
+          V_NN(Nneighbors,:) = PosList2(j,1:3)
+          !Add the index of this neighbor to the neighbor list NeighList2
+          IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
+            k=k+1
+            NeighList2(iat,k) = NINT(PosList2(j,5))
+          ENDIF
+        ENDIF
+      ENDDO
+    ENDIF  !end if firstref
+  ENDIF   !end if size(PosList2)>=3
+  !We don't need PosList2 for this atom anymore
+  IF(ALLOCATED(PosList2)) DEALLOCATE(PosList2)
   !
   WRITE(msg,*) "SYSTEM 2: atom #", iat, "(", SIZE(V_NN,1), " neighbors)"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -781,7 +833,7 @@ DO iat=1,SIZE(Psecond,1)
     Q_matrix(:,:)=0.d0
     P_matrix(:,:)=0.d0
     DO j=1,SIZE(Q_neigh,1)
-      IF (Tab_PQ(j).ne.0) THEN
+      IF (Tab_PQ(j).NE.0) THEN
         Q_matrix(Tab_PQ(j),:) = Q_neigh(j,:)
         P_matrix(Tab_PQ(j),:) = P_neigh_tmp(j,:)
       ENDIF
@@ -801,6 +853,18 @@ DO iat=1,SIZE(Psecond,1)
       ENDDO
       WRITE(msg,*) '-----------------------------------------'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      IF(iat==2959) THEN
+        OPEN(UNIT=41,FILE="atomsk_site_2959.xyz",STATUS="UNKNOWN",FORM="FORMATTED")
+        WRITE(41,*) SIZE(P_matrix,1)+SIZE(Q_matrix,1)
+        WRITE(41,*) "# P_matrix and Q_matrix for atom #2959"
+        DO i=1,SIZE(P_matrix,1)
+          WRITE(41,*) "Al ", P_matrix(i,1), P_matrix(i,2), P_matrix(i,3)
+        ENDDO
+        DO i=1,SIZE(Q_matrix,1)
+          WRITE(41,*) "Si ", Q_matrix(i,1), Q_matrix(i,2), Q_matrix(i,3)
+        ENDDO
+        CLOSE(41)
+      ENDIF
     ENDIF
     !
     !
@@ -894,9 +958,9 @@ DO iat=1,SIZE(Psecond,1)
         !
         !
         IF( ok.NE.0 ) THEN
-          PRINT*, "ERROR: NOT IDENTITY MATRIX!!!"
-          nerr = nerr+1
-          !EXIT
+          WRITE(msg,*) iat
+          CALL ATOMSK_MSG(4717,(/"Q+ * Qmatrix (atom #"//TRIM(ADJUSTL(msg))//")"/),(/0.d0/))
+          nwarn = nwarn+1
           !
         ELSE
           !
@@ -939,6 +1003,53 @@ ENDDO
 IF(nerr>0) GOTO 1000
 !
 IF( verbosity==4 ) THEN
+  !Write each component of G tensor into data file (projected in XY plane)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha11.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,1)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha12.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,2)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha13.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,3)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha21.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,1)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha22.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,2)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha23.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,3)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha31.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,1)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha32.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,2)
+  ENDDO
+  CLOSE(41)
+  OPEN(UNIT=41,FILE="atomsk_Nye_alpha33.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,SIZE(G,1)
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,3)
+  ENDDO
+  CLOSE(41)
+  !
   !Write atom coordinates and per-atom matrix G into a file
   ALLOCATE( AUX( SIZE(Psecond,1) , 9 ) )
   AUX(:,:) = 0.d0
@@ -1042,10 +1153,6 @@ DO iat=1,SIZE(Psecond,1)
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList1(j,1:3)
           Nlist(Nneighbors) = NINT(PosList1(j,5))
-          IF( Nlist(Nneighbors)==0 ) THEN
-            !It means that atom #iat is a neighbor of itself (because of PBC)
-            Nlist(Nneighbors) = iat
-          ENDIF
         ENDIF
       ENDDO
     ENDIF
@@ -1095,7 +1202,8 @@ DO iat=1,SIZE(Psecond,1)
       !Now PosList2(:,:) contains the cartesian positions of all neighbors in the radius,
       !their distance to the atom #iat, and their indices.
       !Sort them by increasing distance:
-      !CALL BUBBLESORT(PosList2,4,'up  ',newindex)
+      CALL BUBBLESORT(PosList2,4,'up  ',newindex)
+      !
       !Keep only the first neighbors, save them in V_NN
       !Make sure to keep at least 3 neighbors: compare distances to that of the 3rd neighbor
       Nneighbors=0
@@ -1139,13 +1247,12 @@ DO iat=1,SIZE(Psecond,1)
         !Now PosList2(:,:) contains the cartesian positions of all neighbors of atom #iat,
         !their distance to the central atom #iat, and their indices in Psecond(:,:).
         !Sort them by increasing distance:
-        !CALL BUBBLESORT(PosList2,4,'up  ',newindex)
+        CALL BUBBLESORT(PosList2,4,'up  ',newindex)
         !Keep only the first neighbors, save them in V_NN
         !Make sure to keep at least Nneighbors: compare distances to that of the 3rd neighbor
         nb_neigh=0
-        j=0
         DO j=1,SIZE(PosList2,1)
-          IF( j<=Nneighbors .OR. PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+          IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
             !This neighbor is about as close as the 3rd neighbor => keep it
             nb_neigh=nb_neigh+1
           ENDIF
@@ -1156,16 +1263,12 @@ DO iat=1,SIZE(Psecond,1)
         Nlist(:) = 0
         nb_neigh = 0
         DO j=1,SIZE(PosList2,1)
-          IF( j<=Nneighbors .OR. PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+          IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
             !This neighbor is about as close as the 3rd neighbor => keep it
             nb_neigh=nb_neigh+1
             !Save neighbors from second system in V_NN
             V_NN(nb_neigh,1:3) = PosList2(j,1:3)
             Nlist(nb_neigh) = NINT(PosList2(j,5))
-            IF( Nlist(nb_neigh)==0 ) THEN
-              !It means that atom #iat is a neighbor of itself (because of PBC)
-              Nlist(nb_neigh) = iat
-            ENDIF
           ENDIF
         ENDDO
         !
@@ -1198,7 +1301,7 @@ DO iat=1,SIZE(Psecond,1)
   ENDIF  !end if firstref
   !
   IF( verbosity==4 ) THEN
-    WRITE(msg,*) "atom #", iat, " Delta_G ="
+    WRITE(msg,*) "atom #", iat, "  (", nb_neigh, " neighbors), Delta_G ="
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO j=1,3
       WRITE(msg,'(3(3f9.3,a3))') Delta_G(j,1,1:3), " | ", Delta_G(j,2,1:3), " | ", Delta_G(j,3,1:3)
@@ -1276,7 +1379,7 @@ DO iat=1,SIZE(Psecond,1)
           alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
           IF (alpha_tmp==alpha) ok=ok+1
         ENDDO
-        IF (ok==1) THEN
+        IF (ok.eq.1) THEN
           nb_neigh=nb_neigh+1
           Tab_PQ(j)=nb_neigh
         ELSE

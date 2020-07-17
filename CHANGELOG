@@ -10,6 +10,11 @@ Master (development)
 - added support for reading and writing files in CRYSTAL format (*.d12).
 - added support for reading and writing files in ABINIT format (*.in).
 - added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
+- new option "-cell" allows to modify cell vectors more easily.
+- new option "-nthreads" to control the number of OpenMP threads.
+- new option "-reduce-cell" allows to find an equivalent smaller cell to a system, while respecting its periodicity.
+- new option "-roundoff" allows to round off atom coordinates or the values of a property.
+- new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on.
 - when writing VASP POSCAR files, atomic species are now written so as to comply to VASP version 5.x. They can simply be removed to comply with VASP 4.x and earlier.
 - in mode "--create", added possibility to create tetragonal lattices (simple, body-centered, or face-centered tetragonal). Also added possibility to create cubic C15 Laves phase. The cell vector reduction was generalized for oriented cubic lattices to produce the smallest unit cell.
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.
@@ -25,10 +30,6 @@ Master (development)
 - in option "-sort", added possibility to shuffle atom list in random order.
 - in option "-swap", added possibility to swap two chemical species.
 - the order of options is now checked, and when possible, the program displays a recommendation to improve performance (e.g. when option "-duplicate" is called before "-orthocell", it is recommended to swap them).
-- new option "-nthreads" to control the number of OpenMP threads.
-- new option "-reduce-cell" allows to find an equivalent smaller cell to a system.
-- new option "-roundoff" allows to round off atom coordinates or the values of a property.
-- new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on.
 - improved checking of number of atoms and memory allocations.
 - fixed a bug in the symmetry operations of space group 166 (R-3m).
 - fixed a bug when reading LAMMPS data files where the atom charges were not read.

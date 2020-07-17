@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 June 2020                                     *
+!* Last modification: P. Hirel - 16 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -729,12 +729,32 @@ DO WHILE(i<SIZE(cla))
       j = SCAN(options_array(ioptions),'/')
     ENDDO
   !
-  ELSEIF(clarg=='-cell') THEN
+  ELSEIF(clarg=="-cell" .OR. clarg=="-box") THEN
     ioptions = ioptions+1
-    options_array(ioptions) = TRIM(clarg)
+    options_array(ioptions) = "-cell"
+    !Read operation to perform (add, rm, set)
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( temp.NE."add" .AND. temp.NE."rm" .AND. temp.NE."set" ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !Read value (real number)
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( SCAN(temp,'0123456789')==0 ) GOTO 120
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    !Read direction
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(temp))
+    SELECT CASE(temp)
+    CASE( "H1","H2","H3",'x','X','y','Y','z','Z',"xy","XY","xz","XZ","yx","YX","yz","YZ", &
+        & "zx","ZX","zy","ZY","xyz","XYZ","all","ALL")
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    CASE DEFAULT
+      GOTO 120
+    END SELECT
   !
   ELSEIF(clarg=='-center') THEN
     ioptions = ioptions+1

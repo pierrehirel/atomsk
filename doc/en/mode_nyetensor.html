@@ -20,19 +20,27 @@
 
 <h4>Description</h4>
 
-<p>This mode computes the per-atom Nye tensor, a quantity related to the strain gradient around an atom. The Nye tensor can be useful for visualizing lattice defects such as point defects, dislocations, or planar defects (stacking faults, twins, grain boundaries). The calculation follows the method described in C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
+<p>This mode computes the per-atom Nye tensor, a quantity related to the strain gradient around an atom. The Nye tensor can be useful for visualizing lattice defects such as point defects, dislocations, or planar defects (stacking faults, twins, grain boundaries).</p>
+
+<p>The calculation follows the method described in C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313. Given a reference lattice defined by a set of atom positions <strong>P</strong> and a distorted lattice defined by <strong>Q</strong>, the lattice correspondance tensor is computed as:</p>
+
+<p><strong>G</strong> = (<strong>Q</strong><sup>T</sup> <strong>Q</strong>)<sup>-1</sup> <strong>Q</strong><sup>T</sup> <strong>P</strong> </p>
+
+<p>Once the tensor <strong>G</strong> is computed for each atom, then the Nye tensor <strong>&alpha;</strong> is computed from its spatial derivatives (&epsilon;<sub>imk</sub> is the Levi-Civita permutation symbol):</p>
+
+<p><strong>&alpha;</strong><sub>jk</sub> = -&epsilon;<sub>imk</sub>  &part;<sub>m</sub><strong>G</strong><sub>ij</sub></p>
 
 <p>This mode requires two files: a &#60;file1&#62; containing the reference system, and a &#60;file2&#62; that contains the system to analyze. The reference system may be:</p>
 
 <ul>
-  <li><strong>a full reference system</strong>, i.e. a supercell of bulk material of the same type as the system to analyze, i.e. the base vectors, the atom types, and the index of atoms in the &#60;file1&#62; must match those in &#60;file2&#62;. In other words, only the positions of atoms must differ between the reference and studied system. For example, the &#60;file1&#62; can be a supercell of bulk material, and the &#60;file2&#62; the same system containing a screw dislocation.</li>
-  <li><strong>a unit cell</strong> of the system to analyze. The unit cell may or may not have the same crystal orientation as the system to analyze. Atomsk will construct the reference atomic environments from the unit cell, and compare them with the actual atom environments in the system to study.</li>
-  <li><strong>NULL</strong>, meaning that no reference is provided. Atomsk will construct reference atomic environments on-the-fly, by averaging the environments found in the system to analyze.</li>
+  <li><strong>a full reference system</strong>, i.e. a supercell of bulk, undeformed and defect-free material that has the same number of atoms as the analyzed system (&#60;file2&#62;). In addition, atom indices should match between the two files, and their positions should not change too much. For example, if one wishes to analyze a &#60;file2&#62; containing a screw dislocation, then the &#60;file1&#62; should be a supercell of perfect material with the same number of atoms.</li>
+  <li><strong>a unit cell</strong> of the system to analyze. The unit cell may or may not have the same crystal orientation as the system to analyze. Atomsk will construct the reference atomic environments from the unit cell, and compare them with the actual atomic environments in the system to study.</li>
+  <li><strong>NULL</strong>, meaning that no reference is provided. Atomsk will construct reference atomic environments on-the-fly, by averaging the environments found in the system to analyze. Environments where atoms have an odd number of neighbors are discarded (not included in the averaging).</li>
 </ul>
 
 <p>The two files &#60;file1&#62; and &#60;file2&#62; may be of the same format, or of different formats, as long as these formats are <a href="./formats.html">supported by Atomsk</a>.</p>
 
-<p>The nine components of the Nye tensor (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), are saved as auxiliary properties for each atom. Note that Atomsk will output these auxiliary properties only to the file formats that support it, like e.g. <a href="./format_cfg.html">Atomeye CFG format</a> (see <a href="./formats.html">this page</a> for a list of formats supporting auxiliary properties).</p>
+<p>The nine components of the Nye tensor are saved as auxiliary properties for each atom (in the following order: &alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>). Note that Atomsk will output these auxiliary properties only to the file formats that support it, like e.g. <a href="./format_cfg.html">Atomeye CFG format</a> (see <a href="./formats.html">this page</a> for a list of formats supporting auxiliary properties).</p>
 
 <p>If you use this mode with one or several <a href="./options.html">options</a> they will be applied to the &#60;file1&#62; and &#60;file2&#62; <em>before</em> the Nye tensor is computed.</p>
 

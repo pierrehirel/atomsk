@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Option cell - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : cell</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-cell &#60;add|rm|set&#62; &#60;d&#62; &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de modifier les vecteurs de boîte.</p>
+
+<p>Il est possible d'ajouter ("add"), d'enlever ("rm"), ou de donner ("set") une longueur &#60;d&#62; à la composante donnée d'un vecteur de boîte. H1, H2, H3 font référence aux trois vecteurs de boîte, tandis que x, y, z se réfèrent aux axes cartésiens. Les composantes xy, xz, yx, yz, zx, zy sont les éléments non diagonaux de la matrice des vecteurs de boîte. La composante "xyz" signifie que la même distance &#60;d&#62; est ajoutée (ou enlevée) à toutes les composantes diagonales.</p>
+
+<p>La distance &#60;d&#62; doit être donnée en (&Aring;), et il est recommandé qu'elle soit positive pour éviter toute confusion. Utiliser "add" avec une valeur négative de &#60;d&#62; va en réalité raccourcir le vecteur de boîte. De la même façon, utiliser "rm" avec une valeur négative de &#60;d&#62; va en fait allonger le vecteur de boîte.</p>
+
+<p>Les positions cartésiennes des atomes ne sont pas modifiées par cette option. Ainsi, allonger un vecteur de boîte (avec "add" ou "set") introduira une épaisseur de vide suivant la direction donnée. Inversement, si un vecteur est raccourci (avec "rm" ou "set"), alors certains atomes peuvent se retrouver en dehors de la boîte. Si des conditions aux limites périodiques sont utilisées, cela peut provoquer un chevauchement de certains atomes.</p>
+
+<p>Pour construire automatiquement une boîte, il est possible d'utiliser l'<a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut Atomsk utilise toujours les vecteurs de boîte lus depuis le fichier d'entrée. Cependant si aucun vecteur de boîte n'est trouvé dans le fichier d'entrée, l'<a href="./option_rebox.html">option <code>-rebox</code></a> est automatiquement appelée juste après la lecture du fichier, et avant l'application de toute autre option. C'est le cas par exemple du <a href="./format_xyz.html">format XYZ par défaut</a>, qui ne contient pas de vecteur de boîte.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -cell add 10 H2 final.cfg</code>
+<p>Avec cette commande, Atomsk va lire le fichier <code>initial.cfg</code>, puis ajouter 10&nbsp;&Aring; au second vecteur de boîte (H2). Autrement dit, le second vecteur de boîte va garder sa direction, mais il sera allongé de 10&nbsp;&Aring;. Les positions des atomes resteront identiques, donc cette option va ajouter du vide le long de cette direction. Le résultat sera enregistré dans le fichier <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -cell add 20 y final.cfg</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, puis ajouter 20&nbsp;&Aring; aux dimensions de la boîte suivant l'axe cartésien Y. Dans la pratique cela ajoutera du vide suivant la direction Y. Le résultat sera enregistré dans <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -cell set 87.4 H1 final.cfg</code>
+<p>Ceci va changer la longueur du premier vecteur de boîte à 87.4&nbsp;&Aring;.</p></li>
+
+<li><code class="command">atomsk initial.cfg -cell rm 0.5 H3 final.cfg</code>
+<p>Ceci va réduire la longueur du troisième vecteur de boîte (H3) de 0.5&nbsp;&Aring;.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

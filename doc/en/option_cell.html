@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Atomsk - Option cell - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Option: cell</h2>
+
+<h4>Syntax</h4>
+
+<p><code>-cell &#60;add|rm|set&#62; &#60;d&#62; &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>This option allows to modify the cell vectors.</p>
+
+<p>It is possible to add, remove, or set a given length &#60;d&#62; to the provided component of the box. H1, H2, H3 refer to the three box vectors, while x, y, z refer to the Cartesian axes. The components xy, xz, yx, yz, zx, zy are non-diagonal elements of the cell vectors matrix. The component "xyz" means that the same distance &#60;d&#62; will be added (or removed) to all diagonal components.</p>
+
+<p>The distance &#60;d&#62; must be given in angströms (&Aring;), and should be positive to avoid confusion. Using "add" with a negative value of &#60;d&#62; will actually reduce the length of a box vector. Similarly, using "rm" with a negative value of &#60;d&#62; will increase the vector length.</p>
+
+<p>The Cartesian positions of atoms are not modified by this option. Therefore, elongating a box vector (with "add" or "set") will introduce a void region along the given direction. Inversely, if a box vector is reduced (with "rm" or "set"), then atoms may end up out of the box. If periodic boundary conditions are applied, it may result in overlapping atoms.</p>
+
+<p>In order to construct automatically a bounding box, one may use the <a href="./option_rebox.html">option <code>-rebox</code></a> instead of the present one.</p>
+
+
+<h4>Default</h4>
+
+<p>By default Atomsk uses the cell vectors read from the input file. If no cell vectors are found in the input file, then a warning is displayed and the <a href="./option_rebox.html">option <code>-rebox</code></a> is automatically called after reading the file (and before applying any other option). For instance, this is the case with the <a href="./format_xyz.html">default XYZ format</a> which does not contain any box vector.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -cell add 10 H2 final.cfg</code>
+<p>With this command, Atomsk will read the file <code>initial.cfg</code>, and then add 10&nbsp;&Aring; to the second cell vector (H2). In other words, the second cell vector will keep the same direction, but will be 10&nbsp;&Aring; longer. Atom positions will remain the same, so this will add "void" along that direction. The result will be output in <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -cell add 20 y final.cfg</code>
+<p>This will read the file <code>initial.cfg</code> and add 20&nbsp;&Aring; to the cell length along the Cartesian Y axis. In practice this is equivalent to adding void along the Y direction. The result will be output in <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -cell set 87.4 H1 final.cfg</code>
+<p>This will change the length of the first box vector to 87.4&nbsp;&Aring;.</p></li>
+
+<li><code class="command">atomsk initial.cfg -cell rm 0.5 H3 final.cfg</code>
+<p>This will reduce the length of the third box vector by 0.5&nbsp;&Aring;.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

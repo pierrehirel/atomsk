@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 15 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,7 +61,6 @@ USE messages
 USE files
 USE subroutines
 USE guess_form
-USE deterH
 USE resize
 !
 !Modules managing options
@@ -71,6 +70,7 @@ USE alignx
 USE bindshells
 USE carttofrac
 USE center
+USE cell
 USE crack
 USE cut_cell
 USE deform
@@ -152,6 +152,11 @@ REAL(dp):: mu   !shear modulus of the material
 !
 !Variables for option: center
 INTEGER:: center_atom  !index of atom that must be centered; if 0, center the center of mass
+!
+!Variables for option: cell
+CHARACTER(LEN=5):: celldir  !direction in which the cell is modified: x,y,z,xy,yx,xz,zx,yz,zy,xyz,all
+CHARACTER(LEN=5):: cellop   !operation to perform on the cell: add,rm,set,auto (or "rebox")
+REAL(dp):: celllength  !value by which the cell will be modified
 !
 !Variables for option: create shells
 CHARACTER(LEN=2):: cs_species
@@ -447,6 +452,10 @@ DO ioptions=1,SIZE(options_array)
   CASE('-bind-shells','-bs')
     CALL BSHELLS_XYZ(H,P,S,AUXNAMES,AUX,SELECT)
   !
+  CASE('-cell')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, cellop, celllength, celldir
+    CALL CELL_XYZ(H,P,cellop,celllength,celldir)
+  !
   CASE('-center')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, center_atom
     CALL CENTER_XYZ(H,P,S,center_atom,SELECT)
@@ -739,7 +748,8 @@ DO ioptions=1,SIZE(options_array)
     CALL READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX,SELECT)
   !
   CASE('-rebox')
-    CALL DETERMINE_H(H,P)
+    !CALL DETERMINE_H(H,P)
+    CALL CELL_XYZ(H,P,"rebox",0.d0,"all  ")
   !
   CASE('-reduce-cell','-reducecell','-reduce-box','-reducebox')
     CALL REDUCECELL(H,P,S,AUX,SELECT)

@@ -20,19 +20,27 @@
 
 <h4>Description</h4>
 
-<p>Ce mode calcule le tenseur de Nye de chaque atome, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des défauts cristallins, comme les défauts ponctuels, les dislocations, ou les défauts planaires (défauts d'empilement, macles, joints de grains...). Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313.</p>
+<p>Ce mode calcule le tenseur de Nye de chaque atome, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des défauts cristallins, comme les défauts ponctuels, les dislocations, ou les défauts planaires (défauts d'empilement, macles, joints de grains...).</p>
+
+<p>Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313. Soit une maille de référence définie par un jeu de positions atomiques <strong>P</strong> et un réseau déformé défini par <strong>Q</strong>, le tenseur de correspondance est calculé de la façon suivante&nbsp;:</p>
+
+<p><strong>G</strong> = (<strong>Q</strong><sup>T</sup> <strong>Q</strong>)<sup>-1</sup> <strong>Q</strong><sup>T</sup> <strong>P</strong> </p>
+
+<p>Une fois que le tenseur <strong>G</strong> est calculé pour chaque atome, alors le tenseur de Nye <strong>&alpha;</strong> est calculé à partir de ses dérivées spatiales (&epsilon;<sub>imk</sub> est le symbole de Levi-Civita)&nbsp;:</p>
+
+<p><strong>&alpha;</strong><sub>jk</sub> = -&epsilon;<sub>imk</sub>  &part;<sub>m</sub><strong>G</strong><sub>ij</sub></p>
 
 <p>Ce mode requiert deux fichiers&nbsp;: un &#60;fichier1&#62; contenant un système de référence, et un &#60;fichier2&#62; contenant le système à analyser. Le système de référence peut être&nbsp;:</p>
 
 <ul>
-  <li><strong>un système de référence complet</strong>, c'est-à-dire une supercellule de matériau massif (sans défaut) du même type que le fichier à analyser, i.e. les vecteurs de boîte, les types d'atomes, et les indices des atomes dans le &#60;fichier1&#62; doivent correspondre à ceux du &#60;fichier2&#62;. Autrement dit, seules les positions des atomes doivent être différentes entre le système de référence et le système étudié. Par exemple, le &#60;fichier1&#62; peut contenir une supercellule de matériau parfait, et le &#60;fichier2&#62; le même système avec une dislocation vis.</li>
+  <li><strong>un système de référence complet</strong>, c'est-à-dire une supercellule de matériau parfait (non déformé et sans défaut) contenant le même nombre d'atomes que le &#60;fichier2&#62;. De plus, les indices des atomes doivent correspondre entre les deux fichiers, et leurs positions doivent changer relativement peu. Par exemple, si l'on souhaite analyser un &#60;fichier2&#62; contenant une dislocation vis, alors le &#60;fichier1&#62; devrait contenir une supercellule de matériau parfait avec le même nombre d'atomes.</li>
   <li><strong>une maille élémentaire</strong> du système à analyser. La maille peut avoir la même orientation cristallographique que le système étudié, ou pas. Atomsk construira les environnements atomiques de référence depuis la maille élémentaire, puis les comparera avec les environnements du système étudié.</li>
-  <li><strong>NULL</strong>, ce qui signifie qu'aucun système de référence n'est fourni. Atomsk construira alors les environnements atomiques de référence à la volée, en moyennant les environnements trouvés dans le système à analyser.</li>
+  <li><strong>NULL</strong>, ce qui signifie qu'aucun système de référence n'est fourni. Atomsk construira alors les environnements atomiques de référence à la volée, en moyennant les environnements trouvés dans le système à analyser. Les atomes qui ont un nombre impair de voisins sont ignorés (non inclus dans la moyenne)</li>
 </ul>
 
 <p>Les deux fichiers &#60;fichier1&#62; et &#60;fichier2&#62; peuvent être du même format, ou bien de formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par Atomsk</a>.</p>
 
-<p>Les neuf composantes du tenseur de Nye (&alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>), sont enregistrées comme propriétés auxiliaires pour chaque atome. Notez que Atomsk n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
+<p>Les neuf composantes du tenseur de Nye sont enregistrées comme propriétés auxiliaires pour chaque atome (dans l'ordre suivant&nbsp;: &alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>). Notez que Atomsk n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
 
 <p>Si ce mode est utilisé avec une ou plusieurs <a href="./options.html">options</a> alors celles-ci seront appliquées au &#60;fichier1&#62; et au &#60;fichier2&#62; <em>avant</em> que le tenseur de Nye ne soit calculé.</p>
 

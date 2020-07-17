@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 16 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -250,6 +250,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-bs") THEN
   WRITE(*,*) "..> Réassocier les coquilles avec leurs cœurs :"
   WRITE(*,*) "          -bind-shells"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-cell") THEN
+  WRITE(*,*) "..> Modifier les vecteurs de boîte :"
+  WRITE(*,*) "          -cell <add|rm|set> <longueur>  <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
@@ -2207,7 +2212,7 @@ CASE(2148)
   msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" valeurs ont été arrondies."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2149)
-  msg = ">>> Réduction du système à une cellule élémentaire..."
+  msg = ">>> Réduction de la taille du système en préservant la périodicité..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2150)
   !reals(1) = 1 if cell was reduced along X, 0 otherwise
@@ -2242,6 +2247,49 @@ CASE(2150)
   ENDIF
   WRITE(temp,*) NINT(reals(4))
   msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(temp))//" atomes restants)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2151)
+  !strings(1) = operation performed on cell vector (add, rm, set)
+  !strings(2) = component of cell vector
+  !reals(1) = distance added (or removed)
+  WRITE(temp2,'(f16.3)') reals(1)
+  IF( strings(2)=="H1" ) THEN
+    temp3 = "du premier vecteur de boîte"
+  ELSEIF( strings(2)=="H2" ) THEN
+    temp3 = "du second vecteur de boîte"
+  ELSEIF( strings(2)=="H3" ) THEN
+    temp3 = "du troisième vecteur de boîte"
+  ELSEIF( strings(2)=="x" .OR. strings(2)=="X" ) THEN
+    temp3 = "de l'axe X"
+  ELSEIF( strings(2)=="y" .OR. strings(2)=="Y" ) THEN
+    temp3 = "de l'axe Y"
+  ELSEIF( strings(2)=="z" .OR. strings(2)=="Z" ) THEN
+    temp3 = "de l'axe Z"
+  ELSEIF( strings(2)=="xy" .OR. strings(2)=="XY" ) THEN
+    temp3 = "de l'inclinaison XY"
+  ELSEIF( strings(2)=="xz" .OR. strings(2)=="XZ" ) THEN
+    temp3 = "de l'inclinaison XZ"
+  ELSEIF( strings(2)=="yx" .OR. strings(2)=="YX" ) THEN
+    temp3 = "de l'inclinaison YX"
+  ELSEIF( strings(2)=="yz" .OR. strings(2)=="YZ" ) THEN
+    temp3 = "de l'inclinaison YZ"
+  ELSEIF( strings(2)=="zx" .OR. strings(2)=="ZX" ) THEN
+    temp3 = "de l'inclinaison ZX"
+  ELSEIF( strings(2)=="zy" .OR. strings(2)=="ZY" ) THEN
+    temp3 = "de l'inclinaison ZY"
+  ELSEIF( strings(2)=="xyz" .OR. strings(2)=="XYZ" ) THEN
+    temp3 = "de tous les vecteurs de boîte"
+  ENDIF
+  IF( strings(1)=="add" ) THEN
+    msg = ">>> Allongement de "//TRIM(ADJUSTL(temp2))//" A "//TRIM(ADJUSTL(temp3))//"..."
+  ELSEIF( strings(1)=="rm" ) THEN
+    msg = ">>> Diminution de "//TRIM(ADJUSTL(temp2))//" A "//TRIM(ADJUSTL(temp3))//"..."
+  ELSE
+    msg = ">>> Changement "//TRIM(ADJUSTL(temp3))//" à "//TRIM(ADJUSTL(temp2))//" A..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2152)
+  msg = "..> Cell vector was modified."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
@@ -2441,6 +2489,9 @@ CASE(2763)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2764)
   msg = "/!\ ALERTE : impossible de trouver des vecteurs de boîte plus courts, le système reste identique."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2765)
+  msg = "/!\ ALERTE : la distance d est nulle, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -3050,7 +3101,7 @@ CASE(4061)
   msg = ">>> Calcul du tenseur de Nye."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4062)
-  msg = ">>> Calcul de la matrice G sur chaque atome..."
+  msg = ">>> Calcul du tenseur de correspondance G sur chaque atome..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4063)
   msg = ">>> Calcul du tenseur de Nye sur chaque atome..."
@@ -3097,7 +3148,7 @@ CASE(4071)
   !reals(1) = number of different atomic environments found
   WRITE(temp,*) NINT(reals(1))
   IF( NINT(reals(1))>1 ) THEN
-    msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" différents environments atomiques ont été trouvés."
+    msg = "..> Terminé, "//TRIM(ADJUSTL(temp))//" environments atomiques différents ont été trouvés."
   ELSEIF( NINT(reals(1))==1 ) THEN
     msg = "..> Terminé, 1 environment atomique trouvé."
   ENDIF
@@ -3113,7 +3164,7 @@ CASE(4202)
 CASE(4203)
   WRITE(*,'(a24)',ADVANCE='NO') " Indices chiraux (n,m) : "
 CASE(4204)
-  WRITE(*,'(a33)',ADVANCE='NO') " Orientation cristallographique : "
+  WRITE(*,'(a34)',ADVANCE='NO') " Orientation cristallographique : "
 CASE(4300)
   !reals(1) = number of max tries
   msg = "   ***   ATOMSK QUIZZ   ***"
@@ -3439,6 +3490,10 @@ CASE(4830)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4831)
   msg = "X!X ERREUR : aucun noeud n'est défini dans le fichier de paramètres '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4832)
+  !strings(1) = name of matrix
+  msg = "X!X ERREUR : "//TRIM(ADJUSTL(strings(1)))//" n'est pas une matrice identité."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERREUR : un seul mode peut être utilisé à la fois."

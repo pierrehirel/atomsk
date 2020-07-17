@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 16 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -249,6 +249,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-bs") THEN
   WRITE(*,*) "..> Re-assign ionic shells to their respective cores:"
   WRITE(*,*) "          -bind-shells"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-cell") THEN
+  WRITE(*,*) "..> Modify the cell vectors:"
+  WRITE(*,*) "          -cell <add|rm|set> <length>  <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
@@ -2139,7 +2144,7 @@ CASE(2148)
   msg = "..> Done, "//TRIM(ADJUSTL(temp))//" values were rounded off."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2149)
-  msg = ">>> Reducing system into a unit cell..."
+  msg = ">>> Reducing system size while preserving periodicity..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2150)
   !reals(1) = 1 if cell was reduced along X, 0 otherwise
@@ -2174,6 +2179,49 @@ CASE(2150)
   ENDIF
   WRITE(temp,*) NINT(reals(4))
   msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(temp))//" atoms left)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2151)
+  !strings(1) = operation performed on cell vector (add, rm, set)
+  !strings(2) = component of cell vector
+  !reals(1) = distance added (or removed)
+  WRITE(temp2,'(f16.3)') reals(1)
+  IF( strings(2)=="H1" ) THEN
+    temp3 = "the first box vector"
+  ELSEIF( strings(2)=="H2" ) THEN
+    temp3 = "the second box vector"
+  ELSEIF( strings(2)=="H3" ) THEN
+    temp3 = "the third box vector"
+  ELSEIF( strings(2)=="x" .OR. strings(2)=="X" ) THEN
+    temp3 = "the X axis"
+  ELSEIF( strings(2)=="y" .OR. strings(2)=="Y" ) THEN
+    temp3 = "the Y axis"
+  ELSEIF( strings(2)=="z" .OR. strings(2)=="Z" ) THEN
+    temp3 = "the Z axis"
+  ELSEIF( strings(2)=="xy" .OR. strings(2)=="XY" ) THEN
+    temp3 = "the XY tilt"
+  ELSEIF( strings(2)=="xz" .OR. strings(2)=="XZ" ) THEN
+    temp3 = "the XZ tilt"
+  ELSEIF( strings(2)=="yx" .OR. strings(2)=="YX" ) THEN
+    temp3 = "the YX tilt"
+  ELSEIF( strings(2)=="yz" .OR. strings(2)=="YZ" ) THEN
+    temp3 = "the YZ tilt"
+  ELSEIF( strings(2)=="zx" .OR. strings(2)=="ZX" ) THEN
+    temp3 = "the ZX tilt"
+  ELSEIF( strings(2)=="zy" .OR. strings(2)=="ZY" ) THEN
+    temp3 = "the ZY tilt"
+  ELSEIF( strings(2)=="xyz" .OR. strings(2)=="XYZ" ) THEN
+    temp3 = "all box vectors"
+  ENDIF
+  IF( strings(1)=="add" ) THEN
+    msg = ">>> Adding "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+  ELSEIF( strings(1)=="rm" ) THEN
+    msg = ">>> Removing "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+  ELSE
+    msg = ">>> Setting "//TRIM(ADJUSTL(temp3))//" to "//TRIM(ADJUSTL(temp2))//" A..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2152)
+  msg = "..> Cell vector was modified."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
@@ -2372,6 +2420,9 @@ CASE(2763)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2764)
   msg = "/!\ WARNING: no shorter perdiodic vector was found, system remains the same."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2765)
+  msg = "/!\ WARNING: distance d is zero, skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
@@ -2983,7 +3034,7 @@ CASE(4061)
   msg = ">>> Computation of the Nye tensor."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4062)
-  msg = ">>> Computing per-atom G matrix..."
+  msg = ">>> Computing per-atom lattice correspondence tensor G..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4063)
   msg = ">>> Computing per-atom Nye tensor..."
@@ -3190,8 +3241,12 @@ CASE(4716)
   WRITE(temp,*) NINT(reals(1))
   msg = "/!\ WARNING: "//TRIM(ADJUSTL(temp))//" nodes were out of bounds and were wrapped back into the box."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4717)
+  !strings(1) = name of matrix
+  msg = "/!\ WARNING: "//TRIM(ADJUSTL(strings(1)))//" is not an identity matrix."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
-!4800-4899: ERROR MESSAGES
+!4800-4899: ERROR MESSAGES FOR MODES
 CASE(4800)
   !strings(1) = mode
   msg = "X!X ERROR: non-conform statement in mode: "//TRIM(strings(1))

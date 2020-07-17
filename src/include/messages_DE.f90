@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 16 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -234,6 +234,11 @@ ENDIF
 IF(helpsection=="options" .OR. helpsection=="-bind-shells" .OR. helpsection=="-bs") THEN
   WRITE(*,*) "..> Weise Ionenhuellen den entsprechenden Kernen zu:"
   WRITE(*,*) "          -bind-shells"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-cell") THEN
+  WRITE(*,*) "..> Zellvektoren ändern:"
+  WRITE(*,*) "          -cell <add|rm|set> <length>  <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
@@ -2105,7 +2110,7 @@ CASE(2148)
   msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" Werte wurden gerundet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2149)
-  msg = ">>> System in eine Einheitszelle reduzieren..."
+  msg = ">>> Reduzierung der Systemgröße unter Beibehaltung der Periodizität..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2150)
   !reals(1) = 1 if cell was reduced along X, 0 otherwise
@@ -2140,6 +2145,49 @@ CASE(2150)
   ENDIF
   WRITE(temp,*) NINT(reals(4))
   msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(temp))//" Atomen)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2151)
+  !strings(1) = operation performed on cell vector (add, rm, set)
+  !strings(2) = component of cell vector
+  !reals(1) = distance added (or removed)
+  WRITE(temp2,'(f16.3)') reals(1)
+  IF( strings(2)=="H1" ) THEN
+    temp3 = "zum ersten Zellvektor"
+  ELSEIF( strings(2)=="H2" ) THEN
+    temp3 = "zum zweiten Zellvektor"
+  ELSEIF( strings(2)=="H3" ) THEN
+    temp3 = "zum dritten Zellvektor"
+  ELSEIF( strings(2)=="x" .OR. strings(2)=="X" ) THEN
+    temp3 = "zur X-Achse"
+  ELSEIF( strings(2)=="y" .OR. strings(2)=="Y" ) THEN
+    temp3 = "zur Y-Achse"
+  ELSEIF( strings(2)=="z" .OR. strings(2)=="Z" ) THEN
+    temp3 = "zur Z-Achse"
+  ELSEIF( strings(2)=="xy" .OR. strings(2)=="XY" ) THEN
+    temp3 = "zur XY-Neigung"
+  ELSEIF( strings(2)=="xz" .OR. strings(2)=="XZ" ) THEN
+    temp3 = "zur XZ-Neigung"
+  ELSEIF( strings(2)=="yx" .OR. strings(2)=="YX" ) THEN
+    temp3 = "zur YX-Neigung"
+  ELSEIF( strings(2)=="yz" .OR. strings(2)=="YZ" ) THEN
+    temp3 = "zur YZ-Neigung"
+  ELSEIF( strings(2)=="zx" .OR. strings(2)=="ZX" ) THEN
+    temp3 = "zur ZX-Neigung"
+  ELSEIF( strings(2)=="zy" .OR. strings(2)=="ZY" ) THEN
+    temp3 = "zur ZY-Neigung"
+  ELSEIF( strings(2)=="xyz" .OR. strings(2)=="XYZ" ) THEN
+    temp3 = "zu allen Zellvektoren"
+  ENDIF
+  IF( strings(1)=="add" ) THEN
+    msg = ">>> Hinzufügen von "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+  ELSEIF( strings(1)=="rm" ) THEN
+    msg = ">>> Entfernen von "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+  ELSE
+    msg = ">>> Setting "//TRIM(ADJUSTL(temp3))//" to "//TRIM(ADJUSTL(temp2))//" A..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2152)
+  msg = "..> Der Zellvektor wurde modifiziert."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
@@ -3379,6 +3427,10 @@ CASE(4830)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4831)
   msg = "X!X FEHLER: In der Parameterdatei ist kein Knoten definiert: '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4832)
+  !strings(1) = name of matrix
+  msg = "X!X FEHLER: "//TRIM(ADJUSTL(strings(1)))//" ist keine Identitätsmatrix."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."
