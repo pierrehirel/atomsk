@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 21 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,7 +50,7 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, currAUXNAMES, tempAUXNAMES !names of auxiliary properties
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, tempcomment
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, currcomment, tempcomment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array
 LOGICAL:: auxexists  !does current auxiliary property already exist in AUX?
 LOGICAL:: cat  !must the files be concatenated?
@@ -78,8 +78,7 @@ IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(R)) DEALLOCATE(R)
 IF(ALLOCATED(U)) DEALLOCATE(U)
-ALLOCATE(comment(1))
- comment(1)=''
+IF(ALLOCATED(comment)) DEALLOCATE(comment)
 ORIENT(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
 !
@@ -126,7 +125,7 @@ CALL ATOMSK_MSG(4030,(/merge_dir/),(/DBLE(j)/))
 !Read files
 DO i=1,SIZE(merge_files)
   !Read the current file
-  CALL READ_AFF(merge_files(i),Htemp,P,S,tempcomment,currAUXNAMES,currAUX)
+  CALL READ_AFF(merge_files(i),Htemp,P,S,currcomment,currAUXNAMES,currAUX)
   IF(nerr>0) GOTO 800
   !
   IF( verbosity==4 ) THEN
@@ -156,10 +155,9 @@ DO i=1,SIZE(merge_files)
       T = S
     ENDIF
     H = Htemp
-    IF( ALLOCATED(tempcomment) ) THEN
-      comment(1) = tempcomment(1)
-    ELSE
-      comment(1) = ''
+    IF( ALLOCATED(currcomment) ) THEN
+      ALLOCATE(comment(SIZE(currcomment)))
+      comment(:) = currcomment(:)
     ENDIF
     IF( ALLOCATED(currAUXNAMES) .AND. SIZE(currAUXNAMES)>0 ) THEN
       ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)) )
@@ -226,6 +224,22 @@ DO i=1,SIZE(merge_files)
     DEALLOCATE(R)
     !we don't need P anymore
     DEALLOCATE(P)
+    !
+    !If comments exist, append them to the "comment" array
+    IF( ALLOCATED(currcomment) .AND. SIZE(currcomment)>0 ) THEN
+      IF(ALLOCATED(tempcomment)) DEALLOCATE(tempcomment)
+      ALLOCATE(tempcomment(SIZE(comment)+SIZE(currcomment)))
+      DO j=1,SIZE(comment)
+        tempcomment(j) = comment(j)
+      ENDDO
+      DO j=1,SIZE(currcomment)
+        tempcomment(SIZE(comment)+j) = currcomment(j)
+      ENDDO
+      DEALLOCATE(comment)
+      ALLOCATE(comment(SIZE(tempcomment)))
+      comment(:) = tempcomment(:)
+      DEALLOCATE(tempcomment)
+    ENDIF
     !
     !If AUX exists, extend it to fit the number of particles in Q
     !For now all auxiliary properties of new atoms are assigned zero values,

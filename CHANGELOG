@@ -19,6 +19,7 @@ Master (development)
 - in mode "--create", added possibility to create tetragonal lattices (simple, body-centered, or face-centered tetragonal). Also added possibility to create cubic C15 Laves phase. The cell vector reduction was generalized for oriented cubic lattices to produce the smallest unit cell.
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.
 - in mode "--one-in-all" it is now possible to read all snapshots from LAMMPS custom dump files (*.lmc) and convert them into individual files.
+- in mode "--merge", comments of all files are now copied into the final file (when possible).
 - in mode "--nye", added possibility to provide a unit cell as a reference, or to work with no reference at all.
 - in mode "--polycrystal", optimized array handling, making it faster and more memory efficient. Also fixed a bug where random rotations were not uniformly distributed in 3-D; thanks to Jan Fikar, Institute of Physics of Materials ASCR, Brno, Czech Republic, for pointing out this bug and pointing to a solution. Also added a warning if a 2-D polycrystal is constructed and the user specifies non-zero angles around other Cartesian axes. Also fixed bugs that occurred when the final box was exaggeratedly elongated and with nodes on the same plane.
 - in options "-cut" and "-orient", crystal directions can now be given using the hexagonal notation [hkil].
