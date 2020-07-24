@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 July 2020                                     *
+!* Last modification: P. Hirel - 24 July 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -563,7 +563,11 @@ DO WHILE(i<SIZE(cla))
     !Read the species of atom to add
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    IF( LEN_TRIM(temp)<=2 ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    ELSE
+      GOTO 120
+    ENDIF
     !Read keyword: must be "at", "near" or "random"
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
@@ -657,7 +661,12 @@ DO WHILE(i<SIZE(cla))
     !read atom species for which the shells must be created
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    temp = ADJUSTL(temp)
+    IF( LEN_TRIM(temp)<=2 .OR. temp=="all" ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    ELSE
+      GOTO 120
+    ENDIF
   !
   ELSEIF(clarg=='-alignx') THEN
     ioptions = ioptions+1
@@ -1162,7 +1171,11 @@ DO WHILE(i<SIZE(cla))
     !read the atom species on which shells will be removed
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    IF( LEN_TRIM(temp)<=2 .OR. temp=="all" ) THEN
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    ELSE
+      GOTO 120
+    ENDIF
   !
   ELSEIF(clarg=='-roll' .OR. clarg=="-bend") THEN
     ioptions = ioptions+1

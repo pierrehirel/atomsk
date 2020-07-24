@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Oct. 2019                                     *
+!* Last modification: P. Hirel - 24 July 2019                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -218,7 +218,23 @@ ENDDO
 !If 3 suitable new vectors were not found, increase loop boundaries
 IF( ANY(.NOT.vfound(:) ) ) THEN
   !We don't have appropriate cell vectors
-  IF( mminmax+nminmax+ominmax < 80 ) THEN
+  IF( mminmax+nminmax+ominmax < 50 ) THEN
+    !The first attempt with small loops did not work => try to expand the loop
+    WRITE(msg,*) "No suitable vector found, searching with larger vectors (N=50)..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    mminmax = 50
+    nminmax = 50
+    ominmax = 50
+    GOTO 110
+  ELSEIF( mminmax+nminmax+ominmax < 200 ) THEN
+    !The first attempt with small loops did not work => try to expand the loop
+    WRITE(msg,*) "No suitable vector found, searching with larger vectors (N=100)..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    mminmax = 100
+    nminmax = 100
+    ominmax = 100
+    GOTO 110
+  ELSEIF( mminmax+nminmax+ominmax < 500 ) THEN
     !The first attempt with small loops did not work => try to expand the loop
     WRITE(msg,*) "No suitable vector found, searching with larger vectors (N=200)..."
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -246,7 +262,7 @@ IF( ANY(.NOT.vfound(:) ) ) THEN
     ominmax = 600
     GOTO 110
   ELSE
-    !Even the larger loops did not work => abort
+    !Even the largest loops did not work => abort
     GOTO 800
   ENDIF
 ENDIF

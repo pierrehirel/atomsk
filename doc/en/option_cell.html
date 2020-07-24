@@ -26,9 +26,9 @@
 
 <p>The distance &#60;d&#62; must be given in angströms (&Aring;), and should be positive to avoid confusion. Using "add" with a negative value of &#60;d&#62; will actually reduce the length of a box vector. Similarly, using "rm" with a negative value of &#60;d&#62; will increase the vector length.</p>
 
-<p>The Cartesian positions of atoms are not modified by this option. Therefore, elongating a box vector (with "add" or "set") will introduce a void region along the given direction. Inversely, if a box vector is reduced (with "rm" or "set"), then atoms may end up out of the box. If periodic boundary conditions are applied, it may result in overlapping atoms.</p>
+<p>The Cartesian positions of atoms are not modified by this option. Therefore, elongating a box vector (with "add" or "set") will introduce a void region along the given direction. Inversely, if a box vector is reduced (with "rm" or "set"), then atoms may end up out of the box.</p>
 
-<p>In order to construct automatically a bounding box, one may use the <a href="./option_rebox.html">option <code>-rebox</code></a> instead of the present one.</p>
+<p>In order to specify all cell vectors components, it is possible to write them into a file and use the <a href="./option_properties.html">option <code>-property</code></a>. To force Atomsk to construct automatically a bounding box, one may use the <a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 
 
 <h4>Default</h4>

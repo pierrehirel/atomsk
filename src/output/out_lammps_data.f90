@@ -118,6 +118,14 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !Find how many different species are in P
 CALL FIND_NSP(P(:,4),aentries)
 Ntypes = SIZE(aentries,1)
+IF(verbosity==4) THEN
+  msg = "aentries = at.mass   |  occurrence"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  DO i=1,SIZE(aentries,1)
+    WRITE(msg,'(10X,f9.3,a3,i5)') aentries(i,1), " | ", NINT(aentries(i,2))
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDDO
+ENDIF
 !
 !Count number of digits composing the number of particles
 WRITE(temp,*) SIZE(P,1)
@@ -137,9 +145,23 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   ENDDO
   !Update total number of atom types
   Ntypes = Ntypes + Nshelltypes
+  IF(verbosity==4) THEN
+    msg = "aentriesS = at.mass   |  occurrence"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    DO i=1,SIZE(aentriesS,1)
+      WRITE(msg,'(10X,f9.3,a3,i5)') aentriesS(i,1), " | ", NINT(aentriesS(i,2))
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDDO
+  ENDIF
 ENDIF
 !
-WRITE(msg,*) "Found NP, Nshells, Ntypes, Nshelltypes = ", SIZE(P,1), Nshells, Ntypes, Nshelltypes
+WRITE(msg,*) "Total number of particles   NP = ", SIZE(P,1)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) "Number of shells       Nshells = ", Nshells
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) "      Number of particle types = ", Ntypes
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) "         Number of shell types = ", Nshelltypes
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Check if auxiliary properties relevant to LAMMPS data files are present
@@ -221,10 +243,10 @@ IF( typecol>0 ) THEN
       iloop = j
       DO WHILE( i<=iloop .AND. j<=Ntypes )
         i = i+1
-        !Check if this type of core has an associated shell
-        DO m=1,SIZE(aentriesS,1)
+        !Check if core of type i has an associated shell
+        DO m=1,SIZE(aentriesS,1)  !Loop on all shells
           IF( DABS(typemass(i,1)-aentriesS(m,1)) < 0.1d0 ) THEN
-            !This is the 
+            !This shell has the same species as core of type i
             j = j+1
             typemass(j,1) = aentriesS(m,1)
             CALL ATOMSPECIES(aentriesS(m,1),species)
@@ -545,9 +567,10 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     IF( S(i,4)>0.1d0 ) THEN
       !Atom #i has a shell
       !Determine the type of that bond
+      bondtype = 0
       DO l=1,SIZE(aentriesS,1)
-        IF( NINT(aentriesS(l,1)) == NINT(S(i,4)) ) THEN
-          bondtype = l
+        IF( aentriesS(l,1)>0.1d0 .AND. NINT(aentriesS(l,1)) == NINT(S(i,4)) ) THEN
+          bondtype = bondtype+1
         ENDIF
       ENDDO
       !Ionic core #j is bonded with ionic shell #j+1

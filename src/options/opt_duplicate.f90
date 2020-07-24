@@ -42,7 +42,7 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 LOGICAL:: doshells
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
-INTEGER:: i, newNP
+INTEGER(il):: i, newNP
 INTEGER:: m, n, o, qi
 INTEGER:: Nmem  !total number of atoms loaded in memory
 INTEGER, DIMENSION(3):: dupmatrix
@@ -103,7 +103,7 @@ ENDIF
 WRITE(msg,*) "new NP = ", tempreal
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-IF( tempreal<=0 .OR. tempreal>2.147d9 ) THEN
+IF( tempreal<=0 .OR. tempreal>NATOMS_MAX ) THEN
   !Exceeds number of atoms that can be treated
   nerr=nerr+1
   CALL ATOMSK_MSG(821,(/''/),(/tempreal/))
@@ -177,13 +177,25 @@ ENDDO
 !
 !Replace old P with the new Q
 DEALLOCATE(P)
-ALLOCATE(P(SIZE(Q,1),4))
+ALLOCATE(P(SIZE(Q,1),4) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+  GOTO 1000
+ENDIF
 P = Q
 DEALLOCATE(Q)
 !Replace old AUX by newAUX
 IF(ALLOCATED(AUX)) THEN
   DEALLOCATE(AUX)
-  ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) )
+  ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) , STAT=i )
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+    GOTO 1000
+  ENDIF
   AUX = newAUX
   IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 ENDIF
@@ -191,7 +203,13 @@ ENDIF
 !Replace old S with the new T
 IF( doshells) THEN
   DEALLOCATE(S)
-  ALLOCATE(S(SIZE(T(:,1)),4))
+  ALLOCATE(S(SIZE(T(:,1)),4) , STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+    GOTO 1000
+  ENDIF
   S(:,:) = T(:,:)
   DEALLOCATE(T)
 ENDIF
@@ -200,7 +218,13 @@ ENDIF
 !NOTE: atoms that were previously selected will still be selected after that,
 !     but their replicas WILL NOT be selected
 IF( ALLOCATED(SELECT) ) THEN
-  ALLOCATE( newSELECT(SIZE(P,1)) )
+  ALLOCATE( newSELECT(SIZE(P,1))  , STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nmem)/))
+    GOTO 1000
+  ENDIF
   newSELECT(:) = .FALSE.
   DO i=1,SIZE(SELECT)
     newSELECT(i) = SELECT(i)
