@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 22 Sept. 2020                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -78,6 +78,7 @@ LOGICAL:: isinpolyhedron  !is atom inside the polyhedron?
 LOGICAL:: miller          !are Miller indices given? (if no then angles are given)
 LOGICAL:: paramnode, paramrand, paramlatt !are the keywords "node", "random", "lattice" used in parameter file?
 LOGICAL:: outparam        !were parameters saved in a text file?
+LOGICAL:: sameplane       !are all nodes in the same plane?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER:: grainID       !position of the auxiliary property "grainID" in AUX
@@ -135,6 +136,7 @@ distfile = TRIM(ADJUSTL(temp))//"_size-dist.txt"
 idsizefile = TRIM(ADJUSTL(temp))//"_id-size.txt"
 outparamfile = TRIM(ADJUSTL(temp))//"_param.txt"
 outparam = .FALSE.
+sameplane = .FALSE.
 Nnodes = 0
 twodim = 0  !assume system will be 3-D
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
@@ -938,6 +940,19 @@ ELSEIF( twodim==2 ) THEN
 ELSEIF( twodim==3 ) THEN
   vnodes(:,3) = 0.5d0*H(twodim,twodim)
 ENDIF
+!Otherwise (3-D case), check if all nodes are on the same plane
+IF( twodim==0 .AND. SIZE(vnodes,1)>1 ) THEN
+  sameplane = .TRUE.
+  DO j=1,3 !loop on xyz
+    DO i=2,SIZE(vnodes,1)
+      IF( DABS(vnodes(i,j)-vnodes(1,j)) > 0.1d0 ) THEN
+        sameplane = .FALSE.
+      ENDIF
+    ENDDO
+  ENDDO
+  WRITE(msg,*) "All nodes belong to the same plane: ", sameplane
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+ENDIF
 !
 IF( outparam ) THEN
   !Write positions and orientations in a parameter file
@@ -958,12 +973,12 @@ ENDIF
 !The maximum number of faces of any polyhedron should be 11 in 2-D,
 !and 59 in 3-D, for proof see e.g.:
 !   http://www.ericharshbarger.org/voronoi.html
-!To that we must add 26 self-neighbors in 3-D
+!To that we will add 26 self-neighbors in 3-D
 !This will be used to limit the number of iterations in the loops on jnode below
 IF( twodim > 0 ) THEN
-  maxvertex = 20
+  maxvertex = 11
 ELSE
-  maxvertex = 200
+  maxvertex = 59
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -1041,13 +1056,18 @@ DO i=1,3
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
     !
-    P1 = CEILING( 1.8d0*MAX( VECLENGTH(H(1,:))/VECLENGTH(Huc(:,i)) , &
+    P1 = CEILING( MAX( VECLENGTH(H(1,:))/VECLENGTH(Huc(:,i)) , &
                & VECLENGTH(H(2,:))/VECLENGTH(Huc(:,i)) , VECLENGTH(H(3,:))/VECLENGTH(Huc(:,i)) ) )
+    !
     WRITE(msg,'(a11,i1,a4,i6)') "    expand(", i, ") = ", NINT(P1)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !If the number of grains is small, the template grain may not be large enough
-    IF( Nnodes<=4 ) THEN
-      P1 = 1.5d0*P1
+    IF( sameplane ) THEN
+      !Special case: all nodes are in the same plane
+      P1 = 1.8d0*P1
+    ELSEIF( Nnodes<=4 ) THEN
+      !Relatively few nodes: increase size to ensure it covers all grains
+      P1 = 1.2d0*P1
     ENDIF
     !Make sure duplication factors are not crazy
     IF(P1==0) THEN
@@ -1136,11 +1156,15 @@ AUX_Q(:,:) = 0.d0
 WRITE(msg,'(a47,3i6)') "Final corrected expansion factors for template:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 qi=0
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(m,n,o,i,qi)
 DO o = 0 , expandmatrix(3)
   DO n = 0 , expandmatrix(2)
     DO m = 0 , expandmatrix(1)
       DO i=1,SIZE(Puc,1)
-        qi=qi+1
+!         !$OMP CRITICAL
+!         !qi = qi+1
+!         !$OMP END CRITICAL
+        qi = o*expandmatrix(2)*expandmatrix(1)*SIZE(Puc,1) + n*expandmatrix(1)*SIZE(Puc,1) + m*SIZE(Puc,1) + i
         !Compute (cartesian) position of the replica of this atom
         Pt(qi,1) = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
         Pt(qi,2) = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
@@ -1160,6 +1184,7 @@ DO o = 0 , expandmatrix(3)
     ENDDO
   ENDDO
 ENDDO
+!$OMP END PARALLEL DO
 !
 !
 ! IF( verbosity==4 ) THEN
@@ -1431,7 +1456,7 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
-  !qi=0 !so far, zero atom in the grain
+  qi=0 !so far, zero atom in the grain
   !For each atom of the template Pt2, find out if it is located inside the grain
   !If so, then save it to the array Q; if not, discard it
   !$OMP PARALLEL DO DEFAULT(SHARED) &
@@ -1458,13 +1483,13 @@ DO inode=1,Nnodes
     !
     IF( isinpolyhedron ) THEN
       !Atom is inside the polyhedron
+      !Increment number of atoms belonging to grain #inode
+      NPgrains(inode) = NPgrains(inode)+1
+      !
       !$OMP CRITICAL
       NP = NP+1
       qi = NP
       !$OMP END CRITICAL
-      !
-      !Increment number of atoms in this grain
-      NPgrains(inode) = NPgrains(inode)+1
       !
       IF( qi <= SIZE(Q,1) ) THEN
         Q(qi,:) = Pt2(i,:)

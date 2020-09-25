@@ -119,7 +119,7 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 CALL FIND_NSP(P(:,4),aentries)
 Ntypes = SIZE(aentries,1)
 IF(verbosity==4) THEN
-  msg = "aentries = at.mass   |  occurrence"
+  msg = "aentries = at.mass  |  occurrence"
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   DO i=1,SIZE(aentries,1)
     WRITE(msg,'(10X,f9.3,a3,i5)') aentries(i,1), " | ", NINT(aentries(i,2))
@@ -146,7 +146,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !Update total number of atom types
   Ntypes = Ntypes + Nshelltypes
   IF(verbosity==4) THEN
-    msg = "aentriesS = at.mass   |  occurrence"
+    msg = "aentriesS = at.mass |  occurrence"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     DO i=1,SIZE(aentriesS,1)
       WRITE(msg,'(10X,f9.3,a3,i5)') aentriesS(i,1), " | ", NINT(aentriesS(i,2))
@@ -208,16 +208,16 @@ IF( typecol>0 ) THEN
   ALLOCATE( typemass(Ntypes,2) )
   typemass(:,:) = 0.d0
   !For each atom type, find its mass
-  i = 0
-  j = 0
-  DO WHILE( i<SIZE(P,1) .AND. j<=(Ntypes-Nshelltypes) )
-    i = i+1
-    IF( NINT(AUX(i,typecol)) == j+1 ) THEN
-      j = j+1
-      typemass(j,1) = P(i,4)
-      CALL ATOMSPECIES(P(i,4),species)
-      CALL ATOMMASS(species , typemass(j,2))
-    ENDIF
+  DO j=1,Ntypes-Nshelltypes
+    i = 0
+    DO WHILE( i<SIZE(P,1) .AND. typemass(j,1)<0.1d0 )
+      i = i+1
+      IF( NINT(AUX(i,typecol)) == j ) THEN
+        typemass(j,1) = P(i,4)
+        CALL ATOMSPECIES(P(i,4),species)
+        CALL ATOMMASS(species , typemass(j,2))
+      ENDIF
+    ENDDO
   ENDDO
   !
   !Then, append shells if any
@@ -259,10 +259,10 @@ IF( typecol>0 ) THEN
   ENDIF
   !
   IF( verbosity>=4 ) THEN
-    msg = "Particle Type | At. Number |  Mass"
+    msg = "Particle Type | At.Number |  Mass"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     DO i=1,SIZE(typemass,1)
-      WRITE(msg,'(5X,i3, 2f12.3)') i, typemass(i,1), typemass(i,2)
+      WRITE(msg,'(8X,i3, 2f12.3)') i, typemass(i,1), typemass(i,2)
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     ENDDO
   ENDIF
