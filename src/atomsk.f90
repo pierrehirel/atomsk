@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2019                                     *
+!* Last modification: P. Hirel - 25 Sept. 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -190,6 +190,13 @@ verbosity = 1
 !
 !Read the user's config file (if it exists)
 INQUIRE(FILE=homedir,EXIST=fileexists)
+!If file exists, read parameters from it
+IF(fileexists) THEN
+  CALL READ_CONF(homedir)
+ENDIF
+!
+!Check for a config file in current directory
+INQUIRE(FILE="atomsk.conf",EXIST=fileexists)
 !If file exists, read parameters from it
 IF(fileexists) THEN
   CALL READ_CONF(homedir)

@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 June 2020                                     *
+!* Last modification: P. Hirel - 28 Sept. 2020                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -87,6 +87,8 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: siteindex !for each atom, index of its type o
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList1, NeighList2  !list of neighbors for systems 1 and 2
 REAL(dp):: alpha, alpha_tmp !angles between two vectors
 REAL(dp):: beta, gamma      !
+REAL(dp),PARAMETER:: maxangvec=27.d0*(2.d0*pi/360.d0)  !if angle between vectors in Pneigh and Qneigh exceed
+                                                    !this value, exclude them (Hartley&Mishin used 27°)
 REAL(dp):: NeighFactor !%of tolerance in the radius for neighbor search
 REAL(dp):: P1, P2, P3  !coordinates of a neighbor
 REAL(dp),PARAMETER:: angle_th=pi/5.d0  !threshold to exlude neighbors
@@ -785,7 +787,7 @@ DO iat=1,SIZE(Psecond,1)
       alpha=100
       DO k=1,SIZE(P_neigh,1)
         alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
-        IF (alpha_tmp.lt.alpha) THEN 
+        IF( alpha_tmp < alpha ) THEN 
           Tab_PQ(j)=k
           alpha=alpha_tmp
         ENDIF
@@ -807,7 +809,7 @@ DO iat=1,SIZE(Psecond,1)
     nb_neigh=0
     DO j=1,SIZE(Q_neigh,1)
       alpha=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh_tmp(j,1:3)))
-      IF (alpha.gt.0.6d0) THEN
+      IF (alpha.gt.maxangvec) THEN
         Tab_PQ(j)=0
       ELSE
         ok=0 
@@ -853,18 +855,6 @@ DO iat=1,SIZE(Psecond,1)
       ENDDO
       WRITE(msg,*) '-----------------------------------------'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      IF(iat==2959) THEN
-        OPEN(UNIT=41,FILE="atomsk_site_2959.xyz",STATUS="UNKNOWN",FORM="FORMATTED")
-        WRITE(41,*) SIZE(P_matrix,1)+SIZE(Q_matrix,1)
-        WRITE(41,*) "# P_matrix and Q_matrix for atom #2959"
-        DO i=1,SIZE(P_matrix,1)
-          WRITE(41,*) "Al ", P_matrix(i,1), P_matrix(i,2), P_matrix(i,3)
-        ENDDO
-        DO i=1,SIZE(Q_matrix,1)
-          WRITE(41,*) "Si ", Q_matrix(i,1), Q_matrix(i,2), Q_matrix(i,3)
-        ENDDO
-        CLOSE(41)
-      ENDIF
     ENDIF
     !
     !
@@ -1004,47 +994,47 @@ IF(nerr>0) GOTO 1000
 !
 IF( verbosity==4 ) THEN
   !Write each component of G tensor into data file (projected in XY plane)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha11.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G11.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,1)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha12.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G12.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,2)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha13.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G13.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,3)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha21.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G21.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,1)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha22.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G22.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,2)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha23.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G23.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,3)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha31.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G31.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,1)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha32.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G32.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,2)
   ENDDO
   CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_Nye_alpha33.dat",STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE="atomsk_G33.dat",STATUS="UNKNOWN",FORM="FORMATTED")
   DO i=1,SIZE(G,1)
     WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,3)
   ENDDO
@@ -1268,6 +1258,7 @@ DO iat=1,SIZE(Psecond,1)
             nb_neigh=nb_neigh+1
             !Save neighbors from second system in V_NN
             V_NN(nb_neigh,1:3) = PosList2(j,1:3)
+            !Save index of neighbors in Nlist
             Nlist(nb_neigh) = NINT(PosList2(j,5))
           ENDIF
         ENDDO
@@ -1303,7 +1294,7 @@ DO iat=1,SIZE(Psecond,1)
   IF( verbosity==4 ) THEN
     WRITE(msg,*) "atom #", iat, "  (", nb_neigh, " neighbors), Delta_G ="
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO j=1,3
+    DO j=1,nb_neigh
       WRITE(msg,'(3(3f9.3,a3))') Delta_G(j,1,1:3), " | ", Delta_G(j,2,1:3), " | ", Delta_G(j,3,1:3)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
@@ -1339,7 +1330,7 @@ DO iat=1,SIZE(Psecond,1)
       alpha=100
       DO k=1,SIZE(P_neigh,1)
         alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
-        IF (alpha_tmp.lt.alpha) THEN
+        IF( alpha_tmp < alpha ) THEN
           Tab_PQ(j)=k
           alpha=alpha_tmp
         ENDIF
@@ -1353,10 +1344,19 @@ DO iat=1,SIZE(Psecond,1)
     P_neigh_tmp(:,:)=0.d0
     Delta_G_tmp(:,:,:)=0.d0
     !
-    DO j=1,SIZE(Q_neigh,1)
-      P_neigh_tmp(j,1:3) = P_neigh(Tab_PQ(j),1:3)
-      Delta_G_tmp(j,:,:) = Delta_G(Tab_PQ(j),:,:)
-    ENDDO
+    IF( firstref ) THEN
+      !A full reference was provided
+      DO j=1,SIZE(Q_neigh,1)
+        P_neigh_tmp(j,1:3) = P_neigh(Tab_PQ(j),1:3)
+        Delta_G_tmp(j,:,:) = Delta_G(Tab_PQ(j),:,:)
+      ENDDO
+    ELSE
+      !No reference was provided
+      DO j=1,SIZE(Q_neigh,1)
+        P_neigh_tmp(j,1:3) = P_neigh(Tab_PQ(j),1:3)
+        Delta_G_tmp(j,:,:) = Delta_G(j,:,:)
+      ENDDO
+    ENDIF
     DEALLOCATE(Tab_PQ)
     !
     !We won't need Delta_G anymore
@@ -1370,16 +1370,16 @@ DO iat=1,SIZE(Psecond,1)
     nb_neigh=0
     DO j=1,SIZE(Q_neigh,1)
       alpha = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh_tmp(j,1:3)))
-      IF (alpha.gt.0.6d0) THEN
+      IF( alpha > maxangvec ) THEN
         Tab_PQ(j)=0
       ELSE
         ok=0 
         !Loop on neighbors
         DO k=1,SIZE(P_neigh,1)
           alpha_tmp=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh(k,1:3)))
-          IF (alpha_tmp==alpha) ok=ok+1
+          IF(alpha_tmp==alpha) ok=1  !=ok+1
         ENDDO
-        IF (ok.eq.1) THEN
+        IF( ok==1 ) THEN
           nb_neigh=nb_neigh+1
           Tab_PQ(j)=nb_neigh
         ELSE
@@ -1502,6 +1502,7 @@ ENDDO ! End loop on all atoms iat
 !
 400 CONTINUE
 !Write final results into file(s)
+!
 !DEALLOCATE (Pfirst)
 ALLOCATE (AUXNAMES(9))
 !
