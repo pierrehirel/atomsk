@@ -886,7 +886,7 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
     !
     !Supercell has been expanded along a1: calculate the new length
     H(a1,a1) = H(a1,a1) + DABS(b(a1))/2.d0
-    CALL ATOMSK_MSG(2064,(/''/),(/0.d0/))
+    CALL ATOMSK_MSG(2064,(/"+b/2"/),(/DBLE(a1)/))
   !
   !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1060,7 +1060,7 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
     !
     !Supercell was shrinked along a1: calculate the new length
     H(a1,a1) = H(a1,a1) - DABS(b(a1))/2.d0
-    CALL ATOMSK_MSG(2064,(/''/),(/0.d0/))
+    CALL ATOMSK_MSG(2064,(/"-b/2"/),(/DBLE(a1)/))
   !
   !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

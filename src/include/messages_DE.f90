@@ -312,13 +312,13 @@ IF(helpsection=="options" .OR. helpsection=="-prop") THEN
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
+  WRITE(*,*) "..> (Erneute) Berechung der Vektoren des Begrenzungsrahmens:"
+  WRITE(*,*) "          -rebox"
+!
+IF(helpsection=="options" .OR. helpsection=="-reduce-cell") THEN
   WRITE(*,*) "..> Reduzieren Sie das System in eine Einheitszelle:"
   WRITE(*,*) "          -reduce-cell"
 ENDIF
-!
-IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
-  WRITE(*,*) "..> (Erneute) Berechung der Vektoren des Begrenzungsrahmens:"
-  WRITE(*,*) "          -rebox"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-remove-atom" .OR. helpsection=="-rmatom") THEN
@@ -1228,7 +1228,16 @@ CASE(2063)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2064)
-  msg = "..> Superzelle wurde erweitert."
+  !reals(1) = axis of elongation (1=X, 2=Y, 3=Z)
+  !strings(1) = magnitude of elongation
+  IF( NINT(reals(1))==1 ) THEN
+    temp = "X"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    temp = "Y"
+  ELSE
+    temp = "Z"
+  ENDIF
+  msg = "..> Superzelle wurde  erlang "//TRIM(ADJUSTL(temp))//" um "//TRIM(ADJUSTL(strings(1)))//" verändert."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
   msg = "..> Versetzung wurde erfolgreich erzeugt."
@@ -2188,6 +2197,9 @@ CASE(2151)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2152)
   msg = "..> Der Zellvektor wurde modifiziert."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2153)
+  msg = ">>> Versuch, die Zellvektoren automatisch neu einzustellen..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option

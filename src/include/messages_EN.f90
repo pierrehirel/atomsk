@@ -328,13 +328,13 @@ IF(helpsection=="options" .OR. helpsection=="-prop") THEN
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
-  WRITE(*,*) "..> Reduce the system to an elementary cell:"
-  WRITE(*,*) "          -reduce-cell"
-ENDIF
-!
-IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
   WRITE(*,*) "..> (Re-)calculate vectors of the bounding box:"
   WRITE(*,*) "          -rebox"
+ENDIF
+!
+IF(helpsection=="options" .OR. helpsection=="-reduce-cell") THEN
+  WRITE(*,*) "..> Reduce the system size by taking advantage of its symmetries:"
+  WRITE(*,*) "          -reduce-cell"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-remove-atom" .OR. helpsection=="-rmatom") THEN
@@ -1251,7 +1251,16 @@ CASE(2063)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2064)
-  msg = "..> Supercell was expanded."
+  !reals(1) = axis of elongation (1=X, 2=Y, 3=Z)
+  !strings(1) = magnitude of elongation
+  IF( NINT(reals(1))==1 ) THEN
+    temp = "X"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    temp = "Y"
+  ELSE
+    temp = "Z"
+  ENDIF
+  msg = "..> Cell length was changed by "//TRIM(ADJUSTL(strings(1)))//" along "//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
   msg = "..> Dislocation was successfully created."
@@ -2222,6 +2231,9 @@ CASE(2151)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2152)
   msg = "..> Cell vector was modified."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2153)
+  msg = ">>> Attempting to re-adjust the cell vectors automatically..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option

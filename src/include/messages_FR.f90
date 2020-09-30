@@ -332,8 +332,8 @@ IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
   WRITE(*,*) "          -rebox"
 ENDIF
 !
-IF(helpsection=="options" .OR. helpsection=="-rebox") THEN
-  WRITE(*,*) "..> Réduire le système en une cellule élémentaire :"
+IF(helpsection=="options" .OR. helpsection=="-reduce-cell") THEN
+  WRITE(*,*) "..> Réduire le système en utilisant sa périodicité :"
   WRITE(*,*) "          -reduce-cell"
 ENDIF
 !
@@ -1264,7 +1264,16 @@ CASE(2063)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2064)
-  msg = "..> La boîte a été agrandie."
+  !reals(1) = axis of elongation (1=X, 2=Y, 3=Z)
+  !strings(1) = magnitude of elongation
+  IF( NINT(reals(1))==1 ) THEN
+    temp = "X"
+  ELSEIF( NINT(reals(1))==2 ) THEN
+    temp = "Y"
+  ELSE
+    temp = "Z"
+  ENDIF
+  msg = "..> La boîte a été modifiée de "//TRIM(ADJUSTL(strings(1)))//" suivant "//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
   msg = "..> La dislocation a bien été créée."
@@ -2290,6 +2299,9 @@ CASE(2151)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2152)
   msg = "..> Cell vector was modified."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2153)
+  msg = ">>> Tentative de ré-ajuster les vecteurs de boîte automatiquement..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option

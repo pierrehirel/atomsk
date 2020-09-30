@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 July 2020                                     *
+!* Last modification: P. Hirel - 30 Sept. 2020                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -748,8 +748,8 @@ DO ioptions=1,SIZE(options_array)
     CALL READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX,SELECT)
   !
   CASE('-rebox')
-    !CALL DETERMINE_H(H,P)
-    CALL CELL_XYZ(H,P,"rebox",0.d0,"all  ")
+    CALL ATOMSK_MSG(2153,(/""/),(/0.d0/))
+    CALL DETERMINE_H(H,P)
   !
   CASE('-reduce-cell','-reducecell','-reduce-box','-reducebox')
     CALL REDUCECELL(H,P,S,AUX,SELECT)
