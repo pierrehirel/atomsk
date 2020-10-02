@@ -13,7 +13,7 @@ MODULE in_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 02 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -159,7 +159,7 @@ CLOSE(30)
 !Save cell vectors in H(:,:)
 CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
 !Find out if coordinates are reduced or cartesian
-CALL FIND_IF_REDUCED(P,isreduced)
+CALL FIND_IF_REDUCED(H,P,isreduced)
 !In case of reduced coordinates, convert them to cartesian
 IF(isreduced) THEN
   CALL FRAC2CART(P,H)

@@ -13,7 +13,7 @@ MODULE out_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 10 Jan. 2020                                     *
+!* Last modification: P. Hirel - 02 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -76,7 +76,7 @@ len3 = 1.d0
 OPEN(UNIT=40,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
 !
 !Check if coordinates are already reduced or not
-CALL FIND_IF_REDUCED(P,isreduced)
+CALL FIND_IF_REDUCED(H,P,isreduced)
 WRITE(msg,*) 'isreduced:', isreduced
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !

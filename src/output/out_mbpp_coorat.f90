@@ -13,7 +13,7 @@ MODULE out_mbpp_coorat
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 02 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -70,7 +70,7 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 CALL FIND_NSP(P(:,4),aentries)
 !
 !Check if coordinates are already reduced or not
-CALL FIND_IF_REDUCED(P,isreduced)
+CALL FIND_IF_REDUCED(H,P,isreduced)
 !
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
 !

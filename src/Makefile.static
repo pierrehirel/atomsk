@@ -11,7 +11,7 @@ export
 # Define compiler flags for static compilation
 FORTRAN=gfortran
 OPENMP=-DOPENMP -fopenmp
-FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -z muldefs -static -fPIC
+FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -z muldefs -static -fPIC -static-libgfortran
 LAPACK=-llapack -lblas
 
 # Goto main Makefile

@@ -11,7 +11,7 @@ MODULE in_imd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 July 2015                                     *
+!* Last modification: P. Hirel - 02 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -290,7 +290,7 @@ DO i=1,SIZE(P,1)
 ENDDO
 !
 !Check if it is fractional coordinates
-CALL FIND_IF_REDUCED(P,arereduced)
+CALL FIND_IF_REDUCED(H,P,arereduced)
 !If it is the case then convert to cartesian
 IF(arereduced) THEN
   CALL FRAC2CART(P,H)

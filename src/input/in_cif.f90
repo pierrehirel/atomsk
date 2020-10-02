@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 Oct. 2017                                     *
+!* Last modification: P. Hirel - 02 Oct. 2020                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -844,7 +844,7 @@ ENDIF
 !Save cell vectors in H(:,:)
 CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
 !Find out if coordinates are reduced or cartesian
-CALL FIND_IF_REDUCED(P,isreduced)
+CALL FIND_IF_REDUCED(H,P,isreduced)
 !In case of reduced coordinates, convert them to cartesian
 IF(isreduced) THEN
   CALL FRAC2CART(P,H)

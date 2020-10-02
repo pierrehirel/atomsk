@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 Feb. 2020                                     *
+!* Last modification: P. Hirel - 02 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -729,7 +729,7 @@ CASE('grid')
       !
     ELSE  !i.e. gridformat==2
       !Check if coordinates of GRID elements are already reduced or not
-      CALL FIND_IF_REDUCED(GRID,isreduced)
+      CALL FIND_IF_REDUCED(H,GRID,isreduced)
       !If reduced, convert them to Cartesian
       IF( isreduced ) THEN
         CALL FRAC2CART(GRID,H)
@@ -863,7 +863,7 @@ CASE('in','out')
     !Select all atoms that are inside or outside of the simulation cell
     !Convert atom positions into reduced/fractional coordinates
     !Check if coordinates are already reduced or not
-    CALL FIND_IF_REDUCED(P,isreduced)
+    CALL FIND_IF_REDUCED(H,P,isreduced)
     !If not reduced, then reduce them
     IF( .NOT.isreduced ) THEN
       CALL CART2FRAC(P,H)

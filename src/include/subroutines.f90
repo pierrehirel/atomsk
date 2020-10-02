@@ -1039,55 +1039,49 @@ END SUBROUTINE FIND_NSP
 ! atoms diffuse a lot and are not wrapped, even their
 ! reduced coordinate can take large values.
 !********************************************************
-SUBROUTINE FIND_IF_REDUCED(array,isreduced)
+SUBROUTINE FIND_IF_REDUCED(H,array,isreduced)
 !
 IMPLICIT NONE
 LOGICAL,INTENT(OUT):: isreduced  !does A contain reduced coordinates?
-INTEGER:: i
-REAL(dp):: mi, M, A, D, S  !statistics
-REAL(dp),DIMENSION(3):: minmax, sd
-REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array
+INTEGER:: i, j
+REAL(dp):: avg, minmax, D
+REAL(dp):: th
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H !box vectors
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: array !atom positions
 !
-IF( SIZE(array,1) > 100 ) THEN
-  minmax(:) = 0.d0
-  !We read the columns of array and compute the normal deviation of all values
-  !- if array has one, two or three columns we read them
-  !- if array has four or more columns we read only the 3 first columns
-  DO i=1, MIN( SIZE(array,2),3 )
-    !Compute the statistics on coordinates in column #i
-    CALL DO_STATS(array(:,i),mi,M,A,D,S)
-    !Save max difference (max-min) in atom positions
-    minmax(i) = M-mi
-    !Save standard deviation
-    sd(i) = S
-  ENDDO
+isreduced = .TRUE.
+avg = 0.d0
+minmax = 0.d0
+D = 0.d0
+th = 4.d0
+IF( SIZE(array,1) < 11 ) THEN
+  th = 2.d0
+ENDIF
+!
+!Loop on X, Y, Z
+DO i=1,3
+  !Compute difference between max and min coordinates
+  minmax = MAXVAL(array(:,i)) - MINVAL(array(:,i))
   !
-  IF( minmax(1)<1.d0 .AND. minmax(2)<1.d0 .AND. minmax(3)<1.d0 ) THEN
-    !Max. difference in atom positions is smaller than 1 in all directions => coordinates are reduced
-    isreduced = .TRUE.
-  ELSEIF( sd(1)<0.7d0 .AND. minmax(2)<0.7d0 .AND. minmax(3)<0.7d0 ) THEN
-    !Standard deviation is small in all directions => coordinates are reduced
-    isreduced = .TRUE.
-  ELSE
-    !All other cases => coordinates are not reduced
+  !Compute average of all values
+  DO j=1,SIZE(array,1)
+    avg = avg + DABS(array(j,i))
+  ENDDO
+  avg = avg/DBLE(SIZE(array,1))
+  !
+  !Calculate average absolute deviation (D)
+  DO j=1,SIZE(array,1)
+    D = D + DABS(array(j,i)-avg)
+  ENDDO
+  D = D/DBLE(SIZE(array,1))
+  !
+  !If minmax is much smaller than the box, or if D is smaller than 1,
+  !then coordinates are reduced
+  IF( avg > 1.5d0 .OR. minmax > th .OR. D > th    &
+    & .OR. minmax > 0.6d0*VECLENGTH(H(:,i))       ) THEN
     isreduced = .FALSE.
   ENDIF
-  !
-ELSE
-  !Small number of atoms => the method above may produce wrong results
-  !if an atom is placed at the origin. E.g. in a unit cell containing
-  !only two atoms and one is at (0,0,0) and the other at (1.3,1.3,1.3),
-  !the standard deviation will be smaller than 1, thus wrongly leading
-  !to reduced coordinates. Therefore when the number of atoms is small
-  !another method is used.
-  isreduced = .TRUE.
-  DO i=2,SIZE(array,1)
-    IF( VECLENGTH( array(i,1:3)-array(1,1:3) ) > 1.75d0 ) THEN
-      isreduced = .FALSE.
-    ENDIF
-  ENDDO
-  !
-ENDIF
+ENDDO
 !
 END SUBROUTINE FIND_IF_REDUCED
 !

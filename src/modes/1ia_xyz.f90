@@ -182,7 +182,7 @@ DO
   !
   300 CONTINUE
   !Find out if coordinates are reduced or cartesian
-  CALL FIND_IF_REDUCED(P,isreduced)
+  CALL FIND_IF_REDUCED(H,P,isreduced)
   !In case of reduced coordinates, convert them to cartesian
   IF(isreduced .AND. Hset) THEN
     CALL FRAC2CART(P,H)
