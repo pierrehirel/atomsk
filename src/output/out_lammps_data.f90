@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Nov. 2019                                     *
+!* Last modification: P. Hirel - 05 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -146,10 +146,10 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !Update total number of atom types
   Ntypes = Ntypes + Nshelltypes
   IF(verbosity==4) THEN
-    msg = "aentriesS = at.mass |  occurrence"
+    msg = "aentriesS = at.number |  occurrence"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     DO i=1,SIZE(aentriesS,1)
-      WRITE(msg,'(10X,f9.3,a3,i5)') aentriesS(i,1), " | ", NINT(aentriesS(i,2))
+      WRITE(msg,'(10X,f9.3,a3,i5)') aentriesS(i,1), "   | ", NINT(aentriesS(i,2))
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     ENDDO
   ENDIF
@@ -238,20 +238,22 @@ IF( typecol>0 ) THEN
         ENDIF
       ENDDO
     ELSE
-      !Define new types for shells
+      !Generate new "types" for shells
+      msg = "Generating new particle types for shells"
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
       !Try to put shells in same order as cores
+      !At this point j = number of types of core
+      j = Ntypes-Nshelltypes
+      !Parse typemass(:,:) from i=1 to number of core types (j)
       iloop = j
       DO WHILE( i<=iloop .AND. j<=Ntypes )
         i = i+1
-        !Check if core of type i has an associated shell
+        !Check if atoms of type i have a shell
         DO m=1,SIZE(aentriesS,1)  !Loop on all shells
           IF( DABS(typemass(i,1)-aentriesS(m,1)) < 0.1d0 ) THEN
             !This shell has the same species as core of type i
             j = j+1
-            typemass(j,1) = aentriesS(m,1)
-            CALL ATOMSPECIES(aentriesS(m,1),species)
-            CALL ATOMMASS(species , typemass(j,2))
-            typemass(j,2) = typemass(j,2)*Smassratio
+            typemass(j,:) = typemass(i,:)
           ENDIF
         ENDDO
       ENDDO
@@ -642,7 +644,7 @@ ELSE
 ENDIF
 210 FORMAT(i10,2X,i3,2X,f9.6,2X,3(f20.12,1X))
 211 FORMAT(i10,2X,i3,2X,3(f20.12,1X))
-212 FORMAT(i10,2X,i5,2X,i3,2X,f9.6,2X,3(f20.12,1X))
+212 FORMAT(i10,2X,i10,2X,i3,2X,f9.6,2X,3(f20.12,1X))
 !
 !Write velocities
 IF( velocities ) THEN
