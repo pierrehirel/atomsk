@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Oct. 2020                                     *
+!* Last modification: P. Hirel - 06 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -547,7 +547,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       DO iloop=1,SIZE(aentriesS,1)
         IF( aentriesS(iloop,1)>0.1d0 ) THEN
           l=l+1
-          IF( aentriesS(iloop,1)==NINT(S(i,4)) ) THEN
+          IF( NINT(aentriesS(iloop,1))==NINT(S(i,4)) ) THEN
             Nspecies = SIZE(aentries,1)+l
           ENDIF
         ENDIF
@@ -572,7 +572,8 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       bondtype = 0
       DO l=1,SIZE(aentriesS,1)
         IF( aentriesS(l,1)>0.1d0 .AND. NINT(aentriesS(l,1)) == NINT(S(i,4)) ) THEN
-          bondtype = bondtype+1
+          bondtype = l
+          EXIT
         ENDIF
       ENDDO
       !Ionic core #j is bonded with ionic shell #j+1
