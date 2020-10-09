@@ -10,7 +10,7 @@ MODULE shift
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Oct. 2020                                     *
+!* Last modification: P. Hirel - 09 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -114,7 +114,6 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
     ENDIF
     !
     !Shift atoms (or ion cores)
-    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:NPshifted)
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
         IF( shiftdir>0 .AND. P(i,a1)>shift_dist  .OR.                       &
@@ -133,7 +132,6 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
         ENDIF
       ENDIF
     ENDDO
-    !$OMP END PARALLEL DO
     !
     !
   CASE DEFAULT
@@ -160,7 +158,6 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
     Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
     !
     !Shift atoms (or ion cores)
-    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,tempreal) REDUCTION(+:NPshifted)
     DO i=1, SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
         !determine if atom position is above or below the plane
@@ -182,7 +179,6 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
         ENDIF
       ENDIF
     ENDDO
-    !$OMP END PARALLEL DO
     !
     !
   END SELECT
@@ -190,7 +186,6 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
   !
 ELSE
   !Shift all atoms (or selected atoms)
-  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:NPshifted)
   DO i=1,SIZE(P,1)
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
       NPshifted = NPshifted+1
@@ -205,7 +200,6 @@ ELSE
       ENDIF
     ENDIF
   ENDDO
-  !$OMP END PARALLEL DO
 ENDIF
 !
 !

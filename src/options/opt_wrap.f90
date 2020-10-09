@@ -12,7 +12,7 @@ MODULE wrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Oct. 2020                                     *
+!* Last modification: P. Hirel - 09 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -80,7 +80,6 @@ IF(.NOT.isreduced) THEN
 ENDIF
 !
 !Second, wrap all coordinates greater than 1
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,nloop) REDUCTION(+:NPwrap)
 DO i=1,SIZE(P,1) !loop on all atoms
   IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
     DO j=1,3  !loop on xyz
@@ -104,7 +103,6 @@ DO i=1,SIZE(P,1) !loop on all atoms
     ENDDO
   ENDIF
 ENDDO
-!$OMP END PARALLEL DO
 !
 !If coordinates were not originally reduced,
 !transform back to cartesian coordinates

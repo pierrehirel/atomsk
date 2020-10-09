@@ -302,7 +302,7 @@ strlength2 = SCAN(test,pathsep,BACK=.TRUE.)
 IF(strlength2>=LEN_TRIM(test)) strlength2=0
 IF(strlength>strlength2) THEN
   !Get extension of input file
-  ext = TRIM(ADJUSTL(test(strlength:)))
+  ext = TRIM(ADJUSTL(test(strlength+1:)))
   !Verify that ext is one of the known extensions
   IF( ANY( listofformats(:)==ext ) ) THEN
     test = test(1:strlength-1)
