@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 09 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -514,7 +514,7 @@ CASE('grid')
   Nselect=0
   !Check that the file actually exists
   CALL CHECKFILE(region_geom,"read")
-  OPEN(UNIT=30,FILE=region_geom,FORM='FORMATTED')
+  OPEN(UNIT=35,FILE=region_geom,FORM='FORMATTED')
   !
   !Parse file a first time to count total number of elements in the grid
   Ngrid=0
@@ -522,7 +522,7 @@ CASE('grid')
   k=0
   line = 1
   DO
-    READ(30,'(a4096)',ERR=294,END=294) temp
+    READ(35,'(a4096)',ERR=294,END=294) temp
     Nperline=LEN_TRIM(temp)
     temp = ADJUSTL(temp)
     k=k+1
@@ -554,7 +554,7 @@ CASE('grid')
         !Determine max. length of a line and number of lines
         a2=1  !one line was read already
         DO
-          READ(30,'(a4096)',ERR=293,END=293) temp
+          READ(35,'(a4096)',ERR=293,END=293) temp
           a2 = a2+1
           IF( LEN_TRIM(temp) > Nperline ) THEN
             Nperline = LEN_TRIM(temp)
@@ -601,17 +601,17 @@ CASE('grid')
     !Also, count the number of grid elements that must be selected
     Ngrid=0
     Nselect=0
-    REWIND(30)
+    REWIND(35)
     !
     IF( gridformat==1 ) THEN
       !First line contains NX, NY, NZ (it was already read, so there should not be any error)
-      READ(30,*,ERR=801,END=801) temp
+      READ(35,*,ERR=801,END=801) temp
       !Read lines of 0 and 1
       !Each new value corresponds to a new grid element
       !Note that in that case, positions of grid elements are not used
       Ngrid=0 !grid element counter
       DO
-        READ(30,'(a4096)',ERR=295,END=295) region_geom
+        READ(35,'(a4096)',ERR=295,END=295) region_geom
         region_geom = ADJUSTL(region_geom)
         IF( LEN_TRIM(region_geom)>0 .AND. region_geom(1:1).NE."#" ) THEN
           !Strip all blank spaces
@@ -638,10 +638,10 @@ CASE('grid')
       !
     ELSEIF( gridformat==2 ) THEN
       !First line contains "FE" or similar (it was already read, so there should not be any error)
-      READ(30,*,ERR=801,END=801) temp
+      READ(35,*,ERR=801,END=801) temp
       !Read position and status (0 or 1) of each grid element
       DO
-        READ(30,'(a4096)',ERR=295,END=295) temp
+        READ(35,'(a4096)',ERR=295,END=295) temp
         temp = ADJUSTL(temp)
         IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
           Ngrid = Ngrid+1
@@ -660,7 +660,7 @@ CASE('grid')
       Ngrid = 0
       !Read lines, one at a time
       DO
-        READ(30,'(a4096)',ERR=295,END=295) temp
+        READ(35,'(a4096)',ERR=295,END=295) temp
         !Parse line, one character at a time
         !Note: it is assumed that all lines contain Nperline characters
         !     Shorter lines will be completed with zeros if necessary
@@ -679,7 +679,7 @@ CASE('grid')
       ENDDO
     ENDIF
     295 CONTINUE
-    CLOSE(30)
+    CLOSE(35)
     !
     IF( verbosity==4 ) THEN
       WRITE(msg,*) "Finite-element grid:"
@@ -1190,9 +1190,9 @@ CASE("list")
   Nselect=0
   !Check that the file actually exists
   CALL CHECKFILE(region_geom,"read")
-  OPEN(UNIT=30,FILE=region_geom,FORM='FORMATTED')
+  OPEN(UNIT=35,FILE=region_geom,FORM='FORMATTED')
   DO
-    READ(30,'(a128)',ERR=281,END=281) temp
+    READ(35,'(a128)',ERR=281,END=281) temp
     temp = ADJUSTL(temp)
     IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE."#" ) THEN
       READ(temp,*,ERR=280,END=280) i
@@ -1213,7 +1213,7 @@ CASE("list")
     280 CONTINUE
   ENDDO
   281 CONTINUE
-  CLOSE(30)
+  CLOSE(35)
   !
   !
 CASE("modulo","mod")

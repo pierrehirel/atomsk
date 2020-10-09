@@ -2300,7 +2300,7 @@ CASE(2733)
   msg = "/!\ WARNING: specified radius is negative, no atom will be removed."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2734)
-  msg = "/!\ WARNING: rotation angle is modulo zero, skipping."
+  msg = "/!\ WARNING: rotation angle is zero (modulo 2π), skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2735)
   msg = "/!\ WARNING: shear is zero, skipping."

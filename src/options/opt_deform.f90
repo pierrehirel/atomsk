@@ -10,7 +10,7 @@ MODULE deform
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 Feb. 2014                                     *
+!* Last modification: P. Hirel - 08 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -127,6 +127,7 @@ ENDIF
 !
 200 CONTINUE
 !Adjust positions of atoms
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
 DO i=1,SIZE(P(:,1))
   IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
     P(i,1) = P(i,1)*meps(1,1)
@@ -134,9 +135,11 @@ DO i=1,SIZE(P(:,1))
     P(i,3) = P(i,3)*meps(3,3)
   ENDIF
 ENDDO
+!$OMP END PARALLEL DO
 !
 !Same with shells
 IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i)
   DO i=1,SIZE(S(:,1))
     IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
       S(i,1) = S(i,1)*meps(1,1)
@@ -144,6 +147,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
       S(i,3) = S(i,3)*meps(3,3)
     ENDIF
   ENDDO
+  !$OMP END PARALLEL DO
 ENDIF
 !
 !

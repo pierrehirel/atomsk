@@ -255,8 +255,8 @@ ENDIF
 !
 200 CONTINUE
 IF(fstatus.NE.'writ') THEN
-  OPEN(UNIT=30,FILE=inputfile,FORM='FORMATTED',STATUS='UNKNOWN',ERR=800)
-  REWIND(30)
+  OPEN(UNIT=25,FILE=inputfile,FORM='FORMATTED',STATUS='UNKNOWN',ERR=800)
+  REWIND(25)
 ENDIF
 msg = 'Parsing file content...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -265,7 +265,7 @@ IF(fileexists) THEN
   !Try to confirm the format by reading the contents of the file
   !We limit it to the first 50 lines to avoid loosing too much time
   DO i=1,50
-    READ(30,'(a1024)',END=300,ERR=300) test
+    READ(25,'(a1024)',END=300,ERR=300) test
     test = TRIM(ADJUSTL(test))
     strlength = LEN_TRIM(test)
     !
@@ -712,7 +712,7 @@ IF(fileexists) THEN
   !
   ENDDO  !End loop on reading lines in the file
   !
-  CLOSE(30)
+  CLOSE(25)
   !
 ENDIF   !If fileexists
 !
@@ -897,8 +897,8 @@ CALL ATOMSK_MSG(1801,(/TRIM(inputfile)/),(/0.d0/))
 !
 1000 CONTINUE
 !Make sure the file is closed
-INQUIRE(UNIT=30,OPENED=fileisopened)
-IF(fileisopened) CLOSE(30)
+INQUIRE(UNIT=25,OPENED=fileisopened)
+IF(fileisopened) CLOSE(25)
 !
 !
 END SUBROUTINE GUESS_FORMAT

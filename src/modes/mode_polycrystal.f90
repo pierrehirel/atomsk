@@ -1161,9 +1161,6 @@ DO o = 0 , expandmatrix(3)
   DO n = 0 , expandmatrix(2)
     DO m = 0 , expandmatrix(1)
       DO i=1,SIZE(Puc,1)
-!         !$OMP CRITICAL
-!         !qi = qi+1
-!         !$OMP END CRITICAL
         qi = o*expandmatrix(2)*expandmatrix(1)*SIZE(Puc,1) + n*expandmatrix(1)*SIZE(Puc,1) + m*SIZE(Puc,1) + i
         !Compute (cartesian) position of the replica of this atom
         Pt(qi,1) = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
@@ -1456,12 +1453,12 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
-  qi=0 !so far, zero atom in the grain
+  qi=NP !save current number of particles
   !For each atom of the template Pt2, find out if it is located inside the grain
-  !If so, then save it to the array Q; if not, discard it
+  !If so, then save it to the array Q; if not, discard it (change its atomic number to -1)
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,qi,isinpolyhedron,jnode,vnormal,vector) &
-  !$OMP& REDUCTION(+:NPgrains)
+  !$OMP& PRIVATE(i,isinpolyhedron,jnode,vnormal,vector) &
+  !$OMP& REDUCTION(+:NP,NPgrains)
   DO i=1,SIZE(Pt2,1)
     !Shift oriented supercell so that its center of mass is at the position of the node
     Pt2(i,1:3) = Pt2(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)
@@ -1485,27 +1482,8 @@ DO inode=1,Nnodes
       !Atom is inside the polyhedron
       !Increment number of atoms belonging to grain #inode
       NPgrains(inode) = NPgrains(inode)+1
-      !
-      !$OMP CRITICAL
+      !Increment total number of particles in the system
       NP = NP+1
-      qi = NP
-      !$OMP END CRITICAL
-      !
-      IF( qi <= SIZE(Q,1) ) THEN
-        Q(qi,:) = Pt2(i,:)
-        IF(doshells) T(qi,:) = St2(i,:)
-        IF(doaux) THEN
-          DO j=1,SIZE(AUXNAMES)-1
-            newAUX(qi,j) = AUX_Q(i,j)
-          ENDDO
-        ENDIF
-        newAUX(qi,grainID) = DBLE(inode)
-      ELSE
-        !qi exceeds the size of arrays Q, T and AUX_Q
-        !we have a problem: abort
-        PRINT*, "ERROR qi larger than size of Q: ", qi, "> ", SIZE(Q,1)
-        nerr = nerr+1
-      ENDIF
     ELSE
       !Atom is outside of the polyhedron -> mark it for termination
       Pt2(i,4) = -1.d0
@@ -1513,6 +1491,20 @@ DO inode=1,Nnodes
     !
   ENDDO
   !$OMP END PARALLEL DO
+  !
+  DO i=1,SIZE(Pt2,1)
+    IF( Pt2(i,4) > 0.1d0 ) THEN
+      qi = qi+1
+      Q(qi,:) = Pt2(i,:)
+      IF(doshells) T(qi,:) = St2(i,:)
+      IF(doaux) THEN
+        DO j=1,SIZE(AUXNAMES)-1
+          newAUX(qi,j) = AUX_Q(i,j)
+        ENDDO
+      ENDIF
+      newAUX(qi,grainID) = DBLE(inode)
+    ENDIF
+  ENDDO
   !
   IF(nerr>0) GOTO 1000
   !
@@ -1642,6 +1634,7 @@ DO i=1,SIZE(NPgrains)
   !Determine the position of the center of mass of this grain
   P1 = 0.d0
   vector(:) = 0.d0 !position of center of mass
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,m,species) REDUCTION(+:P1,vector)
   DO j=1,NPgrains(i)
     m = m+1
     CALL ATOMSPECIES(P(m,4),species)
@@ -1649,6 +1642,7 @@ DO i=1,SIZE(NPgrains)
     vector(:) = vector(:) + P2*P(m,1:3)
     P1 = P1 + P2
   ENDDO
+  !$OMP END PARALLEL DO
   vector(:) = vector(:) / P1
   Q(i,1:3) = vector(:)
   Q(i,4) = 1.d0  !positions of com are given the atomic number of hydrogen

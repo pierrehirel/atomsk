@@ -2369,7 +2369,7 @@ CASE(2733)
   msg = "/!\ ALERTE : le rayon spécifié est négatif, aucun atome ne sera supprimé."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2734)
-  msg = "/!\ ALERTE : l'angle de rotation est modulo zéro, abandon."
+  msg = "/!\ ALERTE : l'angle de rotation est zéro (modulo 2π), abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2735)
   msg = "/!\ ALERTE : cisaillement nul, abandon."

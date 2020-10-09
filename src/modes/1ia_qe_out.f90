@@ -332,13 +332,6 @@ DO  !loop on all snapshots
       nwarn=nwarn+1
       CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
       H(:,:) = 1.d10*a_bohr * H(:,:)
-      
-      ! => convert atom positions into Bohrs for consistency
-!       nwarn=nwarn+1
-!       CALL ATOMSK_MSG(1706,(/msg/),(/0.d0/))
-!       DO i=1,SIZE(P,1)
-!         P(i,1:3) = P(i,1:3) / (1.d10*a_bohr)
-!       ENDDO
     ENDIF
   ENDIF
   !

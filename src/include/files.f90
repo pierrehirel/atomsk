@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 09 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -290,6 +290,7 @@ IMPLICIT NONE
 CHARACTER(LEN=5),INTENT(IN):: outfileformat
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=*),INTENT(OUT):: outputfile
+CHARACTER(LEN=5):: ext  !extension of input file
 CHARACTER(LEN=4096):: test, test2
 INTEGER:: strlength, strlength2
 !
@@ -299,7 +300,14 @@ test = TRIM(ADJUSTL(inputfile))
 strlength = SCAN(test,'.',BACK=.TRUE.)
 strlength2 = SCAN(test,pathsep,BACK=.TRUE.)
 IF(strlength2>=LEN_TRIM(test)) strlength2=0
-IF(strlength>strlength2) test=test(1:strlength-1)
+IF(strlength>strlength2) THEN
+  !Get extension of input file
+  ext = TRIM(ADJUSTL(test(strlength:)))
+  !Verify that ext is one of the known extensions
+  IF( ANY( listofformats(:)==ext ) ) THEN
+    test = test(1:strlength-1)
+  ENDIF
+ENDIF
 !
 !suffix must not have a dot
 test2 = TRIM(ADJUSTL(outfileformat))

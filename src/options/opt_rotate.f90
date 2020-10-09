@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2020                                     *
+!* Last modification: P. Hirel - 08 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -107,6 +107,7 @@ ENDIF
 IF( com .NE. 0 ) THEN
   totmass = 0.d0
   Vcom(:) = 0.d0
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,species,smass) REDUCTION(+:Vcom,totmass)
   DO i=1,SIZE(P,1)
     IF( .NOT.(ALLOCATED(SELECT)) .OR. SELECT(i) ) THEN
       CALL ATOMSPECIES(P(i,4),species)
@@ -115,6 +116,7 @@ IF( com .NE. 0 ) THEN
       totmass = totmass + smass
     ENDIF
   ENDDO
+  !$OMP END PARALLEL DO
   Vcom(:) = Vcom(:) / totmass
 ENDIF
 !
@@ -275,6 +277,7 @@ ENDIF
 100 CONTINUE
 !Rotate the atomic positions
 !Rotate only atoms that are selected in SELECT
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,H1,H2,H3)
 DO i=1,SIZE(P,1)
   IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
     H1 = P(i,a1) - Vcom(a1)
@@ -316,6 +319,7 @@ DO i=1,SIZE(P,1)
     !
   ENDIF
 ENDDO
+!$OMP END PARALLEL DO
 !
 IF( .NOT.ALLOCATED(SELECT) .AND. com==0 ) THEN
   !Rotate the base vectors of the system (only if no selection is defined)
