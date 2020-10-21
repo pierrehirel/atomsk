@@ -1775,7 +1775,7 @@ CASE(2091)
     ELSE
       temp = "coordonnées"
     ENDIF
-    msg = ">>> Conversion des "//TRIM(strings(2))//" de "//TRIM(temp)//&
+    msg = ">>> Conversion des "//TRIM(temp)//" de "//TRIM(strings(2))//&
         & " vers "//TRIM(temp2)//"."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE

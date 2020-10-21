@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Jan. 2020                                     *
+!* Last modification: P. Hirel - 21 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -384,18 +384,18 @@ DO
       !Atom coordinates are in alat units (this is the default if nothing is specified)
       P(:,1:3) = celldm(1)*P(:,1:3)
       atpos_units=cell_units
-    ELSEIF( msg(1:4)=="bohr" .OR. msg(1:4)=="Bohr" ) THEN
+    ELSEIF( INDEX(msg,"bohr")>0 .OR. INDEX(msg,"Bohr")>0 ) THEN
       !Atom positions are in Bohrs
       atpos_units='B'
-    ELSEIF( msg(1:7)=='crystal' .OR. msg(1:7)=='CRYSTAL' ) THEN
+    ELSEIF( INDEX(msg,'crystal')>0 .OR. INDEX(msg,'CRYSTAL')>0 ) THEN
       CALL FRAC2CART(P,H)
-    ELSEIF( msg(1:3)=='ang' ) THEN
+    ELSEIF( INDEX(msg,'ang')>0 ) THEN
       !Atom positions are in Angströms
       atpos_units='A'
     ENDIF
     !
     !
-  ELSEIF( temp(1:13)=='ATOMIC_FORCES' .OR. temp(1:16)=='atomic_forces' ) THEN
+  ELSEIF( temp(1:13)=='ATOMIC_FORCES' .OR. temp(1:13)=='atomic_forces' ) THEN
     DO i=1,SIZE(AUX,1)
       READ(30,*,END=800,ERR=800) species, AUX(i,fx), AUX(i,fy), AUX(i,fz)
     ENDDO

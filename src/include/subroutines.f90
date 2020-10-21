@@ -1058,30 +1058,40 @@ IF( SIZE(array,1) < 11 ) THEN
   th = 2.d0
 ENDIF
 !
-!Loop on X, Y, Z
-DO i=1,3
-  !Compute difference between max and min coordinates
-  minmax = MAXVAL(array(:,i)) - MINVAL(array(:,i))
+IF( .NOT.ANY( DABS(array(:,1:3)) > 1.d0 ) ) THEN
+  !All (x,y,z) coordinates are between 0 and 1: assume reduced coordinates
+  !a.k.a. don't change anything (isreduced is already TRUE)
   !
-  !Compute average of all values
-  DO j=1,SIZE(array,1)
-    avg = avg + DABS(array(j,i))
+ELSE
+  !Some coordinates are not contained between 0 and 1
+  !Loop on X, Y, Z
+  DO i=1,3
+    !
+    !Compute difference between max and min coordinates
+    minmax = MAXVAL(array(:,i)) - MINVAL(array(:,i))
+    !
+    !Compute average of all values
+    DO j=1,SIZE(array,1)
+      avg = avg + DABS(array(j,i))
+    ENDDO
+    avg = avg/DBLE(SIZE(array,1))
+    !
+    !Calculate average absolute deviation (D)
+    DO j=1,SIZE(array,1)
+      D = D + DABS(array(j,i)-avg)
+    ENDDO
+    D = D/DBLE(SIZE(array,1))
+    !
+    !If minmax is much greater than 1, or if D is greater than 1,
+    !then coordinates are Cartesian
+    IF( avg > 1.5d0 .OR. minmax > th .OR. D > th    &
+      & .OR. minmax > 0.6d0*VECLENGTH(H(:,i))       ) THEN
+      isreduced = .FALSE.
+    ENDIF
+    !
   ENDDO
-  avg = avg/DBLE(SIZE(array,1))
   !
-  !Calculate average absolute deviation (D)
-  DO j=1,SIZE(array,1)
-    D = D + DABS(array(j,i)-avg)
-  ENDDO
-  D = D/DBLE(SIZE(array,1))
-  !
-  !If minmax is much smaller than the box, or if D is smaller than 1,
-  !then coordinates are reduced
-  IF( avg > 1.5d0 .OR. minmax > th .OR. D > th    &
-    & .OR. minmax > 0.6d0*VECLENGTH(H(:,i))       ) THEN
-    isreduced = .FALSE.
-  ENDIF
-ENDDO
+ENDIF
 !
 END SUBROUTINE FIND_IF_REDUCED
 !
