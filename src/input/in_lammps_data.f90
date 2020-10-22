@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 22 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -602,7 +602,11 @@ DO
           charge = column(3)
         ENDIF
         IF(q>0) THEN
-          AUX(id,q) = charge
+          IF( Ncores>0 ) THEN
+            AUX(Ncores,q) = charge
+          ELSE
+            AUX(id,q) = charge
+          ENDIF
         ENDIF
       ENDIF
       !

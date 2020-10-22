@@ -11,7 +11,7 @@ MODULE out_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 22 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -167,9 +167,7 @@ DO i=1,SIZE(P,1)
   !Append the auxiliray properties if any
   IF(ALLOCATED(AUX)) THEN
     DO j=1, MIN( SIZE(AUX(1,:)),32 )
-      IF( DABS(AUX(i,j))>0.d0 .AND. AUX(i,j)<1.d-1 ) THEN
-        WRITE(msg,'(e16.8)') AUX(i,j)
-      ELSEIF( DABS( AUX(i,j)-DBLE(NINT(AUX(i,j))) ) < 1.d-12 ) THEN
+      IF( DABS( AUX(i,j)-DBLE(NINT(AUX(i,j))) ) < 1.d-12 ) THEN
         !It is an integer number
         WRITE(msg,*) NINT(AUX(i,j))
       ELSEIF( DABS(AUX(i,j))<1.d3 ) THEN
