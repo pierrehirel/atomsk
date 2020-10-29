@@ -15,7 +15,7 @@ MODULE out_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 March 2017                                    *
+!* Last modification: P. Hirel - 29 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,7 @@ CHARACTER(LEN=16):: month, smonth
 CHARACTER(LEN=4096):: msg, temp, tempaux
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
-INTEGER:: i, iaux
+INTEGER:: i, iaux, j, k
 INTEGER:: Naux
 INTEGER:: occ, q, qs, biso, uiso !index of occupancies, electric charge, Biso, in AUX
 INTEGER,DIMENSION(8):: values
@@ -79,17 +79,24 @@ biso = 0
 uiso = 0
 Naux = 0
 !
-CALL INVMAT(H,G)
-IF (ALLOCATED(AUX) .AND. SIZE(AUX,2)==SIZE(AUXNAMES) ) THEN ! Get number of auxiliary properties
-  Naux = SIZE(AUX,2) ! ? Redundant but maybe better MIN(SIZE(AUX,2),SIZE(AUXNAMES))
-ENDIF
-!
 msg = 'entering WRITE_CIF'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 !
 100 CONTINUE
+CALL INVMAT(H,G)
+IF (ALLOCATED(AUX) .AND. SIZE(AUX,2)==SIZE(AUXNAMES) ) THEN ! Get number of auxiliary properties
+  Naux = SIZE(AUX,2) ! ? Redundant but maybe better MIN(SIZE(AUX,2),SIZE(AUXNAMES))
+ENDIF
+!
+!Convert cell vectors into conventional notation (angles in degrees)
+CALL MATCONV(H,a,b,c,alpha,beta,gamma)
+alpha = alpha*180.d0/pi
+beta = beta*180.d0/pi
+gamma = gamma*180.d0/pi
+!
+!
 OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
 !
 !
@@ -134,29 +141,66 @@ WRITE(40,'(a)') "_chemical_formula_weight          "//TRIM(ADJUSTL(msg))
 WRITE(40,'(a)') "_chemical_compound_source         ?"
 WRITE(40,'(a)') "_chemical_absolute_configuration  ?"
 !
+!Additional information required for submitting CIF files
+!NOTE: this is just a template and the user is expected to edit these values afterwards
+WRITE(40,'(a)') "_exptl_crystal_description        'EDIT-ENTRY'"
+WRITE(40,'(a)') "_diffrn_measurement_device_type   'EDIT-ENTRY'"
 !
 !Write space group information
 !NOTE: here space group P1 is always assumed
 WRITE(40,*) ""
 WRITE(40,'(a)') "_space_group_IT_number            1"
-WRITE(40,'(a)') "_symmetry_cell_setting            triclinic"
+IF( DABS(alpha-90.d0)<1.d-12 .AND. DABS(beta-90.d0)<1.d-12 .AND. DABS(gamma-90.d0)<1.d-12 ) THEN
+  !All angles equal to 90°
+  IF( DABS(a-b)<1.d-12 .AND. DABS(a-c)<1.d-12 ) THEN
+    !All cell edges have the same length
+    WRITE(temp,*) "cubic"
+  ELSEIF( DABS(a-b)<1.d-12 .OR. DABS(a-c)<1.d-12 ) THEN
+    !Two edges of same length, one different
+    WRITE(temp,*) "tetragonal"
+  ELSE
+    !Three different cell lengths
+    WRITE(temp,*) "orthorhombic"
+  ENDIF
+  !
+ELSEIF( ( DABS(alpha-90.d0)<1.d-12 .AND. DABS(beta-90.d0)<1.d-12 ) .OR.   &
+      & ( DABS(alpha-90.d0)<1.d-12 .AND. DABS(gamma-90.d0)<1.d-12 ) .OR.  &
+      & ( DABS(beta-90.d0)<1.d-12 .AND. DABS(gamma-90.d0)<1.d-12 )       ) THEN
+  !Two 90° angles and one 120°
+  IF( ( DABS(gamma-120.d0)<1.d-12 .AND. DABS(a-b)<1.d-12 ) .OR. &
+    & ( DABS(beta-120.d0)<1.d-12 .AND. DABS(a-c)<1.d-12 ) .OR. &
+    ( DABS(alpha-120.d0)<1.d-12 .AND. DABS(b-c)<1.d-12 ) ) THEN
+    !One 120° angle and two matching cell lengths
+    WRITE(temp,*) "hexagonal"
+  ELSE
+    !No 120° or different cell lengths
+    WRITE(temp,*) "monoclinic"
+  ENDIF
+ELSE
+  !Otherwise, different a, b, c and different angles
+  WRITE(temp,*) "triclinic"
+ENDIF
+WRITE(40,'(a)') "_space_group_crystal_system       "//TRIM(ADJUSTL(temp))
 WRITE(40,'(a)') "_symmetry_space_group_name_Hall   'P 1'"
 WRITE(40,'(a)') "_symmetry_space_group_name_H-M    'P 1'"
+WRITE(40,*) ""
+WRITE(40,'(a5)') "loop_"
+WRITE(40,'(a)') "_space_group_symop_operation_xyz"
+WRITE(40,'(a)') "'+x,+y,+z'"
 !
 !Write cell vectors (conventional notation, angles in degrees)
 WRITE(40,*) ""
-CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(temp,'(f16.4)') a
 WRITE(40,'(a)') '_cell_length_a                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') b
 WRITE(40,'(a)') '_cell_length_b                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') c
 WRITE(40,'(a)') '_cell_length_c                    '//TRIM(ADJUSTL(temp))
-WRITE(temp,'(f16.4)') alpha*180.d0/pi
+WRITE(temp,'(f16.4)') alpha
 WRITE(40,'(a)') '_cell_angle_alpha                 '//TRIM(ADJUSTL(temp))
-WRITE(temp,'(f16.4)') beta*180.d0/pi
+WRITE(temp,'(f16.4)') beta
 WRITE(40,'(a)') '_cell_angle_beta                  '//TRIM(ADJUSTL(temp))
-WRITE(temp,'(f16.4)') gamma*180.d0/pi
+WRITE(temp,'(f16.4)') gamma
 WRITE(40,'(a)') '_cell_angle_gamma                 '//TRIM(ADJUSTL(temp))
 CALL VOLUME_PARA(H,Vcell)
 WRITE(temp,'(f16.4)') Vcell
@@ -166,13 +210,14 @@ WRITE(40,'(a)') '_cell_volume                      '//TRIM(ADJUSTL(temp))
 !Write atom positions
 WRITE(40,*) ""
 WRITE(40,'(a5)') "loop_"
+WRITE(40,'(a17)') " _atom_site_label"
 WRITE(40,'(a23)') " _atom_site_type_symbol"
 WRITE(40,'(a19)') " _atom_site_fract_x"
 WRITE(40,'(a19)') " _atom_site_fract_y"
 WRITE(40,'(a19)') " _atom_site_fract_z"
 IF (Naux>0) THEN
   DO iaux=1,SIZE(AUXNAMES)
-    ! write supported auxiliary propertie loop items
+    ! write supported auxiliary properties loop items
     IF (TRIM(AUXNAMES(iaux))=="occ") THEN
       WRITE(40,'(a21)') " _atom_site_occupancy"
       occ = iaux
@@ -191,6 +236,8 @@ IF (Naux>0) THEN
     ENDIF
   ENDDO
 ENDIF
+!Initialize array aentries
+aentries(:,2) = 0.d0
 DO i=1,SIZE(P,1)
   ! Get species string
   CALL ATOMSPECIES(P(i,4),species)
@@ -221,6 +268,16 @@ DO i=1,SIZE(P,1)
       month = TRIM(ADJUSTL(month))
     ENDIF
   ENDIF
+  !Generate unique label for this atom
+  DO j=1,SIZE(aentries,1)
+    IF( NINT(aentries(j,1))==NINT(P(i,4)) ) THEN
+      aentries(j,2) = aentries(j,2) + 1.d0
+      k = j
+      EXIT
+    ENDIF
+  ENDDO
+  WRITE(smonth,*) NINT(aentries(j,2))
+  smonth = TRIM(species)//TRIM(ADJUSTL(smonth))
   ! Prepare string with fractional x,y,z atom position in the cell
   P1 = P(i,1)
   P2 = P(i,2)
@@ -242,7 +299,7 @@ DO i=1,SIZE(P,1)
     ENDDO
   ENDIF
   ! combine the strings
-  WRITE(temp,*) TRIM(ADJUSTL(month))//'  '//TRIM(ADJUSTL(temp))
+  WRITE(temp,*) TRIM(ADJUSTL(smonth))//'  '//TRIM(ADJUSTL(month))//'  '//TRIM(ADJUSTL(temp))
   ! write to file
   WRITE(40,'(a)') TRIM(ADJUSTL(temp(1:80)))
 ENDDO

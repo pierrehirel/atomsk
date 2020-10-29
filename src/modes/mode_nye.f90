@@ -992,55 +992,24 @@ ENDDO
 !
 IF(nerr>0) GOTO 1000
 !
+!Write each component of G tensor into data file (projected in XY plane)
+CALL NAME_OUTFILE(prefix,msg,"     ")
+i = SCAN(msg,".",BACK=.TRUE.)
+IF(i==0) i=LEN_TRIM(msg)
+msg = TRIM(ADJUSTL(msg(1:i-1)))//"_G.dat"
+OPEN(UNIT=41,FILE=msg,STATUS="UNKNOWN",FORM="FORMATTED")
+WRITE(41,*) "# Lattice distortion tensor G computed with Atomsk"
+DO i=1,SIZE(G,1)
+  msg = ""
+  DO j=1,3
+    WRITE(msg,'(a,3(2X,g12.6))') TRIM(msg), (G(i,j,k),k=1,3)
+  ENDDO
+  WRITE(41,*) Psecond(i,1), Psecond(i,2), "  "//TRIM(ADJUSTL(msg))
+ENDDO
+CLOSE(41)
+!
 IF( verbosity==4 ) THEN
-  !Write each component of G tensor into data file (projected in XY plane)
-  OPEN(UNIT=41,FILE="atomsk_G11.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,1)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G12.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,2)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G13.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,1,3)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G21.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,1)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G22.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,2)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G23.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,2,3)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G31.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,1)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G32.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,2)
-  ENDDO
-  CLOSE(41)
-  OPEN(UNIT=41,FILE="atomsk_G33.dat",STATUS="UNKNOWN",FORM="FORMATTED")
-  DO i=1,SIZE(G,1)
-    WRITE(41,*) Psecond(i,1), Psecond(i,2), G(i,3,3)
-  ENDDO
-  CLOSE(41)
-  !
-  !Write atom coordinates and per-atom matrix G into a file
+  !Write atom coordinates and per-atom matrix G into a CFG file for visualization
   ALLOCATE( AUX( SIZE(Psecond,1) , 9 ) )
   AUX(:,:) = 0.d0
   AUX(:,1) = G(:,1,1)
