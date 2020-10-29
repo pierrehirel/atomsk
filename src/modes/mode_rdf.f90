@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 April 2019                                    *
+!* Last modification: P. Hirel - 15 Oct. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -241,6 +241,9 @@ DO
           !
           !Compute the partial RDF of atoms sp2 around atoms sp1
           progress = 0
+          !$OMP PARALLEL DO DEFAULT(SHARED) &
+          !$OMP& PRIVATE(i,j,k,l,m,u,v,w,distance,Nneighbors,Vsphere,Vskin,rdf_radius,average_dens,rdf_norm) &
+          !$OMP& REDUCTION(+:progress)
           DO j=1,MIN(rdf_Nsteps,SIZE(rdf_func,1))
             !Initialize variables
             Nneighbors = 0
@@ -259,9 +262,9 @@ DO
             Vsphere = (4.d0/3.d0)*pi*rdf_radius**3
             Vskin = (4.d0/3.d0)*pi*(rdf_radius+rdf_dr)**3 - (4.d0/3.d0)*pi*rdf_radius**3
             !
-            !$OMP PARALLEL DO DEFAULT(SHARED) &
-            !$OMP& PRIVATE(i,k,l,m,u,v,w,distance) &
-            !$OMP& REDUCTION(+:Nneighbors)
+!             !$OMP PARALLEL DO DEFAULT(SHARED) &
+!             !$OMP& PRIVATE(i,k,l,m,u,v,w,distance) &
+!             !$OMP& REDUCTION(+:Nneighbors)
             DO i=1,SIZE(P,1)
               !
               IF( DABS(P(i,4)-sp1number)<1.d-9 ) THEN
@@ -322,7 +325,7 @@ DO
 !                 ENDIF
               ENDIF
             ENDDO !i
-            !$OMP END PARALLEL DO
+!             !$OMP END PARALLEL DO
             !
             !Set average density of the system
             average_dens = NINT(aentries(k,2)) / Vsystem
@@ -336,6 +339,7 @@ DO
             rdf_func(j,2) = Nneighbors / rdf_norm   !radial density function
             !
           ENDDO  !sphere radii (j)
+          !$OMP END PARALLEL DO
           !
           !rdf_func contains the space-averaged RDF for current system and for
           !current pair of atoms (k,l)
@@ -364,16 +368,13 @@ ENDDO  !loop on m files
 300 CONTINUE
 CLOSE(50)
 !
-!rdf_final contains the partial RDFs
-!=> divide by the number of systems that were analyzed to make the time-average
-IF(Nfiles>0) THEN
-  rdf_final(:,:,:) = rdf_final(:,:,:) / Nfiles
-ELSE
+IF(Nfiles==0) THEN
   !no file was analyzed => exit
   nerr=nerr+1
   GOTO 1000
 ENDIF
 !
+!rdf_final contains the partial RDFs
 !Compute the total RDF
 ALLOCATE( rdf_total(SIZE(rdf_final,2),SIZE(rdf_final,3)) )
 rdf_total(:,:) = 0.d0
