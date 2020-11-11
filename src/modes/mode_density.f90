@@ -315,7 +315,7 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
   !density will be computed in the plane (a1,a2) normal to a3
   ALLOCATE(DenGrid2(Nx,Ny))
   DenGrid2(:,:) = 0.d0
-  A = 1.d0 / (2.d0*pi*Sigma**2)
+  A = 1.d0 / DSQRT(2.d0*pi*Sigma**2)
   !
   !
   progress=0  !to count progress

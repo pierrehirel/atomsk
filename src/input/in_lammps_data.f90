@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Oct. 2020                                     *
+!* Last modification: P. Hirel - 11 Nov. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,8 @@ CHARACTER(LEN=128),DIMENSION(100):: tempcomment
 LOGICAL:: allidzero  !are all atom id equal to zero?
 LOGICAL:: dobonds    !are there bonds in the file?
 LOGICAL:: doneAtoms  !are atom positions read already?
-LOGICAL:: shells     !are some particles shells? (in the sense of ionic core-shell model)
+LOGICAL:: coreshell  !does the data contain cores and shells? (in the sense of ionic core-shell model)
+LOGICAL:: isshell    !is the current particle a shell? (in the sense of ionic core-shell model)
 LOGICAL:: flags      !are there replica flags at the end of each line?
 LOGICAL:: molecule   !is there a column "moleculeID" before the column "atom-type"?
 LOGICAL:: velocities !are velocities in the file?
@@ -91,7 +92,8 @@ dobonds = .FALSE.
 doneAtoms = .FALSE.
 flags = .FALSE.
 molecule = .FALSE.
-shells = .FALSE.
+coreshell = .FALSE.
+isshell = .FALSE.
 atomtype = 1
 i = 0
 Naux = 0
@@ -222,7 +224,8 @@ DO
         IF( INDEX(temp,'shell')>0 .OR. INDEX(temp,'Shell')>0 .OR. INDEX(temp,'SHELL')>0 ) THEN
           !This type of particle is a shell => mark it as such in Masses(:,3)
           Masses(k,3) = 1
-          shells = .TRUE.
+          coreshell = .TRUE.
+          isshell = .TRUE.
           Nshells = Nshells+1
           IF( k>1 ) THEN
             !Try to detect to which core it is associated
@@ -352,7 +355,7 @@ DO
     !At this point, if P is not allocated then we are in trouble
     IF(.NOT.ALLOCATED(P)) GOTO 820
     !
-     IF( shells ) THEN
+     IF( coreshell ) THEN
        !Some particles are ionic shells => allocate memory
        ALLOCATE( S(SIZE(P,1),4) )
        S(:,:) = 0.d0
@@ -380,7 +383,7 @@ DO
     Ncores = 0   !counter for ionic cores
     Nshells = 0 !counter for ionic shells
     DO i=1,SIZE(P,1)
-      shells = .FALSE.  !by default particle #i is not a shell
+      isshell = .FALSE.  !by default particle #i is not a shell
       READ(30,'(a128)',ERR=800,END=800) temp
       temp = ADJUSTL(temp)
       !Remove trailing comment if any
@@ -520,32 +523,46 @@ DO
           DO WHILE( j<=SIZE(Masses,1) )
             j = j+1
             IF( Masses(j,1) == NINT(atomtype) ) THEN
-              IF( Masses(j,3)>=1 ) THEN
-                !This atom type is an ionic shell
-                Nshells = Nshells+1
-                shells = .TRUE.
-                S(Nshells,4) = Masses(j,2)
-                EXIT
+              IF( coreshell ) THEN
+                !We are dealing with core/shell particles
+                IF( Masses(j,3)>=1 ) THEN
+                  !This atom type is an ionic shell
+                  isshell = .TRUE.
+                  Nshells = Nshells+1
+                  S(Nshells,4) = Masses(j,2)
+                  EXIT
+                ELSE
+                  !This atom type is an ionic core
+                  Ncores = Ncores+1
+                  P(Ncores,4) = Masses(j,2)
+                  EXIT
+                ENDIF
               ELSE
-                !This atom type is an ionic core
-                Ncores = Ncores+1
-                P(Ncores,4) = Masses(j,2)
+                !This is a regular atom
+                P(id,4) = Masses(j,2)
                 EXIT
               ENDIF
             ENDIF
           ENDDO
           !Make sure that the atomic number is not zero
-          IF( shells ) THEN
+          IF( Nshells>0 ) THEN
+            !We are dealing with core/shell particles
             IF( S(Nshells,4)<1.d-12 ) THEN
               !Mass of this shell unknown => use atom type = atom species
               S(Nshells,4) = DBLE(atomtype)
             ENDIF
-          ELSE
             IF( P(Ncores,4)<1.d-12 ) THEN
               !Mass of this atom unknown => use atom type = atom species
               P(Ncores,4) = DBLE(atomtype)
             ENDIF
+          ELSE
+            !We are dealing with regular atoms
+            IF( P(id,4)<1.d-12 ) THEN
+              !Mass of this atom unknown => use atom type = atom species
+              P(id,4) = DBLE(atomtype)
+            ENDIF
           ENDIF
+          !
         ELSE
           !No Masses section in the file => use atom type = atom species
           P(id,4) = DBLE(atomtype)
@@ -581,13 +598,19 @@ DO
         ENDIF
         !
         !Save particle position in P or in S depending on its type
-        IF( shells ) THEN
-          S(Nshells,1:3) = vector(:)
-          shells = .FALSE. !we don't know if next particle is a shell
-        ELSEIF( Ncores>0 ) THEN
-          P(Ncores,1:3) = vector(:)
-          AUX(Ncores,1) = DBLE(atomtype)
+        IF( Nshells>0 ) THEN
+          !We are dealing with core/shell particles
+          IF( isshell ) THEN
+            !Current particle is a shell
+            S(Nshells,1:3) = vector(:)
+            isshell = .FALSE. !we don't know if next particle is a shell
+          ELSE
+            !Current particle is a core
+            P(Ncores,1:3) = vector(:)
+            AUX(Ncores,1) = DBLE(atomtype)
+          ENDIF
         ELSE
+          !We are dealing with regular atoms
           P(id,1:3) = vector(:)
           AUX(id,1) = DBLE(atomtype)
         ENDIF
