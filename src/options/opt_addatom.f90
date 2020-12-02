@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2018                                     *
+!* Last modification: P. Hirel - 02 Dec. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,7 +40,7 @@ USE resize
 CONTAINS
 !
 !
-SUBROUTINE ADDATOM_XYZ(H,P,S,AUX,addatom_species,addatom_type,addatom_prop,SELECT)
+SUBROUTINE ADDATOM_XYZ(H,P,S,AUXNAMES,AUX,addatom_species,addatom_type,addatom_prop,SELECT)
 !
 !
 IMPLICIT NONE
@@ -48,13 +48,16 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=2),INTENT(IN):: addatom_species !species of atom(s) to add
 CHARACTER(LEN=8),INTENT(IN):: addatom_type    !"at" or "near" or "random"
 CHARACTER(LEN=128):: msg
+CHARACTER(LEN=128),DIMENSION(:),INTENT(IN):: AUXNAMES !names of auxiliary properties
 LOGICAL:: exceeds100 !does the number of neighbors exceed 100?
 LOGICAL:: hasShells  !does this type of atom have shells?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
+INTEGER:: addedatoms !number of atoms added
 INTEGER:: atomindex
 INTEGER:: NP !number of particles
 INTEGER:: i, j, k, m, n
-INTEGER:: addedatoms !number of atoms added
+INTEGER:: qcol, typecol  !index of column in AUX containing atom charge and "type"
+INTEGER:: newtype        !if atoms have a "type", and new atoms don't, they will ba assigned a new "type"
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist  !list of indices of neighbors
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
@@ -82,6 +85,7 @@ hasShells = .FALSE.
 i = 0
 NP = 0
 addedatoms = 0
+newtype = 0
 snumber = 0.d0
 x = 0.d0
 y = 0.d0
@@ -378,17 +382,45 @@ IF( addedatoms>0 ) THEN
     ALLOCATE( AUX( SIZE(newAUX,1),SIZE(newAUX,2) ) )
     AUX(:,:) = newAUX(:,:)
     DEALLOCATE(newAUX)
-    !For each new particle, set aux. prop. according to existing particles
-    DO i=SIZE(AUX,1)-addedatoms+1 , SIZE(AUX,1)
-      !Check if other atoms of this type existed
-      DO j=1,SIZE(P,1)-addedatoms
-        IF( NINT(P(j,4))==NINT(P(i,4)) ) THEN
-          !Same atom existed => copy its aux. properties
-          AUX(i,:) = AUX(j,:)
-          EXIT
+    !
+    !Look for atom "type"
+    typecol=0
+    qcol=0
+    DO i=1,SIZE(AUXNAMES)
+      IF( AUXNAMES(i)=="type" ) THEN
+        typecol = i
+      ELSEIF( AUXNAMES(i)=="q" ) THEN
+        qcol = i
+      ENDIF
+    ENDDO
+    !
+    !For each new particle, set type according to existing particles
+    IF( typecol>0 .OR. qcol>0 ) THEN
+      DO i=SIZE(AUX,1)-addedatoms+1 , SIZE(AUX,1)
+        !Look for the "type" of identical atoms
+        DO j=1,i-1
+          IF( NINT(P(j,4))==NINT(P(i,4)) ) THEN
+            !Same atom existed => copy its type and/or charge
+            IF(typecol>0) AUX(i,typecol) = AUX(j,typecol)
+            IF(qcol>0) AUX(i,qcol) = AUX(j,qcol)
+            EXIT
+          ENDIF
+        ENDDO
+        !Verify that a "type" was assigned, otherwise create a new one
+        IF( typecol>0 ) THEN
+          IF( AUX(i,typecol)<0.9d0 ) THEN
+            !Could not find atoms of the same type
+            !Define a new "type" for this atom
+            AUX(i,typecol) = MAXVAL(AUX(:,typecol))+1
+            newtype = NINT(AUX(i,typecol))
+          ENDIF
         ENDIF
       ENDDO
-    ENDDO
+      IF( newtype>0 ) THEN
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(3719,(/""/),(/DBLE(newtype)/))
+      ENDIF
+    ENDIF
   ENDIF
   !
   IF( ALLOCATED(SELECT) ) THEN

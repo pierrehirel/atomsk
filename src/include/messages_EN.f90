@@ -2683,7 +2683,11 @@ CASE(3713) ! missing absorption data
   msg = "/!\ WARNING: absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3714)
-  msg = "/!\ WARNING: some atoms have an invalid type."
+  msg = "/!\ WARNING: some atoms have an invalid 'type'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            You may use the option '-remove-property type' to remove atom types,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            or the option '-properties' to set atom types manually."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3715)
   msg = "/!\ WARNING: input data contains partial occupancies, which are"
@@ -2710,6 +2714,11 @@ CASE(3718)
   msg = "            You may use the option '-remove-property type' to remove atom types,"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            or the option '-properties' to set atom types manually."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3719)
+  !reals(1) = atom "type"
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNING: new atoms were assigned the 'type' "//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES

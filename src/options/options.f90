@@ -435,7 +435,7 @@ DO ioptions=1,SIZE(options_array)
       nerr=nerr+1
       GOTO 1000
     ENDIF
-    CALL ADDATOM_XYZ(H,P,S,AUX,addatom_species,addatom_type,addatom_prop,SELECT)
+    CALL ADDATOM_XYZ(H,P,S,AUXNAMES,AUX,addatom_species,addatom_type,addatom_prop,SELECT)
   !
   CASE('-add-shells','-addshells','-as')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp

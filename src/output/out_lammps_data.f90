@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Oct. 2020                                     *
+!* Last modification: P. Hirel - 02 Dec. 2020                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -187,7 +187,7 @@ IF( ALLOCATED(AUXNAMES) ) THEN
         CALL FIND_NSP(AUX(:,typecol),atypes)
         Ntypes = SIZE(atypes,1)
         !Verify that atom types are all greater than zero
-        IF( ANY(atypes(:,1)<0.99999999d0) ) THEN
+        IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
           nwarn=nwarn+1
           CALL ATOMSK_MSG(3714,(/""/),(/0.d0/))
         ENDIF

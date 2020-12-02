@@ -2666,7 +2666,11 @@ CASE(3713) ! missing absorption data
   msg = "/!\ WARNUNG: absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3714)
-  msg = "/!\ WARNUNG: einige Atome haben einen ungültigen Typ."
+  msg = "/!\ WARNUNG: einige Atome haben einen ungültigen 'type'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Sie können die Option '-remove-property type' verwenden, um Atomtypen zu entfernen,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            oder die Option '-properties', um Atomtypen manuell festzulegen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3715)
   msg = "/!\ WARNUNG: Eingabedaten enthalten Besetzungen, die nicht"
@@ -2693,6 +2697,11 @@ CASE(3718)
   msg = "            Sie können die Option '-remove-property type' verwenden, um Atomtypen zu entfernen,"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            oder die Option '-properties', um Atomtypen manuell festzulegen."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3719)
+  !reals(1) = atom "type"
+  WRITE(temp,*) NINT(reals(1))
+  msg = "/!\ WARNUNG: neuen Atomen wurde der Typ "//TRIM(ADJUSTL(temp))//" zugewiesen."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: FEHLER MESSAGES
