@@ -36,9 +36,11 @@
 
 <p>When using the keyword <strong>random &#60;N&#62;</strong> (where &#60;N&#62; is an integer), then &#60;N&#62; new atoms are inserted at random positions in the system. The position of each new atom will be decided randomly, and then changed to be at the center of the four nearest neighbors of that position. Note that this option attempts to generate random positions for the new atoms, therefore it is largely non-reproducible, i.e. starting from the exact same system and applying the present option will likely lead to different results.</p>
 
-<p>The new atom(s) are added at the end of the atom list, so that old atoms keep their former indices. In order to change the way atoms are sorted it is possible to use the <a href="./option_sort.html">option <code>-sort</code></a>.</p>
+<p>The new atom(s) are added at the end of the atom list, so that pre-existing atoms keep their former indices. In order to change the way atoms are sorted it is possible to use the <a href="./option_sort.html">option <code>-sort</code></a>.</p>
 
-<p>If other atoms of the same &#60;species&#62; have shells (in the sense of an ionic core-shell model), then the new atoms are also created with a shell at the same position as their core. If other atoms had auxiliary properties, then the properties of the first atom of the same species are applied to the new atom(s).</p>
+<p>If auxiliary properties exist, they are given a zero value for new atoms, except for the electric charge ("q") and the "type" which will be identical to those of pre-existing atoms with the same &#60;species&#62;. If no pre-existing atom has the same &#60;species&#62; as the new atoms, then the new atoms will be given a neutral charge (q=0) and/or a new type.</p>
+
+<p>If pre-existing atoms of the same &#60;species&#62; have shells (in the sense of an ionic core-shell model), then the new atoms are also created with a shell at the same position as their core. If other atoms had auxiliary properties, then the properties of the first atom of the same species are applied to the new atom(s).</p>
 
 
 <h4>Default</h4>

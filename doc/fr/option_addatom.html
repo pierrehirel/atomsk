@@ -36,7 +36,9 @@
 
 <p>Avec le mot-clé <strong>random &#60;N&#62;</strong> (où &#60;N&#62; est un entier), &#60;N&#62; nouveaux atomes sont introduits à des positions aléatoires dans le système. La position de chaque nouvel atome est d'abord décidée aléatoirement, puis ré-ajustée pour être au centre des quatre premiers voisins de cette position aléatoire. Notez que cette option tente de définir des positions au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même système et en appliquant cette option il est très probable d'obtenir des résultats différents.</p>
 
-<p>Les nouveaux atomes seront ajoutés à la fin de la liste d'atomes, de sorte que les anciens atomes conservent leurs indices. Pour changer l'ordre dans lequel les atomes sont triés il est possible d'utiliser l'<a href="./option_sort.html">option <code>-sort</code></a>.</p>
+<p>Les nouveaux atomes seront ajoutés à la fin de la liste d'atomes, de sorte que les atomes pré-existants conservent leurs indices. Pour changer l'ordre dans lequel les atomes sont triés il est possible d'utiliser l'<a href="./option_sort.html">option <code>-sort</code></a>.</p>
+
+<p>Si des propriétés auxiliaires sont définies, alors elles prendront la valeur zéro pour les nouveaux atomes, sauf la charge électrique ("q") et le "type" qui seront identiques à ceux des atomes pré-existants de la même &#60;espèce&#62;. Si aucun atome pré-existant n'a la même &#60;espèce&#62; que les nouveaux atomes, alors les nouveaux atomes auront une charge neutre (q=0) et un nouveau type sera défini.</p>
 
 <p>Si les autres atomes de la même &#60;espèce&#62; ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), alors les nouveaux atomes sont aussi créés avec des coquilles à la même position que leurs c&oelig;ur. Si les autres atomes possédaient des propriétés auxiliaires, alors les propriétés du premier atome de la même espèce sont appliquées au nouvel atome (ou aux nouveaux atomes).</p>
 

@@ -3528,40 +3528,61 @@ REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 !
 !Get the current date
 CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
-!VALUES(1): 	The year
-!VALUES(2): 	The month
-!VALUES(3): 	The day of the month
-!VALUES(4): 	Time difference with UTC in minutes
-!VALUES(5): 	The hour of the day
-!VALUES(6): 	The minutes of the hour
-!VALUES(7): 	The seconds of the minute
-!VALUES(8): 	The milliseconds of the second 
+!VALUES(1): The year
+!VALUES(2): The month
+!VALUES(3): The day of the month
+!VALUES(4): Time difference with UTC in minutes
+!VALUES(5): The hour of the day
+!VALUES(6): The minutes of the hour
+!VALUES(7): The seconds of the minute
+!VALUES(8): The milliseconds of the second
 !
-!New year
-IF(values(2)==1 .AND. values(3)<=10) THEN
-  WRITE(msg,*) values(1)
-  msg = TRIM(ADJUSTL(msg))
-  msg = "*** GLUeCKLICHES NEUES JAHR "//TRIM(msg)//"! ***"
+!
+!If it's late at night or in the week end
+IF( values(5)>=20 .OR. values(5)<=6 ) THEN
+  msg = "*** Arbeiten außerhalb der Buerozeiten? Sie sollten mal schlafen. :-)"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!14 March (3/14): Pi day
+!If it's lunch time
+ELSEIF(values(5)==12 .AND. values(6)>=30) THEN
+  msg = "*** Ich habe Hunger! :-p"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
+!13:37, it's leet time :-)
+ELSEIF(values(5)==13 .AND. values(6)==37) THEN
+  msg = "*** 17'5 1337 71|V|3!!"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
+!New year
+ELSEIF(values(2)==1 .AND. values(3)<=10) THEN
+  WRITE(msg,*) values(1)
+  msg = TRIM(ADJUSTL(msg))
+  msg = "*** GLÜCKLICHES NEUES JAHR "//TRIM(msg)//"!"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
+!March 14 (3/14): Pi day
 ELSEIF(values(2)==3 .AND. values(3)==14) THEN
   WRITE(msg,'(a8,f51.48)') "    π = ", pi
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!1 April
+!March 31
+ELSEIF(values(2)==3 .AND. values(3)==31) THEN
+  msg = "  WORLD BACKUP DAY - Denken Sie daran, Ihre Daten zu sichern!"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
+!April 1
 ELSEIF(values(2)==4 .AND. values(3)==1) THEN
   msg = "              \,-^--._"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "              /`--;-` "
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!1 May
+!May 1
 ELSEIF(values(2)==5 .AND. values(3)==1) THEN
   msg = "*** Sie arbeiten? Tag der Arbeit ist ein FEIERTAG! :-)"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!4 May: Star Wars day ("May the fourth/May the force be with you")
+!May 4: Star Wars day ("May the fourth/May the force be with you")
 ELSEIF(values(2)==5 .AND. values(3)==4) THEN
   msg = "               .=."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3574,12 +3595,12 @@ ELSEIF(values(2)==5 .AND. values(3)==4) THEN
   msg = "             /]==;\"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!14 July
-ELSEIF(values(2)==14 .AND. values(3)==07) THEN
+!July 14
+ELSEIF(values(2)==7 .AND. values(3)==14) THEN
   msg = "*** Today is France National Day!"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
-!8 August: international cat day
+!August 8: international cat day
 ELSEIF(values(2)==8 .AND. values(3)==8) THEN
   CALL GEN_NRANDNUMBERS(1,randarray)
   IF( randarray(1)<0.25d0 ) THEN
@@ -3634,7 +3655,7 @@ ELSEIF(values(2)==8 .AND. values(3)==8) THEN
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 !
-!31 October: Halloween
+!October 31: Halloween
 ELSEIF(values(2)==10 .AND. values(3)==31) THEN
   CALL GEN_NRANDNUMBERS(1,randarray)
   IF( randarray(1)<0.25d0 ) THEN
@@ -3697,42 +3718,9 @@ ELSEIF(values(2)==10 .AND. values(3)==31) THEN
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 !
-!Christmas
-ELSEIF(values(2)==12 .AND. values(3)>=20 .AND. values(3)<=25) THEN
-  msg = "                <>"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "                /\"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "               /  \"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "               / °\"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "              /°   \"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "             /   ° `\"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "             / `   ,\"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "            /___° ___\"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "                ||"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = " * * *  FROHE WEIHNACHTEN  !  * * *"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-!
-!If it's late at night or in the week end
-ELSEIF( values(5)>=20 .OR. values(5)<=6 ) THEN
-  msg = "*** Arbeiten außerhalb der Buerozeiten? Sie sollten mal schlafen. :-)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-!
-!If it's lunch time
-ELSEIF(values(5)==12 .AND. values(6)>=30) THEN
-  msg = "*** Ich habe Hunger! :-p"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-!
-!13:37, it's leet time :-)
-ELSEIF(values(5)==13 .AND. values(6)==37) THEN
-  msg = "*** 17'5 1337 71|V|3!!"
+!Around December 25: Christmas
+ELSEIF(values(2)==12 .AND. values(3)>=24 .AND. values(3)<=25) THEN
+  msg = " * * *   FROHE WEIHNACHTEN!   * * *"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ENDIF
