@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 July 2020                                     *
+!* Last modification: P. Hirel - 05 Jan. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1136,6 +1136,16 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='-reduce-cell' .OR. clarg=='-reducecell' .OR. clarg=='-reduce-box' .OR. clarg=='-reducebox') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
+    !Read direction along which the cell must be reduced (optional)
+    IF( i<SIZE(cla) ) THEN
+      i=i+1
+      READ(cla(i),'(a128)',END=400,ERR=400) temp
+      IF( temp=="x".OR.temp=="X" .OR. temp=="y".OR.temp=="Y" .OR. temp=="z".OR.temp=="Z" ) THEN
+        options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      ELSE
+        i=i-1
+      ENDIF
+    ENDIF
   !
   ELSEIF(clarg=='-remove-atom'  .OR. clarg=='-rmatom'  .OR. &
         &clarg=='-remove-atoms' .OR. clarg=='-rmatoms' .OR. &

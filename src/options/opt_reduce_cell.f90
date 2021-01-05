@@ -10,7 +10,7 @@ MODULE reduce_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 June 2020                                     *
+!* Last modification: P. Hirel - 05 Jan. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,13 +36,15 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE REDUCECELL(H,P,S,AUX,SELECT)
+SUBROUTINE REDUCECELL(H,P,S,AUX,dir,SELECT)
 !
 IMPLICIT NONE
+CHARACTER(LEN=1),INTENT(IN):: dir  !direction to reduce (if empty, reduce all directions)
 CHARACTER(LEN=128):: msg
+LOGICAL,DIMENSION(3):: reducedir !=TRUE if this direction must be reduced
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT  !mask for atom list
 LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT             !mask for atom list (temporary)
-INTEGER,DIMENSION(3):: reduce
+INTEGER,DIMENSION(3):: reduced !=1 if cell was reduced along X,Y,Z , =0 otherwise
 INTEGER:: i, iref, j, k, NP, m, n, o
 REAL(dp):: cp, vp, tempreal
 REAL(dp),PARAMETER:: rtol=1.d-3  !relative tolerance on atom positions
@@ -66,6 +68,17 @@ IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 !
+reducedir(:) = .FALSE.
+IF( dir=="x" .OR. dir=="X" ) THEN
+  reducedir(1) = .TRUE.
+ELSEIF( dir=="y" .OR. dir=="Y" ) THEN
+  reducedir(2) = .TRUE.
+ELSEIF( dir=="z" .OR. dir=="Z" ) THEN
+  reducedir(3) = .TRUE.
+ELSE
+  reducedir(:) = .TRUE.
+ENDIF
+!
 !
 !
 100 CONTINUE
@@ -80,7 +93,7 @@ ENDDO
 !
 !
 120 CONTINUE
-reduce(:) = 0
+reduced(:) = 0
 Hnew(:,:) = 1.d12
 IF( verbosity==4 ) THEN
   WRITE(msg,*) "Reference atom #", iref, ": ", P(iref,1), P(iref,2), P(iref,3)
@@ -125,7 +138,7 @@ DO i=1,SIZE(P,1)
         !Save it as new cell vector
         !$OMP CRITICAL
         Hnew(k,:) = V(:)
-        reduce(k) = 1
+        reduced(k) = 1
         !$OMP END CRITICAL
       ENDIF
     ENDIF
@@ -136,7 +149,7 @@ ENDDO
 !
 !
 150 CONTINUE
-IF( .NOT.ANY(reduce(:)==1) .AND. SIZE(P,1)>100 .AND. iref==1 ) THEN
+IF( .NOT.ANY(reduced(:)==1) .AND. SIZE(P,1)>100 .AND. iref==1 ) THEN
   !Unable to find a reduced cell using first atom
   !System has a lot of atoms, itmay be complex (e.g. defect at the origin), try with a different reference atom
   iref = SIZE(P,1) / 5
@@ -149,17 +162,21 @@ ENDIF
 !
 200 CONTINUE
 !Replace old cell vectors with new ones
-reduce(:)=0
+reduced(:)=0  !so far the cell was not reduced
+!Loop on X, Y, Z
 DO i=1,3
-  IF( VECLENGTH(Hnew(i,:)) < VECLENGTH(H(i,:)) .AND. VECLENGTH(Hnew(i,:)) > 0.5d0 ) THEN
-    !Replace cell vector H(i,:) with new one
-    H(i,:) = H(i,:)*VECLENGTH(Hnew(i,:)) / VECLENGTH(H(i,:))
-    !Mark it as modified
-    reduce(i) = 1
-    !Eliminate approximations in cell vectors components
-    DO j=1,3
-      IF( DABS(H(i,j)) < rtol ) H(i,j) = 0.d0
-    ENDDO
+  !Check if user asked to reduce cell along this direction
+  IF( reducedir(i) ) THEN
+    IF( VECLENGTH(Hnew(i,:)) < VECLENGTH(H(i,:)) .AND. VECLENGTH(Hnew(i,:)) > 0.5d0 ) THEN
+      !Replace cell vector H(i,:) with new one
+      H(i,:) = H(i,:)*VECLENGTH(Hnew(i,:)) / VECLENGTH(H(i,:))
+      !Mark it as modified
+      reduced(i) = 1
+      !Eliminate approximations in cell vectors components
+      DO j=1,3
+        IF( DABS(H(i,j)) < rtol ) H(i,j) = 0.d0
+      ENDDO
+    ENDIF
   ENDIF
 ENDDO
 !
@@ -177,7 +194,7 @@ DO i=1,3
   tol(i) = MIN( 1.d-3 , rtol / VECLENGTH(H(i,:)) )
 ENDDO
 !
-IF( ANY( reduce(:)>0 ) ) THEN
+IF( ANY( reduced(:)>0 ) ) THEN
   !One or more cell vectors were changed: remove all atoms that are not inside the new cell
   !Convert atom positions into reduced coordinates
   CALL CART2FRAC(P,H)
@@ -215,9 +232,9 @@ IF( ANY( reduce(:)>0 ) ) THEN
       !Check if this atom is in the new box
       !Along each direction, atom is counted as being inside the box if
       !the box was not reduced along that direction, or if atom is within the new boundaries
-      IF( ( reduce(1)==0 .OR. (V(1)>-tol(1) .AND. V(1)<=1.d0-tol(1)) ) .AND. &
-        & ( reduce(2)==0 .OR. (V(2)>-tol(2) .AND. V(2)<=1.d0-tol(2)) ) .AND. &
-        & ( reduce(3)==0 .OR. (V(3)>-tol(3) .AND. V(3)<=1.d0-tol(3)) )       ) THEN
+      IF( ( reduced(1)==0 .OR. (V(1)>-tol(1) .AND. V(1)<=1.d0-tol(1)) ) .AND. &
+        & ( reduced(2)==0 .OR. (V(2)>-tol(2) .AND. V(2)<=1.d0-tol(2)) ) .AND. &
+        & ( reduced(3)==0 .OR. (V(3)>-tol(3) .AND. V(3)<=1.d0-tol(3)) )       ) THEN
         !Yes, it is in the box: add it to the list
         NP = NP+1
         IF(NP<=SIZE(Q,1)) THEN
@@ -272,7 +289,7 @@ IF( ANY( reduce(:)>0 ) ) THEN
     CALL FRAC2CART(S,H)
   ENDIF
   !
-  CALL ATOMSK_MSG(2150,(/''/),(/ DBLE(reduce(1)), DBLE(reduce(2)), DBLE(reduce(3)), DBLE(NP) /))
+  CALL ATOMSK_MSG(2150,(/''/),(/ DBLE(reduced(1)), DBLE(reduced(2)), DBLE(reduced(3)), DBLE(NP) /))
   !
 ELSE
   !No cell vector was modified: display warning and go on

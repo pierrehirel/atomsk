@@ -15,7 +15,7 @@
 
 <h4>Syntax</h4>
 
-<p><code>-reduce-cell</code></p>
+<p><code>-reduce-cell &#60;x|y|z&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -26,9 +26,11 @@
 
 <p>This option preserves the crystal orientation, it just attempts to shorten the cell vectors when it is possible. The resulting final cell should be the shortest for this crystal orientation.</p>
 
+<p>If this option is called with the parameter "x", "y", or "z", then the cell size is reduced only along that direction. In the absence of parameter the cell size is reduced in all dimensions.</p>
+
 <p>If the system is rotated and you wish to obtain an orthorhombic unit cell, then use the <a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a> before this one.</p>
 
-<p>Note that this option is meant for use with perfect crystals. It cannot be expected to give good results in crystals containing defects, nor on non-crystalline or disordered systems.</p>
+<p>Note that this option is meant for use with perfect crystals. It cannot be expected to give good results in crystals containing defects, nor on non-crystalline or disordered systems. Also, Atomsk will attempt to reduce the cell size, but if it does not find suitable shorter vectors, then the cell will remain the same.</p>
 
 
 <h4>Default</h4>
@@ -48,6 +50,10 @@
 
 <li><code class="command">atomsk initial.cfg -rotate Z 45 -orthogonal-cell -reduce-cell final.cfg</code>
 <p>This will <a href="./option_rotate.html">rotate the system</a> by 45° around Z, search for an <a href="./option_orthocell.html">equivalent orthogonal cell</a>, and finally attempt to reduce the size of this cell. The result will be output in <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -reduce-cell y final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and attempt to reduce the cell size along the Y axis. The result will be output in <code>final.cfg</code>.</p></li>
+
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

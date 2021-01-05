@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 Sept. 2020                                    *
+!* Last modification: P. Hirel - 05 Jan. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -201,6 +201,9 @@ CHARACTER(LEN=32),DIMENSION(3):: oldvec, newvec !old and new Miller indices
 CHARACTER(LEN=128):: propfile  !file containing the properties
 REAL(dp),DIMENSION(3):: lat_a0   !lattice constants a, b, c
 REAL(dp),DIMENSION(9,9):: C_tensor_dummy !elastic tensor (dummy)
+!
+!Variables relative to Option: reduce-cell
+CHARACTER(LEN=1):: reduce_dir  !direction along which the cell will be reduced (may be empty)
 !
 !Variables relative to Option: rmatom
 CHARACTER(LEN=32):: rmatom_prop  !what atom(s) to erase
@@ -752,7 +755,13 @@ DO ioptions=1,SIZE(options_array)
     CALL DETERMINE_H(H,P)
   !
   CASE('-reduce-cell','-reducecell','-reduce-box','-reducebox')
-    CALL REDUCECELL(H,P,S,AUX,SELECT)
+    i = LEN_TRIM(optionname)
+    IF( LEN_TRIM(options_array(ioptions)(i+1:)) > 0 ) THEN
+      READ(options_array(ioptions)(i+1:),*,END=800,ERR=800) reduce_dir
+    ELSE
+      reduce_dir = ""
+    ENDIF
+    CALL REDUCECELL(H,P,S,AUX,reduce_dir,SELECT)
   !
   CASE('-remove-atom','-remove-atoms','-rmatom','-rmatoms','-delete-atoms','-delete_atoms')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, rmatom_prop
