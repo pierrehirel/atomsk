@@ -170,6 +170,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             LATTICES         wurtzite  |  2 (a and c)   |     2"
   WRITE(*,*) "                              graphite  |  2 (a and c)   |   1 or 2"
   WRITE(*,*) "                                   C14  |  2 (a and c)   |     2"
+  WRITE(*,*) "                                   C36  |  2 (a and c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN

@@ -152,6 +152,7 @@ DO WHILE(i<SIZE(cla))
     IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'    .OR.  &
       & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'     .OR.  &
       & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'    .OR.  &
+      & mode_param(1)=='c36'      .OR. mode_param(1)=='C36'    .OR.  &
       & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'   .OR.  &
       & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'  .OR.  &
       & mode_param(1)=='st'       .OR. mode_param(1)=='bct'    .OR.  &
@@ -223,7 +224,7 @@ DO WHILE(i<SIZE(cla))
           i=i+1
           m=m+1
           READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','limo2','LiMO2')
+        CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','c36','C36','limo2','LiMO2')
           !Hexagonal lattice => read crystal orientation
           m=m+1
           mode_param(m) = "orient"

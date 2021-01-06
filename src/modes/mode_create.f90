@@ -846,6 +846,112 @@ CASE('c14','C14')
   comment(1) = TRIM(ADJUSTL(comment(1)))//' with C14 Laves structure'
 !
 !
+CASE('c36','C36')
+  hexagonal = .TRUE.
+  IF(nspecies.NE.2) THEN
+    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    GOTO 810
+  ENDIF
+  !Set up the unit cell
+  H(1,1) = create_a0(1)
+  H(2,1) = create_a0(2)*DCOS(DEG2RAD(120.d0))
+  H(2,2) = create_a0(2)*DSIN(DEG2RAD(120.d0))
+  H(3,3) = create_a0(3)
+  Huc(:,:) = H(:,:)
+  !Set up atom positions
+  !Consider the prototype MgNi2
+  ALLOCATE(P(24,4))
+  P(:,:) = 0.d0
+  !Positions of Mg
+  P(1,3) = 0.406d0
+  P(2,3) = 0.594d0
+  P(3,3) = 0.906d0
+  P(4,3) = 0.094d0
+  P(5,2) = 0.667d0
+  P(5,3) = 0.656d0
+  P(6,1) = 0.500d0
+  P(6,2) = 0.333d0
+  P(6,3) = 0.344d0
+  P(7,1) = 0.500d0
+  P(7,2) = 0.333d0
+  P(7,3) = 0.156d0
+  P(8,2) = 0.667d0
+  P(8,3) = 0.844d0
+  !Positions of Ni
+  P(9,2) = 0.667d0
+  P(9,3) = 0.375d0
+  P(10,1) = 0.500d0
+  P(10,2) = 0.333d0
+  P(10,3) = 0.625d0
+  P(11,1) = 0.500d0
+  P(11,2) = 0.333d0
+  P(11,3) = 0.875d0
+  P(12,2) = 0.667d0
+  P(12,3) = 0.125d0
+  P(13,1) = 0.250d0
+  P(13,2) = 0.500d0
+  P(13,3) = 0.500d0
+  P(14,1) = 0.500d0
+  P(14,3) = 0.500d0
+  P(15,1) = -0.250d0
+  P(15,2) = 0.500d0
+  P(15,3) = 0.500d0
+  P(16,1) = 0.250d0
+  P(16,2) = 0.500d0
+  P(17,1) = 0.500d0
+  P(18,1) = -0.250d0
+  P(18,2) = 0.500d0
+  P(19,1) = -0.254d0
+  P(19,2) = 0.836d0
+  P(19,3) = 0.250d0
+  P(20,2) = 0.329d0
+  P(20,3) = 0.250d0
+  P(21,1) = 0.254d0
+  P(21,2) = 0.836d0
+  P(21,3) = 0.250d0
+  P(22,1) = 0.754d0
+  P(22,2) = 0.164d0
+  P(22,3) = 0.750d0
+  P(23,1) = 0.500d0
+  P(23,2) = 0.671d0
+  P(23,3) = 0.750d0
+  P(24,1) = 0.246d0
+  P(24,2) = 0.164d0
+  P(24,3) = 0.750d0
+  !Set up atom species
+  CALL ATOMNUMBER(create_species(1),P(1,4))
+  P(2,4) = P(1,4)
+  P(3,4) = P(1,4)
+  P(4,4) = P(1,4)
+  P(5,4) = P(1,4)
+  P(6,4) = P(1,4)
+  P(7,4) = P(1,4)
+  P(8,4) = P(1,4)
+  CALL ATOMNUMBER(create_species(2),P(9,4))
+  P(10,4) = P(9,4)
+  P(11,4) = P(9,4)
+  P(12,4) = P(9,4)
+  P(13,4) = P(9,4)
+  P(14,4) = P(9,4)  
+  P(15,4) = P(9,4)
+  P(16,4) = P(9,4)
+  P(17,4) = P(9,4)
+  P(18,4) = P(9,4)
+  P(21,4) = P(9,4)
+  P(20,4) = P(9,4)
+  P(21,4) = P(9,4)
+  P(22,4) = P(9,4)
+  P(23,4) = P(9,4)
+  P(24,4) = P(9,4)
+  !Transform atom positions to cartesian
+  P(:,1) = H(1,1)*P(:,1)
+  P(:,2) = H(2,2)*P(:,2)
+  P(:,3) = H(3,3)*P(:,3)
+  !Set up the messages
+  WRITE(comment(1),*) TRIM(create_species(1))//TRIM(create_species(2))//"2"
+  comment(1) = TRIM(ADJUSTL(comment(1)))//' with C36 Laves structure'
+!
+!
 CASE('limo2','LiMO2')
   hexagonal = .TRUE.
   IF(nspecies.NE.3) THEN
