@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2020                                     *
+!* Last modification: P. Hirel - 11 Jan. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -76,6 +76,7 @@ INTEGER:: Nadded, Nrm  !number of atoms added or removed from selection
 INTEGER:: progress !to show calculation progress
 INTEGER:: rand_N   !number of atoms to select randomly
 INTEGER:: sp_N     !number of atoms of the given species that exist in P
+INTEGER,DIMENSION(:),ALLOCATABLE:: atomlist, templist    !indices of atom(s) of a given species
 INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be selected
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex    !list of sorted indexes
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
@@ -97,6 +98,7 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !supercell vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: randsort   !random numbers (sorted)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries   !species, Natoms of this species
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX        !auxiliary properties of atoms/shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: GRID       !positions of elements in a finite-element grid
@@ -125,7 +127,10 @@ Nselect = 0
 Nadded = 0
 Nrm = 0
 snumber = 0.d0
+IF(ALLOCATED(atomlist)) DEALLOCATE(atomlist)
+IF(ALLOCATED(templist)) DEALLOCATE(templist)
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
+IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
 IF(ALLOCATED(atomindices)) DEALLOCATE(atomindices)
 IF(ALLOCATED(facenormals)) DEALLOCATE(facenormals)
 IF(ALLOCATED(GRID)) DEALLOCATE(GRID)
@@ -1623,6 +1628,48 @@ CASE('random','rand','random%','rand%')
       toselect = .FALSE.
     ENDIF
     !
+    IF( snumber>0.1d0 ) THEN
+      !create a list of index of all atoms of the given species
+      ALLOCATE(atomlist(sp_N))
+      atomlist(:) = 0
+      j = 0
+      DO i=1,SIZE(P,1)
+        IF( NINT(P(i,4))==NINT(snumber) ) THEN
+          j=j+1
+          atomlist(j) = i
+        ENDIF
+      ENDDO
+      !
+    ELSE
+      !the list simply contains all possible indices from 1 to NP
+      ALLOCATE(atomlist(SIZE(P,1)))
+      atomlist(:) = 0
+      DO i=1,SIZE(P,1)
+        atomlist(i) = i
+      ENDDO
+    ENDIF
+    !
+    IF( among ) THEN
+      !If user specified "among", then atoms must be picked only among atoms that were previously selected
+      ALLOCATE(templist(SIZE(atomlist)))
+      j=0
+      DO i=1,SIZE(atomlist)
+        IF( SELECT(atomlist(i)) ) THEN
+          j=j+1
+          templist(j) = atomlist(i)
+        ENDIF
+      ENDDO
+      !Replace old atomlist with new one
+      DEALLOCATE(atomlist)
+      ALLOCATE(atomlist(j))
+      DO i=1,SIZE(atomlist)
+        atomlist(i) = templist(i)
+      ENDDO
+      DEALLOCATE(templist)
+    ENDIF
+    !
+    !Now we are sure that the atomlist(:) contains only the index of atoms to be (un-)selected
+    !
     !Generate random numbers
     IF(toselect) THEN
       CALL GEN_NRANDNUMBERS( rand_N , randarray )
@@ -1630,153 +1677,76 @@ CASE('random','rand','random%','rand%')
       CALL GEN_NRANDNUMBERS( sp_N-rand_N , randarray )
     ENDIF
     !
-    !randarray now contains random real numbers between 0.d0 and 1.d0
-    !Sort them by increasing values (this is bubble sort algorithm)
-    DO j=1,SIZE(randarray)
-      DO i=j+1,SIZE(randarray)
-        !If element i is smaller than element j, swap them
-        IF( randarray(i) < randarray(j) ) THEN
-          tempreal = randarray(i)
-          randarray(i) = randarray(j)
-          randarray(j) = tempreal
-        ENDIF
-      ENDDO
+    !randarray(:) now contains random real numbers between 0.d0 and 1.d0
+    !Sort them by increasing values (must convert into rank-2 array to call QUICKSORT)
+    ALLOCATE(randsort(SIZE(randarray),1))
+    randsort(:,1) = randarray(:)
+    CALL QUICKSORT(randsort(:,:),1,"up  ",newindex)
+    IF(ALLOCATED(newindex)) DEALLOCATE(newindex)
+    randarray(:) = randsort(:,1)
+    DEALLOCATE(randsort)
+    !
+    !Convert random numbers into ranks in the atomlist
+    DO i=1,SIZE(randarray)
+      randarray(i) = NINT( randarray(i)*SIZE(atomlist) )
+      !Check that rank is within bounds of atomlist
+      IF( NINT(randarray(i))>SIZE(atomlist) ) THEN
+        randarray(i) = SIZE(atomlist)
+      ENDIF
+      IF( NINT(randarray(i))<=0 ) THEN
+        randarray(i) = 1
+      ENDIF
     ENDDO
     IF(verbosity==4) THEN
-      WRITE(msg,*) 'randarray (sorted):', SIZE(randarray), ' entries'
+      WRITE(msg,*) 'randarray (scaled and sorted):', SIZE(randarray), ' entries'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      DO i=1,SIZE(randarray)
+      DO i=1,MIN(20,SIZE(randarray))
         WRITE(msg,*) '     ', randarray(i)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
+      IF(SIZE(randarray)>20) THEN
+        WRITE(msg,*) "      (...discontinued...)"
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
     ENDIF
     !
-    !Use it to generate the indices of the atoms that will be (un-)selected
+    !Verify that the difference between 2 consecutive random numbers is at least 1
+    !(this is necessary to avoid selecting twice the same atom, which would make the count wrong)
+    161 CONTINUE
+    DO i=2,SIZE(randarray)
+      DO WHILE( NINT(randarray(i)-randarray(i-1)) <= 0 )
+        randarray(i) = randarray(i) + 1
+      ENDDO
+      !Check that random number is not greater than size of atomlist
+      IF( randarray(i)>SIZE(atomlist) ) THEN
+        randarray(i) = 1
+        GOTO 161
+      ENDIF
+    ENDDO
+    !
+    !Save indices of atoms to (un-)select into atomindices
     ALLOCATE( atomindices(SIZE(randarray)) )
     atomindices(:) = 0
     DO i=1,SIZE(randarray)
+      !Convert random number into a position into atomlist
+      atomrank = NINT(randarray(i))
       !
-      !Convert random number into an atom rank
-      atomrank = NINT(randarray(i)*sp_N)
+      !Save index of atom from the atomlist
+      atomindices(i) = atomlist(atomrank)
       !
-      IF( snumber>0.1d0 ) THEN
-        !
-        IF( among ) THEN
-          !atomrank must be the index of a previously selected atom
-          j=0
-          k=0
-          DO WHILE(k<atomrank)
-            j=j+1
-            IF(j>SIZE(prevSELECT)) j=1
-            IF( prevSELECT(j) .AND. NINT(P(j,4))==NINT(snumber) ) THEN
-              k=k+1
-            ENDIF
-          ENDDO
-          atomindices(i) = j
-        ELSE
-          !Look for the atomrank-th atom of the given <species>
-          !and set atomindices(i) to its index
-          k=0
-          DO j=1,SIZE(P,1)
-            IF( NINT(P(j,4))==NINT(snumber) ) THEN
-              k=k+1
-              IF(k==atomrank) THEN
-                atomindices(i) = j
-                EXIT
-              ENDIF
-            ENDIF
-          ENDDO
-        ENDIF
-        !
-      ELSE
-        !Don't bother with atom species
-        IF( among ) THEN
-          !atomrank must be the index of a previously selected atom
-          j=0
-          k=0
-          DO WHILE(k<atomrank)
-            j=j+1
-            IF(j>SIZE(prevSELECT)) j=1
-            IF(prevSELECT(j)) THEN
-              k=k+1
-            ENDIF
-          ENDDO
-          atomindices(i) = j
-        ELSE
-          !Just look for the atomrank-th atom and set atomindices(i) to its index
-          k=0
-          DO j=1,SIZE(P,1)
-            k=k+1
-            IF(k==atomrank) THEN
-              atomindices(i) = j
-              EXIT
-            ENDIF
-          ENDDO
-        ENDIF
-      ENDIF
-      !
-      !Refuse illegal indices
-      IF( atomindices(i)==0 ) atomindices(i) = 1
-      !
-      !NOTE: There is a probability that the same index appears twice
-      !     in atomindices(:). Of course this probability is expected to be small
-      !     if rand_N << sp_N, but still the possibility should not be overlooked.
-      !     As a result we have to check for duplicate indices.
-      !     If the current index already exists in atomindices(:),
-      !     then increase it by 1 until it is different from all other indices
-      IF(i>1) THEN
-        161 CONTINUE
-        DO j=1,i-1  !loop on all values in atomindices(:)
-          IF ( atomindices(i)==atomindices(j) ) THEN
-            WRITE(msg,*) 'duplicate index in atomindices: ', &
-                      & atomindices(i), atomindices(j)
-            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-            !
-            atomindices(i) = atomindices(i)+1
-            !
-            IF( atomrank>=sp_N ) THEN
-              atomindices(i) = 1
-            ENDIF
-            IF( snumber>0.1d0 ) THEN
-              !
-              IF( among ) THEN
-                !Increase index until finding the next selected atom of the given species
-                DO WHILE( NINT(P(atomindices(i),4)).NE.NINT(snumber) .AND. .NOT.prevSELECT(i) )
-                  atomindices(i) = atomindices(i)+1
-                  IF( atomindices(i)>SIZE(P,1) ) THEN
-                    atomindices(i) = 1
-                  ENDIF
-                ENDDO
-              ELSE
-                !Increase index until finding the next atom of the given species
-                DO WHILE( NINT(P(atomindices(i),4)).NE.NINT(snumber) )
-                  atomindices(i) = atomindices(i)+1
-                  IF( atomindices(i)>SIZE(P,1) ) THEN
-                    atomindices(i) = 1
-                  ENDIF
-                ENDDO
-              ENDIF
-            ENDIF
-            !
-            WRITE(msg,*) '                     new index: ', atomindices(i)
-            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-            !Index of atomindices(i) has changed:
-            !go back to checking if it exists elsewhere in atomindices(:)
-            GOTO 161
-            !
-          ENDIF
-          !
-        ENDDO !atomindices(:)
-      ENDIF
-    ENDDO !i
+    ENDDO !end loop on i
     !
     IF(verbosity==4) THEN
       WRITE(msg,*) 'indices of random atoms:'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      DO i=1,SIZE(atomindices)
+      DO i=1,MIN(20,SIZE(atomindices))
         WRITE(msg,*) '     ', atomindices(i)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
+      IF(SIZE(atomindices)>20) THEN
+        WRITE(msg,*) "      (...discontinued...)"
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
     ENDIF
     !
     !Save the selection into SELECT
