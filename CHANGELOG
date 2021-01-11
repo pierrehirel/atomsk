@@ -4,7 +4,7 @@ CHANGELOG FOR ATOMSK
 
 Master (development)
 --------------------
-- parts of the code were parallelized with OpenMP, in particular: neighbor search; options "-orthogonal-cell", "-select stl"; modes "--density", "--edm", "--polycrystal", "--rdf". Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.
+- parts of the code were parallelized with OpenMP, meaning that it can take advantage of all cores of a CPU. Some modes and options that are now parallelized: neighbor search; options "-orthogonal-cell", "-select stl"; modes "--density", "--edm", "--polycrystal", "--rdf". Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.
 - added support for reading and writing files in BOPfox format (*.bx). Thanks to Matous Mrovec, ICAMS, Bochum University, Germany, for implementing this feature.
 - added support for reading and writing files in Comma-Separated Values format (*.csv).
 - added support for reading and writing files in CRYSTAL format (*.d12).
@@ -12,11 +12,11 @@ Master (development)
 - added support for reading and writing files in SIESTA Flexible Data Format (*.fdf).
 - new option "-cell" allows to modify cell vectors more easily.
 - new option "-nthreads" to control the number of OpenMP threads.
-- new option "-reduce-cell" allows to find an equivalent smaller cell to a system, while respecting its periodicity.
+- new option "-reduce-cell" allows finding an equivalent smaller cell to a system, while respecting its periodicity.
 - new option "-roundoff" allows to round off atom coordinates or the values of a property.
 - new module to evaluate mathematical expressions and convert them into real numbers. It supports common mathematical functions like abs, sqrt, trigonometric functions, and so on.
 - when writing VASP POSCAR files, atomic species are now written so as to comply to VASP version 5.x. They can simply be removed to comply with VASP 4.x and earlier.
-- in mode "--create", added possibility to create tetragonal lattices (simple, body-centered, or face-centered tetragonal). Also added possibility to create cubic C15 Laves phase. The cell vector reduction was generalized for oriented cubic lattices to produce the smallest unit cell.
+- in mode "--create", added possibility to create tetragonal lattices (simple, body-centered, or face-centered tetragonal). Also added possibility to create cubic C15 Laves phase. Also added possibility to create cubic C36 Laves phase, thanks to Zhuocheng Xie, RWTH Aachen, Germany, for implementing this phase. The cell vector reduction was generalized for oriented cubic lattices to produce the smallest unit cell.
 - in mode "--difference", the differences between matching auxiliary properties is now also computed.
 - in mode "--one-in-all" it is now possible to read all snapshots from LAMMPS custom dump files (*.lmc) and convert them into individual files.
 - in mode "--merge", comments of all files are now copied into the final file (when possible).

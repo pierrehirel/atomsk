@@ -3619,7 +3619,7 @@ ELSEIF(values(5)==13 .AND. values(6)==37) THEN
 ELSEIF(values(2)==1 .AND. values(3)<=10) THEN
   WRITE(msg,*) values(1)
   msg = TRIM(ADJUSTL(msg))
-  msg = "*** BONNE ANNÉE "//TRIM(msg)//"!"
+  msg = "*** BONNE ANNÉE "//TRIM(msg)//" !"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !March 14 (3/14): Pi day

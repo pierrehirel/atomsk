@@ -516,486 +516,23 @@ ENDIF
 !
 !
 300 CONTINUE
-IF( disloctype(1:4) .NE. 'loop' ) THEN
-  !Apply atomic displacements of a straight dislocation line
+IF(disloctype=='screw') THEN
   !
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   !!!!!!!!!!  SCREW DISLOCATION  !!!!!!!!!!
-  IF(disloctype=='screw') THEN
-    bsign = b(a3)/DABS(b(a3))
-    !
-    IF( aniso ) THEN
-      !Anisotropic elasticity
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
-          P(i,1:3) = P(i,1:3) + disp(:)
-          !
-          !Same if shells exist
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
-          !
-          !Compute stress
-          CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
-          !
-          !Add stresses due to this disloc. to existing stresses in AUX
-          AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
-          AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-          AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
-          AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
-          AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
-          AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
-      CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
-      !
-    ELSE
-      !Isotropic elasticity
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          disp = DISPSCREW(i,P(i,:),a1,a2,a3,b(a3),pos(1),pos(2))
-          P(i,1:3) = P(i,1:3) + disp(:)
-          !
-          !Same if shells exist
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
-          !
-          !Compute stress
-          CALL STRESSSCREW(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
-          !
-          !Add stresses due to this disloc. to existing stresses in AUX
-          AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
-          AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ISO_EFACTOR(VECLENGTH(b),nu,0.d0)
-      CALL ATOMSK_MSG(2101,(/'b²/4pi'/),(/Efactor/))
-    ENDIF
+  ! Apply atomic displacements of a straight screw dislocation line
+  bsign = b(a3)/DABS(b(a3))
   !
-  !
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
-  ! Method 1: only apply displacements (NP constant)
-  ! NOTE: this will introduce a step on one boundary
-  ELSEIF(disloctype=='edge') THEN
-    bsign = b(a1)/DABS(b(a1))
-    !
-    IF( aniso ) THEN
-      !Anisotropic elasticity
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
-          P(i,1:3) = P(i,1:3) + disp(:)
-          !
-          !Same if shells exist
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
-          !
-          !Compute stress
-          CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
-          !
-          !Add stresses due to this disloc. to existing stresses in AUX
-          AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
-          AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-          AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
-          AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
-          AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
-          AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
-      CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
-      !
-      !
-    ELSE
-      !Isotropic elasticity
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( P(i,a1)>pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
-            P(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
-            IF( doshells ) THEN
-              S(i,a1) = S(i,a1)+DABS(b(a1))/2.d0
-            ENDIF
-          ENDIF
-          !
-          disp = DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
-          P(i,1:3) = P(i,1:3) + disp(:)
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
-          !
-          IF( P(i,a1)>pos(1) .AND. (P(i,a2)-pos(2))*bsign>=0.d0 ) THEN
-            P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
-            IF( doshells ) THEN
-              S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
-            ENDIF
-          ENDIF
-          !
-          !
-          !Compute stress
-          CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
-          !
-          !Add stresses due to this disloc. to existing stresses in AUX
-          AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
-          AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-          AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
-          AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
-      CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
-      !
-    ENDIF
-  !
-  !
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
-  ! Method 2: insert a plane of atoms
-  ! (NP is increased so we have to use a new array Q)
-  ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
-    bsign = b(a1)/DABS(b(a1))
-    !First, insert a plane of atoms by copying an existing plane
-    !Count k = number of atoms that will be inserted
-    k = 0
+  IF( aniso ) THEN
+    !Anisotropic elasticity
     DO i=1,SIZE(P,1)
       IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
-          & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
-          & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
-          k=k+1
-        ENDIF
-      ENDIF
-    ENDDO
-    !
-    !Allocate Q to store atom positions of P + inserted atoms
-    ALLOCATE( Q( SIZE(P,1)+k,4 ) )
-    Q(:,:) = 0.d0
-    !If auxiliary properties are present they must be copied for inserted atoms
-    IF(ALLOCATED(AUX)) THEN
-      ALLOCATE( newAUX( SIZE(P(:,1))+k, SIZE(AUX(1,:)) ) )
-      newAUX(:,:) = 0.d0
-      DO i=1,SIZE(AUX(:,1))
-        newAUX(i,:) = AUX(i,:)
-      ENDDO
-    ENDIF
-    !If array SELECT is defined, expand it
-    IF( ALLOCATED(SELECT) ) THEN
-      CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1)+k,i)
-      IF( i>0 ) THEN
-        nerr=nerr+1
-        CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
-        GOTO 1000
-      ENDIF
-    ENDIF
-    !
-    !Also create temporary array T for shells if relevant
-    IF( doshells ) THEN
-      k = 0
-      DO i=1,SIZE(S,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( S(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
-            & S(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
-            & (S(i,a2)-pos(2))*bsign>=0.d0                ) THEN
-            k=k+1
-          ENDIF
-        ENDIF
-      ENDDO
-      !
-      !Allocate T to store shells positions of S + inserted shells
-      ALLOCATE( T( SIZE(S,1)+k,4 ) )
-      T(:,:) = 0.d0
-    ENDIF
-    !
-    IF( aniso ) THEN
-      !Anisotropic elasticity
-      !Store positions of inserted atoms into Q
-      k = 0
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
-            & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
-            & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
-            k=k+1
-            n = SIZE(P(:,1))+k
-            Q(n,:) = P(i,:)
-            !Apply edge displacements
-            disp = ANISO_DISP(n,Q(n,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
-            Q(n,1:3) = Q(n,1:3) + disp(:)
-            !Along a1, positions are those of P shifted by 3/4 Burgers vector
-            Q(n,a1) = P(i,a1) -DABS(b(a1))*0.75d0
-            !
-            !Apply displacements to shell
-            IF( doshells ) THEN
-              T(n,:) = S(i,:)
-              T(n,1:3) = T(n,1:3) + disp(:)
-              T(n,a1) = S(i,a1) -DABS(b(a1))*0.75d0
-            ENDIF
-            !
-            !Copy auxiliary properties for inserted atoms
-            IF(ALLOCATED(AUX)) THEN
-              newAUX(n,:) = AUX(i,:)
-            ENDIF
-          ENDIF
-        ENDIF
-      ENDDO
-      !
-      CALL ATOMSK_MSG(2063,(/''/),(/DBLE(k)/))
-      !
-      !Then we apply atomic displacements to all atoms
-      !(except the ones we just inserted) and store them into Q
-      DO i=1,SIZE(Q,1)
-        IF( i <= SIZE(P,1) ) THEN
-          Q(i,:) = P(i,:)
-          IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-            IF( P(i,a1)>=pos(1) .AND. (P(i,a2)-pos(2))*bsign>=0.d0 ) THEN
-              Q(i,a1) = P(i,a1)+DABS(b(a1))
-              IF( doshells ) THEN
-                T(i,a1) = S(i,a1)+DABS(b(a1))
-              ENDIF
-            ENDIF
-            disp = ANISO_DISP(i,Q(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
-            Q(i,1:3) = Q(i,1:3) + disp(:)
-            !Apply displacements to shell
-            IF( doshells ) THEN
-              T(i,1:3) = T(i,1:3) + disp(:)
-            ENDIF
-          ENDIF
-          !
-          !Compute stress
-          CALL ANISO_STRESS(Q(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
-          !
-          !Add stresses due to this disloc. to existing stresses in AUX
-          newAUX(i,sig1) = newAUX(i,sig1) + sigma(1,1)
-          newAUX(i,sig2) = newAUX(i,sig2) + sigma(2,2)
-          newAUX(i,sig3) = newAUX(i,sig3) + sigma(3,3)
-          newAUX(i,sig4) = newAUX(i,sig4) + sigma(2,3)
-          newAUX(i,sig5) = newAUX(i,sig5) + sigma(1,3)
-          newAUX(i,sig6) = newAUX(i,sig6) + sigma(1,2)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
-      CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
-      !
-      !
-      !
-    ELSE
-      !Isotropic elasticity
-      !Store positions of inserted atoms into Q
-      k = 0
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
-            & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
-            & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
-            k=k+1
-            n = SIZE(P,1)+k
-            Q(n,:) = P(i,:)
-            !Apply edge displacements along a2
-            disp = DISPEDGE(n,Q(n,:),a1,a2,b(a1),nu,pos(1),pos(2))
-            Q(n,1:3) = Q(n,1:3) + disp(:)
-            !Along a1, positions are those of P shifted by 5/4 Burgers vector
-            Q(n,a1) = P(i,a1) -DABS(b(a1))*1.25d0
-            !Apply displacements to shells if relevant
-            IF( doshells ) THEN
-              T(n,:) = S(i,:)
-              T(n,1:3) = T(n,1:3) + disp
-              !Along a1, positions are those of P shifted by 5/4 Burgers vector
-              T(n,a1) = S(i,a1) -DABS(b(a1))*1.25d0
-            ENDIF
-            !Copy auxiliary properties for inserted atoms
-            IF(ALLOCATED(AUX)) THEN
-              newAUX(n,:) = AUX(i,:)
-            ENDIF
-          ENDIF
-        ENDIF
-      ENDDO
-      !
-      CALL ATOMSK_MSG(2063,(/''/),(/DBLE(k)/))
-      !
-      !Then we apply atomic displacements to all atoms
-      !(except the ones we just inserted) and store them into Q
-      DO i=1,SIZE(Q,1)
-        IF( i <= SIZE(P,1) ) THEN
-          Q(i,:) = P(i,:)
-          IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-            IF( P(i,a1)>=pos(1) ) THEN
-              Q(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
-              IF( doshells ) THEN
-                T(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
-              ENDIF
-            ENDIF
-          ENDIF
-          disp = DISPEDGE(i,Q(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
-          Q(i,1:3) = Q(i,1:3) + disp(:)
-          !Apply displacements to shell
-          IF( doshells ) THEN
-            T(i,1:3) = T(i,1:3) + disp(:)
-          ENDIF
-        ENDIF
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
         !
-        !Compute stress
-        CALL STRESSEDGE(Q(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
-        !
-        !Add stresses due to this disloc. to existing stresses in AUX
-        newAUX(i,sig1) = newAUX(i,sig1) + sigma(1,1)
-        newAUX(i,sig2) = newAUX(i,sig2) + sigma(2,2)
-        newAUX(i,sig3) = newAUX(i,sig3) + sigma(3,3)
-        newAUX(i,sig6) = newAUX(i,sig6) + sigma(1,2)
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
-      CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
-      !
-    ENDIF  !Endif aniso
-    !
-    !Replace old P with the new Q
-    DEALLOCATE(P)
-    ALLOCATE(P(SIZE(Q,1),4))
-    P(:,:) = Q(:,:)
-    DEALLOCATE(Q)
-    !Replace old AUX by newAUX
-    IF(ALLOCATED(AUX)) THEN
-      DEALLOCATE(AUX)
-      ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) )
-      AUX = newAUX
-      DEALLOCATE(newAUX)
-    ENDIF
-    !
-    !If shells exist, replace old S with new T
-    IF( doshells ) THEN
-      DEALLOCATE(S)
-      ALLOCATE(S(SIZE(T,1),4))
-      S(:,:) = T(:,:)
-      DEALLOCATE(T)
-    ENDIF
-    !
-    !Supercell has been expanded along a1: calculate the new length
-    H(a1,a1) = H(a1,a1) + DABS(b(a1))/2.d0
-    CALL ATOMSK_MSG(2064,(/"+b/2"/),(/DBLE(a1)/))
-  !
-  !
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
-  ! Method 3: remove a half-plane of atoms
-  ! (NP is decreased so we have to use a new array Q)
-  ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
-    bsign = b(a1)/DABS(b(a1))
-    !
-    !Allocate Q to store atom positions
-    !(for now it has the same size as P)
-    ALLOCATE( Q( SIZE(P,1),4 ) )
-    Q(:,:) = 0.d0
-    !
-    !If auxiliary properties are present they must be copied
-    IF(ALLOCATED(AUX)) THEN
-      ALLOCATE( newAUX( SIZE(P,1) , SIZE(AUX,2) ) )
-      newAUX(:,:) = 0.d0
-    ENDIF
-    !Also create temporary array T for shells if relevant
-    IF( doshells ) THEN
-      !Allocate T to store shells positions of S + inserted shells
-      ALLOCATE( T( SIZE(S,1),4 ) )
-      T(:,:) = 0.d0
-    ENDIF
-    !If array SELECT is defined, expand it
-    IF( ALLOCATED(SELECT) ) THEN
-      ALLOCATE( newSELECT( SIZE(P,1)) )
-      newSELECT(:) = .TRUE.
-    ENDIF
-    !
-    !Remove atoms
-    !Count j = index of current atom
-    j = 0
-    !Count k = number of removed atoms
-    k = 0
-    DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-        IF( P(i,a1)>=pos(1) .AND. P(i,a1)<pos(1)+DABS(b(a1))-0.01d0 .AND. &
-          & (P(i,a2)-pos(2))*bsign<=0.d0                              ) THEN
-          !This atom is removed
-          k=k+1
-        ELSE
-          !This atom stays
-          j=j+1
-          Q(j,:) = P(i,:)
-          !If auxiliary properties exist, copy them
-          IF(ALLOCATED(AUX)) THEN
-            newAUX(j,:) = AUX(i,:)
-          ENDIF
-          !If shells are present, copy them
-          IF(doshells) THEN
-            T(j,:) = S(i,:)
-          ENDIF
-          !If a selection was defined, copy it
-          IF(ALLOCATED(SELECT)) THEN
-            newSELECT(j) = SELECT(i)
-          ENDIF
-        ENDIF
-      ENDIF
-    ENDDO
-    !
-    !Get rid of old atom positions P
-    DEALLOCATE(P)
-    !Copy the j first entries from Q into P
-    ALLOCATE( P(j,4) )
-    P(:,:) = 0.d0
-    IF(ALLOCATED(AUX)) THEN
-      DEALLOCATE(AUX)
-      ALLOCATE(AUX(j,SIZE(newAUX,2)))
-    ENDIF
-    DO i=1,SIZE(P,1)
-      P(i,:) = Q(i,:)
-      IF(ALLOCATED(AUX)) THEN
-        AUX(i,:) = newAUX(i,:)
-      ENDIF
-      IF(doshells) THEN
-        S(i,:) = T(i,:)
-      ENDIF
-      IF(ALLOCATED(SELECT)) THEN
-        SELECT(i) = newSELECT(i)
-      ENDIF
-    ENDDO
-    !
-    CALL ATOMSK_MSG(2063,(/''/),(/-1.d0*DBLE(k)/))
-    !
-    !We don't need Q anymore
-    DEALLOCATE(Q)
-    IF(ALLOCATED(T)) DEALLOCATE(T)
-    IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
-    IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
-    !
-    IF( aniso ) THEN
-      !Anisotropic elasticity
-      !Apply elastic displacements to all atoms
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( P(i,a1)>=pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
-            P(i,a1) = P(i,a1)-DABS(b(a1))
-            IF( doshells ) THEN
-              S(i,a1) = S(i,a1)-DABS(b(a1))
-            ENDIF
-          ENDIF
-          disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
-          P(i,1:3) = P(i,1:3) + disp(:)
-          !Apply displacements to shell
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
+        !Same if shells exist
+        IF( doshells ) THEN
+          S(i,1:3) = S(i,1:3) + disp(:)
         ENDIF
         !
         !Compute stress
@@ -1008,39 +545,101 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
         AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
         AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
         AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
-      CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
-      !
-      !
-      !
-    ELSE
-      !Isotropic elasticity
-      !Apply elastic displacements to all atoms
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          IF( P(i,a1)>=pos(1)+0.1d0 .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
-            P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
-            IF( doshells ) THEN
-              S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
-            ENDIF
-          ENDIF
-        ENDIF
-        disp = DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
+      ENDIF
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
+    CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
+    !
+  ELSE
+    !Isotropic elasticity
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        disp = DISPSCREW(i,P(i,:),a1,a2,a3,b(a3),pos(1),pos(2))
         P(i,1:3) = P(i,1:3) + disp(:)
-        !Apply displacements to shell
+        !
+        !Same if shells exist
         IF( doshells ) THEN
           S(i,1:3) = S(i,1:3) + disp(:)
         ENDIF
         !
-        IF( P(i,a1)>pos(1)+0.1d0 .AND. P(i,a2)*bsign>=bsign*pos(2) ) THEN
+        !Compute stress
+        CALL STRESSSCREW(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+        !
+        !Add stresses due to this disloc. to existing stresses in AUX
+        AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
+        AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
+      ENDIF
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,0.d0)
+    CALL ATOMSK_MSG(2101,(/'b²/4pi'/),(/Efactor/))
+  ENDIF
+  !
+  !
+ELSEIF(disloctype=='edge') THEN
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
+  ! Method 1: only apply displacements (NP constant)
+  ! NOTE: this will introduce a step on one boundary
+  bsign = b(a1)/DABS(b(a1))
+  !
+  IF( aniso ) THEN
+    !Anisotropic elasticity
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
+        !
+        !Same if shells exist
+        IF( doshells ) THEN
+          S(i,1:3) = S(i,1:3) + disp(:)
+        ENDIF
+        !
+        !Compute stress
+        CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
+        !
+        !Add stresses due to this disloc. to existing stresses in AUX
+        AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
+        AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
+        AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
+        AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
+        AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
+        AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
+      ENDIF
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
+    CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
+    !
+    !
+  ELSE
+    !Isotropic elasticity
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( P(i,a1)>pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
+          P(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
+          IF( doshells ) THEN
+            S(i,a1) = S(i,a1)+DABS(b(a1))/2.d0
+          ENDIF
+        ENDIF
+        !
+        disp = DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
+        P(i,1:3) = P(i,1:3) + disp(:)
+        IF( doshells ) THEN
+          S(i,1:3) = S(i,1:3) + disp(:)
+        ENDIF
+        !
+        IF( P(i,a1)>pos(1) .AND. (P(i,a2)-pos(2))*bsign>=0.d0 ) THEN
           P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
           IF( doshells ) THEN
             S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
           ENDIF
         ENDIF
+        !
         !
         !Compute stress
         CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
@@ -1050,66 +649,460 @@ IF( disloctype(1:4) .NE. 'loop' ) THEN
         AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
         AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
         AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
-      CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
-      !
-    ENDIF  !Endif aniso
+      ENDIF
+    ENDDO
     !
-    !Supercell was shrinked along a1: calculate the new length
-    H(a1,a1) = H(a1,a1) - DABS(b(a1))/2.d0
-    CALL ATOMSK_MSG(2064,(/"-b/2"/),(/DBLE(a1)/))
-  !
-  !
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !!!!!!!!!!  MIXED DISLOCATION  !!!!!!!!!!
-  ELSEIF(disloctype=='mixed') THEN
-    IF( aniso ) THEN
-      !Anisotropic elasticity
-      DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
-          disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
-          P(i,1:3) = P(i,1:3) + disp(:)
-          IF( doshells ) THEN
-            S(i,1:3) = S(i,1:3) + disp(:)
-          ENDIF
-          !
-          !Compute stress
-          CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
-          !
-          !Add stresses due to this disloc. to existing stresses in AUX
-          AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
-          AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
-          AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
-          AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
-          AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
-          AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
-        ENDIF
-      ENDDO
-      !
-      !Compute prelogarithmic energy factor
-      Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
-      CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
-      !
-      !
-    ELSE
-      !Isotropic elasticity: cannot build mixed dislocation
-      CALL ATOMSK_MSG(2808,(/""/),(/0.d0/))
-      nerr=nerr+1
-      GOTO 1000
-      !
-    ENDIF
+    !Compute prelogarithmic energy factor
+    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
+    CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
     !
-    !
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ELSE
-    !Unknown dislocation type
   ENDIF
   !
   !
-ELSE !i.e. disloctype == 'loop'
+ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
+  ! Method 2: insert a plane of atoms
+  ! (NP is increased so we have to use a new array Q)
+  bsign = b(a1)/DABS(b(a1))
+  !First, insert a plane of atoms by copying an existing plane
+  !Count k = number of atoms that will be inserted
+  k = 0
+  DO i=1,SIZE(P,1)
+    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
+        & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
+        & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
+        k=k+1
+      ENDIF
+    ENDIF
+  ENDDO
+  !
+  !Allocate Q to store atom positions of P + inserted atoms
+  ALLOCATE( Q( SIZE(P,1)+k,4 ) )
+  Q(:,:) = 0.d0
+  !If auxiliary properties are present they must be copied for inserted atoms
+  IF(ALLOCATED(AUX)) THEN
+    ALLOCATE( newAUX( SIZE(P(:,1))+k, SIZE(AUX(1,:)) ) )
+    newAUX(:,:) = 0.d0
+    DO i=1,SIZE(AUX(:,1))
+      newAUX(i,:) = AUX(i,:)
+    ENDDO
+  ENDIF
+  !If array SELECT is defined, expand it
+  IF( ALLOCATED(SELECT) ) THEN
+    CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1)+k,i)
+    IF( i>0 ) THEN
+      nerr=nerr+1
+      CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
+      GOTO 1000
+    ENDIF
+  ENDIF
+  !
+  !Also create temporary array T for shells if relevant
+  IF( doshells ) THEN
+    k = 0
+    DO i=1,SIZE(S,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( S(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
+          & S(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
+          & (S(i,a2)-pos(2))*bsign>=0.d0                ) THEN
+          k=k+1
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+    !Allocate T to store shells positions of S + inserted shells
+    ALLOCATE( T( SIZE(S,1)+k,4 ) )
+    T(:,:) = 0.d0
+  ENDIF
+  !
+  IF( aniso ) THEN
+    !Anisotropic elasticity
+    !Store positions of inserted atoms into Q
+    k = 0
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
+          & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
+          & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
+          k=k+1
+          n = SIZE(P(:,1))+k
+          Q(n,:) = P(i,:)
+          !Apply edge displacements
+          disp = ANISO_DISP(n,Q(n,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
+          Q(n,1:3) = Q(n,1:3) + disp(:)
+          !Along a1, positions are those of P shifted by 3/4 Burgers vector
+          Q(n,a1) = P(i,a1) -DABS(b(a1))*0.75d0
+          !
+          !Apply displacements to shell
+          IF( doshells ) THEN
+            T(n,:) = S(i,:)
+            T(n,1:3) = T(n,1:3) + disp(:)
+            T(n,a1) = S(i,a1) -DABS(b(a1))*0.75d0
+          ENDIF
+          !
+          !Copy auxiliary properties for inserted atoms
+          IF(ALLOCATED(AUX)) THEN
+            newAUX(n,:) = AUX(i,:)
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+    CALL ATOMSK_MSG(2063,(/''/),(/DBLE(k)/))
+    !
+    !Then we apply atomic displacements to all atoms
+    !(except the ones we just inserted) and store them into Q
+    DO i=1,SIZE(Q,1)
+      IF( i <= SIZE(P,1) ) THEN
+        Q(i,:) = P(i,:)
+        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+          IF( P(i,a1)>=pos(1) .AND. (P(i,a2)-pos(2))*bsign>=0.d0 ) THEN
+            Q(i,a1) = P(i,a1)+DABS(b(a1))
+            IF( doshells ) THEN
+              T(i,a1) = S(i,a1)+DABS(b(a1))
+            ENDIF
+          ENDIF
+          disp = ANISO_DISP(i,Q(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
+          Q(i,1:3) = Q(i,1:3) + disp(:)
+          !Apply displacements to shell
+          IF( doshells ) THEN
+            T(i,1:3) = T(i,1:3) + disp(:)
+          ENDIF
+        ENDIF
+        !
+        !Compute stress
+        CALL ANISO_STRESS(Q(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
+        !
+        !Add stresses due to this disloc. to existing stresses in AUX
+        newAUX(i,sig1) = newAUX(i,sig1) + sigma(1,1)
+        newAUX(i,sig2) = newAUX(i,sig2) + sigma(2,2)
+        newAUX(i,sig3) = newAUX(i,sig3) + sigma(3,3)
+        newAUX(i,sig4) = newAUX(i,sig4) + sigma(2,3)
+        newAUX(i,sig5) = newAUX(i,sig5) + sigma(1,3)
+        newAUX(i,sig6) = newAUX(i,sig6) + sigma(1,2)
+      ENDIF
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
+    CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
+    !
+    !
+    !
+  ELSE
+    !Isotropic elasticity
+    !Store positions of inserted atoms into Q
+    k = 0
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
+          & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
+          & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
+          k=k+1
+          n = SIZE(P,1)+k
+          Q(n,:) = P(i,:)
+          !Apply edge displacements along a2
+          disp = DISPEDGE(n,Q(n,:),a1,a2,b(a1),nu,pos(1),pos(2))
+          Q(n,1:3) = Q(n,1:3) + disp(:)
+          !Along a1, positions are those of P shifted by 5/4 Burgers vector
+          Q(n,a1) = P(i,a1) -DABS(b(a1))*1.25d0
+          !Apply displacements to shells if relevant
+          IF( doshells ) THEN
+            T(n,:) = S(i,:)
+            T(n,1:3) = T(n,1:3) + disp
+            !Along a1, positions are those of P shifted by 5/4 Burgers vector
+            T(n,a1) = S(i,a1) -DABS(b(a1))*1.25d0
+          ENDIF
+          !Copy auxiliary properties for inserted atoms
+          IF(ALLOCATED(AUX)) THEN
+            newAUX(n,:) = AUX(i,:)
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDDO
+    !
+    CALL ATOMSK_MSG(2063,(/''/),(/DBLE(k)/))
+    !
+    !Then we apply atomic displacements to all atoms
+    !(except the ones we just inserted) and store them into Q
+    DO i=1,SIZE(Q,1)
+      IF( i <= SIZE(P,1) ) THEN
+        Q(i,:) = P(i,:)
+        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+          IF( P(i,a1)>=pos(1) ) THEN
+            Q(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
+            IF( doshells ) THEN
+              T(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
+            ENDIF
+          ENDIF
+        ENDIF
+        disp = DISPEDGE(i,Q(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
+        Q(i,1:3) = Q(i,1:3) + disp(:)
+        !Apply displacements to shell
+        IF( doshells ) THEN
+          T(i,1:3) = T(i,1:3) + disp(:)
+        ENDIF
+      ENDIF
+      !
+      !Compute stress
+      CALL STRESSEDGE(Q(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+      !
+      !Add stresses due to this disloc. to existing stresses in AUX
+      newAUX(i,sig1) = newAUX(i,sig1) + sigma(1,1)
+      newAUX(i,sig2) = newAUX(i,sig2) + sigma(2,2)
+      newAUX(i,sig3) = newAUX(i,sig3) + sigma(3,3)
+      newAUX(i,sig6) = newAUX(i,sig6) + sigma(1,2)
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
+    CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
+    !
+  ENDIF  !Endif aniso
+  !
+  !Replace old P with the new Q
+  DEALLOCATE(P)
+  ALLOCATE(P(SIZE(Q,1),4))
+  P(:,:) = Q(:,:)
+  DEALLOCATE(Q)
+  !Replace old AUX by newAUX
+  IF(ALLOCATED(AUX)) THEN
+    DEALLOCATE(AUX)
+    ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) )
+    AUX = newAUX
+    DEALLOCATE(newAUX)
+  ENDIF
+  !
+  !If shells exist, replace old S with new T
+  IF( doshells ) THEN
+    DEALLOCATE(S)
+    ALLOCATE(S(SIZE(T,1),4))
+    S(:,:) = T(:,:)
+    DEALLOCATE(T)
+  ENDIF
+  !
+  !Supercell has been expanded along a1: calculate the new length
+  H(a1,a1) = H(a1,a1) + DABS(b(a1))/2.d0
+  CALL ATOMSK_MSG(2064,(/"+b/2"/),(/DBLE(a1)/))
+  !
+  !
+ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!  EDGE DISLOCATION  !!!!!!!!!!
+  ! Method 3: remove a half-plane of atoms
+  ! (NP is decreased so we have to use a new array Q)
+  bsign = b(a1)/DABS(b(a1))
+  !
+  !Allocate Q to store atom positions
+  !(for now it has the same size as P)
+  ALLOCATE( Q( SIZE(P,1),4 ) )
+  Q(:,:) = 0.d0
+  !
+  !If auxiliary properties are present they must be copied
+  IF(ALLOCATED(AUX)) THEN
+    ALLOCATE( newAUX( SIZE(P,1) , SIZE(AUX,2) ) )
+    newAUX(:,:) = 0.d0
+  ENDIF
+  !Also create temporary array T for shells if relevant
+  IF( doshells ) THEN
+    !Allocate T to store shells positions of S + inserted shells
+    ALLOCATE( T( SIZE(S,1),4 ) )
+    T(:,:) = 0.d0
+  ENDIF
+  !If array SELECT is defined, expand it
+  IF( ALLOCATED(SELECT) ) THEN
+    ALLOCATE( newSELECT( SIZE(P,1)) )
+    newSELECT(:) = .TRUE.
+  ENDIF
+  !
+  !Remove atoms
+  !Count j = index of current atom
+  j = 0
+  !Count k = number of removed atoms
+  k = 0
+  DO i=1,SIZE(P,1)
+    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF( P(i,a1)>=pos(1) .AND. P(i,a1)<pos(1)+DABS(b(a1))-0.01d0 .AND. &
+        & (P(i,a2)-pos(2))*bsign<=0.d0                              ) THEN
+        !This atom is removed
+        k=k+1
+      ELSE
+        !This atom stays
+        j=j+1
+        Q(j,:) = P(i,:)
+        !If auxiliary properties exist, copy them
+        IF(ALLOCATED(AUX)) THEN
+          newAUX(j,:) = AUX(i,:)
+        ENDIF
+        !If shells are present, copy them
+        IF(doshells) THEN
+          T(j,:) = S(i,:)
+        ENDIF
+        !If a selection was defined, copy it
+        IF(ALLOCATED(SELECT)) THEN
+          newSELECT(j) = SELECT(i)
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDDO
+  !
+  !Get rid of old atom positions P
+  DEALLOCATE(P)
+  !Copy the j first entries from Q into P
+  ALLOCATE( P(j,4) )
+  P(:,:) = 0.d0
+  IF(ALLOCATED(AUX)) THEN
+    DEALLOCATE(AUX)
+    ALLOCATE(AUX(j,SIZE(newAUX,2)))
+  ENDIF
+  DO i=1,SIZE(P,1)
+    P(i,:) = Q(i,:)
+    IF(ALLOCATED(AUX)) THEN
+      AUX(i,:) = newAUX(i,:)
+    ENDIF
+    IF(doshells) THEN
+      S(i,:) = T(i,:)
+    ENDIF
+    IF(ALLOCATED(SELECT)) THEN
+      SELECT(i) = newSELECT(i)
+    ENDIF
+  ENDDO
+  !
+  CALL ATOMSK_MSG(2063,(/''/),(/-1.d0*DBLE(k)/))
+  !
+  !We don't need Q anymore
+  DEALLOCATE(Q)
+  IF(ALLOCATED(T)) DEALLOCATE(T)
+  IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+  IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
+  !
+  IF( aniso ) THEN
+    !Anisotropic elasticity
+    !Apply elastic displacements to all atoms
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( P(i,a1)>=pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
+          P(i,a1) = P(i,a1)-DABS(b(a1))
+          IF( doshells ) THEN
+            S(i,a1) = S(i,a1)-DABS(b(a1))
+          ENDIF
+        ENDIF
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
+        !Apply displacements to shell
+        IF( doshells ) THEN
+          S(i,1:3) = S(i,1:3) + disp(:)
+        ENDIF
+      ENDIF
+      !
+      !Compute stress
+      CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
+      !
+      !Add stresses due to this disloc. to existing stresses in AUX
+      AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
+      AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
+      AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
+      AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
+      AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
+      AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
+    CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
+    !
+    !
+    !
+  ELSE
+    !Isotropic elasticity
+    !Apply elastic displacements to all atoms
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF( P(i,a1)>=pos(1)+0.1d0 .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
+          P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
+          IF( doshells ) THEN
+            S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
+          ENDIF
+        ENDIF
+      ENDIF
+      disp = DISPEDGE(i,P(i,:),a1,a2,b(a1),nu,pos(1),pos(2))
+      P(i,1:3) = P(i,1:3) + disp(:)
+      !Apply displacements to shell
+      IF( doshells ) THEN
+        S(i,1:3) = S(i,1:3) + disp(:)
+      ENDIF
+      !
+      IF( P(i,a1)>pos(1)+0.1d0 .AND. P(i,a2)*bsign>=bsign*pos(2) ) THEN
+        P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
+        IF( doshells ) THEN
+          S(i,a1) = S(i,a1)-DABS(b(a1))/2.d0
+        ENDIF
+      ENDIF
+      !
+      !Compute stress
+      CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+      !
+      !Add stresses due to this disloc. to existing stresses in AUX
+      AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
+      AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
+      AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
+      AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
+    CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
+    !
+  ENDIF  !Endif aniso
+  !
+  !Supercell was shrinked along a1: calculate the new length
+  H(a1,a1) = H(a1,a1) - DABS(b(a1))/2.d0
+  CALL ATOMSK_MSG(2064,(/"-b/2"/),(/DBLE(a1)/))
+  !
+  !
+ELSEIF(disloctype=='mixed') THEN
+  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !!!!!!!!!!  MIXED DISLOCATION  !!!!!!!!!!
+  IF( aniso ) THEN
+    !Anisotropic elasticity
+    DO i=1,SIZE(P,1)
+      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
+        P(i,1:3) = P(i,1:3) + disp(:)
+        IF( doshells ) THEN
+          S(i,1:3) = S(i,1:3) + disp(:)
+        ENDIF
+        !
+        !Compute stress
+        CALL ANISO_STRESS(P(i,1:3),a1,a2,a3,pos(1),pos(2),A_kn,B_ijk,Dn,Pn,sigma)
+        !
+        !Add stresses due to this disloc. to existing stresses in AUX
+        AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
+        AUX(i,sig2) = AUX(i,sig2) + sigma(2,2)
+        AUX(i,sig3) = AUX(i,sig3) + sigma(3,3)
+        AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
+        AUX(i,sig5) = AUX(i,sig5) + sigma(1,3)
+        AUX(i,sig6) = AUX(i,sig6) + sigma(1,2)
+      ENDIF
+    ENDDO
+    !
+    !Compute prelogarithmic energy factor
+    Efactor = ANISO_EFACTOR(b,A_kn,B_ijk,Dn,Pn)
+    CALL ATOMSK_MSG(2101,(/'Kb²/4pi'/),(/Efactor/))
+    !
+    !
+  ELSE
+    !Isotropic elasticity: cannot build mixed dislocation
+    CALL ATOMSK_MSG(2808,(/""/),(/0.d0/))
+    nerr=nerr+1
+    GOTO 1000
+    !
+  ENDIF
+  !
+  !
+ELSEIF( disloctype=="loop" ) THEN
   !A dislocation loop must be introduced in the system
   !The direction normal to the loop is dislocline
   !pos(1:3) = position of the center of the loop; pos(4) = radius of the loop
@@ -1177,6 +1170,11 @@ ELSE !i.e. disloctype == 'loop'
     P(i,1:3) = P(i,1:3) + LOOP_DISPLACEMENT(P(i,1:3), b, nu, pos(1:3), xLoop)
   ENDDO
   !
+  !
+ELSE
+  !Unknown dislocation type
+  nerr=nerr+1
+  GOTO 1000
 ENDIF
 !
 !Dislocation was successfully created
