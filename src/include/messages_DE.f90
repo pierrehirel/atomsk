@@ -170,7 +170,8 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             HEXAGONALE            hcp  |  2 (a und c)   | 1 oder 2"
   WRITE(*,*) "             GITTER           wurtzite  |  2 (a und c)   |     2"
   WRITE(*,*) "                              graphite  |  2 (a und c)   | 1 oder 2"
-  WRITE(*,*) "                                   L14  |  2 (a und c)   |     2"
+  WRITE(*,*) "                                   C14  |  2 (a und c)   |     2"
+  WRITE(*,*) "                                   C36  |  2 (a und c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN

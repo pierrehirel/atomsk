@@ -354,6 +354,7 @@ CASE('create')
   IF( create_struc=='graphite' .OR. create_struc=='hcp'    .OR.  &
     & create_struc=='wurtzite' .OR. create_struc=='wz'     .OR.  &
     & create_struc=='c14'      .OR. create_struc=='C14'    .OR.  &
+    & create_struc=='c36'      .OR. create_struc=='C36'    .OR.  &
     & create_struc=='L10'      .OR. create_struc=='L1_0'   .OR.  &
     & create_struc=='limo2'    .OR. create_struc=='LiMO2'  .OR.  &
     & create_struc=='st'       .OR. create_struc=='bct'    .OR.  &
@@ -399,7 +400,7 @@ CASE('create')
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
-    CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','limo2','LiMO2')
+    CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','c36','limo2','LiMO2')
       msg = 'Reading the [hkil] ...'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
@@ -466,6 +467,9 @@ CASE('create')
         outputfile = TRIM(outputfile)//TRIM(create_species(i))
       ENDDO
       outputfile = TRIM(outputfile)//'2'
+    CASE('c36','C36')
+      !C36 lattice: generate a name of the type "Ni2Mg"
+      outputfile = TRIM(create_species(1))//'2'//TRIM(create_species(2))
     CASE('per','perovskite')
       !Perovskite lattice: generate a name of the type "SrTiO3"
       DO i=1,SIZE(create_species)
