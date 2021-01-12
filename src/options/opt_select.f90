@@ -1654,7 +1654,7 @@ CASE('random','rand','random%','rand%')
       ALLOCATE(templist(SIZE(atomlist)))
       j=0
       DO i=1,SIZE(atomlist)
-        IF( SELECT(atomlist(i)) ) THEN
+        IF( prevSELECT(atomlist(i)) ) THEN
           j=j+1
           templist(j) = atomlist(i)
         ENDIF
