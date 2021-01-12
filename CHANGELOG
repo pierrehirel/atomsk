@@ -2,8 +2,8 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-Master (development)
---------------------
+Beta 0.11 (12 Jan. 2021)
+------------------------
 - parts of the code were parallelized with OpenMP, meaning that it can take advantage of all cores of a CPU. Some modes and options that are now parallelized: neighbor search; options "-orthogonal-cell", "-select stl"; modes "--density", "--edm", "--polycrystal", "--rdf". Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.
 - added support for reading and writing files in BOPfox format (*.bx). Thanks to Matous Mrovec, ICAMS, Bochum University, Germany, for implementing this feature.
 - added support for reading and writing files in Comma-Separated Values format (*.csv).

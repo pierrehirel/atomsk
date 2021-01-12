@@ -10,7 +10,7 @@ export
 
 # Define compiler flags for static compilation
 FORTRAN=gfortran
-OPENMP=-DOPENMP -fopenmp
+OPENMP=-DOPENMP -fopenmp -Wl,--whole-archive -lpthread -Wl,--no-whole-archive
 FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) -z muldefs -static -fPIC -static-libgfortran
 LAPACK=-llapack -lblas
 
