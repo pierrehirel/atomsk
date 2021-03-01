@@ -216,7 +216,7 @@ IF(helpsection=="modes" .OR. helpsection=="average") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="nye") THEN
   WRITE(*,*) "..> Mode tenseur de Nye:"
-  WRITE(*,*) "          atomsk --nye <reference> <dislocation> <outputfile> [options] [<formats>]"
+  WRITE(*,*) "          atomsk --nye <reference> <defective> <outputfile> [options] [<formats>]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="interpolate") THEN
   WRITE(*,*) "..> Mode Interpolate:"

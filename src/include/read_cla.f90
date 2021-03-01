@@ -60,6 +60,12 @@ REAL(dp):: smass, tempreal
 !
 !
 !Initialize variables
+ clarg=""
+msg=""
+temp=""
+temp2=""
+temp3=""
+temp4=""
 pfiles(:)=''
 i=0
 ioptions = 0
@@ -108,6 +114,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1)
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(2)
+    IF(i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--average') THEN
     mode = 'average'
@@ -389,11 +396,13 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(3)
     i=i+1
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
+    IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
     mode = '1ia'
     i=i+1
     READ(cla(i),'(a128)',ERR=130,END=130) pfiles(1)
+    IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--polycrystal') THEN
     mode = 'polycrystal'

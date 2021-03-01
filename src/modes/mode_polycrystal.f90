@@ -978,7 +978,7 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 21
 ELSE
-  maxvertex = 59
+  maxvertex = 80
 ENDIF
 !
 IF(verbosity==4) THEN

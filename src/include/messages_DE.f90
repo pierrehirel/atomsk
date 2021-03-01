@@ -206,6 +206,14 @@ IF(helpsection=="modes" .OR. helpsection=="average") THEN
   WRITE(*,*) "..> Modus Mittelwert:"
   WRITE(*,*) "          atomsk --average <listfile> <outputfile> [options] [<formats>]"
 ENDIF
+IF(helpsection=="modes" .OR. helpsection=="nye") THEN
+  WRITE(*,*) "..> Modus Nye:"
+  WRITE(*,*) "          atomsk --nye <reference> <defective> <outputfile> [options] [<formats>]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="interpolate") THEN
+  WRITE(*,*) "..> Modus Interpolate:"
+  WRITE(*,*) "          atomsk --interpolate <file1> <file2> <N> [options] [<formats>]"
+ENDIF
 !
 IF(helpsection=="options") THEN
   WRITE(*,*) ">>> OPTIONEN (Abstaende=Angstroems, Winkel=Grad):"
