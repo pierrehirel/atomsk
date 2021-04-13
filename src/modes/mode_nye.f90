@@ -168,11 +168,11 @@ CALL FIND_NSP(Psecond(:,4),aentries)
 IF( SIZE(aentries,1)==2 ) THEN
   !Binary material
   !=> the default NeighFactor will probably be too small, use larger value
-  !NeighFactor = 1.33d0
+  NeighFactor = 1.15d0
 ELSE IF( SIZE(aentries,1)>=3 ) THEN
   !Good chances that it is a complex material
   !=> boost NeighFactor
-  NeighFactor = 1.33d0
+  NeighFactor = 1.33d0   !1.33
 ENDIF
 !
 !
@@ -272,11 +272,10 @@ IF( .NOT.firstref ) THEN
     CALL BUBBLESORT(PosList2,4,'up  ',newindex)
     !Get the relative positions of neighbors with respect to atom #iat
     !Keep only neighbors that are within NeighFactor times the distance of third neighbor
-    !AND that are of the same species as first neighbor
     Nneighbors = 0
     DO j=1,MIN(20,SIZE(PosList2,1))
       PosList2(j,1:3) = PosList2(j,1:3) - Ppoint(iat,1:3)
-      IF( PosList2(j,4) <= NeighFactor*PosList2(2,4) ) THEN
+      IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
         !IF( NINT(Psecond(NINT(PosList2(j,5)),4))==NINT(Psecond(NINT(PosList2(1,5)),4)) ) THEN
           !Keep this neighbor
           Nneighbors = Nneighbors+1

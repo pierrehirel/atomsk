@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Dec. 2020                                     *
+!* Last modification: P. Hirel - 08 April 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,7 +83,6 @@ species = ''
 exceeds100 = .FALSE.
 hasShells = .FALSE.
 i = 0
-NP = 0
 addedatoms = 0
 newtype = 0
 snumber = 0.d0
@@ -93,6 +92,11 @@ z = 0.d0
 IF(ALLOCATED(newP)) DEALLOCATE(newP)
 IF(ALLOCATED(newS)) DEALLOCATE(newS)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+IF( ALLOCATED(P) ) THEN
+  NP = SIZE(P,1)
+ELSE
+  NP = 0
+ENDIF
 !
 WRITE(msg,*) 'Entering ADDATOM_XYZ: '//TRIM(ADJUSTL(addatom_species))//","// &
              & TRIM(ADJUSTL(addatom_type))
@@ -121,15 +125,17 @@ CASE("at","AT","@")
   WRITE(msg,'(a3,3f9.3)') 'AT ', addatom_prop(1), addatom_prop(2), addatom_prop(3)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Simplest case: a new atom must be inserted at position x, y, z
-  ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
-  DO i=1,SIZE(P,1)
-    newP(i,:) = P(i,:)
-    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      IF( NINT(S(i,4))==NINT(snumber) ) THEN
-        hasShells = .TRUE.
+  ALLOCATE( newP( NP+1 , 4 ) )
+  IF( NP>0 ) THEN
+    DO i=1,SIZE(P,1)
+      newP(i,:) = P(i,:)
+      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+        IF( NINT(S(i,4))==NINT(snumber) ) THEN
+          hasShells = .TRUE.
+        ENDIF
       ENDIF
-    ENDIF
-  ENDDO
+    ENDDO
+  ENDIF
   newP(SIZE(newP,1),1) = addatom_prop(1)
   newP(SIZE(newP,1),2) = addatom_prop(2)
   newP(SIZE(newP,1),3) = addatom_prop(3)
@@ -154,15 +160,17 @@ CASE("relative","rel")
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     !Save position of new atom in newP
-    ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
-    DO i=1,SIZE(P,1)
-      newP(i,:) = P(i,:)
-      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-        IF( NINT(S(i,4))==NINT(snumber) ) THEN
-          hasShells = .TRUE.
+    ALLOCATE( newP( NP+1 , 4 ) )
+    IF( NP>0 ) THEN
+      DO i=1,NP
+        newP(i,:) = P(i,:)
+        IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+          IF( NINT(S(i,4))==NINT(snumber) ) THEN
+            hasShells = .TRUE.
+          ENDIF
         ENDIF
-      ENDIF
-    ENDDO
+      ENDDO
+    ENDIF
     newP(SIZE(newP,1),1) = x
     newP(SIZE(newP,1),2) = y
     newP(SIZE(newP,1),3) = z
@@ -183,68 +191,78 @@ CASE("near","NEAR")
   !Get index of atom
   atomindex = NINT(addatom_prop(1))
   !
-  !Perform a neighbor search around that atom
-  CALL FIND_NNN(H,P,P(atomindex,1:3),8,V_NN,Nlist,exceeds100)
-  !CALL FIND_1NN(H,P,P(atomindex,1:3),V_NN,Nlist,exceeds100)
-  !
-  !
-  IF( SIZE(V_NN,1) >= 3 ) THEN
-    !V_NN(:,:) now contains the positions of the nearest neighbors
-    !Consider all possible tetrahedral sites that have P(atomindex,:) in a corner
-    !Find distance to the closest neighbor to V_NN(1,:)
-    dmax = 6.d0
-    DO i=1,SIZE(V_NN,1)
-      distance = VECLENGTH( P(atomindex,1:3) - V_NN(i,1:3) )
-      IF( distance<dmax .AND. distance >1.d-12 ) THEN
-        dmax = VECLENGTH( P(atomindex,1:3) - V_NN(i,1:3) )
-      ENDIF
-    ENDDO
+  IF( atomindex>0 .AND. atomindex<=NP ) THEN
+    !Perform a neighbor search around that atom
+    CALL FIND_NNN(H,P,P(atomindex,1:3),8,V_NN,Nlist,exceeds100)
+    !CALL FIND_1NN(H,P,P(atomindex,1:3),V_NN,Nlist,exceeds100)
     !
-    !Compute the distance between the site center and P(atomindex,:)
-    !Put new atom at the position (x,y,z) that maximizes its distance to P(atomindex,:)
-    !(but is still closer than the first nearest neighbor)
-    distance = 0.d0
-    DO i=1,SIZE(V_NN,1)-2
-      DO j=i+1,SIZE(V_NN,1)-1
-        DO k=j+1,SIZE(V_NN,1)
-          !Compute position of the center of this site
-          V(1) = ( P(atomindex,1) + V_NN(i,1) + V_NN(j,1) + V_NN(k,1) ) / 4.d0
-          V(2) = ( P(atomindex,2) + V_NN(i,2) + V_NN(j,2) + V_NN(k,2) ) / 4.d0
-          V(3) = ( P(atomindex,3) + V_NN(i,3) + V_NN(j,3) + V_NN(k,3) ) / 4.d0
-          !Compute distance between site center and P(atomindex,:)
-          distance2 = VECLENGTH( P(atomindex,1:3) - V(:) )
-          IF( distance2>distance .AND. distance2<dmax ) THEN
-            !Save this position as a suitable candidate for the new atom
-            x = V(1)
-            y = V(2)
-            z = V(3)
-            distance = distance2
-          ENDIF
+    !
+    IF( SIZE(V_NN,1) >= 3 ) THEN
+      !V_NN(:,:) now contains the positions of the nearest neighbors
+      !Consider all possible tetrahedral sites that have P(atomindex,:) in a corner
+      !Find distance to the closest neighbor to V_NN(1,:)
+      dmax = 6.d0
+      DO i=1,SIZE(V_NN,1)
+        distance = VECLENGTH( P(atomindex,1:3) - V_NN(i,1:3) )
+        IF( distance<dmax .AND. distance >1.d-12 ) THEN
+          dmax = VECLENGTH( P(atomindex,1:3) - V_NN(i,1:3) )
+        ENDIF
+      ENDDO
+      !
+      !Compute the distance between the site center and P(atomindex,:)
+      !Put new atom at the position (x,y,z) that maximizes its distance to P(atomindex,:)
+      !(but is still closer than the first nearest neighbor)
+      distance = 0.d0
+      DO i=1,SIZE(V_NN,1)-2
+        DO j=i+1,SIZE(V_NN,1)-1
+          DO k=j+1,SIZE(V_NN,1)
+            !Compute position of the center of this site
+            V(1) = ( P(atomindex,1) + V_NN(i,1) + V_NN(j,1) + V_NN(k,1) ) / 4.d0
+            V(2) = ( P(atomindex,2) + V_NN(i,2) + V_NN(j,2) + V_NN(k,2) ) / 4.d0
+            V(3) = ( P(atomindex,3) + V_NN(i,3) + V_NN(j,3) + V_NN(k,3) ) / 4.d0
+            !Compute distance between site center and P(atomindex,:)
+            distance2 = VECLENGTH( P(atomindex,1:3) - V(:) )
+            IF( distance2>distance .AND. distance2<dmax ) THEN
+              !Save this position as a suitable candidate for the new atom
+              x = V(1)
+              y = V(2)
+              z = V(3)
+              distance = distance2
+            ENDIF
+          ENDDO
         ENDDO
       ENDDO
-    ENDDO
+      !
+    ELSE
+      !No suitable neighbors were found
+      !This can only mean that P(atomindex,:) is far from any atom in the system
+      !Just place the new atom near P(atomindex,:)
+      !(this is completely arbitrary, but something has to be done)
+      x = P(atomindex,1) + 0.5d0
+      y = P(atomindex,2) + 0.5d0
+      z = P(atomindex,3) + 0.5d0
+    ENDIF
+    IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
     !
   ELSE
-    !No suitable neighbors were found
-    !This can only mean that P(atomindex,:) is far from any atom in the system
-    !Just place the new atom near P(atomindex,:)
-    !(this is completely arbitrary, but something has to be done)
-    x = P(atomindex,1) + 0.5d0
-    y = P(atomindex,2) + 0.5d0
-    z = P(atomindex,3) + 0.5d0
+    !Error: atom index out of bounds
+    x = 0.d0
+    y = 0.d0
+    z = 0.d0
   ENDIF
-  IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
   !
   !Save position of new atom in newP
-  ALLOCATE( newP( SIZE(P,1)+1 , 4 ) )
-  DO i=1,SIZE(P,1)
-    newP(i,:) = P(i,:)
-    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      IF( NINT(S(i,4))==NINT(snumber) ) THEN
-        hasShells = .TRUE.
+  ALLOCATE( newP( NP+1 , 4 ) )
+  IF( NP>0 ) THEN
+    DO i=1,NP
+      newP(i,:) = P(i,:)
+      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+        IF( NINT(S(i,4))==NINT(snumber) ) THEN
+          hasShells = .TRUE.
+        ENDIF
       ENDIF
-    ENDIF
-  ENDDO
+    ENDDO
+  ENDIF
   newP(SIZE(newP,1),1) = x
   newP(SIZE(newP,1),2) = y
   newP(SIZE(newP,1),3) = z
@@ -255,10 +273,10 @@ CASE("near","NEAR")
 CASE("random","RANDOM","rand","RAND")
   WRITE(msg,'(a3,i9)') 'RANDOM ', NINT(addatom_prop(1))
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  !Insert NP atoms at random positions (but not too close to existing atom)
-  NP = NINT(addatom_prop(1))
+  !Insert k atoms at random positions (but not too close to existing atom)
+  k = NINT(addatom_prop(1))
   !
-  ALLOCATE(newP(SIZE(P,1)+NP,4) , STAT=i)
+  ALLOCATE(newP(NP+k,4) , STAT=i)
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
     nerr = nerr+1
@@ -266,19 +284,21 @@ CASE("random","RANDOM","rand","RAND")
     GOTO 1000
   ENDIF
   newP(:,:) = 0.d0
-  DO i=1,SIZE(P,1)
-    newP(i,:) = P(i,:)
-  ENDDO
+  IF( NP>0 ) THEN
+    DO i=1,NP
+      newP(i,:) = P(i,:)
+    ENDDO
+  ENDIF
   !
-  !Generate 3*NP random numbers
-  CALL GEN_NRANDNUMBERS(3*NP,randarray)
+  !Generate 3*k random numbers
+  CALL GEN_NRANDNUMBERS(3*k,randarray)
   !
-  !randarray(:) now contains 3*NP random numbers between 0 and 1
+  !randarray(:) now contains 3*k random numbers between 0 and 1
   !multiply them by the box dimensions to have cartesian coordinates
-  DO n=1,NP
+  DO n=1,k
    randarray(n)      = H(1,1) * randarray(n)
-   randarray(NP+n)   = H(2,2) * randarray(NP+n)
-   randarray(2*NP+n) = H(3,3) * randarray(2*NP+n)
+   randarray(k+n)   = H(2,2) * randarray(k+n)
+   randarray(2*k+n) = H(3,3) * randarray(2*k+n)
   ENDDO
   !
   !Construct neighbor list of new system with all atoms
@@ -288,11 +308,11 @@ CASE("random","RANDOM","rand","RAND")
   !For each random position, search for the 4 nearest neighbors
   !and replace the position by the center of the 4 neighbors positions
   m = SIZE(P,1)
-  DO n=1,NP
+  DO n=1,k
     !Gather the random coordinates of the atom to insert
     x = randarray(n)
-    y = randarray(NP+n)
-    z = randarray(2*NP+n)
+    y = randarray(k+n)
+    z = randarray(2*k+n)
     !
     !x,y,z are random and may be too close to an existing atom
     !To avoid that, replace x,y,z by the closest suitable tetrahedral site
@@ -343,7 +363,7 @@ END SELECT
 WRITE(msg,*) 'Final added atoms: ', addedatoms
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 IF( addedatoms>0 ) THEN
-  DEALLOCATE(P)
+  IF(ALLOCATED(P)) DEALLOCATE(P)
   ALLOCATE(P(SIZE(newP,1),4))
   P(:,:) = 0.d0
   DO i=1,SIZE(P,1)

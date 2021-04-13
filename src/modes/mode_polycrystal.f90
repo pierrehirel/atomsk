@@ -931,27 +931,24 @@ IF( twodim>0 ) THEN
   ENDIF
 ENDIF
 !
-!If system is pseudo 2-D then place all nodes on the same plane
-!in the middle of the cell in this direction
-IF( twodim==1 ) THEN
-  vnodes(:,1) = 0.5d0*H(twodim,twodim)
-ELSEIF( twodim==2 ) THEN
-  vnodes(:,2) = 0.5d0*H(twodim,twodim)
-ELSEIF( twodim==3 ) THEN
-  vnodes(:,3) = 0.5d0*H(twodim,twodim)
-ENDIF
-!Otherwise (3-D case), check if all nodes are on the same plane
-IF( twodim==0 .AND. SIZE(vnodes,1)>1 ) THEN
-  sameplane = .TRUE.
-  DO j=1,3 !loop on xyz
-    DO i=2,SIZE(vnodes,1)
-      IF( DABS(vnodes(i,j)-vnodes(1,j)) > 0.1d0 ) THEN
-        sameplane = .FALSE.
-      ENDIF
+IF( twodim > 0 ) THEN
+  !System is pseudo 2-D => place all nodes on the same plane
+  !in the middle of the cell along the short direction
+  vnodes(:,twodim) = 0.5d0*H(twodim,twodim)
+ELSE
+  !Otherwise (3-D case), check if all nodes are on the same plane
+  IF( SIZE(vnodes,1)>1 ) THEN
+    sameplane = .TRUE.
+    DO j=1,3 !loop on xyz
+      DO i=2,SIZE(vnodes,1)
+        IF( DABS(vnodes(i,j)-vnodes(1,j)) > 0.1d0 ) THEN
+          sameplane = .FALSE.
+        ENDIF
+      ENDDO
     ENDDO
-  ENDDO
-  WRITE(msg,*) "All nodes belong to the same plane: ", sameplane
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(msg,*) "All nodes belong to the same plane: ", sameplane
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
 ENDIF
 !
 IF( outparam ) THEN
@@ -978,7 +975,7 @@ ENDIF
 IF( twodim > 0 ) THEN
   maxvertex = 21
 ELSE
-  maxvertex = 80
+  maxvertex = 59
 ENDIF
 !
 IF(verbosity==4) THEN
@@ -1103,6 +1100,8 @@ IF( P1 > 2.147d9 ) THEN
     expandmatrix(:) = NINT( 0.9d0 * expandmatrix(:) )
   ENDIF
 ENDIF
+WRITE(msg,'(a47,3i6)') "Final corrected expansion factors for template:", expandmatrix(:)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Re-calculate expected number of atoms
 P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
 !If expected NP is too large, abort completely
@@ -1112,10 +1111,10 @@ IF( P1 > 2.147d9 ) THEN
   GOTO 1000
 ENDIF
 !
-WRITE(msg,'(a32,3i6)') "Allocating arrays..."
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!
+! Allocate array Pt for template grain (full duplicated crystal, not oriented or truncated)
 m = PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1)
+WRITE(msg,*) "ALLOCATE  Pt, SIZE = ", m
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 ALLOCATE( Pt(m,4) , STAT=i )
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -1151,17 +1150,16 @@ ELSE
     GOTO 1000
   ENDIF
 ENDIF
-!
 AUX_Q(:,:) = 0.d0
-WRITE(msg,'(a47,3i6)') "Final corrected expansion factors for template:", expandmatrix(:)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+! Fill array Pt(:,:)
 qi=0
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(m,n,o,i,qi)
 DO o = 0 , expandmatrix(3)
   DO n = 0 , expandmatrix(2)
     DO m = 0 , expandmatrix(1)
       DO i=1,SIZE(Puc,1)
-        qi = o*expandmatrix(2)*expandmatrix(1)*SIZE(Puc,1) + n*expandmatrix(1)*SIZE(Puc,1) + m*SIZE(Puc,1) + i
+        !qi = i + ( m + n*expandmatrix(1) + o*expandmatrix(2)*expandmatrix(1) ) * SIZE(Puc,1)
+        qi = qi+1
         !Compute (cartesian) position of the replica of this atom
         Pt(qi,1) = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
         Pt(qi,2) = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
@@ -1181,18 +1179,21 @@ DO o = 0 , expandmatrix(3)
     ENDDO
   ENDDO
 ENDDO
-!$OMP END PARALLEL DO
 !
 !
-! IF( verbosity==4 ) THEN
-!   OPEN(UNIT=40,FILE="atomsk_template.xyz",STATUS="UNKNOWN")
-!   WRITE(40,'(i9)') SIZE(Pt,1)
-!   WRITE(40,*) "# Template used by Atomsk to construct polycrystal"
-!   DO i=1,SIZE(Pt,1)
-!     WRITE(40,'(i4,2X,3(f12.6))') NINT(Pt(i,4)), Pt(i,1), Pt(i,2), Pt(i,3)
-!   ENDDO
-!   CLOSE(40)
-! ENDIF
+IF( verbosity==4 ) THEN
+  OPEN(UNIT=40,FILE="atomsk_template.xyz",STATUS="UNKNOWN")
+  qi=0
+  DO i=1,SIZE(Pt,1)
+    IF(NINT(Pt(i,4)).NE.0) qi=qi+1
+  ENDDO
+  WRITE(40,'(i9)') qi
+  WRITE(40,*) "# Template used by Atomsk to construct polycrystal"
+  DO i=1,qi
+    WRITE(40,'(i4,2X,3(f12.6))') NINT(Pt(i,4)), Pt(i,1), Pt(i,2), Pt(i,3)
+  ENDDO
+  CLOSE(40)
+ENDIF
 !
 !
 !Estimate new number of particles NP = (density of unit cell) / (volume of final cell)
@@ -1437,6 +1438,7 @@ DO inode=1,Nnodes
   !
   !Shift oriented supercell so that its center of mass is at the center of the box
   CALL CENTER_XYZ(H,Pt2,St2,0,SELECT)
+  !
   !Get center of grain = barycenter of the closest vertices
   !The actual node itself is given a "weight" in this calculation, but
   !the center of the grain will be different from the position of the node itself

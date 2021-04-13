@@ -2,6 +2,12 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+Master
+------
+- fixed a bug in mode "--polycrystal" that prevented constructing 2-D polycrystals normal to X or Y.
+- fixed a bug in option "add-atom" that caused a segfault when the atom list was empty (not allocated).
+
+
 Beta 0.11 (12 Jan. 2021)
 ------------------------
 - parts of the code were parallelized with OpenMP, meaning that it can take advantage of all cores of a CPU. Some modes and options that are now parallelized: neighbor search; options "-orthogonal-cell", "-select stl"; modes "--density", "--edm", "--polycrystal", "--rdf". Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.
