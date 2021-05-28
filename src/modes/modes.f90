@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 28 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -56,6 +56,7 @@ USE mode_average
 !Modules for mode 1-in-all
 USE oia_dlp_history
 USE oia_qeout
+USE oia_vaspout
 USE oia_lmc
 USE oia_xsf
 USE oia_xyz
@@ -573,6 +574,8 @@ CASE('1ia')
     CALL ONEINALL_LMC(file1,file2,outfileformats,options_array)
   ELSEIF(outfileformat=='pwo') THEN
     CALL ONEINALL_QEOUT(file1,file2,outfileformats,options_array)
+  ELSEIF(outfileformat=='vout') THEN
+    CALL ONEINALL_OUTCAR(file1,file2,outfileformats,options_array)
   ELSEIF(outfileformat=='xsf') THEN
     CALL ONEINALL_XSF(file1,file2,outfileformats,options_array)
   ELSEIF(outfileformat=='xyz') THEN

@@ -19,7 +19,7 @@ MODULE in_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 April 2017                                    *
+!* Last modification: P. Hirel - 28 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -153,10 +153,16 @@ IF( .NOT. foundsp ) THEN
     DO
       READ(31,'(a128)',ERR=120,END=120) test
       test = ADJUSTL(test)
-      IF(test(1:2)=='US') THEN
+      IF( (test(1:2)=='US' .OR. test(1:3)=="PAW") .AND. INDEX(test,"radial")==0 ) THEN
         i=i+1
-        READ(test(3:),*) species
+        j = SCAN(test," ")
+        test = test(j+1:)
+        species = test(1:2)
         CALL ATOMNUMBER(species,tempreal)
+        IF( tempreal<1.d-6 ) THEN
+          species(2:2) = " "
+          CALL ATOMNUMBER(species,tempreal)
+        ENDIF
         spi(i) = NINT(tempreal)
       ENDIF
     ENDDO

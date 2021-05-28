@@ -4,8 +4,10 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- in mode "--one-in-all", added possibility to read configurations from VASP OUTCAR files.
+- improved the determination of atom species from POTCAR file when reading VASP POSCAR, CONTCAR or OUTCAR files.
 - fixed a bug in mode "--polycrystal" that prevented constructing 2-D polycrystals normal to X or Y.
-- fixed a bug in option "add-atom" that caused a segfault when the atom list was empty (not allocated).
+- fixed a bug in option "-add-atom" that caused a segfault when the atom list was empty (not allocated).
 
 
 Beta 0.11 (12 Jan. 2021)

@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 28 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,6 +27,7 @@ MODULE subroutines
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* CHECK_ARRAY_CONSISTENCY checks that arrays P, S, AUX, AUXNAMES are consistent  *
+!* STR_CHAR2SPACE      replaces a character by blank space in a string            *
 !* STR2BOOL            transforms a string into a boolean value                   *
 !* INT2MONTH           transforms an integer into a month                         *
 !* INT2DAY             transforms an integer into a day                           *
@@ -119,6 +120,30 @@ IF( ALLOCATED(AUXNAMES) .OR. ALLOCATED(AUX) ) THEN
 ENDIF
 !
 END SUBROUTINE CHECK_ARRAY_CONSISTENCY
+!
+!
+!
+!********************************************************
+! STR_CHAR2SPACE
+! This subroutine parses a string, replacing some
+! characters with a space character.
+!********************************************************
+SUBROUTINE STR_CHAR2SPACE(string,characters)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(INOUT):: string
+CHARACTER(LEN=*),INTENT(IN):: characters
+INTEGER:: i, j
+!
+DO i=1,LEN_TRIM(string)
+  DO j=1,LEN_TRIM(characters)
+    IF( string(i:i)==characters(j:j) ) THEN
+      string(i:i) = " "
+    ENDIF
+  ENDDO
+ENDDO
+!
+END SUBROUTINE STR_CHAR2SPACE
 !
 !
 !
