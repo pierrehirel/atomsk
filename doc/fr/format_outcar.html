@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Format OUTCAR - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : OUTCAR</h2>
+
+<p><strong>Nom :</strong> fichier de sortie de <a href="http://cms.mpi.univie.ac.at/vasp/vasp">Vienna Ab initio Simulation Package (VASP)</a></p>
+
+<p><strong>Extension :</strong> aucune (le fichier est nommé OUTCAR par VASP)</p>
+
+<p><strong>Spécification :</strong> <a href="https://www.vasp.at/wiki/index.php/OUTCAR">documentation de VASP</a></p>
+
+<p><strong>Programmes de visualisation :</strong> aucun</p>
+
+<h4>Restrictions</h4>
+
+<p>Atomsk peut lire les fichiers OUTCAR (tels que spécifiés dans VASP versions 4.x et 5.x) seulement dans le <a href="./mode_oneinall.html">mode "--one-in-all"</a>. Ce mode lit toutes les configurations contenues dans le fichier OUTCAR, et écrit chacune d'elles dans un fichier séparé. Les forces agissant sur les atomes seront aussi lues depuis le fichier OUTCAR, et seront écrites dans les fichiers de sortie si leur format le permet.</p>
+
+<p>Notez que le fichier OUTCAR ne contient plusieurs configurations que si VASP a effectué des pas de relaxation atomique ou de dynamique moléculaire (IBRION&GreaterEqual;0). Sinon, le fichier OUTCAR ne contient que des informations sur la structure électronique, que Atomsk ne peut pas lire.</p>
+
+<p>Atomsk ne peut pas écrire de fichier au format OUTCAR.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --one-in-all OUTCAR cfg</code>
+<p>Avec cette commande, Atomsk va lire le fichier <code>OUTCAR</code>, et écrira chaque configuration dans un fichier séparé au format CFG, qui s'appeleront OUTCAR_0.cfg, OUTCAR_1.cfg, OUTCAR_2.cfg, et ainsi de suite. Les forces agissant sur les atomes seront aussi importées, et écrites dans les fichiers CFG.</p></li>
+
+<li><code class="command">atomsk --one-in-all OUTCAR vesta</code>
+<p>Ceci va lire le fichier OUTCAR et écrire les configurations au format VESTA pour visualisation.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

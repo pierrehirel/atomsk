@@ -140,11 +140,11 @@ IF(helpsection=="modes" .OR. helpsection=="list") THEN
   WRITE(*,*) "..> Mode liste:"
   WRITE(*,*) "          atomsk --list <listfile> [<formats>] [options]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="ai1") THEN
+IF(helpsection=="modes" .OR. helpsection=="ai1" .OR. helpsection=="all-in-one") THEN
   WRITE(*,*) "..> Mode tout-en-un:"
   WRITE(*,*) "          atomsk --all-in-one <listfile> <outputfile> [options] [<formats>]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
+IF(helpsection=="modes" .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
   WRITE(*,*) "..> Mode un-en-tout :"
   WRITE(*,*) "          atomsk --one-in-all <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
@@ -465,37 +465,38 @@ ENDIF
 IF(helpsection=="formats") THEN
 WRITE(*,*) ">>> FORMATS :"
 WRITE(*,*) "    Les formats doivent être spécifiés tels que dans la première colonne."
-WRITE(*,*) "    Atomusk peut convertir de n'importe quel 'oui' dans la colonne ENTRÉE"
+WRITE(*,*) "    Atomsk peut convertir de n'importe quel 'oui' dans la colonne ENTRÉE"
 WRITE(*,*) "    vers n'importe quel 'oui' dans la colonne SORTIE :"
 WRITE(*,*) "                            | ENTRÉE | SORTIE"
 WRITE(*,*) "    ------------------------+--------+--------"
-WRITE(*,*) "    atsk (format Atomsk)    |   oui  |  oui"
-WRITE(*,*) "    bop                     |   oui  |  oui"
-WRITE(*,*) "    cel (Dr. Probe/EMS)     |   oui  |  oui"
-WRITE(*,*) "    coo (COORAT/MBPP)       |   oui  |  oui"
-WRITE(*,*) "    cfg (Atomeye)           |   oui  |  oui"
-WRITE(*,*) "    cif (Cryst.Info.File)   |   oui  |  oui"
-WRITE(*,*) "    csv (Comma-Sep.Values)  |   oui  |  oui"
-WRITE(*,*) "    d12 (CRYSTAL)           |   oui  |  oui"
-WRITE(*,*) "    dd  (ddplot)            |   non  | oui (1)"
-WRITE(*,*) "    dlp (DL_POLY CONFIG)    |   oui  |  oui"
-WRITE(*,*) "    fdf (fichier SIESTA)    |   oui  |  oui"
-WRITE(*,*) "    gin (fichier GULP)      |   oui  |  oui"
-WRITE(*,*) "    imd (fichier IMD)       |   oui  |  oui"
-WRITE(*,*) "    in (ABINIT input)       |   oui  |  oui"
-WRITE(*,*) "    jems (fichier JEMS)     |   oui  |  oui"
-WRITE(*,*) "    lmc (LAMMPS output)     |   oui  |  non"
-WRITE(*,*) "    lmp (LAMMPS data)       |   oui  |  oui"
-WRITE(*,*) "    mol (fichier MOLDY)     |   oui  |  oui"
-WRITE(*,*) "    pdb (Protein Data Bank) |   oui  |  oui"
-WRITE(*,*) "    pos (POSCAR/VASP)       |   oui  |  oui"
-WRITE(*,*) "    pw (Quantum Espresso)   |   oui  |  oui"
-WRITE(*,*) "    pwout (sortie QE)       |  oui(2)|  non"
-WRITE(*,*) "    str (PDFFIT)            |   oui  |  oui"
-WRITE(*,*) "    vesta (fichier VESTA)   |   oui  |  oui"
-WRITE(*,*) "    xsf (XCrySDen)          |   oui  |  oui"
-WRITE(*,*) "    xv (fichier SIESTA)     |   oui  |  oui"
-WRITE(*,*) "    xyz/exyz/sxyz           |   oui  |  oui"
+WRITE(*,*) "    atsk (format Atomsk)    |  oui   |  oui"
+WRITE(*,*) "    bop                     |  oui   |  oui"
+WRITE(*,*) "    cel (Dr. Probe/EMS)     |  oui   |  oui"
+WRITE(*,*) "    coo (COORAT/MBPP)       |  oui   |  oui"
+WRITE(*,*) "    cfg (Atomeye)           |  oui   |  oui"
+WRITE(*,*) "    cif (Cryst.Info.File)   |  oui   |  oui"
+WRITE(*,*) "    csv (Comma-Sep.Values)  |  oui   |  oui"
+WRITE(*,*) "    d12 (CRYSTAL)           |  oui   |  oui"
+WRITE(*,*) "    dd  (ddplot)            |  non   | oui (1)"
+WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  oui   |  oui"
+WRITE(*,*) "    fdf (fichier SIESTA)    |  oui   |  oui"
+WRITE(*,*) "    gin (fichier GULP)      |  oui   |  oui"
+WRITE(*,*) "    imd (fichier IMD)       |  oui   |  oui"
+WRITE(*,*) "    in (ABINIT input)       |  oui   |  oui"
+WRITE(*,*) "    jems (fichier JEMS)     |  oui   |  oui"
+WRITE(*,*) "    lmc (LAMMPS output)     |  oui   |  non"
+WRITE(*,*) "    lmp (LAMMPS data)       |  oui   |  oui"
+WRITE(*,*) "    mol (fichier MOLDY)     |  oui   |  oui"
+WRITE(*,*) "    OUTCAR (VASP)           | oui(2) |  non"
+WRITE(*,*) "    pdb (Protein Data Bank) |  oui   |  oui"
+WRITE(*,*) "    POSCAR (VASP)           |  oui   |  oui"
+WRITE(*,*) "    pw (Quantum Espresso)   |  oui   |  oui"
+WRITE(*,*) "    pwout (sortie QE)       | oui(2) |  non"
+WRITE(*,*) "    str (PDFFIT)            |  oui   |  oui"
+WRITE(*,*) "    vesta (fichier VESTA)   |  oui   |  oui"
+WRITE(*,*) "    xsf (XCrySDen)          |  oui   |  oui"
+WRITE(*,*) "    xv (fichier SIESTA)     |  oui   |  oui"
+WRITE(*,*) "    xyz/exyz/sxyz           |  oui   |  oui"
 WRITE(*,*) "        (1) Mode ddplot seulement."
 WRITE(*,*) "        (2) Mode one-in-all seulement."
 ENDIF
@@ -1093,13 +1094,24 @@ CASE(1813)
 CASE(1814)
   !strings(1) = name of file format
   !strings(2) = name of mode to use to read this file format
+  !strings(3) = name of input file
   IF( LEN_TRIM(strings(2))>0 ) THEN
     msg = "X!X ERREUR : les fichiers au format "//TRIM(ADJUSTL(strings(1)))//  &
         & " ne peuvent être lus que dans le mode "//TRIM(ADJUSTL(strings(2)))//"."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    msg = "    Utilisation :"
+    CALL DISPLAY_MSG(1,msg,logfile)
+    IF( LEN_TRIM(strings(3))>0 ) THEN
+      msg = TRIM(ADJUSTL(strings(3)))
+    ELSE
+      msg = "<inputfile>"
+    ENDIF
+    msg = "      atomsk --one-in-all "//TRIM(ADJUSTL(msg))//" <format> [<options>]"
+    CALL DISPLAY_MSG(1,msg,logfile)
   ELSE
     msg = "X!X ERREUR : les fichiers au format "//TRIM(ADJUSTL(strings(1)))//" ne peuvent pas être lus."
+    CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
-  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1815)
   msg = "X!X ERREUR : la liste de voisins est vide, probablement parce que les atomes sont trop éloignés les uns des autres."
   CALL DISPLAY_MSG(1,msg,logfile)
