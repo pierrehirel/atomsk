@@ -13,7 +13,7 @@ MODULE out_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -105,7 +105,9 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
+ENDIF
 !
 !
 !Prepare a time stamp
@@ -115,12 +117,12 @@ WRITE(msg,'(i2,a2,i4)') VALUES(3), ", ", VALUES(1)
 WRITE(tempt,*) TRIM(smonth)//" "//TRIM(ADJUSTL(msg))
 !
 !Write a comment in the first line
-WRITE(40,'(a)') comment(1)
+WRITE(ofu,'(a)') comment(1)
 !
 !Write cell vectors (conventional notation, size in nm, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(temp,'(6(f8.4,2X))') a, b, c, RAD2DEG(alpha), RAD2DEG(beta), RAD2DEG(gamma)
-WRITE(40,'(a)') " 0  "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') " 0  "//TRIM(ADJUSTL(temp))
 !
 !
 !Write atom site list
@@ -145,16 +147,18 @@ DO i=1,SIZE(P,1)
               & TRIM(ADJUSTL(tempbiso))//                            &
               & '  0.000000  0.000000  0.000000'
   ! write to file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 ENDDO
 !
 !Write end line
-WRITE(40,'(a1)') "*"
+WRITE(ofu,'(a1)') "*"
 !
 !
 !
 200 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "CEL"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

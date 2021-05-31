@@ -13,7 +13,7 @@ MODULE out_jems
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 May 2018                                      *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -102,29 +102,31 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
+ENDIF
 !
 ! Write header of JEMS file
 CALL GETCWD(msg)
-WRITE(40,'(a)') "file|"//TRIM(ADJUSTL(msg))//pathsep//TRIM(ADJUSTL(outputfile))
-WRITE(40,'(a16)') "system|triclinic"
-WRITE(40,'(a21)') "HMSymbol|1|1|0|0| P 1"
-WRITE(40,'(a16)') "rps|0| x , y , z"
+WRITE(ofu,'(a)') "file|"//TRIM(ADJUSTL(msg))//pathsep//TRIM(ADJUSTL(outputfile))
+WRITE(ofu,'(a16)') "system|triclinic"
+WRITE(ofu,'(a21)') "HMSymbol|1|1|0|0| P 1"
+WRITE(ofu,'(a16)') "rps|0| x , y , z"
 !
 ! Write cell vectors (conventional notation, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(temp,'(f16.4)') a
-WRITE(40,'(a)') "lattice|0|"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "lattice|0|"//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') b
-WRITE(40,'(a)') "lattice|1|"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "lattice|1|"//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') c
-WRITE(40,'(a)') "lattice|2|"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "lattice|2|"//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') alpha*r2d
-WRITE(40,'(a)') "lattice|3|"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "lattice|3|"//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') beta*r2d
-WRITE(40,'(a)') "lattice|4|"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "lattice|4|"//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') gamma*r2d
-WRITE(40,'(a)') "lattice|5|"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "lattice|5|"//TRIM(ADJUSTL(temp))
 !
 !Invert matrix of cell vectors
 CALL INVMAT(H,G)
@@ -151,7 +153,7 @@ DO i=1,SIZE(P,1)
   !
   !Format:  atom|i|XX,a,x,y,z,Debye-Waller,occupancy,absorption
   !Example: atom|0|Ga,a,0.0000,0.0000,0.0000,0.0050,1.0000,0.0520
-  WRITE(40,'(a)') "atom|"//TRIM(ADJUSTL(tempi))//"|"//TRIM(species)//",a,"//         &
+  WRITE(ofu,'(a)') "atom|"//TRIM(ADJUSTL(tempi))//"|"//TRIM(species)//",a,"//         &
                 & TRIM(ADJUSTL(temp1))//","//TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))// &
                 & ","//TRIM(ADJUSTL(tempdw))//","//TRIM(ADJUSTL(tempocc))//","//TRIM(ADJUSTL(tempabs))
 ENDDO
@@ -159,7 +161,9 @@ ENDDO
 !
 !
 200 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "JEMS"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

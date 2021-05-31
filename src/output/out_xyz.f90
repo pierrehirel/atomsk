@@ -34,7 +34,7 @@ MODULE out_xyz
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -105,10 +105,12 @@ ENDIF
 !Check if coordinates are reduced or cartesian
 CALL FIND_IF_REDUCED(H,P,isreduced)
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !First line: number of particles
 WRITE(msg,*) SIZE(P(:,1))
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
 !Second line: keywords or comment
 IF(xyzformat=='exyz' .OR. xyzformat=='EXYZ') THEN
@@ -132,10 +134,10 @@ IF(xyzformat=='exyz' .OR. xyzformat=='EXYZ') THEN
       temp = TRIM(temp)//':'//TRIM(ADJUSTL(AUXNAMES(i)))//':R:1'
     ENDDO
   ENDIF
-  WRITE(40,'(a)') TRIM(temp)
+  WRITE(ofu,'(a)') TRIM(temp)
 ELSE
   !Otherwise just write the comment
-  WRITE(40,'(a)') TRIM(comment(1))
+  WRITE(ofu,'(a)') TRIM(comment(1))
 ENDIF
 !
 !Write atomic positions
@@ -157,17 +159,17 @@ DO i=1,SIZE(P(:,1))
       temp = TRIM(ADJUSTL(temp))//'  '//TRIM(ADJUSTL(msg))
     ENDDO
   ENDIF
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 ENDDO
 !
 !For special XYZ, write footer of XYZ file
 IF(xyzformat=='sxyz' .OR. xyzformat=='SXYZ') THEN
-  WRITE(40,'(a4)') 'alat  1.0'
-  WRITE(40,'(a3)') '1.0'
-  WRITE(40,'(a9)') 'supercell'
-  WRITE(40,'(3(f12.6,1X))') H(1,1), H(1,2), H(1,3)
-  WRITE(40,'(3(f12.6,1X))') H(2,1), H(2,2), H(2,3)
-  WRITE(40,'(3(f12.6,1X))') H(3,1), H(3,2), H(3,3)
+  WRITE(ofu,'(a4)') 'alat  1.0'
+  WRITE(ofu,'(a3)') '1.0'
+  WRITE(ofu,'(a9)') 'supercell'
+  WRITE(ofu,'(3(f12.6,1X))') H(1,1), H(1,2), H(1,3)
+  WRITE(ofu,'(3(f12.6,1X))') H(2,1), H(2,2), H(2,3)
+  WRITE(ofu,'(3(f12.6,1X))') H(3,1), H(3,2), H(3,3)
   !
   !Masses of the atoms
   CALL FIND_NSP(P(:,4),aentries)
@@ -176,7 +178,7 @@ IF(xyzformat=='sxyz' .OR. xyzformat=='SXYZ') THEN
     CALL ATOMMASS(species,smass)
     WRITE(msg,'(f12.3)') smass
     WRITE(msg,*) 'mass '//species//' '//TRIM(ADJUSTL(msg))
-    WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+    WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
   ENDDO
   !
   !Names of auxiliary properties
@@ -184,21 +186,23 @@ IF(xyzformat=='sxyz' .OR. xyzformat=='SXYZ') THEN
     DO i=1,SIZE(AUXNAMES)
       WRITE(temp,*) i
       temp = 'property '//TRIM(ADJUSTL(temp))//' '//AUXNAMES(i)
-      WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+      WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
     ENDDO
   ENDIF
   !
   IF(isreduced) THEN
-    WRITE(40,'(a19)') 'reduced coordinates'
+    WRITE(ofu,'(a19)') 'reduced coordinates'
   ELSE
-    WRITE(40,'(a21)') 'cartesian coordinates'
+    WRITE(ofu,'(a21)') 'cartesian coordinates'
   ENDIF
 ENDIF
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 IF(xyzformat=='exyz' .OR. xyzformat=='EXYZ') THEN
   msg = "extended XYZ"
 ELSEIF(xyzformat=='sxyz' .OR. xyzformat=='SXYZ') THEN

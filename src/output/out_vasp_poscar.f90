@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -169,14 +169,16 @@ ENDIF
 WRITE(msg,*) "Number of different species: ", SIZE(atypes(:,1))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write header of POSCAR file
-WRITE(40,'(a)') TRIM(ADJUSTL(comment(1)))
-WRITE(40,'(a8)') '1.000000'
-WRITE(40,201) H(1,1), H(1,2), H(1,3)
-WRITE(40,201) H(2,1), H(2,2), H(2,3)
-WRITE(40,201) H(3,1), H(3,2), H(3,3)
+WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(1)))
+WRITE(ofu,'(a8)') '1.000000'
+WRITE(ofu,201) H(1,1), H(1,2), H(1,3)
+WRITE(ofu,201) H(2,1), H(2,2), H(2,3)
+WRITE(ofu,201) H(3,1), H(3,2), H(3,3)
 201 FORMAT(3(f16.8,2X))
 !
 !!!  VASP 5.x: write the element symbol for each species
@@ -186,14 +188,14 @@ DO i=1,SIZE(atypes,1)
   CALL ATOMSPECIES(atypes(i,1),species)
   temp = TRIM(ADJUSTL(temp))//"  "//species
 ENDDO
-WRITE(40,*) TRIM(ADJUSTL(temp))
+WRITE(ofu,*) TRIM(ADJUSTL(temp))
 !!!  END OF VASP 5.x
 !
 !Write the number of atoms for each species
-WRITE(40,'(20(i6,2X))') ( NINT(atypes(j,2)), j=1,SIZE(atypes(:,1)) )
+WRITE(ofu,'(20(i6,2X))') ( NINT(atypes(j,2)), j=1,SIZE(atypes(:,1)) )
 !
 IF( fixx.NE.0 .OR. fixy.NE.0 .OR. fixz.NE.0 ) THEN
-  WRITE(40,'(a18)') 'Selective dynamics'
+  WRITE(ofu,'(a18)') 'Selective dynamics'
 ENDIF
 !
 !Check if coordinates are reduced
@@ -201,9 +203,9 @@ CALL FIND_IF_REDUCED(H,P,isreduced)
 !
 !Write atom coordinates
 IF(isreduced) THEN
-  WRITE(40,'(a6)') 'Direct'
+  WRITE(ofu,'(a6)') 'Direct'
 ELSE
-  WRITE(40,'(a9)') 'Cartesian'
+  WRITE(ofu,'(a9)') 'Cartesian'
 ENDIF
 DO i=1,SIZE(Ppoint,1)
   WRITE(msg,210) Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
@@ -226,7 +228,7 @@ DO i=1,SIZE(Ppoint,1)
       msg = TRIM(msg)//" T"
     ENDIF
   ENDIF
-  WRITE(40,'(a)') TRIM(msg)
+  WRITE(ofu,'(a)') TRIM(msg)
 ENDDO
 210 FORMAT(3(f16.8,2X))
 GOTO 500
@@ -234,7 +236,9 @@ GOTO 500
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(40)
+ENDIF
 msg = "POSCAR"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

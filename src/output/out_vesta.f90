@@ -12,7 +12,7 @@ MODULE out_vesta
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -123,68 +123,70 @@ CALL ATOMSK_MSG(999,(/temp/),(/0.d0/))
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write header of VESTA file
-WRITE(40,'(a27)') "#VESTA_FORMAT_VERSION 3.0.0"
-WRITE(40,*) ""
+WRITE(ofu,'(a27)') "#VESTA_FORMAT_VERSION 3.0.0"
+WRITE(ofu,*) ""
 IF( SIZE(comment) > 1 ) THEN
   !Large number of comment lines => write a COMMENT section
-  WRITE(40,*) "<!-- COMMENT --"
+  WRITE(ofu,*) "<!-- COMMENT --"
   DO i=1,SIZE(comment)
-    WRITE(40,'(a)') TRIM(comment(i))
+    WRITE(ofu,'(a)') TRIM(comment(i))
   ENDDO
-  WRITE(40,*) "-- END COMMENT -->"
-  WRITE(40,*) ""
+  WRITE(ofu,*) "-- END COMMENT -->"
+  WRITE(ofu,*) ""
 ENDIF
-WRITE(40,'(a7)') "CRYSTAL"
-WRITE(40,*) ""
-WRITE(40,'(a5)') "TITLE"
+WRITE(ofu,'(a7)') "CRYSTAL"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a5)') "TITLE"
 !Search for an appropriate comment
 DO i=1,SIZE(comment)
   j = INDEX(comment(i),"TITLE")
   IF( j > 0 ) THEN
-    WRITE(40,'(a)') TRIM(ADJUSTL(comment(i)(j+6:)))
+    WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(i)(j+6:)))
     EXIT
   ENDIF
 ENDDO
 IF( j==0 ) THEN
   !No title was written yet => juste use first comment
-  WRITE(40,'(a)') TRIM(comment(1))
+  WRITE(ofu,'(a)') TRIM(comment(1))
 ENDIF
-WRITE(40,*) ""
-WRITE(40,'(a5)') "GROUP"
-WRITE(40,'(a7)') "1 1 P 1"
-WRITE(40,'(a5)') "SYMOP"
-WRITE(40,'(a)') " 0.000000  0.000000  0.000000  1  0  0   0  1  0   0  0  1"
-WRITE(40,'(a)') " -1.0 -1.0 -1.0  0 0 0  0 0 0  0 0 0"
-WRITE(40,'(a5)') "TRANM"
-WRITE(40,'(a)') " 0.000000  0.000000  0.000000  1  0  0   0  1  0   0  0  1"
-WRITE(40,'(a7)') "LTRANSL"
-WRITE(40,'(a)') " -1"
-WRITE(40,'(a)') " 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000"
-WRITE(40,'(a7)') "LORIENT"
-WRITE(40,'(a)') " -1   0   0   0   0"
-WRITE(40,'(a)') " 1.000000  0.000000  0.000000  1.000000  0.000000  0.000000"
-WRITE(40,'(a)') " 0.000000  0.000000  1.000000  0.000000  0.000000  1.000000"
-WRITE(40,'(a7)') "LMATRIX"
-WRITE(40,'(a)') " 1.000000  0.000000  0.000000  0.000000"
-WRITE(40,'(a)') " 0.000000  1.000000  0.000000  0.000000"
-WRITE(40,'(a)') " 0.000000  0.000000  1.000000  0.000000"
-WRITE(40,'(a)') " 0.000000  0.000000  0.000000  1.000000"
-WRITE(40,'(a)') " 0.000000  0.000000  0.000000"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a5)') "GROUP"
+WRITE(ofu,'(a7)') "1 1 P 1"
+WRITE(ofu,'(a5)') "SYMOP"
+WRITE(ofu,'(a)') " 0.000000  0.000000  0.000000  1  0  0   0  1  0   0  0  1"
+WRITE(ofu,'(a)') " -1.0 -1.0 -1.0  0 0 0  0 0 0  0 0 0"
+WRITE(ofu,'(a5)') "TRANM"
+WRITE(ofu,'(a)') " 0.000000  0.000000  0.000000  1  0  0   0  1  0   0  0  1"
+WRITE(ofu,'(a7)') "LTRANSL"
+WRITE(ofu,'(a)') " -1"
+WRITE(ofu,'(a)') " 0.000000  0.000000  0.000000  0.000000  0.000000  0.000000"
+WRITE(ofu,'(a7)') "LORIENT"
+WRITE(ofu,'(a)') " -1   0   0   0   0"
+WRITE(ofu,'(a)') " 1.000000  0.000000  0.000000  1.000000  0.000000  0.000000"
+WRITE(ofu,'(a)') " 0.000000  0.000000  1.000000  0.000000  0.000000  1.000000"
+WRITE(ofu,'(a7)') "LMATRIX"
+WRITE(ofu,'(a)') " 1.000000  0.000000  0.000000  0.000000"
+WRITE(ofu,'(a)') " 0.000000  1.000000  0.000000  0.000000"
+WRITE(ofu,'(a)') " 0.000000  0.000000  1.000000  0.000000"
+WRITE(ofu,'(a)') " 0.000000  0.000000  0.000000  1.000000"
+WRITE(ofu,'(a)') " 0.000000  0.000000  0.000000"
 !
 !
 !Write cell data
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
-WRITE(40,'(a5)') "CELLP"
-WRITE(40,'(1X,6(f12.6,3X))') a, b, c, alpha*180.d0/pi, beta*180.d0/pi, gamma*180.d0/pi
-WRITE(40,'(a)') "  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000"
+WRITE(ofu,'(a5)') "CELLP"
+WRITE(ofu,'(1X,6(f12.6,3X))') a, b, c, alpha*180.d0/pi, beta*180.d0/pi, gamma*180.d0/pi
+WRITE(ofu,'(a)') "  0.000000   0.000000   0.000000   0.000000   0.000000   0.000000"
 !
 !
 !Write atom positions
 a=1.d0
-WRITE(40,'(a5)') "STRUC"
+WRITE(ofu,'(a5)') "STRUC"
 DO i=1,SIZE(P,1)
   CALL ATOMSPECIES(P(i,4),species)
   !
@@ -203,34 +205,36 @@ DO i=1,SIZE(P,1)
   IF( occ>0 ) THEN
     a = AUX(i,occ)
   ENDIF
-  WRITE(40,110) i, species, species, a, TRIM(ADJUSTL(temp))//"    1a       1"
-  WRITE(40,*) "                            0.000000   0.000000   0.000000  0.00"
+  WRITE(ofu,110) i, species, species, a, TRIM(ADJUSTL(temp))//"    1a       1"
+  WRITE(ofu,*) "                            0.000000   0.000000   0.000000  0.00"
 ENDDO
-WRITE(40,'(a)') "  0 0 0 0 0 0 0"
+WRITE(ofu,'(a)') "  0 0 0 0 0 0 0"
 110 FORMAT(i6,2X,a2,2X,a2,2X,f12.8,2X,a)
 !
 !
 IF( vectors ) THEN
   !Write the vector coordinates
-  WRITE(40,'(a5)') "VECTR"
+  WRITE(ofu,'(a5)') "VECTR"
   DO i=1,SIZE(AUX,1)
-    WRITE(40,'(i7,3(1X,f12.8),a3)') i, AUX(i,vx), AUX(i,vy), AUX(i,vz), "  0"
-    WRITE(40,*) i, " 0    0    0    0"
-    WRITE(40,*) " 0 0 0 0 0"
+    WRITE(ofu,'(i7,3(1X,f12.8),a3)') i, AUX(i,vx), AUX(i,vy), AUX(i,vz), "  0"
+    WRITE(ofu,*) i, " 0    0    0    0"
+    WRITE(ofu,*) " 0 0 0 0 0"
   ENDDO
-  WRITE(40,'(a)') " 0 0 0 0 0"
+  WRITE(ofu,'(a)') " 0 0 0 0 0"
   !Write vector properties
-  WRITE(40,'(a5)') "VECTT"
+  WRITE(ofu,'(a5)') "VECTT"
   DO i=1,SIZE(AUX,1)
-    WRITE(40,'(i7,a21)') i, "  0.500 255   0   0 0"
+    WRITE(ofu,'(i7,a21)') i, "  0.500 255   0   0 0"
   ENDDO
-  WRITE(40,'(a)') " 0 0 0 0 0"
+  WRITE(ofu,'(a)') " 0 0 0 0 0"
 ENDIF
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "VESTA"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

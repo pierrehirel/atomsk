@@ -11,7 +11,7 @@ MODULE out_bop
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -68,7 +68,9 @@ len3 = 1.d0
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
+ENDIF
 !
 !Check if coordinates are already reduced or not
 CALL FIND_IF_REDUCED(H,P,isreduced)
@@ -105,28 +107,28 @@ NPd = SIZE(P(:,1))-NPinert
 !
 200 CONTINUE
 201 FORMAT(3(f16.8,2X),a2,2X,f6.3)
-WRITE(40,'(a1)') "A"
+WRITE(ofu,'(a1)') "A"
 WRITE(msg,201) H(1,1), H(1,2), H(1,3)
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 WRITE(msg,201) H(2,1), H(2,2), H(2,3)
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 WRITE(msg,201) H(3,1), H(3,2), H(3,3)
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
-WRITE(40,'(a3)') "LEN"
+WRITE(ofu,'(a3)') "LEN"
 WRITE(msg,201) len1, len2, len3
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
-WRITE(40,'(a6)') "LATPAR"
-WRITE(40,'(a5)') "1.000"
+WRITE(ofu,'(a6)') "LATPAR"
+WRITE(ofu,'(a5)') "1.000"
 !
 !Write coordinates of non-fixed atoms
-WRITE(40,'(a2)') "ND"
+WRITE(ofu,'(a2)') "ND"
 WRITE(msg,*) NPd
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
 IF(NPd>0) THEN
-  WRITE(40,'(a1)') "D"
+  WRITE(ofu,'(a1)') "D"
   DO i=1,SIZE(P(:,1))
     !Note: internally if AUX(fix)==1 then atom is fixed
     IF( fixx==0 .OR. fixy==0 .OR. fixz==0 .OR.                               &
@@ -143,18 +145,18 @@ IF(NPd>0) THEN
                      & P1*G(1,3) + P2*G(2,3) + P3*G(3,3),     &
                      & species, zero
       ENDIF
-      WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+      WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
     ENDIF
   ENDDO
 ENDIF
 !
 !Write coordinates of fixed atoms
-WRITE(40,'(a6)') "NINERT"
+WRITE(ofu,'(a6)') "NINERT"
 WRITE(msg,*) NPinert
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
 IF(NPinert>0) THEN
-  WRITE(40,'(a6)') "DINERT"
+  WRITE(ofu,'(a6)') "DINERT"
   DO i=1,SIZE(P(:,1))
     IF( AUX(i,fixx)>0.5d0 .OR. AUX(i,fixy)>0.5d0 .OR. AUX(i,fixz)>0.5d0 ) THEN
       CALL ATOMSPECIES(P(i,4),species)
@@ -169,7 +171,7 @@ IF(NPinert>0) THEN
                      & P1*G(1,3) + P2*G(2,3) + P3*G(3,3),     &
                      & species, zero
       ENDIF
-      WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+      WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
     ENDIF
   ENDDO
 ENDIF
@@ -189,7 +191,9 @@ GOTO 500
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 END SUBROUTINE WRITE_BOP
 !

@@ -12,7 +12,7 @@ MODULE out_dd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2020                                    *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,40 +69,43 @@ ENDIF
 !
 !
 100 CONTINUE
-!CALL NAME_OUTFILE(outputfile,outputfile,"dd   ")
-OPEN(UNIT=40,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
+ENDIF
 !Write header of DD file
-WRITE(40,'(a4)') 'CSYS'
-WRITE(40,'(a5)') '1 0 0'
-WRITE(40,'(a5)') '0 1 0'
-WRITE(40,'(a5)') '0 0 1'
-WRITE(40,'(a6)') 'PERIOD'
-WRITE(40,'(3(f10.6,1X))') H(1,1), H(2,2), H(3,3)
-WRITE(40,'(a12)') 'DISLO_CENTER'
-WRITE(40,*) '0.000 0.000'
-WRITE(40,'(a9)') 'NUM_UNREL'
+WRITE(ofu,'(a4)') 'CSYS'
+WRITE(ofu,'(a5)') '1 0 0'
+WRITE(ofu,'(a5)') '0 1 0'
+WRITE(ofu,'(a5)') '0 0 1'
+WRITE(ofu,'(a6)') 'PERIOD'
+WRITE(ofu,'(3(f10.6,1X))') H(1,1), H(2,2), H(3,3)
+WRITE(ofu,'(a12)') 'DISLO_CENTER'
+WRITE(ofu,*) '0.000 0.000'
+WRITE(ofu,'(a9)') 'NUM_UNREL'
 WRITE(temp,'(i16)') SIZE(Pfirst,1)
-WRITE(40,*) TRIM(ADJUSTL(temp))
-WRITE(40,'(a10)') 'COOR_UNREL'
+WRITE(ofu,*) TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a10)') 'COOR_UNREL'
 !
 !Write positions of ideal system
 DO i=1,SIZE(Pfirst,1)
-  WRITE(40,110) Pfirst(i,1), Pfirst(i,2), Pfirst(i,3), Pfirst(i,4)
+  WRITE(ofu,110) Pfirst(i,1), Pfirst(i,2), Pfirst(i,3), Pfirst(i,4)
 ENDDO
 !
 !Write second section of DD file
-WRITE(40,'(a7)') 'NUM_REL'
+WRITE(ofu,'(a7)') 'NUM_REL'
 WRITE(temp,'(i16)') SIZE(Psecond,1)
-WRITE(40,*) TRIM(ADJUSTL(temp))
-WRITE(40,'(a8)') 'COOR_REL'
+WRITE(ofu,*) TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a8)') 'COOR_REL'
 !
 !Write positions of relaxed system
 DO i=1,SIZE(Psecond,1)
-  WRITE(40,110) Psecond(i,1), Psecond(i,2), Psecond(i,3)
+  WRITE(ofu,110) Psecond(i,1), Psecond(i,2), Psecond(i,3)
 ENDDO
 110 FORMAT(3(f16.8,1X),i3)
 !
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "ddplot"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

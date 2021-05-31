@@ -12,7 +12,7 @@ MODULE out_moldy
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,17 +73,19 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 CALL FIND_IF_REDUCED(H,P,isreduced)
 CALL INVMAT(H,G)
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !First line: number of particles
 WRITE(msg,*) SIZE(P(:,1))
-WRITE(40,*) TRIM(ADJUSTL(msg))
+WRITE(ofu,*) TRIM(ADJUSTL(msg))
 !
 !Second line: number of replicas along X, Y, Z
-WRITE(40,'(a5)') "1 1 1"
+WRITE(ofu,'(a5)') "1 1 1"
 !
 !Three next lines: supercell vectors
 DO i=1,3
-  WRITE(40,'(3(f16.8,1X))') (H(i,j),j=1,3)
+  WRITE(ofu,'(3(f16.8,1X))') (H(i,j),j=1,3)
 ENDDO
 !
 !
@@ -104,14 +106,16 @@ DO i=1,SIZE(P,1)
                   &  P1*G(1,3) + P2*G(2,3) + P3*G(3,3),     &
                   &  NINT(P(i,4)), smass
   ENDIF
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 ENDDO
 220 FORMAT(3(f16.8,1X),i3,1X,f6.2)
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "MOLDY"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

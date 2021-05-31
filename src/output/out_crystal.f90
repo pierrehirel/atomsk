@@ -11,7 +11,7 @@ MODULE out_crystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -68,7 +68,9 @@ i=1
 msg = 'entering WRITE_CRYSTAL'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+ENDIF
 !
 !Check if coordinates are already reduced or not
 CALL FIND_IF_REDUCED(H,P,isreduced)
@@ -85,23 +87,23 @@ ENDIF
 ! Write header of CRYSTAL file
 CONTINUE
 !First line is a comment
-WRITE(40,*) comment(1)
+WRITE(ofu,*) comment(1)
 !Second line can be CYSTAL, SLAB, POLYMER, MOLECULE, etc.
 !Here "CRYSTAL" is always assumed
-WRITE(40,'(a7)') "CRYSTAL"
+WRITE(ofu,'(a7)') "CRYSTAL"
 !Then
-WRITE(40,'(a5)') "0 0 0"
+WRITE(ofu,'(a5)') "0 0 0"
 !Space group number: here P1 is always assumed
-WRITE(40,'(a1)') "1"
+WRITE(ofu,'(a1)') "1"
 !Convert cell into conventional notation
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 !Convert angles into degrees
 alpha = RAD2DEG(alpha)
 beta  = RAD2DEG(beta)
 gamma = RAD2DEG(gamma)
-WRITE(40,'(6(f12.6,2X))') a, b, c, alpha, beta, gamma
+WRITE(ofu,'(6(f12.6,2X))') a, b, c, alpha, beta, gamma
 WRITE(temp,*) SIZE(P,1)
-WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 !
 !
 200 CONTINUE
@@ -121,10 +123,10 @@ DO i=1,SIZE(P,1)
   ENDIF
   !
   !Write the line to the file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 END DO
 ! Write keyword "END" to end section
-WRITE(40,'(a3)') "END"
+WRITE(ofu,'(a3)') "END"
 GOTO 300
 !
 250 CONTINUE
@@ -142,7 +144,9 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 1000 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 END SUBROUTINE WRITE_CRYSTAL
 !

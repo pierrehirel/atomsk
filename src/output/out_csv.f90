@@ -11,7 +11,7 @@ MODULE out_csv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 Oct. 2018                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,7 +67,9 @@ Hcol = 0
 msg = 'entering WRITE_CSV'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+ENDIF
 !
 ! First line is header to indicate the fields names
 msg = 'species'//fs//'x'//fs//'y'//fs//'z'
@@ -104,7 +106,7 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   Ncol=Ncol+1
 ENDIF
 !Write the line to the file
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
 !
 ! Write coordinates in CSV file
@@ -198,7 +200,7 @@ DO i=1,SIZE(P,1)
   ENDIF
   !
   !Write the line to the file
-  WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 END DO
 GOTO 300
 !
@@ -217,7 +219,9 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 1000 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 END SUBROUTINE WRITE_CSV
 !

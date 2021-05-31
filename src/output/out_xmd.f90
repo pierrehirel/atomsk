@@ -12,7 +12,7 @@ MODULE out_xmd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -99,10 +99,12 @@ ENDIF
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+ENDIF
 !Write comment(s)
 DO i=1,SIZE(comment)
-  WRITE(40,'(a)') '#'//TRIM(comment(1))
+  WRITE(ofu,'(a)') '#'//TRIM(comment(1))
 ENDDO
 !
 !
@@ -117,18 +119,18 @@ ENDIF
 !Write box size
 IF( isreduced ) THEN
   !All atom positions will be scaled to box size
-  WRITE(40,'(a10,3(f12.6,1X))') 'BOX SCALE ', H(1,1), H(2,2), H(3,3)
+  WRITE(ofu,'(a10,3(f12.6,1X))') 'BOX SCALE ', H(1,1), H(2,2), H(3,3)
 ELSE
-  WRITE(40,'(a4,3(f12.6,1X))') 'BOX ', H(1,1), H(2,2), H(3,3)
+  WRITE(ofu,'(a4,3(f12.6,1X))') 'BOX ', H(1,1), H(2,2), H(3,3)
 ENDIF
 !
 !
 !Write atom positions and velocities
 WRITE(msg,*) SIZE(P,1)
 IF( velocities ) THEN
-  WRITE(40,'(a)') "POSVEL "//TRIM(ADJUSTL(msg))
+  WRITE(ofu,'(a)') "POSVEL "//TRIM(ADJUSTL(msg))
 ELSE
-  WRITE(40,'(a)') "POSITION "//TRIM(ADJUSTL(msg))
+  WRITE(ofu,'(a)') "POSITION "//TRIM(ADJUSTL(msg))
 ENDIF
 !
 DO i=1,SIZE(P,1)
@@ -149,14 +151,14 @@ DO i=1,SIZE(P,1)
     WRITE(temp,150) Nspecies, P(i,1), P(i,2), P(i,3)
   ENDIF
   !Write line to file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 ENDDO
 150 FORMAT(i2,1X,6(f14.8,1X))
 !
 !
 !Write atom masses and species
 DO i=1,SIZE(atypes,1)
-  WRITE(40,'(a12,i2)') "SELECT TYPE ", i
+  WRITE(ofu,'(a12,i2)') "SELECT TYPE ", i
   CALL ATOMSPECIES(atypes(i,1),species)
   IF(masscol>0) THEN
     !Atom mass is defined as an auxiliary property
@@ -173,14 +175,16 @@ DO i=1,SIZE(atypes,1)
     !Compute atom mass
     CALL ATOMMASS(species,smass)
   ENDIF
-  WRITE(40,'(a5,f12.3)') "MASS ", smass
-  WRITE(40,'(a9,i2,1X,a2)') "TYPENAME ", i, species
+  WRITE(ofu,'(a5,f12.3)') "MASS ", smass
+  WRITE(ofu,'(a9,i2,1X,a2)') "TYPENAME ", i, species
 ENDDO
 !
 !
 !
 200 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 msg = "XMD"
 temp = outputfile

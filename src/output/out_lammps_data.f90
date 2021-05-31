@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Dec. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -273,22 +273,24 @@ ENDIF
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write header of data file
-WRITE(40,*) TRIM(ADJUSTL(comment(1)))
-WRITE(40,*) ''
-WRITE(40,*) SIZE(P,1)+Nshells, ' atoms'
+WRITE(ofu,*) TRIM(ADJUSTL(comment(1)))
+WRITE(ofu,*) ''
+WRITE(ofu,*) SIZE(P,1)+Nshells, ' atoms'
 IF( Nshells>0 ) THEN
-  WRITE(40,*) Nshells, ' bonds'
+  WRITE(ofu,*) Nshells, ' bonds'
 ENDIF
 !
 !Determine how many different species are present
-WRITE(40,*) Ntypes, ' atom types'
+WRITE(ofu,*) Ntypes, ' atom types'
 IF( Nshelltypes>0 ) THEN
-  WRITE(40,*) Nshelltypes, ' bond types'
+  WRITE(ofu,*) Nshelltypes, ' bond types'
 ENDIF
-WRITE(40,*) ''
+WRITE(ofu,*) ''
 !
 !
 !Check that supercell vectors form a lower rectangular matrix
@@ -333,13 +335,13 @@ ENDIF
 !
 !Write supercell data
 IF( VECLENGTH(K(1,:)) > 1.d-12 ) THEN
-  WRITE(40,160) zero, K(1,1), '  xlo xhi'
+  WRITE(ofu,160) zero, K(1,1), '  xlo xhi'
 ENDIF
 IF( VECLENGTH(K(2,:)) > 1.d-12 ) THEN
-  WRITE(40,160) zero, K(2,2), '  ylo yhi'
+  WRITE(ofu,160) zero, K(2,2), '  ylo yhi'
 ENDIF
 IF( VECLENGTH(K(3,:)) > 1.d-12 ) THEN
-  WRITE(40,160) zero, K(3,3), '  zlo zhi'
+  WRITE(ofu,160) zero, K(3,3), '  zlo zhi'
 ENDIF
 !
 !LAMMPS requires that skew parameters are less than half the box
@@ -394,9 +396,9 @@ IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
       ENDIF
     ENDDO
   ENDDO
-  WRITE(40,161) K(2,1), K(3,1), K(3,2), ' xy xz yz'
+  WRITE(ofu,161) K(2,1), K(3,1), K(3,2), ' xy xz yz'
 ENDIF
-WRITE(40,*) ''
+WRITE(ofu,*) ''
 160 FORMAT(f20.12,1X,f20.12,a9)
 161 FORMAT(3(f20.12,1X),a9)
 !
@@ -404,8 +406,8 @@ WRITE(40,*) ''
 !
 200 CONTINUE
 !Write the Masses section
-WRITE(40,'(a6)') "Masses"
-WRITE(40,*) ''
+WRITE(ofu,'(a6)') "Masses"
+WRITE(ofu,*) ''
 IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !In case of core/shell model, write mass ratio
   !Write mass of cores (and chemical species as comment)
@@ -418,14 +420,14 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       WRITE(temp,'(f16.8)') typemass(i,2)*(1.d0-Smassratio)
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species//" core"
-      WRITE(40,*) TRIM(msg)
+      WRITE(ofu,*) TRIM(msg)
     ENDDO
     DO i=Ntypes-Nshelltypes+1,Ntypes
       CALL ATOMSPECIES(typemass(i,1),species)
       WRITE(temp,'(f16.8)') typemass(i,2)*Smassratio
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species//" shell"
-      WRITE(40,*) TRIM(msg)
+      WRITE(ofu,*) TRIM(msg)
     ENDDO
   ELSE
     !Atom types are undefined
@@ -437,7 +439,7 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       WRITE(temp,'(f16.8)') smass*(1.d0-Smassratio)
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species//" core"
-      WRITE(40,*) TRIM(msg)
+      WRITE(ofu,*) TRIM(msg)
     ENDDO
     !Same with shells
     DO i=1,SIZE(aentriesS,1)
@@ -448,7 +450,7 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
         WRITE(temp,'(f16.8)') smass*Smassratio
         WRITE(msg,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))
         msg(40:) = "# "//species//" shell"
-        WRITE(40,*) TRIM(msg)
+        WRITE(ofu,*) TRIM(msg)
       ENDIF
     ENDDO
     !
@@ -465,7 +467,7 @@ ELSE
       WRITE(temp,'(f16.8)') typemass(i,2)
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species
-      WRITE(40,*) TRIM(msg)
+      WRITE(ofu,*) TRIM(msg)
     ENDDO
   ELSE
     !Atom types are undefined
@@ -478,24 +480,24 @@ ELSE
       !Write atom type and mass to file
       WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
       msg(40:) = "# "//species
-      WRITE(40,*) TRIM(msg)
+      WRITE(ofu,*) TRIM(msg)
     ENDDO
   ENDIF
 ENDIF
-WRITE(40,*) ''
+WRITE(ofu,*) ''
 !
 !
 molID = 0
 Nspecies = 0
 !Write atom positions
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-  WRITE(40,'(a12)') 'Atoms # full'
+  WRITE(ofu,'(a12)') 'Atoms # full'
 ELSEIF (q>0 ) THEN
-  WRITE(40,'(a14)') 'Atoms # charge'
+  WRITE(ofu,'(a14)') 'Atoms # charge'
 ELSE
-  WRITE(40,'(a14)') 'Atoms # atomic'
+  WRITE(ofu,'(a14)') 'Atoms # atomic'
 ENDIF
-WRITE(40,*) ''
+WRITE(ofu,*) ''
 !
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !Ion shells are present (core-shell model)
@@ -529,7 +531,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
         IF( aentries(iloop,1)==NINT(Ppoint(i,4)) ) Nspecies = iloop
       ENDDO
     ENDIF
-    WRITE(40,212) atomID, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+    WRITE(ofu,212) atomID, moleculeID, Nspecies, Qcore, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
     !
     IF( NINT(S(i,4)) == NINT(P(i,4)) ) THEN
       !Write shell info immediately after its core
@@ -552,7 +554,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
           ENDIF
         ENDIF
       ENDDO
-      WRITE(40,212) atomID, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
+      WRITE(ofu,212) atomID, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
     ENDIF
   ENDDO
   !
@@ -560,9 +562,9 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !    ID   = bond number (1-Nbonds)
   !    type = bond type (1-Nbondtype)
   !    atom1,atom2 = IDs of 1st,2nd atoms in bond
-  WRITE(40,*) ''
-  WRITE(40,'(a5)') 'Bonds'
-  WRITE(40,*) ''
+  WRITE(ofu,*) ''
+  WRITE(ofu,'(a5)') 'Bonds'
+  WRITE(ofu,*) ''
   j=0
   DO i=1,SIZE(S,1)
     j=j+1
@@ -578,7 +580,7 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       ENDDO
       !Ionic core #j is bonded with ionic shell #j+1
       Nbond = Nbond+1 ! = ID (bond number)
-      WRITE(40,*) Nbond, bondtype, j, j+1
+      WRITE(ofu,*) Nbond, bondtype, j, j+1
       !
       j=j+1
     ENDIF
@@ -592,7 +594,7 @@ ELSE
       IF( typecol>0 ) THEN
         !Atom types are in auxiliary properties, use it
         DO i=1,SIZE(Ppoint,1)
-          WRITE(40,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+          WRITE(ofu,210) i, NINT(AUX(i,typecol)), AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
         !
       ELSE
@@ -601,7 +603,7 @@ ELSE
           DO j=1,SIZE(aentries,1)
             IF( NINT(aentries(j,1))==NINT(Ppoint(i,4)) ) Nspecies = j
           ENDDO
-          WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+          WRITE(ofu,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
       ENDIF
       !
@@ -610,7 +612,7 @@ ELSE
       IF( typecol>0 ) THEN
         !Atom types are in auxiliary properties, use it
         DO i=1,SIZE(Ppoint,1)
-          WRITE(40,211) i, NINT(AUX(i,typecol)), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+          WRITE(ofu,211) i, NINT(AUX(i,typecol)), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
         !
       ELSE
@@ -619,7 +621,7 @@ ELSE
           DO j=1,SIZE(aentries,1)
             IF( NINT(aentries(j,1))==NINT(Ppoint(i,4)) ) Nspecies = j
           ENDDO
-          WRITE(40,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+          WRITE(ofu,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
         ENDDO
       ENDIF
     ENDIF
@@ -630,13 +632,13 @@ ELSE
     IF( charges ) THEN
       DO i=1,SIZE(Ppoint,1)
         !Format when atom charges are defined
-        WRITE(40,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+        WRITE(ofu,210) i, Nspecies, AUX(i,q), Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
       ENDDO
       !
     ELSE
       DO i=1,SIZE(Ppoint,1)
         !Format when no atom charge is defined
-        WRITE(40,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
+        WRITE(ofu,211) i, Nspecies, Ppoint(i,1), Ppoint(i,2), Ppoint(i,3)
       ENDDO
     ENDIF
     !
@@ -649,28 +651,30 @@ ENDIF
 !
 !Write velocities
 IF( velocities ) THEN
-  WRITE(40,*) ''
-  WRITE(40,'(a10)') 'Velocities'
-  WRITE(40,*) ''
+  WRITE(ofu,*) ''
+  WRITE(ofu,'(a10)') 'Velocities'
+  WRITE(ofu,*) ''
   DO i=1,SIZE(Ppoint(:,1))
-    WRITE(40,'(i10,2X,3(e16.8,1X))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
+    WRITE(ofu,'(i10,2X,3(e16.8,1X))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
   ENDDO
 ENDIF
 !
 !Write shell positions (if any)
 !IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
-!  WRITE(40,*) ''
-!  WRITE(40,'(a10)') 'Shells'
-!  WRITE(40,*) ''
+!  WRITE(ofu,*) ''
+!  WRITE(ofu,'(a10)') 'Shells'
+!  WRITE(ofu,*) ''
 !  DO i=1,SIZE(S,1)
-!    WRITE(40,'(i8,2X,3(f16.8,1X))') NINT(S(i,4)), (S(i,j), j=1,3)
+!    WRITE(ofu,'(i8,2X,3(f16.8,1X))') NINT(S(i,4)), (S(i,j), j=1,3)
 !  ENDDO
 !ENDIF
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "LAMMPS data"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

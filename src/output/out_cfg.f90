@@ -11,7 +11,7 @@ MODULE out_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,7 +67,9 @@ i=1
 msg = 'entering WRITE_CFG'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+ENDIF
 !
 !Check if coordinates are already reduced or not
 CALL FIND_IF_REDUCED(H,P,isreduced)
@@ -86,21 +88,21 @@ CONTINUE
 msg = 'writing header of CFG file: '//TRIM(outputfile)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 WRITE(temp,*) SIZE(P(:,1))
-WRITE(40,'(a)') 'Number of particles = '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') 'Number of particles = '//TRIM(ADJUSTL(temp))
 DO i=1,SIZE(comment)
-  WRITE(40,'(a)') TRIM(ADJUSTL(comment(i)))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(i)))
 ENDDO
-WRITE(40,'(a45)') 'A = 1.000000000 Angstrom (basic length-scale)'
-WRITE(40,102) 'H0(1,1) = ', H(1,1)
-WRITE(40,102) 'H0(1,2) = ', H(1,2)
-WRITE(40,102) 'H0(1,3) = ', H(1,3)
-WRITE(40,102) 'H0(2,1) = ', H(2,1)
-WRITE(40,102) 'H0(2,2) = ', H(2,2)
-WRITE(40,102) 'H0(2,3) = ', H(2,3)
-WRITE(40,102) 'H0(3,1) = ', H(3,1)
-WRITE(40,102) 'H0(3,2) = ', H(3,2)
-WRITE(40,102) 'H0(3,3) = ', H(3,3)
-WRITE(40,'(a13)') '.NO_VELOCITY.'
+WRITE(ofu,'(a45)') 'A = 1.000000000 Angstrom (basic length-scale)'
+WRITE(ofu,102) 'H0(1,1) = ', H(1,1)
+WRITE(ofu,102) 'H0(1,2) = ', H(1,2)
+WRITE(ofu,102) 'H0(1,3) = ', H(1,3)
+WRITE(ofu,102) 'H0(2,1) = ', H(2,1)
+WRITE(ofu,102) 'H0(2,2) = ', H(2,2)
+WRITE(ofu,102) 'H0(2,3) = ', H(2,3)
+WRITE(ofu,102) 'H0(3,1) = ', H(3,1)
+WRITE(ofu,102) 'H0(3,2) = ', H(3,2)
+WRITE(ofu,102) 'H0(3,3) = ', H(3,3)
+WRITE(ofu,'(a13)') '.NO_VELOCITY.'
 102 FORMAT(a10,f16.8)
 !Check if auxiliary properties are present
 IF( ALLOCATED(AUX) .AND. SIZE(AUXNAMES)>0 ) THEN
@@ -111,15 +113,15 @@ IF( ALLOCATED(AUX) .AND. SIZE(AUXNAMES)>0 ) THEN
     CALL ATOMSK_MSG(3708,(/msg/),(/0.d0/))
   ENDIF
   !Write the number of entries for each line
-  WRITE(40,'(a14,i3)') 'entry_count = ', MIN( SIZE(AUXNAMES(:)),32 )+3
+  WRITE(ofu,'(a14,i3)') 'entry_count = ', MIN( SIZE(AUXNAMES(:)),32 )+3
   !Name of each auxiliary property
   DO i=1, MIN( SIZE(AUXNAMES(:)),32 )
     WRITE(temp,'(i3)') i-1
-    WRITE(40,'(a)') 'auxiliary['//TRIM(ADJUSTL(temp))//'] = ' &
+    WRITE(ofu,'(a)') 'auxiliary['//TRIM(ADJUSTL(temp))//'] = ' &
          &          //TRIM(ADJUSTL(AUXNAMES(i)))
   ENDDO
 ELSE
-  WRITE(40,'(a15)') 'entry_count = 3'
+  WRITE(ofu,'(a15)') 'entry_count = 3'
 ENDIF
 !
 !
@@ -142,13 +144,13 @@ DO i=1,SIZE(P,1)
       CALL ATOMSPECIES(snumber,species)
       CALL ATOMMASS(species,smass)
       !Atomic mass
-      WRITE(40,'(f9.4)') smass
+      WRITE(ofu,'(f9.4)') smass
       !Atomic species
-      WRITE(40,'(a2)') species
+      WRITE(ofu,'(a2)') species
     ELSE
       !Set dummy mass and species
-      WRITE(40,'(f9.4)') 0.d0
-      WRITE(40,'(a2)') "XX"
+      WRITE(ofu,'(f9.4)') 0.d0
+      WRITE(ofu,'(a2)') "XX"
     ENDIF
   ENDIF
   !
@@ -180,7 +182,7 @@ DO i=1,SIZE(P,1)
   ENDIF
   !
   !Write the line to the file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 END DO
 GOTO 300
 !
@@ -199,7 +201,9 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 1000 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 END SUBROUTINE WRITE_CFG
 !

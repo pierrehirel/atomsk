@@ -11,7 +11,7 @@ MODULE out_str
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,7 +111,9 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>=1 ) THEN
   ENDDO
 ENDIF
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+ENDIF
 !
 ! Write header of STR file
 CONTINUE
@@ -120,24 +122,24 @@ temp = ADJUSTL(comment(1))
 IF( temp(1:1)=="#" ) THEN
   temp(1:1) = " "
 ENDIF
-WRITE(40,'(a)') "title  "//TRIM(ADJUSTL(temp))
-WRITE(40,'(a)') "format pdffit"
-WRITE(40,'(a)') "scale  1.0000"
-WRITE(40,'(a)') "spcgr  P1"
+WRITE(ofu,'(a)') "title  "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "format pdffit"
+WRITE(ofu,'(a)') "scale  1.0000"
+WRITE(ofu,'(a)') "spcgr  P1"
 !Convert cell vectors (conventional notation, size in angströms, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 WRITE(temp,'(6(f12.6,a3))') a, ",  ", b, ",  ", c, ",  ", &
                          & RAD2DEG(alpha), ",  ", RAD2DEG(beta), ",  ", RAD2DEG(gamma)
-WRITE(40,'(a)') "cell   "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "cell   "//TRIM(ADJUSTL(temp))
 !
-WRITE(40,'(a)') "dcell  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000"
+WRITE(ofu,'(a)') "dcell  0.000000,  0.000000,  0.000000,  0.000000,  0.000000,  0.000000"
 !
 !Write number of replicas (here always 1x1x1) and number of atoms
 WRITE(temp,*) SIZE(P,1)
-WRITE(40,'(a)') "ncell  1,1,1,"//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "ncell  1,1,1,"//TRIM(ADJUSTL(temp))
 !
 !Write atom positions
-WRITE(40,'(a)') "atoms"
+WRITE(ofu,'(a)') "atoms"
 DO i=1,SIZE(P,1)
   !Get atom species
   CALL ATOMSPECIES(P(i,4),species)
@@ -168,10 +170,10 @@ DO i=1,SIZE(P,1)
   ENDIF
   !
   !Write the line to the file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
   !
   !Next line contains standard deviations on position and occupancy: here we just write zeros
-  WRITE(40,'(6X,a)') "0.00000000        0.00000000        0.00000000       0.0000"
+  WRITE(ofu,'(6X,a)') "0.00000000        0.00000000        0.00000000       0.0000"
   !
   !Next line contains anisotropy factors U11, U22, U33
   temp = ""
@@ -193,10 +195,10 @@ DO i=1,SIZE(P,1)
   ENDIF
   temp = TRIM(ADJUSTL(temp))//"        "//TRIM(ADJUSTL(msg))
   !Write this line to the file
-  WRITE(40,'(6X,a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(6X,a)') TRIM(ADJUSTL(temp))
   !
   !Next line contains standard deviations on U11,U22,U33: here we just write zeros
-  WRITE(40,'(6X,a)') "0.00000000        0.00000000        0.00000000"
+  WRITE(ofu,'(6X,a)') "0.00000000        0.00000000        0.00000000"
   !
   !Next line contains anisotropy factors U12, U13, U23
   temp = ""
@@ -218,10 +220,10 @@ DO i=1,SIZE(P,1)
   ENDIF
   temp = TRIM(ADJUSTL(temp))//"        "//TRIM(ADJUSTL(msg))
   !Write this line to the file
-  WRITE(40,'(6X,a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(6X,a)') TRIM(ADJUSTL(temp))
   !
   !Next line contains standard deviations on U12,U13,U23: here we just write zeros
-  WRITE(40,'(6X,a)') "0.00000000        0.00000000        0.00000000"
+  WRITE(ofu,'(6X,a)') "0.00000000        0.00000000        0.00000000"
   !
 ENDDO
 GOTO 300
@@ -241,7 +243,9 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 1000 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(40)
+ENDIF
 !
 END SUBROUTINE WRITE_STR
 !

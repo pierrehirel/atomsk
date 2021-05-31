@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2021                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1943,6 +1943,11 @@ DO WHILE(i<SIZE(cla))
     nerr=nerr+1
     CALL ATOMSK_MSG(4813,(/TRIM(clarg)/),(/0.d0/))
     GOTO 1000
+  !
+  ELSEIF(clarg=='-') THEN
+    !output to stdout
+    ofu=6
+    verbosity=0  !disable all other messages
   !
   ELSEIF(clarg(1:1)=='-') THEN
     !if it starts with "-" we assume it is a wrong option entered by the user

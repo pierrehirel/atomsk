@@ -58,6 +58,7 @@ INTEGER:: verbosity          !level of verbosity of the program
 !**********************************
 !*  OUTPUT
 !**********************************
+INTEGER:: ofu=40       !output file unit (default 40, stdout=6)
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are added to Atomsk
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)

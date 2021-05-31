@@ -12,7 +12,7 @@ MODULE out_dlp_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 April 2014                                    *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,19 +116,21 @@ ENDIF
 !
 !
 200 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+ENDIF
 !1st line = comment (limited to 72 characters)
-WRITE(40,'(a)') TRIM( comment(1)(1:72) )
+WRITE(ofu,'(a)') TRIM( comment(1)(1:72) )
 !
 !levcfg: 0=positions only; 1= pos.+velocities; 2=pos.+vel.+forces
 !imcon: 0=no periodicity; 1=cubic BC; 2=orthorhombic BC; 3= parallelepipedic BC
 !megatm = total number of particles
 megatm = SIZE(P(:,1))+Nshells
-WRITE(40,'(3i10)') levcfg, 3, megatm
+WRITE(ofu,'(3i10)') levcfg, 3, megatm
 !
 !Supercell parameters
 DO i=1,3
-  WRITE(40,'(3f20.8)') (H(i,j), j=1,3)
+  WRITE(ofu,'(3f20.8)') (H(i,j), j=1,3)
 ENDDO
 !
 !Write atoms and shells positions
@@ -138,13 +140,13 @@ DO WHILE( Natoms+Nshells < megatm )
   Natoms = Natoms+1
   CALL ATOMSPECIES(P(Natoms,4),species)
   WRITE(temp,'(a2,3X,i8)') species, Natoms+Nshells
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
-  WRITE(40,'(3f20.8)') (P(Natoms,j), j=1,3)
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(3f20.8)') (P(Natoms,j), j=1,3)
   IF(levcfg>=1) THEN
-    WRITE(40,'(3f20.8)') AUX(Natoms,vx), AUX(Natoms,vy), AUX(Natoms,vz)
+    WRITE(ofu,'(3f20.8)') AUX(Natoms,vx), AUX(Natoms,vy), AUX(Natoms,vz)
   ENDIF
   IF(levcfg==2) THEN
-    WRITE(40,'(3f20.8)') AUX(Natoms,fx), AUX(Natoms,fy), AUX(Natoms,fz)
+    WRITE(ofu,'(3f20.8)') AUX(Natoms,fx), AUX(Natoms,fy), AUX(Natoms,fz)
   ENDIF
   !
   !Now check if this atom has a shell
@@ -152,14 +154,14 @@ DO WHILE( Natoms+Nshells < megatm )
     IF( DABS(S(Natoms,4))>0.1d0 ) THEN
       !This shell corresponds to that atom: write its position
       WRITE(temp,'(a2,a2,3X,i8)') TRIM(species), "_s ", Natoms+Nshells+1
-      WRITE(40,'(a)') TRIM(ADJUSTL(temp))
-      WRITE(40,'(3f20.8)') (S(Natoms,j), j=1,3)
+      WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
+      WRITE(ofu,'(3f20.8)') (S(Natoms,j), j=1,3)
       !If levcfg>0, just write zeros for velocities and forces
       IF(levcfg>=1) THEN
-        WRITE(40,'(3f20.8)') zero, zero, zero
+        WRITE(ofu,'(3f20.8)') zero, zero, zero
       ENDIF
       IF(levcfg==2) THEN
-        WRITE(40,'(3f20.8)') zero, zero, zero
+        WRITE(ofu,'(3f20.8)') zero, zero, zero
       ENDIF
       Nshells = Nshells+1
     ENDIF
@@ -167,7 +169,9 @@ DO WHILE( Natoms+Nshells < megatm )
 ENDDO
 !
 !
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 msg = "DL_POLY CONFIG"
 temp = outputfile

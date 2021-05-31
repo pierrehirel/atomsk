@@ -11,7 +11,7 @@ MODULE out_abinit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,7 +83,9 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Find the number of atoms of each type
 CALL FIND_NSP(P(:,4),atypes)
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=250)
+ENDIF
 !
 !Check if coordinates are reduced or not
 CALL FIND_IF_REDUCED(H,P,isreduced)
@@ -101,24 +103,24 @@ ENDIF
 CONTINUE
 !Write comments
 DO i=1,SIZE(comment)
-  WRITE(40,*) TRIM(ADJUSTL(comment(i)))
+  WRITE(ofu,*) TRIM(ADJUSTL(comment(i)))
 ENDDO
 !
 !Write lattice constant
-WRITE(40,'(a12)') "acell    3*1"
+WRITE(ofu,'(a12)') "acell    3*1"
 !
 !Write cell parameters
-WRITE(40,'(a9,3(f12.8,2X))') "rprim    ", H(1,1), H(2,1), H(3,1)
-WRITE(40,'(9X,3(f12.8,2X))') H(1,2), H(2,2), H(3,2)
-WRITE(40,'(9X,3(f12.8,2X))') H(1,3), H(2,3), H(3,3)
+WRITE(ofu,'(a9,3(f12.8,2X))') "rprim    ", H(1,1), H(2,1), H(3,1)
+WRITE(ofu,'(9X,3(f12.8,2X))') H(1,2), H(2,2), H(3,2)
+WRITE(ofu,'(9X,3(f12.8,2X))') H(1,3), H(2,3), H(3,3)
 !
 !Write number of atoms
 WRITE(temp,*) SIZE(P,1)
-WRITE(40,'(a)') "natom    "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "natom    "//TRIM(ADJUSTL(temp))
 !
 !Write number of types of atoms
 WRITE(temp,*) SIZE(atypes,1)
-WRITE(40,'(a)') "ntypat   "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "ntypat   "//TRIM(ADJUSTL(temp))
 !
 !Write the type of each atom
 temp = " "
@@ -141,7 +143,7 @@ ELSE
     ENDDO
   ENDDO
 ENDIF
-WRITE(40,'(a)') "typat    "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "typat    "//TRIM(ADJUSTL(temp))
 !
 !Write atomic number for each type
 temp = " "
@@ -149,19 +151,19 @@ DO j=1,SIZE(atypes,1)
   WRITE(msg,*) NINT(atypes(j,1))
   temp = TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(msg))
 ENDDO
-WRITE(40,'(a)') "znucl    "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "znucl    "//TRIM(ADJUSTL(temp))
 !
 !
 200 CONTINUE
 ! Write atom coordinates
 IF(isreduced) THEN
-  WRITE(40,'(a9,3(f12.8,2X))') "xred     ", P(1,1), P(1,2), P(1,3)
+  WRITE(ofu,'(a9,3(f12.8,2X))') "xred     ", P(1,1), P(1,2), P(1,3)
 ELSE
-  WRITE(40,'(a9,3(f12.8,2X))') "xcart    ", P(1,1), P(1,2), P(1,3)
+  WRITE(ofu,'(a9,3(f12.8,2X))') "xcart    ", P(1,1), P(1,2), P(1,3)
 ENDIF
 IF(SIZE(P,1)>1) THEN
   DO i=2,SIZE(P,1)
-    WRITE(40,'(9X,3(f12.8,2X))') P(i,1), P(i,2), P(i,3)
+    WRITE(ofu,'(9X,3(f12.8,2X))') P(i,1), P(i,2), P(i,3)
   END DO
 ENDIF
 !
@@ -182,7 +184,9 @@ CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 1000 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 END SUBROUTINE WRITE_ABINIT
 !

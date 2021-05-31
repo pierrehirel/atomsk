@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -107,11 +107,13 @@ ENDIF
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write control section
-WRITE(40,'(a8)') "&CONTROL"
-WRITE(40,'(a)') "  title = '"//TRIM(comment(1))//"'"
+WRITE(ofu,'(a8)') "&CONTROL"
+WRITE(ofu,'(a)') "  title = '"//TRIM(comment(1))//"'"
 !pseudo_dir: value of the $ESPRESSO_PSEUDO environment variable if set;
 !            '$HOME/espresso/pseudo/' otherwise
 CALL GET_ENVIRONMENT_VARIABLE('ESPRESSO_PSEUDO',pseudo_dir)
@@ -138,40 +140,40 @@ ELSE
   pseudo_dir_exists = .FALSE.
 ENDIF
 !
-WRITE(40,'(a)') "  pseudo_dir = '"//TRIM(ADJUSTL(pseudo_dir))//"'"
-WRITE(40,'(a)') "  calculation = 'scf'"
-WRITE(40,'(a1)') "/"
+WRITE(ofu,'(a)') "  pseudo_dir = '"//TRIM(ADJUSTL(pseudo_dir))//"'"
+WRITE(ofu,'(a)') "  calculation = 'scf'"
+WRITE(ofu,'(a1)') "/"
 !
 !Write system section
-WRITE(40,*) ""
-WRITE(40,'(a7)') "&SYSTEM"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a7)') "&SYSTEM"
 WRITE(msg,*) SIZE(P,1)
-WRITE(40,'(a)') "  nat= "//TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') "  nat= "//TRIM(ADJUSTL(msg))
 WRITE(msg,*) SIZE(aentries,1)
-WRITE(40,'(a)') "  ntyp= "//TRIM(ADJUSTL(msg))
-WRITE(40,'(a)') "  ibrav= 0"
-WRITE(40,'(a)') "  ecutwfc= 20.0"
-WRITE(40,'(a1)') "/"
+WRITE(ofu,'(a)') "  ntyp= "//TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') "  ibrav= 0"
+WRITE(ofu,'(a)') "  ecutwfc= 20.0"
+WRITE(ofu,'(a1)') "/"
 !
 !Write electrons section
-WRITE(40,*) ""
-WRITE(40,'(a10)') "&ELECTRONS"
-WRITE(40,'(a19)') "  mixing_beta = 0.7"
-WRITE(40,'(a20)') "  conv_thr =  1.0d-8"
-WRITE(40,'(a1)') "/"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a10)') "&ELECTRONS"
+WRITE(ofu,'(a19)') "  mixing_beta = 0.7"
+WRITE(ofu,'(a20)') "  conv_thr =  1.0d-8"
+WRITE(ofu,'(a1)') "/"
 !
 !Write empty "ions" and "cell" sections
-WRITE(40,*) ""
-WRITE(40,'(a5)') "&IONS"
-WRITE(40,'(a1)') "/"
-WRITE(40,*) ""
-WRITE(40,'(a5)') "&CELL"
-WRITE(40,'(a1)') "/"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a5)') "&IONS"
+WRITE(ofu,'(a1)') "/"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a5)') "&CELL"
+WRITE(ofu,'(a1)') "/"
 !
 !Write mass of species
 !Note: the user will have to append the pseudopotential file names
-WRITE(40,*) ""
-WRITE(40,'(a14)') "ATOMIC_SPECIES"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a14)') "ATOMIC_SPECIES"
 DO i=1,SIZE(aentries,1)
   fileexists = .FALSE.
   CALL ATOMSPECIES(aentries(i,1),species)
@@ -213,26 +215,26 @@ DO i=1,SIZE(aentries,1)
   ENDIF
   !
   CALL ATOMMASS(species,smass)
-  WRITE(40,'(a2,2X,f6.3,2X,a)') species, smass, TRIM(msg)
+  WRITE(ofu,'(a2,2X,f6.3,2X,a)') species, smass, TRIM(msg)
 ENDDO
 !
 !Write cell parameters
-WRITE(40,*) ""
-WRITE(40,'(a24)') "CELL_PARAMETERS angstrom"
-WRITE(40,201) H(1,1), H(1,2), H(1,3)
-WRITE(40,201) H(2,1), H(2,2), H(2,3)
-WRITE(40,201) H(3,1), H(3,2), H(3,3)
+WRITE(ofu,*) ""
+WRITE(ofu,'(a24)') "CELL_PARAMETERS angstrom"
+WRITE(ofu,201) H(1,1), H(1,2), H(1,3)
+WRITE(ofu,201) H(2,1), H(2,2), H(2,3)
+WRITE(ofu,201) H(3,1), H(3,2), H(3,3)
 201 FORMAT(3(f16.8,2X))
 !
 !Write atom coordinates
-WRITE(40,*) ""
+WRITE(ofu,*) ""
 msg = "ATOMIC_POSITIONS"
 IF( isreduced ) THEN
   msg = TRIM(ADJUSTL(msg))//" crystal"
 ELSE
   msg = TRIM(ADJUSTL(msg))//" angstrom"
 ENDIF
-WRITE(40,'(a)') TRIM(msg)
+WRITE(ofu,'(a)') TRIM(msg)
 DO i=1,SIZE(P,1)
   CALL ATOMSPECIES(P(i,4),species)
   WRITE(msg,210) species, P(i,1), P(i,2), P(i,3)
@@ -270,24 +272,24 @@ DO i=1,SIZE(P,1)
       msg = TRIM(msg)//" 1"
     ENDIF
   ENDIF
-  WRITE(40,'(a)') TRIM(msg)
+  WRITE(ofu,'(a)') TRIM(msg)
 ENDDO
 210 FORMAT(a2,2X,3(f16.8,2X))
 !
 !Write k points section
-WRITE(40,*) ""
-WRITE(40,'(a18)') "K_POINTS automatic"
-WRITE(40,'(a)') "2 2 2  0 0 0"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a18)') "K_POINTS automatic"
+WRITE(ofu,'(a)') "2 2 2  0 0 0"
 !
 !Write forces on atoms
 IF( fx>0 .AND. fy>0 .AND. fz>0 ) THEN
-  WRITE(40,*) ""
+  WRITE(ofu,*) ""
   msg = "ATOMIC_FORCES"
-  WRITE(40,'(a)') TRIM(msg)
+  WRITE(ofu,'(a)') TRIM(msg)
   DO i=1,SIZE(P,1)
     CALL ATOMSPECIES(P(i,4),species)
     WRITE(msg,210) species, AUX(i,fx), AUX(i,fy), AUX(i,fz)
-    WRITE(40,'(a)') TRIM(msg)
+    WRITE(ofu,'(a)') TRIM(msg)
   ENDDO
 ENDIF
 GOTO 500
@@ -295,7 +297,9 @@ GOTO 500
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(40)
+ENDIF
 msg = "PW"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

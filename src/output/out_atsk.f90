@@ -12,7 +12,7 @@ MODULE out_atsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 July 2015                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -71,12 +71,14 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',FORM="UNFORMATTED",ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',FORM="UNFORMATTED",ERR=500)
+ENDIF
 !
 !Write a header to indicate what the file is
 WRITE(atsktxt,'(a32)') '0.8 Atomsk binary file'
 atsktxt = ADJUSTL(atsktxt)
-WRITE(40) atsktxt
+WRITE(ofu) atsktxt
 !
 !Write the length of each array
 IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
@@ -96,26 +98,28 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
 ELSE
   Ncomment = 0
 ENDIF
-WRITE(40) SIZE(P,1), NS, Naux, Nauxnames, Ncomment
+WRITE(ofu) SIZE(P,1), NS, Naux, Nauxnames, Ncomment
 !
 !Write arrays
-WRITE(40) H
-WRITE(40) P
+WRITE(ofu) H
+WRITE(ofu) P
 IF(NS>0) THEN
-  WRITE(40) S
+  WRITE(ofu) S
 ENDIF
 IF(Naux>0) THEN
-  WRITE(40) AUXNAMES
-  WRITE(40) AUX
+  WRITE(ofu) AUXNAMES
+  WRITE(ofu) AUX
 ENDIF
 IF(Ncomment>0) THEN
-  WRITE(40) comment
+  WRITE(ofu) comment
 ENDIF
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "ATSK"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

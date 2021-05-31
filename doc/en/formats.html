@@ -251,6 +251,8 @@
 
 <p>When nothing is specified then it means that no auxiliary property is read or written in that format. Note that all auxiliary properties are not transferable from one format to another, so some properties may be lost during conversion. For instance if atom charges, velocities and forces are read from an LMC file, then when converted to CFG they will all be written, but when converted to XSF only the forces will be written.</p>
 
+<p>If the output file is "NULL" then no output is produced at all. If the output file is "-" then the output is sent to the standard output (stdout, usually the screen) instead of into a file, and <a href="./progbe_verb.html">verbosity</a> is set to zero (no other message is displayed on screen, except for warning and error messages).</p>
+
 <p>Some <a href="./modes.html">modes</a> and <a href="./options.html">options</a> may create new auxiliary properties, or update existing ones. Refer to the page of each of these for more information. For removing auxiliary properties one can use the <a href="./option_rmprop.html">option <code>-rmprop</code></a>.</p>
 
 

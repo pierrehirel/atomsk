@@ -11,7 +11,7 @@ MODULE out_siesta_xv
 !* (C) Jan. 2012 - Eva Marie Kalivoda                                             *
 !*     Fraunhofer Institute für Werkstoffmechanik IWM                             *
 !*     Wöhlerstr. 11, 79108 Freiburg im Breisgau                                  *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -93,13 +93,15 @@ IF(vx.NE.0 .AND. vy.NE.0 .AND. vz.NE.0) vel=.TRUE.
 !
 !
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write header of XV file
-WRITE(40,105) H(1,1), H(1,2), H(1,3), zero, zero, zero
-WRITE(40,105) H(2,1), H(2,2), H(2,3), zero, zero, zero
-WRITE(40,105) H(3,1), H(3,2), H(3,3), zero, zero, zero
-WRITE(40,'(3X,i9)') SIZE(P(:,1))
+WRITE(ofu,105) H(1,1), H(1,2), H(1,3), zero, zero, zero
+WRITE(ofu,105) H(2,1), H(2,2), H(2,3), zero, zero, zero
+WRITE(ofu,105) H(3,1), H(3,2), H(3,3), zero, zero, zero
+WRITE(ofu,'(3X,i9)') SIZE(P(:,1))
 105 FORMAT(3X,3(2X,f16.9),3X,3(2X,f16.9))
 !
 !Write atom positions
@@ -114,10 +116,10 @@ DO i=1,SIZE(P(:,1))
     ENDDO
   ENDIF
   IF(vel) THEN
-    WRITE(40,110) Nspecies, INT(P(i,4)), P(i,1), P(i,2), P(i,3), &
+    WRITE(ofu,110) Nspecies, INT(P(i,4)), P(i,1), P(i,2), P(i,3), &
                 & AUX(i,vx), AUX(i,vy), AUX(i,vz)
   ELSE
-    WRITE(40,110) Nspecies, INT(P(i,4)), P(i,1), P(i,2), P(i,3), &
+    WRITE(ofu,110) Nspecies, INT(P(i,4)), P(i,1), P(i,2), P(i,3), &
                 & zero, zero, zero
   ENDIF
 ENDDO
@@ -127,7 +129,9 @@ ENDDO
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(40)
+ENDIF
 msg = "XV"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

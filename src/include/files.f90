@@ -294,27 +294,32 @@ CHARACTER(LEN=5):: ext  !extension of input file
 CHARACTER(LEN=4096):: test, test2
 INTEGER:: strlength, strlength2
 !
-test = TRIM(ADJUSTL(inputfile))
-!Find where the extension of inputfile starts
-!(we assume here that it has to be after the last path separator, if any)
-strlength = SCAN(test,'.',BACK=.TRUE.)
-strlength2 = SCAN(test,pathsep,BACK=.TRUE.)
-IF(strlength2>=LEN_TRIM(test)) strlength2=0
-IF(strlength>strlength2) THEN
-  !Get extension of input file
-  ext = TRIM(ADJUSTL(test(strlength+1:)))
-  !Verify that ext is one of the known extensions
-  IF( ANY( listofformats(:)==ext ) ) THEN
-    test = test(1:strlength-1)
+IF( ofu==6 ) THEN
+  outputfile=""
+  !
+ELSE
+  test = TRIM(ADJUSTL(inputfile))
+  !Find where the extension of inputfile starts
+  !(we assume here that it has to be after the last path separator, if any)
+  strlength = SCAN(test,'.',BACK=.TRUE.)
+  strlength2 = SCAN(test,pathsep,BACK=.TRUE.)
+  IF(strlength2>=LEN_TRIM(test)) strlength2=0
+  IF(strlength>strlength2) THEN
+    !Get extension of input file
+    ext = TRIM(ADJUSTL(test(strlength+1:)))
+    !Verify that ext is one of the known extensions
+    IF( ANY( listofformats(:)==ext ) ) THEN
+      test = test(1:strlength-1)
+    ENDIF
   ENDIF
+  !
+  !suffix must not have a dot
+  test2 = TRIM(ADJUSTL(outfileformat))
+  IF(test2(1:1)==".") test2 = test2(2:)
+  !
+  !Set the name of outputfile
+  outputfile = TRIM(ADJUSTL(test))//'.'//TRIM(ADJUSTL(test2))
 ENDIF
-!
-!suffix must not have a dot
-test2 = TRIM(ADJUSTL(outfileformat))
-IF(test2(1:1)==".") test2 = test2(2:)
-!
-!Set the name of outputfile
-outputfile = TRIM(ADJUSTL(test))//'.'//TRIM(ADJUSTL(test2))
 !
 END SUBROUTINE NAME_OUTFILE
 !
