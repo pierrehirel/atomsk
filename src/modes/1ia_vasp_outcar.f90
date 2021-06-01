@@ -12,7 +12,7 @@ MODULE oia_vaspout
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 May 2021                                      *
+!* Last modification: P. Hirel - 01 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -280,7 +280,14 @@ DO  !loop on all snapshots
   !
   READ(30,'(a128)',ERR=1000,END=1000) test
   test = TRIM(ADJUSTL(test))
-  IF( test(1:8)=="POSITION" ) THEN
+  IF( test(1:22)=="direct lattice vectors" ) THEN
+    !read or update cell vectors on the next 3 lines
+    DO i=1,3
+      READ(30,*,ERR=800,END=800) H(i,1), H(i,2), H(i,3)
+    ENDDO
+    !
+  ELSEIF( test(1:8)=="POSITION" ) THEN
+    !New snapshot: read atom positions
     snap = snap+1
     !
     !Set the output file name
