@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 May 2021                                      *
+!* Last modification: P. Hirel - 01 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1078,16 +1078,12 @@ isreduced = .TRUE.
 avg = 0.d0
 minmax = 0.d0
 D = 0.d0
-th = 4.d0
+th = 3.d0
 IF( SIZE(array,1) < 11 ) THEN
-  th = 2.d0
+  th = 1.48d0
 ENDIF
 !
-IF( .NOT.ANY( DABS(array(:,1:3)) > 1.d0 ) ) THEN
-  !All (x,y,z) coordinates are between 0 and 1: assume reduced coordinates
-  !a.k.a. don't change anything (isreduced is already TRUE)
-  !
-ELSE
+IF( ANY( DABS(array(:,1:3)) > 1.2d0 ) .OR. ANY( DABS(array(:,1:3)) < -0.5d0 ) ) THEN
   !Some coordinates are not contained between 0 and 1
   !Loop on X, Y, Z
   DO i=1,3
