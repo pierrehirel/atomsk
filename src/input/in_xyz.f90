@@ -32,7 +32,7 @@ MODULE in_xyz
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 02 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -324,7 +324,7 @@ IF(exyz.AND.sxyz) GOTO 800
 !If the cell vectors are not set, parse the second line again,
 !and attempt to detect 3 consecutive real numbers
 !Note: this assumes an orthorhombic box, i.e. only H(1,1), H(2,2) and H(3,3)
-IF( .NOT.Hset ) THEN
+IF( .NOT.Hset .AND. INDEX(properties,"tomsk")==0 ) THEN
   temp = properties
   !
   !Values may be separated by special characters, replace them with blank spaces

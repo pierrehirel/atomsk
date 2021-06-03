@@ -186,6 +186,14 @@ IF(helpsection=="modes" .OR. helpsection=="unwrap") THEN
   WRITE(*,*) "..> Entfalten Modus:"
   WRITE(*,*) "          atomsk --unwrap <reference> <system> [<outputfile>] [<formats>] [options]"
 ENDIF
+IF(helpsection=="modes" .OR. helpsection=="density") THEN
+  WRITE(*,*) "..> Density Modus:"
+  WRITE(*,*) "          atomsk --density <file> <property> <1d|2d|3d> <x|y|z> <sigma> [options]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="difference") THEN
+  WRITE(*,*) "..> Difference Modus:"
+  WRITE(*,*) "          atomsk --difference <file1> <file2> [options]"
+ENDIF
 IF(helpsection=="modes" .OR. helpsection=="edm") THEN
   WRITE(*,*) "..> Modus zu elektrischen Dipolmomenten:"
   WRITE(*,*) "          atomsk --edm <system> <Pspecies> <NNN> [options]"

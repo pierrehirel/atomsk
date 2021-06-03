@@ -188,10 +188,10 @@ IF(helpsection=="modes" .OR. helpsection=="unwrap") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="density") THEN
   WRITE(*,*) "..> Mode densité :"
-  WRITE(*,*) "          atomsk --density <fichier> <propriété> <dimension> <axe> <sigma> [options]"
+  WRITE(*,*) "          atomsk --density <fichier> <propriété> <1d|2d|3d> <x|y|z> <sigma> [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="difference") THEN
-  WRITE(*,*) "..> List mode:"
+  WRITE(*,*) "..> Mode différence :"
   WRITE(*,*) "          atomsk --difference <file1> <file2> [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="edm") THEN
