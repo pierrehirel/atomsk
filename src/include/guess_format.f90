@@ -537,6 +537,20 @@ IF(fileexists) THEN
       isposcar = isposcar+0.3d0
       isdlp = isdlp-0.3d0
     !
+    !Search for patterns corresponding to OUTCAR format (VASP)
+    ELSEIF(i==1 .AND. test(1:4)=='vasp') THEN
+      isoutcar = isoutcar+0.4d0
+    ELSEIF(test(1:6)=='INCAR:') THEN
+      isoutcar = isoutcar+0.1d0
+    ELSEIF(test(1:7)=='POTCAR:') THEN
+      isoutcar = isoutcar+0.1d0
+    ELSEIF(test(1:8)=='KPOINTS:') THEN
+      isoutcar = isoutcar+0.2d0
+    ELSEIF(test(1:6)=='distr:') THEN
+      isoutcar = isoutcar+0.4d0
+    ELSEIF(test(1:7)=='distrk:') THEN
+      isoutcar = isoutcar+0.4d0
+    !
     !Search for patterns corresponding to Quantum Espresso PW format
     ELSEIF(test(1:8)=='&CONTROL' .OR. test(1:8)=='&control') THEN
       isqepw = isqepw+0.4d0

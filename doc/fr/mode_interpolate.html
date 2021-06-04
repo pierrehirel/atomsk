@@ -20,7 +20,7 @@
 
 <h4>Description</h4>
 
-<p>Ce mode construit une chaîne de &#60;N&#62; configurations par interpolation linéaire des positions atomiques entre les configurations données par le &#60;fichier1&#62; et le &#60;fichier2&#62;. Les vecteurs de boîte sont aussi interpolés.</p>
+<p>Ce mode construit une chaîne de &#60;N&#62; configurations par interpolation linéaire des positions atomiques entre les configurations données par le &#60;fichier1&#62; et le &#60;fichier2&#62;. Le nombre &#60;N&#62; donne le nombre de configurations générées entre les états initial et final. Les vecteurs de boîte sont aussi interpolés.</p>
 
 <p>Les deux fichiers donnés <em>doivent</em> contenir exactement le même nombre de particules, et devraient correspondre au même type de système (i.e. vecteurs de boîte similaires, mêmes types d'atomes, etc.) pour que l'interpolation ait du sens. Les deux fichiers peuvent être dans des formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par Atomsk</a>.</p>
 
@@ -28,7 +28,9 @@
 
 <p>Si ce mode est utilisé avec une ou plusieurs <a href="./options.html">options</a>, alors ces options s'appliqueront à chacune des configurations interpolées.</p>
 
-<p>Notez que seules les images interpolées sont construites et écrites dans des fichiers, et <em>pas</em> les images initiale et finale. Notez également que les images interpolées peuvent ne pas correspondre à un état stable, ni même à un état physique, du système. Une telle chaîne de configurations peut être utilisée, par exemple, comme point de départ pour la méthode <em>Nudged Elastic Band</em> (NEB), ou encore pour produire une animation entre deux états.</p>
+<p>Ce mode produit &#60;N&#62;+2 fichiers de sortie, numérotés de 0 jusqu'à &#60;N&#62;+1. La configuration 0 correspond à l'état initial, la configuration numéro &#60;N&#62;+1 à l'état final, de telle sorte que les configurations intermédiaires sont numérotées de 1 à &#60;N&#62;.</p>
+
+<p>Notez que les images interpolées peuvent ne pas correspondre à un état stable, ni même à un état physique, du système. Une telle chaîne de configurations peut être utilisée, par exemple, comme point de départ pour la méthode <em>Nudged Elastic Band</em> (NEB), ou encore pour produire une animation entre deux états.</p>
 
 
 
@@ -36,7 +38,7 @@
 
 <ul>
 <li><code class="command">atomsk --interpolate initial.xsf final.xsf 7 chaine cfg</code>
-<p>Ceci va construire 7 configurations par interpolation entre <code>initial.xsf</code> et <code>final.xsf</code>. Les configurations interpolées seront écrites dans les fichiers <code>chaine_img1.cfg</code>, <code>chaine_img2.cfg</code>, ..., <code>chaine_img7.cfg</code>.</p></li>
+<p>Ceci va construire 7 configurations par interpolation entre <code>initial.xsf</code> et <code>final.xsf</code>. Les configurations finales seront écrites dans les fichiers <code>chaine_img0.cfg</code>, <code>chaine_img1.cfg</code>, jusqu'à <code>chaine_img8.cfg</code>.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

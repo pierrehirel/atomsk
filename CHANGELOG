@@ -5,6 +5,7 @@ CHANGELOG FOR ATOMSK
 Master
 ------
 - in mode "--one-in-all", added possibility to read configurations from VASP OUTCAR files.
+- in mode "--interpolate", initial and final states are also output with index 0 and N+1 respectively.
 - improved the determination of atom species from POTCAR file when reading VASP POSCAR, CONTCAR or OUTCAR files.
 - added possibility to output to standard output (stdout) by using "-" as file name.
 - fixed a bug where coordinates would be detected as Cartesian instead of reduced if the cell was very small. Thanks to Davide Sangiovanni, Linköping University, Sweden, for pointing out this bug.
