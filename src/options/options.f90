@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2021                                     *
+!* Last modification: P. Hirel - 07 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1316,7 +1316,7 @@ DO ioptions=1,SIZE(options_array)
       WRITE(msg,*) (TRIM(ADJUSTL(AUXNAMES(i)))//'  ', i=1,MIN(SIZE(AUXNAMES),6) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO i=1,MIN( 20,SIZE(AUX(:,1)) )
-        WRITE(msg,'(6(e9.6,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
+        WRITE(msg,'(6(e9.3,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
       IF(i>=20) THEN

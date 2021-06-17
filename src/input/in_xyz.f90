@@ -32,7 +32,7 @@ MODULE in_xyz
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 June 2021                                     *
+!* Last modification: P. Hirel - 17 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -196,8 +196,8 @@ DO i=1,1020
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     exyz=.TRUE.
     strlength = SCAN(temp(10:),'"')+8
-    READ(temp(10:strlength),*,END=250,ERR=250) H(1,1), H(2,1), H(3,1), &
-        & H(1,2), H(2,2), H(3,2), H(1,3), H(2,3), H(3,3)
+    READ(temp(10:strlength),*,END=250,ERR=250) H(1,1), H(1,2), H(1,3), &
+        & H(2,1), H(2,2), H(2,3), H(3,1), H(3,2), H(3,3)
     Hset=.TRUE.
     !
   ELSEIF(temp(1:11)=='Properties=') THEN
