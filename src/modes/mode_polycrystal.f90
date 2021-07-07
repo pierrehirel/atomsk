@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 June 2021                                     *
+!* Last modification: P. Hirel - 06 July 2021                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1017,7 +1017,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 300 CONTINUE
 !Construct a neighbor list of nodes
-CALL NEIGHBOR_LIST(H,vnodes,boxmax,vnodesNeighList)
+CALL VERLET_LIST(H,vnodes,boxmax,vnodesNeighList)
 IF(nerr>0) GOTO 1000
 !WARNING: if user asks for only one grain, then vnodesNeighList is NOT ALLOCATED!
 IF(verbosity==4) THEN
@@ -1053,8 +1053,14 @@ DO i=1,3
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
     !
-    P1 = CEILING( MAX( VECLENGTH(H(1,:))/VECLENGTH(Huc(:,i)) , &
-               & VECLENGTH(H(2,:))/VECLENGTH(Huc(:,i)) , VECLENGTH(H(3,:))/VECLENGTH(Huc(:,i)) ) )
+    !Get minimum (non-zero) seed vector component along direction i
+    P2 = 1.d0
+    DO j=1,3
+      IF( DABS(Huc(j,i)) > P2 ) P2 = DABS(Huc(j,i))
+    ENDDO
+    !
+    !P1 = number of times the seed will be duplicated along each base vector direction
+    P1 = CEILING( MAX( VECLENGTH(H(1,:))/P2 , VECLENGTH(H(2,:))/P2 , VECLENGTH(H(3,:))/P2 ))
     !
     WRITE(msg,'(a11,i1,a4,i6)') "    expand(", i, ") = ", NINT(P1)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -1071,8 +1077,8 @@ DO i=1,3
       P1 = 1
     ELSEIF(P1==2) THEN
       P1=3
-    ELSEIF(P1>2000) THEN
-      P1=1999
+    !ELSEIF(P1>2000) THEN
+    !  P1=1999
     ENDIF
     expandmatrix(i) = NINT(P1)
   ENDIF
@@ -1242,7 +1248,6 @@ DO inode=1,Nnodes
   IF( ALLOCATED(vnodesNeighList) .AND. SIZE(vnodesNeighList,1)>1 ) THEN
     !
     !Loop on all neighboring nodes
-    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(m,n,o,P1,P2,P3,vector,distance,i,j,k,jnode)
     DO i=1,SIZE(vnodesNeighList,2)
       !Save index of the i-th neighbor as jnode
       jnode = vnodesNeighList(inode,i)
@@ -1262,10 +1267,8 @@ DO inode=1,Nnodes
               distance = VECLENGTH( vector(:) - vnodes(inode,:) )
               !This image is a neighbor if distance is smaller than max. box size
               IF( distance>1.d-3 .AND. distance <= boxmax ) THEN
-                !$OMP CRITICAL
                 Nvertices = Nvertices+1
                 k = Nvertices
-                !$OMP END CRITICAL
                 IF( k>SIZE(vvertex,1) ) THEN
                   !Increase size of array vvertex
                   CALL RESIZE_DBLEARRAY2(vvertex,k+10,4)
@@ -1282,7 +1285,6 @@ DO inode=1,Nnodes
         !
       ENDIF
     ENDDO
-    !$OMP END PARALLEL DO
     !
   ENDIF
   !

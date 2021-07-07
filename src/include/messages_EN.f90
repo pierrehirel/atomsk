@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 July 2020                                     *
+!* Last modification: P. Hirel - 30 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2247,6 +2247,12 @@ CASE(2152)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2153)
   msg = ">>> Attempting to re-adjust the cell vectors automatically..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2154)
+  !reals(1) = number of shells detected
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Detected "//TRIM(ADJUSTL(temp))//" cores and "//TRIM(ADJUSTL(temp2))//" shells."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option

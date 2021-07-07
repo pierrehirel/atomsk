@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2020                                     *
+!* Last modification: P. Hirel - 01 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -25,7 +25,8 @@ MODULE neighbors
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
-!* NEIGHBOR_LIST       constructs a neighbor list                                 *
+!* VERLET_LIST         constructs a neighbor list (Verlet algorithm)              *
+!* NEIGHBOR_LIST       constructs a neighbor list (cell decomposition)            *
 !* NEIGHBOR_POS        given a neighbor list, gives the coordinates of neighbors  *
 !* FIND_NNN            finds the N nearest neighbors of a coordinate              *
 !* FIND_NNRdR          finds the neighbors in a skin of radius R and width dR     *
@@ -41,6 +42,265 @@ USE resize
 !
 !
 CONTAINS
+!
+!
+!********************************************************
+! VERLET_LIST
+! Considering a list of atom positions A, base
+! vectors H defining periodic conditions, and a radius R,
+! this routine builds a list of neighbors for all atoms,
+! i.e. a list that looks like the following:
+!        2 4 6 0 0 0 0
+!        1 3 4 5 0 0 0
+!        2 4 5 0 0 0 0
+!        1 2 3 5 6 0 0
+!    etc.
+! meaning that neighbors of atom #1 are atoms #2, 4, 6,
+! neighbors of atom #2 are #1, 3, 4, 5, etc.
+! NOTE: atoms are assumed to be wrapped, i.e. all 
+!      in the box (no atom outside of the box).
+! NOTE2: the neighbor list NeighList(i,:) of the atom #i
+!      may contain trailing zeros, as illustrated above.
+!      These zeros are meant to be ignored. The first zero
+!      encountered means there will be no more neighbors
+! NOTE3: an atom is *never* counted as its own neighbor.
+!      A neighbor appears only once in the neighbor list.
+!      If the system is such that
+!      replicas of atom #i are neighbors of atom #i,
+!      or such that several replica of an atom #j can
+!      be neighbors to an atom #i, then the replica do
+!      not appear in the list, i.e. the atom #j is
+!      counted only once. In such cases that must be
+!      corrected *after* calling this routine.
+! NOTE4: if the number of atoms is small, then a
+!      simplistic Verlet search is performed, which
+!      scales as N². Otherwise a cell-list
+!      algorithm is used, which scales as N.
+! NOTE5: if no neighbor is found, then the array
+!      NeighList is returned as UNALLOCATED.
+!********************************************************
+SUBROUTINE VERLET_LIST(H,A,R,NeighList)
+!
+IMPLICIT NONE
+CHARACTER(LEN=128):: msg
+REAL(dp),INTENT(IN):: R  !radius in which Neighbors are searched
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
+!
+LOGICAL,DIMENSION(6):: IsCloseToBorder !is the atom close to the borders of the box?
+INTEGER:: a1, a2, a3
+INTEGER:: Ix, Iy, Iz
+INTEGER:: i, j, k, l, m, n, u
+INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
+INTEGER,DIMENSION(3):: shift   !replica number along X, Y, Z
+INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
+REAL(dp):: distance
+REAL(dp):: tempreal
+REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for periodic replica
+INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
+REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
+!
+INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
+!
+!
+!Initialize variables
+IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
+ALLOCATE(NNeigh(SIZE(A,1)) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/-1.d0/))
+  RETURN
+ENDIF
+NNeigh(:) = 0
+IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
+!Assume a continuous atom density to estimate initial size of NeighList
+!NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
+CALL VOLUME_PARA(H,distance)
+n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*pi*(R**3)) )
+ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/-1.d0/))
+  RETURN
+ENDIF
+NeighList(:,:) = 0
+IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
+!
+!
+msg = 'entering VERLET_LIST'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!
+!Define "close to border" in reduced units
+DO i=1,3
+  !default=atoms closer than radius R from a border will be duplicated
+  d_border(i) = MAX( 0.1d0 , R/VECLENGTH(H(i,:)) )
+ENDDO
+!
+DO i=1,SIZE(A,1)-1
+  !Save fractional coordinate of atom i in Vfrac
+  Vfrac(1,:) = A(i,1:3)
+  CALL CART2FRAC(Vfrac,H)
+  !
+  !Check if atom i is near a border of the box,
+  !"near" meaning "within the radius R"
+  IsCloseToBorder(:) = .FALSE.
+  IF( DABS(Vfrac(1,1))<d_border(1) ) THEN
+    IsCloseToBorder(1) = .TRUE.
+  ENDIF
+  IF( DABS(1.d0-Vfrac(1,1))<d_border(1) ) THEN
+    IsCloseToBorder(2) = .TRUE.
+  ENDIF
+  IF( DABS(Vfrac(1,2))<d_border(2) ) THEN
+    IsCloseToBorder(3) = .TRUE.
+  ENDIF
+  IF( DABS(1.d0-Vfrac(1,2))<d_border(2) ) THEN
+    IsCloseToBorder(4) = .TRUE.
+  ENDIF
+  IF( DABS(Vfrac(1,3))<d_border(3) ) THEN
+    IsCloseToBorder(5) = .TRUE.
+  ENDIF
+  IF( DABS(1.d0-Vfrac(1,3))<d_border(3) ) THEN
+    IsCloseToBorder(6) = .TRUE.
+  ENDIF
+  !
+  DO j=i+1,SIZE(A,1)
+    !Save fractional coordinate of atom j in Vfrac
+    Vfrac(1,:) = A(j,1:3)
+    CALL CART2FRAC(Vfrac,H)
+    !
+    !If atom i is close to a border, then
+    !look for periodic replica of atom j across that border
+    kmin = 0
+    kmax = 0
+    lmin = 0
+    lmax = 0
+    mmin = 0
+    mmax = 0
+    IF( IsCloseToBorder(1) ) THEN
+      !Atom #i is close to the left border along x
+      IF( DABS(1.d0-Vfrac(1,1))<d_border(1) ) THEN
+        !Atom #j is close to the right border along x
+        kmin = -1
+      ENDIF
+    ENDIF
+    IF( IsCloseToBorder(2) ) THEN
+      !Atom #i is close to the right border along x
+      IF( DABS(Vfrac(1,1))<d_border(1) ) THEN
+        !Atom #j is close to the left border along x
+        kmax = 1
+      ENDIF
+    ENDIF
+    IF( IsCloseToBorder(3) ) THEN
+      !Atom #i is close to the bottom border along y
+      IF( DABS(1.d0-Vfrac(1,2))<d_border(2) ) THEN
+        !Atom #j is close to the top border along y
+        lmin = -1
+      ENDIF
+    ENDIF
+    IF( IsCloseToBorder(4) ) THEN
+      !Atom #i is close to the top border along y
+      IF( DABS(Vfrac(1,2))<d_border(2) ) THEN
+        !Atom #j is close to the bottom border along y
+        lmax = 1
+      ENDIF
+    ENDIF
+    IF( IsCloseToBorder(5) ) THEN
+      !Atom #i is close to the bottom border along z
+      IF( DABS(1.d0-Vfrac(1,3))<d_border(3) ) THEN
+        !Atom #j is close to the top border along z
+        mmin = -1
+      ENDIF
+    ENDIF
+    IF( IsCloseToBorder(6) ) THEN
+      !Atom #i is close to the top border along z
+      IF( DABS(Vfrac(1,3))<d_border(3) ) THEN
+        !Atom #j is close to the bottom border along z
+        mmax = 1
+      ENDIF
+    ENDIF
+    !
+    !Loop on periodic images
+    DO k=kmin,kmax
+      DO l=lmin,lmax
+        DO m=mmin,mmax
+          !Compute distance between atom i and this replica of atom j
+          Vfrac(1,:) = A(j,1:3) + DBLE(k)*H(1,:) + DBLE(l)*H(2,:) + DBLE(m)*H(3,:)
+          distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
+          !
+          IF ( distance < R ) THEN
+            !Atom j is neighbor of atom i
+            NNeigh(i) = NNeigh(i)+1
+            !If total number of neighbors exceeds size of NeighList, expand NeighList
+            IF( NNeigh(i) <= SIZE(NeighList,2) ) THEN
+              !Add atom j to the list of neighbors of atom i
+              NeighList(i,NNeigh(i)) = j
+            ENDIF
+            !
+            !Atom i is also a neighbor of atom j => save this
+            NNeigh(j) = NNeigh(j)+1
+            IF( NNeigh(j) <= SIZE(NeighList,2) ) THEN
+              !Add atom i to the list of neighbors of atom j
+              NeighList(j,NNeigh(j)) = i
+            ENDIF
+            !
+            !We already found that j is neighbor of i
+            !=> no need to keep on looking for replica of atom j
+            !=> exit the loops on replica
+            GOTO 200
+          ENDIF
+          !
+        ENDDO !m
+      ENDDO  !l
+    ENDDO   !k
+    !
+    200 CONTINUE
+    !
+  ENDDO !j
+  !
+ENDDO !i
+!
+IF( ALLOCATED(NeighList) ) THEN
+  IF( .NOT.ANY(NeighList(:,:).NE.0) ) THEN
+    !Neighbor list contains only zeros, i.e. no neighbor was found
+    !=> deallocate NeighList
+    DEALLOCATE(NeighList)
+  ENDIF
+ENDIF
+!
+IF( ALLOCATED(NeighList) ) THEN
+  WRITE(msg,*) 'Max. n. neighbors = ', SIZE(NeighList,2)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ELSE
+  msg = 'NeighList UNALLOCATED'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
+!
+IF( verbosity==4 ) THEN
+  !Verbose mode: write neighbor list in a text file
+  IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
+    OPEN(UNIT=51,FILE="atomsk_neighborlist.txt",STATUS="UNKNOWN",FORM="FORMATTED")
+    DO i=1,SIZE(NeighList,1)
+      WRITE(51,*) (NeighList(i,j),j=1,SIZE(NeighList,2))
+    ENDDO
+    CLOSE(51)
+  ENDIF
+ENDIF
+!
+IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
+!
+msg = 'exiting VERLET_LIST'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
+!
+END SUBROUTINE VERLET_LIST
+!
 !
 !
 !********************************************************
@@ -128,7 +388,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
 !NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
 CALL VOLUME_PARA(H,distance)
-n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*(2.d0/3.d0)*pi*(R**3)) )
+n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*pi*(R**3)) )
 ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -143,400 +403,243 @@ IF(ALLOCATED(Cell_AtomID)) DEALLOCATE(Cell_AtomID)
 IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
 !
 !
-msg = 'entering NEIGHBOR_LIST'
+msg = 'entering CELL_LIST'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-IF( (VECLENGTH(H(1,:))<1.2d0*R .OR. VECLENGTH(H(2,:))<1.2d0*R .OR. VECLENGTH(H(3,:))<1.2d0*R) &
-  & .AND. SIZE(A,1) < 2000 ) THEN
-  !
-  !System is pseudo-2D or contains a small number of atoms
-  !=> a simplistic Verlet neighbor search will suffice
-  msg = 'algorithm: VERLET'
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Define "close to border" in reduced units
-  DO i=1,3
-    !default=atoms closer than radius R from a border will be duplicated
-    d_border(i) = MAX( 0.1d0 , R/VECLENGTH(H(i,:)) )
-  ENDDO
-  !
-  !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,j,k,l,m,kmin,kmax,lmin,lmax,mmin,mmax,distance,Vfrac,IsCloseToBorder)
-  DO i=1,SIZE(A,1)-1
-    !Save fractional coordinate of atom i in Vfrac
-    Vfrac(1,:) = A(i,1:3)
-    CALL CART2FRAC(Vfrac,H)
-    !
-    !Check if atom i is near a border of the box,
-    !"near" meaning "within the radius R"
-    IsCloseToBorder(:) = .FALSE.
-    IF( DABS(Vfrac(1,1))<d_border(1) ) THEN
-      IsCloseToBorder(1) = .TRUE.
-    ENDIF
-    IF( DABS(1.d0-Vfrac(1,1))<d_border(1) ) THEN
-      IsCloseToBorder(2) = .TRUE.
-    ENDIF
-    IF( DABS(Vfrac(1,2))<d_border(2) ) THEN
-      IsCloseToBorder(3) = .TRUE.
-    ENDIF
-    IF( DABS(1.d0-Vfrac(1,2))<d_border(2) ) THEN
-      IsCloseToBorder(4) = .TRUE.
-    ENDIF
-    IF( DABS(Vfrac(1,3))<d_border(3) ) THEN
-      IsCloseToBorder(5) = .TRUE.
-    ENDIF
-    IF( DABS(1.d0-Vfrac(1,3))<d_border(3) ) THEN
-      IsCloseToBorder(6) = .TRUE.
-    ENDIF
-    !
-    DO j=i+1,SIZE(A,1)
-      !Save fractional coordinate of atom j in Vfrac
-      Vfrac(1,:) = A(j,1:3)
-      CALL CART2FRAC(Vfrac,H)
-      !
-      !If atom i is close to a border, then
-      !look for periodic replica of atom j across that border
-      kmin = 0
-      kmax = 0
-      lmin = 0
-      lmax = 0
-      mmin = 0
-      mmax = 0
-      IF( IsCloseToBorder(1) ) THEN
-        !Atom #i is close to the left border along x
-        IF( DABS(1.d0-Vfrac(1,1))<d_border(1) ) THEN
-          !Atom #j is close to the right border along x
-          kmin = -1
-        ENDIF
-      ENDIF
-      IF( IsCloseToBorder(2) ) THEN
-        !Atom #i is close to the right border along x
-        IF( DABS(Vfrac(1,1))<d_border(1) ) THEN
-          !Atom #j is close to the left border along x
-          kmax = 1
-        ENDIF
-      ENDIF
-      IF( IsCloseToBorder(3) ) THEN
-        !Atom #i is close to the bottom border along y
-        IF( DABS(1.d0-Vfrac(1,2))<d_border(2) ) THEN
-          !Atom #j is close to the top border along y
-          lmin = -1
-        ENDIF
-      ENDIF
-      IF( IsCloseToBorder(4) ) THEN
-        !Atom #i is close to the top border along y
-        IF( DABS(Vfrac(1,2))<d_border(2) ) THEN
-          !Atom #j is close to the bottom border along y
-          lmax = 1
-        ENDIF
-      ENDIF
-      IF( IsCloseToBorder(5) ) THEN
-        !Atom #i is close to the bottom border along z
-        IF( DABS(1.d0-Vfrac(1,3))<d_border(3) ) THEN
-          !Atom #j is close to the top border along z
-          mmin = -1
-        ENDIF
-      ENDIF
-      IF( IsCloseToBorder(6) ) THEN
-        !Atom #i is close to the top border along z
-        IF( DABS(Vfrac(1,3))<d_border(3) ) THEN
-          !Atom #j is close to the bottom border along z
-          mmax = 1
-        ENDIF
-      ENDIF
-      !
-      !Loop on periodic images
-      DO k=kmin,kmax
-        DO l=lmin,lmax
-          DO m=mmin,mmax
-            !Compute distance between atom i and this replica of atom j
-            Vfrac(1,:) = A(j,1:3) + DBLE(k)*H(1,:) + DBLE(l)*H(2,:) + DBLE(m)*H(3,:)
-            distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
-            !
-            IF ( distance < R ) THEN
-              !Atom j is neighbor of atom i
-              !$OMP CRITICAL
-              NNeigh(i) = NNeigh(i)+1
-              !If total number of neighbors exceeds size of NeighList, expand NeighList
-              IF( NNeigh(i) > SIZE(NeighList,2) ) THEN
-                !The neighbor list of this atom is full
-                !=> Increase the size of NeighList by NNincrement
-                CALL RESIZE_INTARRAY2(NeighList,SIZE(NeighList,1),SIZE(NeighList,2)+NNincrement,l)
-              ENDIF
-              !Add atom j to the list of neighbors of atom i
-              NeighList(i,NNeigh(i)) = j
-              !
-              !Atom i is also a neighbor of atom j => save this
-              NNeigh(j) = NNeigh(j)+1
-              IF( NNeigh(j) > SIZE(NeighList,2) ) THEN
-                !The neighbor list of this atom is full
-                !=> Increase the size of NeighList by NNincrement
-                CALL RESIZE_INTARRAY2(NeighList,SIZE(NeighList,1),SIZE(NeighList,2)+NNincrement,l)
-              ENDIF
-              !Add atom i to the list of neighbors of atom j
-              NeighList(j,NNeigh(j)) = i
-              !$OMP END CRITICAL
-              !
-              !We already found that j is neighbor of i
-              !=> no need to keep on looking for replica of atom j
-              !=> exit the loops on replica
-              GOTO 200
-            ENDIF
-            !
-          ENDDO !m
-        ENDDO  !l
-      ENDDO   !k
-      !
-      200 CONTINUE
-      !
-    ENDDO !j
-    !
-  ENDDO !i
-  !$OMP END PARALLEL DO
-  !
-  IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
-  !
-  !
-ELSE
-  !Large system => use a cell list algorithm
-  msg = 'algorithm: CELL DECOMPOSITION'
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !Define max. number of cells along each direction
-  !Use max. 32 cells along any given direction
-  Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
-  WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Determine the number of cells needed along each dimension X, Y, Z
-  DO i=1,3
-    distance = SUM(DABS(H(:,i)))
-    tempreal = 1.9d0*distance/R
-    IF( distance < 2.d0*R .OR. NINT(tempreal) < 2 ) THEN
-      !Ensure that there is always at least one cell along any given direction
-      NcellsX(i) = 1
-    ELSE
-      !Large cell or small R => do not create zillions of small cells
-      !=> No more than Maxcell cells along any direction
-      NcellsX(i) = MIN( NINT(tempreal) , Maxcells )
-    ENDIF
-    !Make sure that number of cells is even
-    IF( MOD(NcellsX(i),2).NE.0 .AND. NcellsX(i)>1 ) NcellsX(i) = NcellsX(i)-1
-    !Length of a cell along each direction
-    Cell_L(i) = distance / DBLE(NcellsX(i))
-  ENDDO
-  !
-  !Debug message
-  WRITE(msg,*) 'Actual number of cells along X, Y, Z: ', NcellsX(1), NcellsX(2), NcellsX(3)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Compute total number of cells
-  Ncells = PRODUCT( NcellsX(:) )  !total number of cells
-  !WRITE(*,*) '    Maxcells = ', Maxcells
-  !WRITE(*,*) ' Total cells = ', Ncells
-  !
-  !For each atom, find the index of the cell it belongs to
-  ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to
-  Atom_Cell(:) = 0
-  ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
-  Cell_NP(:) = 0
-  !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,Ix,Iy,Iz) REDUCTION(+:Cell_NP)
+!
+!Define max. number of cells along each direction
+!Use max. 32 cells along any given direction
+Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
+WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Determine the number of cells along each dimension X, Y, Z
+DO i=1,3
+  distance = SUM(DABS(H(:,i)))
+  tempreal = 4.0d0*distance/R
+  IF( distance < R .OR. NINT(tempreal) < 4 ) THEN
+    !Ensure that there is always at least one cell along any given direction
+    NcellsX(i) = 1
+  ELSE
+    !Large cell or small R => do not create zillions of small cells
+    !=> No more than Maxcell cells along any direction
+    NcellsX(i) = MIN( NINT(tempreal) , Maxcells )
+  ENDIF
+  !Make sure that number of cells is even
+  IF( MOD(NcellsX(i),2).NE.0 .AND. NcellsX(i)>1 ) NcellsX(i) = NcellsX(i)-1
+  !Length of a cell along each direction
+  Cell_L(i) = distance / DBLE(NcellsX(i))
+ENDDO
+!
+!Debug message
+WRITE(msg,*) 'Actual number of cells along X, Y, Z: ', NcellsX(1), NcellsX(2), NcellsX(3)
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Compute total number of cells
+Ncells = PRODUCT( NcellsX(:) )  !total number of cells
+!WRITE(*,*) '    Maxcells = ', Maxcells
+!WRITE(*,*) ' Total cells = ', Ncells
+!
+!For each atom, find the index of the cell it belongs to
+ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to
+Atom_Cell(:) = 0
+ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
+Cell_NP(:) = 0
+!!!$OMP PARALLEL DO DEFAULT(SHARED) &
+!!!$OMP& PRIVATE(i,Ix,Iy,Iz) REDUCTION(+:Cell_NP)
+DO i=1,SIZE(A,1)
+  Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
+  Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
+  Iz = MAX( CEILING(A(i,3)/Cell_L(3)) , 1 )
+  !Link this atom to the corresponding cell
+  Atom_Cell(i) = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
+  IF( Atom_Cell(i)<=0 ) Atom_Cell(i) = 1
+  IF( Atom_Cell(i)>SIZE(Cell_NP) ) Atom_Cell(i) = SIZE(Cell_NP)
+  !Increment number of atoms of this cell
+  Cell_NP(Atom_Cell(i)) = Cell_NP(Atom_Cell(i)) + 1
+ENDDO
+!!!$OMP END PARALLEL DO
+!
+IF( verbosity==4 ) THEN
+  OPEN(UNIT=56,FILE="atomsk_atomCell.txt",STATUS="UNKNOWN")
   DO i=1,SIZE(A,1)
-    Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
-    Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
-    Iz = MAX( CEILING(A(i,3)/Cell_L(3)) , 1 )
-    !Link this atom to the corresponding cell
-    Atom_Cell(i) = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
-    IF( Atom_Cell(i)<=0 ) Atom_Cell(i) = 1
-    IF( Atom_Cell(i)>SIZE(Cell_NP) ) Atom_Cell(i) = SIZE(Cell_NP)
-    !Increment number of atoms of this cell
-    Cell_NP(Atom_Cell(i)) = Cell_NP(Atom_Cell(i)) + 1
+    WRITE(56,*) i, Atom_Cell(i)
   ENDDO
-  !$OMP END PARALLEL DO
-  !
-  IF( verbosity==4 ) THEN
-    OPEN(UNIT=56,FILE="atomsk_atomCell.txt",STATUS="UNKNOWN")
-    DO i=1,SIZE(A,1)
-      WRITE(56,*) i, Atom_Cell(i)
-    ENDDO
-    CLOSE(56)
-  ENDIF
-  !
-  !Save the indexes of atoms in each cell
-  ALLOCATE( Cell_AtomID( Ncells , MAXVAL(Cell_NP) ) )
-  Cell_AtomID(:,:) = 0
+  CLOSE(56)
+ENDIF
+!
+!Save the indexes of atoms in each cell
+ALLOCATE( Cell_AtomID( Ncells , MAXVAL(Cell_NP) ) )
+Cell_AtomID(:,:) = 0
+DO j=1,Ncells
+  k=0
+  DO i=1,SIZE(A,1)
+    IF( Atom_Cell(i)==j ) THEN
+      !Atom #i belongs to cell #j
+      k=k+1
+      Cell_AtomID(j,k) = i
+    ENDIF
+  ENDDO
+ENDDO
+!
+IF( verbosity==4 ) THEN
+  OPEN(UNIT=56,FILE="atomsk_cellAtomID.txt",STATUS="UNKNOWN")
   DO j=1,Ncells
-    k=0
-    DO i=1,SIZE(A,1)
-      IF( Atom_Cell(i)==j ) THEN
-        !Atom #i belongs to cell #j
-        k=k+1
-        Cell_AtomID(j,k) = i
-      ENDIF
-    ENDDO
+    WRITE(56,*) j, Cell_AtomID(j,:)
   ENDDO
-  !
-  IF( verbosity==4 ) THEN
-    OPEN(UNIT=56,FILE="atomsk_cellAtomID.txt",STATUS="UNKNOWN")
-    DO j=1,Ncells
-      WRITE(56,*) j, Cell_AtomID(j,:)
-    ENDDO
-    CLOSE(56)
-  ENDIF
-  !
-  !Make a neighbor list for the cells
-  WRITE(msg,*) 'Constructing cells neighbor list...'
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !For each cell we consider a cube of 3*3*3 = 27 cells (central cell + neighboring cells)
-  !For each of the 27 cells, we store 4 numbers: the cell index, and the coordinates of the
-  !appropriate periodic image (in units of box vectors)
-  !NOTE: number of cells is small, no need to parallelize this part
-  ALLOCATE( Cell_Neigh(Ncells,27,4) )
-  Cell_Neigh(:,:,:) = 0
-  DO i=1,NcellsX(1)
-    DO j=1,NcellsX(2)
-      DO k=1,NcellsX(3)
-        u=0
-        iCell = (k-1)*NcellsX(1)*NcellsX(2) + (j-1)*NcellsX(1) + i
+  CLOSE(56)
+ENDIF
+!
+!Make a neighbor list for the cells
+WRITE(msg,*) 'Constructing cells neighbor list...'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!For each cell we consider a cube of 3*3*3 = 27 cells (central cell + neighboring cells)
+!For each of the 27 cells, we store 4 numbers: the cell index, and the coordinates of the
+!appropriate periodic image (in units of box vectors)
+!NOTE: number of cells is small, no need to parallelize this part
+ALLOCATE( Cell_Neigh(Ncells,27,4) )
+Cell_Neigh(:,:,:) = 0
+DO i=1,NcellsX(1)
+  DO j=1,NcellsX(2)
+    DO k=1,NcellsX(3)
+      u=0
+      iCell = (k-1)*NcellsX(1)*NcellsX(2) + (j-1)*NcellsX(1) + i
+      !
+      DO l=i-1,i+1
+        a1=l
+        shift(1) = 0
+        IF( a1>NcellsX(1) ) THEN
+          !No cell exists to the right of cell #iCell
+          !The neighboring cell is actually the periodic image of cell #1 shifted by +H(1,:)
+          a1 = 1
+          shift(1) = 1
+        ELSEIF( a1<=0 ) THEN
+          !No cell exists to the left of cell #iCell
+          !The neighboring cell is actually the periodic image of cell #NcellsX(1) shifted by -H(1,:)
+          a1 = NcellsX(1)
+          shift(1) = -1
+        ENDIF
         !
-        DO l=i-1,i+1
-          a1=l
-          shift(1) = 0
-          IF( a1>NcellsX(1) ) THEN
-            !No cell exists to the right of cell #iCell
-            !The neighboring cell is actually the periodic image of cell #1 shifted by +H(1,:)
-            a1 = 1
-            shift(1) = 1
-          ELSEIF( a1<=0 ) THEN
-            !No cell exists to the left of cell #iCell
-            !The neighboring cell is actually the periodic image of cell #NcellsX(1) shifted by -H(1,:)
-            a1 = NcellsX(1)
-            shift(1) = -1
+        DO m=j-1,j+1
+          a2=m
+          shift(2) = 0
+          IF( a2>NcellsX(2) ) THEN
+            !No cell exists on top of cell #iCell
+            !The neighboring cell is actually the periodic image of cell #1 shifted by +H(2,:)
+            a2 = 1
+            shift(2) = 1
+          ELSEIF( a2<=0 ) THEN
+            !No cell exists below cell #iCell
+            !The neighboring cell is actually the periodic image of cell #NcellsX(2) shifted by -H(2,:)
+            a2 = NcellsX(2)
+            shift(2) = -1
           ENDIF
           !
-          DO m=j-1,j+1
-            a2=m
-            shift(2) = 0
-            IF( a2>NcellsX(2) ) THEN
-              !No cell exists on top of cell #iCell
-              !The neighboring cell is actually the periodic image of cell #1 shifted by +H(2,:)
-              a2 = 1
-              shift(2) = 1
-            ELSEIF( a2<=0 ) THEN
-              !No cell exists below cell #iCell
-              !The neighboring cell is actually the periodic image of cell #NcellsX(2) shifted by -H(2,:)
-              a2 = NcellsX(2)
-              shift(2) = -1
+          DO n=k-1,k+1
+            a3=n
+            shift(3) = 0
+            IF( a3>NcellsX(3) ) THEN
+              !No cell exists in front of cell #iCell
+              !The neighboring cell is actually the periodic image of cell #1 shifted by +H(3,:)
+              a3 = 1
+              shift(3) = 1
+            ELSEIF( a3<=0 ) THEN
+              !No cell exists behind cell #iCell
+              !The neighboring cell is actually the periodic image of cell #NcellsX(3) shifted by -H(3,:)
+              a3 = NcellsX(3)
+              shift(3) = -1
             ENDIF
             !
-            DO n=k-1,k+1
-              a3=n
-              shift(3) = 0
-              IF( a3>NcellsX(3) ) THEN
-                !No cell exists in front of cell #iCell
-                !The neighboring cell is actually the periodic image of cell #1 shifted by +H(3,:)
-                a3 = 1
-                shift(3) = 1
-              ELSEIF( a3<=0 ) THEN
-                !No cell exists behind cell #iCell
-                !The neighboring cell is actually the periodic image of cell #NcellsX(3) shifted by -H(3,:)
-                a3 = NcellsX(3)
-                shift(3) = -1
-              ENDIF
-              !
-              !IF( l>=i .OR. m>=j .OR. n>=k ) THEN
-                u = u+1
-                Cell_Neigh(iCell,u,1) = (a3-1)*NcellsX(1)*NcellsX(2) + (a2-1)*NcellsX(1) + a1
-                !Cell_Neigh(iCell,u,1) = (a1*NcellsX(2)+a2)*NcellsX(3) + NcellsX(3)
-                Cell_Neigh(iCell,u,2) = shift(1)
-                Cell_Neigh(iCell,u,3) = shift(2)
-                Cell_Neigh(iCell,u,4) = shift(3)
-              !ENDIF
-            ENDDO !n
-          ENDDO !m
-        ENDDO !l
-        !
-      ENDDO !k
-    ENDDO !j
-  ENDDO !i
-  WRITE(msg,*) 'Neighbor list for cells complete'
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  IF( verbosity==4 ) THEN
-    OPEN(UNIT=56,FILE="atomsk_cellList.txt",STATUS="UNKNOWN")
-    DO j=1,Ncells
-      WRITE(56,*) j, Cell_Neigh(j,:,1)
-    ENDDO
-    CLOSE(56)
-  ENDIF
-  !
-  WRITE(msg,*) 'Constructing atoms neighbor list...'
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !
-  !Construct the neighbor list for atoms
-  !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,iCell,j,k,n,distance,Vfrac)
-  DO i=1,SIZE(A,1)
-    !iCell = index of the cell atom #i belongs to
-    iCell = Atom_Cell(i)
-    !
-    !Parse atoms in cell #iCell and its neighbors
-    DO j=1,SIZE(Cell_Neigh,2)
-      !Parse atoms in cell #j (there are Cell_NP(j) atoms in it)
-      DO k=1,Cell_NP(Cell_Neigh(iCell,j,1))
-        !Cell_Neigh(iCell,j,1) is the index of the j-th neighboring cell of cell #iCell
-        !n = actual index of the k-th atom in that cell
-        n = Cell_AtomID( Cell_Neigh(iCell,j,1) , k )
-        !Do not count atom #i as its own neighbor (i.e. n!=i)
-        IF( n>0 .AND. n<=SIZE(A,1) .AND. n.NE.i ) THEN
-          !Check if this atom was already counted as neighbor
-          IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
-            !Use the correct periodic image of that cell
-            !The position of the atom #n has to be translated by Cell_Neigh(iCell,j,2:4) * (box vectors)
-            Vfrac(1,1:3) = A(n,1:3) + DBLE(Cell_Neigh(iCell,j,2))*H(1,:)   &
-                         &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
-                         &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
-            !Compute distance between atom #i and the periodic image of atom #n
-            distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
-            IF( distance < R ) THEN
-              !$OMP CRITICAL
-              !Add atom #n as neighbor of atom #i
-              !IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
-                NNeigh(i) = NNeigh(i)+1
-                IF( NNeigh(i) <= SIZE(NeighList,2) ) THEN
-                  NeighList(i,NNeigh(i)) = n
-                ENDIF
-              !ENDIF
-              !
-              IF( .NOT. ANY(NeighList(n,:)==i) ) THEN
-                !Also add atom #i as neighbor of atom #n
-                NNeigh(n) = NNeigh(n)+1
-                IF( NNeigh(n) <= SIZE(NeighList,2) ) THEN
-                  NeighList(n,NNeigh(n)) = i
-                ENDIF
-              ENDIF
-              !$OMP END CRITICAL
-            ENDIF
-            !
-          ENDIF
-        ENDIF
-        !
-      ENDDO  !k
+            !IF( l>=i .OR. m>=j .OR. n>=k ) THEN
+              u = u+1
+              Cell_Neigh(iCell,u,1) = (a3-1)*NcellsX(1)*NcellsX(2) + (a2-1)*NcellsX(1) + a1
+              !Cell_Neigh(iCell,u,1) = (a1*NcellsX(2)+a2)*NcellsX(3) + NcellsX(3)
+              Cell_Neigh(iCell,u,2) = shift(1)
+              Cell_Neigh(iCell,u,3) = shift(2)
+              Cell_Neigh(iCell,u,4) = shift(3)
+            !ENDIF
+          ENDDO !n
+        ENDDO !m
+      ENDDO !l
       !
-    ENDDO  !j
-    !
-  ENDDO  !i
-  !$OMP END PARALLEL DO
-  !
-  !Free memory
-  IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)
-  IF(ALLOCATED(Cell_AtomID)) DEALLOCATE(Cell_AtomID)
-  IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
-  !
-  !
+    ENDDO !k
+  ENDDO !j
+ENDDO !i
+WRITE(msg,*) 'Neighbor list for cells complete'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+IF( verbosity==4 ) THEN
+  OPEN(UNIT=56,FILE="atomsk_cellList.txt",STATUS="UNKNOWN")
+  DO j=1,Ncells
+    WRITE(56,*) j, Cell_Neigh(j,:,1)
+  ENDDO
+  CLOSE(56)
 ENDIF
+!
+WRITE(msg,*) 'Constructing atoms neighbor list...'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Construct the neighbor list for atoms
+!!!$OMP PARALLEL DO DEFAULT(SHARED) &
+!!!$OMP& PRIVATE(i,iCell,j,k,n,distance,Vfrac)
+DO i=1,SIZE(A,1)
+  !iCell = index of the cell atom #i belongs to
+  iCell = Atom_Cell(i)
+  !
+  !Parse atoms in cell #iCell and its neighbors
+  DO j=1,SIZE(Cell_Neigh,2)
+    !Parse atoms in cell #j (there are Cell_NP(j) atoms in it)
+    DO k=1,Cell_NP(Cell_Neigh(iCell,j,1))
+      !Cell_Neigh(iCell,j,1) is the index of the j-th neighboring cell of cell #iCell
+      !n = actual index of the k-th atom in that cell
+      n = Cell_AtomID( Cell_Neigh(iCell,j,1) , k )
+      !Do not count atom #i as its own neighbor (i.e. n!=i)
+      IF( n>0 .AND. n<=SIZE(A,1) .AND. n.NE.i ) THEN
+        !Check if this atom was already counted as neighbor
+        IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
+          !Use the correct periodic image of that cell
+          !The position of the atom #n has to be translated by Cell_Neigh(iCell,j,2:4) * (box vectors)
+          Vfrac(1,1:3) = A(n,1:3) + DBLE(Cell_Neigh(iCell,j,2))*H(1,:)   &
+                        &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
+                        &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
+          !Compute distance between atom #i and the periodic image of atom #n
+          distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
+          IF( distance < R ) THEN
+            !!!$OMP CRITICAL
+            !Add atom #n as neighbor of atom #i
+            !IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
+              NNeigh(i) = NNeigh(i)+1
+              IF( NNeigh(i) <= SIZE(NeighList,2) ) THEN
+                NeighList(i,NNeigh(i)) = n
+              ENDIF
+            !ENDIF
+            !
+            IF( .NOT. ANY(NeighList(n,:)==i) ) THEN
+              !Also add atom #i as neighbor of atom #n
+              NNeigh(n) = NNeigh(n)+1
+              IF( NNeigh(n) <= SIZE(NeighList,2) ) THEN
+                NeighList(n,NNeigh(n)) = i
+              ENDIF
+            ENDIF
+            !!!$OMP END CRITICAL
+          ENDIF
+          !
+        ENDIF
+      ENDIF
+      !
+    ENDDO  !k
+    !
+  ENDDO  !j
+  !
+ENDDO  !i
+!!!$OMP END PARALLEL DO
+!
+!Free memory
+IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)
+IF(ALLOCATED(Cell_AtomID)) DEALLOCATE(Cell_AtomID)
+IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
 !
 !
 IF( ALLOCATED(NeighList) ) THEN
@@ -568,7 +671,7 @@ ENDIF
 !
 IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
 !
-msg = 'exiting NEIGHBOR_LIST'
+msg = 'exiting CELL_LIST'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !

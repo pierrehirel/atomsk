@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 July 2020                                     *
+!* Last modification: P. Hirel - 30 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2315,6 +2315,12 @@ CASE(2152)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2153)
   msg = ">>> Tentative de ré-ajuster les vecteurs de boîte automatiquement..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2154)
+  !reals(1) = number of shells detected
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Detecté "//TRIM(ADJUSTL(temp))//" cœurs et "//TRIM(ADJUSTL(temp2))//" coquilles."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
