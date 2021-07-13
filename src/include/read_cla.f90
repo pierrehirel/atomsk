@@ -140,8 +140,6 @@ DO WHILE(i<SIZE(cla))
     !Make the mode_param(1) variable straight
     !in case the user mistyped 'diamand' or 'pervoskite'
     SELECT CASE(temp(1:2))
-    CASE('bc','Bc','BC')
-      temp = 'BCT'
     CASE('di','Di','DI')
       temp = 'diamond'
     CASE('gr','Gr','GR')
