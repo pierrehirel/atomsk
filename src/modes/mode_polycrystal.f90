@@ -1053,34 +1053,34 @@ DO i=1,3
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
     & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
     !
-    !Get minimum (non-zero) seed vector component along direction i
-    P2 = 1.d0
-    DO j=1,3
-      IF( DABS(Huc(j,i)) > P2 ) P2 = DABS(Huc(j,i))
-    ENDDO
+    !Compute sum of seed vectors components along direction i
+    P2 = DBLE( FLOOR( DABS( SUM(Huc(:,i)) )))
     !
     !P1 = number of times the seed will be duplicated along each base vector direction
-    P1 = CEILING( MAX( VECLENGTH(H(1,:))/P2 , VECLENGTH(H(2,:))/P2 , VECLENGTH(H(3,:))/P2 ))
+    P1 = MAX( VECLENGTH(H(1,:))/P2 , VECLENGTH(H(2,:))/P2 , VECLENGTH(H(3,:))/P2 )
+!                      & VECLENGTH(H(1,:)+H(2,:))/P2 , VECLENGTH(H(1,:)+H(3,:))/P2 ,          &
+!                      & VECLENGTH(H(2,:)+H(3,:))/P2  ))
     !
-    WRITE(msg,'(a11,i1,a4,i6)') "    expand(", i, ") = ", NINT(P1)
+    WRITE(msg,'(a11,i1,a4,f9.3)') "    P1(", i, ") = ", P1
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    !If the number of grains is small, the template grain may not be large enough
+    !
+    !Check if all grains are in the same plane
     IF( sameplane ) THEN
-      !Special case: all nodes are in the same plane
+      !Special case: all nodes are in the same plane, increase template size
       P1 = 1.8d0*P1
     ELSEIF( Nnodes<=4 ) THEN
       !Relatively few nodes: increase size to ensure it covers all grains
-      P1 = 1.2d0*P1
+      P1 = 1.8d0*P1
+      !P1 = CEILING( VECLENGTH(H(1,:)+H(2,:)+H(3,:)) / P2 )
     ENDIF
+    !
     !Make sure duplication factors are not crazy
-    IF(P1==0) THEN
+    IF(P1<=0) THEN
       P1 = 1
-    ELSEIF(P1==2) THEN
-      P1=3
-    !ELSEIF(P1>2000) THEN
-    !  P1=1999
+    ELSEIF(P1>2000) THEN
+      P1=2000
     ENDIF
-    expandmatrix(i) = NINT(P1)
+    expandmatrix(i) = CEILING(P1)
   ENDIF
 ENDDO
 WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)

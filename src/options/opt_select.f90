@@ -1836,15 +1836,15 @@ CASE('stl','STL')
     tempreal = MIN( VECLENGTH(H(:,1)) / (xmax-xmin) ,  &
                   & VECLENGTH(H(:,2)) / (ymax-ymin) ,  &
                   & VECLENGTH(H(:,3)) / (zmax-zmin)  )
-    triangles(:,4)  = triangles(:,4)  * tempreal
-    triangles(:,7)  = triangles(:,7)  * tempreal
-    triangles(:,10) = triangles(:,10) * tempreal
-    triangles(:,5)  = triangles(:,5)  * tempreal
-    triangles(:,8)  = triangles(:,8)  * tempreal
-    triangles(:,11) = triangles(:,11) * tempreal
-    triangles(:,6)  = triangles(:,6)  * tempreal
-    triangles(:,9)  = triangles(:,9)  * tempreal
-    triangles(:,12) = triangles(:,12) * tempreal
+    triangles(:,4:12)  = triangles(:,4:12)  * tempreal
+!     triangles(:,7)  = triangles(:,7)  * tempreal
+!     triangles(:,10) = triangles(:,10) * tempreal
+!     triangles(:,5)  = triangles(:,5)  * tempreal
+!     triangles(:,8)  = triangles(:,8)  * tempreal
+!     triangles(:,11) = triangles(:,11) * tempreal
+!     triangles(:,6)  = triangles(:,6)  * tempreal
+!     triangles(:,9)  = triangles(:,9)  * tempreal
+!     triangles(:,12) = triangles(:,12) * tempreal
     !
     !Update bounding box of 3-D model
     xmin = MIN( MINVAL(triangles(:,4)) , MINVAL(triangles(:,7)) , MINVAL(triangles(:,10)) )
@@ -1886,7 +1886,7 @@ CASE('stl','STL')
     SELECT(:) = .FALSE.
     !
     !Loop on all atoms
-    td = (/0,0,1/)  !vector of ray
+    td = (/0.d0,0.d0,1.d0/)  !vector of ray = [001]
     progress = 0
     !$OMP PARALLEL DO DEFAULT(SHARED) &
     !$OMP& PRIVATE(i,k,keep,txmin,txmax,tymin,tymax,tzmax,e1,e2,ta,tf,th,tu,ts,tq,tv,tt) &
@@ -1899,26 +1899,26 @@ CASE('stl','STL')
         CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
       ENDIF
       !
-      IF( P(i,1)<xmin .OR. P(i,1)>xmax .OR. &
-        & P(i,2)<ymin .OR. P(i,2)>ymax .OR. &
-        & P(i,3)<zmin .OR. P(i,3)>zmax      ) THEN
-        !Atom is outside of the bounding box, hence outside of the 3-D shape
-        !SELECT(i) = .FALSE.
-      ELSE
+      IF( P(i,1)>=xmin .AND. P(i,1)<=xmax .AND. &
+        & P(i,2)>=ymin .AND. P(i,2)<=ymax .AND. &
+        & P(i,3)>=zmin .AND. P(i,3)<=zmax      ) THEN
+        !
+        !Atom is inside the bounding box
+        !
         !Loop on Z coordinates to check how many vertices are crossed
         !At beginning atom is assumed to be outside the 3-D shape
         keep = .FALSE.
         !
         !Loop on all triangles
         DO k=1,SIZE(triangles,1)
-          txmin = MIN( triangles(k,4) , triangles(k,7) , triangles(k,10) ) - 0.1d0
-          txmax = MAX( triangles(k,4) , triangles(k,7) , triangles(k,10) ) + 0.1d0
-          tymin = MIN( triangles(k,5) , triangles(k,8) , triangles(k,11) ) - 0.1d0
-          tymax = MAX( triangles(k,5) , triangles(k,8) , triangles(k,11) ) + 0.1d0
-          tzmax = MAX( triangles(k,6) , triangles(k,9) , triangles(k,12) ) + 0.1d0
+          txmin = MIN( triangles(k,4) , triangles(k,7) , triangles(k,10) ) - 1.d-3
+          txmax = MAX( triangles(k,4) , triangles(k,7) , triangles(k,10) ) + 1.d-3
+          tymin = MIN( triangles(k,5) , triangles(k,8) , triangles(k,11) ) - 1.d-3
+          tymax = MAX( triangles(k,5) , triangles(k,8) , triangles(k,11) ) + 1.d-3
+          tzmax = MAX( triangles(k,6) , triangles(k,9) , triangles(k,12) ) + 1.d-3
           IF( P(i,3)<tzmax .AND. P(i,1)>txmin .AND. P(i,1)<txmax .AND. &
             & P(i,2)>tymin .AND. P(i,2)<tymax   ) THEN
-            !Current triangle appears to be above (or close) to current atom
+            !Current triangle appears to be above (or close to) current atom
             !Determine if ray [001] passing through atom #i intersects the triangle #k
             !Note: this part follows the algorithm proposed in this Web site:
             !  http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
@@ -1928,23 +1928,23 @@ CASE('stl','STL')
             th = CROSS_PRODUCT(td,e2)
             ta = DOT_PRODUCT(e1,th)
             !
-            IF( DABS(ta) > 1.d-6 ) THEN
+            IF( DABS(ta) > -1.d-5 ) THEN
               tf = 1.d0/ta
-              ts(:) = P(i,1:3) - triangles(k,4:6)
+              ts(:) = P(i,1:3) - triangles(k,4:6) + (/1.d-3,1.d-3,0.d0/)
               tu = tf * DOT_PRODUCT(ts,th)
               !
-              IF( tu > -1.d-6 .AND. tu < 1.d0-1.d-6 ) THEN
+              IF( tu > -1.d-12 .AND. tu < 1.d0-1.d-10 ) THEN
                 !Ray seems to intersect triangle
                 tq = CROSS_PRODUCT(ts,e1)
                 tv = tf * DOT_PRODUCT(td,tq)
                 !
-                IF( tv > -1.d-6 .AND. tu+tv < 1.d0-1.d-6 ) THEN
+                IF( tv > -1.d-12 .AND. tu+tv < 1.d0-1.d-5 ) THEN
                   !There is a line or ray intersection
                   ! at this stage we can compute t to find out where
                   ! the intersection point is on the line
                   tt = tf * DOT_PRODUCT(e2,tq)
                   !
-                  IF( tt > 1.d-6 ) THEN
+                  IF( tt > 1.d-10 ) THEN
                     !The ray intersects the triangle
                     !=> invert status of atom
                     keep = .NOT.keep

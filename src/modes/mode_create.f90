@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 June 2020                                     *
+!* Last modification: P. Hirel - 12 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -566,7 +566,7 @@ CASE('per','perovskite')
 !
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  TETRAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-CASE('st')
+CASE('st','ST')
   IF(nspecies.NE.1) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
     GOTO 810
@@ -585,7 +585,7 @@ CASE('st')
   WRITE(comment(1),*) 'Simple tetragonal '//TRIM(ADJUSTL((create_species(1))))
 !
 !
-CASE('bct')
+CASE('bct','BCT')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -620,7 +620,7 @@ CASE('bct')
   ENDIF
 !
 !
-CASE('fct','L10','L1_0')
+CASE('fct','FCT','L10','L1_0')
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
     GOTO 810
@@ -661,7 +661,7 @@ CASE('fct','L10','L1_0')
 !
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!  HEXAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-CASE('hcp')
+CASE('hcp','HCP')
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -698,7 +698,7 @@ CASE('hcp')
     comment(1) = 'Hcp '//TRIM(ADJUSTL(comment(1)))//TRIM(ADJUSTL(create_species(2)))//' alloy'
   ENDIF
 !
-CASE('wurtzite','wz')
+CASE('wurtzite','wz','Wurtzite')
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
@@ -742,7 +742,7 @@ CASE('wurtzite','wz')
   comment(1) = TRIM(ADJUSTL(comment(1)))//' with wurtzite structure'
 !
 !
-CASE('graphite')
+CASE('graphite','GRAPHITE')
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
     CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))

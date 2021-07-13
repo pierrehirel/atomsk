@@ -140,30 +140,39 @@ DO WHILE(i<SIZE(cla))
     !Make the mode_param(1) variable straight
     !in case the user mistyped 'diamand' or 'pervoskite'
     SELECT CASE(temp(1:2))
+    CASE('bc','Bc','BC')
+      temp = 'BCT'
     CASE('di','Di','DI')
       temp = 'diamond'
-    CASE('pe','Pe','PE')
-      temp = 'perovskite'
-    CASE('zi','Zi','zb','ZB')
-      temp = 'zincblende'
+    CASE('gr','Gr','GR')
+      temp = 'graphite'
+    CASE('hc','Hc','HC')
+      temp = 'hcp'
     CASE('na','NA','nt','NT')
       temp = 'nanotube'
+    CASE('pe','Pe','PE')
+      temp = 'perovskite'
+    CASE('st','St','ST')
+      temp = 'st'
     CASE('wu','Wu','WU','wz','Wz','WZ')
       temp = 'wurtzite'
+    CASE('zi','Zi','zb','ZB')
+      temp = 'zincblende'
     END SELECT
     mode_param(m) = TRIM(ADJUSTL(temp))
     !Get the lattice constant a
     i=i+1
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'    .OR.  &
-      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'     .OR.  &
-      & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'    .OR.  &
-      & mode_param(1)=='c36'      .OR. mode_param(1)=='C36'    .OR.  &
-      & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'   .OR.  &
-      & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'  .OR.  &
-      & mode_param(1)=='st'       .OR. mode_param(1)=='bct'    .OR.  &
-      & mode_param(1)=='fct'         ) THEN
+    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'      .OR.  &
+      & mode_param(1)=='HCP'      .OR. mode_param(1)=='Wurtzite' .OR.  &
+      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'       .OR.  &
+      & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'      .OR.  &
+      & mode_param(1)=='c36'      .OR. mode_param(1)=='C36'      .OR.  &
+      & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'     .OR.  &
+      & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'    .OR.  &
+      & mode_param(1)=='st'       .OR. mode_param(1)=='ST'       .OR.  &
+      & mode_param(1)=='bct'      .OR. mode_param(1)=='fct'            ) THEN
       !Get lattice constant c
       i=i+1
       m=m+1

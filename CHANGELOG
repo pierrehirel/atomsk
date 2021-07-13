@@ -12,8 +12,10 @@ Master
 - option "-bind-shells", when no shell is present in the system, will now search for particles close to each other. If such pairs are found, the particle with the greatest mass, or charge, or with lowest ID (whichever comes first) will be considered as a core, the other as a shell. This can be useful e.g. after reading LAMMPS custom dump files containing shells.
 - fixed a bug where coordinates would be detected as Cartesian instead of reduced if the cell was very small. Thanks to Davide Sangiovanni, Linköping University, Sweden, for pointing out this bug.
 - fixed a bug when reading/writing Extended XYZ format where lattice vectors were in wrong order. Thanks to Yanzhou Wang, Aalto University, Finland, for pointing out this bug.
+- fixed a bug where structure "C14" (with uppercase "C") was not recognized.
 - fixed a bug in mode "--polycrystal" that prevented constructing 2-D polycrystals normal to X or Y. Also fixed a bug where the seed was not sufficiently duplicated if the seed was not orthogonal; thanks to Zheyuan Xing, Southwest Jiaotong University, China, for pointing out this bug.
 - fixed a bug in option "-add-atom" that caused a segfault when the atom list was empty (not allocated).
+- fixed a bug in option "-select STL" when selecting atoms according to a complex 3-D shape from an STL file, where entire planes of atoms were not properly selected if the vertices were too close or if atom positions exactly matched the edges of several vertices.
 
 
 Beta 0.11 (12 Jan. 2021)

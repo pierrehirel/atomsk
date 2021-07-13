@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 June 2021                                     *
+!* Last modification: P. Hirel - 09 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1003,7 +1003,7 @@ LOGICAL:: foundA
 REAL(dp),DIMENSION(:),INTENT(IN):: A   !input array that must be analyzed
 REAL(dp),DIMENSION(100,2):: atemp      !temporary array containing results
                                        !This assumes that there are no more than 100 different elements in A
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing result
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: aentries !array containing result
 !
 Ndiff = 0
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
