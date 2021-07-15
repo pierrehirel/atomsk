@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 July 2021                                     *
+!* Last modification: P. Hirel - 15 July 2021                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -77,6 +77,7 @@ LOGICAL:: Hset            !are the box vectors H(:,:) defined?
 LOGICAL:: isinpolyhedron  !is atom inside the polyhedron?
 LOGICAL:: miller          !are Miller indices given? (if no then angles are given)
 LOGICAL:: paramnode, paramrand, paramlatt !are the keywords "node", "random", "lattice" used in parameter file?
+LOGICAL:: protectuc       !protect unit cell integrity?
 LOGICAL:: outparam        !were parameters saved in a text file?
 LOGICAL:: sameplane       !are all nodes in the same plane?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
@@ -100,8 +101,10 @@ REAL(dp):: boxmax      !max. distance from one end of the box to another
 REAL(dp):: distance    !distance between two points
 REAL(dp):: maxdnodes   !maximum distance between 2 nodes
 REAL(dp):: P1, P2, P3  !temporary position
+REAL(dp):: seed_density !density of the seed (N.atoms/Volume)
 REAL(dp):: Volume, Vmin, Vmax, Vstep  !min, max. volume occupied by a grain, step for grain size distribution
 REAL(dp),DIMENSION(3):: GrainCenter !position of center of grain (different from node position)
+REAL(dp),DIMENSION(3):: templatebox !dimensions of template box
 REAL(dp),DIMENSION(3):: vector    !vector between an atom and a node
 REAL(dp),DIMENSION(3):: vnormal   !vector normal to grain boundary
 REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell (seed)
@@ -111,6 +114,7 @@ REAL(dp),DIMENSION(3,3):: Hn, Hend  !Normalized Ht
 REAL(dp),DIMENSION(3,3):: H         !Base vectors of the final supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystalographic orientation
 REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
+REAL(dp),DIMENSION(7,3):: seedcorners !positions (x,y,z) of corners of seed
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray   !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc, Suc  !positions of atoms, shells in unit cell (seed)
@@ -136,6 +140,7 @@ distfile = TRIM(ADJUSTL(temp))//"_size-dist.txt"
 idsizefile = TRIM(ADJUSTL(temp))//"_id-size.txt"
 outparamfile = TRIM(ADJUSTL(temp))//"_param.txt"
 outparam = .FALSE.
+protectuc = .FALSE.
 sameplane = .FALSE.
 Nnodes = 0
 twodim = 0  !assume system will be 3-D
@@ -183,6 +188,20 @@ ELSE
   ALLOCATE(AUXNAMES(1))
 ENDIF
 AUXNAMES(grainID) = "grainID"
+!
+!Compute seed density
+CALL VOLUME_PARA(Huc,P1)
+seed_density = SIZE(Puc,1) / P1
+!
+!Set positions of 8 corners of the seed
+!NOTE: first corner is at (0,0,0)
+seedcorners(1,:) = Huc(1,:)
+seedcorners(2,:) = Huc(2,:)
+seedcorners(3,:) = Huc(3,:)
+seedcorners(4,:) = Huc(1,:) + Huc(2,:)
+seedcorners(5,:) = Huc(1,:) + Huc(3,:)
+seedcorners(6,:) = Huc(2,:) + Huc(3,:)
+seedcorners(7,:) = Huc(1,:) + Huc(2,:) + Huc(3,:)
 !
 IF( ALLOCATED(comment) ) DEALLOCATE(comment)
 !
@@ -326,6 +345,10 @@ DO
       !Read total number of grains
       READ(line(7:),*,END=800,ERR=800) Nnodes
       paramrand = .TRUE.
+      !
+    ELSEIF( line(1:7)=="protect" ) THEN
+      !User asked to preserve unit cell
+      protectuc = .TRUE.
       !
     ELSE
       !Unknown command => display warning
@@ -607,17 +630,17 @@ DO
       !Note: position may be given with respect to box dimension, e.g. "box/2"
       line = TRIM(ADJUSTL(line(6:)))
       i=SCAN(line,' ')
-      temp = line(:i)
+      temp = TRIM(ADJUSTL(line(:i)))
       CALL BOX2DBLE( H(1,:),temp,vnodes(Nnodes,1),status )
       IF( status>0 ) GOTO 830
       line = TRIM(ADJUSTL(line(i+1:)))
       i=SCAN(line,' ')
-      temp = line(:i)
+      temp = TRIM(ADJUSTL(line(:i)))
       CALL BOX2DBLE( H(2,:),temp,vnodes(Nnodes,2),status )
       IF( status>0 ) GOTO 830
       line = TRIM(ADJUSTL(line(i+1:)))
       i=SCAN(line,' ')
-      temp = line(:i)
+      temp = TRIM(ADJUSTL(line(:i)))
       CALL BOX2DBLE( H(3,:),temp,vnodes(Nnodes,3),status )
       line = TRIM(ADJUSTL(line(i+1:)))
       IF( status>0 ) GOTO 830
@@ -1009,7 +1032,7 @@ IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
 ENDIF
 !
 !Compute boxmax = maximum distance from one end of the box to another
-boxmax = 1.2d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  ) + 2.d0
+boxmax = 1.1d0*VECLENGTH( (/ H(1,1) , H(2,2) , H(3,3) /)  ) + 5.d0
 WRITE(msg,*) "Max. distance for neighbor search:", boxmax
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
@@ -1043,6 +1066,26 @@ ENDIF
 NPgrains(:) = 0
 !
 !Construct template supercell Pt(:,:)
+!Set template box size
+templatebox(1) = 1.1d0*MAX( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
+templatebox(2) = templatebox(1)
+templatebox(3) = templatebox(1)
+IF( twodim>0 ) THEN
+  !System is 2-D: use max distance between the final cell corners
+  templatebox(1) = 1.1d0 * VECLENGTH(H(1,:)+H(2,:)+H(3,:))
+  templatebox(2) = templatebox(1)
+  templatebox(3) = templatebox(1)
+  templatebox(twodim) = VECLENGTH(H(twodim,:))
+ELSEIF( sameplane .OR. Nnodes<=4 ) THEN
+  !All nodes are in the same plane, or number of nodes is small
+  !Increase template size to make sure all grains are covered
+  templatebox(:) = 2.d0*templatebox(:)
+ELSEIF( Nnodes>=10 ) THEN
+  !Many nodes: decrease template size to improve performance
+  templatebox(:) = templatebox(:) * MAX( 0.6d0 , 1.d0 - (Nnodes/200.d0) )
+ENDIF
+!Add a few angströms for good measure
+templatebox(:) = templatebox(:) + (/6.d0,6.d0,6.d0/)
 !By default the template grain is a bit larger than max.cell size * sqrt(3)
 !This template grain will be cut later to construct each grain
 expandmatrix(:) = 1
@@ -1055,24 +1098,10 @@ DO i=1,3
     !
     !Compute sum of seed vectors components along direction i
     P2 = DBLE( FLOOR( DABS( SUM(Huc(:,i)) )))
+    P2 = MAX( P2 , 1.d0 )
     !
     !P1 = number of times the seed will be duplicated along each base vector direction
-    P1 = MAX( VECLENGTH(H(1,:))/P2 , VECLENGTH(H(2,:))/P2 , VECLENGTH(H(3,:))/P2 )
-!                      & VECLENGTH(H(1,:)+H(2,:))/P2 , VECLENGTH(H(1,:)+H(3,:))/P2 ,          &
-!                      & VECLENGTH(H(2,:)+H(3,:))/P2  ))
-    !
-    WRITE(msg,'(a11,i1,a4,f9.3)') "    P1(", i, ") = ", P1
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    !
-    !Check if all grains are in the same plane
-    IF( sameplane ) THEN
-      !Special case: all nodes are in the same plane, increase template size
-      P1 = 1.8d0*P1
-    ELSEIF( Nnodes<=4 ) THEN
-      !Relatively few nodes: increase size to ensure it covers all grains
-      P1 = 1.8d0*P1
-      !P1 = CEILING( VECLENGTH(H(1,:)+H(2,:)+H(3,:)) / P2 )
-    ENDIF
+    P1 = 1.1d0 * ( templatebox(i) / P2 )
     !
     !Make sure duplication factors are not crazy
     IF(P1<=0) THEN
@@ -1091,15 +1120,16 @@ IF( twodim>0 ) THEN
   expandmatrix(twodim) = 0
 ENDIF
 !Compute how many particles the template will contain
-P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
+!P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
+P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
 WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !If expected number of particles is very large, reduce some values in expandmatrix(:)
 IF( P1 > 2.147d9 ) THEN
-  WRITE(msg,'(a25,f18.0)') "NP is too large, reducing expansion factors...:"
+  WRITE(msg,*) "NP is too large, reducing expansion factors...:"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  IF( Nnodes>8 ) THEN
-    !Many nodes in the box => reduce drastically the size of template grain
+  IF( Nnodes>10 ) THEN
+    !Many nodes in the box => reduce the size of template grain
     expandmatrix(:) = NINT(0.7d0 * expandmatrix(:))
   ELSE
     !There are not many grains => do not reduce too much
@@ -1109,7 +1139,8 @@ ENDIF
 WRITE(msg,'(a47,3i6)') "Final corrected expansion factors for template:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Re-calculate expected number of atoms
-P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
+P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+!P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
 !If expected NP is too large, abort completely
 IF( P1 > 2.147d9 ) THEN
   CALL ATOMSK_MSG(821,(/""/),(/P1/))
@@ -1117,30 +1148,31 @@ IF( P1 > 2.147d9 ) THEN
   GOTO 1000
 ENDIF
 !
-! Allocate array Pt for template grain (full duplicated crystal, not oriented or truncated)
-m = PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1)
-WRITE(msg,*) "ALLOCATE  Pt, SIZE = ", m
+! Allocate array newP for template grain (full duplicated crystal, not oriented or truncated)
+!m = PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1)
+m = CEILING(P1)
+WRITE(msg,*) "ALLOCATE  newP, SIZE = ", m
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-ALLOCATE( Pt(m,4) , STAT=i )
+ALLOCATE( newP(m,4) , STAT=i )
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
   nerr = nerr+1
   CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
   GOTO 1000
 ENDIF
-Pt(:,:) = 0.d0
+newP(:,:) = 0.d0
 IF( doshells ) THEN
-  ALLOCATE( St( SIZE(Pt,1) , 4 ) , STAT=i )
+  ALLOCATE( newS( SIZE(newP,1) , 4 ) , STAT=i )
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
     nerr = nerr+1
     CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
     GOTO 1000
   ENDIF
-  St(:,:) = 0.d0
+  newS(:,:) = 0.d0
 ENDIF
 IF( doaux ) THEN
-  ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2)+1 ) , STAT=i )
+  ALLOCATE( newAUX( SIZE(newP,1) , SIZE(AUXuc,2)+1 ) , STAT=i )
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
     nerr = nerr+1
@@ -1148,7 +1180,7 @@ IF( doaux ) THEN
     GOTO 1000
   ENDIF
 ELSE
-  ALLOCATE( AUX_Q( SIZE(Pt,1) , 1 ) , STAT=i )
+  ALLOCATE( newAUX( SIZE(newP,1) , 1 ) , STAT=i )
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
     nerr = nerr+1
@@ -1156,35 +1188,78 @@ ELSE
     GOTO 1000
   ENDIF
 ENDIF
-AUX_Q(:,:) = 0.d0
+newAUX(:,:) = 0.d0
 !
-! Fill array Pt(:,:)
+! Fill array newP(:,:)
 qi=0
 DO o = 0 , expandmatrix(3)
   DO n = 0 , expandmatrix(2)
     DO m = 0 , expandmatrix(1)
       DO i=1,SIZE(Puc,1)
-        !qi = i + ( m + n*expandmatrix(1) + o*expandmatrix(2)*expandmatrix(1) ) * SIZE(Puc,1)
-        qi = qi+1
         !Compute (cartesian) position of the replica of this atom
-        Pt(qi,1) = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
-        Pt(qi,2) = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
-        Pt(qi,3) = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
-        Pt(qi,4) = Puc(i,4)
-        IF(doshells) THEN
-          !Compute (cartesian) position of the replica of this shell
-          St(qi,1) = Suc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
-          St(qi,2) = Suc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
-          St(qi,3) = Suc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
-          St(qi,4) = Puc(i,4)
-        ENDIF
-        IF(doaux) THEN
-          AUX_Q(qi,:) = AUXuc(i,:)
+        P1 = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
+        P2 = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
+        P3 = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
+        distance = VECLENGTH( (/P1,P2,P3/) - 0.5d0*(/templatebox(1),templatebox(2),templatebox(3)/) )
+        !Check if this position is inside template box
+        IF( P1>-1.d0 .AND. P1<=templatebox(1) .AND. P2>-1.d0 .AND. P2<=templatebox(2) .AND. &
+          & P3>-1.d0 .AND. P3<=templatebox(3) .AND. distance<0.6d0*MAXVAL(templatebox(:)) ) THEN
+          !Yes it is: save atom position and species into newP
+          qi = qi+1
+          IF( qi > SIZE(newP,1) ) THEN
+            !Increase array size by 10%
+            CALL RESIZE_DBLEARRAY2(newP,CEILING(1.1d0*qi),4,status)
+            IF(doshells) THEN
+              CALL RESIZE_DBLEARRAY2(newS,SIZE(newP,1),4,status)
+            ENDIF
+          ENDIF
+          newP(qi,1) = P1
+          newP(qi,2) = P2
+          newP(qi,3) = P3
+          newP(qi,4) = Puc(i,4)
+          IF(doshells) THEN
+            !Compute (cartesian) position of the replica of this shell
+            newS(qi,1) = Suc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
+            newS(qi,2) = Suc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
+            newS(qi,3) = Suc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
+            newS(qi,4) = Puc(i,4)
+          ENDIF
+          IF(doaux) THEN
+            !Copy auxiliary properties of that atom
+            newAUX(qi,:) = AUXuc(i,:)
+          ENDIF
         ENDIF
       ENDDO
     ENDDO
   ENDDO
 ENDDO
+!
+!Save template into Pt with correct array size
+IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
+ALLOCATE( Pt(qi,4) )
+Pt(:,:) = 0.d0
+IF(doshells) THEN
+  IF(ALLOCATED(St)) DEALLOCATE(St)
+  ALLOCATE( St(qi,4) )
+  St(:,:) = 0.d0
+ENDIF
+IF(doaux) THEN
+  IF(ALLOCATED(AUX_Q)) DEALLOCATE(AUX_Q)
+  ALLOCATE( AUX_Q(qi,4) )
+  AUX_Q(:,:) = 0.d0
+ENDIF
+DO i=1,qi
+  Pt(i,:) = newP(i,:)
+  IF(doshells) THEN
+    St(i,:) = newS(i,:)
+  ENDIF
+  IF(doaux) THEN
+    AUX_Q(i,:) = newAUX(i,:)
+  ENDIF
+ENDDO
+DEALLOCATE(newP)
+IF(ALLOCATED(newS)) DEALLOCATE(newS)
+IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
 !
 IF( verbosity==4 ) THEN
@@ -1202,14 +1277,13 @@ IF( verbosity==4 ) THEN
 ENDIF
 !
 !
-!Estimate new number of particles NP = (density of unit cell) / (volume of final cell)
-NP = CEILING( SIZE(Puc,1) * DABS( DABS(H(1,1)*H(2,2)*H(3,3)) / &
-      & DABS(VECLENGTH(Huc(1,:))*VECLENGTH(Huc(2,:))*VECLENGTH(Huc(3,:))) ) )
+!Estimate new number of particles NP = (density of unit cell) * (volume of final cell)
+NP = CEILING( seed_density * DABS(H(1,1)*H(2,2)*H(3,3)) )
 WRITE(msg,*) "Estimated number of atoms in polycrystal: NP = ", NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!Allow for +50% and +1000 atoms to allocate arrays.
+!Allow for +10% and +1000 atoms to allocate arrays.
 !Actual size of arrays will be adjusted later
-NP = NINT(1.74d0*NP) + 1000
+NP = NINT(1.1d0*NP) + 1000
 WRITE(msg,*) "Allocating arrays with size: NP = ", NP
 ALLOCATE(Q(NP,4))
 Q(:,:) = 0.d0
@@ -1461,26 +1535,39 @@ DO inode=1,Nnodes
   !For each atom of the template Pt2, find out if it is located inside the grain
   !If so, then save it to the array Q; if not, discard it (change its atomic number to -1)
   !$OMP PARALLEL DO DEFAULT(SHARED) &
-  !$OMP& PRIVATE(i,isinpolyhedron,jnode,vnormal,vector) &
+  !$OMP& PRIVATE(i,isinpolyhedron,j,jnode,P1, P2,vnormal,vector) &
   !$OMP& REDUCTION(+:NP,NPgrains)
   DO i=1,SIZE(Pt2,1)
     !Shift oriented supercell so that its center of mass is at the position of the node
     Pt2(i,1:3) = Pt2(i,1:3) - 0.5d0*(/H(:,1)+H(:,2)+H(:,3)/) + GrainCenter(1:3)
     !Determine if this position is inside of the polyhedron
     isinpolyhedron = .TRUE.
-    DO jnode = 1 , SIZE(vvertex,1)
-      !Compute vector between the vertex and current node
-      !By definition this vector is normal to the grain boundary
-      vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
+    IF( protectuc ) THEN
+      !User wants to preserve integrity of unit cells
+      !If part of this unit cell is out of the grain, remove all atoms from this unit cell
+      !Get the index number of the unit cell this atom belongs to
+      !k = FLOOR( DBLE(Pt2,1) / DBLE(SIZE(Puc,1)) )
+      P1 = 1.d9
+      P2 = -1.d9
+!       DO j=1,7  !loop on all seed corners
+!         IF( 
+!         ENDIF
+!       ENDDO
+    ELSE
       !Compute vector between atom and current node
       vector(:) = Pt2(i,1:3) - vnodes(inode,:)
-      IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d-12 ) THEN
-        !Atom is above this plane of cut, hence out of the polyhedron
-        !=> exit the loop on jnode
-        isinpolyhedron = .FALSE.
-        EXIT
-      ENDIF
-    ENDDO
+      DO jnode = 1 , SIZE(vvertex,1)
+        !Compute vector between the vertex and current node
+        !By definition this vector is normal to the grain boundary
+        vnormal(:) = vvertex(jnode,:) - vnodes(inode,:)
+        IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d-12 ) THEN
+          !Atom is above this plane of cut, hence out of the polyhedron
+          !=> exit the loop on jnode
+          isinpolyhedron = .FALSE.
+          EXIT
+        ENDIF
+      ENDDO
+    ENDIF
     !
     IF( isinpolyhedron ) THEN
       !Atom is inside the polyhedron
