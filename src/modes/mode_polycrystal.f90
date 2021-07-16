@@ -1076,25 +1076,49 @@ IF( twodim>0 ) THEN
   templatebox(2) = templatebox(1)
   templatebox(3) = templatebox(1)
   templatebox(twodim) = VECLENGTH(H(twodim,:))
-ELSEIF( sameplane .OR. Nnodes<=4 ) THEN
-  !All nodes are in the same plane, or number of nodes is small
+ELSEIF( sameplane ) THEN
+  !All nodes are in the same plane
   !Increase template size to make sure all grains are covered
   templatebox(:) = 2.d0*templatebox(:)
+ELSEIF( Nnodes<=4 ) THEN
+  !Number of nodes is small
+  !Increase template size to make sure all grains are covered
+  templatebox(:) = 1.8d0*templatebox(:)
 ELSEIF( Nnodes>=10 ) THEN
   !Many nodes: decrease template size to improve performance
   templatebox(:) = templatebox(:) * MAX( 0.6d0 , 1.d0 - (Nnodes/200.d0) )
 ENDIF
 !Add a few angströms for good measure
 templatebox(:) = templatebox(:) + (/6.d0,6.d0,6.d0/)
+!Compute how many particles the template will contain = (seed density)*(template volume)
+P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!If expected number of particles is too large, reduce template size
+IF( P1 > 2.147d9 ) THEN
+  templatebox(:) = 0.8d0*templatebox(:)
+  IF( twodim>0 ) THEN
+    templatebox(twodim) = VECLENGTH(H(twodim,:))
+  ENDIF
+ENDIF
+!Re-compute number of particles
+P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+!If expected number of particles still is too large, abort completely
+IF( P1 > 2.147d9 ) THEN
+  CALL ATOMSK_MSG(821,(/""/),(/P1/))
+  nerr = nerr+1
+  GOTO 1000
+ENDIF
+!
 !By default the template grain is a bit larger than max.cell size * sqrt(3)
 !This template grain will be cut later to construct each grain
 expandmatrix(:) = 1
 WRITE(msg,*) "Determining expansion factors:"
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 DO i=1,3
-  IF( VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(1,:)) .OR.  &
-    & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(2,:)) .OR.  &
-    & VECLENGTH(Huc(i,:)) < 0.8d0*VECLENGTH(H(3,:))       ) THEN
+  IF( VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:)) .OR.  &
+    & VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:)) .OR.  &
+    & VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:))       ) THEN
     !
     !Compute sum of seed vectors components along direction i
     P2 = DBLE( FLOOR( DABS( SUM(Huc(:,i)) )))
@@ -1112,44 +1136,14 @@ DO i=1,3
     expandmatrix(i) = CEILING(P1)
   ENDIF
 ENDDO
-WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!
 !If the system is 2-D, do not expand along the shortest axis
 IF( twodim>0 ) THEN
   expandmatrix(twodim) = 0
 ENDIF
-!Compute how many particles the template will contain
-!P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
-P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
-WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
+WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!If expected number of particles is very large, reduce some values in expandmatrix(:)
-IF( P1 > 2.147d9 ) THEN
-  WRITE(msg,*) "NP is too large, reducing expansion factors...:"
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  IF( Nnodes>10 ) THEN
-    !Many nodes in the box => reduce the size of template grain
-    expandmatrix(:) = NINT(0.7d0 * expandmatrix(:))
-  ELSE
-    !There are not many grains => do not reduce too much
-    expandmatrix(:) = NINT( 0.9d0 * expandmatrix(:) )
-  ENDIF
-ENDIF
-WRITE(msg,'(a47,3i6)') "Final corrected expansion factors for template:", expandmatrix(:)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!Re-calculate expected number of atoms
-P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
-!P1 = DBLE(MAX(1,expandmatrix(1))) * DBLE(MAX(1,expandmatrix(2))) * DBLE(MAX(1,expandmatrix(3))) * DBLE(SIZE(Puc,1))
-!If expected NP is too large, abort completely
-IF( P1 > 2.147d9 ) THEN
-  CALL ATOMSK_MSG(821,(/""/),(/P1/))
-  nerr = nerr+1
-  GOTO 1000
-ENDIF
 !
 ! Allocate array newP for template grain (full duplicated crystal, not oriented or truncated)
-!m = PRODUCT(expandmatrix(:)+1)*SIZE(Puc,1)
 m = CEILING(P1)
 WRITE(msg,*) "ALLOCATE  newP, SIZE = ", m
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

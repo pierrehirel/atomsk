@@ -15,6 +15,7 @@ Master
 - fixed a bug where structure "C14" (with uppercase "C") was not recognized.
 - fixed a bug in mode "--polycrystal" that prevented constructing 2-D polycrystals normal to X or Y. Also fixed a bug where the seed was not sufficiently duplicated if the seed was not orthogonal; thanks to Zheyuan Xing, Southwest Jiaotong University, China, for pointing out this bug.
 - fixed a bug in option "-add-atom" that caused a segfault when the atom list was empty (not allocated).
+- fixed a bug in option "-dislocation loop" where the loop was not correctly constructed if it was not normal to the Z axis. Thanks to Marion Borde and Jonathan Amodeo, MATEIS, Univ. Lyon 1, France, for pointing out this bug.
 - fixed a bug in option "-select STL" when selecting atoms according to a complex 3-D shape from an STL file, where entire planes of atoms were not properly selected if the vertices were too close or if atom positions exactly matched the edges of several vertices.
 
 

@@ -1107,24 +1107,25 @@ ELSEIF( disloctype=="loop" ) THEN
   !The direction normal to the loop is dislocline
   !pos(1:3) = position of the center of the loop; pos(4) = radius of the loop
   !
+  SELECT CASE(dislocline)
+  CASE('x','X')
+    !Loop in (y,z) plane
+    a1 = 2
+    a2 = 3
+    a3 = 1
+  CASE('y','Y')
+    a1 = 3
+    a2 = 1
+    a3 = 2
+  CASE DEFAULT
+    a1 = 1
+    a2 = 2
+    a3 = 3
+  END SELECT
+  !
   !Discretize loop into segments
   IF( pos(4) < 0.d0 ) THEN
     !"Negative" radius => user wants a square of side pos(4)
-    SELECT CASE(dislocline)
-    CASE('x','X')
-      !Loop in (y,z) plane
-      a1 = 2
-      a2 = 3
-      a3 = 1
-    CASE('y','Y')
-      a1 = 3
-      a2 = 1
-      a3 = 2
-    CASE DEFAULT
-      a1 = 1
-      a2 = 2
-      a3 = 3
-    END SELECT
     ALLOCATE(xLoop(4,3))
     xLoop(:,:) = 0.d0
     xLoop(1,a1) = pos(1) - pos(4)
@@ -1167,7 +1168,10 @@ ELSEIF( disloctype=="loop" ) THEN
   ENDIF
   !For each atom, compute its displacement due to the loop
   DO i=1,SIZE(P,1)
-    P(i,1:3) = P(i,1:3) + LOOP_DISPLACEMENT(P(i,1:3), b, nu, pos(1:3), xLoop)
+    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop)
+    P(i,a1) = P(i,a1) + disp(1)
+    P(i,a2) = P(i,a2) + disp(2)
+    P(i,a3) = P(i,a3) + disp(3)
   ENDDO
   !
   !
