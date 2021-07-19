@@ -447,8 +447,6 @@ ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to
 Atom_Cell(:) = 0
 ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
 Cell_NP(:) = 0
-!!!$OMP PARALLEL DO DEFAULT(SHARED) &
-!!!$OMP& PRIVATE(i,Ix,Iy,Iz) REDUCTION(+:Cell_NP)
 DO i=1,SIZE(A,1)
   Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
   Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
@@ -460,7 +458,6 @@ DO i=1,SIZE(A,1)
   !Increment number of atoms of this cell
   Cell_NP(Atom_Cell(i)) = Cell_NP(Atom_Cell(i)) + 1
 ENDDO
-!!!$OMP END PARALLEL DO
 !
 IF( verbosity==4 ) THEN
   OPEN(UNIT=56,FILE="atomsk_atomCell.txt",STATUS="UNKNOWN")
@@ -582,8 +579,8 @@ WRITE(msg,*) 'Constructing atoms neighbor list...'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Construct the neighbor list for atoms
-!!!$OMP PARALLEL DO DEFAULT(SHARED) &
-!!!$OMP& PRIVATE(i,iCell,j,k,n,distance,Vfrac)
+!$OMP PARALLEL DO DEFAULT(SHARED) &
+!$OMP& PRIVATE(i,iCell,j,k,n,distance,Vfrac)
 DO i=1,SIZE(A,1)
   !iCell = index of the cell atom #i belongs to
   iCell = Atom_Cell(i)
@@ -602,12 +599,12 @@ DO i=1,SIZE(A,1)
           !Use the correct periodic image of that cell
           !The position of the atom #n has to be translated by Cell_Neigh(iCell,j,2:4) * (box vectors)
           Vfrac(1,1:3) = A(n,1:3) + DBLE(Cell_Neigh(iCell,j,2))*H(1,:)   &
-                        &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
-                        &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
+                       &          + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
+                       &          + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
           !Compute distance between atom #i and the periodic image of atom #n
           distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
           IF( distance < R ) THEN
-            !!!$OMP CRITICAL
+            !$OMP CRITICAL
             !Add atom #n as neighbor of atom #i
             !IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
               NNeigh(i) = NNeigh(i)+1
@@ -623,7 +620,7 @@ DO i=1,SIZE(A,1)
                 NeighList(n,NNeigh(n)) = i
               ENDIF
             ENDIF
-            !!!$OMP END CRITICAL
+            !$OMP END CRITICAL
           ENDIF
           !
         ENDIF
@@ -634,7 +631,7 @@ DO i=1,SIZE(A,1)
   ENDDO  !j
   !
 ENDDO  !i
-!!!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO
 !
 !Free memory
 IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)

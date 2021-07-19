@@ -204,7 +204,7 @@ ENDIF
 !
 IF( typecol>0 ) THEN
   !A column for atom types is defined
-  !For each atom type, find its atomic number and mass and store it in array "typemass"
+  !For each atom type, find its atomic number and mass and store them in array "typemass"
   ALLOCATE( typemass(Ntypes,2) )
   typemass(:,:) = 0.d0
   !For each atom type, find its mass
@@ -545,13 +545,10 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
         Qshell = 0.d0
       ENDIF
       !Determine type of this shell
-      l=0
-      DO iloop=1,SIZE(aentriesS,1)
-        IF( aentriesS(iloop,1)>0.1d0 ) THEN
-          l=l+1
-          IF( NINT(aentriesS(iloop,1))==NINT(S(i,4)) ) THEN
-            Nspecies = SIZE(aentries,1)+l
-          ENDIF
+      DO iloop=SIZE(typemass,1),1,-1
+        IF( NINT(typemass(iloop,1)) == NINT(S(i,4)) ) THEN
+          Nspecies = iloop
+          EXIT
         ENDIF
       ENDDO
       WRITE(ofu,212) atomID, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
