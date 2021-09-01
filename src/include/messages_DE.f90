@@ -291,6 +291,7 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge_add|edge_rm> <x|y|z> <x|y|z> <b> <ν>"
   WRITE(*,*) "          -disloc <pos1> <pos2> mixed <x|y|z> <x|y|z> <b1> <b2> <b3>"
   WRITE(*,*) "          -disloc loop <x> <y> <z> <x|y|z> <radius> <bx> <by> <bz> <nu>"
+  WRITE(*,*) "          -disloc file <Datei> <nu>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
@@ -1194,54 +1195,62 @@ CASE(2061)
   !reals(7) = pos3 (only for loops)
   !reals(8) = loop radius
   temp = TRIM(ADJUSTL(strings(1)))
-  IF(TRIM(temp)=="screw") THEN
-    msg = ">>> Fuege eine Schraubenversetzung ein, entlang der Linie"
-  ELSEIF(temp(1:4)=="edge") THEN
-    msg = ">>> Fuege eine Stufenversetzung ein, entlang der Linie"
-  ELSEIF(temp(1:5)=="mixed") THEN
-    msg = ">>> Fuege einer gemischten Versetzung mit der Linie entlang"
-  ELSEIF(temp(1:4)=="loop") THEN
-    msg = ">>> Fuege einer Versetzungsschleife in eine Ebene normal zu"
-  ENDIF
-  msg = TRIM(msg)//' '//TRIM(strings(2))//","
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  !
-  IF( reals(4)>0.1d0 ) THEN
-    msg = "    wende anisotrope Elastizitaet an,"
+  temp = TRIM(ADJUSTL(strings(1)))
+  IF(temp(1:4)=="file" .OR. temp(1:5)=="array") THEN
+    msg = ">>> In der Datei definierte Versetzungen einfügen: "//TRIM(ADJUSTL(strings(2)))
+  ELSE
+    IF(TRIM(temp)=="screw") THEN
+      msg = ">>> Fuege eine Schraubenversetzung ein, entlang der Linie"
+    ELSEIF(temp(1:4)=="edge") THEN
+      msg = ">>> Fuege eine Stufenversetzung ein, entlang der Linie"
+    ELSEIF(temp(1:5)=="mixed") THEN
+      msg = ">>> Fuege einer gemischten Versetzung mit der Linie entlang"
+    ELSEIF(temp(1:4)=="loop") THEN
+      msg = ">>> Fuege einer Versetzungsschleife in eine Ebene normal zu"
+    ENDIF
+    msg = TRIM(msg)//' '//TRIM(strings(2))//","
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   !
-  IF(TRIM(strings(1))=="edge_add") THEN
-    WRITE(msg,"(a34)") "    durch Einfuegen einer atomaren Ebene,"
-  ELSEIF(TRIM(strings(1))=="edge_rm") THEN
-    WRITE(msg,"(a34)") "    durch Entfernen einer atomaren Ebene,"
-  ELSE
-    WRITE(msg,"(a41)") "    Erhaltung der Anzahl der Atome,"
-  ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  !
-  WRITE(msg,"(f16.3)") reals(1)
-  WRITE(temp,"(f16.3)") reals(2)
-  WRITE(temp2,"(f16.3)") reals(3)
-  msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
-  WRITE(temp,"(f16.3)") reals(5)
-  WRITE(temp2,"(f16.3)") reals(6)
-  IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
-    WRITE(temp3,"(f16.3)") reals(7)
-    IF( reals(8)>0.d0 ) THEN
-      WRITE(temp4,"(f16.3)") reals(8)
-      msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
-    ELSE
-      WRITE(temp4,"(f16.3)") DABS(reals(8))
-      msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+  IF(temp(1:4).NE."file" .AND. temp(1:5).NE."array") THEN
+    !
+    IF( reals(4)>0.1d0 ) THEN
+      msg = "    wende anisotrope Elastizitaet an,"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
-  ELSE
-    msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
-        & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+    !
+    IF(TRIM(strings(1))=="edge_add") THEN
+      WRITE(msg,"(a34)") "    durch Einfuegen einer atomaren Ebene,"
+    ELSEIF(TRIM(strings(1))=="edge_rm") THEN
+      WRITE(msg,"(a34)") "    durch Entfernen einer atomaren Ebene,"
+    ELSE
+      WRITE(msg,"(a41)") "    Erhaltung der Anzahl der Atome,"
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    !
+    WRITE(msg,"(f16.3)") reals(1)
+    WRITE(temp,"(f16.3)") reals(2)
+    WRITE(temp2,"(f16.3)") reals(3)
+    msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
+    WRITE(temp,"(f16.3)") reals(5)
+    WRITE(temp2,"(f16.3)") reals(6)
+    IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
+      WRITE(temp3,"(f16.3)") reals(7)
+      IF( reals(8)>0.d0 ) THEN
+        WRITE(temp4,"(f16.3)") reals(8)
+        msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+      ELSE
+        WRITE(temp4,"(f16.3)") DABS(reals(8))
+        msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+      ENDIF
+    ELSE
+      msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
+          & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2062)
   msg = "..> Bestimme Loesungen der anisotropen Elastizitaetsgleichungen..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1268,7 +1277,15 @@ CASE(2064)
   msg = "..> Superzelle wurde  erlang "//TRIM(ADJUSTL(temp))//" um "//TRIM(ADJUSTL(strings(1)))//" verändert."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
-  msg = "..> Versetzung wurde erfolgreich erzeugt."
+  !reals(1) = number of dislocations inserted (default 1)
+  IF( NINT(reals(1)) <= 0 ) THEN
+    msg = "..> Kein Versetzung wurde erzeugt."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> Versetzung wurde erfolgreich erzeugt."
+  ELSE
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" Versetzungen wurden erfolgreich erzeugt."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2066)
   !reals(1) = number of repetitions along X

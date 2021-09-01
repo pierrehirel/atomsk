@@ -285,6 +285,7 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge_add|edge_rm> <x|y|z> <x|y|z> <b> <ν>"
   WRITE(*,*) "          -disloc <pos1> <pos2> mixed <x|y|z> <x|y|z> <b1> <b2> <b3>"
   WRITE(*,*) "          -disloc loop <x> <y> <z> <x|y|z> <radius> <bx> <by> <bz> <nu>"
+  WRITE(*,*) "          -disloc file <file> <nu>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-disturb" ) THEN
@@ -1192,7 +1193,7 @@ CASE(2060)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2061)
   !strings(1) = disloctype: screw, edge, edge_add, edge_rm, mixed, loop
-  !strings(2) = direction of dislocline: x, y or z
+  !strings(2) = direction of dislocline: x, y or z, or Miller index, or file name
   !reals(1) = X component of Burgers vector
   !reals(2) = Y component of Burgers vector
   !reals(3) = Z component of Burgers vector
@@ -1202,54 +1203,60 @@ CASE(2061)
   !reals(7) = pos3 (only for loops)
   !reals(8) = loop radius
   temp = TRIM(ADJUSTL(strings(1)))
-  IF(TRIM(temp)=="screw") THEN
-    msg = ">>> Inserting a screw dislocation with line along"
-  ELSEIF(temp(1:4)=="edge") THEN
-    msg = ">>> Inserting an edge dislocation with line along"
-  ELSEIF(temp(1:5)=="mixed") THEN
-    msg = ">>> Inserting a mixed dislocation with line along"
-  ELSEIF(temp(1:4)=="loop") THEN
-    msg = ">>> Inserting a dislocation loop in a plane normal to"
+  IF(temp(1:4)=="file" .OR. temp(1:5)=="array") THEN
+    msg = ">>> Inserting dislocations defined in the file: "//TRIM(ADJUSTL(strings(2)))
+  ELSE
+    IF(TRIM(temp)=="screw") THEN
+      msg = ">>> Inserting a screw dislocation with line along"
+    ELSEIF(temp(1:4)=="edge") THEN
+      msg = ">>> Inserting an edge dislocation with line along"
+    ELSEIF(temp(1:5)=="mixed") THEN
+      msg = ">>> Inserting a mixed dislocation with line along"
+    ELSEIF(temp(1:4)=="loop") THEN
+      msg = ">>> Inserting a dislocation loop in a plane normal to"
+    ENDIF
+    msg = TRIM(msg)//' '//TRIM(strings(2))//","
   ENDIF
-  msg = TRIM(msg)//' '//TRIM(strings(2))//","
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   !
-  IF( reals(4)>0.1d0 ) THEN
-    msg = "    using anisotropic elasticity,"
+  IF(temp(1:4).NE."file" .AND. temp(1:5).NE."array") THEN
+    IF( reals(4)>0.1d0 ) THEN
+      msg = "    using anisotropic elasticity,"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+    !
+    IF(TRIM(strings(1))=="edge_add") THEN
+      WRITE(msg,"(a34)") "    by inserting a plane of atoms,"
+    ELSEIF(TRIM(strings(1))=="edge_rm") THEN
+      WRITE(msg,"(a33)") "    by removing a plane of atoms,"
+    ELSEIF(TRIM(strings(1))=="edge" .OR. TRIM(strings(1))=="screw" .OR. TRIM(strings(1))=="mixed") THEN
+      WRITE(msg,"(a41)") "    conserving the total number of atoms,"
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    !
+    WRITE(msg,"(f16.3)") reals(1)
+    WRITE(temp,"(f16.3)") reals(2)
+    WRITE(temp2,"(f16.3)") reals(3)
+    msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
+    WRITE(temp,"(f16.3)") reals(5)
+    WRITE(temp2,"(f16.3)") reals(6)
+    IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
+      WRITE(temp3,"(f16.3)") reals(7)
+      IF( reals(8)>0.d0 ) THEN
+        WRITE(temp4,"(f16.3)") reals(8)
+        msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+      ELSE
+        WRITE(temp4,"(f16.3)") DABS(reals(8))
+        msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+      ENDIF
+    ELSE
+      msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
+          & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+    ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  !
-  IF(TRIM(strings(1))=="edge_add") THEN
-    WRITE(msg,"(a34)") "    by inserting a plane of atoms,"
-  ELSEIF(TRIM(strings(1))=="edge_rm") THEN
-    WRITE(msg,"(a33)") "    by removing a plane of atoms,"
-  ELSE
-    WRITE(msg,"(a41)") "    conserving the total number of atoms,"
-  ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  !
-  WRITE(msg,"(f16.3)") reals(1)
-  WRITE(temp,"(f16.3)") reals(2)
-  WRITE(temp2,"(f16.3)") reals(3)
-  msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
-  WRITE(temp,"(f16.3)") reals(5)
-  WRITE(temp2,"(f16.3)") reals(6)
-  IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
-    WRITE(temp3,"(f16.3)") reals(7)
-    IF( reals(8)>0.d0 ) THEN
-      WRITE(temp4,"(f16.3)") reals(8)
-      msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
-    ELSE
-      WRITE(temp4,"(f16.3)") DABS(reals(8))
-      msg = "    Center ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
-    ENDIF
-  ELSE
-    msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
-        & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
-  ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2062)
   msg = "..> Searching the solutions to the anisotropic elasticity equations..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1276,7 +1283,15 @@ CASE(2064)
   msg = "..> Cell length was changed by "//TRIM(ADJUSTL(strings(1)))//" along "//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
-  msg = "..> Dislocation was successfully created."
+  !reals(1) = number of dislocations inserted (default 1)
+  IF( NINT(reals(1)) <= 0 ) THEN
+    msg = "..> No dislocation was inserted."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> Dislocation was successfully inserted."
+  ELSE
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" dislocations were successfully inserted."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2066)
   !reals(1) = number of repetitions along X

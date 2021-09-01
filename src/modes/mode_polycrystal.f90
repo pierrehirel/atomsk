@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 July 2021                                     *
+!* Last modification: P. Hirel - 19 July 2021                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1080,10 +1080,14 @@ ELSEIF( sameplane ) THEN
   !All nodes are in the same plane
   !Increase template size to make sure all grains are covered
   templatebox(:) = 2.d0*templatebox(:)
+ELSEIF( Nnodes<=1 ) THEN
+  !User asked for only 1 node
+  !Increase template size to make sure all grains are covered
+  templatebox(:) = 2.0d0*templatebox(:)
 ELSEIF( Nnodes<=4 ) THEN
   !Number of nodes is small
   !Increase template size to make sure all grains are covered
-  templatebox(:) = 1.8d0*templatebox(:)
+  templatebox(:) = 1.5d0*templatebox(:)
 ELSEIF( Nnodes>=10 ) THEN
   !Many nodes: decrease template size to improve performance
   templatebox(:) = templatebox(:) * MAX( 0.6d0 , 1.d0 - (Nnodes/200.d0) )

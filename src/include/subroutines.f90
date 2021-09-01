@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 July 2021                                     *
+!* Last modification: P. Hirel - 01 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,6 +27,7 @@ MODULE subroutines
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* CHECK_ARRAY_CONSISTENCY checks that arrays P, S, AUX, AUXNAMES are consistent  *
+!* STR_RMSPACE         removes all blank spaces in a string                       *
 !* STR_CHAR2SPACE      replaces a character by blank space in a string            *
 !* STR2BOOL            transforms a string into a boolean value                   *
 !* INT2MONTH           transforms an integer into a month                         *
@@ -124,6 +125,29 @@ END SUBROUTINE CHECK_ARRAY_CONSISTENCY
 !
 !
 !********************************************************
+! STR_RMSPACE
+! This subroutine removes all blank spaces in a string,
+! 
+!********************************************************
+SUBROUTINE STR_RMSPACE(string)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(INOUT):: string
+INTEGER:: i
+!
+IF( LEN_TRIM(string) > 1 ) THEN
+  DO i=1,LEN_TRIM(string)
+    IF( string(i:i)==" " ) THEN
+      string(i:) = string(i+1:)
+    ENDIF
+  ENDDO
+ENDIF
+!
+END SUBROUTINE STR_RMSPACE
+!
+!
+!
+!********************************************************
 ! STR_CHAR2SPACE
 ! This subroutine parses a string, replacing some
 ! characters with a space character.
@@ -135,13 +159,15 @@ CHARACTER(LEN=*),INTENT(INOUT):: string
 CHARACTER(LEN=*),INTENT(IN):: characters
 INTEGER:: i, j
 !
-DO i=1,LEN_TRIM(string)
-  DO j=1,LEN_TRIM(characters)
-    IF( string(i:i)==characters(j:j) ) THEN
-      string(i:i) = " "
-    ENDIF
+IF( LEN_TRIM(string) > 0 ) THEN
+  DO i=1,LEN_TRIM(string)
+    DO j=1,LEN_TRIM(characters)
+      IF( string(i:i)==characters(j:j) ) THEN
+        string(i:i) = " "
+      ENDIF
+    ENDDO
   ENDDO
-ENDDO
+ENDIF
 !
 END SUBROUTINE STR_CHAR2SPACE
 !

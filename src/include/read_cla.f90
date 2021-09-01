@@ -3,13 +3,13 @@ MODULE read_cla
 !**********************************************************************************
 !*  READ_CLA                                                                      *
 !**********************************************************************************
-!* This module reads command-line arguments for ATOMSK.                           *
+!* This module reads command-line arguments for Atomsk.                           *
 !**********************************************************************************
 !* (C) March 2011 - Pierre Hirel                                                  *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 19 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -911,8 +911,14 @@ DO WHILE(i<SIZE(cla))
         options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
       ENDIF
       !
-    ELSE !i.e. if temp.NE.'loop'
-      !Construct a straight dislocation line
+    ELSEIF( TRIM(temp)=="array" .OR. TRIM(temp)=="file" ) THEN
+      !Last possiblity: read dislocation coordinates from a file
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      !
+    ELSE
+      !This should be parameters for constructing a straight dislocation line
       !=> temp should contain a real number corresponding to p1 = pos(1)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120

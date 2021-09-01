@@ -23,6 +23,8 @@
 
 <p><code>-dislocation loop &#60;x&#62; &#60;y&#62; &#60;z&#62; &#60;n&#62; &#60;radius&#62; &#60;b<sub>x</sub>&#62; &#60;b<sub>y</sub>&#62; &#60;b<sub>z</sub>&#62; &#60;&nu;&#62;</code></p>
 
+<p><code>-dislocation file &#60;file&#62; &#60;&nu;&#62;</code></p>
+
 
 <h4>Description</h4>
 
@@ -105,6 +107,27 @@
 
 <object type="img/svg+xml" data="../img/opt_disloc_2.svg"><img src="../img/opt_disloc_2.png" alt="" /></object>
 <p><strong>Fig. 3</strong> - <em>Schematic for the construction of a dislocation loop. In this example, the dislocation loop is in a plane normal to the Cartesian Z axis (i.e. <strong><em>n</em></strong> is along Z). The dislocation loop appears in green, and its Burgers vector <strong><em>b</em></strong> in blue. Right-hand side figure: if the &#60;radius&#62; has a negative value, then the dislocation loop will have a square shape.</em></p>
+
+<hr>
+
+<p>Finally, dislocation lines of various shapes can be defined in a file. The file must contain a line with the keyword "dislocation" followed by the Cartesian components of the Burgers vector, followed by lines giving the Cartesian positions (x,y,z) of the dislocation line. Several dislocations can be defined in the same file, each definition starting with the keyword "dislocation" and the Burgers vector. The file must look like the following:</p>
+
+<p><code>
+dislocation &#60;b<sub>x</sub>&#62; &#60;b<sub>y</sub>&#62; &#60;b<sub>z</sub>&#62; <br/>
+&#60;x<sub>1</sub>&#62; &#60;y<sub>1</sub>&#62; &#60;z<sub>1</sub>&#62; <br/>
+&#60;x<sub>2</sub>&#62; &#60;y<sub>2</sub>&#62; &#60;z<sub>2</sub>&#62; <br/>
+&#60;x<sub>3</sub>&#62; &#60;y<sub>3</sub>&#62; &#60;z<sub>3</sub>&#62; <br/>
+...<br/>
+dislocation &#60;b'<sub>x</sub>&#62; &#60;b'<sub>y</sub>&#62; &#60;b'<sub>z</sub>&#62; <br/>
+&#60;x'<sub>1</sub>&#62; &#60;y'<sub>1</sub>&#62; &#60;z'<sub>1</sub>&#62; <br/>
+&#60;x'<sub>2</sub>&#62; &#60;y'<sub>2</sub>&#62; &#60;z'<sub>2</sub>&#62; <br/>
+&#60;x'<sub>3</sub>&#62; &#60;y'<sub>3</sub>&#62; &#60;z'<sub>3</sub>&#62; <br/>
+...<br/>
+</code></p>
+
+<p>Atomsk will introduce dislocation segments between the given points. The resulting dislocation will form a loop, i.e. the last point will be connected to the first point.</p>
+
+<p><strong>IMPORTANT REMARK:</strong> this method is similar to the one used for dislocation loop, therefore it is only capable of inserting <em>glide</em> dislocations where the dislocation line and Burgers vector belong to the same plane.</p>
 
 <hr>
 

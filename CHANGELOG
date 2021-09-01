@@ -11,7 +11,9 @@ Master
 - added possibility to output to standard output (stdout) by using "-" as file name.
 - option "-bind-shells", when no shell is present in the system, will now search for particles close to each other. If such pairs are found, the particle with the greatest mass, or charge, or with lowest ID (whichever comes first) will be considered as a core, the other as a shell. This can be useful e.g. after reading LAMMPS custom dump files containing shells.
 - fixed a bug where coordinates would be detected as Cartesian instead of reduced if the cell was very small. Thanks to Davide Sangiovanni, Linköping University, Sweden, for pointing out this bug.
+- fixed a bug when reading CIF files where the Hermann-Mauguin space group name contained blank spaces. Thanks to Yaron Kauffmann, Technion, Israel, for pointing out this bug.
 - fixed a bug when reading/writing Extended XYZ format where lattice vectors were in wrong order. Thanks to Yanzhou Wang, Aalto University, Finland, for pointing out this bug.
+- fixed a bug when writing LAMMPS data files, where the shells (in the sense of an ionic core/shell model) "types" would be inconsistent if atoms were not sorted by increasing types.
 - fixed a bug where structure "C14" (with uppercase "C") was not recognized.
 - fixed a bug in mode "--polycrystal" that prevented constructing 2-D polycrystals normal to X or Y. Also fixed a bug where the seed was not sufficiently duplicated if the seed was not orthogonal; thanks to Zheyuan Xing, Southwest Jiaotong University, China, for pointing out this bug.
 - fixed a bug in option "-add-atom" that caused a segfault when the atom list was empty (not allocated).

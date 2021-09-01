@@ -286,6 +286,7 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge_add|edge_rm> <x|y|z> <x|y|z> <b> <ν>"
   WRITE(*,*) "          -disloc <pos1> <pos2> mixed <x|y|z> <x|y|z> <b1> <b2> <b3>"
   WRITE(*,*) "          -disloc loop <x> <y> <z> <x|y|z> <rayon> <bx> <by> <bz> <nu>"
+  WRITE(*,*) "          -disloc file <fichier> <nu>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-disturb" ) THEN
@@ -1215,54 +1216,61 @@ CASE(2061)
   !reals(7) = pos3 (only for loops)
   !reals(8) = loop radius
   temp = TRIM(ADJUSTL(strings(1)))
-  IF(TRIM(temp)=="screw") THEN
-    msg = ">>> Insertion d'une dislocation vis suivant"
-  ELSEIF(temp(1:4)=="edge") THEN
-    msg = ">>> Insertion d'une dislocation coin suivant"
-  ELSEIF(temp(1:5)=="mixed") THEN
-    msg = ">>> Insertion d'une dislocation mixte suivant"
-  ELSEIF(temp(1:4)=="loop") THEN
-    msg = ">>> Insertion d'une boucle de dislocation dans un plan normal à"
+  IF(temp(1:4)=="file" .OR. temp(1:5)=="array") THEN
+    msg = ">>> Insersion de dislocations définies dans le fichier : "//TRIM(ADJUSTL(strings(2)))
+  ELSE
+    IF(TRIM(temp)=="screw") THEN
+      msg = ">>> Insertion d'une dislocation vis suivant"
+    ELSEIF(temp(1:4)=="edge") THEN
+      msg = ">>> Insertion d'une dislocation coin suivant"
+    ELSEIF(temp(1:5)=="mixed") THEN
+      msg = ">>> Insertion d'une dislocation mixte suivant"
+    ELSEIF(temp(1:4)=="loop") THEN
+      msg = ">>> Insertion d'une boucle de dislocation dans un plan normal à"
+    ENDIF
+    msg = TRIM(msg)//' '//TRIM(strings(2))//","
   ENDIF
-  msg = TRIM(msg)//' '//TRIM(strings(2))//","
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   !
-  IF( reals(4)>0.1d0 ) THEN
-    msg = "    en utilisant l'élasticité anisotrope,"
+  IF(temp(1:4).NE."file" .AND. temp(1:5).NE."array") THEN
+    !
+    IF( reals(4)>0.1d0 ) THEN
+      msg = "    en utilisant l'élasticité anisotrope,"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+    !
+    IF(TRIM(strings(1))=="edge_add") THEN
+      WRITE(msg,"(a34)") "    en insérant un plan d'atomes,"
+    ELSEIF(TRIM(strings(1))=="edge_rm") THEN
+      WRITE(msg,"(a36)") "    en supprimant un plan d'atomes,"
+    ELSE
+      WRITE(msg,"(a43)") "    en conservant le nombre total d'atomes,"
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    !
+    WRITE(msg,"(f16.3)") reals(1)
+    WRITE(temp,"(f16.3)") reals(2)
+    WRITE(temp2,"(f16.3)") reals(3)
+    msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
+    WRITE(temp,"(f16.3)") reals(5)
+    WRITE(temp2,"(f16.3)") reals(6)
+    IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
+      WRITE(temp3,"(f16.3)") reals(7)
+      IF( reals(8)>0.d0 ) THEN
+        WRITE(temp4,"(f16.3)") reals(8)
+        msg = "    Centre ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//") ; Rayon "//TRIM(ADJUSTL(temp4))//" A ; b="//TRIM(ADJUSTL(msg))
+      ELSE
+        WRITE(temp4,"(f16.3)") DABS(reals(8))
+        msg = "    Centre ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//") ; Côté "//TRIM(ADJUSTL(temp4))//" A ; b="//TRIM(ADJUSTL(msg))
+      ENDIF
+    ELSE
+      msg = "    b="//TRIM(ADJUSTL(msg))//" à ("// &
+          & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+    ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  !
-  IF(TRIM(strings(1))=="edge_add") THEN
-    WRITE(msg,"(a34)") "    en insérant un plan d'atomes,"
-  ELSEIF(TRIM(strings(1))=="edge_rm") THEN
-    WRITE(msg,"(a36)") "    en supprimant un plan d'atomes,"
-  ELSE
-    WRITE(msg,"(a43)") "    en conservant le nombre total d'atomes,"
-  ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  !
-  WRITE(msg,"(f16.3)") reals(1)
-  WRITE(temp,"(f16.3)") reals(2)
-  WRITE(temp2,"(f16.3)") reals(3)
-  msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
-  WRITE(temp,"(f16.3)") reals(5)
-  WRITE(temp2,"(f16.3)") reals(6)
-  IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
-    WRITE(temp3,"(f16.3)") reals(7)
-    IF( reals(8)>0.d0 ) THEN
-      WRITE(temp4,"(f16.3)") reals(8)
-      msg = "    Centre ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//") ; Rayon "//TRIM(ADJUSTL(temp4))//" A ; b="//TRIM(ADJUSTL(msg))
-    ELSE
-      WRITE(temp4,"(f16.3)") DABS(reals(8))
-      msg = "    Centre ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//") ; Côté "//TRIM(ADJUSTL(temp4))//" A ; b="//TRIM(ADJUSTL(msg))
-    ENDIF
-  ELSE
-    msg = "    b="//TRIM(ADJUSTL(msg))//" à ("// &
-        & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
-  ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2062)
   msg = "..> Calcul des solutions aux équations anisotropes..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1289,7 +1297,15 @@ CASE(2064)
   msg = "..> La boîte a été modifiée de "//TRIM(ADJUSTL(strings(1)))//" suivant "//TRIM(ADJUSTL(temp))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
-  msg = "..> La dislocation a bien été créée."
+  !reals(1) = number of dislocations inserted (default 1)
+  IF( NINT(reals(1)) <= 0 ) THEN
+    msg = "..> Aucune dislocation n'a été insérée."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> La dislocation a bien été insérée."
+  ELSE
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" dislocations ont été insérées."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2066)
   !reals(1) = number of repetitions along X

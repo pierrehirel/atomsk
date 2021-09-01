@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 01 Sept. 2021                                    *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -293,10 +293,11 @@ DO !Main reading loop
     ENDIF
     !
     !
-  ELSEIF( temp(1:30)=='_symmetry_space_group_name_H-M' ) THEN
+  ELSEIF( temp(1:30)=='_symmetry_space_group_name_H-M' .OR. temp(1:21)=='_space_group_name_H-M' ) THEN
     !Read Hermann-Mauguin symbol (only if space group number was not already found)
     IF( sgnumber==0 ) THEN
-      temp2 = ADJUSTL(temp(31:))
+      strlength = SCAN(temp," ")
+      temp2 = ADJUSTL(temp(strlength:))
       !Remove quotes if any
       strlength=SCAN(temp2,"'")
       DO WHILE(strlength>0)
@@ -304,6 +305,8 @@ DO !Main reading loop
         strlength=SCAN(temp2,"'")
       ENDDO
       temp2 = ADJUSTL(temp2)
+      !Remove blank spaces if any
+      CALL STR_RMSPACE(temp2)
       !Transform H-M symbol into a space group number
       CALL SG_NAMGETNUM(temp2,sgnumber)
     ENDIF
