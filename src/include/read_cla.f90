@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 July 2021                                     *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -108,8 +108,8 @@ DO WHILE(i<SIZE(cla))
   !
   !
   !Deal with modes
-  IF(clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
-    mode = 'ai1'
+  IF(clarg=='--gather' .OR. clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
+    mode = 'gather'
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1)
     i=i+1
@@ -405,8 +405,8 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
-    mode = '1ia'
+  ELSEIF(clarg=='--unfold' .OR. clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
+    mode = 'unfold'
     i=i+1
     READ(cla(i),'(a128)',ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130

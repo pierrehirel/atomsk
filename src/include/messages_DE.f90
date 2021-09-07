@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 30 June 2021                                     *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -140,13 +140,13 @@ IF(helpsection=="modes" .OR. helpsection=="list") THEN
   WRITE(*,*) "..> Listen Modus:"
   WRITE(*,*) "          atomsk -L <listfile> [<formats>] [options]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="ai1") THEN
-  WRITE(*,*) "..> Alle-in-Einen Modus:"
-  WRITE(*,*) "          atomsk -AI1 <listfile> <outputfile> [options] [<formats>]"
+IF(helpsection=="modes" .OR. helpsection=="gather" .OR. helpsection=="all-in-one" .OR. helpsection=="ai1") THEN
+  WRITE(*,*) "..> Gather Modus:"
+  WRITE(*,*) "          atomsk --gather <listfile> <outputfile> [options] [<formats>]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
-  WRITE(*,*) "..> Einer-in-Alle Modus:"
-  WRITE(*,*) "          atomsk -1IA <inputfile> [<outputfile>] [<formats>] [options]"
+IF(helpsection=="modes" .OR. helpsection=="unfold"  .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
+  WRITE(*,*) "..> Unfold Modus:"
+  WRITE(*,*) "          atomsk --unfold <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Erstellen Modus:"
@@ -488,7 +488,7 @@ WRITE(*,*) "    xsf (XCrySDen)          |  ja     |  ja "
 WRITE(*,*) "    xv (SIESTA format)      |  ja     |  ja "
 WRITE(*,*) "    xyz/exyz/sxyz           |  ja     |  ja "
 WRITE(*,*) "        (1) nur im ddplot Modus."
-WRITE(*,*) "        (2) nur im ein-in-alle Modus."
+WRITE(*,*) "        (2) nur im unfold Modus."
 ENDIF
 !
 WRITE(*,*) ""

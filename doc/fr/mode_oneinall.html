@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" >
 <head>
-    <title>Atomsk - Mode One-in-all - Pierre Hirel</title>
+    <title>Atomsk - Mode Unfold - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,11 +11,11 @@
 
 <p><a href="./index.html">Back to main menu</a></p>
 
-<h2>Mode : One-in-all</h2>
+<h2>Mode : Unfold</h2>
 
 <h4>Syntaxe</h4>
 
-<p><code>atomsk --one-in-all &#60;fichier&#62; [&#60;préfixe&#62;] &#60;formats&#62; [options]</code></p>
+<p><code>atomsk --unfold &#60;fichier&#62; [&#60;préfixe&#62;] &#60;formats&#62; [options]</code></p>
 
 
 <h4>Description</h4>
@@ -43,24 +43,26 @@
 
 <p>Si ce mode est employé avec une ou plusieurs <a href="./options.html">options</a>, celles-ci s'appliqueront à chaque configuration.</p>
 
+<p>Pour l'opération inverse (réunir plusieurs configurations dans un seul fichier), voir le <a href="./mode_allinone.html">mode <code>--gather</code></a>.</p>
+
 
 
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk --one-in-all dump.lmc cfg</code>
+<li><code class="command">atomsk --unfold dump.lmc cfg</code>
 <p>Ceci va lire le fichier <code>monfichier.lmc</code>, et écrira chaque configuration dans un fichier CFG séparé : <code>dump1.cfg</code>, <code>dump2.cfg</code>, etc.</p></li>
 
-<li><code class="command">atomsk --one-in-all monfichier.xyz xsf</code>
+<li><code class="command">atomsk --unfold monfichier.xyz xsf</code>
 <p>Ceci va lire le fichier <code>monfichier.xyz</code>, et écrira chaque configuration dans un fichier XSF séparé : <code>monfichier1.xsf</code>, <code>monfichier2.xsf</code>, etc.</p></li>
 
-<li><code class="command">atomsk -1IA scf.out -unit B A xsf</code>
+<li><code class="command">atomsk --unfold scf.out -unit B A xsf</code>
 <p>Ceci lira le fichier de sortie de Quantum Espresso PWscf <code>scf.out</code>, <a href="./option_unit.html">convertira les unités</a> des vecteurs de boîte et des coordonnées des atomes de Bohrs vers Angstr&ouml;ms, et écrira chaque configuration dans un fichier XSF : <code>scf1.xsf</code>, <code>scf2.xsf</code>, etc.</p></li>
 
-<li><code class="command">atomsk -1IA HISTORY xsf cfg</code>
+<li><code class="command">atomsk --unfold HISTORY xsf cfg</code>
 <p>Ceci lira le fichier <code>HISTORY</code> produit par DL_POLY, et écrira chaque configuration aux formats XSF et CFG : <code>HISTORY1.xsf</code> et <code>HISTORY1.cfg</code>, <code>HISTORY2.xsf</code> et <code>HISTORY2.cfg</code>, etc.</p></li>
 
-<li><code class="command">atomsk -1IA monfichier.xsf nouveau_ xsf cfg</code>
+<li><code class="command">atomsk --unfold monfichier.xsf nouveau_ xsf cfg</code>
 <p>Cet exemple utilise un préfixe ("nouveau_"). Le fichier XSF animé <code>monfichier.xsf</code> sera lu, et chaque configuration sera convertie aux formats XSF et CFG : <code>nouveau_1.xsf</code> et <code>nouveau_1.cfg</code>, <code>nouveau_2.xsf</code> et <code>nouveau_2.cfg</code>, etc..</p></li>
 </ul>
 

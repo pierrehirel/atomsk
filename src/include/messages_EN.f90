@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 June 2021                                     *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -139,13 +139,13 @@ IF(helpsection=="modes" .OR. helpsection=="list") THEN
   WRITE(*,*) "..> List mode:"
   WRITE(*,*) "          atomsk --list <listfile> [<formats>] [options]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="ai1" .OR. helpsection=="all-in-one") THEN
-  WRITE(*,*) "..> All-in-one mode:"
-  WRITE(*,*) "          atomsk --all-in-one <listfile> <outputfile> [options] [<formats>]"
+IF(helpsection=="modes" .OR. helpsection=="gather"  .OR. helpsection=="ai1" .OR. helpsection=="all-in-one") THEN
+  WRITE(*,*) "..> Gather mode:"
+  WRITE(*,*) "          atomsk --gather <listfile> <outputfile> [options] [<formats>]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
-  WRITE(*,*) "..> One-in-all mode:"
-  WRITE(*,*) "          atomsk --one-in-all <inputfile> [<outputfile>] [<formats>] [options]"
+IF(helpsection=="modes" .OR. helpsection=="unfold" .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
+  WRITE(*,*) "..> Unfold mode:"
+  WRITE(*,*) "          atomsk --unfold <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Create mode:"
@@ -501,7 +501,7 @@ WRITE(*,*) "    xsf (XCrySDen)          |   yes   |  yes"
 WRITE(*,*) "    xv (SIESTA format)      |   yes   |  yes"
 WRITE(*,*) "    xyz/exyz/sxyz           |   yes   |  yes"
 WRITE(*,*) "        (1) Mode ddplot only."
-WRITE(*,*) "        (2) Mode one-in-all only."
+WRITE(*,*) "        (2) Mode unfold only."
 ENDIF
 !
 WRITE(*,*) ""

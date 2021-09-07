@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-    <title>Atomsk - Mode All-in-one - Pierre Hirel</title>
+    <title>Atomsk - Mode Gather - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,11 +11,11 @@
 
 <p><a href="./index.html">Back to main menu</a></p>
 
-<h2>Mode: All-in-one</h2>
+<h2>Mode: Gather</h2>
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --all-in-one &#60;listfile&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --gather &#60;listfile&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
@@ -39,15 +39,17 @@
 
 <p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied to each snapshot before they are written to the <code>outputfile</code>.</p>
 
+<p>For the opposite operation (split a file containing several snapshots into several files), see the <a href="./mode_oneinall.html">mode <code>--unfold</code></a>.</p>
+
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk --all-in-one mylist.lst animation.xsf</code>
+<li><code class="command">atomsk --gather mylist.lst animation.xsf</code>
 <p>This will read files which names are specified in <code>mylist.lst</code>, and output all snapshots to the animated XSF file <code>animation.xsf</code>.</p></li>
 
-<li><code class="command">atomsk --all-in-one mylist.lst snapshots.xyz exyz xsf</code>
+<li><code class="command">atomsk --gather mylist.lst snapshots.xyz exyz xsf</code>
 <p>This will read files which names are specified in <code>mylist.lst</code>, and output all snapshots to <code>snapshots.xyz</code> (in extended XYZ format), and to the animated XSF file <code>snapshots.xsf</code>.</p></li>
 </ul>
 

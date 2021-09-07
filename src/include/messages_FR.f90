@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 June 2021                                     *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -137,16 +137,16 @@ IF(helpsection=="modes" .OR. helpsection=="normal") THEN
   WRITE(*,*) "          atomsk <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="list") THEN
-  WRITE(*,*) "..> Mode liste:"
+  WRITE(*,*) "..> Mode liste :"
   WRITE(*,*) "          atomsk --list <listfile> [<formats>] [options]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="ai1" .OR. helpsection=="all-in-one") THEN
-  WRITE(*,*) "..> Mode tout-en-un:"
-  WRITE(*,*) "          atomsk --all-in-one <listfile> <outputfile> [options] [<formats>]"
+IF(helpsection=="modes" .OR. helpsection=="gather"  .OR. helpsection=="ai1" .OR. helpsection=="all-in-one") THEN
+  WRITE(*,*) "..> Mode rassembler plusieurs configurations en un seul fichier :"
+  WRITE(*,*) "          atomsk --gather <listfile> <outputfile> [options] [<formats>]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
-  WRITE(*,*) "..> Mode un-en-tout :"
-  WRITE(*,*) "          atomsk --one-in-all <inputfile> [<outputfile>] [<formats>] [options]"
+IF(helpsection=="modes" .OR. helpsection=="unfold"  .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
+  WRITE(*,*) "..> Mode décomposer un fichier contenant plusieurs configurations en plusieurs fichiers :"
+  WRITE(*,*) "          atomsk --unfold <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Mode création :"
@@ -499,7 +499,7 @@ WRITE(*,*) "    xsf (XCrySDen)          |  oui   |  oui"
 WRITE(*,*) "    xv (fichier SIESTA)     |  oui   |  oui"
 WRITE(*,*) "    xyz/exyz/sxyz           |  oui   |  oui"
 WRITE(*,*) "        (1) Mode ddplot seulement."
-WRITE(*,*) "        (2) Mode one-in-all seulement."
+WRITE(*,*) "        (2) Mode unfold seulement."
 ENDIF
 !
 WRITE(*,*) ""

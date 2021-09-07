@@ -6,6 +6,7 @@ Master
 ------
 - in mode "--one-in-all", added possibility to read configurations from VASP OUTCAR files.
 - in mode "--interpolate", initial and final states are also output with index 0 and N+1 respectively.
+- mode "--one-in-all" renamed "--unfold", and mode "--all-in-one" renamed "--gather". Former keywords are still recognized for backward compatibility.
 - improved the determination of atom species from POTCAR file when reading VASP POSCAR, CONTCAR or OUTCAR files.
 - improved determination of cell vectors when they do not exist in input file (e.g. XYZ), or user triggered option "-rebox".
 - added possibility to output to standard output (stdout) by using "-" as file name.
