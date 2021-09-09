@@ -206,7 +206,7 @@ tar:
 	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/comv.f90
 	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
 	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
-	@tar -czf ../$(ARCNAME).tar.gz                                          \
+	@tar --exclude-vcs -czf ../$(ARCNAME).tar.gz                            \
 	          ../doc/*/*.html ../doc/*/*.css   ../doc/*/*.svg               \
 	          ../doc/*/*.png  ../doc/index.html                             \
 	          ../etc/atomsk.conf                                            \
@@ -216,7 +216,7 @@ tar:
 	          ../src/options/*.f90 ../src/output/*.f90 ../src/modes/*.f90   \
 	          ../src/Makefile ../src/Makefile.* ../src/*/Makefile           \
 	          ../tools/*                                                    \
-	          ../README ../LICENSE ../CHANGELOG --exclude-vcs
+	          ../README ../LICENSE ../CHANGELOG
 	@echo ">>> The program was successfully archived in ../$(ARCNAME).tar.gz"
 
 
