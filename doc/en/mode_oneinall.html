@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-    <title>Atomsk - Mode One-in-all - Pierre Hirel</title>
+    <title>Atomsk - Mode Unfold - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,11 +11,11 @@
 
 <p><a href="./index.html">Back to main menu</a></p>
 
-<h2>Mode: One-in-all</h2>
+<h2>Mode: Unfold</h2>
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --one-in-all &#60;file&#62; [&#60;prefix&#62;] &#60;formats&#62; [options]</code></p>
+<p><code>atomsk --unfold &#60;file&#62; [&#60;prefix&#62;] &#60;formats&#62; [options]</code></p>
 
 
 <h4>Description</h4>
@@ -31,6 +31,8 @@
  
  <li><strong>Quantum Espresso PWscf output files</strong> (see <a href="./format_qeout.html">specifications</a>).</li>
  
+ <li><strong>VASP OUTCAR files</strong> (see <a href="./format_outcar.html">specifications</a>).</li>
+ 
  <li><strong>Animated XSF</strong> (see <a href="./format_xsf.html">XSF specifications</a>).</li>
  
  
@@ -41,24 +43,26 @@
 
 <p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied to each snapshot.</p>
 
+<p>For the opposite operation (gather several snapshots into a single file), see the <a href="./mode_allinone.html">mode <code>--gather</code></a>.</p>
+
 
 
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk --one-in-all dump.lmc cfg</code>
+<li><code class="command">atomsk --unfold dump.lmc cfg</code>
 <p>This will read the LAMMPS dump file <code>dump.lmc</code> and output each snapshot to CFG format: <code>dump1.cfg</code>, <code>dump2.cfg</code>, etc.</p></li>
 
-<li><code class="command">atomsk --one-in-all myfile.xyz xsf</code>
+<li><code class="command">atomsk --unfold myfile.xyz xsf</code>
 <p>This will read <code>myfile.xyz</code> and output each snapshot to XSF format: <code>myfile1.xsf</code>, <code>myfile2.xsf</code>, etc.</p></li>
 
-<li><code class="command">atomsk -1IA scf.out -unit B A xsf</code>
+<li><code class="command">atomsk --unfold scf.out -unit B A xsf</code>
 <p>This will read the Quantum Espresso PWscf output file <code>scf.out</code>, <a href="./option_unit.html">convert the unit</a> of cell vectors and atom coordinates from Bohrs to Angstr&ouml;ms, and output each snapshot to the XSF format: <code>scf1.xsf</code>, <code>scf2.xsf</code>, etc.</p></li>
 
-<li><code class="command">atomsk -1IA HISTORY xsf cfg</code>
+<li><code class="command">atomsk --unfold HISTORY xsf cfg</code>
 <p>This will read the DL_POLY file <code>HISTORY</code>, and output each snapshot to XSF and CFG formats: <code>HISTORY1.xsf</code> and <code>HISTORY1.cfg</code>, <code>HISTORY2.xsf</code> and <code>HISTORY2.cfg</code>, etc.</p></li>
 
-<li><code class="command">atomsk -1IA myfile.xsf new_ xsf cfg</code>
+<li><code class="command">atomsk --unfold myfile.xsf new_ xsf cfg</code>
 <p>This example uses a prefix ("new_"). It will read the "animated XSF" file <code>myfile.xsf</code> and output each snapshot to the XSF and CFG formats: <code>new_1.xsf</code> and <code>new_1.cfg</code>, <code>new_2.xsf</code> and <code>new_2.cfg</code>, etc..</p></li>
 </ul>
 

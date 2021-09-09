@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -56,6 +56,7 @@ USE mode_average
 !Modules for mode 1-in-all
 USE oia_dlp_history
 USE oia_qeout
+USE oia_vaspout
 USE oia_lmc
 USE oia_xsf
 USE oia_xyz
@@ -400,7 +401,7 @@ CASE('create')
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
     SELECT CASE(create_struc)
-    CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','c36','limo2','LiMO2')
+    CASE('hcp','HCP','Hcp','wurtzite','wz','WZ','graphite','C14','c14','C36','c36','limo2','LiMO2')
       msg = 'Reading the [hkil] ...'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
@@ -498,13 +499,13 @@ CASE('create')
 !
 600 CONTINUE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!  MODE ALL-IN-ONE
+!!!!  MODE GATHER
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-CASE('ai1')
-  !All-in-one mode:
+CASE('gather')
+  !Gather mode (formerly "all-in-one"):
   !in this mode the program reads many files (no matter their format)
   !and concatenates them into one single file
-  msg = 'ALL-IN-ONE mode: file: '//TRIM(file1)
+  msg = 'GATHER mode: file: '//TRIM(file1)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Check that list file exists
@@ -522,7 +523,7 @@ CASE('ai1')
       file2 = file1
     ENDIF
   ENDIF
-  msg = 'ALL-IN-ONE mode: files: '//TRIM(file1)//', '//TRIM(file2)
+  msg = 'GATHER mode: files: '//TRIM(file1)//', '//TRIM(file2)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Call all-in-one module
@@ -532,10 +533,10 @@ CASE('ai1')
 !
 700 CONTINUE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!  MODE ONE-IN-ALL
+!!!!  MODE UNFOLD
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-CASE('1ia')
-  !One-in-all mode:
+CASE('unfold')
+  !Unfold mode (formerly "one-in-all"):
   !in this mode the program reads one file containing several
   !"snapshots" and writes each of them to a separate file
   !
@@ -563,7 +564,7 @@ CASE('1ia')
       file2 = file1
     ENDIF
   ENDIF
-  msg = 'ONE-IN-ALL mode: files: '//TRIM(file1)//', '//TRIM(file2)
+  msg = 'UNFOLD mode: files: '//TRIM(file1)//', '//TRIM(file2)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Call corresponding 1-in-all module
@@ -573,6 +574,8 @@ CASE('1ia')
     CALL ONEINALL_LMC(file1,file2,outfileformats,options_array)
   ELSEIF(outfileformat=='pwo') THEN
     CALL ONEINALL_QEOUT(file1,file2,outfileformats,options_array)
+  ELSEIF(outfileformat=='vout') THEN
+    CALL ONEINALL_OUTCAR(file1,file2,outfileformats,options_array)
   ELSEIF(outfileformat=='xsf') THEN
     CALL ONEINALL_XSF(file1,file2,outfileformats,options_array)
   ELSEIF(outfileformat=='xyz') THEN

@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Oct. 2019                                     *
+!* Last modification: P. Hirel - 19 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,9 +58,9 @@ SUBROUTINE DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,OR
 !
 IMPLICIT NONE
 !Input variables
-CHARACTER(LEN=16),INTENT(IN):: dislocline !direction of dislocation line: x, y, z, or Miller index
-CHARACTER(LEN=16),INTENT(IN):: dislocplane !normal to plane of cut: x, y, z, or Miller index
-CHARACTER(LEN=8),INTENT(IN):: disloctype !type of dislocation: screw, edge, edge_add, edge_rm, mixed, or loop
+CHARACTER(LEN=*),INTENT(IN):: dislocline !direction of dislocation line: x, y, z, or Miller index, or file name
+CHARACTER(LEN=*),INTENT(IN):: dislocplane !normal to plane of cut: x, y, z, or Miller index
+CHARACTER(LEN=*),INTENT(IN):: disloctype !type of dislocation: screw, edge, edge_add, edge_rm, mixed, loop, file
 REAL(dp),INTENT(IN):: nu   !Poisson ratio of the material
                            !(not used if disloctype=screw, or if aniso=.TRUE.)
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT   !crystal orientation
@@ -74,10 +74,12 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of au
 LOGICAL:: aniso !shall anisotropic elasticity be used?
 LOGICAL:: doshells !apply displacements also to shells?
 LOGICAL:: rotate  !rotate displacements?
+LOGICAL:: straight !construct a straight dislocation line?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT     !mask for atom list
 LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT  !mask for atom list (temporary)
 INTEGER:: a1, a2, a3 !a3=1,2,3 if dislocline=x,y,z respectively
 INTEGER:: i, j, k, n, r, u
+INTEGER:: Ndisloc  !number of dislocations successfully inserted
 INTEGER:: sig1, sig2, sig3, sig4, sig5, sig6 !for indexing stresses
 REAL(dp):: bsign !sign of Burgers vector (+1.d0 or -1.d0)
 REAL(dp),DIMENSION(5):: pos !pos(1:3) = coordinates of dislocation center; pos(4) = radius of loop
@@ -97,6 +99,8 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T                 !Positions of atoms, 
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX    !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX               !auxiliary properties (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: xLoop !coordinates of points forming the loop
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: disarrayb      !Burgers vectors of dislocation segments
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: disarraypos  !coordinates of segments forming dislocations
 COMPLEX(dp):: tempcmplx
 COMPLEX(dp),DIMENSION(3):: Dn, Pn    !anisotropy coefficients D(n), P(n)-
 COMPLEX(dp),DIMENSION(3,3):: A_kn    !-, A_k(n) -
@@ -107,12 +111,14 @@ a1 = 0
 a2 = 0
 a3 = 0
 k = 0
+Ndisloc = 0
 bsign = 1.d0
 disp_rot_matrix(:,:) = 0.d0
 Vline(:,:) = 0.d0
 Vplane(:,:) = 0.d0
 aniso = .FALSE.
 rotate = .FALSE.
+straight = .TRUE.
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
@@ -147,8 +153,9 @@ ENDIF
 !
 !
 100 CONTINUE
-IF( disloctype == 'loop' ) THEN
+IF( disloctype=="loop" .OR. disloctype=="array" .OR. disloctype=="file" ) THEN
   k = 0
+  straight = .FALSE.
   !
 ELSE
   !A straight dislocation must be constructed
@@ -295,18 +302,19 @@ ENDIF
 !
 !
 !Print messages
-CALL ATOMSK_MSG(2061,(/disloctype,dislocline//'    '/),(/b(1),b(2),b(3),DBLE(k),pos(1),pos(2),pos(3),pos(4)/))
+CALL ATOMSK_MSG(2061,(/disloctype,dislocline/),(/b(1),b(2),b(3),DBLE(k),pos(1),pos(2),pos(3),pos(4)/))
 !
 !
-!If Burgers vector is zero then skip the whole thing
-IF(VECLENGTH(b)==0.d0) THEN
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(2725,(/''/),(/0.d0/))
-  GOTO 1000
-ENDIF
 !
 !
-IF( disloctype .NE. 'loop' ) THEN
+IF( straight ) THEN
+  !If Burgers vector is zero then skip the whole thing
+  IF( VECLENGTH(b)==0.d0) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2725,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
+  !
   !Check that the directions normal to dislocation line are not too small
   IF( VECLENGTH(H(:,a1))<3.d0*VECLENGTH(b(:)) .OR. VECLENGTH(H(:,a2))<3.d0*VECLENGTH(b(:)) ) THEN
     nwarn=nwarn+1
@@ -318,7 +326,7 @@ IF( disloctype .NE. 'loop' ) THEN
     nwarn=nwarn+1
     CALL ATOMSK_MSG(2754,(/'dislocation'/),(/0.d0/))
   ENDIF
-ELSE
+ELSEIF( disloctype=="loop" ) THEN
   IF( DABS(pos(4)) <= 2.d0 ) THEN
     !Dislocation loop radius is extremely small and loop will vanish
     !=> display a warning and skip this option
@@ -331,7 +339,7 @@ ENDIF
 !
 !
 200 CONTINUE
-IF( disloctype .NE. 'loop' ) THEN
+IF( straight ) THEN
   !If anisotropic elasticity is used, solve the equations
   !WARNING: at this point it is assumed that the elastic tensor corresponds
   !       to the current crystallographic orientation of the system,
@@ -578,6 +586,8 @@ IF(disloctype=='screw') THEN
     CALL ATOMSK_MSG(2101,(/'b²/4pi'/),(/Efactor/))
   ENDIF
   !
+  Ndisloc = 1
+  !
   !
 ELSEIF(disloctype=='edge') THEN
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -657,6 +667,8 @@ ELSEIF(disloctype=='edge') THEN
     CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
     !
   ENDIF
+  !
+  Ndisloc = 1
   !
   !
 ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
@@ -887,6 +899,8 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
   H(a1,a1) = H(a1,a1) + DABS(b(a1))/2.d0
   CALL ATOMSK_MSG(2064,(/"+b/2"/),(/DBLE(a1)/))
   !
+  Ndisloc = 1
+  !
   !
 ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1061,6 +1075,8 @@ ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
   H(a1,a1) = H(a1,a1) - DABS(b(a1))/2.d0
   CALL ATOMSK_MSG(2064,(/"-b/2"/),(/DBLE(a1)/))
   !
+  Ndisloc = 1
+  !
   !
 ELSEIF(disloctype=='mixed') THEN
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1101,44 +1117,47 @@ ELSEIF(disloctype=='mixed') THEN
     !
   ENDIF
   !
+  Ndisloc = 1
+  !
   !
 ELSEIF( disloctype=="loop" ) THEN
   !A dislocation loop must be introduced in the system
   !The direction normal to the loop is dislocline
   !pos(1:3) = position of the center of the loop; pos(4) = radius of the loop
   !
+  SELECT CASE(dislocline)
+  CASE('x','X')
+    !Loop in (y,z) plane
+    a1 = 2
+    a2 = 3
+    a3 = 1
+  CASE('y','Y')
+    a1 = 3
+    a2 = 1
+    a3 = 2
+  CASE DEFAULT
+    a1 = 1
+    a2 = 2
+    a3 = 3
+  END SELECT
+  !
   !Discretize loop into segments
   IF( pos(4) < 0.d0 ) THEN
     !"Negative" radius => user wants a square of side pos(4)
-    SELECT CASE(dislocline)
-    CASE('x','X')
-      !Loop in (y,z) plane
-      a1 = 2
-      a2 = 3
-      a3 = 1
-    CASE('y','Y')
-      a1 = 3
-      a2 = 1
-      a3 = 2
-    CASE DEFAULT
-      a1 = 1
-      a2 = 2
-      a3 = 3
-    END SELECT
     ALLOCATE(xLoop(4,3))
     xLoop(:,:) = 0.d0
-    xLoop(1,a1) = pos(1) - pos(4)
-    xLoop(1,a2) = pos(2) - pos(4)
-    xLoop(1,a3) = pos(3)
-     xLoop(2,a1) = pos(1) + pos(4)
-     xLoop(2,a2) = pos(2) - pos(4)
-     xLoop(2,a3) = pos(3)
-    xLoop(3,a1) = pos(1) + pos(4)
-    xLoop(3,a2) = pos(2) + pos(4)
-    xLoop(3,a3) = pos(3)
-     xLoop(4,a1) = pos(1) - pos(4)
-     xLoop(4,a2) = pos(2) + pos(4)
-     xLoop(4,a3) = pos(3)
+    xLoop(1,a1) = pos(a1) - pos(4)
+    xLoop(1,a2) = pos(a2) - pos(4)
+    xLoop(1,a3) = pos(a3)
+     xLoop(2,a1) = pos(a1) + pos(4)
+     xLoop(2,a2) = pos(a2) - pos(4)
+     xLoop(2,a3) = pos(a3)
+    xLoop(3,a1) = pos(a1) + pos(4)
+    xLoop(3,a2) = pos(a2) + pos(4)
+    xLoop(3,a3) = pos(a3)
+     xLoop(4,a1) = pos(a1) - pos(4)
+     xLoop(4,a2) = pos(a2) + pos(4)
+     xLoop(4,a3) = pos(a3)
   ELSE
     !Positive pos(4) => Generate points that belong to a circle of radius pos(4)
     xLoop = LOOP_SEGMENTS( pos(1:3) , pos(4) , dislocline )
@@ -1156,8 +1175,8 @@ ELSEIF( disloctype=="loop" ) THEN
   !Check if some points are outside of the box
   CALL COUNT_OUTBOX(H,xLoop,i)
   IF(i>0) THEN
-    !Some points of the loop are outside of the loop => display a warning
-    IF( i==SIZE(xLoop,1) ) THEN
+    !Some points of the loop are outside of the box => display a warning
+    IF( i>=SIZE(xLoop,1) ) THEN
       !ALL points are outside of the box => something is probably very wrong
       CALL ATOMSK_MSG(2754,(/'all'/),(/0.d0/))
     ELSE
@@ -1166,9 +1185,117 @@ ELSEIF( disloctype=="loop" ) THEN
     ENDIF
   ENDIF
   !For each atom, compute its displacement due to the loop
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,disp)
   DO i=1,SIZE(P,1)
-    P(i,1:3) = P(i,1:3) + LOOP_DISPLACEMENT(P(i,1:3), b, nu, pos(1:3), xLoop)
+    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop)
+    P(i,a1) = P(i,a1) + disp(1)
+    P(i,a2) = P(i,a2) + disp(2)
+    P(i,a3) = P(i,a3) + disp(3)
   ENDDO
+  !$OMP END PARALLEL DO
+  !
+  Ndisloc = 1
+  !
+  !
+ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
+  !Dislocation segments positions and Burgers vector are read from file "dislocline"
+  !This text file must contain the keyword "dislocation" followed by the Burgers vector,
+  !then on following lines the postions (x,y,z) through which passes the dislocation
+  CALL CHECKFILE(dislocline,"read ")
+  !
+  OPEN(UNIT=35,FILE=dislocline,FORM="FORMATTED",STATUS="OLD")
+  !First loop to count number of dislocation lines and max. number of segments
+  r = 0  !counter for disloc.lines
+  u = 0  !counter for disloc. segments
+  DO
+    READ(35,'(a128)',END=350,ERR=350) msg
+    msg = TRIM(ADJUSTL(msg))
+    !Ignore empty lines and lines starting with "#"
+    IF( LEN_TRIM(msg)>0 .AND. msg(1:1).NE."#" ) THEN
+      IF( msg(1:6)=="disloc" ) THEN
+        !Definition of a new dislocation
+        r = r+1
+        u = 0
+      ELSE
+        !Try to read 3 real numbers
+        READ(msg,*,END=350,ERR=350) V1, V2, V3
+        u = u+1
+      ENDIF
+    ENDIF
+  ENDDO
+  !
+  350 CONTINUE
+  !Finished counting lines and segments
+  !Allocate array for storing Burgers vectors
+  ALLOCATE( disarrayb(r,3) )
+  disarrayb(:,:) = 0.d0
+  !Allocate array for storing positions of points
+  ALLOCATE( disarraypos(r,u,3) )
+  disarraypos(:,:,1) = -1000.d0
+  disarraypos(:,:,2) = -1001.d0
+  disarraypos(:,:,3) = -1002.d0
+  !
+  !Go back to beginning of file and save data into arrays
+  REWIND(35)
+  r = 0  !counter for disloc.lines
+  u = 0  !counter for disloc. segments
+  DO
+    READ(35,'(a128)',END=355,ERR=355) msg
+    msg = TRIM(ADJUSTL(msg))
+    !Ignore empty lines and lines starting with "#"
+    IF( LEN_TRIM(msg)>0 .AND. msg(1:1).NE."#" ) THEN
+      IF( msg(1:6)=="disloc" ) THEN
+        !Definition of a new dislocation
+        r = r+1
+        u = 0
+        j=SCAN(msg," ")
+        READ(msg(j+1:),*,END=355,ERR=355) V1, V2, V3
+        disarrayb(r,1) = V1
+        disarrayb(r,2) = V2
+        disarrayb(r,3) = V3
+      ELSE
+        !Try to read 3 real numbers
+        READ(msg,*,END=355,ERR=355) V1, V2, V3
+        u = u+1
+        disarraypos(r,u,1) = V1
+        disarraypos(r,u,2) = V2
+        disarraypos(r,u,3) = V3
+      ENDIF
+    ENDIF
+  ENDDO
+  !
+  355 CONTINUE
+  !Finished reading the file
+  CLOSE(35)
+  !
+  !Insert dislocations into the system
+  !!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,k,r,u,V1,V2,V3,pos,disp) REDUCTION(+:Ndisloc)
+  DO i=1,SIZE(P,1)
+    !Compute displacements of atom #i due to all dislocation segments
+    disp(:) = 0.d0
+    DO r=1,SIZE(disarrayb,1)
+      !Compute position of center of this loop, save it in pos(:)
+      k = 0
+      pos(:) = 0.d0
+      DO u=1,SIZE(disarraypos,2)
+        IF( NINT(disarraypos(r,u,1))==-1000 .AND. NINT(disarraypos(r,u,2))==-1001 &
+          & .AND. NINT(disarraypos(r,u,3))==-1002 ) THEN
+          EXIT
+        ELSE
+          k = k+1
+          pos(1:3) = pos(1:3) + disarraypos(r,u,1:3)
+        ENDIF
+      ENDDO
+      pos(1:3) = pos(1:3) / DBLE(k)
+      disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:))
+    ENDDO
+    !Apply displacement to atom #i
+    P(i,1:3) = P(i,1:3) + disp(:)
+    IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
+  ENDDO
+  !!!$OMP END PARALLEL DO
+  !
+  IF(ALLOCATED(disarraypos)) DEALLOCATE(disarraypos)
   !
   !
 ELSE
@@ -1177,8 +1304,8 @@ ELSE
   GOTO 1000
 ENDIF
 !
-!Dislocation was successfully created
-CALL ATOMSK_MSG(2065,(/''/),(/0.d0/))
+!Dislocation(s) was successfully inserted: display message on screen
+CALL ATOMSK_MSG(2065,(/''/),(/DBLE(Ndisloc)/))
 !
 GOTO 1000
 !
@@ -1192,6 +1319,7 @@ nerr = nerr+1
 !
 1000 CONTINUE
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
+IF(ALLOCATED(disarrayb)) DEALLOCATE(disarrayb)
 !
 !
 END SUBROUTINE DISLOC_XYZ

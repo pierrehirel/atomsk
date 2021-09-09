@@ -164,7 +164,7 @@ IF(hcp) THEN
     Hstart(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
   ENDDO
   !
-  !Convert [hkil] notation into [uvw] in Hstart
+  !Convert [hkil] notation into [uvw] in Hend
   DO i=1,3
     u = 2.d0*Hend(i,1) + Hend(i,2)
     v = Hend(i,1) + 2.d0*Hend(i,2)

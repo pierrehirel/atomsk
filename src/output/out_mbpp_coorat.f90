@@ -13,7 +13,7 @@ MODULE out_mbpp_coorat
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -72,13 +72,15 @@ CALL FIND_NSP(P(:,4),aentries)
 !Check if coordinates are already reduced or not
 CALL FIND_IF_REDUCED(H,P,isreduced)
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+ENDIF
 !
 DO j=1,SIZE(aentries(:,1))
   !Write the line concerning this new species
   CALL ATOMSPECIES(aentries(j,1),species)
   WRITE(msg,*) NINT(aentries(j,2))
-  WRITE(40,*) 'name='//TRIM(species)//' '//'natom='//TRIM(ADJUSTL(msg))
+  WRITE(ofu,*) 'name='//TRIM(species)//' '//'natom='//TRIM(ADJUSTL(msg))
   !
   !Write atoms positions (must be reduced coordinates)
   DO i=1,SIZE(P(:,1))
@@ -89,7 +91,7 @@ DO j=1,SIZE(aentries(:,1))
         P1 = P(i,1)
         P2 = P(i,2)
         P3 = P(i,3)
-        WRITE(40,110)  P1*G(1,1) + P2*G(2,1) + P3*G(3,1),     &
+        WRITE(ofu,110)  P1*G(1,1) + P2*G(2,1) + P3*G(3,1),     &
                        P1*G(1,2) + P2*G(2,2) + P3*G(3,2),     &
                        P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
       ENDIF
@@ -97,7 +99,9 @@ DO j=1,SIZE(aentries(:,1))
   ENDDO
 ENDDO
 110 FORMAT(3(f16.8,2X))
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "COORAT"
 CALL ATOMSK_MSG(3002,(/msg,outputfile/),(/0.d0/))
 !

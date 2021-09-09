@@ -11,7 +11,7 @@ MODULE center
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2020                                     *
+!* Last modification: P. Hirel - 07 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,12 +73,14 @@ IF( center_atom <= 0 ) THEN
   !Determine the position of the center of mass
   totmass = 0.d0
   Vcom(:) = 0.d0
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,species,smass) REDUCTION(+:Vcom,totmass)
   DO i=1,SIZE(P,1)
     CALL ATOMSPECIES(P(i,4),species)
     CALL ATOMMASS(species,smass)
     Vcom(:) = Vcom(:) + smass*P(i,1:3)
     totmass = totmass + smass
   ENDDO
+  !$OMP END PARALLEL DO
   Vcom(:) = Vcom(:) / totmass
   WRITE(msg,'(a16,3f9.3)') 'Center of mass: ', Vcom(:)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

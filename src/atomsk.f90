@@ -256,9 +256,15 @@ ELSE
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) verbosity
-    ELSEIF(clarg=='-vv') THEN
+    ELSEIF(clarg=='-v0') THEN
+      verbosity = 0
+    ELSEIF(clarg=='-v1') THEN
+      verbosity = 1
+    ELSEIF(clarg=='-v2' .OR. clarg=='-vv') THEN
+      verbosity = 2
+    ELSEIF(clarg=='-v3' .OR. clarg=='-vvv') THEN
       verbosity = 3
-    ELSEIF(clarg=='-vvv') THEN
+    ELSEIF(clarg=='-v4' .OR. clarg(1:5)=='-vvvv' .OR. clarg=='-debug') THEN
       verbosity = 4
     ELSEIF(clarg=='-log') THEN
       i=i+1
@@ -352,6 +358,11 @@ ELSE
           GOTO 1000
         ENDIF
       !
+      !If it is just "-", output to stdout and set verbosity to 0
+      ELSEIF(clarg=='-') THEN
+        ofu=6
+        verbosity=0
+      !
       !If it was none of the above but starts with a dash sign
       !then it is most probably an option
       ELSEIF(clarg(1:1)=='-') THEN
@@ -394,7 +405,9 @@ options_array(:) = ''
 !
 !
 !Print a nice message
-CALL DISPLAY_HEADER()
+IF( verbosity>0 ) THEN
+  CALL DISPLAY_HEADER()
+ENDIF
 !Print message of the day
 CALL DATE_MSG()
 !

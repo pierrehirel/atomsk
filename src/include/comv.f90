@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = '0.11'
+CHARACTER(LEN=24),PARAMETER:: version = 'b0.11.1'
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: il = SELECTED_INT_KIND(9)        !integers up to 10^9
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
@@ -58,6 +58,7 @@ INTEGER:: verbosity          !level of verbosity of the program
 !**********************************
 !*  OUTPUT
 !**********************************
+INTEGER:: ofu=40       !output file unit (default 40, stdout=6)
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are added to Atomsk
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)

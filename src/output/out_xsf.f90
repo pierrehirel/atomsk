@@ -12,7 +12,7 @@ MODULE out_xsf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,21 +83,23 @@ CALL ATOMSK_MSG(999,(/temp/),(/0.d0/))
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write header of XSF file
-WRITE(40,*) TRIM(ADJUSTL(comment(1)))
-WRITE(40,*) "CRYSTAL"
-WRITE(40,*) "PRIMVEC"
-WRITE(40,105) H(1,1), H(1,2), H(1,3)
-WRITE(40,105) H(2,1), H(2,2), H(2,3)
-WRITE(40,105) H(3,1), H(3,2), H(3,3)
-WRITE(40,*) "CONVVEC"
-WRITE(40,105) H(1,1), H(1,2), H(1,3)
-WRITE(40,105) H(2,1), H(2,2), H(2,3)
-WRITE(40,105) H(3,1), H(3,2), H(3,3)
-WRITE(40,*) "PRIMCOORD"
-WRITE(40,'(i9,a2)') SIZE(P(:,1)), ' 1'
+WRITE(ofu,*) TRIM(ADJUSTL(comment(1)))
+WRITE(ofu,*) "CRYSTAL"
+WRITE(ofu,*) "PRIMVEC"
+WRITE(ofu,105) H(1,1), H(1,2), H(1,3)
+WRITE(ofu,105) H(2,1), H(2,2), H(2,3)
+WRITE(ofu,105) H(3,1), H(3,2), H(3,3)
+WRITE(ofu,*) "CONVVEC"
+WRITE(ofu,105) H(1,1), H(1,2), H(1,3)
+WRITE(ofu,105) H(2,1), H(2,2), H(2,3)
+WRITE(ofu,105) H(3,1), H(3,2), H(3,3)
+WRITE(ofu,*) "PRIMCOORD"
+WRITE(ofu,'(i9,a2)') SIZE(P(:,1)), ' 1'
 105 FORMAT(3(f16.8,2X))
 !
 !Write atom positions
@@ -109,14 +111,16 @@ DO i=1,SIZE(P(:,1))
     temp = TRIM(ADJUSTL(temp))//'  '//TRIM(ADJUSTL(msg))
   ENDIF
   !Write line to the file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 ENDDO
 110 FORMAT(i5,2X,3(f16.8,2X))
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(40)
+ENDIF
 msg = "XSF"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

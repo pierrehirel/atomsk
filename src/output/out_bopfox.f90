@@ -13,7 +13,7 @@ MODULE out_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,7 +73,9 @@ len3 = 1.d0
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,FORM='FORMATTED',STATUS='UNKNOWN')
+ENDIF
 !
 !Check if coordinates are already reduced or not
 CALL FIND_IF_REDUCED(H,P,isreduced)
@@ -110,20 +112,20 @@ NPd = SIZE(P(:,1))-NPinert
 !
 200 CONTINUE
 201 FORMAT(a2,2X,3(f16.8,2X))
-WRITE(40,'(a10)') "aLat = 1.0"
-WRITE(40,102) 'a1 = ', H(1,1), H(1,2), H(1,3)
-WRITE(40,102) 'a2 = ', H(2,1), H(2,2), H(2,3)
-WRITE(40,102) 'a3 = ', H(3,1), H(3,2), H(3,3)
+WRITE(ofu,'(a10)') "aLat = 1.0"
+WRITE(ofu,102) 'a1 = ', H(1,1), H(1,2), H(1,3)
+WRITE(ofu,102) 'a2 = ', H(2,1), H(2,2), H(2,3)
+WRITE(ofu,102) 'a3 = ', H(3,1), H(3,2), H(3,3)
 102 FORMAT(a5,2X,3(f16.8,2X))
 !
 WRITE(msg,*) "# Natoms = ", SIZE(P,1)
-WRITE(40,'(a)') TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))
 !
 !Write atom coordinates
 IF(isreduced) THEN
-  WRITE(40,'(a14)') 'coord = Direct'
+  WRITE(ofu,'(a14)') 'coord = Direct'
 ELSE
-  WRITE(40,'(a17)') 'coord = Cartesian'
+  WRITE(ofu,'(a17)') 'coord = Cartesian'
 ENDIF
 !
 !Write atomic coordinates
@@ -166,14 +168,14 @@ DO i=1,SIZE(P,1)
     temp = "   "//TRIM(ADJUSTL(temp))
   ENDIF
   !
-  WRITE(40,'(a)') TRIM(ADJUSTL(msg))//TRIM(temp)
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(msg))//TRIM(temp)
 ENDDO
 !
 !Write magnetisation section (if values are defined in AUX)
 IF( magx>0 .AND. magy>0 .AND. magz>0 ) THEN
-  WRITE(40,'(a20)') 'magnetisation = true'
+  WRITE(ofu,'(a20)') 'magnetisation = true'
   DO i=1,SIZE(AUX,1)
-    WRITE(40,'(3(f16.6,2X))') AUX(i,magx), AUX(i,magy), AUX(i,magz)
+    WRITE(ofu,'(3(f16.6,2X))') AUX(i,magx), AUX(i,magy), AUX(i,magz)
   ENDDO
 ENDIF
 !
@@ -193,7 +195,9 @@ GOTO 500
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 END SUBROUTINE WRITE_BOPFOX
 !

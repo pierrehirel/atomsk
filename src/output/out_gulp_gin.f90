@@ -15,7 +15,7 @@ MODULE out_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,35 +116,37 @@ CALL FIND_IF_REDUCED(H,P,isreduced)
 !
 !
 200 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN')
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN')
+ENDIF
 !
 !Write header of GIN file
-WRITE(40,'(a10)') '# Keywords'
-WRITE(40,'(a4)') 'opti'
-WRITE(40,*) ''
-WRITE(40,'(a5)') 'title'
+WRITE(ofu,'(a10)') '# Keywords'
+WRITE(ofu,'(a4)') 'opti'
+WRITE(ofu,*) ''
+WRITE(ofu,'(a5)') 'title'
 DO i=1,SIZE(comment)
-  WRITE(40,*) ' '//TRIM(ADJUSTL(comment(i)))
+  WRITE(ofu,*) ' '//TRIM(ADJUSTL(comment(i)))
 ENDDO
-WRITE(40,'(a3)') 'end'
-WRITE(40,*) ''
-WRITE(40,*) '### insert simulation parameters here ###'
-WRITE(40,*) ''
-WRITE(40,'(a7)') 'vectors'
-WRITE(40,210) '  ', H(1,1), H(1,2), H(1,3)
-WRITE(40,210) '  ', H(2,1), H(2,2), H(2,3)
-WRITE(40,210) '  ', H(3,1), H(3,2), H(3,3)
+WRITE(ofu,'(a3)') 'end'
+WRITE(ofu,*) ''
+WRITE(ofu,*) '### insert simulation parameters here ###'
+WRITE(ofu,*) ''
+WRITE(ofu,'(a7)') 'vectors'
+WRITE(ofu,210) '  ', H(1,1), H(1,2), H(1,3)
+WRITE(ofu,210) '  ', H(2,1), H(2,2), H(2,3)
+WRITE(ofu,210) '  ', H(3,1), H(3,2), H(3,3)
 IF( fixx.NE.0 .OR. fixy.NE.0 .OR. fixz.NE.0 ) THEN
-  WRITE(40,'(a15)') '   1 1 1  1 1 1'
+  WRITE(ofu,'(a15)') '   1 1 1  1 1 1'
 ENDIF
-WRITE(40,*) ''
+WRITE(ofu,*) ''
 210 FORMAT(a2,3(f16.8))
 !
 !Write fractional or cartesian
 IF(isreduced) THEN
-  WRITE(40,'(a11,1X,i8)') 'fractional ', NP
+  WRITE(ofu,'(a11,1X,i8)') 'fractional ', NP
 ELSE
-  WRITE(40,'(a10,1X,i8)') 'cartesian ', NP
+  WRITE(ofu,'(a10,1X,i8)') 'cartesian ', NP
 ENDIF
 !
 !Write positions of cores (and shells if any)
@@ -193,7 +195,7 @@ DO i=1,SIZE(P,1)
   ELSE
     msg = TRIM(msg)
   ENDIF
-  WRITE(40,'(a)') TRIM(msg)
+  WRITE(ofu,'(a)') TRIM(msg)
   !
   !Write positions of corresponding shell (if any)
   !Note: shells are never fixed, line always ends with "1 1 1"
@@ -230,7 +232,7 @@ DO i=1,SIZE(P,1)
         !Note: shells are never fixed
         msg = TRIM(msg)//" 1 1 1"
       ENDIF
-      WRITE(40,'(a)') TRIM(msg)
+      WRITE(ofu,'(a)') TRIM(msg)
     ENDIF
   ENDIF
 ENDDO
@@ -241,16 +243,18 @@ ENDDO
 250 CONTINUE
 !Write velocities if they are defined
 IF( vx.NE.0 .AND. vy.NE.0 .AND. vz.NE.0 ) THEN
-  WRITE(40,'(a18)') 'velocities angs/ps'
+  WRITE(ofu,'(a18)') 'velocities angs/ps'
   DO i=1,SIZE(P,1)
-    WRITE(40,'(i8,3(1X,f16.8))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
+    WRITE(ofu,'(i8,3(1X,f16.8))') i, AUX(i,vx), AUX(i,vy), AUX(i,vz)
   ENDDO
 ENDIF
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "GIN"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

@@ -12,7 +12,7 @@ MODULE out_imd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 March 2014                                    *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -91,7 +91,9 @@ ENDIF
 !
 !
 100 CONTINUE
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
+ENDIF
 !Write header
 !1st line:  #F f n t m c v d = Format of IMD file
 !  f: A for ASCII, B or b for binary big endian, L or l for binary little endian
@@ -103,20 +105,20 @@ OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
 !  d: number of columns for the atom data, e.g. Epot (0, 1,...)
 !2nd line: #C describes the format of each line
 IF(velocities) THEN
-  WRITE(40,'(a16)') '#F A 1 1 1 3 3 0'
-  WRITE(40,'(a34)') '#C number type mass x y z vx vy vz'
+  WRITE(ofu,'(a16)') '#F A 1 1 1 3 3 0'
+  WRITE(ofu,'(a34)') '#C number type mass x y z vx vy vz'
 ELSE
-  WRITE(40,'(a16)') '#F A 1 1 1 3 0 0'
-  WRITE(40,'(a25)') '#C number type mass x y z'
+  WRITE(ofu,'(a16)') '#F A 1 1 1 3 0 0'
+  WRITE(ofu,'(a25)') '#C number type mass x y z'
 ENDIF
 !Supercell parameters
-WRITE(40,'(a3,3(f12.6,1X))') '#X ', H(1,1), H(1,2), H(1,3)
-WRITE(40,'(a3,3(f12.6,1X))') '#Y ', H(2,1), H(2,2), H(2,3)
-WRITE(40,'(a3,3(f12.6,1X))') '#Z ', H(3,1), H(3,2), H(3,3)
+WRITE(ofu,'(a3,3(f12.6,1X))') '#X ', H(1,1), H(1,2), H(1,3)
+WRITE(ofu,'(a3,3(f12.6,1X))') '#Y ', H(2,1), H(2,2), H(2,3)
+WRITE(ofu,'(a3,3(f12.6,1X))') '#Z ', H(3,1), H(3,2), H(3,3)
 !Comment
-WRITE(40,'(a)') '#'//TRIM(comment(1))
+WRITE(ofu,'(a)') '#'//TRIM(comment(1))
 !Label indicating end of header
-WRITE(40,'(a2)') '#E'
+WRITE(ofu,'(a2)') '#E'
 !
 !Determine how many different species are present
 CALL FIND_NSP(P(:,4),atypes)
@@ -151,14 +153,16 @@ DO i=1,SIZE(P(:,1))
     WRITE(temp,150) i, Nspecies, smass, P(i,1), P(i,2), P(i,3)
   ENDIF
   !Write line to file
-  WRITE(40,'(a)') TRIM(temp)
+  WRITE(ofu,'(a)') TRIM(temp)
 ENDDO
 150 FORMAT(i8,1X,i2,1X,7(f14.8,1X))
 !
 !
 !
 200 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 !
 msg = "IMD"
 temp = outputfile

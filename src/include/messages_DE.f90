@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 16 July 2020                                     *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -140,13 +140,13 @@ IF(helpsection=="modes" .OR. helpsection=="list") THEN
   WRITE(*,*) "..> Listen Modus:"
   WRITE(*,*) "          atomsk -L <listfile> [<formats>] [options]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="ai1") THEN
-  WRITE(*,*) "..> Alle-in-Einen Modus:"
-  WRITE(*,*) "          atomsk -AI1 <listfile> <outputfile> [options] [<formats>]"
+IF(helpsection=="modes" .OR. helpsection=="gather" .OR. helpsection=="all-in-one" .OR. helpsection=="ai1") THEN
+  WRITE(*,*) "..> Gather Modus:"
+  WRITE(*,*) "          atomsk --gather <listfile> <outputfile> [options] [<formats>]"
 ENDIF
-IF(helpsection=="modes" .OR. helpsection=="1ia") THEN
-  WRITE(*,*) "..> Einer-in-Alle Modus:"
-  WRITE(*,*) "          atomsk -1IA <inputfile> [<outputfile>] [<formats>] [options]"
+IF(helpsection=="modes" .OR. helpsection=="unfold"  .OR. helpsection=="1ia" .OR. helpsection=="one-in-all") THEN
+  WRITE(*,*) "..> Unfold Modus:"
+  WRITE(*,*) "          atomsk --unfold <inputfile> [<outputfile>] [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "..> Erstellen Modus:"
@@ -186,6 +186,14 @@ IF(helpsection=="modes" .OR. helpsection=="unwrap") THEN
   WRITE(*,*) "..> Entfalten Modus:"
   WRITE(*,*) "          atomsk --unwrap <reference> <system> [<outputfile>] [<formats>] [options]"
 ENDIF
+IF(helpsection=="modes" .OR. helpsection=="density") THEN
+  WRITE(*,*) "..> Density Modus:"
+  WRITE(*,*) "          atomsk --density <file> <property> <1d|2d|3d> <x|y|z> <sigma> [options]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="difference") THEN
+  WRITE(*,*) "..> Difference Modus:"
+  WRITE(*,*) "          atomsk --difference <file1> <file2> [options]"
+ENDIF
 IF(helpsection=="modes" .OR. helpsection=="edm") THEN
   WRITE(*,*) "..> Modus zu elektrischen Dipolmomenten:"
   WRITE(*,*) "          atomsk --edm <system> <Pspecies> <NNN> [options]"
@@ -205,6 +213,14 @@ ENDIF
 IF(helpsection=="modes" .OR. helpsection=="average") THEN
   WRITE(*,*) "..> Modus Mittelwert:"
   WRITE(*,*) "          atomsk --average <listfile> <outputfile> [options] [<formats>]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="nye") THEN
+  WRITE(*,*) "..> Modus Nye:"
+  WRITE(*,*) "          atomsk --nye <reference> <defective> <outputfile> [options] [<formats>]"
+ENDIF
+IF(helpsection=="modes" .OR. helpsection=="interpolate") THEN
+  WRITE(*,*) "..> Modus Interpolate:"
+  WRITE(*,*) "          atomsk --interpolate <file1> <file2> <N> [options] [<formats>]"
 ENDIF
 !
 IF(helpsection=="options") THEN
@@ -275,6 +291,7 @@ IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-d
   WRITE(*,*) "          -disloc <pos1> <pos2> <edge|edge_add|edge_rm> <x|y|z> <x|y|z> <b> <ν>"
   WRITE(*,*) "          -disloc <pos1> <pos2> mixed <x|y|z> <x|y|z> <b1> <b2> <b3>"
   WRITE(*,*) "          -disloc loop <x> <y> <z> <x|y|z> <radius> <bx> <by> <bz> <nu>"
+  WRITE(*,*) "          -disloc file <Datei> <nu>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup") THEN
@@ -438,39 +455,40 @@ ENDIF
 IF(helpsection=="formats") THEN
 WRITE(*,*) ">>> FORMATE:"
 WRITE(*,*) "    Formate muessen so angegeben werden wie in der ersten Spalte."
-WRITE(*,*) "    atomsk konvertiert von jedem 'ja' in der INPUT Spalte"
+WRITE(*,*) "    Atomsk konvertiert von jedem 'ja' in der INPUT Spalte"
 WRITE(*,*) "    zu jedem 'ja' in der OUTPUT Spalte:"
-WRITE(*,*) "                            |  INPUT | OUTPUT"
-WRITE(*,*) "    ------------------------+--------+--------"
-WRITE(*,*) "    atsk (atomsk format)    |  ja    |  ja "
-WRITE(*,*) "    bop (Bond-Order format) |  ja    |  ja "
-WRITE(*,*) "    cel (Dr. Probe/EMS)     |  ja    |  ja "
-WRITE(*,*) "    coo (COORAT/MBPP)       |  ja    |  ja "
-WRITE(*,*) "    cfg (Atomeye)           |  ja    |  ja "
-WRITE(*,*) "    cif (Cryst.Info.File)   |  ja    |  ja "
-WRITE(*,*) "    d12 (CRYSTAL)           |  ja    |  ja"
-WRITE(*,*) "    dd  (ddplot)            | nein   | ja (1)"
-WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  ja    |  ja "
-WRITE(*,*) "    fdf (SIESTA format)     |  ja    |  ja "
-WRITE(*,*) "    gin (GULP input)        |  ja    |  ja "
-WRITE(*,*) "    imd (IMD input)         |  ja    |  ja "
-WRITE(*,*) "    in (ABINIT input)       |  ja    |  ja"
-WRITE(*,*) "    jems (JEMS input)       |  ja    |  ja "
-WRITE(*,*) "    lmc (LAMMPS output)     |  ja    | nein"
-WRITE(*,*) "    lmp (LAMMPS data)       |  ja    |  ja "
-WRITE(*,*) "    mol (MOLDY format)      |  ja    |  ja "
-WRITE(*,*) "    pdb (Protein Data Bank) |  ja    |  ja "
-WRITE(*,*) "    pos (POSCAR/VASP)       |  ja    |  ja "
-WRITE(*,*) "    pw (Quantum Espresso)   |  ja    |  ja "
-WRITE(*,*) "    pwout (QE output file)  | ja (2) | nein"
-WRITE(*,*) "    str (PDFFIT)            |  ja    |  ja"
-WRITE(*,*) "    vesta (VESTA file)      |  ja    |  ja"
-WRITE(*,*) "    xmd (XMD file)          |  ja    |  ja "
-WRITE(*,*) "    xsf (XCrySDen)          |  ja    |  ja "
-WRITE(*,*) "    xv (SIESTA format)      |  ja    |  ja "
-WRITE(*,*) "    xyz/exyz/sxyz           |  ja    |  ja "
+WRITE(*,*) "                            |  INPUT  | OUTPUT"
+WRITE(*,*) "    ------------------------+---------+--------"
+WRITE(*,*) "    atsk (Atomsk format)    |  ja     |  ja "
+WRITE(*,*) "    bop (Bond-Order format) |  ja     |  ja "
+WRITE(*,*) "    cel (Dr. Probe/EMS)     |  ja     |  ja "
+WRITE(*,*) "    coo (COORAT/MBPP)       |  ja     |  ja "
+WRITE(*,*) "    cfg (Atomeye)           |  ja     |  ja "
+WRITE(*,*) "    cif (Cryst.Info.File)   |  ja     |  ja "
+WRITE(*,*) "    d12 (CRYSTAL)           |  ja     |  ja"
+WRITE(*,*) "    dd  (ddplot)            | nein    | ja (1)"
+WRITE(*,*) "    dlp (DL_POLY CONFIG)    |  ja     |  ja "
+WRITE(*,*) "    fdf (SIESTA format)     |  ja     |  ja "
+WRITE(*,*) "    gin (GULP input)        |  ja     |  ja "
+WRITE(*,*) "    imd (IMD input)         |  ja     |  ja "
+WRITE(*,*) "    in (ABINIT input)       |  ja     |  ja"
+WRITE(*,*) "    jems (JEMS input)       |  ja     |  ja "
+WRITE(*,*) "    lmc (LAMMPS output)     |  ja     | nein"
+WRITE(*,*) "    lmp (LAMMPS data)       |  ja     |  ja "
+WRITE(*,*) "    mol (MOLDY format)      |  ja     |  ja "
+WRITE(*,*) "    OUTCAR (POSCAR/VASP)    | ja(2)   | nein"
+WRITE(*,*) "    pdb (Protein Data Bank) |  ja     |  ja "
+WRITE(*,*) "    POSCAR (POSCAR/VASP)    |  ja     |  ja "
+WRITE(*,*) "    pw (Quantum Espresso)   |  ja     |  ja "
+WRITE(*,*) "    pwout (QE output file)  | ja (2)  | nein"
+WRITE(*,*) "    str (PDFFIT)            |  ja     |  ja"
+WRITE(*,*) "    vesta (VESTA file)      |  ja     |  ja"
+WRITE(*,*) "    xmd (XMD file)          |  ja     |  ja "
+WRITE(*,*) "    xsf (XCrySDen)          |  ja     |  ja "
+WRITE(*,*) "    xv (SIESTA format)      |  ja     |  ja "
+WRITE(*,*) "    xyz/exyz/sxyz           |  ja     |  ja "
 WRITE(*,*) "        (1) nur im ddplot Modus."
-WRITE(*,*) "        (2) nur im ein-in-alle Modus."
+WRITE(*,*) "        (2) nur im unfold Modus."
 ENDIF
 !
 WRITE(*,*) ""
@@ -1068,10 +1086,20 @@ CASE(1814)
   IF( LEN_TRIM(strings(2))>0 ) THEN
     msg = "X!X FEHLER: Datei im Format "//TRIM(ADJUSTL(strings(1)))//  &
         & " könnten nur im Modus "//TRIM(ADJUSTL(strings(2)))//" gelesen werden."
+    CALL DISPLAY_MSG(1,msg,logfile)
+    msg = "    Verwendung:"
+    CALL DISPLAY_MSG(1,msg,logfile)
+    IF( LEN_TRIM(strings(3))>0 ) THEN
+      msg = TRIM(ADJUSTL(strings(3)))
+    ELSE
+      msg = "<inputfile>"
+    ENDIF
+    msg = "      atomsk --one-in-all "//TRIM(ADJUSTL(msg))//" <format> [<options>]"
+    CALL DISPLAY_MSG(1,msg,logfile)
   ELSE
     msg = "X!X FEHLER: Datei im Format "//TRIM(ADJUSTL(strings(1)))//" könnten nicht gelesen werden."
+    CALL DISPLAY_MSG(1,msg,logfile)
   ENDIF
-  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1815)
   msg = "X!X FEHLER: die Nachbarliste ist leer, wahrscheinlich weil Atome zu weit voneinander entfernt sind."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -1167,54 +1195,62 @@ CASE(2061)
   !reals(7) = pos3 (only for loops)
   !reals(8) = loop radius
   temp = TRIM(ADJUSTL(strings(1)))
-  IF(TRIM(temp)=="screw") THEN
-    msg = ">>> Fuege eine Schraubenversetzung ein, entlang der Linie"
-  ELSEIF(temp(1:4)=="edge") THEN
-    msg = ">>> Fuege eine Stufenversetzung ein, entlang der Linie"
-  ELSEIF(temp(1:5)=="mixed") THEN
-    msg = ">>> Fuege einer gemischten Versetzung mit der Linie entlang"
-  ELSEIF(temp(1:4)=="loop") THEN
-    msg = ">>> Fuege einer Versetzungsschleife in eine Ebene normal zu"
-  ENDIF
-  msg = TRIM(msg)//' '//TRIM(strings(2))//","
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  !
-  IF( reals(4)>0.1d0 ) THEN
-    msg = "    wende anisotrope Elastizitaet an,"
+  temp = TRIM(ADJUSTL(strings(1)))
+  IF(temp(1:4)=="file" .OR. temp(1:5)=="array") THEN
+    msg = ">>> In der Datei definierte Versetzungen einfügen: "//TRIM(ADJUSTL(strings(2)))
+  ELSE
+    IF(TRIM(temp)=="screw") THEN
+      msg = ">>> Fuege eine Schraubenversetzung ein, entlang der Linie"
+    ELSEIF(temp(1:4)=="edge") THEN
+      msg = ">>> Fuege eine Stufenversetzung ein, entlang der Linie"
+    ELSEIF(temp(1:5)=="mixed") THEN
+      msg = ">>> Fuege einer gemischten Versetzung mit der Linie entlang"
+    ELSEIF(temp(1:4)=="loop") THEN
+      msg = ">>> Fuege einer Versetzungsschleife in eine Ebene normal zu"
+    ENDIF
+    msg = TRIM(msg)//' '//TRIM(strings(2))//","
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   !
-  IF(TRIM(strings(1))=="edge_add") THEN
-    WRITE(msg,"(a34)") "    durch Einfuegen einer atomaren Ebene,"
-  ELSEIF(TRIM(strings(1))=="edge_rm") THEN
-    WRITE(msg,"(a34)") "    durch Entfernen einer atomaren Ebene,"
-  ELSE
-    WRITE(msg,"(a41)") "    Erhaltung der Anzahl der Atome,"
-  ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  !
-  WRITE(msg,"(f16.3)") reals(1)
-  WRITE(temp,"(f16.3)") reals(2)
-  WRITE(temp2,"(f16.3)") reals(3)
-  msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
-  WRITE(temp,"(f16.3)") reals(5)
-  WRITE(temp2,"(f16.3)") reals(6)
-  IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
-    WRITE(temp3,"(f16.3)") reals(7)
-    IF( reals(8)>0.d0 ) THEN
-      WRITE(temp4,"(f16.3)") reals(8)
-      msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
-    ELSE
-      WRITE(temp4,"(f16.3)") DABS(reals(8))
-      msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
-          & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+  IF(temp(1:4).NE."file" .AND. temp(1:5).NE."array") THEN
+    !
+    IF( reals(4)>0.1d0 ) THEN
+      msg = "    wende anisotrope Elastizitaet an,"
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
-  ELSE
-    msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
-        & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+    !
+    IF(TRIM(strings(1))=="edge_add") THEN
+      WRITE(msg,"(a34)") "    durch Einfuegen einer atomaren Ebene,"
+    ELSEIF(TRIM(strings(1))=="edge_rm") THEN
+      WRITE(msg,"(a34)") "    durch Entfernen einer atomaren Ebene,"
+    ELSE
+      WRITE(msg,"(a41)") "    Erhaltung der Anzahl der Atome,"
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    !
+    WRITE(msg,"(f16.3)") reals(1)
+    WRITE(temp,"(f16.3)") reals(2)
+    WRITE(temp2,"(f16.3)") reals(3)
+    msg = "["//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(temp2))//"]"
+    WRITE(temp,"(f16.3)") reals(5)
+    WRITE(temp2,"(f16.3)") reals(6)
+    IF( TRIM(ADJUSTL(strings(1)))=="loop" ) THEN
+      WRITE(temp3,"(f16.3)") reals(7)
+      IF( reals(8)>0.d0 ) THEN
+        WRITE(temp4,"(f16.3)") reals(8)
+        msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//"); Radius "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+      ELSE
+        WRITE(temp4,"(f16.3)") DABS(reals(8))
+        msg = "    Zentrum ("//TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","// &
+            & TRIM(ADJUSTL(temp3))//"); Side "//TRIM(ADJUSTL(temp4))//" A; b="//TRIM(ADJUSTL(msg))
+      ENDIF
+    ELSE
+      msg = "    b="//TRIM(ADJUSTL(msg))//" at ("// &
+          & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//")"
+    ENDIF
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2062)
   msg = "..> Bestimme Loesungen der anisotropen Elastizitaetsgleichungen..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1241,7 +1277,15 @@ CASE(2064)
   msg = "..> Superzelle wurde  erlang "//TRIM(ADJUSTL(temp))//" um "//TRIM(ADJUSTL(strings(1)))//" verändert."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2065)
-  msg = "..> Versetzung wurde erfolgreich erzeugt."
+  !reals(1) = number of dislocations inserted (default 1)
+  IF( NINT(reals(1)) <= 0 ) THEN
+    msg = "..> Kein Versetzung wurde erzeugt."
+  ELSEIF( NINT(reals(1)) == 1 ) THEN
+    msg = "..> Versetzung wurde erfolgreich erzeugt."
+  ELSE
+    WRITE(temp,*) NINT(reals(1))
+    msg = "..> "//TRIM(ADJUSTL(temp))//" Versetzungen wurden erfolgreich erzeugt."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2066)
   !reals(1) = number of repetitions along X
@@ -2201,6 +2245,12 @@ CASE(2152)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2153)
   msg = ">>> Versuch, die Zellvektoren automatisch neu einzustellen..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2154)
+  !reals(1) = number of shells detected
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Erkannte "//TRIM(ADJUSTL(temp))//" Kerne und "//TRIM(ADJUSTL(temp2))//" Schalen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option

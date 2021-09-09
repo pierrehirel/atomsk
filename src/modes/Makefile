@@ -9,6 +9,7 @@ SMO=mode_difference.f90     \
     mode_merge.f90          \
     1ia_dlpoly_history.f90  \
     1ia_qe_out.f90          \
+    1ia_vasp_outcar.f90     \
     1ia_lmc.f90             \
     1ia_xsf.f90             \
     1ia_xyz.f90             \

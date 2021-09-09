@@ -2,6 +2,26 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+Beta 0.11.1 (09 Sept. 2021)
+---------------------------
+- in mode "--one-in-all", added possibility to read configurations from VASP OUTCAR files.
+- in mode "--interpolate", initial and final states are also output with index 0 and N+1 respectively.
+- mode "--one-in-all" renamed "--unfold", and mode "--all-in-one" renamed "--gather". Former keywords are still recognized for backward compatibility.
+- improved the determination of atom species from POTCAR file when reading VASP POSCAR, CONTCAR or OUTCAR files.
+- improved determination of cell vectors when they do not exist in input file (e.g. XYZ), or user triggered option "-rebox".
+- added possibility to output to standard output (stdout) by using "-" as file name.
+- option "-bind-shells", when no shell is present in the system, will now search for particles close to each other. If such pairs are found, the particle with the greatest mass, or charge, or with lowest ID (whichever comes first) will be considered as a core, the other as a shell. This can be useful e.g. after reading LAMMPS custom dump files containing shells.
+- fixed a bug where coordinates would be detected as Cartesian instead of reduced if the cell was very small. Thanks to Davide Sangiovanni, Linköping University, Sweden, for pointing out this bug.
+- fixed a bug when reading CIF files where the Hermann-Mauguin space group name contained blank spaces. Thanks to Yaron Kauffmann, Technion, Israel, for pointing out this bug.
+- fixed a bug when reading/writing Extended XYZ format where lattice vectors were in wrong order. Thanks to Yanzhou Wang, Aalto University, Finland, for pointing out this bug.
+- fixed a bug when writing LAMMPS data files, where the shells (in the sense of an ionic core/shell model) "types" would be inconsistent if atoms were not sorted by increasing types.
+- fixed a bug where structure "C14" (with uppercase "C") was not recognized.
+- fixed a bug in mode "--polycrystal" that prevented constructing 2-D polycrystals normal to X or Y. Also fixed a bug where the seed was not sufficiently duplicated if the seed was not orthogonal; thanks to Zheyuan Xing, Southwest Jiaotong University, China, for pointing out this bug.
+- fixed a bug in option "-add-atom" that caused a segfault when the atom list was empty (not allocated).
+- fixed a bug in option "-dislocation loop" where the loop was not correctly constructed if it was not normal to the Z axis. Thanks to Marion Borde and Jonathan Amodeo, MATEIS, Univ. Lyon 1, France, for pointing out this bug.
+- fixed a bug in option "-select STL" when selecting atoms according to a complex 3-D shape from an STL file, where entire planes of atoms were not properly selected if the vertices were too close or if atom positions exactly matched the edges of several vertices.
+
+
 Beta 0.11 (12 Jan. 2021)
 ------------------------
 - parts of the code were parallelized with OpenMP, meaning that it can take advantage of all cores of a CPU. Some modes and options that are now parallelized: neighbor search; options "-orthogonal-cell", "-select stl"; modes "--density", "--edm", "--polycrystal", "--rdf". Thanks to Jian-Hui Zhai, University of Lille, France, for initiating this speeding up of Atomsk.

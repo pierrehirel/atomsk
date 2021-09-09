@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 11 July 2019                                     *
+!* Last modification: P. Hirel - 28 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,7 +62,7 @@ INTEGER:: NP
 REAL(dp):: isatsk
 REAL(dp):: isabinit, isbop, isbx, iscfg, iscel, iscif, iscml, iscoorat, iscrystal, iscsv
 REAL(dp):: isdd, isdlp, isfdf, isgin, isimd, isjems, islmp, islmpc, ismoldy, ispdb
-REAL(dp):: isposcar, isqepw, isqeout, isstr, isvesta, isxsf, isxv, isxmd
+REAL(dp):: isoutcar, isposcar, isqepw, isqeout, isstr, isvesta, isxsf, isxv, isxmd
 REAL(dp):: isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
@@ -97,6 +97,7 @@ islmpc = 0.d0    !LAMMPS custom dump file
 ismoldy=0.d0     !MOLDY file
 isatsk=0.d0      !Binary atomsk format
 ispdb=0.d0       !Protein Data Bank format
+isoutcar = 0.d0  !VASP OUTCAR format
 isposcar = 0.d0  !VASP POSCAR format
 isqepw = 0.d0    !Quantum Espresso PWscf format
 isqeout = 0.d0   !Quantum Espresso PWscf output format
@@ -222,6 +223,10 @@ ELSE
   !Special case for POSCAR/CONTCAR files
   IF( filename=='POSCAR' .OR. filename=='CONTCAR' ) THEN
     isposcar = certainty+0.6d0
+  ENDIF
+  !Special case for VASP OUTCAR files
+  IF( filename=='OUTCAR' ) THEN
+    isoutcar = certainty+0.6d0
   ENDIF
   IF( fstatus=="read" .AND. ( INDEX(filename,'POSCAR')>0 .OR. INDEX(filename,'CONTCAR')>0 ) ) THEN
     isposcar = certainty+0.5d0
@@ -532,6 +537,20 @@ IF(fileexists) THEN
       isposcar = isposcar+0.3d0
       isdlp = isdlp-0.3d0
     !
+    !Search for patterns corresponding to OUTCAR format (VASP)
+    ELSEIF(i==1 .AND. test(1:4)=='vasp') THEN
+      isoutcar = isoutcar+0.4d0
+    ELSEIF(test(1:6)=='INCAR:') THEN
+      isoutcar = isoutcar+0.1d0
+    ELSEIF(test(1:7)=='POTCAR:') THEN
+      isoutcar = isoutcar+0.1d0
+    ELSEIF(test(1:8)=='KPOINTS:') THEN
+      isoutcar = isoutcar+0.2d0
+    ELSEIF(test(1:6)=='distr:') THEN
+      isoutcar = isoutcar+0.4d0
+    ELSEIF(test(1:7)=='distrk:') THEN
+      isoutcar = isoutcar+0.4d0
+    !
     !Search for patterns corresponding to Quantum Espresso PW format
     ELSEIF(test(1:8)=='&CONTROL' .OR. test(1:8)=='&control') THEN
       isqepw = isqepw+0.4d0
@@ -722,7 +741,7 @@ ENDIF   !If fileexists
 !Find the best score
 likely = MAX(isabinit,isbop,isbx,iscfg,iscel,iscif,iscml,iscoorat,iscrystal,iscsv,isdd,    &
        &     isdlp,isfdf,isgin,isimd,isjems,islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,    &
-       &     isqepw,isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
+       &     isoutcar,isqepw,isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) 'Scores of file formats: '
@@ -766,6 +785,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   LMC ', islmpc
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   MOLDY ', ismoldy
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   OUTCAR ', isoutcar
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   PDB ', ispdb
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -846,6 +867,8 @@ ELSE
     infileformat = 'pdb'
   ELSEIF(isposcar==likely) THEN
     infileformat = 'pos'
+  ELSEIF(isoutcar==likely) THEN
+    infileformat = 'vout'
   ELSEIF(isqepw==likely) THEN
     infileformat = 'pw'
   ELSEIF(isqeout==likely) THEN

@@ -15,7 +15,7 @@ MODULE out_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 29 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -97,15 +97,17 @@ beta = beta*180.d0/pi
 gamma = gamma*180.d0/pi
 !
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
+ENDIF
 !
 !
 CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
 CALL INT2MONTH(VALUES(2),month,smonth)
 WRITE(msg,'(i2,a2,i4)') VALUES(3), ", ", VALUES(1)
 WRITE(temp,*) "_audit_creation_date      '"//TRIM(smonth)//" "//TRIM(ADJUSTL(msg))//"'"
-WRITE(40,'(a)') TRIM(ADJUSTL(temp))
-WRITE(40,'(a)') "_audit_creation_method    'Draft CIF file generated with Atomsk'"
+WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "_audit_creation_method    'Draft CIF file generated with Atomsk'"
 !
 !
 !Find number of atoms for each species
@@ -130,26 +132,26 @@ DO i=1,SIZE(aentries,1)
   CALL ATOMMASS(species,smass)
   smass_tot = smass_tot + smass*aentries(i,2)
 ENDDO
-WRITE(40,*) ""
-WRITE(40,'(a)') "_chemical_name_common             ?"
-WRITE(40,'(a)') "_chemical_melting_point           ?"
-WRITE(40,'(a)') "_chemical_formula_iupac           '"//TRIM(ADJUSTL(msg))//"'"
-WRITE(40,'(a)') "_chemical_formula_moiety          '"//TRIM(ADJUSTL(msg))//"'"
-WRITE(40,'(a)') "_chemical_formula_sum             '"//TRIM(ADJUSTL(msg))//"'"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a)') "_chemical_name_common             ?"
+WRITE(ofu,'(a)') "_chemical_melting_point           ?"
+WRITE(ofu,'(a)') "_chemical_formula_iupac           '"//TRIM(ADJUSTL(msg))//"'"
+WRITE(ofu,'(a)') "_chemical_formula_moiety          '"//TRIM(ADJUSTL(msg))//"'"
+WRITE(ofu,'(a)') "_chemical_formula_sum             '"//TRIM(ADJUSTL(msg))//"'"
 WRITE(msg,'(f16.3)') smass_tot
-WRITE(40,'(a)') "_chemical_formula_weight          "//TRIM(ADJUSTL(msg))
-WRITE(40,'(a)') "_chemical_compound_source         ?"
-WRITE(40,'(a)') "_chemical_absolute_configuration  ?"
+WRITE(ofu,'(a)') "_chemical_formula_weight          "//TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') "_chemical_compound_source         ?"
+WRITE(ofu,'(a)') "_chemical_absolute_configuration  ?"
 !
 !Additional information required for submitting CIF files
 !NOTE: this is just a template and the user is expected to edit these values afterwards
-WRITE(40,'(a)') "_exptl_crystal_description        'EDIT-ENTRY'"
-WRITE(40,'(a)') "_diffrn_measurement_device_type   'EDIT-ENTRY'"
+WRITE(ofu,'(a)') "_exptl_crystal_description        'EDIT-ENTRY'"
+WRITE(ofu,'(a)') "_diffrn_measurement_device_type   'EDIT-ENTRY'"
 !
 !Write space group information
 !NOTE: here space group P1 is always assumed
-WRITE(40,*) ""
-WRITE(40,'(a)') "_space_group_IT_number            1"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a)') "_space_group_IT_number            1"
 IF( DABS(alpha-90.d0)<1.d-12 .AND. DABS(beta-90.d0)<1.d-12 .AND. DABS(gamma-90.d0)<1.d-12 ) THEN
   !All angles equal to 90°
   IF( DABS(a-b)<1.d-12 .AND. DABS(a-c)<1.d-12 ) THEN
@@ -180,58 +182,58 @@ ELSE
   !Otherwise, different a, b, c and different angles
   WRITE(temp,*) "triclinic"
 ENDIF
-WRITE(40,'(a)') "_space_group_crystal_system       "//TRIM(ADJUSTL(temp))
-WRITE(40,'(a)') "_symmetry_space_group_name_Hall   'P 1'"
-WRITE(40,'(a)') "_symmetry_space_group_name_H-M    'P 1'"
-WRITE(40,*) ""
-WRITE(40,'(a5)') "loop_"
-WRITE(40,'(a)') "_space_group_symop_operation_xyz"
-WRITE(40,'(a)') "'+x,+y,+z'"
+WRITE(ofu,'(a)') "_space_group_crystal_system       "//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') "_symmetry_space_group_name_Hall   'P 1'"
+WRITE(ofu,'(a)') "_symmetry_space_group_name_H-M    'P 1'"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a5)') "loop_"
+WRITE(ofu,'(a)') "_space_group_symop_operation_xyz"
+WRITE(ofu,'(a)') "'+x,+y,+z'"
 !
 !Write cell vectors (conventional notation, angles in degrees)
-WRITE(40,*) ""
+WRITE(ofu,*) ""
 WRITE(temp,'(f16.4)') a
-WRITE(40,'(a)') '_cell_length_a                    '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_length_a                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') b
-WRITE(40,'(a)') '_cell_length_b                    '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_length_b                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') c
-WRITE(40,'(a)') '_cell_length_c                    '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_length_c                    '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') alpha
-WRITE(40,'(a)') '_cell_angle_alpha                 '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_angle_alpha                 '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') beta
-WRITE(40,'(a)') '_cell_angle_beta                  '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_angle_beta                  '//TRIM(ADJUSTL(temp))
 WRITE(temp,'(f16.4)') gamma
-WRITE(40,'(a)') '_cell_angle_gamma                 '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_angle_gamma                 '//TRIM(ADJUSTL(temp))
 CALL VOLUME_PARA(H,Vcell)
 WRITE(temp,'(f16.4)') Vcell
-WRITE(40,'(a)') '_cell_volume                      '//TRIM(ADJUSTL(temp))
+WRITE(ofu,'(a)') '_cell_volume                      '//TRIM(ADJUSTL(temp))
 !
 !
 !Write atom positions
-WRITE(40,*) ""
-WRITE(40,'(a5)') "loop_"
-WRITE(40,'(a17)') " _atom_site_label"
-WRITE(40,'(a23)') " _atom_site_type_symbol"
-WRITE(40,'(a19)') " _atom_site_fract_x"
-WRITE(40,'(a19)') " _atom_site_fract_y"
-WRITE(40,'(a19)') " _atom_site_fract_z"
+WRITE(ofu,*) ""
+WRITE(ofu,'(a5)') "loop_"
+WRITE(ofu,'(a17)') " _atom_site_label"
+WRITE(ofu,'(a23)') " _atom_site_type_symbol"
+WRITE(ofu,'(a19)') " _atom_site_fract_x"
+WRITE(ofu,'(a19)') " _atom_site_fract_y"
+WRITE(ofu,'(a19)') " _atom_site_fract_z"
 IF (Naux>0) THEN
   DO iaux=1,SIZE(AUXNAMES)
     ! write supported auxiliary properties loop items
     IF (TRIM(AUXNAMES(iaux))=="occ") THEN
-      WRITE(40,'(a21)') " _atom_site_occupancy"
+      WRITE(ofu,'(a21)') " _atom_site_occupancy"
       occ = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="q") THEN
       q = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="qs") THEN
       qs = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="biso") THEN
-      WRITE(40,'(a33)') " _atom_site_thermal_displace_type"
-      WRITE(40,'(a26)') " _atom_site_B_iso_or_equiv"
+      WRITE(ofu,'(a33)') " _atom_site_thermal_displace_type"
+      WRITE(ofu,'(a26)') " _atom_site_B_iso_or_equiv"
       biso = iaux
     ELSEIF(TRIM(AUXNAMES(iaux))=="uiso" .AND. biso==0 ) THEN
-      WRITE(40,'(a33)') " _atom_site_thermal_displace_type"
-      WRITE(40,'(a26)') " _atom_site_B_iso_or_equiv"
+      WRITE(ofu,'(a33)') " _atom_site_thermal_displace_type"
+      WRITE(ofu,'(a26)') " _atom_site_B_iso_or_equiv"
       uiso = iaux
     ENDIF
   ENDDO
@@ -301,13 +303,15 @@ DO i=1,SIZE(P,1)
   ! combine the strings
   WRITE(temp,*) TRIM(ADJUSTL(smonth))//'  '//TRIM(ADJUSTL(month))//'  '//TRIM(ADJUSTL(temp))
   ! write to file
-  WRITE(40,'(a)') TRIM(ADJUSTL(temp(1:80)))
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(temp(1:80)))
 ENDDO
 !
 !
 !
 200 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "CIF"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

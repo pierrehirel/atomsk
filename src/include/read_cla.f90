@@ -3,13 +3,13 @@ MODULE read_cla
 !**********************************************************************************
 !*  READ_CLA                                                                      *
 !**********************************************************************************
-!* This module reads command-line arguments for ATOMSK.                           *
+!* This module reads command-line arguments for Atomsk.                           *
 !**********************************************************************************
 !* (C) March 2011 - Pierre Hirel                                                  *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2021                                     *
+!* Last modification: P. Hirel - 07 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,6 +60,12 @@ REAL(dp):: smass, tempreal
 !
 !
 !Initialize variables
+ clarg=""
+msg=""
+temp=""
+temp2=""
+temp3=""
+temp4=""
 pfiles(:)=''
 i=0
 ioptions = 0
@@ -102,12 +108,13 @@ DO WHILE(i<SIZE(cla))
   !
   !
   !Deal with modes
-  IF(clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
-    mode = 'ai1'
+  IF(clarg=='--gather' .OR. clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
+    mode = 'gather'
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1)
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(2)
+    IF(i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--average') THEN
     mode = 'average'
@@ -135,28 +142,35 @@ DO WHILE(i<SIZE(cla))
     SELECT CASE(temp(1:2))
     CASE('di','Di','DI')
       temp = 'diamond'
-    CASE('pe','Pe','PE')
-      temp = 'perovskite'
-    CASE('zi','Zi','zb','ZB')
-      temp = 'zincblende'
+    CASE('gr','Gr','GR')
+      temp = 'graphite'
+    CASE('hc','Hc','HC')
+      temp = 'hcp'
     CASE('na','NA','nt','NT')
       temp = 'nanotube'
+    CASE('pe','Pe','PE')
+      temp = 'perovskite'
+    CASE('st','St','ST')
+      temp = 'st'
     CASE('wu','Wu','WU','wz','Wz','WZ')
       temp = 'wurtzite'
+    CASE('zi','Zi','zb','ZB')
+      temp = 'zincblende'
     END SELECT
     mode_param(m) = TRIM(ADJUSTL(temp))
     !Get the lattice constant a
     i=i+1
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'    .OR.  &
-      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'     .OR.  &
-      & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'    .OR.  &
-      & mode_param(1)=='c36'      .OR. mode_param(1)=='C36'    .OR.  &
-      & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'   .OR.  &
-      & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'  .OR.  &
-      & mode_param(1)=='st'       .OR. mode_param(1)=='bct'    .OR.  &
-      & mode_param(1)=='fct'         ) THEN
+    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'      .OR.  &
+      & mode_param(1)=='HCP'      .OR. mode_param(1)=='Wurtzite' .OR.  &
+      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'       .OR.  &
+      & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'      .OR.  &
+      & mode_param(1)=='c36'      .OR. mode_param(1)=='C36'      .OR.  &
+      & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'     .OR.  &
+      & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'    .OR.  &
+      & mode_param(1)=='st'       .OR. mode_param(1)=='ST'       .OR.  &
+      & mode_param(1)=='bct'      .OR. mode_param(1)=='fct'            ) THEN
       !Get lattice constant c
       i=i+1
       m=m+1
@@ -389,11 +403,13 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(3)
     i=i+1
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
+    IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
-    mode = '1ia'
+  ELSEIF(clarg=='--unfold' .OR. clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
+    mode = 'unfold'
     i=i+1
     READ(cla(i),'(a128)',ERR=130,END=130) pfiles(1)
+    IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--polycrystal') THEN
     mode = 'polycrystal'
@@ -895,8 +911,14 @@ DO WHILE(i<SIZE(cla))
         options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
       ENDIF
       !
-    ELSE !i.e. if temp.NE.'loop'
-      !Construct a straight dislocation line
+    ELSEIF( TRIM(temp)=="array" .OR. TRIM(temp)=="file" ) THEN
+      !Last possiblity: read dislocation coordinates from a file
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      !
+    ELSE
+      !This should be parameters for constructing a straight dislocation line
       !=> temp should contain a real number corresponding to p1 = pos(1)
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
@@ -1934,6 +1956,11 @@ DO WHILE(i<SIZE(cla))
     nerr=nerr+1
     CALL ATOMSK_MSG(4813,(/TRIM(clarg)/),(/0.d0/))
     GOTO 1000
+  !
+  ELSEIF(clarg=='-') THEN
+    !output to stdout
+    ofu=6
+    verbosity=0  !disable all other messages
   !
   ELSEIF(clarg(1:1)=='-') THEN
     !if it starts with "-" we assume it is a wrong option entered by the user

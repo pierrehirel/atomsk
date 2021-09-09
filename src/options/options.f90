@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2021                                     *
+!* Last modification: P. Hirel - 19 July 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -171,9 +171,9 @@ CHARACTER(LEN=1):: def_dir       !direction of applied strain (X, Y or Z)
 REAL(dp):: def_strain, def_poisson  !applied strain and Poisson's ratio
 !
 !Variables relative to Option: dislocation
-CHARACTER(LEN=16):: dislocline    !(x, y, z, or Miller vector)
 CHARACTER(LEN=16):: dislocplane   !(x, y, z, or Miller vector)
-CHARACTER(LEN=8):: disloctype     !edge, edge_add, edge_rm, screw, mixed, loop
+CHARACTER(LEN=4096):: dislocline    !(x, y, z, or Miller vector, or file name)
+CHARACTER(LEN=4096):: disloctype     !edge, edge_add, edge_rm, screw, mixed, loop
 REAL(dp):: nu
 REAL(dp),DIMENSION(5):: pos !pos(1:3) = position of dislocation; pos(4) = radius of disloc.loop
 REAL(dp),DIMENSION(3):: b !Burgers vector
@@ -525,8 +525,8 @@ DO ioptions=1,SIZE(options_array)
   CASE('-disloc', '-dislocation')
     nu = 0.d0
     status=0
-    !First, get disloctype
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10), disloctype
+    !Read the first two keywords
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10)
     !Depending on type, read further parameters
     IF( TRIM(ADJUSTL(treal(9)))=="loop" ) THEN
       disloctype = "loop"
@@ -543,7 +543,13 @@ DO ioptions=1,SIZE(options_array)
         ENDIF
       ENDDO
       !
+    ELSEIF( TRIM(ADJUSTL(treal(9)))=="array" .OR. TRIM(ADJUSTL(treal(9)))=="file" ) THEN
+      !Save file name into dislocline
+      disloctype = TRIM(ADJUSTL(treal(9)))
+      dislocline = TRIM(ADJUSTL(treal(10)))
     ELSE
+      !Read the first 3 keywords
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10), disloctype
       IF( disloctype=="mixed" ) THEN
         !Read the three components of Burgers vector
         READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
@@ -1316,7 +1322,7 @@ DO ioptions=1,SIZE(options_array)
       WRITE(msg,*) (TRIM(ADJUSTL(AUXNAMES(i)))//'  ', i=1,MIN(SIZE(AUXNAMES),6) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO i=1,MIN( 20,SIZE(AUX(:,1)) )
-        WRITE(msg,'(6(e9.6,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
+        WRITE(msg,'(6(e9.3,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
       IF(i>=20) THEN

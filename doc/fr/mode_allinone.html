@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" >
 <head>
-    <title>Atomsk - Mode All-in-one - Pierre Hirel</title>
+    <title>Atomsk - Mode Gather - Pierre Hirel</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
     <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
@@ -11,16 +11,16 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Mode : All-in-one</h2>
+<h2>Mode : Gather</h2>
 
 <h4>Syntaxe</h4>
 
-<p><code>atomsk --all-in-one &#60;fichierliste&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --gather &#60;fichierliste&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
 
-<p>Dans ce mode ("tout-en-un"), Atomsk lit plusieurs fichiers, et écrit toutes les configurations atomiques (ou "images") dans un seul fichier de sortie.</p>
+<p>Dans ce mode ("gather" veut dire "rassembler"), Atomsk lit plusieurs fichiers, et écrit toutes les configurations atomiques (ou "images") dans un seul fichier de sortie.</p>
 
 <p>Les noms des fichiers d'entrée doivent apparaître dans le <code>&#60;fichierliste&#62;</code>, un fichier texte au même format que celui employé par le <a href="./mode_filelist.html">mode file list</a>. Un tel fichier liste peut être facilement produit avec une commande du type "<code>ls &#62;maliste.lst</code>".</p>
 
@@ -39,15 +39,17 @@
 
 <p>Si vous utilisez ce mode avec une ou plusieurs <a href="./options.html">options</a>, alors ces options seront appliquées à chaque configuration (chaque image) avant qu'elle ne soit écrite dans le fichier de sortie.</p>
 
+<p>Pour l'opération inverse (séparer un fichier contenant plusieurs configurations dans plusieurs fichiers), voir le <a href="./mode_oneinall.html">mode <code>--unfold</code></a>.</p>
+
 
 
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk --all-in-one maliste.lst animation.xsf</code>
+<li><code class="command">atomsk --gather maliste.lst animation.xsf</code>
 <p>Ceci lira tous les fichiers dont les noms apparaissent dans <code>maliste.lst</code>, et écrira toutes les images dans le fichier XSF animé <code>animation.xsf</code>.</p></li>
 
-<li><code class="command">atomsk --all-in-one maliste.lst images.xyz exyz xsf</code>
+<li><code class="command">atomsk --gather maliste.lst images.xyz exyz xsf</code>
 <p>Ceci lira tous les fichiers dont les noms apparaissent dans <code>maliste.lst</code>, et écrira toutes les images dans les fichiers <code>images.xyz</code> (au format XYZ étendu) et <code>images.xsf</code>.</p></li>
 </ul>
 

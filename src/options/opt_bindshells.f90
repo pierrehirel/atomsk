@@ -91,8 +91,12 @@ ENDIF
 !
 100 CONTINUE
 IF( ALLOCATED(SELECT) ) THEN
+  msg = 'SELECT = .TRUE.'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !Selected atoms must be converted into shells
   IF( .NOT.ALLOCATED(S) ) THEN
+    msg = 'No shells: array S is not allocated'
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !Array S is not allocated => allocate it with the same size as P
     ALLOCATE(newS(SIZE(P,1),4))
     newS(:,:) = 0.d0
@@ -159,8 +163,11 @@ IF( ALLOCATED(SELECT) ) THEN
 !
 !
 ELSEIF( .NOT.ALLOCATED(S) ) THEN
-  !No selection is defined
-  !Array S is not allocated => allocate it with the same size as P
+  msg = 'SELECT = .FALSE. , and array S is not allocated'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !No selection is defined, and array S is not allocated => allocate it with the same size as P
+  ALLOCATE(newP(SIZE(P,1),4))
+  newP(:,:) = 0.d0
   ALLOCATE(newS(SIZE(P,1),4))
   newS(:,:) = 0.d0
   !
@@ -173,56 +180,82 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
   k = 0
   !Loop on all particles in P
   DO i=1,SIZE(P,1)-1
+    l=0 !counter =0 as long as no shell is found for atom #i
     IF( P(i,4)>0.1d0 ) THEN
       !Loop on all other particles in P
       DO j=i+1,SIZE(P,1)
-        IF( P(j,4)>0.1d0 ) THEN
-          !
-          !Compute distance between particles i and j
-          distance = VECLENGTH( P(j,1:3) - P(i,1:3) )
-          !
-          IF( distance < maxCSdistance ) THEN
-            !Particles i and j are very close to each other
-            !Determine which one is the core and which the shell
-            !and remove the shell from P (set all =0, it will be actually deleted later)
-            IF( mass>0 ) THEN
-              IF( AUX(i,mass)>AUX(j,mass) ) THEN
-                Stemp(:) = P(i,:)
+        !
+        !Compute distance between particles i and j
+        distance = VECLENGTH( P(j,1:3) - P(i,1:3) )
+        !
+        IF( distance < maxCSdistance ) THEN
+          !Particles i and j are very close to each other, they form a core-shell pair
+          !Determine which one is the core and which the shell
+          !and remove the shell from P (set all =0, arrays will be rewritten later)
+          l=1 !to indicate a pair was found
+          NP=NP+1
+          k=k+1
+          IF( mass>0 ) THEN
+            IF( AUX(i,mass)>AUX(j,mass) ) THEN
+              !i is the core, j is the shell
+              newP(NP,:) = P(i,:)
+              newS(k,:) = P(j,:)
+              P(i,:) = 0.d0
+              P(j,:) = 0.d0
+            ELSE
+              !j is the core, i is the shell
+              newP(NP,:) = P(j,:)
+              newS(k,:) = P(i,:)
+              P(i,:) = 0.d0
+              P(j,:) = 0.d0
+            ENDIF
+          ELSEIF( q>0 ) THEN
+            IF( AUX(i,q)>0.d0 ) THEN
+              !i is the core, j is the shell
+              newP(NP,:) = P(i,:)
+              newS(k,:) = P(j,:)
+              P(i,:) = 0.d0
+              P(j,:) = 0.d0
+            ELSE
+              !Particle i has negative charge
+              IF( AUX(j,q)<AUX(i,q) ) THEN
+                newP(NP,:) = P(i,:)
+                newS(k,:) = P(j,:)
                 P(i,:) = 0.d0
+                P(j,:) = 0.d0
               ELSE
-                Stemp(:) = P(j,:)
+                newP(NP,:) = P(j,:)
+                newS(k,:) = P(i,:)
+                P(i,:) = 0.d0
                 P(j,:) = 0.d0
               ENDIF
-            ELSEIF( q>0 ) THEN
-              IF( AUX(i,q)>0.d0 ) THEN
-                Stemp(:) = P(i,:)
-                P(i,:) = 0.d0
-              ELSE
-                !Particle i has negative charge
-                IF( AUX(j,q)<AUX(i,q) ) THEN
-                  Stemp(:) = P(j,:)
-                  P(j,:) = 0.d0
-                ELSE
-                  Stemp(:) = P(i,:)
-                  P(i,:) = 0.d0
-                ENDIF
-              ENDIF
-            ELSE
-              !No property to rely on => assume that i is the core and j the shell
-              Stemp(:) = P(i,:)
-              P(i,:) = 0.d0
             ENDIF
-            !Save particle in the list of shells
-            k = k+1
-            newS(k,:) = Stemp(:)
+          ELSE
+            !No property to rely on => assume that i is the core and j the shell
+            newS(k,:) = P(i,:)
+            newP(NP,:) = 0.d0
           ENDIF
+          !We have found a core/shell pair, we can break the loop on atoms j
+          EXIT
         ENDIF
+        !
       ENDDO
+      !
+      IF( l==0 ) THEN
+        !No particle was found close to particle #i
+        !=> consider that particle #i is a core
+        !Particle #j is not a shell and will be dealt with in another loop
+        NP=NP+1
+        newP(NP,:) = P(i,:)
+      ENDIF
+      !
     ENDIF
   ENDDO
   !
+  CALL ATOMSK_MSG(2154,(/''/),(/DBLE(NP),DBLE(k)/))
+  !
   !Resize old arrays
-  IF( ALLOCATED(AUX) .AND.(ALLOCATED(AUXNAMES)) ) THEN
+  IF( ALLOCATED(AUX) .AND. (ALLOCATED(AUXNAMES)) ) THEN
     ALLOCATE(newAUX(NP,SIZE(AUXNAMES)))
     newAUX(:,:) = 0.d0
     j=0
@@ -237,24 +270,26 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
     DEALLOCATE(newAUX)
   ENDIF
   !
-  ALLOCATE(newP(NP,4))
-  newP(:,:) = 0.d0
+  !Re-write P so it contains only cores
+  IF(ALLOCATED(P)) DEALLOCATE(P)
+  ALLOCATE(P(NP,4))
+  P(:,:) = 0.d0
   j=0
-  DO i=1,SIZE(P,1)
-    IF( P(i,4)>0.1d0 ) THEN
-      newP(j,:) = P(i,:)
+  DO i=1,SIZE(newP,1)
+    IF( newP(i,4)>0.1d0 ) THEN
+      j=j+1
+      P(j,:) = newP(i,:)
     ENDIF
   ENDDO
-  DEALLOCATE(P)
-  ALLOCATE(P(SIZE(newP,1),4))
-  P(:,:) = newP(:,:)
   DEALLOCATE(newP)
   !
-  ALLOCATE(S(NP,4))
-  P(:,:) = 0.d0
+  !Save shells (newS) into array S
+  ALLOCATE(S(SIZE(P,1),4))
+  S(:,:) = 0.d0
   j=0
   DO i=1,SIZE(newS,1)
     IF( newS(i,4)>0.1d0 ) THEN
+      j=j+1
       S(j,:) = P(i,:)
     ENDIF
   ENDDO

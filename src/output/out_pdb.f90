@@ -14,7 +14,7 @@ MODULE out_pdb
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -108,7 +108,9 @@ ENDIF
 !Check if coordinates are reduced or cartesian
 CALL FIND_IF_REDUCED(H,P,isreduced)
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !  ===  TITLE SECTION  ===
 !Lines for this section may be stored in the array comment(:).
@@ -126,7 +128,7 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
     ENDIF
   ENDDO
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Title (remove leading # from comment)
 pdbline = 'TITLE    '//comment(1)(2:72)
@@ -138,11 +140,11 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
     ENDIF
   ENDDO
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Caveat: this is to warn that this file does not fully comply to the PDB standard
 WRITE(pdbline,'(a6)') 'CAVEAT      DRAFT FILE PRODUCED WITH ATOMSK'
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Compound
 pdbline=''
@@ -159,7 +161,7 @@ IF( LEN_TRIM(pdbline)==0 ) THEN
   temp = ''
   WRITE(pdbline,'(a)') 'COMPND '//temp(1:73)
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Source
 pdbline=''
@@ -174,7 +176,7 @@ ENDIF
 IF( LEN_TRIM(pdbline)==0 ) THEN
   WRITE(pdbline,'(a)') 'SOURCE '
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Keywords
 pdbline=''
@@ -189,7 +191,7 @@ ENDIF
 IF( LEN_TRIM(pdbline)==0 ) THEN
   WRITE(pdbline,'(a)') 'KEYWDS '
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Experimental data
 pdbline=''
@@ -204,7 +206,7 @@ ENDIF
 IF( LEN_TRIM(pdbline)==0 ) THEN
   WRITE(pdbline,'(a)') 'EXPDTA '
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Author
 pdbline=''
@@ -219,7 +221,7 @@ ENDIF
 IF( LEN_TRIM(pdbline)==0 ) THEN
   WRITE(pdbline,'(a)') 'AUTHOR '
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !Data revision
 pdbline=''
@@ -234,7 +236,7 @@ ENDIF
 IF( LEN_TRIM(pdbline)==0 ) THEN
   WRITE(pdbline,'(a)') 'REVDAT '
 ENDIF
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !
 !  ===  REMARKS SECTION  ===
@@ -243,18 +245,18 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='REMARK' ) THEN
       pdbline = comment(i)(2:80)
-      WRITE(40,'(a80)') pdbline
+      WRITE(ofu,'(a80)') pdbline
     ENDIF
   ENDDO
 ENDIF
 IF( LEN_TRIM(pdbline)==0 ) THEN
   WRITE(pdbline,'(a)') 'REMARK '
-  WRITE(40,'(a80)') pdbline
+  WRITE(ofu,'(a80)') pdbline
 ENDIF
 !
 !
 !  ===  PRIMARY STRUCTURE  ===
-WRITE(40,'(a6)') 'SEQRES'
+WRITE(ofu,'(a6)') 'SEQRES'
 !
 !
 !  ===  CRYSTALLOGRAPHIC  ===
@@ -262,22 +264,22 @@ WRITE(40,'(a6)') 'SEQRES'
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)
 
 WRITE(pdbline,601) 'CRYST1', a, b, c, RAD2DEG(alpha), RAD2DEG(beta), RAD2DEG(gamma), 'P 1       ', 1
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !
 !  ===  COORDINATE TRANSFORMATION  ===
 WRITE(pdbline,160) 'ORIGX1', (ORIGXN(1,j),j=1,3), TN(1)
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,160) 'ORIGX2', (ORIGXN(2,j),j=1,3), TN(1)
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,160) 'ORIGX3', (ORIGXN(3,j),j=1,3), TN(1)
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,160) 'SCALE1', (SCALEN(1,j),j=1,3), UN(1)
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,160) 'SCALE2', (SCALEN(2,j),j=1,3), UN(1)
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,160) 'SCALE3', (SCALEN(3,j),j=1,3), UN(1)
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 160 FORMAT(a6,5X,3f10.6,6X,f10.5)
 !
 !
@@ -338,22 +340,24 @@ DO i=1,SIZE(P,1)
   WRITE(pdbline(61:66),'(f6.2)') atom_tempFactor
   pdbline(77:78) = ADJUSTR(atom_element)
   WRITE(pdbline(79:80),'(a2)') atom_charge
-  WRITE(40,'(a80)') pdbline
+  WRITE(ofu,'(a80)') pdbline
 ENDDO
 WRITE(pdbline,'(a6)') 'TER   '
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !
 !  ===  BOOKKEEPING  ===
 WRITE(pdbline,'(a6)') 'MASTER'
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,'(a3)') 'END'
-WRITE(40,'(a80)') pdbline
+WRITE(ofu,'(a80)') pdbline
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "PDB"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

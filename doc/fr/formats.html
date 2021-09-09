@@ -34,7 +34,7 @@
   <tr>
     <th align="left"><a href="./format_dd.html">dd</a> (ddplot)</th>
     <td><img src="../img/no.png" alt="NON" title="Atomsk ne peut pas lire ce format"></td>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> (<a href="./mode_ddplot.html">mode ddplot</a> only)</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> (<a href="./mode_ddplot.html">mode ddplot</a> seulement)</td>
   </tr>
   
   <tr>
@@ -77,6 +77,12 @@
   </tr>
   
   <tr>
+    <th align="left"><a href="./format_outcar.html">OUTCAR</a> (VASP)</th>
+    <td><img src="../img/yes.png" alt="YES" title="Atomsk can read this format"> [<abbr title="Atom forces">f</abbr>] (<a href="./mode_oneinall.html">mode one-in-all</a> seulement)</td>
+    <td><img src="../img/no.png" alt="NO" title="Atomsk can not write to this format"></td>
+  </tr>
+  
+  <tr>
     <th align="left"><a href="./format_qepw.html">PW</a> (format d'entrée Quantum Espresso)</th>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> [<abbr title="Forces sur les atomes">f</abbr>,<abbr title="Coordonnées figées">fix</abbr>]</td>
     <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut écrire ce format"> [<abbr title="Forces sur les atomes">f</abbr>,<abbr title="Coordonnées figées">fix</abbr>]</td>
@@ -84,7 +90,7 @@
   
   <tr>
     <th align="left"><a href="./format_qeout.html">out</a> (format de sortie Quantum Espresso)</th>
-    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> (<a href="./mode_oneinall.html">mode one-in-all</a> only)</td>
+    <td><img src="../img/yes.png" alt="OUI" title="Atomsk peut lire ce format"> (<a href="./mode_oneinall.html">mode one-in-all</a> seulement)</td>
     <td><img src="../img/no.png" alt="NO" title="Atomsk ne peut pas écrire ce format"> </td>
   </tr>
   
@@ -246,6 +252,8 @@
 </ul>
 
 <p>Lorsque rien n'est spécifié entre crochets cela signifie qu'aucune propriété n'est lue (ou écrite) dans ce format. Notez que les propriétés auxiliaires ne sont pas toutes transférables d'un format de fichier à un autre, certaines proriétés peuvent donc être perdues lors d'une conversion. Par exemple si les charges des atomes, leurs forces et leurs vitesses sont lues depuis un fichier LMC, lors d'une conversion vers le format CFG ces propriétés seront toutes écrites, mais lors de la conversion vers le format XSF seules les forces sur les  atomes seront écrites.</p>
+
+<p>Si le fichier de sortie est "NULL" alors aucun fichier n'est écrit. Si le fichier de sortie est "-" alors les données sont envoyées vers la sortie standard (stdout, qui est généralement l'écran) au lieu d'un fichier, et la <a href="./progbe_verb.html">verbosité</a> est mise à zéro (aucun autre message n'est affiché à l'écran, à l'exception des messages d'alerte et des erreurs).</p>
 
 <p>Certains <a href="./modes.html">modes</a> et certaines <a href="./options.html">options</a> peuvent créer de nouvelles propriétés auxiliaires ou modifier des propriétés existantes. Veuillez vous référer aux pages de documentation idoines pour plus d'information. Pour supprimer des propriétés auxiliaires il est possible d'utiliser l'<a href="./option_rmprop.html">option <code>-rmprop</code></a>.</p>
 

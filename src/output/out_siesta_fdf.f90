@@ -12,7 +12,7 @@ MODULE out_siesta_fdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Jan. 2019                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -81,7 +81,9 @@ ENDIF
 !
 !
 !
-OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
 !
 !Write header of FDF file
 IF( ALLOCATED(comment) .AND. SIZE(comment)>=1 ) THEN
@@ -89,9 +91,9 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>=1 ) THEN
   IF( temp(1:1)=="#" ) THEN
     temp = ADJUSTL(temp(2:))
   ENDIF
-  WRITE(40,*) "SystemName          "//TRIM(ADJUSTL(temp))
+  WRITE(ofu,*) "SystemName          "//TRIM(ADJUSTL(temp))
 ELSE
-  WRITE(40,*) "SystemName          Unknown atomic system"
+  WRITE(ofu,*) "SystemName          Unknown atomic system"
 ENDIF
 !Determine formula of the compound
 msg=''
@@ -106,27 +108,27 @@ DO i=1,SIZE(atypes,1)
   ENDIF
   msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))
 ENDDO
-WRITE(40,*) "SystemLabel         "//TRIM(ADJUSTL(msg))
-WRITE(40,*) ""
+WRITE(ofu,*) "SystemLabel         "//TRIM(ADJUSTL(msg))
+WRITE(ofu,*) ""
 !
 !Write number of atoms and species
 WRITE(temp,*) SIZE(P,1)
-WRITE(40,*) "NumberOfAtoms       "//TRIM(ADJUSTL(temp))
+WRITE(ofu,*) "NumberOfAtoms       "//TRIM(ADJUSTL(temp))
 WRITE(temp,*) Ntypes
-WRITE(40,*) "NumberOfSpecies     "//TRIM(ADJUSTL(temp))
+WRITE(ofu,*) "NumberOfSpecies     "//TRIM(ADJUSTL(temp))
 !
 !Write cell vectors
-WRITE(40,*) ""
-WRITE(40,*) "%block LatticeVectors"
+WRITE(ofu,*) ""
+WRITE(ofu,*) "%block LatticeVectors"
 DO i=1,3
-  WRITE(40,'(3X,3(f16.9,3X))') H(i,1), H(i,2), H(i,3)
+  WRITE(ofu,'(3X,3(f16.9,3X))') H(i,1), H(i,2), H(i,3)
 ENDDO
-WRITE(40,*) "%endblock LatticeVectors"
+WRITE(ofu,*) "%endblock LatticeVectors"
 !
 !
 !Write atom types (or "index"), atomic numbers, and chemical symbols
-WRITE(40,*) ""
-WRITE(40,*) "%block ChemicalSpeciesLabel"
+WRITE(ofu,*) ""
+WRITE(ofu,*) "%block ChemicalSpeciesLabel"
 Nspecies=0
 DO i=1,SIZE(atypes,1)
   CALL ATOMSPECIES(atypes(i,1),species)
@@ -137,15 +139,15 @@ DO i=1,SIZE(atypes,1)
     !Otherwise replace species by atom types in their order of appearance
     Nspecies=Nspecies+1
   ENDIF
-  WRITE(40,'(i3,2X,i3,2X,a2)') Nspecies, NINT(atypes(i,1)), species
+  WRITE(ofu,'(i3,2X,i3,2X,a2)') Nspecies, NINT(atypes(i,1)), species
 ENDDO
-WRITE(40,*) "%endblock ChemicalSpeciesLabel"
+WRITE(ofu,*) "%endblock ChemicalSpeciesLabel"
 !
 !
 !Write atom positions
-WRITE(40,*) ""
-WRITE(40,*) "AtomicCoordinatesFormat Ang"
-WRITE(40,*) "%block AtomicCoordinatesAndAtomicSpecies"
+WRITE(ofu,*) ""
+WRITE(ofu,*) "AtomicCoordinatesFormat Ang"
+WRITE(ofu,*) "%block AtomicCoordinatesAndAtomicSpecies"
 DO i=1,SIZE(P,1)
   IF( typecol>0 ) THEN
     !If atom types are in auxiliary properties, use it
@@ -156,15 +158,17 @@ DO i=1,SIZE(P,1)
       IF( atypes(j,1)==INT(P(i,4)) ) Nspecies = j
     ENDDO
   ENDIF
-  WRITE(40,'(3(f16.9,2X),i3)') P(i,1), P(i,2), P(i,3), Nspecies
+  WRITE(ofu,'(3(f16.9,2X),i3)') P(i,1), P(i,2), P(i,3), Nspecies
 ENDDO
-WRITE(40,*) "%endblock AtomicCoordinatesAndAtomicSpecies"
+WRITE(ofu,*) "%endblock AtomicCoordinatesAndAtomicSpecies"
 !
 !
 !
 !
 500 CONTINUE
-CLOSE(40)
+IF(ofu.NE.6) THEN
+  CLOSE(ofu)
+ENDIF
 msg = "FDF"
 temp = outputfile
 CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))

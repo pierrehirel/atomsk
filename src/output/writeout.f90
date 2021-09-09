@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 July 2019                                     *
+!* Last modification: P. Hirel - 31 May 2021                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -251,7 +251,7 @@ IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
 ENDIF
 !
 !
-IF(LEN_TRIM(prefix)<=0) THEN
+IF( LEN_TRIM(prefix)<=0 .AND. ofu.NE.6 ) THEN
   CALL ATOMSK_MSG(3700,(/TRIM(msg)/),(/0.d0/))
   READ(*,*) prefix
 ENDIF

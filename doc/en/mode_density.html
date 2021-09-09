@@ -15,7 +15,7 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --density &#60;file&#62; &#60;property&#62; &#60;dimension&#62; [&#60;axis&#62;] &#60;&sigma;&#62; [options]</code></p>
+<p><code>atomsk --density &#60;file&#62; &#60;property&#62; &#60;1d|2d|3d&#62; [&#60;x|y|z&#62;] &#60;&sigma;&#62; [options]</code></p>
 
 <h4>Description</h4>
 
@@ -71,13 +71,13 @@
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk --density myfile.cfg Fe 1 X 0.6</code>
+<li><code class="command">atomsk --density myfile.cfg Fe 1d X 0.6</code>
 <p>This will read the file <code>myfile.cfg</code>, and compute the 1-D density profile of iron atoms (Fe) along the X axis. Each iron atom will be replaced by a Gaussian function of variance &sigma;<sup>2</sup>=0.6<sup>2</sup>. The results will be written in the file <code>myfile_density.dat</code>.</p></li>
 
-<li><code class="command">atomsk --density Al.xsf mass 2 Z 2.0</code>
+<li><code class="command">atomsk --density Al.xsf mass 2d Z 2.0</code>
 <p>This will read the file <code>Al.xsf</code>, and compute the density of mass in the 2-D plane normal to the Z axis, using Gaussian functions with &sigma;=2.0. The results will be written in the file <code>Al_density.dat</code>. A gnuplot script named <code>Al_density.gp</code> will also be produced to visualize the data.</p></li>
 
-<li><code class="command">atomsk --density MD_5000.lmc mass 3 2.0</code>
+<li><code class="command">atomsk --density MD_5000.lmc mass 3d 2.0</code>
 <p>This will read the file <code>MD_5000.lmc</code>, and compute the 3-D density of mass in the whole system, using Gaussian functions with &sigma;=2.0. Note that no &#60;axis&#62; must be specified. The results will be written in the file <code>MD_5000_density.dat</code>. In addition, if the variations of mass are significant then the positions where the density is high will be written into <code>MD_5000_interstitials.xsf</code>, and the positions where it is low will be written into <code>MD_5000_vacancies.xsf</code>.</p></li>
 </ul>
 

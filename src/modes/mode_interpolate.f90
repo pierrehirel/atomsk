@@ -10,7 +10,7 @@ MODULE mode_interpolate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 04 June 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -110,34 +110,61 @@ IF(ALLOCATED(AUXNAMES2)) DEALLOCATE(AUXNAMES2)
 !
 200 CONTINUE
 !Loop on all interpolated images
-DO i=1,Nimages
+DO i=0,Nimages+1
   CALL ATOMSK_MSG(4060,(/''/),(/DBLE(i)/))
   !
-  !Compute interpolated box vectors
-  DO j=1,3
-    DO k=1,3
-      Himg(j,k) = H1(j,k) + (H2(j,k)-H1(j,k))*DBLE(i)/DBLE(Nimages)
+  IF( i==0 .OR. i==Nimages+1 ) THEN
+    !Initial or final configuration
+    IF(ALLOCATED(Pimg)) DEALLOCATE(Pimg)
+    ALLOCATE( Pimg( SIZE(P1,1) , 4) )
+    Pimg(:,:) = 0.d0
+    !Copy positions of relevant configuration
+    IF( i==0 ) THEN
+      Himg = H1
+      Pimg = P1
+    ELSE
+      Himg = H2
+      Pimg = P2
+    ENDIF
+    !Same with positions of shells, if any
+    IF( doshells ) THEN
+      IF(ALLOCATED(Simg)) DEALLOCATE(Simg)
+      ALLOCATE( Simg(SIZE(P1,1) , 4) )
+      IF( i==0 ) THEN
+        Simg = S1
+      ELSE
+        Simg = S2
+      ENDIF
+    ENDIF
+    !
+  ELSE
+    !Compute interpolated box vectors
+    DO j=1,3
+      DO k=1,3
+        Himg(j,k) = H1(j,k) + (H2(j,k)-H1(j,k))*DBLE(i)/DBLE(Nimages)
+      ENDDO
     ENDDO
-  ENDDO
-  !
-  !Compute interpolated positions, save them into Pimg
-  IF(ALLOCATED(Pimg)) DEALLOCATE(Pimg)
-  ALLOCATE( Pimg( SIZE(P1,1) , 4) )
-  Pimg(:,:) = 0.d0
-  DO j=1,SIZE(P1,1)
-    Pimg(j,1:3) = P1(j,1:3) + (P2(j,1:3)-P1(j,1:3))*DBLE(i)/DBLE(Nimages)
-    Pimg(j,4) = P1(j,4)
-  ENDDO
-  !
-  !Same with positions of shells, if any
-  IF( doshells ) THEN
-    IF(ALLOCATED(Simg)) DEALLOCATE(Simg)
-    ALLOCATE( Simg(SIZE(P1,1) , 4) )
-    Simg(:,:) = 0.d0
-    DO j=1,SIZE(S1,1)
-      Simg(j,1:3) = S1(j,1:3) + (S2(j,1:3)-S1(j,1:3))*DBLE(i)/DBLE(Nimages)
-      Simg(j,4) = S1(j,4)
+    !
+    !Compute interpolated positions, save them into Pimg
+    IF(ALLOCATED(Pimg)) DEALLOCATE(Pimg)
+    ALLOCATE( Pimg( SIZE(P1,1) , 4) )
+    Pimg(:,:) = 0.d0
+    DO j=1,SIZE(P1,1)
+      Pimg(j,1:3) = P1(j,1:3) + (P2(j,1:3)-P1(j,1:3))*DBLE(i)/DBLE(Nimages)
+      Pimg(j,4) = P1(j,4)
     ENDDO
+    !
+    !Same with positions of shells, if any
+    IF( doshells ) THEN
+      IF(ALLOCATED(Simg)) DEALLOCATE(Simg)
+      ALLOCATE( Simg(SIZE(P1,1) , 4) )
+      Simg(:,:) = 0.d0
+      DO j=1,SIZE(S1,1)
+        Simg(j,1:3) = S1(j,1:3) + (S2(j,1:3)-S1(j,1:3))*DBLE(i)/DBLE(Nimages)
+        Simg(j,4) = S1(j,4)
+      ENDDO
+    ENDIF
+    !
   ENDIF
   !
   !Apply options to current image

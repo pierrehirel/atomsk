@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Atomsk - OUTCAR format - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: OUTCAR</h2>
+
+<p><strong>Name:</strong> output file of the <a href="http://cms.mpi.univie.ac.at/vasp/vasp">Vienna Ab initio Simulation Package (VASP)</a></p>
+
+<p><strong>Extension:</strong> none (the file must be named OUTCAR by VASP)</p>
+
+<p><strong>Specification:</strong> <a href="https://www.vasp.at/wiki/index.php/OUTCAR">VASP documentation</a></p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+<h4>Restrictions</h4>
+
+<p>Atomsk can read files in the OUTCAR format (as specified in VASP versions 4.x and 5.x) only in the <a href="./mode_oneinall.html">mode "--one-in-all"</a>. This mode reads all the configurations from the OUTCAR file, and writes each of them in a separate file. Forces acting on atoms are also read from the OUTCAR file, and will be written if the output format supports it.</p>
+
+<p>Note that the OUTCAR file contains several configurations, only if VASP performed ionic relaxation or molecular dynamics (IBRION&GreaterEqual;0). Otherwise, it only contains information about electronic states which Atomsk does not support.</p>
+
+<p>Atomsk cannot write file in OUTCAR format.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --one-in-all OUTCAR cfg</code>
+<p>This will read the file <code>OUTCAR</code>, and write each configuration into a separate file in the CFG format, named OUTCAR_0.cfg, OUTCAR_1.cfg, OUTCAR_2.cfg, and so on. Forces acting on atoms will also be imported, and written into the CFG files.</p></li>
+
+<li><code class="command">atomsk --one-in-all OUTCAR vesta</code>
+<p>This will read the OUTCAR file, and write configurations in VESTA format for visualization.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

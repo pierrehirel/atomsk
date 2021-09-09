@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 March 2020                                    *
+!* Last modification: P. Hirel - 01 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,6 +27,8 @@ MODULE subroutines
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* CHECK_ARRAY_CONSISTENCY checks that arrays P, S, AUX, AUXNAMES are consistent  *
+!* STR_RMSPACE         removes all blank spaces in a string                       *
+!* STR_CHAR2SPACE      replaces a character by blank space in a string            *
 !* STR2BOOL            transforms a string into a boolean value                   *
 !* INT2MONTH           transforms an integer into a month                         *
 !* INT2DAY             transforms an integer into a day                           *
@@ -119,6 +121,55 @@ IF( ALLOCATED(AUXNAMES) .OR. ALLOCATED(AUX) ) THEN
 ENDIF
 !
 END SUBROUTINE CHECK_ARRAY_CONSISTENCY
+!
+!
+!
+!********************************************************
+! STR_RMSPACE
+! This subroutine removes all blank spaces in a string,
+! 
+!********************************************************
+SUBROUTINE STR_RMSPACE(string)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(INOUT):: string
+INTEGER:: i
+!
+IF( LEN_TRIM(string) > 1 ) THEN
+  DO i=1,LEN_TRIM(string)
+    IF( string(i:i)==" " ) THEN
+      string(i:) = string(i+1:)
+    ENDIF
+  ENDDO
+ENDIF
+!
+END SUBROUTINE STR_RMSPACE
+!
+!
+!
+!********************************************************
+! STR_CHAR2SPACE
+! This subroutine parses a string, replacing some
+! characters with a space character.
+!********************************************************
+SUBROUTINE STR_CHAR2SPACE(string,characters)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(INOUT):: string
+CHARACTER(LEN=*),INTENT(IN):: characters
+INTEGER:: i, j
+!
+IF( LEN_TRIM(string) > 0 ) THEN
+  DO i=1,LEN_TRIM(string)
+    DO j=1,LEN_TRIM(characters)
+      IF( string(i:i)==characters(j:j) ) THEN
+        string(i:i) = " "
+      ENDIF
+    ENDDO
+  ENDDO
+ENDIF
+!
+END SUBROUTINE STR_CHAR2SPACE
 !
 !
 !
@@ -978,7 +1029,7 @@ LOGICAL:: foundA
 REAL(dp),DIMENSION(:),INTENT(IN):: A   !input array that must be analyzed
 REAL(dp),DIMENSION(100,2):: atemp      !temporary array containing results
                                        !This assumes that there are no more than 100 different elements in A
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing result
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: aentries !array containing result
 !
 Ndiff = 0
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
@@ -1053,16 +1104,12 @@ isreduced = .TRUE.
 avg = 0.d0
 minmax = 0.d0
 D = 0.d0
-th = 4.d0
+th = 3.d0
 IF( SIZE(array,1) < 11 ) THEN
-  th = 2.d0
+  th = 1.48d0
 ENDIF
 !
-IF( .NOT.ANY( DABS(array(:,1:3)) > 1.d0 ) ) THEN
-  !All (x,y,z) coordinates are between 0 and 1: assume reduced coordinates
-  !a.k.a. don't change anything (isreduced is already TRUE)
-  !
-ELSE
+IF( ANY( DABS(array(:,1:3)) > 1.2d0 ) .OR. ANY( DABS(array(:,1:3)) < -0.5d0 ) ) THEN
   !Some coordinates are not contained between 0 and 1
   !Loop on X, Y, Z
   DO i=1,3
