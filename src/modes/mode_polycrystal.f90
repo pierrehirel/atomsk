@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 July 2021                                     *
+!* Last modification: P. Hirel - 14 Sept. 2021                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1128,16 +1128,16 @@ DO i=1,3
     P2 = DBLE( FLOOR( DABS( SUM(Huc(:,i)) )))
     P2 = MAX( P2 , 1.d0 )
     !
-    !P1 = number of times the seed will be duplicated along each base vector direction
-    P1 = 1.1d0 * ( templatebox(i) / P2 )
+    !P3 = number of times the seed will be duplicated along each base vector direction
+    P3 = 1.1d0 * ( templatebox(i) / P2 )
     !
     !Make sure duplication factors are not crazy
-    IF(P1<=0) THEN
-      P1 = 1
-    ELSEIF(P1>2000) THEN
-      P1=2000
+    IF(P3<=0) THEN
+      P3 = 1
+    ELSEIF(P3>2000) THEN
+      P3=2000
     ENDIF
-    expandmatrix(i) = CEILING(P1)
+    expandmatrix(i) = CEILING(P3)
   ENDIF
 ENDDO
 !If the system is 2-D, do not expand along the shortest axis

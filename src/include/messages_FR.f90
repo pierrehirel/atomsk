@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Sept. 2021                                    *
+!* Last modification: P. Hirel - 15 Sept. 2021                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -628,7 +628,7 @@ CASE(4)
   msg = "<?> Ce fichier existe déjà : "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Voulez-vous l'écraser ("//langyes//"/"//langno//") ("&
-      & //langBigYes//"=tout écraser)?"
+      & //langBigYes//"=tout écraser) ?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5)
   !strings(1) = name of file
@@ -3574,7 +3574,7 @@ CASE(5003)
   msg = "<?> Entrez un format de fichier de sortie qui sera toujours activé ('non' pour ignorer) :"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5004)
-  msg = "<?> Entrez la langue par défaut ('non' pour ignorer):"
+  msg = "<?> Entrez la langue par défaut ('non' pour ignorer) :"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(5005)
   msg = "<?> Entrez le niveau de verbosité par défaut :"
