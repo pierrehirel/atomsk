@@ -1187,10 +1187,10 @@ ELSEIF( disloctype=="loop" ) THEN
   !For each atom, compute its displacement due to the loop
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,disp)
   DO i=1,SIZE(P,1)
-    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop)
-    P(i,a1) = P(i,a1) + disp(1)
-    P(i,a2) = P(i,a2) + disp(2)
-    P(i,a3) = P(i,a3) + disp(3)
+    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop )
+    P(i,1) = P(i,1) + disp(a1)
+    P(i,2) = P(i,2) + disp(a2)
+    P(i,3) = P(i,3) + disp(a3)
   ENDDO
   !$OMP END PARALLEL DO
   !
@@ -1287,10 +1287,12 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
         ENDIF
       ENDDO
       pos(1:3) = pos(1:3) / DBLE(k)
-      disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:))
+      disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:) )
     ENDDO
     !Apply displacement to atom #i
-    P(i,1:3) = P(i,1:3) + disp(:)
+    P(i,1) = P(i,1) + disp(a1)
+    P(i,2) = P(i,2) + disp(a2)
+    P(i,3) = P(i,3) + disp(a3)
     IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
   ENDDO
   !!!$OMP END PARALLEL DO
