@@ -1188,9 +1188,7 @@ ELSEIF( disloctype=="loop" ) THEN
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,disp)
   DO i=1,SIZE(P,1)
     disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop )
-    P(i,1) = P(i,1) + disp(a1)
-    P(i,2) = P(i,2) + disp(a2)
-    P(i,3) = P(i,3) + disp(a3)
+    P(i,1:3) = P(i,1:3) + disp(:)
   ENDDO
   !$OMP END PARALLEL DO
   !
@@ -1218,10 +1216,11 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
         u = 0
       ELSE
         !Try to read 3 real numbers
-        READ(msg,*,END=350,ERR=350) V1, V2, V3
+        READ(msg,*,END=349,ERR=349) V1, V2, V3
         u = u+1
       ENDIF
     ENDIF
+    349 CONTINUE
   ENDDO
   !
   350 CONTINUE
@@ -1255,13 +1254,14 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
         disarrayb(r,3) = V3
       ELSE
         !Try to read 3 real numbers
-        READ(msg,*,END=355,ERR=355) V1, V2, V3
+        READ(msg,*,END=354,ERR=354) V1, V2, V3
         u = u+1
         disarraypos(r,u,1) = V1
         disarraypos(r,u,2) = V2
         disarraypos(r,u,3) = V3
       ENDIF
     ENDIF
+    354 CONTINUE
   ENDDO
   !
   355 CONTINUE
@@ -1274,6 +1274,18 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
     !Compute displacements of atom #i due to all dislocation segments
     disp(:) = 0.d0
     DO r=1,SIZE(disarrayb,1)
+      IF( i==1 .AND. verbosity==4 ) THEN
+        WRITE(msg,'(a14,i2,a8,3(f9.3,a3))') "Dislocation # ", r, ": b = [ ", &
+             & disarrayb(r,1), " , ", disarrayb(r,2), " , ", disarrayb(r,3), " ]."
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        DO u=1,SIZE(disarraypos,2)
+          IF( NINT(disarraypos(r,u,1)).NE.-1000 .OR. NINT(disarraypos(r,u,2)).NE.-1001 &
+            & .OR. NINT(disarraypos(r,u,3)).NE.-1002 ) THEN
+            WRITE(msg,'(6X,3(f9.3,2X))') disarraypos(r,u,1:3)
+            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+          ENDIF
+        ENDDO
+      ENDIF
       !Compute position of center of this loop, save it in pos(:)
       k = 0
       pos(:) = 0.d0
@@ -1290,9 +1302,7 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
       disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:) )
     ENDDO
     !Apply displacement to atom #i
-    P(i,1) = P(i,1) + disp(a1)
-    P(i,2) = P(i,2) + disp(a2)
-    P(i,3) = P(i,3) + disp(a3)
+    P(i,1:3) = P(i,1:3) + disp(:)
     IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
   ENDDO
   !!!$OMP END PARALLEL DO

@@ -199,6 +199,9 @@ IF( ALLOCATED(AUXNAMES) ) THEN
   !
   IF( vx>0 .AND. vy>0 .AND. vz>0 ) velocities = .TRUE.
   IF( q>0 ) charges = .TRUE.
+  !
+  WRITE(msg,*) "AUX columns: vx vy vz ", vx, vy, vz, "; type ", typecol
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !
 !
@@ -225,6 +228,8 @@ IF( typecol>0 ) THEN
     i = 0
     IF( Stypecol>0 ) THEN
       !Use types as defined in AUX
+      msg = "Using shell types defined in AUX"
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
       DO WHILE( i<SIZE(S,1) .AND. j<=Ntypes )
         i=i+1
         IF( NINT(AUX(i,Stypecol)) == j+1 ) THEN
