@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2020                                     *
+!* Last modification: P. Hirel - 27 Oct. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -206,7 +206,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Construct neighbor list
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
-CALL NEIGHBOR_LIST(H,P,6.d0,NeighList)
+CALL VERLET_LIST(H,P,6.d0,NeighList)
 CALL ATOMSK_MSG(15,(/""/),(/0.d0/))
 !PRINT*, "SIZE NeighList = ", SIZE(NeighList,1), SIZE(NeighList,2)
 IF( .NOT.ALLOCATED(NeighList) .OR. SIZE(NeighList)<1 ) THEN

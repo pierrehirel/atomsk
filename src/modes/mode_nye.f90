@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Sept. 2020                                    *
+!* Last modification: P. Hirel - 27 Oct. 2021                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -195,7 +195,7 @@ ENDIF
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
 IF( firstref .OR. ucref ) THEN
   !Construct neighbor list for reference system
-  CALL NEIGHBOR_LIST(Hfirst,Pfirst,radius,NeighList1)
+  CALL VERLET_LIST(Hfirst,Pfirst,radius,NeighList1)
   IF( verbosity==4 ) THEN
     !Some debug messages
     WRITE(msg,*) "Size of neighbor list for SYSTEM 1: ", SIZE(NeighList1,1), SIZE(NeighList1,2)
@@ -215,7 +215,7 @@ IF( firstref .OR. ucref ) THEN
 ENDIF
 !
 !Construct neighbor list for studied system
-CALL NEIGHBOR_LIST(Hsecond,Psecond,radius,NeighList2)
+CALL VERLET_LIST(Hsecond,Psecond,radius,NeighList2)
 IF( verbosity==4 ) THEN
   WRITE(msg,*) "Size of neighbor list for SYSTEM 2: ", SIZE(NeighList2,1), SIZE(NeighList2,2)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

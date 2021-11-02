@@ -4,6 +4,13 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- fixed a bug in neighbor search.
+- in option "-dislocation", fixed a bug where displacements would be incorrect when the loop was not normal to Z and the Burgers vector was along Z. Thanks to Marion Borde and Jonathan Amodeo, MATEIS, University of Lyon 1, France, for pointing out this bug.
+- in mode "--rdf", fixed bugs where the radial distribution functions were not computed correctly. Thanks to Valentin Delbecq, UMET, University of Lille, France, for pointing out this bug.
+
+
+Beta 0.11.1 (09 Sept. 2021)
+---------------------------
 - in mode "--one-in-all", added possibility to read configurations from VASP OUTCAR files.
 - in mode "--interpolate", initial and final states are also output with index 0 and N+1 respectively.
 - mode "--one-in-all" renamed "--unfold", and mode "--all-in-one" renamed "--gather". Former keywords are still recognized for backward compatibility.
