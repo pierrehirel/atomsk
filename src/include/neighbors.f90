@@ -408,7 +408,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
 !NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
 CALL VOLUME_PARA(H,distance)
-n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*pi*(R**3)) )
+n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*1.5d0*pi*(R**3)) )
 ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -440,7 +440,7 @@ DO i=1,3
   distance = SUM(DABS(H(:,i)))  !MAXVAL(DABS(H(:,i)))
   tempreal = 0.9d0*distance/R
   IF( distance < 1.9d0*R .OR. NINT(tempreal) < 2 ) THEN
-    !Ensure that there are always at least two cells along any given direction
+    !Ensure that there is always at least one cells along any given direction
     NcellsX(i) = 1
   ELSE
     !Large cell or small R => do not create zillions of small cells
