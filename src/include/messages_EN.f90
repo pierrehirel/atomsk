@@ -10,7 +10,11 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
+<<<<<<< HEAD
 !* Last modification: P. Hirel - 07 Sept. 2021                                    *
+=======
+!* Last modification: P. Hirel - 21 Oct. 2021                                     *
+>>>>>>> origin/master
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -593,23 +597,23 @@ CASE(1)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF( nwarn>0 .OR. nerr>0 ) THEN
     !In case of warning or error, display a big box
-    msg = " _______________________________________________"
+    msg = " ___________________________________________________"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     IF( nwarn>0 ) THEN
       WRITE(temp,*) nwarn
       temp = ADJUSTL(temp)
       msg = "|  /!\ WARNINGS: "//TRIM(temp)
-      msg = msg(1:48)//"|"
+      msg = msg(1:52)//"|"
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
     IF( nerr>0 ) THEN
       WRITE(temp,*) nerr
       temp = ADJUSTL(temp)
       msg = "|  X!X ERRORS:   "//TRIM(temp)
-      msg = msg(1:48)//"|"
+      msg = msg(1:52)//"|"
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
-    msg = "|_______________________________________________|"
+    msg = "|___________________________________________________|"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   !
@@ -3024,11 +3028,13 @@ CASE(4050)
       & " into one file..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4051)
-  !reals(1) = width of the skin (A)
+  !reals(1) = maximum distance
+  !reals(2) = width of the skin (A)
   msg = ">>> Computing the radial distribution function,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(msg,'(f16.3)') reals(1)
-  msg = "    using a skin width of "//TRIM(ADJUSTL(msg))//" A."
+  WRITE(temp,'(f16.3)') reals(1)
+  WRITE(temp2,'(f16.3)') reals(2)
+  msg = "    up to "//TRIM(ADJUSTL(temp))//" A, using a skin width of "//TRIM(ADJUSTL(temp2))//" A."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4052)
   !strings(1) = species 1
@@ -3037,7 +3043,15 @@ CASE(4052)
       & TRIM(strings(1))//" atoms..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4053)
-  msg = "..> RDFs were computed."
+  !reals(1) = number of files analyzed
+  WRITE(temp,*) NINT(reals(1))
+  IF( NINT(reals(1))<=0 ) THEN
+    msg = "..> No file was analyzed."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> RDF was computed from 1 file."
+  ELSE
+    msg = "..> RDF was averaged over "//TRIM(ADJUSTL(temp))//" files."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4054)
   msg = ">>> Constructing a polycrystal using Voronoi method."
@@ -3139,6 +3153,17 @@ CASE(4071)
     msg = "..> Done, found "//TRIM(ADJUSTL(temp))//" different atomic environments."
   ELSEIF( NINT(reals(1))==1 ) THEN
     msg = "..> Done, found 1 atomic environment."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4072)
+  !reals(1) = number of files analyzed
+  WRITE(temp,*) NINT(reals(1))
+  IF( NINT(reals(1))<=0 ) THEN
+    msg = "..> No file was analyzed."
+  ELSEIF( NINT(reals(1))==1 ) THEN
+    msg = "..> 1 file was analyzed."
+  ELSE
+    msg = "..> "//TRIM(ADJUSTL(temp))//" files were analyzed."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)

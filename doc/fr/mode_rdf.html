@@ -36,11 +36,16 @@
 <p>Si ce mode est appelé avec une ou plusieurs <a href="./options.html">options</a> alors elles seront appliquées au système <em>avant</em> le calcul des fonctions de distribution.</p>
 
 
+<h4>Performance</h4>
+
+<p>Ce mode utilise un algorithme de recherche de voisins, qui n'est malheureusement pas très optimisé dans Atomsk. Le temps nécessaire pour la recherche de voisin augmente linéairement avec le volume (donc en R<sup>3</sup>). Il est donc conseillé d'utiliser une valeur de R<sub>max</sub> aussi petite que possible, typiquement entre 10 et 20&nbsp;&Aring;. Après cela, le temps nécessaire au calcul de la RDF en elle-même augmente linéairement avec le pas dR, et avec le nombre de particules.</p>
+
+
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk --rdf liste.lst 16 0.2</code>
-<p>Ceci calculera les fonctions de distribution radiale pour tous les systèmes contenus dans <code>liste.lst</code>, de 0 à 16 &Aring;, en utilisant un pas dR=0.2 &Aring;.</p></li>
+<li><code class="command">atomsk --rdf liste.lst 10 0.1</code>
+<p>Ceci calculera les fonctions de distribution radiale pour tous les systèmes contenus dans <code>liste.lst</code>, de 0 à 10&nbsp;&Aring;, en utilisant un pas dR=0.1&nbsp;&Aring;.</p></li>
 
 </ul>
 

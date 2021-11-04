@@ -38,7 +38,11 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
+<<<<<<< HEAD
 !* Last modification: P. Hirel - 31 May 2021                                      *
+=======
+!* Last modification: P. Hirel - 18 Oct. 2021                                     *
+>>>>>>> origin/master
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -170,30 +174,31 @@ IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)==0 ) THEN
   GOTO 1000
 ENDIF
 !
-!Parse array P and check for NaN
+!Parse array P and check for NaN (Not a Number)
 !                   THIS IS VERY TIME CONSUMING!!!
-!Therefore this is done only for relatively small systems.
-!When building bigger systems, it is assumed that the user has tested
-!his scripts on smaller systems already, and knows what he is doing
-IF( SIZE(P,1)<30000 ) THEN
-  WRITE(msg,*) 'Looking for NaN in array P...'
+!Therefore this is done only for the first 10,000 atoms.
+!If the system is very large and contains NaN after the 10,000th atom,
+!it will remain undetected.
+!However when building large systems, it is assumed that the user has tested
+!his scripts on smaller systems already, and knows what he is doing.
+WRITE(msg,*) 'Looking for NaN in array P...'
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+k = MIN(10000,SIZE(P,1))
+CALL CHECKNAN(P(1:k,:),i)
+IF( i.NE.0 ) THEN
+  nerr=nerr+1
+  CALL ATOMSK_MSG(3803,(/""/),(/DBLE(i)/))
+  GOTO 1000
+ENDIF
+!Also check auxiliary properties
+IF( ALLOCATED(AUX) ) THEN
+  WRITE(msg,*) 'Looking for NaN in array AUX...'
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  CALL CHECKNAN(P,i)
+  CALL CHECKNAN(AUX(1:k,:),i)
   IF( i.NE.0 ) THEN
     nerr=nerr+1
-    CALL ATOMSK_MSG(3803,(/""/),(/DBLE(i)/))
+    CALL ATOMSK_MSG(3804,(/""/),(/DBLE(i)/))
     GOTO 1000
-  ENDIF
-  !Also check auxiliary properties
-  IF( ALLOCATED(AUX) ) THEN
-    WRITE(msg,*) 'Looking for NaN in array AUX...'
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    CALL CHECKNAN(AUX,i)
-    IF( i.NE.0 ) THEN
-      nerr=nerr+1
-      CALL ATOMSK_MSG(3804,(/""/),(/DBLE(i)/))
-      GOTO 1000
-    ENDIF
   ENDIF
 ENDIF
 !

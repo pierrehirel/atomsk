@@ -1186,6 +1186,7 @@ ELSEIF( disloctype=="loop" ) THEN
   ENDIF
   !For each atom, compute its displacement due to the loop
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,disp)
+<<<<<<< HEAD
   DO i=1,SIZE(P,1)
     disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop)
     P(i,a1) = P(i,a1) + disp(1)
@@ -1293,6 +1294,127 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
     P(i,1:3) = P(i,1:3) + disp(:)
     IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
   ENDDO
+=======
+  DO i=1,SIZE(P,1)
+    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop )
+    P(i,1:3) = P(i,1:3) + disp(:)
+  ENDDO
+  !$OMP END PARALLEL DO
+  !
+  Ndisloc = 1
+  !
+  !
+ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
+  !Dislocation segments positions and Burgers vector are read from file "dislocline"
+  !This text file must contain the keyword "dislocation" followed by the Burgers vector,
+  !then on following lines the postions (x,y,z) through which passes the dislocation
+  CALL CHECKFILE(dislocline,"read ")
+  !
+  OPEN(UNIT=35,FILE=dislocline,FORM="FORMATTED",STATUS="OLD")
+  !First loop to count number of dislocation lines and max. number of segments
+  r = 0  !counter for disloc.lines
+  u = 0  !counter for disloc. segments
+  DO
+    READ(35,'(a128)',END=350,ERR=350) msg
+    msg = TRIM(ADJUSTL(msg))
+    !Ignore empty lines and lines starting with "#"
+    IF( LEN_TRIM(msg)>0 .AND. msg(1:1).NE."#" ) THEN
+      IF( msg(1:6)=="disloc" ) THEN
+        !Definition of a new dislocation
+        r = r+1
+        u = 0
+      ELSE
+        !Try to read 3 real numbers
+        READ(msg,*,END=349,ERR=349) V1, V2, V3
+        u = u+1
+      ENDIF
+    ENDIF
+    349 CONTINUE
+  ENDDO
+  !
+  350 CONTINUE
+  !Finished counting lines and segments
+  !Allocate array for storing Burgers vectors
+  ALLOCATE( disarrayb(r,3) )
+  disarrayb(:,:) = 0.d0
+  !Allocate array for storing positions of points
+  ALLOCATE( disarraypos(r,u,3) )
+  disarraypos(:,:,1) = -1000.d0
+  disarraypos(:,:,2) = -1001.d0
+  disarraypos(:,:,3) = -1002.d0
+  !
+  !Go back to beginning of file and save data into arrays
+  REWIND(35)
+  r = 0  !counter for disloc.lines
+  u = 0  !counter for disloc. segments
+  DO
+    READ(35,'(a128)',END=355,ERR=355) msg
+    msg = TRIM(ADJUSTL(msg))
+    !Ignore empty lines and lines starting with "#"
+    IF( LEN_TRIM(msg)>0 .AND. msg(1:1).NE."#" ) THEN
+      IF( msg(1:6)=="disloc" ) THEN
+        !Definition of a new dislocation
+        r = r+1
+        u = 0
+        j=SCAN(msg," ")
+        READ(msg(j+1:),*,END=355,ERR=355) V1, V2, V3
+        disarrayb(r,1) = V1
+        disarrayb(r,2) = V2
+        disarrayb(r,3) = V3
+      ELSE
+        !Try to read 3 real numbers
+        READ(msg,*,END=354,ERR=354) V1, V2, V3
+        u = u+1
+        disarraypos(r,u,1) = V1
+        disarraypos(r,u,2) = V2
+        disarraypos(r,u,3) = V3
+      ENDIF
+    ENDIF
+    354 CONTINUE
+  ENDDO
+  !
+  355 CONTINUE
+  !Finished reading the file
+  CLOSE(35)
+  !
+  !Insert dislocations into the system
+  !!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,k,r,u,V1,V2,V3,pos,disp) REDUCTION(+:Ndisloc)
+  DO i=1,SIZE(P,1)
+    !Compute displacements of atom #i due to all dislocation segments
+    disp(:) = 0.d0
+    DO r=1,SIZE(disarrayb,1)
+      IF( i==1 .AND. verbosity==4 ) THEN
+        WRITE(msg,'(a14,i2,a8,3(f9.3,a3))') "Dislocation # ", r, ": b = [ ", &
+             & disarrayb(r,1), " , ", disarrayb(r,2), " , ", disarrayb(r,3), " ]."
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        DO u=1,SIZE(disarraypos,2)
+          IF( NINT(disarraypos(r,u,1)).NE.-1000 .OR. NINT(disarraypos(r,u,2)).NE.-1001 &
+            & .OR. NINT(disarraypos(r,u,3)).NE.-1002 ) THEN
+            WRITE(msg,'(6X,3(f9.3,2X))') disarraypos(r,u,1:3)
+            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+          ENDIF
+        ENDDO
+      ENDIF
+      !Compute position of center of this loop, save it in pos(:)
+      k = 0
+      pos(:) = 0.d0
+      DO u=1,SIZE(disarraypos,2)
+        IF( NINT(disarraypos(r,u,1))==-1000 .AND. NINT(disarraypos(r,u,2))==-1001 &
+          & .AND. NINT(disarraypos(r,u,3))==-1002 ) THEN
+          EXIT
+        ELSE
+          k = k+1
+          pos(1:3) = pos(1:3) + disarraypos(r,u,1:3)
+        ENDIF
+      ENDDO
+      pos(1:3) = pos(1:3) / DBLE(k)
+      disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:) )
+    ENDDO
+    !Apply displacement to atom #i
+    P(i,1:3) = P(i,1:3) + disp(:)
+    IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
+  ENDDO
+>>>>>>> origin/master
   !!!$OMP END PARALLEL DO
   !
   IF(ALLOCATED(disarraypos)) DEALLOCATE(disarraypos)

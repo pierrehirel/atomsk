@@ -36,11 +36,17 @@
 <p>If this mode is used with one or several <a href="./options.html">options</a> they will be applied to the system <em>before</em> computing the RDF.</p>
 
 
+<h4>Performance</h4>
+
+<p>This mode relies on a neighbor search algorithm, which admittedly was not optimized in Atomsk. The time required for neighbor search increases linearly with the volume (i.e. as R<sup>3</sup>). Therefore it is advised to use a value of R<sub>max</sub> as small as possible, typically between 10 and 20&nbsp;&Aring;. After that, the time required for computing the RDF itself increases linearly with the step dR and with the number of particles.</p>
+
+
+
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk --rdf list.lst 16 0.2</code>
-<p>This will compute the radial distribution function for all systems in <code>list.lst</code>, from 0 to 16 &Aring;, using a shell width dR=0.2 &Aring;.</p></li>
+<li><code class="command">atomsk --rdf list.lst 10 0.1</code>
+<p>This will compute the radial distribution function for all systems in <code>list.lst</code>, from 0 to 10&nbsp;&Aring;, using a shell width dR=0.1&nbsp;&Aring;.</p></li>
 
 </ul>
 
