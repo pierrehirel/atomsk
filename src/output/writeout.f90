@@ -38,11 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-<<<<<<< HEAD
-!* Last modification: P. Hirel - 31 May 2021                                      *
-=======
 !* Last modification: P. Hirel - 18 Oct. 2021                                     *
->>>>>>> origin/master
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

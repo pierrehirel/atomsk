@@ -10,11 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-<<<<<<< HEAD
-!* Last modification: P. Hirel - 07 Sept. 2021                                    *
-=======
 !* Last modification: P. Hirel - 21 Oct. 2021                                     *
->>>>>>> origin/master
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

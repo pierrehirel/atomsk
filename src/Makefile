@@ -22,7 +22,7 @@
 export
 
 # Version of the program
-VER="b0.11.1"
+VER="b0.11.2"
 
 # Name of the final binary
 BIN=atomsk

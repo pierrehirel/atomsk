@@ -174,13 +174,6 @@ DO  !Loop on files
         wmin = -1*wmax
       ENDIF
       !
-<<<<<<< HEAD
-      !Construct neighbour list
-      CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
-      CALL NEIGHBOR_LIST(H,P,rdf_maxR,NeighList)
-      !
-=======
->>>>>>> origin/master
       !Set number of steps
       rdf_Nsteps = NINT(rdf_maxR/rdf_dr) + 2
       !
@@ -223,23 +216,11 @@ DO  !Loop on files
           atompair=atompair+1
           rdf_func(:) = 0.d0
           !
-          !Compute average density of atoms of species 2 the system
-          average_dens = aentries(l,2) / Vsystem
-          !
           sp2number = aentries(l,1)
           CALL ATOMSPECIES(sp2number,sp2)
           !
-<<<<<<< HEAD
-          !Set name of output file
-          IF(Nspecies>1) THEN
-            rdfdat = 'rdf_'//TRIM(sp1)//TRIM(sp2)//'.dat'
-          ELSE
-            rdfdat = 'rdf.dat'
-          ENDIF
-=======
           !Compute average density of atoms of species 2 the system = N2/V
           average_dens = aentries(l,2) / Vsystem
->>>>>>> origin/master
           !
           CALL ATOMSK_MSG(4052,(/sp1,sp2/),(/0.d0/))
           IF( aentries(k,2)>10000 ) THEN
@@ -248,22 +229,11 @@ DO  !Loop on files
           !
           !Compute the partial RDF of atoms sp2 around atoms sp1
           progress = 0
-<<<<<<< HEAD
-          !!!$OMP PARALLEL DO DEFAULT(SHARED) &
-          !!!$OMP& PRIVATE(i,id,j,k,l,m,u,v,w,distance,Nneighbors,Vsphere,Vskin,rdf_radius,rdf_norm) &
-          !!!$OMP& REDUCTION(+:progress)
-          DO j=1,MIN(rdf_Nsteps,SIZE(rdf_func,1))
-            !Initialize variables
-            Nneighbors = 0
-            Vskin = 0.d0
-            progress=progress+1
-=======
           !$OMP PARALLEL DO DEFAULT(SHARED) &
           !$OMP& PRIVATE(i,id,j,k,l,m,u,v,w,distance,Nneighbors,rdf_radius,rdf_norm,Vector,Vsphere,Vskin) &
           !$OMP& REDUCTION(+:progress,rdf_func)
           !Loop on all atoms
           DO i=1,SIZE(P,1)
->>>>>>> origin/master
             !
             IF( rdf_Nsteps*aentries(k,2)>20000 ) THEN
               !If there are many atoms, display a fancy progress bar
@@ -271,30 +241,14 @@ DO  !Loop on files
               CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(rdf_Nsteps)/))
             ENDIF
             !
-<<<<<<< HEAD
-            !Set radius of current sphere
-            rdf_radius = DBLE(j) * rdf_dr
-            !
-            !Compute volume of current sphere and skin
-            Vsphere = (4.d0/3.d0)*pi*rdf_radius**3
-            Vskin = (4.d0/3.d0)*pi*(rdf_radius+rdf_dr)**3 - Vsphere
-            !
-            !Count atoms of species 2 within the skin
-            DO i=1,SIZE(P,1)
-=======
             IF( DABS(P(i,4)-sp1number)<1.d-9 ) THEN
               !Atom #i is of the required species sp1
->>>>>>> origin/master
               !
               DO j=1,rdf_Nsteps
                 !Initialize variables
                 Nneighbors = 0
                 Vskin = 0.d0
                 !
-<<<<<<< HEAD
-                !First, check for replica of atom i
-                !(only if atom i is of the same species as atom j, and do not count atom i itself)
-=======
                 !Set radius of current sphere
                 rdf_radius = DBLE(j-1) * rdf_dr
                 !
@@ -310,7 +264,6 @@ DO  !Loop on files
                 !
                 !Check if replica of atom #i are neighbors of atom #i
                 !(only if atom #i is of the species sp2, and exclude atom #i itself)
->>>>>>> origin/master
                 IF( DABS(P(i,4)-sp2number)<1.d-9 ) THEN
                   DO u=umin,umax
                     DO v=vmin,vmax
@@ -325,22 +278,6 @@ DO  !Loop on files
                   ENDDO
                 ENDIF
                 !
-<<<<<<< HEAD
-                !Parse the neighbour list of atom #i,
-                !count only atoms of species sp2
-                m=1
-                DO WHILE ( m<=SIZE(NeighList,2) .AND. NeighList(i,m).NE.0 )
-                  id = NeighList(i,m)
-                  IF( DABS( P(id,4)-sp2number) < 1.d-9 ) THEN
-                    !This atom is of species sp2
-                    !Look if this atoms and/or its periodic replica are inside the skin R,R+dR
-                    DO u=umin, umax
-                      DO v=vmin, vmax
-                        DO w=wmin, wmax
-                          distance = VECLENGTH( P(i,1:3) - &
-                                   & (P(id,1:3) + DBLE(u)*H(1,:) + DBLE(v)*H(2,:) + DBLE(w)*H(3,:)) )
-                          IF( distance>=rdf_radius .AND. distance<rdf_radius+rdf_dr ) THEN
-=======
                 !Parse the neighbour list of atom #i, count only atoms of species sp2
                 m=1
                 DO WHILE ( m<=SIZE(NeighList,2)  .AND. NeighList(i,m)>0 )
@@ -356,7 +293,6 @@ DO  !Loop on files
                           distance = VECLENGTH( Vector(:) &
                                   &   + DBLE(u)*H(1,:) + DBLE(v)*H(2,:) + DBLE(w)*H(3,:) )
                           IF( distance>=rdf_radius .AND. distance<(rdf_radius+rdf_dr) ) THEN
->>>>>>> origin/master
                             !This replica is inside the skin
                             Nneighbors = Nneighbors + 1
                           ENDIF
@@ -367,21 +303,6 @@ DO  !Loop on files
                   m=m+1
                 ENDDO
                 !
-<<<<<<< HEAD
-              ENDIF
-            ENDDO !i
-            !
-            !  average_dens = NINT(aentries(k,2)) / Vsystem
-            rdf_norm = NINT(aentries(k,2)) * average_dens * Vskin
-            !
-            !Compute the average number of neighbors for this radius
-            !and save it in the final RDF
-            rdf_func(j,1) = rdf_radius
-            rdf_func(j,2) = Nneighbors / rdf_norm   !radial density function
-            !
-          ENDDO  !sphere radii (j)
-          !!!!$OMP END PARALLEL DO
-=======
                 !At this point, Nneighbors = total number of neighbors within skin,
                 !summed over all atoms of type sp1
                 !Compute normalization factor: (Nsp2/V) * (Vskin)
@@ -396,19 +317,12 @@ DO  !Loop on files
             !
           ENDDO  !loop on atoms (i)
           !$OMP END PARALLEL DO
->>>>>>> origin/master
           !
           !rdf_func contains the sum of neighbors for current system and for
           !current pair of atoms (k,l)
-<<<<<<< HEAD
-          !Add it into rdf_final (it will be time-averaged later, see label 300)
-          rdf_final(atompair,:,:) = rdf_func(:,:)
-          !rdf_final(atompair,:,2) = rdf_final(atompair,:,2) + rdf_func(:,2)
-=======
           !Normalize it by the number of atoms of type k
           !Add it into rdf_final (it will be time-averaged later, see label 300)
           rdf_final(atompair,:) = rdf_final(atompair,:) + rdf_func(:)/aentries(k,2)
->>>>>>> origin/master
           !
         ENDDO  !atom species l
         !
@@ -424,11 +338,7 @@ DO  !Loop on files
       !Input file doesn't exist: output a warning and go to the next file
       nwarn=nwarn+1
       CALL ATOMSK_MSG(4700,(/TRIM(inputfile)/),(/0.d0/))
-<<<<<<< HEAD
-    ENDIF
-=======
     ENDIF   !end if fileexists
->>>>>>> origin/master
     !
   ENDIF   !end if temp.NE."#"
   !
@@ -445,16 +355,6 @@ IF(Nfiles<=0) THEN
   GOTO 1000
 ENDIF
 !
-<<<<<<< HEAD
-!rdf_final contains the partial RDFs
-!=> divide by the number of systems that were analyzed to make the time-average
-rdf_final(:,:,2) = rdf_final(:,:,2) / Nfiles
-!
-!rdf_final contains the partial RDFs
-!Compute the total RDF
-ALLOCATE( rdf_total(SIZE(rdf_final,2),SIZE(rdf_final,3)) )
-rdf_total(:,:) = 0.d0
-=======
 !rdf_final contains the partial RDFs for each atom pair, summed over all analyzed files:
 !rdf_final( atom_pair , R , g(R) )
 !=> divide g(R) by the number of files to make the time-average
@@ -463,7 +363,6 @@ rdf_final(:,:) = rdf_final(:,:) / DBLE(Nfiles)
 !Compute the total RDF and save it into rdf_total(:,:)
 ALLOCATE( rdf_total(SIZE(rdf_final,2)) )
 rdf_total(:) = 0.d0
->>>>>>> origin/master
 DO i=1,SIZE(rdf_final,1)
   rdf_total(:) = rdf_total(:) + rdf_final(i,:)
 ENDDO
