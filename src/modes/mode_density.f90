@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 02 Dec. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -226,8 +226,30 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 ! Set PropPoint to the property whose density must be computed
 NULLIFY(PropPoint)
 IF( property=="mass" ) THEN
-  !Compute the density of mass of atoms
-  PropPoint => P(:,4)
+  !Check if masses are defined in array AUX
+  k=0
+  IF( ALLOCATED(AUXNAMES) ) THEN
+    DO i=1,SIZE(AUXNAMES)
+      IF( AUXNAMES(i)=="mass" ) THEN
+        k=i
+      ENDIF
+    ENDDO
+  ENDIF
+  !
+  IF( k>0 ) THEN
+    !Masses are defined in column #k of array AUX
+    PropPoint => AUX(:,k)
+  ELSE
+    !Masses are not defined in AUX
+    !Fetch standard (NIST) atomic masses and store them inside array DUMMY_PROP
+    ALLOCATE(DUMMY_PROP(SIZE(P,1)))
+    DUMMY_PROP(:) = 0.d0
+    DO i=1,SIZE(P,1)
+      CALL ATOMSPECIES(P(i,4),species)
+      CALL ATOMMASS(species,DUMMY_PROP(i))
+    ENDDO
+    PropPoint => DUMMY_PROP(:)
+  ENDIF
 ELSE
   !Check if "property" is an atom species
   IF( LEN_TRIM(property) <= 2 ) THEN
