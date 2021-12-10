@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 July 2021                                     *
+!* Last modification: P. Hirel - 08 Nov. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -72,6 +72,7 @@ CHARACTER(LEN=1):: dir1, dir2, dir3 !directions x, y, z
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
 LOGICAL:: aniso !shall anisotropic elasticity be used?
+LOGICAL:: doaux    !treat auxiliary properties?
 LOGICAL:: doshells !apply displacements also to shells?
 LOGICAL:: rotate  !rotate displacements?
 LOGICAL:: straight !construct a straight dislocation line?
@@ -119,6 +120,7 @@ Vplane(:,:) = 0.d0
 aniso = .FALSE.
 rotate = .FALSE.
 straight = .TRUE.
+doaux = .FALSE.
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
@@ -1184,9 +1186,148 @@ ELSEIF( disloctype=="loop" ) THEN
       CALL ATOMSK_MSG(2754,(/'loop'/),(/DBLE(i)/))
     ENDIF
   ENDIF
+  !
+  !Save current number of atoms
+  u = SIZE(P,1)
+  !
+  IF(ALLOCATED(AUX) .AND. SIZE(AUX,1)>0) THEN
+    doaux=.TRUE.
+  ENDIF
+  !
+  !If Burgers vector has a component normal to the loop plane (=prismatic dislocation loop),
+  !duplicate or remove atoms that belong to the loop
+  IF( DABS(b(a3))>1.d-2 ) THEN
+    IF( b(a3)<0.d0 ) THEN
+      !The dislocation loop will separate atomic planes
+      !=> new atoms must be inserted inside the loop
+      !Get total system volume
+      CALL VOLUME_PARA(H,V1)
+      !Compute average system density
+      tempreal = DBLE( SIZE(P,1)/V1 )
+      !Compute area of disloc. loop
+      V2 = 4.d0*pos(4)*pos(4)
+      !Estimate number of atoms to duplicate = (average density)*(loop area)*(height of Burgers vector)
+      !(may be over-estimated)
+      n = CEILING( 1.1d0 * tempreal * V2 * VECLENGTH(b(:)) ) + 10
+      !New atoms must be inserted inside the loop
+      !Allocate memory for new atoms
+      ALLOCATE( Q(u+n,4) )
+      Q(:,:) = 0.d0
+      IF( doaux ) THEN
+        ALLOCATE( newAUX(u+n,SIZE(AUX,2)) )
+      ENDIF
+      n = u
+      !Copy atom positions and duplicated atoms in temporary array Q(:,:)
+      DO i=1,SIZE(P,1)
+        !Copy this atom into Q(:,:)
+        Q(i,:) = P(i,:)
+        !Increment r if atom is inside the loop
+        r = 0
+        IF( P(i,a3)>pos(a3)+b(a3)/2.d0 .AND. P(i,a3)<pos(a3)-b(a3)/2.d0 ) THEN
+          IF( pos(4)<0.d0 ) THEN
+            !"Negative" loop radius: square loop
+            IF( P(i,a1)>pos(a1)-pos(4) .AND. P(i,a1)<pos(a1)+pos(4) .AND. &
+              & P(i,a2)>pos(a2)-pos(4) .AND. P(i,a2)<pos(a2)+pos(4)       ) THEN
+              r=r+1
+            ENDIF
+          ELSE
+            !Positive loop radius: circular loop
+            IF( VECLENGTH( P(i,1:3)-pos(1:3) ) < pos(4) ) THEN
+              r=r+1
+            ENDIF
+          ENDIF
+        ENDIF
+        IF( r>0 ) THEN
+          !Atom #i must be duplicated: add it at the end of atom list
+          n = n+1
+          Q(n,:) = P(i,:)
+          Q(n,a3) = Q(n,a3) - b(a3)/2.d0
+          IF(ALLOCATED(AUX) .AND. SIZE(AUX,1)>0) THEN
+            newAUX(n,:) = AUX(i,:)
+          ENDIF
+        ENDIF
+      ENDDO
+      !Save final atom positions inside P(:,:)
+      DEALLOCATE(P)
+      ALLOCATE(P(n,4))
+      IF(doaux) THEN
+        DEALLOCATE(AUX)
+        ALLOCATE( AUX(n,SIZE(newAUX,2)) )
+      ENDIF
+      DO i=1,n
+        P(i,:) = Q(i,:)
+        IF(doaux) THEN
+          AUX(i,:) = newAUX(i,:)
+        ENDIF
+      ENDDO
+      DEALLOCATE(Q)
+      !
+    ELSE !i.e. if b(a3)>0
+      !The dislocation will bring atomic planes closer
+      !=> atoms inside the loop must be deleted to avoid overlap
+      ALLOCATE(Q(SIZE(P,1),4))
+      Q(:,:) = P(:,:)
+      n = 0
+      !Delete atoms inside dislocation loop
+      !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,r) REDUCTION(+:n)
+      DO i=1,SIZE(P,1)
+        !Increment r if atom is inside the loop
+        r = 0
+        IF( P(i,a3)>pos(a3)-b(a3)/2.d0 .AND. P(i,a3)<pos(a3)+b(a3)/2.d0 ) THEN
+          IF( pos(4)<0.d0 ) THEN
+            !"Negative" loop radius: square loop
+            IF( P(i,a1)>pos(a1)-pos(4) .AND. P(i,a1)<pos(a1)+pos(4) .AND. &
+              & P(i,a2)>pos(a2)-pos(4) .AND. P(i,a2)<pos(a2)+pos(4)       ) THEN
+              r=r+1
+            ENDIF
+          ELSE
+            !Positive loop radius: circular loop
+            IF( VECLENGTH( P(i,1:3)-pos(1:3) ) < pos(4) ) THEN
+              r=r+1
+            ENDIF
+          ENDIF
+        ENDIF
+        !
+        IF( r==0 ) THEN
+          !Atom will survive: increment number of atoms n
+          n=n+1
+        ELSE
+          !Atom #i must be deleted: set its species to zero
+          Q(i,:) = 0.d0
+        ENDIF
+      ENDDO
+      !$OMP END PARALLEL DO
+      !Save final atom positions inside P(:,:)
+      DEALLOCATE(P)
+      ALLOCATE(P(n,4))
+      ALLOCATE(newAUX(n,4))
+      n = 0
+      DO i=1,SIZE(Q,1)
+        IF( Q(i,4)>0.1d0 ) THEN
+          n = n+1
+          P(n,:) = Q(i,:)
+          !Copy auxiliary properties (if any)
+          IF(doaux) THEN
+            newAUX(n,:) = AUX(i,:)
+          ENDIF
+        ENDIF
+      ENDDO
+      DEALLOCATE(Q)
+      !Save auxiliary properties in AUX
+      IF( doaux ) THEN
+        DEALLOCATE(AUX)
+        ALLOCATE( AUX(SIZE(newAUX,1),SIZE(newAUX,2)) )
+        AUX(:,:) = newAUX(:,:)
+        DEALLOCATE(newAUX)
+      ENDIF
+      !
+    ENDIF
+  ENDIF
+  !
   !For each atom, compute its displacement due to the loop
+  !(if atoms were duplicated just before, don't displace them)
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,disp)
-  DO i=1,SIZE(P,1)
+  DO i=1,MIN(u,SIZE(P,1))
     disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop )
     P(i,1:3) = P(i,1:3) + disp(:)
   ENDDO

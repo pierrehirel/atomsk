@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Sept. 2021                                    *
+!* Last modification: P. Hirel - 10 Dec. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -915,6 +915,11 @@ DO WHILE(i<SIZE(cla))
       !Last possiblity: read dislocation coordinates from a file
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
+      options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
+      !Read Poisson ratio
+      i=i+1
+      READ(cla(i),*,END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal
       options_array(ioptions) = TRIM(options_array(ioptions))//" "//TRIM(temp)
       !
     ELSE

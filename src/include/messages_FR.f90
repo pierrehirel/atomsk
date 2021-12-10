@@ -1215,6 +1215,7 @@ CASE(2061)
   !reals(6) = pos2, position of dislocation along second axis
   !reals(7) = pos3 (only for loops)
   !reals(8) = loop radius
+  j=0
   temp = TRIM(ADJUSTL(strings(1)))
   IF(temp(1:4)=="file" .OR. temp(1:5)=="array") THEN
     msg = ">>> Insersion de dislocations définies dans le fichier : "//TRIM(ADJUSTL(strings(2)))
@@ -1227,6 +1228,26 @@ CASE(2061)
       msg = ">>> Insertion d'une dislocation mixte suivant"
     ELSEIF(temp(1:4)=="loop") THEN
       msg = ">>> Insertion d'une boucle de dislocation dans un plan normal à"
+      SELECT CASE(strings(2))
+      CASE("x","X")
+        IF( reals(1)>0.1d0 ) THEN
+          j=-1
+        ELSEIF( reals(1)<0.1d0 ) THEN
+          j=1
+        ENDIF
+      CASE("y","Y")
+        IF( reals(2)>0.1d0 ) THEN
+          j=-1
+        ELSEIF( reals(2)<0.1d0 ) THEN
+          j=1
+        ENDIF
+      CASE("z","Z")
+        IF( reals(3)>0.1d0 ) THEN
+          j=-1
+        ELSEIF( reals(3)<0.1d0 ) THEN
+          j=1
+        ENDIF
+      END SELECT
     ENDIF
     msg = TRIM(msg)//' '//TRIM(strings(2))//","
   ENDIF
@@ -1239,11 +1260,11 @@ CASE(2061)
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
     !
-    IF(TRIM(strings(1))=="edge_add") THEN
+    IF( TRIM(strings(1))=="edge_add" .OR. j>0 ) THEN
       WRITE(msg,"(a34)") "    en insérant un plan d'atomes,"
-    ELSEIF(TRIM(strings(1))=="edge_rm") THEN
-      WRITE(msg,"(a36)") "    en supprimant un plan d'atomes,"
-    ELSE
+    ELSEIF( TRIM(strings(1))=="edge_rm" .OR. j<0 ) THEN
+      WRITE(msg,"(a35)") "    en supprimant un plan d'atomes,"
+    ELSEIF(TRIM(strings(1))=="edge" .OR. TRIM(strings(1))=="screw" .OR. TRIM(strings(1))=="mixed" .OR. j==0) THEN
       WRITE(msg,"(a43)") "    en conservant le nombre total d'atomes,"
     ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)

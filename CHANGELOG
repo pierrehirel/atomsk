@@ -4,6 +4,11 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.
+
+
+Beta 0.11.2 (04 Nov. 2021)
+--------------------------
 - fixed a bug in neighbor search.
 - in option "-dislocation", fixed a bug where displacements would be incorrect when the loop was not normal to Z and the Burgers vector was along Z. Thanks to Marion Borde and Jonathan Amodeo, MATEIS, University of Lyon 1, France, for pointing out this bug.
 - in mode "--rdf", fixed bugs where the radial distribution functions were not computed correctly. Thanks to Valentin Delbecq, UMET, University of Lille, France, for pointing out this bug.

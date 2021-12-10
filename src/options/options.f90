@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 July 2021                                     *
+!* Last modification: P. Hirel - 10 Dec. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -545,6 +545,7 @@ DO ioptions=1,SIZE(options_array)
       !
     ELSEIF( TRIM(ADJUSTL(treal(9)))=="array" .OR. TRIM(ADJUSTL(treal(9)))=="file" ) THEN
       !Save file name into dislocline
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, treal(9), treal(10), nu
       disloctype = TRIM(ADJUSTL(treal(9)))
       dislocline = TRIM(ADJUSTL(treal(10)))
     ELSE
