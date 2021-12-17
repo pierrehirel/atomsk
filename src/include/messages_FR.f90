@@ -2663,6 +2663,11 @@ CASE(2820)
 CASE(2821)
   msg = "X!X ERREUR : le modulo ne peut pas être nul (division par zero)."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2822)
+  msg = "X!X ERREUR : cette option n'accepte pas les opérations avec 'box'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Veuillez entrer les distances en angströms."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
 !

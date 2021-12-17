@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Nov. 2021                                     *
+!* Last modification: P. Hirel - 13 Dec. 2021                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1344,19 +1344,23 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
   !
   OPEN(UNIT=35,FILE=dislocline,FORM="FORMATTED",STATUS="OLD")
   !First loop to count number of dislocation lines and max. number of segments
+  i = 0  !counter for lines in the file
   r = 0  !counter for disloc.lines
   u = 0  !counter for disloc. segments
   DO
     READ(35,'(a128)',END=350,ERR=350) msg
     msg = TRIM(ADJUSTL(msg))
+    i = i+1
     !Ignore empty lines and lines starting with "#"
     IF( LEN_TRIM(msg)>0 .AND. msg(1:1).NE."#" ) THEN
       IF( msg(1:6)=="disloc" ) THEN
         !Definition of a new dislocation
+        IF( INDEX(msg,"box")>0 .OR. INDEX(msg,"BOX")>0 ) GOTO 802
         r = r+1
         u = 0
       ELSE
         !Try to read 3 real numbers
+        IF( INDEX(msg,"box")>0 .OR. INDEX(msg,"BOX")>0 ) GOTO 802
         READ(msg,*,END=349,ERR=349) V1, V2, V3
         u = u+1
       ENDIF
@@ -1377,25 +1381,29 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
   !
   !Go back to beginning of file and save data into arrays
   REWIND(35)
+  i = 0  !counter for lines in the file
   r = 0  !counter for disloc.lines
   u = 0  !counter for disloc. segments
   DO
     READ(35,'(a128)',END=355,ERR=355) msg
     msg = TRIM(ADJUSTL(msg))
+    i = i+1
     !Ignore empty lines and lines starting with "#"
     IF( LEN_TRIM(msg)>0 .AND. msg(1:1).NE."#" ) THEN
       IF( msg(1:6)=="disloc" ) THEN
         !Definition of a new dislocation
+        IF( INDEX(msg,"box")>0 .OR. INDEX(msg,"BOX")>0 ) GOTO 802
         r = r+1
         u = 0
         j=SCAN(msg," ")
-        READ(msg(j+1:),*,END=355,ERR=355) V1, V2, V3
+        READ(msg(j+1:),*,END=355,ERR=801) V1, V2, V3
         disarrayb(r,1) = V1
         disarrayb(r,2) = V2
         disarrayb(r,3) = V3
       ELSE
         !Try to read 3 real numbers
-        READ(msg,*,END=354,ERR=354) V1, V2, V3
+        IF( INDEX(msg,"box")>0 .OR. INDEX(msg,"BOX")>0 ) GOTO 802
+        READ(msg,*,END=354,ERR=801) V1, V2, V3
         u = u+1
         disarraypos(r,u,1) = V1
         disarraypos(r,u,2) = V2
@@ -1410,7 +1418,7 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
   CLOSE(35)
   !
   !Insert dislocations into the system
-  !!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,k,r,u,V1,V2,V3,pos,disp) REDUCTION(+:Ndisloc)
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,k,r,u,V1,V2,V3,pos,disp) REDUCTION(+:Ndisloc)
   DO i=1,SIZE(P,1)
     !Compute displacements of atom #i due to all dislocation segments
     disp(:) = 0.d0
@@ -1427,6 +1435,7 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
           ENDIF
         ENDDO
       ENDIF
+      !
       !Compute position of center of this loop, save it in pos(:)
       k = 0
       pos(:) = 0.d0
@@ -1446,7 +1455,7 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
     P(i,1:3) = P(i,1:3) + disp(:)
     IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
   ENDDO
-  !!!$OMP END PARALLEL DO
+  !$OMP END PARALLEL DO
   !
   IF(ALLOCATED(disarraypos)) DEALLOCATE(disarraypos)
   !
@@ -1467,6 +1476,17 @@ GOTO 1000
 800 CONTINUE
 CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
 nerr = nerr+1
+GOTO 1000
+!
+801 CONTINUE
+CALL ATOMSK_MSG(807,(/''/),(/DBLE(i)/))
+nerr = nerr+1
+GOTO 1000
+!
+802 CONTINUE
+CALL ATOMSK_MSG(2822,(/''/),(/0.d0/))
+nerr = nerr+1
+GOTO 1000
 !
 !
 !

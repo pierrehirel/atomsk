@@ -2593,6 +2593,11 @@ CASE(2820)
 CASE(2821)
   msg = "X!X ERROR: modulo cannot be naught (division by zero)."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2822)
+  msg = "X!X ERROR: this option does not accept operations with 'box'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Please specify distances in angströms."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
 !

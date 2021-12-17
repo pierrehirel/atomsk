@@ -2579,10 +2579,15 @@ CASE(2820)
   msg = "X!X FEHLER: Neue Zelle kann nicht mit Atomen gefüllt werden."
   CALL DISPLAY_MSG(1,msg,logfile)
   WRITE(temp,*) NINT(reals(1))
-  msg = "          Schätzung der Anzahl der erforderlichen Atome: "//TRIM(ADJUSTL(temp))
+  msg = "           Schätzung der Anzahl der erforderlichen Atome: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2821)
   msg = "X!X FEHLER: Modulo kann nicht umsonst sein (Division durch Null)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2822)
+  msg = "X!X FEHLER: diese Option akzeptiert keine Operationen mit 'box'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "           Bitte Entfernungen in Angström angeben."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

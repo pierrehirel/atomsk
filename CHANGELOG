@@ -5,6 +5,7 @@ CHANGELOG FOR ATOMSK
 Master
 ------
 - fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.
+- fixed a bug where Poisson ratio was not recognized in option "-dislocation file".
 
 
 Beta 0.11.2 (04 Nov. 2021)
