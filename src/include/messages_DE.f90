@@ -3355,9 +3355,33 @@ CASE(4715)
   msg = "            Bitte ueberpruefen!"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4716)
-  !reals(1) = number of polycrystal nodes that were wrapped
+  !reals(1) = X coordinate of node
+  !reals(2) = Y coordinate of node
+  !reals(3) = Z coordinate of node
+  !reals(4) = index of node
+  WRITE(temp,'(f12.2)') reals(1)
+  WRITE(temp2,'(f12.2)') reals(2)
+  WRITE(temp3,'(f12.2)') reals(3)
+  WRITE(temp4,*) NINT(reals(4))
+  msg = "/!\ WARNUNG: Knot #"//TRIM(ADJUSTL(temp4))//&
+      & " war außerhalb der Grenzen und wurde zurück in die Schachtel gelegt, neue Position: (" &
+      & //TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4717)
+  !strings(1) = name of matrix
+  msg = "/!\ WARNUNG: "//TRIM(ADJUSTL(strings(1)))//" ist keine Identitätsmatrix."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4718)
+  !reals(1) = index of first node
+  !reals(2) = index of 2nd node
+  !reals(3) = distance between the two nodes
   WRITE(temp,*) NINT(reals(1))
-  msg = "/!\ WARNUNG: "//TRIM(ADJUSTL(temp))//" Knoten waren außerhalb der Grenzen und wurden zurück in die Schachtel gelegt."
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,'(f18.1)') reals(3)
+  msg = "/!\ WARNUNG: Knoten #"//TRIM(ADJUSTL(temp))//" und #"//TRIM(ADJUSTL(temp2))//&
+      & " liegen sehr nah beieinander  (d = "//TRIM(ADJUSTL(temp3))//" A)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Bitte ueberpruefen!"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES
@@ -3536,10 +3560,10 @@ CASE(4827)
   msg = "X!X FEHLER: Unmöglich, Gitter mit vorgegebener Orientierung zu schaffen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4828)
-  msg = "X!X FEHLER: at least two cell dimensions are too small, aborting."
+  msg = "X!X FEHLER: Mindestens zwei Zellendimensionen sind zu klein. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4829)
-  msg = "X!X FEHLER: Boxvektoren sind nicht linear unabhängig, aborting."
+  msg = "X!X FEHLER: Boxvektoren sind nicht linear unabhängig. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4830)
   msg = "X!X FEHLER: Referenzumgebung kann nicht erstellt werden."
@@ -3548,8 +3572,12 @@ CASE(4831)
   msg = "X!X FEHLER: In der Parameterdatei ist kein Knoten definiert: '"//TRIM(ADJUSTL(strings(1)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4832)
-  !strings(1) = name of matrix
-  msg = "X!X FEHLER: "//TRIM(ADJUSTL(strings(1)))//" ist keine Identitätsmatrix."
+  !reals(1) = index of first node
+  !reals(2) = index of 2nd node
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "X!X FEHLER: Knoten #"//TRIM(ADJUSTL(temp))//" und #"//TRIM(ADJUSTL(temp2))//&
+      & " sind an der gleichen Position. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X FEHLER: Es kann immer nur ein Modus verwendet werden."

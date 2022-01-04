@@ -925,14 +925,34 @@ DO i=1,SIZE(vnodes,1) !loop on all nodes
       m=m+1
     ENDDO
   ENDDO
-  IF(m>0) k=k+1
+  IF(m>0) THEN
+    !This node was wrapped: display message
+    P1 = vnodes(i,1)*H(1,1)
+    P2 = vnodes(i,2)*H(2,2)
+    P3 = vnodes(i,3)*H(3,3)
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(4716,(/''/),(/P1,P2,P3,DBLE(i)/))
+  ENDIF
 ENDDO
 CALL FRAC2CART(vnodes,H)
-IF(k>0) THEN
-  !Some nodes were wrapped: display message
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(4716,(/''/),(/DBLE(k)/))
-ENDIF
+!
+!Check that nodes are not too close to one another
+DO i=1,SIZE(vnodes,1)-1 !loop on all nodes
+  DO j=i+1,SIZE(vnodes,1)  !loop on all nodes
+    !Compute distance between the two nodes #i and #j
+    distance = VECLENGTH( vnodes(i,1:3)-vnodes(j,1:3) )
+    IF( distance<0.11d0 ) THEN
+      !Nodes #i and #j are at the exact same position: display error and exit
+      nerr = nerr+1
+      CALL ATOMSK_MSG(4832,(/''/),(/DBLE(i),DBLE(j)/))
+      GOTO 1000
+    ELSEIF( distance<2.d0 ) THEN
+      !Nodes #i and #j are very close to one another: display warning
+      nwarn = nwarn+1
+      CALL ATOMSK_MSG(4718,(/''/),(/DBLE(i),DBLE(j),distance/))
+    ENDIF
+  ENDDO
+ENDDO
 !
 CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
 !

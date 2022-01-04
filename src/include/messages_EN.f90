@@ -3339,13 +3339,32 @@ CASE(4715)
   msg = "            Are you sure that you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4716)
-  !reals(1) = number of polycrystal nodes that were wrapped
-  WRITE(temp,*) NINT(reals(1))
-  msg = "/!\ WARNING: "//TRIM(ADJUSTL(temp))//" nodes were out of bounds and were wrapped back into the box."
+  !reals(1) = X coordinate of node
+  !reals(2) = Y coordinate of node
+  !reals(3) = Z coordinate of node
+  !reals(4) = index of node
+  WRITE(temp,'(f12.2)') reals(1)
+  WRITE(temp2,'(f12.2)') reals(2)
+  WRITE(temp3,'(f12.2)') reals(3)
+  WRITE(temp4,*) NINT(reals(4))
+  msg = "/!\ WARNING: node #"//TRIM(ADJUSTL(temp4))//" was out of bounds and was wrapped, new position: (" &
+      & //TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4717)
   !strings(1) = name of matrix
   msg = "/!\ WARNING: "//TRIM(ADJUSTL(strings(1)))//" is not an identity matrix."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4718)
+  !reals(1) = index of first node
+  !reals(2) = index of 2nd node
+  !reals(3) = distance between the two nodes
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,'(f18.1)') reals(3)
+  msg = "/!\ WARNING: nodes #"//TRIM(ADJUSTL(temp))//" and #"//TRIM(ADJUSTL(temp2))//&
+      & " are very close to one another (d = "//TRIM(ADJUSTL(temp3))//" A)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Are you sure that you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES FOR MODES
@@ -3523,6 +3542,14 @@ CASE(4830)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4831)
   msg = "X!X ERROR: no node defined in the parameter file '"//TRIM(ADJUSTL(strings(1)))//"'."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4832)
+  !reals(1) = index of first node
+  !reals(2) = index of 2nd node
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "X!X ERROR: nodes #"//TRIM(ADJUSTL(temp))//" and #"//TRIM(ADJUSTL(temp2))//&
+      & " are at the same position, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERROR: only one mode can be used at a time."

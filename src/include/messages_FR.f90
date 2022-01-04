@@ -3416,9 +3416,33 @@ CASE(4715)
   msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4716)
-  !reals(1) = number of polycrystal nodes that were wrapped
+  !reals(1) = X coordinate of node
+  !reals(2) = Y coordinate of node
+  !reals(3) = Z coordinate of node
+  !reals(4) = index of node
+  WRITE(temp,'(f12.2)') reals(1)
+  WRITE(temp2,'(f12.2)') reals(2)
+  WRITE(temp3,'(f12.2)') reals(3)
+  WRITE(temp4,*) NINT(reals(4))
+  msg = "/!\ ALERTE : le nœud #"//TRIM(ADJUSTL(temp4))//&
+      & " était hors limites et a été replacé dans la boîte, nouvelle position : ("// &
+      & TRIM(ADJUSTL(temp))//","//TRIM(ADJUSTL(temp2))//","//TRIM(ADJUSTL(temp3))//")."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4717)
+  !strings(1) = name of matrix
+  msg = "/!\ ALERTE : "//TRIM(ADJUSTL(strings(1)))//" n'est pas une matrice identité."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4718)
+  !reals(1) = index of first node
+  !reals(2) = index of 2nd node
+  !reals(3) = distance between the two nodes
   WRITE(temp,*) NINT(reals(1))
-  msg = "/!\ ALERTE : "//TRIM(ADJUSTL(temp))//" nœuds étaient hors limites et ont été replacés dans la boîte."
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,'(f18.1)') reals(3)
+  msg = "/!\ ALERTE: les nœuds #"//TRIM(ADJUSTL(temp))//" et #"//TRIM(ADJUSTL(temp2))//&
+      & " sont très proches l'un de l'autre (d = "//TRIM(ADJUSTL(temp3))//" A)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
@@ -3595,8 +3619,12 @@ CASE(4831)
   msg = "X!X ERREUR : aucun noeud n'est défini dans le fichier de paramètres '"//TRIM(ADJUSTL(strings(1)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4832)
-  !strings(1) = name of matrix
-  msg = "X!X ERREUR : "//TRIM(ADJUSTL(strings(1)))//" n'est pas une matrice identité."
+  !reals(1) = index of first node
+  !reals(2) = index of 2nd node
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "X!X ERREUR : les nœuds #"//TRIM(ADJUSTL(temp))//" et #"//TRIM(ADJUSTL(temp2))//&
+      & " sont à la même position, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = "X!X ERREUR : un seul mode peut être utilisé à la fois."
