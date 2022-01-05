@@ -2348,7 +2348,7 @@ CASE(2151)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2152)
-  msg = "..> Cell vector was modified."
+  msg = "..> Le vecteur de boîte a bien été modifié."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2153)
   msg = ">>> Tentative de ré-ajuster les vecteurs de boîte automatiquement..."
