@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 Jan. 2022                                     *
+!* Last modification: P. Hirel - 07 Feb. 2022                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -62,9 +62,9 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to o
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 !
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=128):: line
 CHARACTER(LEN=128):: or1, or2, or3
 CHARACTER(LEN=128):: lattice  !if grains are organized according to a lattice
+CHARACTER(LEN=4096):: line
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=4096):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
 CHARACTER(LEN=4096):: distfile, idsizefile !name of file containing grain size distribution, grain sizes
