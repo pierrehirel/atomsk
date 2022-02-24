@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 Sept. 2021                                    *
+!* Last modification: P. Hirel - 22 Feb. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,6 +41,7 @@ MODULE subroutines
 !* CHECK_ORTHOVEC      checks if two vectors are normal to each other             *
 !* CART2FRAC           converts cartesian coordinates to fractional               *
 !* FRAC2CART           converts fractional coordinates to cartesian               *
+!* COUNT_OUTBOX        given a list of positions, counts how many are out of box  *
 !* INDEX_MILLER        find the indices of a plane from a string                  *
 !* INDEX_MILLER_HCP    find the indices of a plane from a string (hcp lattices)   *
 !* ELAST2TENSOR        converts from Voigt notation to full elastic tensor        *
@@ -394,12 +395,12 @@ ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
     ELSEIF( op=='-' ) THEN
       number = areal - MAX(0.d0,MAXVAL(vbox))
     ELSEIF( op=='*' ) THEN
-      number = MIN(0.d0,MINVAL(vbox)) + areal*( SUM(DABS(vbox)) )
+      number = areal * SUM(vbox)
     ELSEIF( op==':' .OR. op=='/' ) THEN
       IF( DABS(vbox(1))<1.d-12 .OR. DABS(vbox(2))<1.d-12 .OR. DABS(vbox(3))<1.d-12 ) THEN
         number = HUGE(areal)
       ELSE
-        number = MIN(0.d0,MINVAL(vbox)) + areal/( SUM(DABS(vbox)) )
+        number = areal / SUM(vbox)
       ENDIF
     ENDIF
   ELSE
@@ -411,12 +412,12 @@ ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
     ELSEIF( op=='-' ) THEN
       number = MAX(0.d0,MAXVAL(vbox)) - areal
     ELSEIF( op=='*' ) THEN
-      number = MIN(0.d0,MINVAL(vbox)) + areal*( SUM(DABS(vbox)) )
+      number = areal * SUM(vbox)
     ELSEIF( op==':' .OR. op=='/' ) THEN
       IF( DABS(areal)<1.d-12 ) THEN
         number = HUGE(vbox)
       ELSE
-        number = MIN(0.d0,MINVAL(vbox)) + ( SUM(DABS(vbox)) )/areal
+        number = SUM(vbox) / areal
       ENDIF
     ENDIF
   ENDIF

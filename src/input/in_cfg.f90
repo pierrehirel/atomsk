@@ -11,7 +11,7 @@ MODULE in_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Dec. 2019                                     *
+!* Last modification: P. Hirel - 07 Feb. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,7 +47,7 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
-CHARACTER(LEN=1024):: temp
+CHARACTER(LEN=4096):: temp
 LOGICAL:: Hset, novelocity
 INTEGER:: auxiliary  !number of auxiliary properties
 INTEGER:: i, Hread
@@ -86,7 +86,7 @@ REWIND(30)
 !
 !Read the preamble of the file
 DO WHILE(.NOT.Hset .OR. NP==0)
-  READ(30,'(a128)',ERR=400,END=160) temp
+  READ(30,'(a)',ERR=400,END=160) temp
   temp = ADJUSTL(temp)
   IF(temp(1:1).NE.'#') THEN
     !Check if it is a new species
@@ -168,7 +168,7 @@ H(:,:) = a0*H(:,:)
 !If more than two such lines are found, the counter "cfgformat"
 !becomes negative and the file is assumed to be standard CFG
 DO i=1,500  !Limit the search to the first 500 lines
-  READ(30,'(a128)',ERR=200,END=200) temp
+  READ(30,'(a)',ERR=200,END=200) temp
   !Check if the line has the format (mass species x y z)
   READ(temp,*,ERR=171,END=171) testreal, species, testreal, testreal, testreal
   !If there was no error it is most likely standard CFG
@@ -217,7 +217,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !In both standard and extended CFG it is the first line that
 !starts with a number
 DO WHILE(snumber==0.d0)
-  READ(30,'(a1024)',ERR=400,END=400) temp
+  READ(30,'(a)',ERR=400,END=400) temp
   temp = ADJUSTL(temp)
   IF( LEN_TRIM(temp)>0 ) THEN
     !Ignore empty lines
@@ -298,7 +298,7 @@ IF(cfgformat<0.d0) THEN
   !Read atom information
   DO WHILE(NPcount<NP)
     !Read the line
-    READ(30,'(a1024)',ERR=300,END=300) temp
+    READ(30,'(a)',ERR=300,END=300) temp
     temp = TRIM(ADJUSTL(temp))
     !
     IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE.'#' ) THEN
@@ -319,7 +319,7 @@ ELSE
   !Extended CFG format
   DO WHILE(NPcount<NP)
     !Read the line
-    READ(30,'(a1024)',ERR=300,END=240) temp
+    READ(30,'(a)',ERR=300,END=240) temp
     240 CONTINUE
     temp = TRIM(ADJUSTL(temp))
     !

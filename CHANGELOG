@@ -4,8 +4,12 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- increased string length when reading files to prevent truncation. This affects many modules (input, modes).
 - fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.
-- fixed a bug where Poisson ratio was not recognized in option "-dislocation file".
+- fixed a bug in option "-dislocation file", where Poisson ratio was not recognized.
+- fixed a bug in option "-orthogonal-cell" where the new number of atoms was not always correctly estimated, leading to a segmentation fault.
+- fixed a bug where the position was not always computed correctly when using an operation with "box", e.g. when introducing dislocations. Thanks to Samaneh Nasiri, Friedrich-Alexander-University Erlangen-Nürnberg, Germany, for pointing out this bug.
+- script "install.sh" now proposes to compile Atomsk if binary does not existe in current directory.
 
 
 Beta 0.11.2 (04 Nov. 2021)

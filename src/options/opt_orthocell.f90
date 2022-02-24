@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 July 2019                                     *
+!* Last modification: P. Hirel - 24 Feb. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -303,15 +303,16 @@ IF( aligned(1) .AND. aligned(2) .AND. aligned(3) ) THEN
   ENDDO
   !
 ELSE
-  !Estimate new number of particles = (density of old cell) / (volume of new cell)
-  vlen = CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
-      & DABS(VECLENGTH(H(1,:))*VECLENGTH(H(2,:))*VECLENGTH(H(3,:))) ) )
+  !Estimate density of old cell
+  CALL VOLUME_PARA(H,vlen)
+  !Estimate new number of particles = (density of old cell) * (volume of new cell)
+  vlen = ( DBLE(SIZE(P,1)) / vlen ) * DABS(uv(1,1)*uv(2,2)*uv(3,3))
   WRITE(msg,*) "Estimated new number of atoms : ", vlen
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   CALL ATOMSK_MSG(2144,(/""/),(/vlen/))
-  !Allow for +50% and +100 atoms to allocate arrays.
+  !Allow for +20% and +100 atoms to allocate arrays.
   !Actual size of arrays will be adjusted later
-  vlen = NINT(1.5d0*vlen) + 100
+  vlen = 1.2d0*vlen + 100
   !
   !At this point, new cell vectors were found
   !Check that number of atoms does not exceed integer limit

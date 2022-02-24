@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2020                                     *
+!* Last modification: P. Hirel - 07 Feb. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -64,7 +64,7 @@ CHARACTER(LEN=4096):: temp
 LOGICAL:: fileexists
 !
 INQUIRE(FILE=filename,EXIST=fileexists)
-IF(fstatus=='writ') THEN   !if we want to write the file
+IF(fstatus(1:1)=='w' .OR. fstatus(1:1)=='W') THEN   !if we want to write the file
   IF(.NOT.overw) THEN
     DO WHILE(fileexists)
       CALL ATOMSK_MSG(4,(/filename/),(/0.d0/))

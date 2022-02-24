@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 11 Nov. 2020                                     *
+!* Last modification: P. Hirel - 07 Feb. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -48,7 +48,7 @@ SUBROUTINE READ_LMP_DATA(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=16) datatype  !type of data file: "atom" or "charge" or "molecule" or...
-CHARACTER(LEN=128):: msg, temp
+CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
@@ -138,7 +138,7 @@ REWIND(30)
 !
 !Parse the file, detect keywords
 DO
-  READ(30,'(a128)',ERR=500,END=500) temp
+  READ(30,'(a)',ERR=500,END=500) temp
   temp = ADJUSTL(temp)
   strlength = LEN_TRIM(temp)
   IF(temp(1:1)=='#') THEN
@@ -195,7 +195,7 @@ DO
     Ncores = 0
     Nshells = 0
     DO WHILE( k<SIZE(Masses,1) )
-      READ(30,'(a128)',ERR=120,END=120) temp
+      READ(30,'(a)',ERR=120,END=120) temp
       IF( LEN_TRIM(temp)>0 ) THEN
         species=""
         !Check if there is a comment at the end of the line
@@ -384,7 +384,7 @@ DO
     Nshells = 0 !counter for ionic shells
     DO i=1,SIZE(P,1)
       isshell = .FALSE.  !by default particle #i is not a shell
-      READ(30,'(a128)',ERR=800,END=800) temp
+      READ(30,'(a)',ERR=800,END=800) temp
       temp = ADJUSTL(temp)
       !Remove trailing comment if any
       strlength = SCAN(temp,'#')
@@ -684,7 +684,7 @@ DO
       AUXNAMES(vy) = 'vy'
       AUXNAMES(vz) = 'vz'
     ENDIF
-    READ(30,'(a128)',ERR=800,END=800) temp !first line must be empty
+    READ(30,'(a)',ERR=800,END=800) temp !first line must be empty
     DO
       !Each line has format  "id vx vy vz"
       !Note: velocities may not be defined for all atoms,

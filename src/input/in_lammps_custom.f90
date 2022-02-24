@@ -14,7 +14,7 @@ MODULE in_lmp_c
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Dec. 2019                                     *
+!* Last modification: P. Hirel - 07 Feb. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -107,7 +107,7 @@ REWIND(30)
 140 CONTINUE
 !Parse the file and search for keywords
 DO WHILE(.NOT.finished)
-  READ(30,'(a1024)',ERR=830,END=1000) temp
+  READ(30,'(a)',ERR=830,END=1000) temp
   temp = TRIM(ADJUSTL(temp))
   IF(temp(1:5)=='ITEM:') THEN
     temp2 = TRIM(ADJUSTL(temp(6:)))
@@ -300,7 +300,7 @@ DO WHILE(.NOT.finished)
       !
       !Read each line and store positions and species to P
       DO i=1,SIZE(P,1)
-        READ(30,'(a1024)',END=840,ERR=840) temp3
+        READ(30,'(a)',END=840,ERR=840) temp3
         READ(temp3,*,END=840,ERR=840) (acol(j), j=1,Ncol)
         IF(idcol>0) THEN
           READ(acol(idcol),*,END=840,ERR=840) id
