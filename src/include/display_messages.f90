@@ -9,7 +9,7 @@ MODULE display_messages
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Oct. 2016                                     *
+!* Last modification: P. Hirel - 08 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,7 +62,7 @@ ENDIF
 !Display message on screen if verbosity==1,3,4, or if error/warning message
 IF( (verb==1 .OR. verb>=3).AND.msg2(1:5).NE.'debug' .OR. &
   & msg2(1:3)=='/!\' .OR. msg2(1:3)=='X!X' ) THEN
-  WRITE(*,*) TRIM(msg)
+  WRITE(*,*) COLOUR_MSG(TRIM(msg),colourdef)
 ENDIF
 !
 END SUBROUTINE DISPLAY_MSG
@@ -99,10 +99,11 @@ msg = " ___________________________________________________"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = "|              ___________                          |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|     o---o    A T O M S K                          |"
+msg = "|     o---o    "//COLOUR_MSG("A T O M S K","bold")
+msg = TRIM(msg)//"                          |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = "|    o---o|    Version "//TRIM(ADJUSTL(version))
-msg = msg(1:52)//"|"
+msg(53:53) = "|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 msg = "|    |   |o    (C) 2010 Pierre Hirel                |"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -112,6 +113,61 @@ msg = "|___________________________________________________|"
 CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 END SUBROUTINE DISPLAY_HEADER
+!
+!
+!********************************************************
+! COLOUR_MSG
+! This function colours a text. It is possible to
+! combine a colour and a typesetting, e.g. "red bold".
+! WARNING: this is expected to work in Linux/bash,
+! but may not in other environments (macOS, Windows...)
+!********************************************************
+FUNCTION COLOUR_MSG(intxt,colour) RESULT(outtxt)
+!
+CHARACTER(LEN=*):: intxt
+CHARACTER(LEN=LEN_TRIM(intxt)+16):: outtxt
+CHARACTER(LEN=*):: colour
+CHARACTER(LEN=16):: code
+!
+outtxt = intxt
+code="[0"
+!
+!Apply colour only if global variable "colourtext" is true
+IF( colourtext ) THEN
+  !First, set colour / only first colour in the string "colour" is used
+  IF( INDEX(colour,"black")>0 ) THEN
+    code="[095"
+  ELSEIF( INDEX(colour,"red")>0 ) THEN
+    code="[031"
+  ELSEIF( INDEX(colour,"green")>0 ) THEN
+    code="[032"
+  ELSEIF( INDEX(colour,"yellow")>0 ) THEN
+    code="[033"
+  ELSEIF( INDEX(colour,"blue")>0 ) THEN
+    code="[034"
+  ELSEIF( INDEX(colour,"magenta")>0 ) THEN
+    code="[035"
+  ELSEIF( INDEX(colour,"cyan")>0 ) THEN
+    code="[036"
+  ELSEIF( INDEX(colour,"grey")>0 .OR. INDEX(colour,"gray")>0 ) THEN
+    code="[090"
+  ELSEIF( INDEX(colour,"white")>0 ) THEN
+    code="[097"
+  ENDIF
+  !
+  !Add typesetting, several typesettings are possible
+  IF( INDEX(colour,"bold")>0 .OR. INDEX(colour,"bright")>0 ) code=TRIM(code)//";1"
+  IF( INDEX(colour,"italic")>0 ) code=TRIM(code)//";3"
+  IF( INDEX(colour,"underline")>0 ) code=TRIM(code)//";4"
+  IF( INDEX(colour,"blink")>0 ) code=TRIM(code)//";5"
+  !
+  IF( LEN_TRIM(code)>2 ) THEN
+    code=TRIM(code)//"m"
+    outtxt = ACHAR(27)//TRIM(ADJUSTL(code))//intxt//ACHAR(27)//"[0m"
+  ENDIF
+ENDIF
+!
+END FUNCTION COLOUR_MSG
 !
 !
 !

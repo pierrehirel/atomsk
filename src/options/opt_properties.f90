@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 11 April 2019                                    *
+!* Last modification: P. Hirel - 07 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,7 @@ MODULE properties
 USE atoms
 USE comv
 USE constants
+USE crystallography
 USE files
 USE exprev
 USE messages
@@ -336,6 +337,7 @@ DO
               !Evaluate the function with those values
               IF( LEN_TRIM(func_ui(j))>0 ) THEN
                 strlength=0
+                status=0
                 CALL EXPREVAL(func_ui(j),tempreal3,strlength,status)
               ELSE
                 tempreal3 = 0.d0

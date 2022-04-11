@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2021                                     *
+!* Last modification: P. Hirel - 22 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,19 +87,35 @@ CONTAINS
 SUBROUTINE NEIGHBOR_LIST(H,A,R,NeighList)
 !
 IMPLICIT NONE
+REAL(dp):: distance
 REAL(dp),INTENT(IN):: R  !radius in which Neighbors are searched
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
-!IF( R>14.d0 .OR. SIZE(A,1)>20000 ) THEN
-  !Radius search is large, or number of atoms is large
-  !=> use cell decomposition algorithm
-!  CALL CELL_LIST(H,A,R,NeighList)
-!ELSE
-  !Default: use Verlet algorithm
+!Compute minimum cell length
+distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
+!
+IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
+  !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
-!ENDIF
+  !
+ELSEIF( neighsearch=="cell" .OR. neighsearch=="CELL" ) THEN
+  !User forces use of CELL algorithm
+  CALL CELL_LIST(H,A,R,NeighList)
+  !
+ELSE
+  !User did not specify anything: automatically choose VERLET or CELL depending on system size
+  IF( distance>10.d0 .OR. R>10.d0 .OR. SIZE(A,1)>10000 ) THEN
+    !Cell is large, or radius search is large, or number of atoms is large
+    !=> use cell decomposition algorithm
+    CALL CELL_LIST(H,A,R,NeighList)
+  ELSE
+    !Default: use Verlet algorithm
+    CALL VERLET_LIST(H,A,R,NeighList)
+  ENDIF
+  !
+ENDIF
 !
 END SUBROUTINE NEIGHBOR_LIST
 !
@@ -135,6 +151,7 @@ REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for p
 INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
 REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
 REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac  !atom positions in reduced coordinates
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: NLtemp  !temporary neighbor list when resizing
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
@@ -279,7 +296,7 @@ DO i=1,SIZE(A,1)-1
               NeighList(i,NNeigh(i)) = j
             ENDIF
             !
-            !Atom i is also a neighbor of atom j => save this
+            !Atom i is neighbor of atom j
             NNeigh(j) = NNeigh(j)+1
             !Add atom i to the list of neighbors of atom j
             IF( NNeigh(j) <= SIZE(NeighList,2) ) THEN
@@ -290,6 +307,7 @@ DO i=1,SIZE(A,1)-1
             !=> no need to keep on looking for replica of atom j
             !=> exit the loops on replica
             GOTO 200
+            !EXIT
           ENDIF
           !
         ENDDO !m
@@ -311,8 +329,19 @@ IF( ALLOCATED(NeighList) ) THEN
 ENDIF
 !
 IF( ALLOCATED(NeighList) ) THEN
-  WRITE(msg,*) 'Max. n. neighbors = ', SIZE(NeighList,2)
+  !Count max. number of neighbors
+  n = MAXVAL(Nneigh(:))
+  WRITE(msg,*) 'Max. n. neighbors = ', n
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !Resize NeighList
+  ALLOCATE( NLtemp( SIZE(NeighList,1) , n ) )
+  DO i=1,SIZE(NeighList,1)
+    NLtemp(i,:) = NeighList(i,1:n)
+  ENDDO
+  DEALLOCATE(NeighList)
+  ALLOCATE( NeighList( SIZE(NLtemp,1) , n ) )
+  NeighList(:,:) = NLtemp(:,:)
+  DEALLOCATE(NLtemp)
 ELSE
   msg = 'NeighList UNALLOCATED'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -351,11 +380,8 @@ END SUBROUTINE VERLET_LIST
 !********************************************************
 ! CELL_LIST
 ! This subroutine constructs a neighbor list using
-! a cell decomposition algorithm. It is expected
-! to be much faster than Verlet algorithm.
-! NOTE: THIS SUBROUTINE CURRENTLY PRODUCES WRONG RESULTS
-!       AND ALL CALLS TO IT HAVE BEEN REMOVED IN ATOMSK.
-!       HOPE TO FIX THIS AT SOME POINT.
+! a cell decomposition algorithm. It is expected to be
+! much faster than Verlet algorithm for large systems.
 !********************************************************
 SUBROUTINE CELL_LIST(H,A,R,NeighList)
 !
@@ -368,27 +394,34 @@ REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 LOGICAL,DIMENSION(6):: IsCloseToBorder !is the atom close to the borders of the box?
 INTEGER:: a1, a2, a3
 INTEGER:: Ix, Iy, Iz
-INTEGER:: i, j, k, l, m, n, u
-INTEGER:: iCell  !index of a cell (cell-list algorithm)
+INTEGER:: i, j, k, l, m, n, u, t
+INTEGER:: iCell  !index of a cell
 INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
-INTEGER:: Maxcells !max number of cells along one direction (cell-list algorithm)
-INTEGER:: Ncells   !total number of cells (cell-list algorithm)
+INTEGER:: Maxcells !max number of cells along one direction
+INTEGER:: Ncells   !total number of cells
 INTEGER:: OMP_GET_NUM_THREADS  !number of OpenMP threads
 INTEGER,DIMENSION(3):: shift   !replica number along X, Y, Z
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(3):: NcellsX  !number of cells along X, Y, Z (cell-list algorithm)
-INTEGER,DIMENSION(:),ALLOCATABLE:: Cell_NP       !number of atoms in each cell (cell-list algorithm)
-INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_AtomID !index of atoms for each cell (cell-list algorithm)
+INTEGER,DIMENSION(SIZE(A,1)):: LinkedList
+INTEGER,DIMENSION(:),ALLOCATABLE:: LinkedHead
+INTEGER,DIMENSION(:),ALLOCATABLE:: Cell_NP       !number of atoms in each cell
+INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh        !number of neighbors of atom #i
+INTEGER,DIMENSION(:),ALLOCATABLE:: Atom_Cell     !for each atom, index of the cell it belongs to
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_AtomID !index of atoms for each cell
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_ijk    !index of each cell
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
-INTEGER,DIMENSION(:,:,:),ALLOCATABLE:: Cell_Neigh  !neighbors of each cell (cell-list algorithm)
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_Neigh  !neighbors of each cell
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: NLtemp  !temporary neighbor list when resizing
 REAL(dp):: distance
 REAL(dp):: tempreal
+REAL(dp):: Vsystem   !volume of the box defined by H(:,:)
 REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for periodic replica
 REAL(dp),DIMENSION(3):: Cell_L   !length of cell along X, Y, Z (cell-list algorithm)
 REAL(dp),DIMENSION(3):: shiftvec !shift vector
-INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
-INTEGER,DIMENSION(:),ALLOCATABLE:: Atom_Cell   !for each atom, index of the cell it belongs to
+REAL(dp),DIMENSION(27):: distance_pbc
 REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Cell_P  !positions of cells
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
@@ -404,11 +437,11 @@ IF( i>0 ) THEN
   RETURN
 ENDIF
 NNeigh(:) = 0
+LinkedList(:) = 0
 IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
-!NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
-CALL VOLUME_PARA(H,distance)
-n = MAX( 100 , NINT((DBLE(SIZE(A,1))/distance)*1.5d0*pi*(R**3)) )
+CALL VOLUME_PARA(H,Vsystem)
+n = MAX( 100 , NINT((DBLE(SIZE(A,1))/Vsystem)*1.5d0*pi*(R**3))+100 )
 ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -422,236 +455,255 @@ IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)
 IF(ALLOCATED(Cell_AtomID)) DEALLOCATE(Cell_AtomID)
 IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
 !
-!
-msg = 'entering CELL_LIST'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!
+IF( verbosity==4 ) THEN
+  msg = "entering CELL_LIST"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "Radius for neighbor search (angstroms) = ", R
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "Max. allowed number of neighbors for each atom = ", SIZE(NeighList,2)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "Current box vectors:"
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  DO i=1,3
+    WRITE(msg,'(3(3X,f9.3))') H(i,1), H(i,2), H(i,3)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDDO
+ENDIF
 !
 !Define max. number of cells along each direction
 !Use max. 8 cells along any given direction
 Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
-WRITE(msg,*) 'Max. allowed number of cells along any direction: ', Maxcells
+!Make sure that Maxcells is even
+IF( MOD(Maxcells,2).NE.0 .AND. Maxcells>1 ) Maxcells = Maxcells-1
+WRITE(msg,*) "Max. allowed number of cells along any direction: ", Maxcells
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Determine the number of cells along each dimension X, Y, Z
 DO i=1,3
+  !Compute max. distance between two ends of the box
   distance = SUM(DABS(H(:,i)))  !MAXVAL(DABS(H(:,i)))
+  !Compute how many cells of length R/2 we can fit in that distance
   tempreal = 0.9d0*distance/R
-  IF( distance < 1.9d0*R .OR. NINT(tempreal) < 2 ) THEN
+  IF( distance < R .OR. NINT(tempreal) < 2 ) THEN
+    !Cell is roughly the same size as cutoff radius
     !Ensure that there is always at least one cells along any given direction
     NcellsX(i) = 1
   ELSE
-    !Large cell or small R => do not create zillions of small cells
+    !Large cell or small R => use R as cell size
+    !BUT do not create zillions of small cells
     !=> No more than Maxcell cells along any direction
     NcellsX(i) = MIN( NINT(tempreal) , Maxcells )
   ENDIF
-  !Make sure that number of cells is even
+  !Make sure that number of cells is even (or 1)
   IF( MOD(NcellsX(i),2).NE.0 .AND. NcellsX(i)>1 ) NcellsX(i) = NcellsX(i)-1
-  !Length of a cell along each direction
+  !Make sure it does not exceed Maxcells
+  IF( NcellsX(i)>Maxcells ) NcellsX(i) = Maxcells
+  !
+  !TEMPORARY: ENFORCE NCELLS ALONG EACH DIRECTION
+  !NcellsX(:) = 2
+  !
+  !Length of a cell along current direction
   Cell_L(i) = distance / DBLE(NcellsX(i))
 ENDDO
 !
-!Debug message
-WRITE(msg,*) 'Actual number of cells along X, Y, Z: ', NcellsX(1), NcellsX(2), NcellsX(3)
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+IF( verbosity==4 ) THEN
+  !Debug message
+  WRITE(msg,*) "Actual number of cells along X, Y, Z: ", NcellsX(1), NcellsX(2), NcellsX(3)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  WRITE(msg,*) "Actual cell size along X, Y, Z: ", Cell_L(1), Cell_L(2), Cell_L(3)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
+!PRINT*, "CELL DECOMPOSITION: ", NcellsX(1), NcellsX(2), NcellsX(3)
 !
 !Compute total number of cells
 Ncells = PRODUCT( NcellsX(:) )  !total number of cells
-!WRITE(*,*) '    Maxcells = ', Maxcells
-!WRITE(*,*) ' Total cells = ', Ncells
 !
-!For each atom, find the index of the cell it belongs to
-ALLOCATE( Atom_Cell(SIZE(A,1)) )  !index of cell each atom belongs to
-Atom_Cell(:) = 0
-ALLOCATE( Cell_NP(Ncells) )       !number of atoms in each cell
-Cell_NP(:) = 0
-DO i=1,SIZE(A,1)
-  Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
-  Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
-  Iz = MAX( CEILING(A(i,3)/Cell_L(3)) , 1 )
-  !Link this atom to the corresponding cell
-  Atom_Cell(i) = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
-  IF( Atom_Cell(i)<=0 ) Atom_Cell(i) = 1
-  IF( Atom_Cell(i)>SIZE(Cell_NP) ) Atom_Cell(i) = SIZE(Cell_NP)
-  !Increment number of atoms of this cell
-  Cell_NP(Atom_Cell(i)) = Cell_NP(Atom_Cell(i)) + 1
-ENDDO
-!
-IF( verbosity==4 ) THEN
-  OPEN(UNIT=56,FILE="atomsk_atomCell.txt",STATUS="UNKNOWN")
-  DO i=1,SIZE(A,1)
-    WRITE(56,*) i, Atom_Cell(i)
-  ENDDO
-  CLOSE(56)
-ENDIF
-!
-!Save the indexes of atoms in each cell
-ALLOCATE( Cell_AtomID( Ncells , MAXVAL(Cell_NP) ) )
-Cell_AtomID(:,:) = 0
-DO j=1,Ncells
-  k=0
-  DO i=1,SIZE(A,1)
-    IF( Atom_Cell(i)==j ) THEN
-      !Atom #i belongs to cell #j
-      k=k+1
-      Cell_AtomID(j,k) = i
-    ENDIF
-  ENDDO
-ENDDO
-!
-IF( verbosity==4 ) THEN
-  OPEN(UNIT=56,FILE="atomsk_cellAtomID.txt",STATUS="UNKNOWN")
-  DO j=1,Ncells
-    WRITE(56,*) j, Cell_AtomID(j,:)
-  ENDDO
-  CLOSE(56)
-ENDIF
-!
-!Make a neighbor list for the cells
-WRITE(msg,*) 'Constructing cells neighbor list...'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!For each cell we consider a cube of 3*3*3 = 27 cells (central cell + neighboring cells)
-!For each of the 27 cells, we store 4 numbers: the cell index, and the coordinates of the
-!appropriate periodic image (in units of box vectors)
-!NOTE: number of cells is small, no need to parallelize this part
-ALLOCATE( Cell_Neigh(Ncells,27,4) )
-Cell_Neigh(:,:,:) = 0
+!Compute position of each cell
+ALLOCATE( Cell_P(Ncells,3) )
+Cell_P(:,:) = 0.d0
+ALLOCATE( Cell_ijk(Ncells,3) )
+Cell_ijk(:,:) = 0
+iCell=0
 DO i=1,NcellsX(1)
   DO j=1,NcellsX(2)
     DO k=1,NcellsX(3)
-      u=0
-      iCell = (k-1)*NcellsX(1)*NcellsX(2) + (j-1)*NcellsX(1) + i
-      !
-      DO l=i-1,i+1
-        a1=l
-        shift(1) = 0
-        IF( a1>NcellsX(1) ) THEN
-          !No cell exists to the right of cell #iCell
-          !The neighboring cell is actually the periodic image of cell #1 shifted by +H(1,:)
-          a1 = 1
-          shift(1) = 1
-        ELSEIF( a1<=0 ) THEN
-          !No cell exists to the left of cell #iCell
-          !The neighboring cell is actually the periodic image of cell #NcellsX(1) shifted by -H(1,:)
-          a1 = NcellsX(1)
-          shift(1) = -1
-        ENDIF
-        !
-        DO m=j-1,j+1
-          a2=m
-          shift(2) = 0
-          IF( a2>NcellsX(2) ) THEN
-            !No cell exists on top of cell #iCell
-            !The neighboring cell is actually the periodic image of cell #1 shifted by +H(2,:)
-            a2 = 1
-            shift(2) = 1
-          ELSEIF( a2<=0 ) THEN
-            !No cell exists below cell #iCell
-            !The neighboring cell is actually the periodic image of cell #NcellsX(2) shifted by -H(2,:)
-            a2 = NcellsX(2)
-            shift(2) = -1
-          ENDIF
-          !
-          DO n=k-1,k+1
-            a3=n
-            shift(3) = 0
-            IF( a3>NcellsX(3) ) THEN
-              !No cell exists in front of cell #iCell
-              !The neighboring cell is actually the periodic image of cell #1 shifted by +H(3,:)
-              a3 = 1
-              shift(3) = 1
-            ELSEIF( a3<=0 ) THEN
-              !No cell exists behind cell #iCell
-              !The neighboring cell is actually the periodic image of cell #NcellsX(3) shifted by -H(3,:)
-              a3 = NcellsX(3)
-              shift(3) = -1
-            ENDIF
-            !
-            u = u+1
-            Cell_Neigh(iCell,u,1) = (a3-1)*NcellsX(1)*NcellsX(2) + (a2-1)*NcellsX(1) + a1
-            !Cell_Neigh(iCell,u,1) = (a1*NcellsX(2)+a2)*NcellsX(3) + NcellsX(3)
-            Cell_Neigh(iCell,u,2) = shift(1)
-            Cell_Neigh(iCell,u,3) = shift(2)
-            Cell_Neigh(iCell,u,4) = shift(3)
-          ENDDO !n
-        ENDDO !m
-      ENDDO !l
-      !
-    ENDDO !k
-  ENDDO !j
-ENDDO !i
-WRITE(msg,*) 'Neighbor list for cells complete'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      iCell=iCell+1
+      Cell_ijk(iCell,1) = i
+      Cell_ijk(iCell,2) = j
+      Cell_ijk(iCell,3) = k
+      Cell_P(iCell,1) = (i-1)*Cell_L(1)
+      Cell_P(iCell,2) = (j-1)*Cell_L(2)
+      Cell_P(iCell,3) = (k-1)*Cell_L(3)
+    ENDDO
+  ENDDO
+ENDDO
+!
+!For each cell, find its neighbouring cells in a radius R+(max.cell length)
+!Number of cells is quite small, use Verlet list
+distance = 1.1d0*DSQRT( Cell_L(1)**2 + Cell_L(2)**2 + Cell_L(3)**2 )
+CALL VERLET_LIST(H,Cell_P,R+distance,Cell_Neigh)
+!For each cell, append its own index at beginning of neighbour list
+IF( ALLOCATED(Cell_Neigh) .AND. SIZE(Cell_Neigh,2)>0 ) THEN
+  !Some neighbours were found
+  ALLOCATE( tempList( SIZE(Cell_Neigh,1) , SIZE(Cell_Neigh,2)+1 ) )
+  tempList(:,:) = 0
+  DO i=1,SIZE(Cell_Neigh,1)
+    tempList(i,1) = i
+    DO j=1,SIZE(Cell_Neigh,2)
+      tempList(i,j+1) = Cell_Neigh(i,j)
+    ENDDO
+  ENDDO
+  DEALLOCATE(Cell_Neigh)
+  ALLOCATE( Cell_Neigh( SIZE(tempList,1) , SIZE(tempList,2) ) )
+  Cell_Neigh(:,:) = tempList(:,:)
+  DEALLOCATE(tempList)
+ELSE
+  !No neighbour was found (e.g. because there is only 1 cell)
+  !Simply add cell to its own cell list
+  IF(ALLOCATED(Cell_Neigh)) DEALLOCATE(Cell_Neigh)
+  ALLOCATE(Cell_Neigh(Ncells,1))
+  DO i=1,Ncells
+    Cell_Neigh(i,1) = i
+  ENDDO
+ENDIF
 !
 IF( verbosity==4 ) THEN
-  OPEN(UNIT=56,FILE="atomsk_cellList.txt",STATUS="UNKNOWN")
+  !debug messages
+  WRITE(msg,*) 'Cell neighbor list complete'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !debug: for each cell, write its position in an XYZ file
+  OPEN(UNIT=56,FILE="atomsk_cellP.xyz",STATUS="UNKNOWN")
+  WRITE(56,*) Ncells
+  WRITE(56,*) "# Positions of cells in CELL algorithm"
   DO j=1,Ncells
-    WRITE(56,*) j, Cell_Neigh(j,:,1)
+    WRITE(56,*) "1  ", Cell_P(j,1:3)
+  ENDDO
+  CLOSE(56)
+  !debug: for each cell, write its neighbor list in a file
+  OPEN(UNIT=56,FILE="atomsk_cellNeighList.txt",STATUS="UNKNOWN")
+  DO j=1,Ncells
+    WRITE(msg,*) j
+    msg = "[cell #"//TRIM(ADJUSTL(msg))//"]"
+    DO n=1,SIZE(Cell_Neigh,2)
+      WRITE(temp,'(i4,a1,3(i2,a1))') Cell_Neigh(j,n)
+      msg = TRIM(msg)//"  "//TRIM(ADJUSTL(temp))
+    ENDDO
+    WRITE(56,'(a)') TRIM(msg)
   ENDDO
   CLOSE(56)
 ENDIF
 !
-WRITE(msg,*) 'Constructing atoms neighbor list...'
+!We don't need cell positions anymore: free memory
+IF(ALLOCATED(Cell_P)) DEALLOCATE(Cell_P)
+!
+WRITE(msg,*) 'Constructing Linked List ...'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!Associate each atom with its cell
+!This loop is expected to be fast and to scale as O(N)
+ALLOCATE( LinkedHead(Ncells) )
+LinkedHead(:) = 0
+DO i=1,SIZE(A,1)
+  !iCell = index of cell atom #i belongs to
+  Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
+  Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
+  Iz = MAX( CEILING(A(i,3)/Cell_L(3)) , 1 )
+  iCell = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
+  !PRINT*, "[ Atom #", i, " , Cell #", iCell, " ]"
+  !In the LinkedList of atom #i, save 
+  LinkedList(i) = LinkedHead(iCell)
+  !Make LinkedHead(iCell) point to current atom #i
+  LinkedHead(iCell) = i
+ENDDO
+WRITE(msg,*) 'Linked List finished.'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-!Construct the neighbor list for atoms
-!$OMP PARALLEL DO DEFAULT(SHARED) &
-!$OMP& PRIVATE(i,iCell,j,k,n,distance,shift,Vfrac)
-DO i=1,SIZE(A,1)
-  !iCell = index of the cell atom #i belongs to
-  iCell = Atom_Cell(i)
+IF( verbosity==4 ) THEN
+  !debug: write LinkedHead into a file
+  OPEN(UNIT=56,FILE="atomsk_LinkedHead.txt",STATUS="UNKNOWN")
+  DO i=1,SIZE(LinkedHead)
+    WRITE(56,*) i, LinkedHead(i)
+  ENDDO
+  CLOSE(56)
+  !debug: write LinkedList into a file
+  OPEN(UNIT=56,FILE="atomsk_LinkedList.txt",STATUS="UNKNOWN")
+  DO i=1,SIZE(LinkedList)
+    WRITE(56,*) i, LinkedList(i)
+  ENDDO
+  CLOSE(56)
+ENDIF
+!
+PRINT*, "Constructing Atom Neighbour List ..."
+WRITE(msg,*) "Constructing Atom Neighbour List ..."
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!Using the previous linked list, construct actual neighbor list
+!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,iCell,Ix,Iy,Iz,j,k,n,shift,Vfrac,distance)
+DO i=1,SIZE(A,1)  !Loop on all atoms
+  !Atom #i belongs to cell #iCell
+  Ix = MAX( CEILING(A(i,1)/Cell_L(1)) , 1 )
+  Iy = MAX( CEILING(A(i,2)/Cell_L(2)) , 1 )
+  Iz = MAX( CEILING(A(i,3)/Cell_L(3)) , 1 )
+  iCell = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
+  !PRINT*, "[ Atom #", i, " , Cell #", iCell, " ]"
   !
-  !Parse atoms in cell #iCell and its neighbors
-  DO j=1,SIZE(Cell_Neigh,2)
-    !Parse atoms in cell #j (there are Cell_NP(j) atoms in it)
-    shiftvec(1:3) = DBLE(Cell_Neigh(iCell,j,2))*H(1,:)     &
-                  & + DBLE(Cell_Neigh(iCell,j,3))*H(2,:)   &
-                  & + DBLE(Cell_Neigh(iCell,j,4))*H(3,:)
-    !
-    DO k=1,Cell_NP(Cell_Neigh(iCell,j,1))
-      !Cell_Neigh(iCell,j,1) is the index of the j-th neighboring cell of cell #iCell
-      !n = actual index of the k-th atom in that cell
-      n = Cell_AtomID( Cell_Neigh(iCell,j,1) , k )
-      !Do not count atom #i as its own neighbor (i.e. n!=i)
-      IF( n>0 .AND. n<=SIZE(A,1) .AND. n.NE.i ) THEN
-        !Check if this atom was already counted as neighbor
-        IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
-          !Use the correct periodic image of that cell
-          !The position of the atom #n must be translated by Cell_Neigh(iCell,j,2:4) * (box vectors)
-          Vfrac(1,1:3) = A(n,1:3) + shiftvec(1:3)
-          !Compute distance between atom #i and the periodic image of atom #n
-          distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
-          IF( distance < R ) THEN
-            !$OMP CRITICAL
-            !Add atom #n as neighbor of atom #i
-            IF( .NOT. ANY(NeighList(i,:)==n) ) THEN
-              NNeigh(i) = NNeigh(i)+1
-              IF( NNeigh(i) <= SIZE(NeighList,2) ) THEN
-                NeighList(i,NNeigh(i)) = n
-              ENDIF
-            ENDIF
-            !
-            IF( .NOT. ANY(NeighList(n,:)==i) ) THEN
-              !Also add atom #i as neighbor of atom #n
-              NNeigh(n) = NNeigh(n)+1
-              IF( NNeigh(n) <= SIZE(NeighList,2) ) THEN
-                NeighList(n,NNeigh(n)) = i
-              ENDIF
-            ENDIF
-            !$OMP END CRITICAL
-          ENDIF
-          !
+  k=0
+  !n = index of current neighbouring cell
+  !Begin by searching for neighbours of atom #i in its own cell #iCell
+  n = iCell  !Cell_Neigh(iCell,k)
+  DO WHILE( k<SIZE(Cell_Neigh,2) .AND. n>0 )   !k=1,SIZE(Cell_Neigh,2) !Loop on all neighbouring cells
+    !Get translation vector for this neighbouring cell, accounting for PBC
+    Ix=0
+    Iy=0
+    Iz=0
+    IF( Cell_ijk(iCell,1)==1 ) THEN
+      IF( Cell_ijk(n,1)>Cell_ijk(iCell,1)+1 ) Ix=1
+    ELSEIF( Cell_ijk(iCell,1)==NcellsX(1) ) THEN
+      IF( Cell_ijk(n,1)<Cell_ijk(iCell,1)-1 ) Ix=-1
+    ENDIF
+    IF( Cell_ijk(iCell,2)==1 ) THEN
+      IF( Cell_ijk(n,2)>Cell_ijk(iCell,2)+1 ) Iy=1
+    ELSEIF( Cell_ijk(iCell,2)==NcellsX(2) ) THEN
+      IF( Cell_ijk(n,2)<Cell_ijk(iCell,2)-1 ) Iy=-1
+    ENDIF
+    IF( Cell_ijk(iCell,3)==1 ) THEN
+      IF( Cell_ijk(n,3)>Cell_ijk(iCell,3)+1 ) Iz=1
+    ELSEIF( Cell_ijk(iCell,3)==NcellsX(3) ) THEN
+      IF( Cell_ijk(n,3)<Cell_ijk(iCell,3)-1 ) Iz=-1
+    ENDIF
+    shift(:) = Ix*H(1,:) + Iy*H(2,:) + Iz*H(3,:)
+    ! Get first atom in cell
+    j = LinkedHead(n)
+    !Loop on all atoms in LinkedList, until we meet an index equal to 0
+    DO WHILE(j>0)
+      !PRINT*, "                Cell #", n, ":", j
+      !IF(j==0) EXIT
+      IF( j.NE.i .AND. .NOT.ANY(NeighList(i,:)==j) ) THEN
+        !Compute position of atom #j taking PBC into account
+        Vfrac(1,1:3) = A(j,1:3) + shift(:)
+        !Compute distance between atoms #i and #j
+        distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
+        IF ( distance <= R ) THEN
+          !PRINT*, "                     is neighbour"
+          !Atom #j is neighbour of atom #i
+          NNeigh(i) = Nneigh(i)+1
+          IF(NNeigh(i)<=SIZE(NeighList,2)) NeighList(i,NNeigh(i)) = j
+          !Atom #i is also neighbour of atom #j
+          NNeigh(j) = Nneigh(j)+1
+          IF(NNeigh(j)<=SIZE(NeighList,2)) NeighList(j,NNeigh(j)) = i
         ENDIF
       ENDIF
-      !
-    ENDDO  !k
+      j = LinkedList(j)
+    ENDDO  !j
     !
-  ENDDO  !j
-  !
+    !After parsing atoms in cell #iCell, parse atoms in neighbouring cells
+    k = k+1
+    !n = index of next neighbouring cell
+    n = Cell_Neigh(iCell,k)
+    !
+  ENDDO  !k
 ENDDO  !i
-!$OMP END PARALLEL DO
+!!!$OMP END PARALLEL DO
+WRITE(msg,*) "Atom Neighbour List COMPLETE ..."
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Free memory
 IF(ALLOCATED(Cell_NP)) DEALLOCATE(Cell_NP)
@@ -668,10 +720,25 @@ IF( ALLOCATED(NeighList) ) THEN
 ENDIF
 !
 IF( ALLOCATED(NeighList) ) THEN
-  WRITE(msg,*) 'Max. n. neighbors = ', SIZE(NeighList,2)
+  n = MAXVAL(Nneigh(:))
+  WRITE(msg,*) "Max. n. neighbors found = ", n
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  IF( n < SIZE(NeighList,2)-10 ) THEN
+    !Resize NeighList
+    WRITE(msg,*) "Resizing NeighList..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    n = MIN(n,SIZE(NeighList,2))
+    ALLOCATE( NLtemp( SIZE(NeighList,1) , n ) )
+    DO i=1,SIZE(NeighList,1)
+      NLtemp(i,:) = NeighList(i,1:n)
+    ENDDO
+    DEALLOCATE(NeighList)
+    ALLOCATE( NeighList( SIZE(NLtemp,1) , n ) )
+    NeighList(:,:) = NLtemp(:,:)
+    DEALLOCATE(NLtemp)
+  ENDIF
 ELSE
-  msg = 'NeighList UNALLOCATED'
+  msg = "NeighList UNALLOCATED"
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !
@@ -681,7 +748,7 @@ IF( verbosity==4 ) THEN
     OPEN(UNIT=51,FILE="atomsk_cellneighborlist.txt",STATUS="UNKNOWN",FORM="FORMATTED")
     DO i=1,SIZE(NeighList,1)
       WRITE(temp,*) i
-      msg = "#"//TRIM(ADJUSTL(temp))
+      msg = "[Atom #"//TRIM(ADJUSTL(temp))//"]"
       j=1
       DO WHILE( j<=SIZE(NeighList,2) .AND. NeighList(i,j)>0 )
         WRITE(temp,*) NeighList(i,j)
@@ -695,8 +762,9 @@ IF( verbosity==4 ) THEN
 ENDIF
 !
 IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
+IF(ALLOCATED(LinkedHead)) DEALLOCATE(LinkedHead)
 !
-msg = 'exiting CELL_LIST'
+msg = "exiting CELL_LIST"
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !

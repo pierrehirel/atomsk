@@ -40,15 +40,21 @@
   <li><strong>verbosity &#60;n&#62;</strong> : paramètre le niveau de verbosité à &#60;n&#62; ; identique à l'option <a href="./progbe_verb.html"><code>-verbosity</code></a>.</li>
   
   <li><strong>lang &#60;langue&#62;</strong> : affiche les messages dans la &#60;langue&#62; donnée ; identique à l'option <a href="./progbe_lang.html"><code>-lang</code></a>;</li>
+  
+  <li><strong>colour &#60;valeur&#62;</strong>: si &#60;valeur&#62; vaut "YES" alors Atomsk affichera certains messages en couleur (non disponible sur les systèmes Microsoft&reg; Windows&reg;).</li>
+  
+  <li><strong>colour_default &#60;couleur&#62;</strong>: si l'option "colour" ci-dessus a été activée, alors la &#60;couleur&#62; donnée sera utilisée par défaut pour tous les messages. La &#60;couleur&#62; peut être "black" (noir), "red" (rouge), "green" (vert), "yellow" (jaune), "blue" (bleu), "magenta", "cyan", "grey" (gris), ou "white" (blanc). Des attributs peuvent être ajoutés, comme "bold" (gras), "italic" (italique), "underline" (souligné), et/ou "blink" (clignotant).</li>
+  
+  <li><strong>colour_warning &#60;couleur&#62;</strong>: si l'option "colour" ci-dessus a été activée, alors la &#60;couleur&#62; donnée sera utilisée par défaut pour les messages d'alerte (<em>warnings</em>).</li>
+  
+  <li><strong>colour_error &#60;couleur&#62;</strong>: si l'option "colour" ci-dessus a été activée, alors la &#60;couleur&#62; donnée sera utilisée par défaut pour les messages d'erreur.</li>
 </ul>
-
-<p>Ce fichier de configuration est chargé au tout début lors de l'exécution du programme, avant même que les paramètres de la ligne de commande ne soient interprétés. Les paramètres décrits dans ce fichier seront donc écrasés par les paramètres en ligne de commande.</p>
 
 
 
 <h4>Défaut</h4>
 
-<p>Lorsqu'aucun fichier de configuration n'existe il est simplement ignoré, et le programme s'exécute avec son <a href="./program_behaviour.html">comportement par défaut</a>.</p>
+<p>Par défaut, aucun format de sortie n'est actif. La langue est celle utilisée par le système d'exploitation, ou l'anglais par défaut. Atomsk n'ignore ni n'écrase pas les fichiers, il demande à l'utilisateur ce qu'il faut faire. Le nombre de processus est celui défini par la variable d'environnement OMP_NUM_THREADS, ou prend la valeur maximale par défaut. Les messages en couleur sont désactivés. Ces paramètres par défaut sont remplacés par ceux définis dans le fichier de configuration décrit sur cette page. Les valeurs de ce fichier sont ensuite écrasés par ceux entrés en ligne de commandes.</p>
 
 
 
@@ -67,6 +73,9 @@ ignore  yes<br/>
 <br/>
 # Toujours exécuter en mode silencieux<br/>
 verbosity   0<br/>
+# Activer les couleurs<br/>
+colour  yes<br/>
+colour_error  red bold blink<br/>
 </code></p></div>
 
 

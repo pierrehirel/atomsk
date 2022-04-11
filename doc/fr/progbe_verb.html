@@ -24,11 +24,11 @@
 <p>Ceci permet de changer le niveau de verbosité du programme. L'entier <code>&#60;n&#62;</code> peut prendre les valeurs suivantes :</p>
 
 <ul>
-  <li><strong>0</strong> : silencieux, aucun message n'est affiché à l'écran ni écrit dans un fichier (sauf les messages d'erreur).</li>
-  <li><strong>1</strong> : les messages sont affichés à l'écran seulement.</li>
-  <li><strong>2</strong> : Les messages sont écrits dans le fichier journal uniquement.</li>
-  <li><strong>3</strong> : les messages sont affichés à l'écran et écrits dans le fichier journal.</li>
-  <li><strong>4</strong> : niveau de déboguage, des messages supplémentaires sont écrits dans le fichier journal (mais pas à l'écran). Dans ce mode le programme peut être beaucoup plus lent, et le fichier journal peut être beaucoup plus volumineux. Ce mode ne devrait être utilisé que par des développeurs pour déboguer le programme, et seulement sur des systèmes comportant peu de particules.</li>
+  <li><strong>0</strong>&nbsp;: silencieux, aucun message n'est affiché à l'écran ni écrit dans un fichier, sauf les questions, alertes (<em>warnings</em>) et messages d'erreur.</li>
+  <li><strong>1</strong>&nbsp;: les messages sont affichés à l'écran seulement.</li>
+  <li><strong>2</strong>&nbsp;: les messages sont écrits dans le fichier journal uniquement. Les questions, alertes et erreurs apparaissent toujours à l'écran.</li>
+  <li><strong>3</strong>&nbsp;: les messages sont affichés à l'écran et écrits dans le fichier journal.</li>
+  <li><strong>4</strong>&nbsp;: niveau de déboguage, des messages supplémentaires sont écrits dans le fichier journal (mais pas à l'écran). Dans ce mode le programme peut être beaucoup plus lent, et le fichier journal peut être beaucoup plus volumineux. Ce mode ne devrait être utilisé que par des développeurs pour déboguer le programme, et seulement sur des systèmes comportant peu de particules.</li>
 </ul>
 
 <p>Par défaut le fichier journal est <code>atomsk.log</code> mais il est possible d'en <a href="./progbe_log.html">changer</a>.</p>
@@ -50,6 +50,12 @@
 <ul>
 <li><code class="command">atomsk initial.gin initial.cfg -v 3</code>
 <p>Avec ceci le programme affichera ses messages à l'écran et les écrira dans le fichier journal <code>atomsk.log</code>.</li>
+
+<li><code class="command">atomsk initial.gin initial.cfg -v 0</code>
+<p>Un niveau de verbosité égal à 0 signifie que Atomsk n'affichera aucun message à l'écran, sauf les questions, alertes et messages d'erreurs.</li>
+
+<li><code class="command">atomsk initial.gin initial.cfg -v 0 &amp;&#62;/dev/null</code>
+<p>Même chose que l'exemple précédent, mais tous les messages (y compris les questions, alertes et erreurs) seront envoyés à /dev/null, ce qui signifie qu'ils ne seront pas affichés du tout. Notez que les questions, bien que non affichées à l'écran, attendront toujours une réponse, elles mettront donc Atomsk en pause jusqu'à ce qu'une réponse soit fournie. Cette solution devrait donc être réservée aux cas où vous êtes sûr que Atomsk ne posera pas de question.</li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

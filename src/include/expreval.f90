@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 June 2019                                     *
+!* Last modification: P. Hirel - 07 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,6 +29,7 @@ MODULE exprev
 USE comv
 USE constants
 USE messages
+USE random
 !
 !
 CONTAINS
@@ -50,7 +51,7 @@ CHARACTER(LEN=*),INTENT(IN):: expr
 CHARACTER(LEN=4096):: string1, string2, temp
 INTEGER:: i1, i2  !start and end position of keyword
 INTEGER:: nr      !number of substitutions that were made
-REAL*8,INTENT(IN):: value
+REAL(dp),INTENT(IN):: value
 !
 nr = 0
 !
@@ -124,7 +125,7 @@ END SUBROUTINE STR_EXP2VAL
 !    before being evaluated again, leading to round-off
 !    errors that propagate. Also, in some places,
 !    values smaller than 10^-15 are rounded off to zero.
-!  - It is not optimal. Other fastest algorithms exist.
+!  - It is not optimal. Other faster algorithms exist.
 !  - It is not complete: all functions are not supported.
 !  - Only real numbers are supported (not complex numbers)
 !********************************************************
@@ -133,7 +134,7 @@ RECURSIVE SUBROUTINE EXPREVAL(string,value,recuri,status)
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(INOUT):: string
 CHARACTER(LEN=1):: ang  !is the angle in degrees or radians (default: radians)
-CHARACTER(LEN=5):: operators="+-*/:%"
+CHARACTER(LEN=7):: operators="+-*/:^%"
 CHARACTER(LEN=256):: prefix
 CHARACTER(LEN=4096):: string1, string2
 CHARACTER(LEN=4096):: temp, temp1, temp2, temp3
@@ -142,10 +143,11 @@ INTEGER:: ms  !position of minus sign
 INTEGER,INTENT(INOUT):: recuri  !depth of recursion
 INTEGER:: p1, p2  !position of opening and closing parenthesis
 INTEGER:: status
-REAL*8:: low_limit=1.d-15   !in trig.functions, values which are smaller than that
-                            !in absolute will be rounded off to zero
-REAL*8:: x, y, z  !to store numbers
-REAL*8,INTENT(OUT):: value
+REAL(dp),PARAMETER:: low_limit=1.d-15   !in trig.functions, values which are smaller than that
+                                        !in absolute will be rounded off to zero
+REAL(dp):: x, y, z  !to store numbers
+REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
+REAL(dp),INTENT(OUT):: value
 !
 !Initialize variables and empty strings
 prefix = ""
@@ -153,13 +155,19 @@ string1 = ""
 string2 = ""
 temp = ""
 ang="R"    !by default angles are in radians
-DO i=0,recuri
-  prefix = TRIM(prefix)//".."
-ENDDO
 p1 = 0
 p2 = 0
 !
+!If recursion is too large, exit with an error
+IF( recuri>100 ) THEN
+  status=recuri
+ENDIF
+
 IF( status>0 ) RETURN
+!
+DO i=0,recuri
+  prefix = TRIM(prefix)//".."
+ENDDO
 !
 IF(verbosity==4) PRINT*, TRIM(prefix)//"  NEW CALL TO EXPREVAL WITH INPUT STRING: ", TRIM(string)
 recuri = recuri+1
@@ -171,20 +179,27 @@ IF( LEN_TRIM(string)<=0 ) THEN
 ENDIF
 !
 !If user wrote things like "2pi", correct it into "2*pi"
-IF( INDEX(string,"pi")>1 ) THEN
-  i = INDEX(string,"pi")
-  IF( SCAN(string(i-1:i-1),"0123456789")>0 ) THEN
-    !pi is multiplied by a number
-    string = ADJUSTL(string(1:i-1))//"*"//TRIM(string(i:))
-  ELSEIF( string(i-1:i-1)=='-' ) THEN
-    !pi is multiplied by -1
-    string = ADJUSTL(string(1:i-2))//"-1.0*"//TRIM(string(i:))
-  ENDIF
+!Same with parenthesis, e.g. 2(3+1) is corrected into 2*(3+1)
+IF( INDEX(string,"pi")>1 .OR. INDEX(string,"(")>1 ) THEN
+  i=1
+  DO WHILE(i<LEN_TRIM(string))
+    i = i+1
+    IF( string(i:i+1)=="pi" .OR. string(i:i)=='(' ) THEN
+      IF( SCAN(string(i-1:i-1),"0123456789")>0 ) THEN
+        !pi is multiplied by a number
+        string = ADJUSTL(string(1:i-1))//"*"//TRIM(string(i:))
+      ELSEIF( string(i-1:i-1)=='-' ) THEN
+        !pi is multiplied by -1
+        string = ADJUSTL(string(1:i-2))//"-1.0*"//TRIM(string(i:))
+      ENDIF
+    ENDIF
+  ENDDO
 ENDIF
 !
 !First, try to read a number: if it succeeds, we are done
 IF( SCAN(string,operators)==0 .AND. SCAN(string,"+-",BACK=.TRUE.)<=1 ) THEN
   READ(string,*,END=100,ERR=100) value
+  IF( IS_INTEGER(value) ) value = DBLE(NINT(value))
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  NUMBER(1): ", TRIM(string)
   recuri = recuri-1
   RETURN
@@ -248,6 +263,11 @@ ELSE IF( INDEX(string,"**")>0 ) THEN
   !
 ELSE IF( string=="pi" ) THEN
   value = pi
+  !
+ELSE IF( string=="rand" .OR. string=="random" ) THEN
+  !generate a random number
+  CALL GEN_NRANDNUMBERS(1,randarray)
+  value = randarray(1)
   !
 !Replace functions by their value
 ELSE IF( INDEX(string,"sqrt(")>0 ) THEN
@@ -954,70 +974,6 @@ ELSE IF( INDEX(string,"log(")>0 ) THEN
   !Evaluate the resulting string
   CALL EXPREVAL(string,value,recuri,status)
   !
-ELSE IF( INDEX(string,"!")>0 ) THEN
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED FACTORIAL: ", TRIM(string)
-  !Save position of the exclamation mark
-  i = INDEX(string,"!")
-  !Save everything after exclamation mark into string2
-  string2 = TRIM(ADJUSTL(string(i+1:)))
-  !Save everything before exclamation mark into temp
-  temp = TRIM(ADJUSTL(string(1:i-1)))
-  !Check if exclamation mark is located after a closing parenthesis
-  IF( string(i-1:i-1)==')' ) THEN
-    !Yes it is: keep into temp only what is before the closing parenthesis
-    temp = string(1:i-2)
-    !Search for matching opening parenthesis
-    m=0
-    i=p1
-    j=1
-    DO WHILE(m==0 .AND. i>0)
-      i=i-1
-      IF( string(i:i)=="(" ) THEN
-        j=j-1
-      ELSEIF( string(i:i)==")" ) THEN
-        j=j+1
-      ENDIF
-      IF( j==0 ) THEN
-        !i is the position of the matching opening parenthesis
-        p2=i
-        m=1
-        EXIT
-      ENDIF
-    ENDDO
-    IF( i<1 ) p2=1
-    temp1 = string(p2+1:i-2)
-    IF(verbosity==4) PRINT*, "          ", TRIM(temp1)
-  ELSE
-    !There is no closing parenthesis
-    !Search for nearest operator before the exclamation mark
-    j = SCAN(temp,"+-*:/(",BACK=.TRUE.)
-    p1 = j
-    IF( j>0 ) THEN
-      temp1 = temp(j+1:)
-    ELSE
-      temp1 = TRIM(temp)
-    ENDIF
-  ENDIF
-  !Interpret the expression that is before the exclamation mark, save result in x
-  CALL EXPREVAL(temp1,x,recuri,status)
-  !Perform the calculation of the factorial
-  IF( NINT(x)<0 ) THEN
-    IF(verbosity==4) PRINT*, "X ! X ERROR: cannot compute factorial of negative number"
-    status=1
-    GOTO 900
-  ENDIF
-  value = 1.d0
-  DO i=1,NINT(x)
-    value = value * DBLE(i)
-  ENDDO
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//"! = ", value
-  !Write the result into temp
-  WRITE(temp,*) value
-  !Re-write the string by concatenating string1, temp, and string2
-  string = TRIM(string(1:p1))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-  !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
-  !
 !If it is not a function but there is a parenthesis, interpret the parenthesis
 ELSE IF( p1>0 ) THEN
   !An opening parenthesis was detected at the beginning of this routine
@@ -1046,7 +1002,7 @@ ELSE IF( p1>0 ) THEN
   ENDDO
   !Save everything after closing parenthesis into string2
   string2 = TRIM(ADJUSTL(string(p2+1:)))
-  !Check if this parenthesis has an exponent
+  !Check if this parenthesis has an exponent or factorial attached after it
   IF( string2(1:1)=="^" ) THEN
     temp1 = string(p1+1:p2-1)
     !Get exponent
@@ -1054,7 +1010,7 @@ ELSE IF( p1>0 ) THEN
     j = SCAN(string2(2:),"-")+1
     temp = string(p1+1:p2+i-1)
     IF( i>0 ) THEN
-      temp2 = string2(2:i-1)
+      temp2 = TRIM(string2(2:i-1))
       string2 = TRIM(ADJUSTL(string2(i:)))
     ELSE IF( j>1 ) THEN
       temp2 = string2(2:i-1)
@@ -1070,15 +1026,32 @@ ELSE IF( p1>0 ) THEN
     !Evaluate exponent
     CALL EXPREVAL(temp2,y,recuri,status)
     value = x**y
+    IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//&
+                   & ") ^ "//TRIM(ADJUSTL(temp2))//"  = ", value
+  ELSEIF( string2(1:1)=="!" ) THEN
+    temp1 = string(p1+1:p2-1)
+    temp = string(p1:p2+1)
+    string2 = TRIM(ADJUSTL(string2(2:)))
+    IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED PARENTHESIS w/ FACTORIAL: ", TRIM(temp)
+    !Evaluate expression inside parenthesis
+    CALL EXPREVAL(temp1,x,recuri,status)
+    !Evaluate factorial
+    value = 1.d0
+    DO i=1,NINT(x)
+      value = value * DBLE(i)
+    ENDDO
+    IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//&
+                   & ")! = ", value
   ELSE
     temp = string(p1+1:p2-1)
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED PARENTHESIS: ", TRIM(temp)
     !Evaluate expression inside parenthesis
     CALL EXPREVAL(temp,value,recuri,status)
+    IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//&
+                   & ") = ", value
   ENDIF
   !Write the result into temp
   WRITE(temp,*) value
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//") ^ "//TRIM(ADJUSTL(temp2))//"  = ", value
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
@@ -1265,6 +1238,75 @@ ELSE IF( SCAN(string,"^")>0 ) THEN
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   CALL EXPREVAL(string,value,recuri,status)
   !
+ELSE IF( INDEX(string,"!")>0 ) THEN
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED FACTORIAL: ", TRIM(string)
+  i = SCAN(string,"!")
+  p1 = i
+  string1 = ""
+  !Save everything after exclamation mark into string2
+  string2 = TRIM(ADJUSTL(string(i+1:)))
+  !Save everything before exclamation mark into temp
+  temp = TRIM(ADJUSTL(string(1:i-1)))
+  temp1 = temp
+  !Check if exclamation mark is located after a closing parenthesis
+  IF( string(i-1:i-1)==')' ) THEN
+    !Yes it is: keep into temp only what is before the closing parenthesis
+    temp = string(1:i-2)
+    !Search for matching opening parenthesis
+    m=0
+    i=p1
+    j=1
+    DO WHILE(m==0 .AND. i>0)
+      i=i-1
+      IF( string(i:i)=="(" ) THEN
+        j=j-1
+      ELSEIF( string(i:i)==")" ) THEN
+        j=j+1
+      ENDIF
+      IF( j==0 ) THEN
+        !i is the position of the matching opening parenthesis
+        p1=i
+        m=1
+        EXIT
+      ENDIF
+    ENDDO
+    IF( i<=1 ) p2=1
+    temp1 = string(p2+1:p1-2)
+    string1 = TRIM(ADJUSTL(string(1:p1-2)))
+    IF(verbosity==4) PRINT*, "          ", TRIM(temp1)
+  ELSE
+    !There is no closing parenthesis
+    !Search for nearest operator before the exclamation mark
+    j = SCAN(temp,"+-*:/(",BACK=.TRUE.)
+    p1 = j
+    IF( j>0 ) THEN
+      temp1 = temp(j+1:)
+      string1 = TRIM(ADJUSTL(string(1:j-1)))
+      temp = ""
+    ELSE
+      temp1 = TRIM(temp)
+    ENDIF
+  ENDIF
+  !Interpret the expression that is before the exclamation mark, save result in x
+  CALL EXPREVAL(temp1,x,recuri,status)
+  !Perform the calculation of the factorial
+  IF( NINT(x)<0 ) THEN
+    IF(verbosity==4) PRINT*, "X ! X ERROR: cannot compute factorial of negative number"
+    status=1
+    GOTO 900
+  ENDIF
+  value = 1.d0
+  DO i=1,NINT(x)
+    value = value * DBLE(i)
+  ENDDO
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//"! = ", value
+  !Write the result into temp
+  WRITE(temp,*) value
+  !Re-write the string by concatenating string1, temp, and string2
+  string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
+  !Evaluate the resulting string
+  CALL EXPREVAL(string,value,recuri,status)
+  !
 !Replace products by their value
 ELSE IF( SCAN(string,"*")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED MULTIPLICATION: ", TRIM(string)
@@ -1362,7 +1404,7 @@ ELSE IF( SCAN(string,"+")>0 ) THEN
   ENDIF
   !
   !
-!Replace sums by their value
+!Replace subtractions by their value
 ELSE IF( ms>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED SUBTRACTION: ", TRIM(string)
   temp1 = string(:ms-1)

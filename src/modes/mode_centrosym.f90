@@ -21,7 +21,7 @@ MODULE mode_centrosym
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2021                                     *
+!* Last modification: P. Hirel - 24 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,6 +58,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=*),INTENT(IN):: prefix
 !
+CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of output file formats
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, newAUXNAMES !names of auxiliary properties
@@ -80,6 +81,7 @@ REAL(dp),DIMENSION(3,3):: H       !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system (mode create)
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: pairs_distances  !distances
+REAL(dp),DIMENSION(:),ALLOCATABLE:: three_angles     !angles
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries    !array containing result
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, newAUX !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S     !positions of atoms, shells
@@ -264,60 +266,71 @@ WRITE(msg,*) "Most common number of neighbors: ", Mdefault
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !$OMP PARALLEL DO DEFAULT(SHARED) &
-!$OMP& PRIVATE(i,j,k,ipairs,Nneigh,sum_dj,PosList,newindex,pairs,pairs_distances,Dmin,ktemp,distance,msg,temp)
+!$OMP& PRIVATE(i,j,k,ktemp,ipairs,Nneigh,sum_dj,PosList,newindex) &
+!$OMP& PRIVATE(pairs,pairs_distances,three_angles,dmin,distance,msg,temp)
 DO i=1,SIZE(P,1)
   !i is the index of the central atom
   !Initialize variables and arrays for atom #i
   ipairs = 0
+  ktemp = 0
   Nneigh = 0
   sum_dj = 0.d0
+  IF(ALLOCATED(pairs)) DEALLOCATE(pairs)
+  IF(ALLOCATED(pairs_distances)) DEALLOCATE(pairs_distances)
+  IF(ALLOCATED(three_angles)) DEALLOCATE(three_angles)
   !
   !Get the positions of neighbors of atom #i
   CALL NEIGHBOR_POS(H,P,P(i,1:3),NeighList(i,:),ALLOCATED(NeighList),8.d0,PosList)
   !
-  !Sort neighbors by increasing distance
-  CALL BUBBLESORT(PosList(:,:),4,'up  ',newindex)
-  !
-  !Select which neighbors to keep: that depends on the type of compound
-  SELECT CASE(Nspecies)
-  CASE(1)
-    !Unary compound, e.g. fcc metal (Al, Cu, Ni...) or bcc metal (Fe, W...)
-    !=> follow the recipe of Kelchner et al.
-    !keep only neighbors j that are approx. at the same distance as the eight first neighbors
-    Nneigh = 0
-    DO j=1,MIN(Nmax,SIZE(PosList,1))
-      IF( PosList(j,4) < 1.3d0*SUM(PosList(1:8,4))/8.d0 ) THEN
-        Nneigh = Nneigh+1
-        sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
-      ELSE
-        !This neighbor is too far => remove it from list of neighbors
-        PosList(j,:) = 0.d0
-      ENDIF
-    ENDDO
+  IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
+    !Sort neighbors by increasing distance
+    CALL BUBBLESORT(PosList(:,:),4,'up  ',newindex)
     !
-  CASE(2,3)
-    !Complex compound of formula AxByCz, e.g. NaCl, Al2O3, Ni3Al, SrTiO3, etc.
-    !=> Consider only neighbors of same species as first neighbor
-    Nneigh = 0
-    DO j=1,MIN(Nmax,SIZE(PosList,1))  !Loop on all neighbors
-      !NINT(PosList(j,5)) is the actual index of atom
-      IF( NINT(P(NINT(PosList(j,5)),4))==NINT(P(NINT(PosList(1,5)),4)) ) THEN
-        !This neighbor's species is the same as the first neighbor
-        IF( PosList(j,4) < 1.3d0*SUM(PosList(1:8,4))/8.d0 ) THEN
-          !This neighbor's distance is similar to that of the eight first neighbors
+    !Select which neighbors to keep: that depends on the type of compound
+    SELECT CASE(Nspecies)
+    CASE(1)
+      !Unary compound, e.g. fcc metal (Al, Cu, Ni...) or bcc metal (Fe, W...)
+      !=> follow the recipe of Kelchner et al.
+      !keep only neighbors j that are approx. at the same distance as the 3 first neighbors
+      Nneigh = 0
+      DO j=1,MIN(Nmax,SIZE(PosList,1))
+        IF( PosList(j,4) < 1.3d0*SUM(PosList(1:3,4))/3.d0 ) THEN
           Nneigh = Nneigh+1
           sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
         ELSE
           !This neighbor is too far => remove it from list of neighbors
           PosList(j,:) = 0.d0
         ENDIF
-      ELSE
-        !This neighbor's species is different from the first neighbor
-        !=> remove it from list of neighbors
-        PosList(j,:) = 0.d0
-      ENDIF
-    ENDDO
-    !Make the PosList more compact by removing zeros
+      ENDDO
+      !
+    CASE(2,3)
+      !Complex compound of formula AxByCz, e.g. NaCl, Al2O3, Ni3Al, SrTiO3, etc.
+      !=> Consider only neighbors of same species as first neighbor
+      Nneigh = 0
+      DO j=1,MIN(Nmax,SIZE(PosList,1))  !Loop on all neighbors
+        !NINT(PosList(j,5)) is the actual index of atom
+        IF( NINT(P(NINT(PosList(j,5)),4))==NINT(P(NINT(PosList(1,5)),4)) ) THEN
+          !This neighbor's species is the same as the 3 first neighbor
+          !keep only neighbors j that are approx. at the same distance as the 3 first neighbors
+          IF( PosList(j,4) < 1.3d0*SUM(PosList(1:3,4))/3.d0 ) THEN
+            Nneigh = Nneigh+1
+            sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
+          ELSE
+            !This neighbor is too far => remove it from list of neighbors
+            PosList(j,:) = 0.d0
+          ENDIF
+        ELSE
+          !This neighbor's species is different from the first neighbor
+          !=> remove it from list of neighbors
+          PosList(j,:) = 0.d0
+        ENDIF
+      ENDDO
+      !
+    CASE DEFAULT
+      !Even more complex compound!!
+    END SELECT
+    !
+    !Make the PosList more compact by removing intermediate zeros
     DO j=2,SIZE(PosList,1)
       IF( NINT(PosList(j,5))==0 ) THEN
         DO k=j,SIZE(PosList,1)-1
@@ -326,121 +339,155 @@ DO i=1,SIZE(P,1)
       ENDIF
     ENDDO
     !
-  CASE DEFAULT
-    !Even more complex compound!!
-  END SELECT
-  !
-  !
-  !We must make pairs of atoms => Nneigh has to be an even number
-  IF( MOD(Nneigh,2) .NE. 0 ) THEN
-    Nneigh = Nneigh-1
-  ENDIF
-  !IF( Nneigh.NE.Mdefault ) THEN
-  !  PRINT*, "Atom # ", i, " has ", Nneigh, "neighbors:" !, (NeighList(i,j),j=1,Nneigh)
-  !ENDIF
-  !
-  IF( verbosity==4 ) THEN
-    !Some debug messages
-    WRITE(msg,*) i
-    WRITE(temp,*) Nneigh
-    WRITE(msg,*) "Number of neighbors of atom # "//TRIM(ADJUSTL(msg))//": "//TRIM(ADJUSTL(temp))
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    WRITE(msg,*) "   j |      x        y        z    |     d_ij    at.number"
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO j=1,MIN(20,Nneigh)
-      WRITE(msg,'(i5,a3,3f9.3,a3,2f9.3)') j, " | ", PosList(j,1:3), " | ", PosList(j,4), P(NINT(PosList(j,5)),4)
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    ENDDO
-    IF( j>=20 ) THEN
-      WRITE(msg,*) '      (...discontinued...)'
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !We must make pairs of atoms => Nneigh has to be an even number
+    IF( MOD(Nneigh,2) .NE. 0 ) THEN
+      Nneigh = Nneigh-1
     ENDIF
-  ENDIF
-  !
-  IF( Nneigh >= 2 ) THEN
-    !Atom #i has many neighbors, we can work with that
-    !
-    !We will need a table containing pairs of atoms
-    ALLOCATE( pairs(Nneigh/2,2) )
-    pairs(:,:) = 0
-    ALLOCATE( pairs_distances(Nneigh/2) )
-    pairs_distances(:) = 0.d0
-    !
-    !Find atoms j and k that are opposite
-    ipairs=0
-    DO j=1,MIN(Nneigh,Mdefault)
-      IF( .NOT. ANY(pairs(:,:)==j) ) THEN
-        !We have the first member of a new pair
-        ipairs = ipairs+1
-        pairs(ipairs,1) = j
-        !
-        !Among the remaining atoms, find the atom #k that minimizes D = |dj + dk|²
-        ! *AND* that is of the same species as atom #j
-        Dmin = 1.d12
-        ktemp = 0
-        DO k=j+1,MIN(Nneigh,Mdefault)
-          IF( NINT(PosList(k,4)) == NINT(PosList(j,4)) ) THEN
-            !Atom #k is of same species as atom #j
-            IF( .NOT. ANY(pairs(:,:)==k) ) THEN
-              !Atom #k was not paired with another atom yet
-              distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
-              IF( distance < Dmin ) THEN
-                Dmin = distance
-                ktemp = k
-              ENDIF
-            ENDIF
-          ELSE
-            !Species of atom #k is different from atom #j
-          ENDIF
-        ENDDO
-        !Now atom #ktemp is the best match to atom #j
-        IF( ktemp>0 ) THEN
-          pairs(ipairs,2) = ktemp
-          pairs_distances(ipairs) = Dmin
-        ELSE
-          !No suitable atom was found to pair atom #j => remove this entry
-          pairs(ipairs,:) = 0
-          ipairs = ipairs-1
-        ENDIF
-      ENDIF
-    ENDDO
+    !IF( Nneigh.NE.Mdefault ) THEN
+    !  PRINT*, "Atom # ", i, " has ", Nneigh, "neighbors:" !, (NeighList(i,j),j=1,Nneigh)
+    !ENDIF
     !
     IF( verbosity==4 ) THEN
+      !Some debug messages
+      CALL ATOMSPECIES(P(i,4),species)
       WRITE(msg,*) i
-      WRITE(msg,*) "Pairs of atoms around atom # "//TRIM(ADJUSTL(msg))//" :"
+      WRITE(temp,*) Nneigh
+      WRITE(msg,*) "Number of neighbors of atom # "//TRIM(ADJUSTL(msg))//&
+                & "("//TRIM(species)//"): "//TRIM(ADJUSTL(temp))
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      WRITE(msg,*) "   j    k      |dj+dk|² "
+      WRITE(msg,*) "   j |      x        y        z    |     d_ij    at.number"
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      DO j=1,SIZE(pairs,1)
-        WRITE(msg,'(2i5,f12.3)') pairs(j,1), pairs(j,2), pairs_distances(j)
+      DO j=1,MIN(20,Nneigh)
+        WRITE(msg,'(i5,a3,3f9.3,a3,2f9.3)') j, " | ", PosList(j,1:3), " | ", PosList(j,4), P(NINT(PosList(j,5)),4)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
+      IF( j>=20 ) THEN
+        WRITE(msg,*) '      (...discontinued...)'
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
     ENDIF
     !
-    !Compute the central symmetry parameter c of atom #i
-    AUX(i,c) = SUM(pairs_distances(:)) / (2.d0*sum_dj)
+    IF( Nneigh >= 2 ) THEN
+      !Atom #i has many neighbors, we can work with that
+      !
+      !We will need a table containing pairs of atoms
+      ALLOCATE( pairs(Nneigh/2,2) )
+      pairs(:,:) = 0
+      ALLOCATE( pairs_distances(Nneigh/2) )
+      pairs_distances(:) = 0.d0
+      !
+      !Find atoms j and k that are opposite
+      ipairs=0
+      DO j=1,MIN(Nneigh,Mdefault)
+        IF( .NOT. ANY(pairs(:,:)==j) ) THEN
+          !We have the first member of a new pair
+          ipairs = ipairs+1
+          pairs(ipairs,1) = j
+          !
+          !Among the remaining atoms, find the atom #k that minimizes D = |dj + dk|²
+          ! *AND* that is of the same species as atom #j
+          dmin = 1.d12
+          ktemp = 0
+          DO k=j+1,MIN(Nneigh,Mdefault)
+            IF( NINT(PosList(k,4)) == NINT(PosList(j,4)) ) THEN
+              !Atom #k is of same species as atom #j
+              IF( .NOT. ANY(pairs(:,:)==k) ) THEN
+                !Atom #k was not paired with another atom yet
+                distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
+                IF( distance < dmin ) THEN
+                  dmin = distance
+                  ktemp = k
+                ENDIF
+              ENDIF
+            ELSE
+              !Species of atom #k is different from atom #j
+            ENDIF
+          ENDDO
+          !Now atom #ktemp is the best match to atom #j
+          IF( ktemp>0 ) THEN
+            pairs(ipairs,2) = ktemp
+            pairs_distances(ipairs) = dmin
+          ELSE
+            !No suitable atom was found to pair atom #j => remove this entry
+            pairs(ipairs,:) = 0
+            ipairs = ipairs-1
+          ENDIF
+        ENDIF
+      ENDDO
+      !
+      IF( verbosity==4 ) THEN
+        WRITE(msg,*) i
+        WRITE(msg,*) "Pairs of atoms around atom # "//TRIM(ADJUSTL(msg))//" :"
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        WRITE(msg,*) "   j    k      |dj+dk|² "
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        DO j=1,SIZE(pairs,1)
+          WRITE(msg,'(2i5,f12.3)') pairs(j,1), pairs(j,2), pairs_distances(j)
+          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        ENDDO
+      ENDIF
+      !
+      !Compute the central symmetry parameter c of atom #i
+      AUX(i,c) = SUM(pairs_distances(:)) / (2.d0*sum_dj)
+      !
+      DEALLOCATE(pairs)
+      DEALLOCATE(pairs_distances)
+      !
+      !
+      !Check if atom #i has 4 neighbours: maybe it has a tetrahedral environment
+      !e.g. in silicon or diamond lattice, or in minerals containing SiO4 tetrahedra
+      !Actually do this calculation if Nneigh is 3, 4 or 5
+      IF( Nneigh>=3 .AND. Nneigh<=5 ) THEN
+        !Compute angles between pairs of neighbours, using atom #i as central atom
+        !In a perfect tetrahedron we expect 6 unique pairs, but here Nneigh may be 3, 4 or 5
+        !therefore there are  Nneigh*(Nneigh-1)/2  unique pairs
+        ipairs = Nneigh*(Nneigh-1)/2
+        ALLOCATE( three_angles(ipairs) )
+        three_angles(:) = 0.d0
+        ipairs=0
+        DO j=1,Nneigh-1
+          DO k=j+1,Nneigh
+            ipairs=ipairs+1
+            !Compute angle between position vectors r_ij and r_ik
+            dmin = ANGVEC( PosList(j,1:3)-P(i,1:3) , PosList(k,1:3)-P(i,1:3) )
+            !Compute the squared difference of cosine, save it into three_angles(:)
+            !NOTE: in a perfect tetrahedron the angle is a=acos(-1/3)=109.471°, hence -cos(a)=1/3
+            three_angles(ipairs) = ( DCOS(dmin) + 1.d0/3.d0 )**2
+          ENDDO
+        ENDDO
+        !Compute the sum of all angles and normalize
+        dmin = SUM(three_angles(:)) / SIZE(three_angles)
+        WRITE(msg,*) dmin
+        WRITE(msg,*) "Normalized sum of squared dihedral angles: "//TRIM(ADJUSTL(msg))
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        !If this criterion is smaller than centro-symmetry criterion, use it instead
+        IF( dmin<AUX(i,c) ) THEN
+          AUX(i,c) = dmin
+        ENDIF
+        DEALLOCATE(three_angles)
+      ENDIF
+      !
+      !
+    ELSEIF( Nneigh==1 ) THEN
+      !Atom #i has only one neighbor
+      AUX(i,c) = 1.d0
+    ELSE
+      !Isolated atom with no neighbor
+      AUX(i,c) = 0.d0
+    ENDIF
     !
+    WRITE(msg,*) i
+    WRITE(msg,*) "c("//TRIM(ADJUSTL(msg))//") = ", AUX(i,c)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
-  ELSEIF( Nneigh==1 ) THEN
-    !Atom #i has only one neighbor
-    AUX(i,c) = 1.d0
-  ELSE
-    !Isolated atom with no neighbor
-    AUX(i,c) = 0.d0
+    IF( AUX(i,c) > 1.d0 .OR. AUX(i,c)<0.d0 ) THEN
+      !Something went wrong in the calculation!
+      WRITE(*,*) "/!\ WARNING: auxiliary property out-of-bound for atom: ", i, AUX(i,c)
+      AUX(i,c) = 0.d0
+    ENDIF
+    !
   ENDIF
   !
-  IF(ALLOCATED(pairs)) DEALLOCATE(pairs)
-  IF(ALLOCATED(pairs_distances)) DEALLOCATE(pairs_distances)
-  !
-  WRITE(msg,*) i
-  WRITE(msg,*) "c("//TRIM(ADJUSTL(msg))//") = ", AUX(i,c)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  !
-  IF( AUX(i,c) > 1.d0 .OR. AUX(i,c)<0.d0 ) THEN
-    !Something went wrong in the calculation!
-    WRITE(*,*) "/!\ WARNING: auxiliary property out-of-bound for atom: ", i, AUX(i,c)
-    AUX(i,c) = 0.d0
-  ENDIF
 ENDDO
 !$OMP END PARALLEL DO
 !
@@ -464,6 +511,7 @@ GOTO 1000
 1000 CONTINUE
 IF( ALLOCATED(pairs) ) DEALLOCATE(pairs)
 IF( ALLOCATED(pairs_distances) ) DEALLOCATE(pairs_distances)
+IF( ALLOCATED(three_angles) ) DEALLOCATE(three_angles)
 !
 !
 END SUBROUTINE CENTRO_SYM

@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Feb. 2022                                     *
+!* Last modification: P. Hirel - 05 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,6 +26,7 @@ MODULE files
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
+!* FREEUNIT            returns an unused I/O UNIT number                          *
 !* CHECHFILE           checks if a file exists and behaves accordingly            *
 !* SET_OUTPUT          sets one or all output to TRUE or FALSE                    *
 !* FIND_INOUT          among 2files, determine which will be input or output      *
@@ -41,6 +42,37 @@ IMPLICIT NONE
 !
 !
 CONTAINS
+!
+!
+!********************************************************
+!  FREEUNIT
+!  This function returns a number (between 11 and 99)
+!  corresponding to a I/O UNIT that is not used.
+!  This number can then safely be used in an OPEN
+!  statement, e.g.:
+!  OPEN(UNIT=FREEUNIT(),FORM="FORMATTED",STATUS="UNKNOWN")
+!********************************************************
+FUNCTION FREEUNIT() RESULT(iunit)
+!
+IMPLICIT NONE
+INTEGER:: i
+INTEGER:: iunit
+LOGICAL:: isopen
+!
+iunit = 0
+!
+i=10
+DO WHILE( i<99 .AND. iunit==0 )
+  !
+  i=i+1
+  INQUIRE (UNIT=i,OPENED=isopen)
+  !
+  IF ( .NOT. isopen ) THEN
+    iunit = i
+  ENDIF
+ENDDO
+!
+END FUNCTION FREEUNIT
 !
 !
 !********************************************************

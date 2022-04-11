@@ -24,10 +24,10 @@
 <p>This allows you to change the level of verbosity of the program. The integer <code>&#60;n&#62;</code> can be set up as:</p>
 
 <ul>
-  <li><strong>0</strong>: silent, no message is ever displayed nor written in log file (errors and warnings still appear on screen);</li>
-  <li><strong>1</strong>: all messages are written on the screen only;</li>
-  <li><strong>2</strong>: all messages are written in log file only;</li>
-  <li><strong>3</strong>: messages are written in log file and on screen;</li>
+  <li><strong>0</strong>: silent, no message is ever displayed nor written in log file. Errors, warnings and questions still appear on screen.</li>
+  <li><strong>1</strong>: all messages are written on the screen only.</li>
+  <li><strong>2</strong>: all messages are written in log file only. Questions, warnings and errors still appear on screen.</li>
+  <li><strong>3</strong>: messages are written in log file and on screen.</li>
   <li><strong>4</strong>: debug, some additional messages are written in log file (but not on screen). Beware that in this mode, the program can be much slower, and the log file can be much bigger. This mode should be used only by developers for debugging purposes, and only with systems with a small number of particles.</li>
 </ul>
 
@@ -50,6 +50,12 @@
 <ul>
 <li><code class="command">atomsk initial.gin initial.cfg -v 3</code>
 <p>This will write messages both on screen and in the log file <code>atomsk.log</code>.</li>
+
+<li><code class="command">atomsk initial.gin initial.cfg -v 0</code>
+<p>Verbosity level 0 means that Atomsk will not display any message on the screen, except questions, warnings and error messages.</li>
+
+<li><code class="command">atomsk initial.gin initial.cfg -v 0 &amp;&#62;/dev/null</code>
+<p>Same as previous example, but all messages (including questions, warnings and errors) will be sent to /dev/null, meaning that they won't be displayed at all. Note that questions, although not displayed, will still expect an answer, and therefore will pause the execution of Atomsk. This should be reserved for cases where you are sure that Atomsk will not ask any question.</li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

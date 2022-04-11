@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2020                                     *
+!* Last modification: P. Hirel - 06 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,6 +44,7 @@ MODULE math
 !* CONVMAT             converts conventional vectors into a matrix                *
 !* MATCONV             converts matrix into conventional vectors                  *
 !* VOLUME_PARA         computes the volume of a parallelepiped                    *
+!* DERIVATIVE          calculate the derivative of a function                     *
 !**********************************************************************************
 !
 !

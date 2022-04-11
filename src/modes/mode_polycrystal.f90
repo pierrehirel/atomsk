@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Feb. 2022                                     *
+!* Last modification: P. Hirel - 06 April 2022                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -36,10 +36,12 @@ MODULE mode_polycrystal
 USE atoms
 USE comv
 USE constants
+USE crystallography
 USE math
 USE messages
 USE neighbors
 USE files
+USE random
 USE subroutines
 USE readin
 USE options

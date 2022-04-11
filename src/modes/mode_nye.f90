@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2021                                     *
+!* Last modification: P. Hirel - 10 March 2022                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -195,7 +195,7 @@ ENDIF
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
 IF( firstref .OR. ucref ) THEN
   !Construct neighbor list for reference system
-  CALL VERLET_LIST(Hfirst,Pfirst,radius,NeighList1)
+  CALL NEIGHBOR_LIST(Hfirst,Pfirst,radius,NeighList1)
   IF( verbosity==4 ) THEN
     !Some debug messages
     WRITE(msg,*) "Size of neighbor list for SYSTEM 1: ", SIZE(NeighList1,1), SIZE(NeighList1,2)
@@ -215,7 +215,7 @@ IF( firstref .OR. ucref ) THEN
 ENDIF
 !
 !Construct neighbor list for studied system
-CALL VERLET_LIST(Hsecond,Psecond,radius,NeighList2)
+CALL NEIGHBOR_LIST(Hsecond,Psecond,radius,NeighList2)
 IF( verbosity==4 ) THEN
   WRITE(msg,*) "Size of neighbor list for SYSTEM 2: ", SIZE(NeighList2,1), SIZE(NeighList2,2)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -991,21 +991,27 @@ ENDDO
 !
 IF(nerr>0) GOTO 1000
 !
-!Write each component of G tensor into data file (projected in XY plane)
-CALL NAME_OUTFILE(prefix,msg,"     ")
-i = SCAN(msg,".",BACK=.TRUE.)
-IF(i==0) i=LEN_TRIM(msg)
-msg = TRIM(ADJUSTL(msg(1:i-1)))//"_G.dat"
-OPEN(UNIT=41,FILE=msg,STATUS="UNKNOWN",FORM="FORMATTED")
-WRITE(41,*) "# Lattice distortion tensor G computed with Atomsk"
-DO i=1,SIZE(G,1)
-  msg = ""
-  DO j=1,3
-    WRITE(msg,'(a,3(2X,g12.6))') TRIM(msg), (G(i,j,k),k=1,3)
+IF( verbosity==4 ) THEN
+  !DEBUG: Write each component of G tensor into data file (projected in XY plane)
+  !If user did not provide output file name or prefix, set a default one
+  msg = prefix
+  IF( LEN_TRIM(prefix)<=0 ) THEN
+    msg = filesecond
+    i = SCAN(msg,".",BACK=.TRUE.)
+    IF(i==0) i=LEN_TRIM(msg)
+  ENDIF
+  msg = TRIM(ADJUSTL(msg(1:i-1)))//"_G.dat"
+  OPEN(UNIT=41,FILE=msg,STATUS="UNKNOWN",FORM="FORMATTED")
+  WRITE(41,*) "# Lattice distortion tensor G computed with Atomsk"
+  DO i=1,SIZE(G,1)
+    msg = ""
+    DO j=1,3
+      WRITE(msg,'(a,3(2X,g12.6))') TRIM(msg), (G(i,j,k),k=1,3)
+    ENDDO
+    WRITE(41,*) Psecond(i,1), Psecond(i,2), "  "//TRIM(ADJUSTL(msg))
   ENDDO
-  WRITE(41,*) Psecond(i,1), Psecond(i,2), "  "//TRIM(ADJUSTL(msg))
-ENDDO
-CLOSE(41)
+  CLOSE(41)
+ENDIF
 !
 IF( verbosity==4 ) THEN
   !Write atom coordinates and per-atom matrix G into a CFG file for visualization
@@ -1487,8 +1493,21 @@ AUXNAMES(9)="Nye_33"
 ALLOCATE(comment(1))
  comment(1) = "# Per-atom Nye tensor computed by Atomsk"
 !
+msg = prefix
+!If user did not provide output file name or prefix, set a default one
+IF( LEN_TRIM(prefix)<=0 ) THEN
+  msg = filesecond
+  i = SCAN(msg,".",BACK=.TRUE.)
+  IF(i==0) i=LEN_TRIM(msg)
+  msg = TRIM(ADJUSTL(msg(1:i-1)))//"_Nye"
+  !In addition, if user did not specify an output format, use CFG by default
+  IF( .NOT.ALLOCATED(outfileformats) .OR. SIZE(outfileformats)==0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//".cfg"
+  ENDIF
+ENDIF
+!
 !CALL WRITE_AFF(prefix,outfileformats,Hfirst,Pfirst,S,comment,AUXNAMES,AUX)
-CALL WRITE_AFF(prefix,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
+CALL WRITE_AFF(msg,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
 !
 DEALLOCATE (Psecond, AUX, AUXNAMES)
 !

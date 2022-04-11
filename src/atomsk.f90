@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Sept. 2020                                    *
+!* Last modification: P. Hirel - 14 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -122,6 +122,7 @@ langBigYes = "Y"
 langyes = "y"
 langno = "n"
 logfile='atomsk.log'
+neighsearch = "auto"
 helpsection = 'general'
 mode='normal'  !By default run in normal mode, unless no parameter is given in command-line
 overw=.FALSE.  !By default, don't overwrite files

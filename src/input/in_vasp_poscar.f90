@@ -19,7 +19,7 @@ MODULE in_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 May 2021                                      *
+!* Last modification: P. Hirel - 05 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -132,6 +132,7 @@ WRITE(msg,*) "NP for each species: ", (NPi(j), j=1,k)
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Check if the next line contains "Selective dynamics"
+!(according to VASP documentation, only the first character is relevant)
 READ(30,'(a128)',ERR=410,END=410) test
 test = TRIM(ADJUSTL(test))
 IF( test(1:1)=="S" .OR. test(1:1)=="s" ) THEN
@@ -203,7 +204,7 @@ IF(seldyn) THEN
   AUXNAMES(2) = "fixy"
   AUXNAMES(3) = "fixz"
   ALLOCATE(AUX(NP,3))
-  AUX(:,:) = 0.d0
+  AUX(:,:) = 0.d0   !=by default atoms are not fixed
 ENDIF
 !
 !Read atomic coordinates
@@ -226,11 +227,14 @@ DO j=1,k
     P(NP+i,3) = P3
     !
     IF(seldyn) THEN
-      READ(test,*,END=400,ERR=400) P1, P2, P3, fixx, fixy, fixz
+      !Attempt to read "fix" flags; if it fails, ignore it
+      !"T" means that atom is mobile, "F" that it is fixed along given direction
+      READ(test,*,END=280,ERR=280) P1, P2, P3, fixx, fixy, fixz
       IF(fixx=="F") AUX(NP+i,1) = 1.d0
       IF(fixy=="F") AUX(NP+i,2) = 1.d0
       IF(fixz=="F") AUX(NP+i,3) = 1.d0
     ENDIF
+    280 CONTINUE
   ENDDO
   NP = NP+NPi(j)
 ENDDO

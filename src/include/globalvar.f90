@@ -42,15 +42,21 @@ CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" a
   CHARACTER(LEN=1),PARAMETER:: pathsep='\'     !path separator for Windows
   CHARACTER(LEN=3),PARAMETER:: system_ls='dir' !command to list current directory
   CHARACTER(LEN=16),PARAMETER:: pathnull='2>nul'  !redirection to NULL for Windows
+  LOGICAL:: colourtext=.FALSE.  !by default, don't colour text in Windows
 #else
   CHARACTER(LEN=1),PARAMETER:: pathsep='/'     !path separator for UNIX/Linux
   CHARACTER(LEN=3),PARAMETER:: system_ls='ls ' !command to list current directory
   CHARACTER(LEN=16),PARAMETER:: pathnull='2>/dev/null'  !redirection to NULL for UNIX/Linux
+  LOGICAL:: colourtext=.FALSE.   !by default, don't colour text in UNIX/Linux environments
 #endif
+CHARACTER(LEN=32):: colourdef="none"               !default colour for all messages
+CHARACTER(LEN=32):: colourerr="red bold blink"     !default colour for ERROR
+CHARACTER(LEN=32):: colourwarn="yellow bold blink" !default colour for WARNING
 !
 !**********************************
 !*  PROGRAM BEHAVIOR
 !**********************************
+CHARACTER(LEN=16):: neighsearch !algorithm for neighbor search (default: auto)
 CHARACTER(LEN=128):: logfile !name of logfile for the program
 LOGICAL:: overw, ignore      !automatically overwrite/ignore existing files?
 INTEGER:: verbosity          !level of verbosity of the program

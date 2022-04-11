@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 Dec. 2021                                     *
+!* Last modification: P. Hirel - 06 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,6 +41,7 @@ MODULE dislocation
 !
 USE comv
 USE constants
+USE crystallography
 USE messages
 USE files
 USE resize
@@ -1374,6 +1375,7 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
       ELSE
         !Try to read 3 real numbers
         IF( INDEX(msg,"box")>0 .OR. INDEX(msg,"BOX")>0 ) GOTO 802
+        IF( SCAN(msg,"0123456789")==0 ) GOTO 349
         READ(msg,*,END=349,ERR=349) V1, V2, V3
         u = u+1
       ENDIF
@@ -1416,6 +1418,7 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
       ELSE
         !Try to read 3 real numbers
         IF( INDEX(msg,"box")>0 .OR. INDEX(msg,"BOX")>0 ) GOTO 802
+        IF( SCAN(msg,"0123456789")==0 ) GOTO 354
         READ(msg,*,END=354,ERR=801) V1, V2, V3
         u = u+1
         disarraypos(r,u,1) = V1
@@ -1431,42 +1434,75 @@ ELSEIF( disloctype=="file" .OR. disloctype=="array" ) THEN
   CLOSE(35)
   !
   !Insert dislocations into the system
-  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,k,r,u,V1,V2,V3,pos,disp) REDUCTION(+:Ndisloc)
-  DO i=1,SIZE(P,1)
-    !Compute displacements of atom #i due to all dislocation segments
-    disp(:) = 0.d0
-    DO r=1,SIZE(disarrayb,1)
-      IF( i==1 .AND. verbosity==4 ) THEN
-        WRITE(msg,'(a14,i2,a8,3(f9.3,a3))') "Dislocation # ", r, ": b = [ ", &
-             & disarrayb(r,1), " , ", disarrayb(r,2), " , ", disarrayb(r,3), " ]."
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-        DO u=1,SIZE(disarraypos,2)
-          IF( NINT(disarraypos(r,u,1)).NE.-1000 .OR. NINT(disarraypos(r,u,2)).NE.-1001 &
-            & .OR. NINT(disarraypos(r,u,3)).NE.-1002 ) THEN
-            WRITE(msg,'(6X,3(f9.3,2X))') disarraypos(r,u,1:3)
-            CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-          ENDIF
-        ENDDO
-      ENDIF
-      !
-      !Compute position of center of this loop, save it in pos(:)
-      k = 0
-      pos(:) = 0.d0
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,k,n,r,u,V1,V2,V3,pos,disp) REDUCTION(+:Ndisloc)
+  !Loop on all dislocation loops
+  DO r=1,SIZE(disarrayb,1)
+    IF( verbosity==4 ) THEN
+      WRITE(msg,'(a14,i2,a8,3(f9.3,a3))') "Dislocation # ", r, ": b = [ ", &
+            & disarrayb(r,1), " , ", disarrayb(r,2), " , ", disarrayb(r,3), " ]."
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO u=1,SIZE(disarraypos,2)
-        IF( NINT(disarraypos(r,u,1))==-1000 .AND. NINT(disarraypos(r,u,2))==-1001 &
-          & .AND. NINT(disarraypos(r,u,3))==-1002 ) THEN
-          EXIT
-        ELSE
-          k = k+1
-          pos(1:3) = pos(1:3) + disarraypos(r,u,1:3)
+        IF( NINT(disarraypos(r,u,1)).NE.-1000 .OR. NINT(disarraypos(r,u,2)).NE.-1001 &
+          & .OR. NINT(disarraypos(r,u,3)).NE.-1002 ) THEN
+          WRITE(msg,'(6X,3(f9.3,2X))') disarraypos(r,u,1:3)
+          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
         ENDIF
       ENDDO
-      pos(1:3) = pos(1:3) / DBLE(k)
-      disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:) )
+    ENDIF
+    !
+    !Check if some points of the loop are out of the box
+    CALL COUNT_OUTBOX(H,disarraypos(r,:,1:3),u)
+    IF(u>0) THEN
+      !Some points of the loop are outside of the box => display a warning
+      IF( u>=SIZE(disarraypos(r,u,1:3),1) ) THEN
+        !ALL points are outside of the box => something is probably very wrong
+        CALL ATOMSK_MSG(2754,(/'all'/),(/0.d0/))
+      ELSE
+        !There are u points that are outside of the box
+        CALL ATOMSK_MSG(2754,(/'loop'/),(/DBLE(u)/))
+      ENDIF
+    ENDIF
+    !
+    !Check if initial and final points are not too close
+    n = SIZE(disarraypos,2)
+    IF( VECLENGTH( disarraypos(r,1,1:3) - disarraypos(r,n,1:3) ) < 1.d-3 ) THEN
+      disarraypos(r,n,1) = -1000.d0
+      disarraypos(r,n,2) = -1001.d0
+      disarraypos(r,n,3) = -1002.d0
+    ENDIF
+    !
+    !Compute position of center of this loop, save it in pos(:)
+    k = 0
+    pos(:) = 0.d0
+    DO u=1,SIZE(disarraypos,2)
+      IF( NINT(disarraypos(r,u,1))==-1000 .AND. NINT(disarraypos(r,u,2))==-1001 &
+        & .AND. NINT(disarraypos(r,u,3))==-1002 ) THEN
+        EXIT
+      ELSE
+        k = k+1
+        pos(1:3) = pos(1:3) + disarraypos(r,u,1:3)
+      ENDIF
     ENDDO
-    !Apply displacement to atom #i
-    P(i,1:3) = P(i,1:3) + disp(:)
-    IF(i==SIZE(P,1)) Ndisloc = Ndisloc + 1
+    pos(1:3) = pos(1:3) / DBLE(k)
+    !
+    !Loop on all atoms
+    DO i=1,SIZE(P,1)
+      !Compute displacements of atom #i due to current dislocation segments
+      disp(:) = 0.d0
+      disp(:) = disp(:) + LOOP_DISPLACEMENT( P(i,1:3) , disarrayb(r,:), 0.33d0, pos(1:3) , disarraypos(r,1:k,:) )
+      !Apply displacement to atom #i
+      P(i,1:3) = P(i,1:3) + disp(:)
+    ENDDO
+    !
+    !TO BE IMPLEMENTED: if Burgers vector is not in cut plane, duplicate atoms to fill the void
+    !Detect atoms above and below cut plane, duplicate them, translate them by b(:)
+    !DO i=1,SIZE(P,1)
+    
+    !ENDDO
+    !
+    !Increment dislocation counter
+    Ndisloc = Ndisloc + 1
+    !
   ENDDO
   !$OMP END PARALLEL DO
   !

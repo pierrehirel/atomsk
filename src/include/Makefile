@@ -4,12 +4,14 @@
 # Localization (l10n) modules: additional languages can be added here
 L10N=messages_FR.f90 messages_DE.f90
 
-SGE=comv.f90              \
+SGE=globalvar.f90         \
     constants.f90         \
     math.f90              \
+    random.f90            \
     functions.f90         \
     atoms.f90             \
     subroutines.f90       \
+    crystallography.f90   \
     sort.f90              \
     display_messages.f90  \
     messages_EN.f90       \

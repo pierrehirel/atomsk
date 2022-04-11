@@ -10,7 +10,7 @@ MODULE functions
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 Dec. 2018                                     *
+!* Last modification: P. Hirel - 06 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -33,9 +33,6 @@ MODULE functions
 !* CHARLONG2SHRT       convert a long file name to a shorter one                  *
 !* IS_INTEGER          determines if a real number is an integer                  *
 !* IS_REAL             determines if a string contains a number                   *
-!* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
-!* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
-!* ROTELAST            rotates a 9x9 matrix                                       *
 !**********************************************************************************
 !
 !
@@ -234,7 +231,7 @@ REAL(dp),INTENT(IN):: number
 !
 IS_INTEGER = .FALSE.
 !
-IF( DBLE(NINT(number)) - number < 1.d-12 ) THEN
+IF( DABS( DBLE(NINT(number)) - number ) < 1.d-15 ) THEN
   IS_INTEGER = .TRUE.
 ENDIF
 !
@@ -260,133 +257,6 @@ IS_REAL=.TRUE.
 100 CONTINUE
 !
 END FUNCTION IS_REAL
-!
-!
-!********************************************************
-!  ELASTINDEX
-!  This function converts the indices i and j into
-!  single index m.
-!********************************************************
-FUNCTION ELASTINDEX(i,j) RESULT(m)
-!
-IMPLICIT NONE
-INTEGER, INTENT(IN):: i, j
-INTEGER:: m
-!
-m = 0
-IF(i==j) THEN
-  m = i
-!
-ELSEIF(i==1) THEN
-  IF(j==2) THEN
-    m = 6
-  ELSEIF(j==3) THEN
-    m = 8
-  ENDIF
-!
-ELSEIF(i==2) THEN
-  IF(j==1) THEN
-    m = 9
-  ELSEIF(j==3) THEN
-    m = 4
-  ENDIF
-!
-ELSEIF(i==3) THEN
-  IF(j==1) THEN
-    m = 5
-  ELSEIF(j==2) THEN
-    m = 7
-  ENDIF
-ENDIF
-!
-END FUNCTION ELASTINDEX
-!
-!
-!********************************************************
-!  ELAST2INDEX
-!  This function converts the index i into indices m and n.
-!  This is for use by the function ROTELAST below.
-!********************************************************
-FUNCTION ELAST2INDEX(i) RESULT(mn)
-!
-IMPLICIT NONE
-INTEGER,INTENT(IN):: i
-INTEGER,DIMENSION(2):: mn !mn(1)=m and mn(2)=n
-!
-mn(:) = 0
-!
-SELECT CASE(i)
-!
-CASE(1,2,3)
-  mn(1) = i
-  mn(2) = i
-CASE(4)
-  mn(1) = 2
-  mn(2) = 3
-CASE(5)
-  mn(1) = 3
-  mn(2) = 1
-CASE(6)
-  mn(1) = 1
-  mn(2) = 2
-CASE(7)
-  mn(1) = 3
-  mn(2) = 2
-CASE(8)
-  mn(1) = 1
-  mn(2) = 3
-CASE(9)
-  mn(1) = 2
-  mn(2) = 1
-CASE DEFAULT
-  PRINT*, "Problem with elastindex"
-END SELECT
-!
-RETURN
-!
-END FUNCTION ELAST2INDEX
-!
-!
-!********************************************************
-!  ROTELAST
-!  This function applies a rotation defined by a
-!  3x3 matrix to a 9x9 tensor. Although this operation
-!  is general, it is intended to rotate the elastic tensor.
-!********************************************************
-FUNCTION ROTELAST(ELTENS,T) RESULT(newELTENS)
-!
-IMPLICIT NONE
-INTEGER:: i, j, k, l, m, n
-INTEGER,DIMENSION(2):: mn
-REAL(dp), DIMENSION(9,9):: ELTENS    !Elastic tensor before
-REAL(dp), DIMENSION(9,9):: newELTENS !Elastic tensor after
-REAL(dp), DIMENSION(3,3), INTENT(IN):: T  !Rotation matrix (3x3)
-REAL(dp), DIMENSION(9,9):: Q  !Rotation matrix (9x9)
-!
-!Initialize variables
-mn(:) = 0
-newELTENS(:,:) = 0.d0
-Q(:,:) = 0.d0
-!
-!Build the 9x9 rotation matrix ROT9
-DO i=1,9
-  mn = ELAST2INDEX(i)
-  m = mn(1)
-  n = mn(2)
-  DO j=1,9
-    mn = ELAST2INDEX(j)
-    k = mn(1)
-    l = mn(2)
-    Q(i,j) = T(k,m)*T(l,n)
-  ENDDO
-ENDDO
-!
-!Rotate the elastic tensor:  C' = tQ * C * Q
-newELTENS = MATMUL( TRANSPOSE(Q) , MATMUL(ELTENS,Q) )
-!
-RETURN
-!
-END FUNCTION ROTELAST
 !
 !
 !

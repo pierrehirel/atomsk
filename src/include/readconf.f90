@@ -12,7 +12,7 @@ MODULE readconf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2019                                     *
+!* Last modification: P. Hirel - 08 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,7 +46,7 @@ IMPLICIT NONE
 CHARACTER(LEN=5):: ext
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to write
 CHARACTER(LEN=128):: conffile, msg, temp
-INTEGER:: Nthreads
+INTEGER:: i, Nthreads
 !
 !
 Nthreads = 0
@@ -105,6 +105,36 @@ DO
       Nthreads=0
       CALL ATOMSK_MSG(751,(/conffile/),(/0.d0/))
 #endif
+    !
+    ELSEIF(temp(1:11)=='neighsearch' .OR. temp(1:16)=='neighbour_search' ) THEN
+      !if true, display some texts in colour
+      i = SCAN(temp," ")
+      READ(temp(i+1:),*,END=800,ERR=800) neighsearch
+    !
+    ELSEIF(temp(1:7)=='colour ') THEN
+      !if true, display some texts in colour
+      IF( LEN_TRIM(temp(7:))>0 ) THEN
+        READ(temp(7:),*,END=800,ERR=800) temp
+        CALL STR2BOOL(temp,colourtext)
+      ENDIF
+    !
+    ELSEIF(temp(1:14)=='colour_default') THEN
+      !change default text colour
+      IF( colourtext ) THEN
+        colourdef = TRIM(temp(15:))
+      ENDIF
+    !
+    ELSEIF(temp(1:14)=='colour_warning') THEN
+      !change warning text colour
+      IF( colourtext ) THEN
+        colourwarn = TRIM(temp(15:))
+      ENDIF
+    !
+    ELSEIF(temp(1:12)=='colour_error') THEN
+      !change error text colour
+      IF( colourtext ) THEN
+        colourerr = TRIM(temp(13:))
+      ENDIF
     !
     ELSE
       nwarn = nwarn+1

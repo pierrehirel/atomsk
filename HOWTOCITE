@@ -1,0 +1,20 @@
+If you use Atomsk in your work, the citation of the following article will be greatly appreciated:
+
+"Atomsk: A tool for manipulating and converting atomic data files"
+Pierre Hirel, Comput. Phys. Comm. 197 (2015) 212-219
+doi:10.1016/j.cpc.2015.07.012
+
+BibTeX entry:
+
+@article{Atomsk,
+title = "Atomsk: A tool for manipulating and converting atomic data files",
+journal = "Computer Physics Communications",
+volume = "197",
+number = "5",
+pages = "212-219",
+year = "2015",
+issn = "0010-4655",
+doi = "10.1016/j.cpc.2015.07.012",
+url = "https://www.sciencedirect.com/science/article/pii/S0010465515002817",
+author = "Pierre Hirel"
+}

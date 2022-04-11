@@ -13,7 +13,7 @@ MODULE dislocation_aniso
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 Sept. 2019                                    *
+!* Last modification: P. Hirel - 06 April 2022                                    *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* ANISO_DISP          applies anisotropic disp. of a disloc. to 1 atom           *
@@ -40,6 +40,7 @@ MODULE dislocation_aniso
 !
 USE comv
 USE constants
+USE crystallography
 USE messages
 USE files
 USE sorting

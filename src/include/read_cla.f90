@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 Dec. 2021                                     *
+!* Last modification: P. Hirel - 29 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -122,7 +122,11 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(5)
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--central-symmetry' .OR. clarg=="--cs") THEN
+  ELSEIF( clarg=='--local-symmetry' .OR. clarg=='--localsymmetry' .OR. &
+        & clarg=='--central-symmetry' .OR. clarg=='--centralsymmetry' .OR. &
+        & clarg=='--centro-symmetry' .OR.clarg=='--centrosymmetry' .OR. &
+        & clarg=='--symmetry' .OR. clarg=="--sym" .OR. clarg=="--cs" .OR. &
+        &  clarg=="--CS" .OR. clarg=="--ls" .OR. clarg=="--LS" ) THEN
     mode = 'cs'
     i=i+1
     READ(cla(i),'(a4096)',END=130,ERR=130) pfiles(3) !File containing atom positions
@@ -357,7 +361,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(5)
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--merge' .OR. clarg=='-M') THEN
+  ELSEIF(clarg=='--merge' .OR. clarg=='-M' .OR. clarg=="--stack") THEN
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(100))
     mode_param(:) = ''

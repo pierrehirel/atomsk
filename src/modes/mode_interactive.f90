@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 June 2020                                     *
+!* Last modification: P. Hirel - 07 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,9 +28,11 @@ MODULE mode_interactive
 !
 USE comv
 USE constants
+USE crystallography
 USE functions
 USE messages
 USE files
+USE random
 USE subroutines
 USE guess_form
 USE read_cla
@@ -147,7 +149,12 @@ CALL ATOMSK_MSG(4022,(/''/),(/0.d0/))
 !
 DO
   instruction = ""
+  command = ""
   nerr=0  !do not exit program upon errors
+  i = 0
+  j = 0
+  x=0.d0
+  IF(ALLOCATED(randarray)) DEALLOCATE(randarray)
   !
   !Get current working directory
   CALL getcwd(cwd)
@@ -175,8 +182,8 @@ DO
     IF(i>0) THEN
       instruction(i:i) = " "
     ENDIF
-    READ(instruction,*,END=400,ERR=400) command
-    command = ADJUSTL(command)
+    j = SCAN(instruction," ")
+    command = TRIM(ADJUSTL(instruction(1:j)))
     !
     IF( command(1:2)=="#!" ) THEN
       IF( SCAN(command,"atomsk")>0 ) THEN
@@ -204,25 +211,45 @@ DO
       !!!         COMMANDS FOR PROGRAM BEHAVIOR
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       CASE("ignore","ig")
-        ignore = .TRUE.
-      !
-      CASE("overwrite","ow")
-        overw = .TRUE.
-        !
-      CASE("language","lang")
-        READ(instruction,*,ERR=400,END=400) command, temp
-        IF(temp=="fr") THEN
-          lang = "fr"
-        ELSEIF(temp=="de") THEN
-          lang = "de"
+        IF( ignore ) THEN
+          WRITE(*,*) " ignore = FALSE"
+          ignore = .FALSE.
         ELSE
-          lang = "en"
+          WRITE(*,*) " ignore = TRUE"
+          ignore = .TRUE.
         ENDIF
       !
+      CASE("overwrite","ow")
+        IF( overw ) THEN
+          WRITE(*,*) " overw = FALSE"
+          overw = .FALSE.
+        ELSE
+          WRITE(*,*) " overw = TRUE"
+          overw = .TRUE.
+        ENDIF
+        !
+      CASE("language","lang")
+        j = SCAN(instruction," ")
+        temp = TRIM(instruction(j:))
+        IF( LEN_TRIM(temp)>0 ) THEN
+          IF(temp=="fr") THEN
+            lang = "fr"
+          ELSEIF(temp=="de") THEN
+            lang = "de"
+          ELSE
+            lang = "en"
+          ENDIF
+        ENDIF
+        WRITE(*,*) " language = "//TRIM(lang)
+      !
       CASE("verbosity","v")
-        READ(instruction,*,ERR=400,END=400) command, temp
-        READ(temp,*,ERR=400,END=400) i
-        verbosity=i
+        j = SCAN(instruction," ")
+        temp = TRIM(instruction(j:))
+        IF( LEN_TRIM(temp)>0 ) THEN
+          READ(temp,*,ERR=400,END=400) i
+          verbosity = MIN(4,ABS(i))
+        ENDIF
+        WRITE(*,'(a13,i1)') " verbosity = ", verbosity
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -321,6 +348,8 @@ DO
           ENDIF
         ENDIF
         !Wipe out everything from memory
+        nerr=0
+        nwarn=0
         WrittenToFile = .FALSE.
         H(:,:) = 0.d0
         ORIENT(:,:) = 0.d0
@@ -356,6 +385,12 @@ DO
       CASE("memory","mem")
         !Display some info about array sizes
         i=0
+        IF( ANY(H(:,:)>1.d-12) ) THEN
+          i=i+1
+          WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
+          WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
+          WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+        ENDIF
         IF( ALLOCATED(P) ) THEN
           i=i+1
           IF( ALLOCATED(S) ) THEN
@@ -420,12 +455,26 @@ DO
         CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
         WrittenToFile = .TRUE.
         !
-      CASE("box","H")
+      CASE("box","H","cell")
         !User wants to define an orthogonal box
-        READ(*,*,END=400,ERR=400) x, y, z
+        i = SCAN(instruction," ")
+        IF( LEN_TRIM(instruction(i+1:))>0 ) THEN
+          READ(instruction(i+1:),*,END=400,ERR=400) x, y, z
+        ELSE
+          WRITE(*,'(a14)',ADVANCE="NO") "     H(1,1) = "
+          READ(*,*,END=400,ERR=400) x
+          WRITE(*,'(a14)',ADVANCE="NO") "     H(2,2) = "
+          READ(*,*,END=400,ERR=400) y
+          WRITE(*,'(a14)',ADVANCE="NO") "     H(3,3) = "
+          READ(*,*,END=400,ERR=400) z
+        ENDIF
+        H(:,:) = 0.d0
         H(1,1) = x
         H(2,2) = y
         H(3,3) = z
+        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
+        WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
+        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
         !
       CASE("atom")
         !User adds an atom
@@ -744,6 +793,29 @@ DO
           &"electric-polarization", "interpolate","list","merge","nye","polycrystal","rdf","unwrap")
         CALL ATOMSK_MSG(4826,(/""/),(/0.d0/))
         !
+      CASE("random","rand")
+        !generate and display N random numbers between 0 and 1000
+        j=SCAN(instruction," ")
+        msg = TRIM(ADJUSTL(instruction(j+1:)))
+        IF( LEN_TRIM(msg)>0 ) THEN
+          READ(msg,*,ERR=400,END=400) a1
+          IF( a1<=0 ) a1=1
+        ELSE
+          a1 = 1
+        ENDIF
+        CALL GEN_NRANDNUMBERS(a1,randarray)
+        DO i=1,SIZE(randarray)
+          WRITE(*,'(a2,f12.9)',ADVANCE="NO") "  ", randarray(i)
+          IF(MOD(i,10)==0) WRITE(*,'(a1)',ADVANCE="YES") " "
+        ENDDO
+        WRITE(*,'(a1)',ADVANCE="YES") " "
+        !
+      CASE("colour","color")
+        !change default colour for text messages in terminal
+        j=SCAN(instruction," ")
+        msg = TRIM(ADJUSTL(instruction(j+1:)))
+        IF( LEN_TRIM(msg)>0 ) READ(msg,*,ERR=400,END=400) colourdef
+        !
       CASE("1337")
         WRITE(*,*) "U R 1337 :-)"
         !
@@ -860,6 +932,31 @@ DO
           DEALLOCATE(options_array)
           !System was changed: consider that modified version was not written to a file
           WrittenToFile = .FALSE.
+          !
+        ELSEIF( SCAN(instruction,"0123456789.+-*/^%")>0 .OR. INDEX(instruction,"pi")>0 &
+              & .OR. INDEX(instruction,"rand")>0 ) THEN
+          !Maybe it is a formula: try to interpret it
+          i=1
+          j=0
+          CALL EXPREVAL(instruction,x,i,j)
+          IF( j==0 ) THEN
+            !No error: display result
+            IF( IS_INTEGER(x) ) THEN
+              !It is an integer, or close to it: display an integer
+              WRITE(msg,*) NINT(x)
+            ELSE
+              !It is a real number
+              IF( x>=1000.d0 ) THEN
+                WRITE(msg,*) x
+              ELSE
+                WRITE(msg,'(f21.12)') x
+              ENDIF
+            ENDIF
+            WRITE(*,*) "          "//TRIM(ADJUSTL(msg))
+          ELSE
+            !Unable to interpret: maybe it wasn't a formula, but an unknown command
+            CALL ATOMSK_MSG(808,(/instruction/),(/0.d0/))
+          ENDIF
           !
         ELSE
           !Unknown command

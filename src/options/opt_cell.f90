@@ -13,7 +13,7 @@ MODULE cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 July 2020                                     *
+!* Last modification: P. Hirel - 01 March 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,6 +47,7 @@ IMPLICIT NONE
 CHARACTER(LEN=5),INTENT(IN):: celldir  !direction in which the cell is modified: x,y,z,xy,yx,xz,zx,yz,zy,xyz,all
 CHARACTER(LEN=5),INTENT(IN):: cellop   !operation to perform on the cell: add,rm,set,auto (or "rebox")
 CHARACTER(LEN=128):: msg
+LOGICAL:: checkzero !check for zero cell length?
 INTEGER:: a1, a2, a3
 INTEGER:: i
 INTEGER:: Nmodified  !number of box vectors that were modified
@@ -61,6 +62,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P  !positions of atoms (not mod
 !
 !
 !Initialize variables
+checkzero=.FALSE.
 i = 0
 a1 = 0
 a2 = 0
@@ -77,31 +79,28 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 CALL ATOMSK_MSG(2151,(/cellop,celldir/),(/celllength/))
 !
-!Verify that celllength is not zero
-IF( celllength==0.d0 ) THEN
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(2765,(/""/),(/0.d0/))
-  GOTO 1000
-ENDIF
-!
 !Set direction(s) to modify
 SELECT CASE(celldir)
 CASE("H1",'x','X')
+  checkzero=.TRUE.
   Hmodified(1) = 1
   Hmodified(2) = 0
   Hmodified(3) = 0
   cartvec(1) = 1.d0
 CASE("H2",'y','Y')
+  checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 1
   Hmodified(3) = 0
   cartvec(2) = 1.d0
 CASE("H3",'z','Z')
+  checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 0
   Hmodified(3) = 1
   cartvec(3) = 1.d0
 CASE("xyz","XYZ","all","ALL")
+  checkzero=.TRUE.
   Hmodified(1) = 1
   Hmodified(2) = 1
   Hmodified(3) = 1
@@ -126,6 +125,15 @@ CASE("zy","ZY")
 CASE DEFAULT
   Hmodified(:) = 0
 END SELECT
+!
+IF( checkzero ) THEN
+  !Verify that celllength is not zero
+  IF( celllength==0.d0 ) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2765,(/""/),(/0.d0/))
+    GOTO 1000
+  ENDIF
+ENDIF
 !
 !Set dH according to operation to perform (add or rm)
 IF( cellop=="add" .OR. cellop=="ADD" ) THEN

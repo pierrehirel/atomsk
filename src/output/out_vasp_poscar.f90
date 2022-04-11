@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 05 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -138,7 +138,7 @@ IF(.NOT.contiguous) THEN
   CALL PACKSORT(Q,4,newindex)
   Ppoint=>Q
   !
-  IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)>0 ) THEN
+  IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)>0 .AND. (fixx>0 .OR. fixy>0 .OR. fixz>0) ) THEN
     !Save which atoms are fixed in AUX2
     ALLOCATE( AUX2( SIZE(AUX,1) , 3 ) )
     AUX2(:,1) = Q(:,5)
