@@ -4,24 +4,27 @@ MODULE guess_form
 !*  GUESS_FORM                                                                    *
 !**********************************************************************************
 !* This module tries to determine the format of a file.                           *
-!* If the file has an extension then the file format will be determined           *
-!* from the extension *and* from the file content.                                *
-!* If the file has no extension then the file format will be determined           *
-!* only from the file content.                                                    *
+!* List of supported formats: see flist in "globalvar.f90".                       *
 !* The purpose of this module is to recognize the format of a file                *
 !* EVEN IF IT HAS NO EXTENSION, OR IF ITS EXTENSION IS ERRONEOUS.                 *
 !* (e.g. a CFG file with extension ".xyz").                                       *
-!* For that purpose, if the file exists then its content is ALWAYS parsed         *
-!* and searched for specific keywords.                                            *
-!* Those keywords are used to recognize the file format.                          *
-!* If the file doesn't exist or has to be written, then only the                  *
+!* If the file doesn't exist or has to be written, then only its name or          *
 !* extension is taken into account.                                               *
+!* Otherwise if the file exists, then its content is ALWAYS parsed and            *
+!* searched for specific keywords. Then:                                          *
+!* - if the file has an extension then the format is guessed from both            *
+!*   the extension *and* the file content;                                        *
+!* - if the file has no extension then the format is guessed from file content.   *
+!* The guessing is based on a "score": the higher the score, the more likely      *
+!* the file format. Scores are saved in an integer array "fscore" that has        *
+!* the same size as the array "flist" (see "globalvar.f90").                      *
+!* The routine "SET_SCORE" (at the end of this module) is used to modify scores.  *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 May 2021                                      *
+!* Last modification: P. Hirel - 26 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,59 +60,22 @@ CHARACTER(LEN=1024):: filename
 CHARACTER(LEN=4096),INTENT(IN):: inputfile
 LOGICAL:: fileexists
 LOGICAL:: fileisopened
+INTEGER:: certainty
+INTEGER:: likely
 INTEGER:: strlength, i
 INTEGER:: NP
-REAL(dp):: isatsk
-REAL(dp):: isabinit, isbop, isbx, iscfg, iscel, iscif, iscml, iscoorat, iscrystal, iscsv
-REAL(dp):: isdd, isdlp, isfdf, isgin, isimd, isjems, islmp, islmpc, ismoldy, ispdb
-REAL(dp):: isoutcar, isposcar, isqepw, isqeout, isstr, isvesta, isxsf, isxv, isxmd
-REAL(dp):: isxyz, isexyz, issxyz
-REAL(dp):: likely
+INTEGER,DIMENSION(SIZE(flist)):: fscore
 REAL(dp):: testreal
-REAL(dp):: certainty
 !
 !
 !Initialize variables
- certainty = 0.9d0
-infileformat = ''
-extension = ''
+ certainty = 10
+infileformat = "     "
+extension = "     "
 test=''
 i = 1
 testreal = 0.d0
-isabinit = 0.d0  !ABINIT input format
-isbop = 0.d0     !Bond-Order Potential format
-isbx = 0.d0      !BOPfox format
-iscel = 0.d0     !CEL Super-cell file for Dr. Probe
-iscfg = 0.d0     !Atomeye CFG format
-iscif = 0.d0     !Crystallographic Information File
-iscml = 0.d0     !Chemical Markup Language
-iscoorat = 0.d0  !Mixed-Basis PseudoPotential format
-iscrystal = 0.d0 !CRYSTAL file format
-iscsv = 0.d0     !Comma-Separated Values format
-isdd = 0.d0      !ddplot format
-isdlp = 0.d0     !DL_POLY format
-isfdf = 0.d0     !SIESTA FDF format
-isgin = 0.d0     !GULP input file format
-isimd = 0.d0     !IMD format
-isjems = 0.d0    !JEMS format
-islmp = 0.d0     !LAMMPS data file
-islmpc = 0.d0    !LAMMPS custom dump file
-ismoldy=0.d0     !MOLDY file
-isatsk=0.d0      !Binary atomsk format
-ispdb=0.d0       !Protein Data Bank format
-isoutcar = 0.d0  !VASP OUTCAR format
-isposcar = 0.d0  !VASP POSCAR format
-isqepw = 0.d0    !Quantum Espresso PWscf format
-isqeout = 0.d0   !Quantum Espresso PWscf output format
-isstr = 0.d0     !PDFFIT structure file format
-isvesta = 0.d0   !VESTA format
-isxmd = 0.d0     !XMD format
-isxsf = 0.d0     !xCrySDen format
-isxv = 0.d0      !SIESTA XV format
-isxyz = 0.d0     !XYZ format
-isexyz = 0.d0    !XYZ format (extended)
-issxyz = 0.d0    !XYZ format (special)
-! -- initialize other formats here --
+fscore(:) = 0  !set all scores to zero
 !
 msg = 'Entering GUESS_FORMAT...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -117,10 +83,10 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 INQUIRE(FILE=inputfile,EXIST=fileexists)
 IF(.NOT.fileexists .OR. fstatus=='writ') THEN
   !File does not exist => detection will be based only on file name or extension
-  certainty = 0.2d0
+  certainty = 2
 ELSE
   !File exists => detection will be based on file name, extension, and content
-  certainty = 0.8d0
+  certainty = 8
 ENDIF
 !
 !
@@ -144,111 +110,51 @@ IF( strlength > 0 ) THEN
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !The extension is considered as a strong indication of the file format:
-  !increase corresponding counter by a lot
-  SELECT CASE(extension)
-  CASE('atsk','ATSK')
-    isatsk = isatsk+0.6d0
-  CASE('bop','BOP')
-    isbop = isbop+0.6d0
-  CASE('bx','BX')
-    isbx = isbx+0.6d0
-  CASE('cfg','CFG')
-    iscfg = iscfg+0.6d0
-    iscoorat = iscoorat-0.4d0
-  CASE('cel','CEL')
-    iscel = iscel+0.6d0
-  CASE('cif','CIF')
-    iscif = iscif+0.6d0
-  CASE('cml','CML')
-    iscml = iscml+0.6d0
-  CASE('csv','CSV')
-    iscsv = iscsv+1.d0
-  CASE('d12')
-    iscrystal = iscrystal+0.6d0
-  CASE('DD','dd')
-    isdd = isdd+0.6d0
-  CASE('FDF','fdf')
-    isfdf = isfdf+0.6d0
-  CASE('gin','GIN','res','RES','grs','GRS')
-    isgin = isgin+0.6d0
-  CASE('in')
-    isabinit = isabinit+0.15d0
-  CASE('imd','IMD')
-    isimd = isimd+0.6d0
-  CASE('jems','JEMS')
-    isjems = isjems+0.6d0
-  CASE('lmc','LMC')
-    islmpc = islmpc+0.6d0
-  CASE('lmp','LMP')
-    islmp = islmp+0.6d0
-  CASE('mol','MOL')
-    ismoldy = ismoldy+0.15d0
-  CASE('pdb','PDB')
-    ispdb = ispdb+0.6d0
-  CASE('pw','PW')
-    isqepw = isqepw+0.6d0
-  CASE('str','STR','stru','STRU')
-    isstr = isstr+0.6d0
-  CASE('vesta')
-    isvesta = isvesta+0.6d0
-  CASE('xmd','XMD')
-    isxmd = isxmd+0.6d0
-  CASE('xsf','XSF')
-    isxsf = isxsf+0.6d0
-    iscoorat = iscoorat-0.4d0
-  CASE('XV','xv')
-    isxv = isxv+0.6d0
-  CASE('xyz','XYZ')
-    isxyz = isxyz+0.6d0
-    iscoorat = iscoorat-0.4d0
-    iscfg = iscfg-0.4d0
-  CASE('exyz','EXYZ')
-    isexyz = isexyz+0.6d0
-    iscoorat = iscoorat-0.4d0
-    iscfg = iscfg-0.4d0
-  CASE('sxyz','SXYZ')
-    issxyz = issxyz+0.6d0
-    iscoorat = iscoorat-0.4d0
-    iscfg = iscfg-0.4d0
-  CASE DEFAULT
-    CONTINUE
-  END SELECT
-  !Special case for MOLDY files
+  !increase corresponding score by a lot, and decrease other scores
   IF( TRIM(ADJUSTL(filename))=='system.in' .OR. &
     & TRIM(ADJUSTL(filename))=='system.out'     ) THEN
-    ismoldy = ismoldy+0.15d0
+    !Special case for MOLDY files
+    CALL SET_SCORE(fscore,extension,4,1)
+  ELSE
+    CALL SET_SCORE(fscore,extension,10,2)
   ENDIF
   !
-ELSE
-  !Special case for POSCAR/CONTCAR files
-  IF( filename=='POSCAR' .OR. filename=='CONTCAR' ) THEN
-    isposcar = certainty+0.6d0
+ENDIF
+!
+IF( .NOT.ANY(fscore(:)>=10) ) THEN
+  !Either there was no extension, or extension was not a recognized format
+  !Let us try to guess format from file name
+  !Special case for VASP POSCAR/CONTCAR/CHG files
+  IF( filename=='POSCAR' .OR. filename=='CONTCAR' .OR. filename=='CHG' .OR. filename=='CHGCAR' ) THEN
+    CALL SET_SCORE(fscore,"pos  ",10,1)
   ENDIF
   !Special case for VASP OUTCAR files
   IF( filename=='OUTCAR' ) THEN
-    isoutcar = certainty+0.6d0
+    CALL SET_SCORE(fscore,"vout  ",10,1)
   ENDIF
-  IF( fstatus=="read" .AND. ( INDEX(filename,'POSCAR')>0 .OR. INDEX(filename,'CONTCAR')>0 ) ) THEN
-    isposcar = certainty+0.5d0
+  !Special case for VASP POSCAR/CONTCAR/CHG files
+  IF( fstatus=="read" .AND. ( INDEX(filename,'POSCAR')>0 .OR. INDEX(filename,'CONTCAR')>0 .OR. &
+    &  INDEX(filename,'CHG')>0 ) ) THEN
+    CALL SET_SCORE(fscore,"pos  ",5,1)
   ENDIF
   !Special case for COORAT files
   IF( filename=='COORAT' ) THEN
-    iscoorat = certainty+0.4d0
+    CALL SET_SCORE(fscore,"coo  ",10,1)
   ENDIF
   IF( fstatus=="read" .AND. INDEX(filename,'COORAT')>0 ) THEN
-    iscoorat = iscoorat+0.2d0
+    CALL SET_SCORE(fscore,"coo  ",4,1)
   ENDIF
   !Special case for DL_POLY CONFIG files
   IF( filename=='CONFIG' .OR. filename=='REVCON' .OR. &
     & filename=='CFGMIN' .OR. filename=='HISTORY'     ) THEN
-    isdlp = certainty+0.4d0
+    CALL SET_SCORE(fscore,"dlp  ",10,1)
   ENDIF
   IF( fstatus=="read" .AND.                  &
       & ( INDEX(filename,'CONFIG')>0  .OR.   &
       &   INDEX(filename,'REVCON')>0  .OR.   &
       &   INDEX(filename,'CFGMIN')>0  .OR.   &
       &   INDEX(filename,'HISTORY')>0     )   ) THEN
-    isdlp = isdlp+0.2d0
+    CALL SET_SCORE(fscore,"dlp  ",4,1)
   ENDIF
 ENDIF
 !
@@ -286,92 +192,92 @@ IF(fileexists) THEN
     !
     !Search for patterns corresponding to BOP format
     IF(test(1:4)=='ITER') THEN
-      isbop = isbop+0.2d0
+      CALL SET_SCORE(fscore,"bop  ",2,1)
     ELSEIF(test(1:4)=='A   ') THEN
-      isbop = isbop+0.1d0
+      CALL SET_SCORE(fscore,"bop  ",2,1)
     ELSEIF(test(1:4)=='LEN ') THEN
-      isbop = isbop+0.1d0
+      CALL SET_SCORE(fscore,"bop  ",4,1)
     ELSEIF(test(1:6)=='LATPAR') THEN
-      isbop = isbop+0.2d0
+      CALL SET_SCORE(fscore,"bop  ",4,1)
     ELSEIF(test(1:4)=='ND  ') THEN
-      isbop = isbop+0.2d0
+      CALL SET_SCORE(fscore,"bop  ",4,1)
     ELSEIF(test(1:3)=='D  ') THEN
-      isbop = isbop+0.2d0
+      CALL SET_SCORE(fscore,"bop  ",4,1)
     ELSEIF(test(1:6)=='NINERT') THEN
-      isbop = isbop+0.4d0
+      CALL SET_SCORE(fscore,"bop  ",10,1)
     ELSEIF(test(1:6)=='DINERT') THEN
-      isbop = isbop+0.4d0
+      CALL SET_SCORE(fscore,"bop  ",10,1)
     ELSEIF(test(1:3)=='UNRLD') THEN
-      isbop = isbop+0.4d0
+      CALL SET_SCORE(fscore,"bop  ",10,1)
     !
     !Search for patterns corresponding to BOPfox format
     ELSEIF(test(1:6)=='aLat =') THEN
-      isbx = isbx+0.2d0
+      CALL SET_SCORE(fscore,"bx   ",4,1)
     ELSEIF(test(1:4)=='a1 =') THEN
-      isbx = isbx+0.4d0
+      CALL SET_SCORE(fscore,"bx   ",4,1)
     ELSEIF(test(1:4)=='a2 =') THEN
-      isbx = isbx+0.4d0
+      CALL SET_SCORE(fscore,"bx   ",4,1)
     ELSEIF(test(1:4)=='a3 =') THEN
-      isbx = isbx+0.4d0
+      CALL SET_SCORE(fscore,"bx   ",4,1)
     ELSEIF(test(1:7)=='coord =') THEN
-      isbx = isbx+0.4d0
+      CALL SET_SCORE(fscore,"bx   ",4,1)
     ELSEIF(test(1:15)=='magnetisation =') THEN
-      isbx = isbx+0.4d0
+      CALL SET_SCORE(fscore,"bx   ",6,2)
     !
     !Search for patterns corresponding to ABINIT format
     ELSEIF(test(1:5)=='acell') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",6,1)
     ELSEIF(test(1:5)=='natom') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",4,1)
     ELSEIF(test(1:6)=='ntypat') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",10,1)
     ELSEIF(test(1:5)=='typat') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",6,1)
     ELSEIF(test(1:5)=='rprim') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",10,1)
     ELSEIF(test(1:4)=='xred') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",10,1)
     ELSEIF(test(1:5)=='xcart') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",10,1)
     ELSEIF(test(1:5)=='znucl') THEN
-      isabinit = isabinit+0.6d0
+      CALL SET_SCORE(fscore,"abin ",10,1)
     !
     !Search for patterns corresponding to CEL format
-    ELSEIF(TRIM(ADJUSTL(test))=='*') THEN
-      iscel = iscel+0.5d0 ! EOF signal (short CEL file)
+    ELSEIF(TRIM(ADJUSTL(test))=='*') THEN ! EOF signal (short CEL file)
+      CALL SET_SCORE(fscore,"cel  ",5,1)
     !
     !Search for patterns corresponding to CFG format
     ELSEIF(test(1:19)=='Number of particles') THEN
       IF( i<=2 ) THEN
-        iscfg = iscfg+0.6d0
+        CALL SET_SCORE(fscore,"cfg  ",10,1)
       ENDIF
     ELSEIF(test(1:3)=='A =' .OR. test(1:2)=='A=') THEN
-      iscfg = iscfg+0.2d0
+      CALL SET_SCORE(fscore,"cfg  ",4,1)
     ELSEIF(test(1:6)=='H(1,1)' .OR. test(1:6)=='H(1,2)' .OR. &
           &test(1:6)=='H(2,1)' .OR. test(1:6)=='H(2,2)' .OR. &
           &test(1:6)=='H(3,1)' .OR. test(1:6)=='H(3,2)' .OR. &
           &test(1:6)=='H(3,3)') THEN
-      iscfg = iscfg+0.1d0
+      CALL SET_SCORE(fscore,"cfg  ",4,1)
     ELSEIF(test(1:13)=='.NO_VELOCITY.') THEN
-      iscfg = iscfg+0.6d0
+      CALL SET_SCORE(fscore,"cfg  ",10,1)
     ELSEIF(test(1:11)=='entry_count') THEN
-      iscfg = iscfg+0.6d0
+      CALL SET_SCORE(fscore,"cfg  ",10,1)
     ELSEIF(test(1:9)=='auxiliary') THEN
-      iscfg = iscfg+0.2d0
+      CALL SET_SCORE(fscore,"cfg  ",4,1)
     !
     !Search for patterns corresponding to CIF format
     ELSEIF( test(1:7)=='_audit_' ) THEN
-      iscif = iscif+0.3d0
+      CALL SET_SCORE(fscore,"cif  ",10,1)
     ELSEIF( test(1:6)=='_cell_' ) THEN
-      iscif = iscif+0.3d0
+      CALL SET_SCORE(fscore,"cif  ",6,1)
     ELSEIF( test(1:5)=='loop_' ) THEN
-      iscif = iscif+0.3d0
+      CALL SET_SCORE(fscore,"cif  ",10,1)
     ELSEIF( test(1:6)=='_atom_' ) THEN
-      iscif = iscif+0.3d0
+      CALL SET_SCORE(fscore,"cif  ",6,1)
     ELSEIF( test(1:8)=='_diffrn_' ) THEN
-      iscif = iscif+0.3d0
+      CALL SET_SCORE(fscore,"cif  ",10,1)
     ELSEIF( test(1:7)=='_exptl_' ) THEN
-      iscif = iscif+0.3d0
+      CALL SET_SCORE(fscore,"cif  ",10,1)
     !
     !Search for patterns corresponding to CML format
     !ELSEIF(test(1,1)=='<') THEN
@@ -379,259 +285,243 @@ IF(fileexists) THEN
     !
     !Search for patterns corresponding to COORAT format
     ELSEIF(test(1:6)=='natom=') THEN
-      iscoorat = iscoorat+0.4d0
+      CALL SET_SCORE(fscore,"coo  ",6,1)
     !
-    !Search for patterns corresponding to CRYSTAL format
+    !Search for patterns corresponding to CRYSTAL format (*.d12)
     !NOTE: keywords "CRYSTAL" and "SLAB" can also correspond
     !      to XSF file format (see below)
     ELSEIF(test(1:8)=='ATOMSUBS') THEN
-      iscrystal = iscrystal+0.6d0
-      isxsf = isxsf-0.6d0
+      CALL SET_SCORE(fscore,"d12  ",10,1)
     ELSEIF(test(1:8)=='MOLECULE') THEN
-      iscrystal = iscrystal+0.6d0
-      isxsf = isxsf-0.6d0
+      CALL SET_SCORE(fscore,"d12  ",4,1)
     ELSEIF(test(1:7)=='POLYMER') THEN
-      iscrystal = iscrystal+0.6d0
-      isxsf = isxsf-0.6d0
+      CALL SET_SCORE(fscore,"d12  ",4,1)
     ELSEIF(test(1:8)=='ATOMDISP') THEN
-      iscrystal = iscrystal+0.6d0
-      isxsf = isxsf-0.6d0
+      CALL SET_SCORE(fscore,"d12  ",4,1)
     ELSEIF(test(1:3)=='END') THEN
-      iscrystal = iscrystal+0.4d0
-      isxsf = isxsf-0.4d0
+      CALL SET_SCORE(fscore,"d12  ",1,1)
     ELSEIF(test(1:7)=='OPTGEOM') THEN
-      iscrystal = iscrystal+0.4d0
-      isxsf = isxsf-0.4d0
+      CALL SET_SCORE(fscore,"d12  ",6,1)
     ELSEIF(test(1:8)=='FULLOPTG') THEN
-      iscrystal = iscrystal+0.4d0
-      isxsf = isxsf-0.4d0
+      CALL SET_SCORE(fscore,"d12  ",10,1)
     ELSEIF(test(1:8)=='CELLONLY') THEN
-      iscrystal = iscrystal+0.4d0
-      isxsf = isxsf-0.4d0
+      CALL SET_SCORE(fscore,"d12  ",4,1)
     ELSEIF(test(1:6)=='SHRINK') THEN
-      iscrystal = iscrystal+0.4d0
-      isxsf = isxsf-0.4d0
+      CALL SET_SCORE(fscore,"d12  ",10,1)
     ELSEIF(test(1:7)=='FMIXING') THEN
-      iscrystal = iscrystal+0.4d0
-      isxsf = isxsf-0.4d0
+      CALL SET_SCORE(fscore,"d12  ",10,1)
     !
     !Search for patterns corresponding to SIESTA FDF format
     ELSEIF(test(1:10)=='SystemName') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",4,1)
     ELSEIF(test(1:11)=='SystemLabel') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",6,1)
     ELSEIF(test(1:13)=='NumberOfAtoms') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",6,1)
     ELSEIF(test(1:15)=='NumberOfSpecies') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",6,1)
     ELSEIF(test(1:23)=='AtomicCoordinatesFormat') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",10,1)
     ELSEIF(test(1:7)=='%block ') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",10,1)
     ELSEIF(test(1:10)=='%endblock ') THEN
-      isfdf = isfdf+0.4d0
+      CALL SET_SCORE(fscore,"fdf  ",10,1)
     !
     !Search for patterns corresponding to GIN format
     ELSEIF(test(1:5)=='title') THEN
-      isgin = isgin+0.2d0
-      isstr = isstr+0.2d0
+      CALL SET_SCORE(fscore,"gin  ",4,1)
+      CALL SET_SCORE(fscore,"str  ",4,1)
     ELSEIF(test(1:4)=='cell') THEN
-      isgin = isgin+0.2d0
-      isstr = isstr+0.2d0
+      CALL SET_SCORE(fscore,"gin  ",4,1)
+      CALL SET_SCORE(fscore,"str  ",4,1)
     ELSEIF(test(1:4)=='vect') THEN
-      isgin = isgin+0.1d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:3)=='car') THEN
-      isgin = isgin+0.1d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:4)=='buck') THEN
-      isgin = isgin+0.3d0
+      CALL SET_SCORE(fscore,"gin  ",4,1)
     ELSEIF(test(1:7)=='species') THEN
-      isgin = isgin+0.2d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:6)=='spring') THEN
-      isgin = isgin+0.2d0
+      CALL SET_SCORE(fscore,"gin  ",4,1)
     ELSEIF(test(1:3)=='fra') THEN
-      isgin = isgin+0.1d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:7)=='keyword') THEN
-      isgin = isgin+0.3d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:4)=='cutp') THEN
-      isgin = isgin+0.2d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(4:7)=='core') THEN
-      isgin = isgin+0.3d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(4:7)=='shel') THEN
-      isgin = isgin+0.3d0
+      CALL SET_SCORE(fscore,"gin  ",6,1)
     ELSEIF(test(1:5)=='total') THEN
-      isgin = isgin+0.1d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:10)=='dump every') THEN
-      isgin = isgin+0.2d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     ELSEIF(test(1:4)=='output') THEN
-      isgin = isgin+0.1d0
+      CALL SET_SCORE(fscore,"gin  ",2,1)
     !
     !Search for patterns corresponding to IMD format
     ELSEIF(test(1:3)=='#F ') THEN
-      isimd = isimd+0.4d0
+      CALL SET_SCORE(fscore,"imd  ",4,1)
     ELSEIF(test(1:3)=='#C ') THEN
-      isimd = isimd+0.4d0
+      CALL SET_SCORE(fscore,"imd  ",4,1)
     ELSEIF(test(1:3)=='#X ') THEN
-      isimd = isimd+0.4d0
+      CALL SET_SCORE(fscore,"imd  ",4,1)
     ELSEIF(test(1:3)=='#Y ') THEN
-      isimd = isimd+0.4d0
+      CALL SET_SCORE(fscore,"imd  ",4,1)
     ELSEIF(test(1:3)=='#Z ') THEN
-      isimd = isimd+0.4d0
+      CALL SET_SCORE(fscore,"imd  ",4,1)
     ELSEIF(test(1:3)=='#E ') THEN
-      isimd = isimd+0.4d0
+      CALL SET_SCORE(fscore,"imd  ",4,1)
     !
     !Search for patterns corresponding to JEMS format
     ELSEIF(test(1:5)=='file|') THEN
-      isjems = isjems+0.5d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     ELSEIF(test(1:7)=='system|') THEN
-      isjems = isjems+0.5d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     ELSEIF(test(1:9)=='HMSymbol|') THEN
-      isjems = isjems+0.5d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     ELSEIF(test(1:4)=='rps|') THEN
-      isjems = isjems+0.6d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     ELSEIF(test(1:8)=='lattice|') THEN
-      isjems = isjems+0.3d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     ELSEIF(test(1:5)=='atom|') THEN
-      isjems = isjems+0.3d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     ELSEIF(test(1:3)=='aff|') THEN
-      isjems = isjems+0.3d0
+      CALL SET_SCORE(fscore,"jems ",10,1)
     !
     !Search for patterns corresponding to LAMMPS data format
     ELSEIF(strlength-4==INDEX(test,'atoms').AND.strlength>4) THEN
-      islmp = islmp+0.2d0
+      CALL SET_SCORE(fscore,"lmp  ",3,1)
     ELSEIF(strlength-4==INDEX(test,'Atoms').AND.strlength>4) THEN
-      islmp = islmp+0.1d0 ! Note: 'Atoms' and 'atoms' have different weights?
+      CALL SET_SCORE(fscore,"lmp  ",4,1)
     ELSEIF(strlength-9==INDEX(test,'atom types').AND.strlength>9) THEN
-      islmp = islmp+0.4d0
+      CALL SET_SCORE(fscore,"lmp  ",10,2)
     ELSEIF(strlength-6==INDEX(test,'xlo xhi').AND.strlength>6) THEN
-      islmp = islmp+0.4d0
+      CALL SET_SCORE(fscore,"lmp  ",10,2)
     ELSEIF(strlength-6==INDEX(test,'ylo yhi').AND.strlength>6) THEN
-      islmp = islmp+0.4d0
+      CALL SET_SCORE(fscore,"lmp  ",10,2)
     ELSEIF(strlength-6==INDEX(test,'zlo zhi').AND.strlength>6) THEN
-      islmp = islmp+0.4d0
+      CALL SET_SCORE(fscore,"lmp  ",10,2)
     ELSEIF(strlength-7==INDEX(test,'xy xz yz').AND.strlength>7) THEN
-      islmp = islmp+0.4d0
+      CALL SET_SCORE(fscore,"lmp  ",10,1)
     !
     !Search for patterns corresponding to LAMMPS custom format
     ELSEIF(test(1:5)=='ITEM:') THEN
-      islmpc = islmpc+0.4d0
-      isxv = isxv-0.4d0
+      CALL SET_SCORE(fscore,"lmc  ",10,2)
     !
     !Search for patterns corresponding to Protein Data Bank (PDB) format
     ELSEIF(test(1:6)=='HEADER') THEN
-      ispdb = ispdb+0.1d0
-    ELSEIF(test(1:6)=='TITLE') THEN
-      ispdb = ispdb+0.1d0
+      CALL SET_SCORE(fscore,"pdb  ",4,1)
+    ELSEIF(test(1:6)=='TITLE ') THEN
+      CALL SET_SCORE(fscore,"pdb  ",4,1)
     ELSEIF(test(1:6)=='AUTHOR') THEN
-      ispdb = ispdb+0.1d0
+      CALL SET_SCORE(fscore,"pdb  ",4,1)
     ELSEIF(test(1:6)=='REMARK') THEN
-      ispdb = ispdb+0.1d0
+      CALL SET_SCORE(fscore,"pdb  ",4,1)
     ELSEIF(test(1:6)=='ATOM  ') THEN
-      ispdb = ispdb+0.1d0
+      CALL SET_SCORE(fscore,"pdb  ",4,1)
     !
     !Search for patterns corresponding to POSCAR format (VASP)
     ELSEIF(test(1:18)=='Selective dynamics') THEN
-      isposcar = isposcar+0.6d0
+      CALL SET_SCORE(fscore,"pos  ",10,1)
     ELSEIF(test(1:7)=='Direct ') THEN
-      isposcar = isposcar+0.4d0
+      CALL SET_SCORE(fscore,"pos  ",10,1)
     ELSEIF(test(1:9)=='Cartesian') THEN
-      isposcar = isposcar+0.3d0
-      isdlp = isdlp-0.3d0
+      CALL SET_SCORE(fscore,"pos  ",10,1)
     !
     !Search for patterns corresponding to OUTCAR format (VASP)
     ELSEIF(i==1 .AND. test(1:4)=='vasp') THEN
-      isoutcar = isoutcar+0.4d0
+      CALL SET_SCORE(fscore,"vout ",10,1)
     ELSEIF(test(1:6)=='INCAR:') THEN
-      isoutcar = isoutcar+0.1d0
+      CALL SET_SCORE(fscore,"vout ",6,1)
     ELSEIF(test(1:7)=='POTCAR:') THEN
-      isoutcar = isoutcar+0.1d0
+      CALL SET_SCORE(fscore,"vout ",6,1)
     ELSEIF(test(1:8)=='KPOINTS:') THEN
-      isoutcar = isoutcar+0.2d0
+      CALL SET_SCORE(fscore,"vout ",6,1)
     ELSEIF(test(1:6)=='distr:') THEN
-      isoutcar = isoutcar+0.4d0
+      CALL SET_SCORE(fscore,"vout ",10,1)
     ELSEIF(test(1:7)=='distrk:') THEN
-      isoutcar = isoutcar+0.4d0
+      CALL SET_SCORE(fscore,"vout ",10,1)
     !
     !Search for patterns corresponding to Quantum Espresso PW format
     ELSEIF(test(1:8)=='&CONTROL' .OR. test(1:8)=='&control') THEN
-      isqepw = isqepw+0.4d0
+      CALL SET_SCORE(fscore,"pw   ",10,1)
     ELSEIF(test(1:7)=='&SYSTEM' .OR. test(1:7)=='&system') THEN
-      isqepw = isqepw+0.4d0
+      CALL SET_SCORE(fscore,"pw   ",10,1)
     ELSEIF(test(1:9)=='&ELECTRON' .OR. test(1:9)=='&electron') THEN
-      isqepw = isqepw+0.4d0
+      CALL SET_SCORE(fscore,"pw   ",10,1)
     ELSEIF(test(1:5)=='&IONS' .OR. test(1:5)=='&ions') THEN
-      isqepw = isqepw+0.4d0
+      CALL SET_SCORE(fscore,"pw   ",10,1)
     ELSEIF(test(1:5)=='&CELL' .OR. test(1:5)=='&cell') THEN
-      isqepw = isqepw+0.4d0
+      CALL SET_SCORE(fscore,"pw   ",10,1)
     ELSEIF(test(1:14)=='ATOMIC_SPECIES' .OR. test(1:14)=='atomic_species') THEN
-      isqepw = isqepw+0.3d0
+      CALL SET_SCORE(fscore,"pw   ",10,1)
     ELSEIF(test(1:16)=='ATOMIC_POSITIONS' .OR. test(1:16)=='atomic_positions') THEN
-      isqepw = isqepw+0.2d0
-      isqeout = isqeout+0.2d0
+      CALL SET_SCORE(fscore,"pw   ",3,1)
+      CALL SET_SCORE(fscore,"pwo  ",3,1)
     ELSEIF(test(1:8)=='K_POINTS' .OR. test(1:8)=='k_points') THEN
-      isqepw = isqepw+0.1d0
+      CALL SET_SCORE(fscore,"pw   ",4,1)
     ELSEIF(test(1:15)=='CELL_PARAMETERS' .OR. test(1:15)=='cell_parameters') THEN
-      isqepw = isqepw+0.2d0
-      isqeout = isqeout+0.2d0
+      CALL SET_SCORE(fscore,"pw   ",4,1)
+      CALL SET_SCORE(fscore,"pwo  ",4,1)
     ELSEIF(test(1:11)=='CONSTRAINTS' .OR. test(1:11)=='constraints') THEN
-      isqepw = isqepw+0.2d0
+      CALL SET_SCORE(fscore,"pw   ",6,1)
     ELSEIF(test(1:10)=='OCCUPATION' .OR. test(1:10)=='occupation') THEN
-      isqepw = isqepw+0.2d0
+      CALL SET_SCORE(fscore,"pw   ",4,1)
     !
     !Search for patterns corresponding to Quantum Espresso PW output format
     ELSEIF(test(1:13)=='Program PWSCF') THEN
-      isqeout = isqeout+1.d0
+      CALL SET_SCORE(fscore,"pwo  ",10,1)
     !
-    !Search for patterns corresponding to PDFFIT structure file format
+    !Search for patterns corresponding to PDFFIT structure file format (*.str)
     ELSEIF(test(1:13)=='dcell') THEN
-      isstr = isstr+0.5d0
+      CALL SET_SCORE(fscore,"str  ",6,1)
     ELSEIF(test(1:13)=='spcgr') THEN
-      isstr = isstr+1.d0
+      CALL SET_SCORE(fscore,"str  ",10,1)
     !
     !Search for patterns corresponding to VESTA format
     ELSEIF(test(1:13)=='#VESTA_FORMAT') THEN
-      isvesta = isvesta+0.6d0
+      CALL SET_SCORE(fscore,"vesta",10,1)
     ELSEIF(test(1:5)=='TRANM') THEN
-      isvesta = isvesta+0.1d0
+      CALL SET_SCORE(fscore,"vesta",10,1)
     ELSEIF(test(1:7)=='LTRANSL') THEN
-      isvesta = isvesta+0.1d0
+      CALL SET_SCORE(fscore,"vesta",10,1)
     ELSEIF(test(1:7)=='LORIENT') THEN
-      isvesta = isvesta+0.1d0
+      CALL SET_SCORE(fscore,"vesta",10,1)
     ELSEIF(test(1:7)=='LMATRIX') THEN
-      isvesta = isvesta+0.1d0
+      CALL SET_SCORE(fscore,"vesta",10,1)
     ELSEIF(test(1:7)=='LCELLP') THEN
-      isvesta = isvesta+0.1d0
+      CALL SET_SCORE(fscore,"vesta",10,1)
     !
     !Search for patterns corresponding to XMD format
     ELSEIF(test(1:9)=='POSITION ') THEN
-      isxmd = isxmd+0.2d0
+      CALL SET_SCORE(fscore,"xmd  ",3,1)
     ELSEIF(test(1:7)=='POSVEL ') THEN
-      isxmd = isxmd+0.6d0
+      CALL SET_SCORE(fscore,"xmd  ",10,1)
     !
     !Search for patterns corresponding to XSF format
     ELSEIF(test=='PRIMCOORD') THEN
-      isxsf = isxsf+0.4d0
+      CALL SET_SCORE(fscore,"xsf  ",10,1)
     ELSEIF(test=='PRIMVEC') THEN
-      isxsf = isxsf+0.4d0
+      CALL SET_SCORE(fscore,"xsf  ",10,1)
     ELSEIF(test=='CONVVEC') THEN
-      isxsf = isxsf+0.4d0
+      CALL SET_SCORE(fscore,"xsf  ",10,1)
     ELSEIF(test=='CRYSTAL') THEN
-      isxsf = isxsf+0.4d0
-      iscrystal = iscrystal+0.4d0
+      CALL SET_SCORE(fscore,"xsf  ",6,1)
+      CALL SET_SCORE(fscore,"d12  ",6,1)
     ELSEIF(test=='ATOMS') THEN
-      isxsf = isxsf+0.4d0
+      CALL SET_SCORE(fscore,"xsf  ",6,1)
     ELSEIF(test=='SLAB') THEN
-      isxsf = isxsf+0.4d0
-      iscrystal = iscrystal+0.4d0
+      CALL SET_SCORE(fscore,"xsf  ",6,1)
+      CALL SET_SCORE(fscore,"d12  ",6,1)
     !
     !Search for patterns corresponding to special XYZ format
     ELSEIF(test(1:4)=='alat') THEN
-      isxyz = isxyz+0.2d0
-      isdlp = isdlp-0.3d0
-      ismoldy = ismoldy-0.3d0
+      CALL SET_SCORE(fscore,"sxyz ",6,1)
     ELSEIF(test(1:5)=='super') THEN
-      isxyz = isxyz+0.2d0
-      isdlp = isdlp-0.3d0
-      ismoldy = ismoldy-0.3d0
+      CALL SET_SCORE(fscore,"sxyz ",6,1)
     !
     !None of the above worked => this format has no recognizable keyword
     ! => it can be XYZ, MOLDY, XV...
@@ -639,27 +529,25 @@ IF(fileexists) THEN
       IF( i==1 ) THEN
         !Try to read the string "Atomsk binary file"
         IF( INDEX(test,'Atomsk binary file')>0 ) THEN
-          isatsk = isatsk+1.d0
+          CALL SET_SCORE(fscore,"atsk ",10,2)
         ELSE
           !Try to read an integer
           !If successful, it can be XYZ or MOLDY format
           READ(test,*,ERR=220,END=220) NP
-          isxyz = isxyz+0.3d0
-          ismoldy = ismoldy+0.3d0
-          isdlp = isdlp-0.3d0
-          isposcar = isposcar-0.3d0
+          CALL SET_SCORE(fscore,"xyz  ",6,1)
+          CALL SET_SCORE(fscore,"mol  ",6,1)
         ENDIF
         !
       ELSEIF( i==2 ) THEN
         !Try to read the keywords "Lattice" and "Properties" from 2nd line
         !If successful, it is extended XYZ format
-        IF( INDEX(test,'Lattice=').NE.0 ) isxyz = isxyz+0.6d0
-        IF( INDEX(test,'Properties=').NE.0 ) isxyz = isxyz+0.6d0
+        IF( INDEX(test,'Lattice=').NE.0 ) CALL SET_SCORE(fscore,"xyz  ",6,1)
+        IF( INDEX(test,'Properties=').NE.0 ) CALL SET_SCORE(fscore,"xyz  ",6,1)
         !Otherwise, try to read 3 integers
         !If successful, it could be a MOLDY file or a DL_POLY file
         READ(test,*,ERR=220,END=220) NP, NP, NP
-        ismoldy = ismoldy + 0.4d0
-        isdlp = isdlp + 0.4d0
+        CALL SET_SCORE(fscore,"mol  ",6,1)
+        CALL SET_SCORE(fscore,"dlp  ",6,1)
         !
       ENDIF
       !
@@ -669,7 +557,7 @@ IF(fileexists) THEN
         !If successful, it could be SIESTA XV format
         READ(test,*,ERR=230,END=230) testreal, testreal, testreal, &
                                    & testreal, testreal, testreal
-        isxv = isxv+0.2d0
+        CALL SET_SCORE(fscore,"xv   ",6,1)
       ENDIF
       !
       230 CONTINUE
@@ -677,50 +565,33 @@ IF(fileexists) THEN
         !Try to read 3 reals
         !If successful for i=3,4,5 then it can be MOLDY or DL_POLY file
         READ(test,*,ERR=240,END=240) testreal, testreal, testreal
-        IF(i==3) THEN
-          ismoldy = ismoldy+0.1d0
-          isdlp = isdlp+0.1d0
-        ELSE
-          ismoldy = ismoldy+0.15d0
-          isdlp = isdlp+0.15d0
-        ENDIF
+        CALL SET_SCORE(fscore,"dlp  ",3,1)
+        CALL SET_SCORE(fscore,"mol  ",3,1)
       ENDIF
       !
       240 CONTINUE
       IF( i>2 .AND. test(1:1).NE.'#' ) THEN
         !XYZ format has lines  "N x y z"
         READ(test,*,ERR=241,END=241) NP, testreal, testreal, testreal
-        isxyz = isxyz+0.01d0
-        isdlp = isdlp-0.1d0
-        ismoldy = ismoldy-0.1d0
-        isposcar = isposcar-0.1d0
+        CALL SET_SCORE(fscore,"xyz  ",3,1)
         GOTO 249
         241 CONTINUE
         !MOLDY format has lines  "x y z N"
         READ(test,*,ERR=242,END=242) testreal, testreal, testreal, NP
-        ismoldy = ismoldy+0.01d0
-        isdlp = isdlp-0.1d0
-        isposcar = isposcar-0.1d0
+        CALL SET_SCORE(fscore,"mol  ",3,1)
         GOTO 249
         242 CONTINUE
         !SIESTA XV format has lines  "N Z x y z fx fy fz"
         READ(test,*,ERR=243,END=243) NP, NP, testreal, testreal, testreal, &
                                     & testreal, testreal, testreal
-        isxv = isxv+0.05d0
-        isdlp = isdlp-0.1d0
-        ismoldy = ismoldy-0.1d0
-        isxyz = isxyz-0.1d0
-        isposcar = isposcar-0.1d0
+        CALL SET_SCORE(fscore,"xv   ",5,1)
         243 CONTINUE
         GOTO 249
         !Atomeye, DL_POLY CONFIG (or REVCON), and VASP POSCAR formats have lines "x y z"
         READ(test,*,ERR=249,END=249) testreal, testreal, testreal
-        isposcar = isposcar+0.01d0
-        iscfg = iscfg+0.01d0
-        isxyz = isxyz-0.1d0
-        isdlp = isdlp+0.01d0
-        ismoldy = ismoldy-0.1d0
-        isxv = isxv-0.1d0
+        CALL SET_SCORE(fscore,"cfg  ",5,1)
+        CALL SET_SCORE(fscore,"dlp  ",5,1)
+        CALL SET_SCORE(fscore,"pos  ",5,1)
         249 CONTINUE
       ENDIF
     !
@@ -739,164 +610,31 @@ ENDIF   !If fileexists
 !
 300 CONTINUE
 !Find the best score
-likely = MAX(isabinit,isbop,isbx,iscfg,iscel,iscif,iscml,iscoorat,iscrystal,iscsv,isdd,    &
-       &     isdlp,isfdf,isgin,isimd,isjems,islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,    &
-       &     isoutcar,isqepw,isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
+likely = MAXVAL( fscore(:) )
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) 'Scores of file formats: '
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   ABINIT ', isabinit
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   ATSK ', isatsk
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   BOP ', isbop
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   BOPFOX ', isbx
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   CFG ', iscfg
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   CEL ', iscel
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   CIF ', iscif
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   CML ', iscml
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   COORAT ', iscoorat
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   CRYSTAL ', iscrystal
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   CSV ', iscsv
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   DDPLOT ', isdd
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   DLPOLY ', isdlp
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   FDF ', isfdf
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   GIN ', isgin
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   IMD ', isimd
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   JEMS', isjems
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   LMP ', islmp
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   LMC ', islmpc
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   MOLDY ', ismoldy
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   OUTCAR ', isoutcar
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   PDB ', ispdb
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   POSCAR ', isposcar
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   QEPW ', isqepw
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   QEOUT ', isqeout
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   STR ', isstr
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   VESTA ', isvesta
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   XMD ', isxmd
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   XSF ', isxsf
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   XV ', isxv
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   XYZ ', isxyz
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   EXYZ ', isexyz
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) '   SXYZ ', issxyz
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,*) 'MAX SCORE: ', likely
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,SIZE(flist,1)
+    WRITE(msg,*) "      ", flist(i,1), "   ", fscore(i)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDDO
 ENDIF
 !
 !
-IF(likely<certainty/3.d0) THEN
+IF( likely<NINT(DBLE(certainty)/3.d0) ) THEN
   !If the best score is very low then it is probably an unknown format
   infileformat = 'xxx'
 !
 ELSE
   !Otherwise we have detected a known file format
-  IF(isatsk==likely) THEN
-    infileformat = 'atsk'
-  ELSEIF(isabinit==likely) THEN
-    infileformat = 'abin'
-  ELSEIF(isbop==likely) THEN
-    infileformat = 'bop'
-  ELSEIF(isbx==likely) THEN
-    infileformat = 'bx'
-  ELSEIF(iscfg==likely) THEN
-    infileformat = 'cfg'
-  ELSEIF(iscel==likely) THEN
-    infileformat = 'cel'
-  ELSEIF(iscif==likely) THEN
-    infileformat = 'cif'
-  ELSEIF(iscoorat==likely) THEN
-    infileformat = 'coo'
-  ELSEIF(iscml==likely) THEN
-    infileformat = 'cml'
-  ELSEIF(iscrystal==likely) THEN
-    infileformat = 'd12'
-  ELSEIF(iscsv==likely) THEN
-    infileformat = 'csv'
-  ELSEIF(isdd==likely) THEN
-    infileformat = 'dd'
-  ELSEIF(isdlp==likely) THEN
-    infileformat = 'dlp'
-  ELSEIF(isfdf==likely) THEN
-    infileformat = 'fdf'
-  ELSEIF(isgin==likely) THEN
-    infileformat = 'gin'
-  ELSEIF(isimd==likely) THEN
-    infileformat = 'imd'
-  ELSEIF(isjems==likely) THEN
-    infileformat = 'jems'
-  ELSEIF(islmpc==likely) THEN
-    infileformat = 'lmc'
-  ELSEIF(islmp==likely) THEN
-    infileformat = 'lmp'
-  ELSEIF(ismoldy==likely) THEN
-    infileformat = 'mol'
-  ELSEIF(ispdb==likely) THEN
-    infileformat = 'pdb'
-  ELSEIF(isposcar==likely) THEN
-    infileformat = 'pos'
-  ELSEIF(isoutcar==likely) THEN
-    infileformat = 'vout'
-  ELSEIF(isqepw==likely) THEN
-    infileformat = 'pw'
-  ELSEIF(isqeout==likely) THEN
-    infileformat = 'pwo'
-  ELSEIF(isstr==likely) THEN
-    infileformat = 'str'
-  ELSEIF(isvesta==likely) THEN
-    infileformat = 'vesta'
-  ELSEIF(isxmd==likely) THEN
-    infileformat = 'xmd'
-  ELSEIF(isxyz==likely) THEN
-    infileformat = 'xyz'
-  ELSEIF(isexyz==likely) THEN
-    infileformat = 'exyz'
-  ELSEIF(issxyz==likely) THEN
-    infileformat = 'sxyz'
-  ELSEIF(isxv==likely) THEN
-    infileformat = 'xv'
-  ELSEIF(isxsf==likely) THEN
-    infileformat = 'xsf'
-  ! -- add other formats here --
-  !
-  ELSE
-    infileformat = 'xxx'
-  ENDIF
+  !Get position of highest score
+  i = MAXLOC( fscore(:) , DIM=1 )
+  !Save the name of matching file format
+  infileformat = flist(i,1)
   !
   !If the score is lower than the threshold, display a warning
-  IF(verbosity==4 .AND. likely<certainty) THEN
+  IF( verbosity==4 .AND. likely<certainty ) THEN
     nwarn = nwarn+1
     CALL ATOMSK_MSG(1701,(/TRIM(infileformat)/),(/0.d0/))
   ENDIF
@@ -925,6 +663,33 @@ IF(fileisopened) CLOSE(25)
 !
 !
 END SUBROUTINE GUESS_FORMAT
+!
+!
+!
+!********************************************************
+! SET_SCORE
+! Increases the score of the given file format (fformat)
+! by incr, and decreases the score of all other
+! file formats by decr.
+!********************************************************
+SUBROUTINE SET_SCORE(fscore,fformat,incr,decr)
+!
+IMPLICIT NONE
+CHARACTER(LEN=5),INTENT(IN):: fformat
+INTEGER:: i
+INTEGER,INTENT(IN):: incr !increment given file format by this much
+INTEGER,INTENT(IN):: decr !decrement other file formats by this much
+INTEGER,DIMENSION(:),INTENT(INOUT):: fscore
+!
+DO i=1,SIZE(flist,1)
+  IF(flist(i,1)==fformat) THEN
+    fscore(i) = fscore(i)+ABS(incr)
+  ELSE
+    IF(fscore(i)>0) fscore(i) = fscore(i)-ABS(decr)
+  ENDIF
+ENDDO
+!
+END SUBROUTINE SET_SCORE
 !
 !
 !

@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 12 April 2022                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1605,15 +1605,17 @@ DO inode=1,Nnodes
   !
   DO i=1,SIZE(Pt2,1)
     IF( Pt2(i,4) > 0.1d0 ) THEN
-      qi = qi+1
-      Q(qi,:) = Pt2(i,:)
-      IF(doshells) T(qi,:) = St2(i,:)
-      IF(doaux) THEN
-        DO j=1,SIZE(AUXNAMES)-1
-          newAUX(qi,j) = AUX_Q(i,j)
-        ENDDO
+      IF( qi<SIZE(Q,1) ) THEN
+        qi = qi+1
+        Q(qi,:) = Pt2(i,:)
+        IF(doshells) T(qi,:) = St2(i,:)
+        IF(doaux) THEN
+          DO j=1,SIZE(AUXNAMES)-1
+            newAUX(qi,j) = AUX_Q(i,j)
+          ENDDO
+        ENDIF
+        newAUX(qi,grainID) = DBLE(inode)
       ENDIF
-      newAUX(qi,grainID) = DBLE(inode)
     ENDIF
   ENDDO
   !
@@ -1667,27 +1669,52 @@ ENDDO  !end loop on inode
 !
 500 CONTINUE
 !NP is now the actual number of atoms in the final polycrystal
+IF( NP .NE. SUM(NPgrains(:)) ) THEN
+  PRINT*, "ERROR while counting atoms: ", NP, " vs ", SUM(NPgrains(:))
+  nerr = nerr+1
+  GOTO 1000
+ENDIF
+IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
 !Q now contains positions of all atoms in all the grains, but may be oversized
 !(and T contains the positions of shells, and newAUX the aux.prop. if relevant)
 !Copy atom positions into final array P with appropriate size
 IF(ALLOCATED(P)) DEALLOCATE(P)
-ALLOCATE(P(NP,4))
+ALLOCATE( P(NP,4) , STAT=n )
+IF( n>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+  GOTO 1000
+ENDIF
 DO i=1,NP
   P(i,:) = Q(i,:)
 ENDDO
 DEALLOCATE(Q)
 !Copy shell positions into final array S
+IF(ALLOCATED(S)) DEALLOCATE(S)
 IF(doshells) THEN
-  IF(ALLOCATED(S)) DEALLOCATE(S)
-  ALLOCATE(S(NP,4))
+  ALLOCATE( S(NP,4) , STAT=n )
+  IF( n>0 ) THEN
+    ! Allocation failed (not enough memory)
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+    GOTO 1000
+  ENDIF
   DO i=1,NP
     S(i,:) = T(i,:)
   ENDDO
   DEALLOCATE(T)
 ENDIF
 !Copy aux.prop. into final array AUX
+!NOTE: AUX contains at least the grainID
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-ALLOCATE(AUX(NP,SIZE(newAUX,2)))
+ALLOCATE( AUX(NP,SIZE(newAUX,2)) , STAT=n )
+IF( n>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP*SIZE(newAUX,2))/))
+  GOTO 1000
+ENDIF
 DO i=1,NP
   AUX(i,:) = newAUX(i,:)
 ENDDO
@@ -1695,9 +1722,11 @@ DEALLOCATE(newAUX)
 !
 !Apply options to the final system
 CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
+IF(nerr>0) GOTO 1000
 !
 !Write final system to file(s)
 CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
+IF(nerr>0) GOTO 1000
 !
 !
 !

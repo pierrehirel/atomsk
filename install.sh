@@ -104,6 +104,7 @@ if [ "$UID" -eq 0 ] ; then
     # Atomsk tools
     chmod +x ./tools/*.sh
     cp ./tools/* ${BINPATH}
+    echo ""
     echo ">>> The program was successfuly installed in ${BINPATH}"
     echo "    To run it, enter 'atomsk' in a terminal."
 
@@ -112,6 +113,7 @@ if [ "$UID" -eq 0 ] ; then
     rm -rf ${DOCPATH}/atomsk/*
     cp -rf ./doc/* ${DOCPATH}/atomsk/
     chmod -R a+r ${DOCPATH}/atomsk/
+    echo ""
     echo ">>> The html documentation was installed. You may read it by entering the"
     echo "    following address in your Web browser: ${DOCPATH}atomsk/index.html"
 
@@ -150,6 +152,7 @@ else
     # Atomsk tools
     chmod +x ./tools/*.sh
     cp ./tools/* ${BINPATH}
+    echo ""
     echo ">>> The program was successfuly installed in ${BINPATH}"
     echo "    To run it, enter 'atomsk' in a terminal."
 
@@ -158,6 +161,7 @@ else
     rm -rf ${DOCPATH}/*
     cp -rf ./doc/* ${DOCPATH}
     chmod -R a+r ${DOCPATH}
+    echo ""
     echo ">>> The html documentation was installed. You may read it by entering the"
     echo "    following address in your Web browser: ${DOCPATH}index.html"
     
@@ -166,6 +170,7 @@ else
     if [ $n -eq 0 ] ; then
       echo "export PATH=\"\$PATH:${BINPATH}\"" >> ~/.bashrc
       source ~/.bashrc
+    echo ""
       echo ">>> ${BINPATH} was added to your PATH environment variable."
     fi
   

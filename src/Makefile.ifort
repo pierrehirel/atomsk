@@ -1,6 +1,6 @@
 # Makefile for compiling Atomsk on a Unix/Linux machine
-# using Intel Fortran Compiler (ifort) and Intel MKL library.
-# Tested and works with GNU make and ifort 19.0
+# using Intel Fortran Compiler (ifort) and Intel MKL library,
+# as included in Intel oneAPI Base Toolkit 2022.
 
 # USAGE:
 #    make -f Makefile.ifort
@@ -21,10 +21,9 @@ FFLAGS=-O2 $(OPENMP) -module ../OBJ -funroll-loops
 # -g -traceback
 
 # Paths and names of Intel Compiler Libraries
-LAPACK=-L /opt/intel/lib/intel64/             \
-       -L /opt/intel/mkl/lib/intel64/         \
-       -lmkl_intel_lp64 -lmkl_intel_thread    \
-       -lmkl_lapack95_lp64 -lmkl_core -liomp5
+LAPACK=-L/opt/intel/oneapi/mkl/2022.0.2/lib/intel64 -qmkl=parallel
+# Add following option to link statically
+LAPACK+=-static-intel
 
 # Goto main Makefile
 include Makefile

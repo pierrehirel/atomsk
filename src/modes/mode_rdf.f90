@@ -205,7 +205,7 @@ DO  !Loop on files
       CALL NEIGHBOR_LIST(H,P,rdf_maxR+1.1d0*rdf_dr,NeighList)
       !
       !
-      EXIT
+      !EXIT
       atompair=0
       DO k=1,Nspecies  !loop on all atom species
         !

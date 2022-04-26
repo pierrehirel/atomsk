@@ -62,16 +62,50 @@ LOGICAL:: overw, ignore      !automatically overwrite/ignore existing files?
 INTEGER:: verbosity          !level of verbosity of the program
 !
 !**********************************
-!*  OUTPUT
+!*  INPUT/OUTPUT
 !**********************************
-INTEGER:: ofu=40       !output file unit (default 40, stdout=6)
-!The following array contains a list of formats available *FOR OUTPUT* only.
-!It should be updated when new formats are added to Atomsk
+!The following array contains a list of all formats (input+output) supported by Atomsk.
+!First column gives file format extension or name,
+!second column tells if format can be read by Atomsk ("yes" or "no"),
+!third column if it can be written by Atomsk.
+!Additional formats may be added here, don't forget to change array size.
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(27),PARAMETER:: listofformats =                             &
-& (/'atsk ','abin ','bop  ','bx   ','cfg  ','cif  ','cel  ','coo  ','csv  ','d12  ',   &
-&   'dlp  ','fdf  ','gin  ','imd  ','jems ','lmp  ','mol  ','pos  ','pw   ','vesta',   &
-&   'xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz ','stru '    &
-& /)
+CHARACTER(LEN=5),DIMENSION(32,3),PARAMETER:: flist = RESHAPE( (/ &
+  & "atsk ","yes  ","yes  ", &
+  & "abin ","yes  ","yes  ", &
+  & "bop  ","yes  ","yes  ", &
+  & "bx   ","yes  ","yes  ", &
+  & "cfg  ","yes  ","yes  ", &
+  & "cel  ","yes  ","yes  ", &
+  & "cif  ","yes  ","yes  ", &
+  & "coo  ","yes  ","yes  ", &
+  & "csv  ","yes  ","yes  ", &
+  & "d12  ","yes  ","yes  ", &
+  & "dd   ","no   ","yes  ", &
+  & "dlp  ","yes  ","yes  ", &
+  & "fdf  ","yes  ","yes  ", &
+  & "gin  ","yes  ","yes  ", &
+  & "imd  ","yes  ","yes  ", &
+  & "jems ","yes  ","yes  ", &
+  & "lmc  ","yes  ","no   ", &
+  & "lmp  ","yes  ","yes  ", &
+  & "mol  ","yes  ","yes  ", &
+  & "pdb  ","yes  ","yes  ", &
+  & "pos  ","yes  ","yes  ", &
+  & "pw   ","yes  ","yes  ", &
+  & "pwo  ","yes  ","no   ", &
+  & "str  ","yes  ","yes  ", &
+  & "vout ","yes  ","no   ", &
+  & "vesta","yes  ","yes  ", &
+  & "xmd  ","yes  ","yes  ", &
+  & "xsf  ","yes  ","yes  ", &
+  & "xv   ","yes  ","yes  ", &
+  & "xyz  ","yes  ","yes  ", &
+  & "exyz ","yes  ","yes  ", &
+  & "sxyz ","yes  ","yes  "  &
+  & /) , SHAPE(flist) , ORDER=(/2,1/) )
+!
+!Unit for output files. Default is 40, can be changed to 6 for output to stdout
+INTEGER:: ofu=40
 !
 END MODULE comv

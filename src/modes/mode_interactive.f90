@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 April 2022                                    *
+!* Last modification: P. Hirel - 11 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -48,6 +48,9 @@ IMPLICIT NONE
 CHARACTER(LEN=1):: answer
 CHARACTER(LEN=2):: species, species2 !atom species
 CHARACTER(LEN=2),DIMENSION(20):: create_species !chemical species of atoms (mode create)
+CHARACTER(LEN=5):: zone
+CHARACTER(LEN=8):: date
+CHARACTER(LEN=10):: time
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
@@ -72,6 +75,7 @@ INTEGER:: a1, a2, a3
 INTEGER:: i, j, k
 INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
+INTEGER,DIMENSION(8):: timeval !values for DATE_AND_TIME function
 LOGICAL:: cubic !is the lattice cubic?
 LOGICAL:: exists !does file or directory exist?
 LOGICAL:: WrittenToFile  !was the system written to a file?
@@ -90,7 +94,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, 
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Ptemp !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S        !shell positions (is any)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
-
+!
 !
 !Initialize global variables
 !In interactive mode verbosity cannot be 0 or 2
@@ -334,6 +338,10 @@ DO
       CASE("pwd","PWD")
         CALL SYSTEM("pwd")
         !
+      CASE("time","TIME","date","DATE","day","DAY","month","MONTH","year","YEAR")
+        CALL DATE_AND_TIME(DATE, TIME, ZONE, TIMEVAL)
+        WRITE(*,*) DATE(1:4)//"-"//DATE(5:6)//"-"//DATE(7:8)//" "//TIME(1:2)//":"//TIME(3:4)
+        !
       CASE("whoami")
         !Print user name
         WRITE(*,*) "  "//TRIM(ADJUSTL(username))
@@ -374,7 +382,7 @@ DO
           GOTO 500
         ENDIF
         !
-      CASE("help")
+      CASE("help","aide","hilfe","wtf","WTF")
         helpsection = TRIM(ADJUSTL(instruction(6:)))
         IF( helpsection=="options" .OR. helpsection=="modes" ) THEN
           CALL DISPLAY_HELP(helpsection)

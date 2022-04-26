@@ -10,7 +10,7 @@ MODULE reduce_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2021                                     *
+!* Last modification: P. Hirel - 15 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,6 +28,7 @@ MODULE reduce_cell
 !
 USE comv
 USE constants
+USE math
 USE messages
 USE files
 USE subroutines
@@ -41,6 +42,7 @@ SUBROUTINE REDUCECELL(H,P,S,AUX,dir,SELECT)
 IMPLICIT NONE
 CHARACTER(LEN=1),INTENT(IN):: dir  !direction to reduce (if empty, reduce all directions)
 CHARACTER(LEN=128):: msg
+LOGICAL:: primitive  !=TRUE if cell must be reduced to primitive unit cell, FALSE otherwise
 LOGICAL,DIMENSION(3):: reducedir !=TRUE if this direction must be reduced
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT  !mask for atom list
 LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT             !mask for atom list (temporary)
@@ -50,12 +52,13 @@ REAL(dp):: cp, vp, tempreal
 REAL(dp),PARAMETER:: rtol=1.d-3  !relative tolerance on atom positions
 REAL(dp),DIMENSION(3):: tol      !tolerance on atom positions along X,Y,Z (angströms)
 REAL(dp),DIMENSION(3):: V
-REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H      !box vectors
-REAL(dp),DIMENSION(3,3):: Hnew
+REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !box vectors
+REAL(dp),DIMENSION(3,3):: Hold, Hnew        !Old, new box vectors
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T                !positions of cores, shells (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX   !auxiliary properties of atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties of atoms (temporary)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries1, aentries2 !stoichiometry of old, new system
 !
 !
 !
@@ -63,18 +66,22 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties 
 i = 0
 NP=0
 tol(:) = 0.d0
+Hold(:,:) = H(:,:)
 IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 !
 reducedir(:) = .FALSE.
+primitive = .FALSE.
 IF( dir=="x" .OR. dir=="X" ) THEN
   reducedir(1) = .TRUE.
 ELSEIF( dir=="y" .OR. dir=="Y" ) THEN
   reducedir(2) = .TRUE.
 ELSEIF( dir=="z" .OR. dir=="Z" ) THEN
   reducedir(3) = .TRUE.
+ELSEIF( dir=="p" .OR. dir=="P" ) THEN
+  primitive = .TRUE.
 ELSE
   reducedir(:) = .TRUE.
 ENDIF
@@ -82,7 +89,7 @@ ENDIF
 !
 !
 100 CONTINUE
-CALL ATOMSK_MSG(2149,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(2149,(/dir/),(/0.d0/))
 !By default, use atom closest to the origin (0,0,0) as "reference" and search for its periodic images
 iref = 1
 DO i=2,SIZE(P,1)
@@ -103,7 +110,7 @@ ENDIF
 ! Loop on all atoms to find an atom equivalent to atom #iref
 ! NOTE: here "equivalent" just means it has the same species.
 !      The environment of atoms is not checked
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,k,cp,vp,V)
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(j,k,m,n,cp,vp,V)
 DO i=1,SIZE(P,1)
   !
   IF( P(i,4)==P(iref,4) .AND. i.NE.iref ) THEN
@@ -118,30 +125,64 @@ DO i=1,SIZE(P,1)
     !Compute vector between those two atoms
     V(:) = P(i,1:3) - P(iref,1:3)
     !
-    !Check if this vector is aligned along a cell vector
-    DO WHILE(j<3 .AND. k.NE.j)
-      j = j+1
-      !Compute vector product and cross product
-      vp = DOT_PRODUCT( H(j,:) , V(:) )
-      cp = VECLENGTH( CROSS_PRODUCT( H(j,:) , V(:) ) )
-      IF( DABS(vp)>1.d0 .AND. cp<0.1d0 ) THEN
-        !Vector V is aligned with a cell vector
-        k = j
+    IF( .NOT.primitive ) THEN
+      !Check if this vector V(:) is aligned along a cell vector
+      DO WHILE(j<3 .AND. k.NE.j)
+        j = j+1
+        !Compute vector product and cross product
+        vp = DOT_PRODUCT( H(j,:) , V(:) )
+        cp = VECLENGTH( CROSS_PRODUCT( H(j,:) , V(:) ) )
+        IF( DABS(vp)>1.d0 .AND. cp<0.1d0 ) THEN
+          !Vector V is aligned with a cell vector
+          k = j
+        ENDIF
+      ENDDO
+      !
+      IF( k>0 ) THEN
+        !Vector V is aligned with cell vector #k
+        !Check if it is shorter than cell vector, AND shorter than previous vector Hnew
+        IF( VECLENGTH(V(:)) < VECLENGTH(H(k,:)) .AND. VECLENGTH(V(:)) < VECLENGTH(Hnew(k,:)) ) THEN
+          !This vector is shorter than initial cell vector
+          !Save it as new cell vector
+          !$OMP CRITICAL
+          Hnew(k,:) = V(:)
+          reduced(k) = 1
+          !$OMP END CRITICAL
+        ENDIF
       ENDIF
-    ENDDO
-    !
-    IF( k>0 ) THEN
-      !Vector V is aligned with cell vector #k
-      !Check if it is shorter than cell vector, AND shorter than previous vector Hnew
-      IF( VECLENGTH(V(:)) < VECLENGTH(H(k,:)) .AND. VECLENGTH(V(:)) < VECLENGTH(Hnew(k,:)) ) THEN
-        !This vector is shorter than initial cell vector
-        !Save it as new cell vector
-        !$OMP CRITICAL
-        Hnew(k,:) = V(:)
-        reduced(k) = 1
-        !$OMP END CRITICAL
+    ELSE
+      !Check if this vector V(:) is shorter than all other "new cell" vectors
+      k=0
+      DO j=1,3
+        IF( VECLENGTH(V(:)) < VECLENGTH(Hnew(j,:))-0.1d0 ) k=j
+      ENDDO
+      IF( k>0 ) THEN
+        !Vector V(:) is shorter than cell vector Hnew(k,:)
+        !Make sure that it is not colinear with another cell vector
+        m = 1
+        n = 1
+        DO j=1,3
+          IF( j.NE.k ) THEN
+            !Compute vector cross product
+            cp = VECLENGTH( CROSS_PRODUCT( Hnew(j,:) , V(:) ) )
+            !If cross product is small, these two vectors are almost colinear
+            IF( cp<1.d0 ) m=0
+            !Compute vector cross product
+            !vp = RAD2DEG( ANGVEC( Hnew(j,:) , V(:) ) )
+            !IF( DABS(vp)<5.d0 ) n=0
+          ENDIF
+        ENDDO
+        IF( m>0 ) THEN
+          !$OMP CRITICAL
+          !Vector V(:) is not colinear with the other cell vectors
+          !Replace cell vector Hnew(k,:) with V(:)
+          Hnew(k,:) = V(:)
+          reduced(k) = 1
+          !$OMP END CRITICAL
+        ENDIF
       ENDIF
     ENDIF
+    !
   ENDIF
   !
 ENDDO
@@ -149,7 +190,7 @@ ENDDO
 !
 !
 150 CONTINUE
-IF( .NOT.ANY(reduced(:)==1) .AND. SIZE(P,1)>100 .AND. iref==1 ) THEN
+IF( .NOT.ANY(reduced(:)>0) .AND. SIZE(P,1)>100 .AND. iref==1 ) THEN
   !Unable to find a reduced cell using first atom
   !System has a lot of atoms, itmay be complex (e.g. defect at the origin), try with a different reference atom
   iref = SIZE(P,1) / 5
@@ -166,10 +207,14 @@ reduced(:)=0  !so far the cell was not reduced
 !Loop on X, Y, Z
 DO i=1,3
   !Check if user asked to reduce cell along this direction
-  IF( reducedir(i) ) THEN
+  IF( reducedir(i) .OR. primitive ) THEN
     IF( VECLENGTH(Hnew(i,:)) < VECLENGTH(H(i,:)) .AND. VECLENGTH(Hnew(i,:)) > 0.5d0 ) THEN
       !Replace cell vector H(i,:) with new one
-      H(i,:) = H(i,:)*VECLENGTH(Hnew(i,:)) / VECLENGTH(H(i,:))
+      IF( primitive ) THEN
+        H(i,:) = Hnew(i,:)
+      ELSE
+        H(i,:) = H(i,:)*VECLENGTH(Hnew(i,:)) / VECLENGTH(H(i,:))
+      ENDIF
       !Mark it as modified
       reduced(i) = 1
       !Eliminate approximations in cell vectors components
@@ -252,33 +297,87 @@ IF( ANY( reduced(:)>0 ) ) THEN
     ENDIF
   ENDDO
   !
-  !Re-allocate arrays into their final sizes
-  DEALLOCATE(P)
-  ALLOCATE(P(NP,4))
-  IF( ALLOCATED(S) ) THEN
-    DEALLOCATE(S)
-    ALLOCATE(S(NP,4))
-  ENDIF
-  IF( ALLOCATED(AUX) ) THEN
-    j = SIZE(AUX,2)
-    DEALLOCATE(AUX)
-    ALLOCATE(AUX(NP,j))
-  ENDIF
-  IF( ALLOCATED(SELECT) ) THEN
-    DEALLOCATE(SELECT)
-    ALLOCATE(SELECT(NP))
+  !Get stoichiometry of old and new systems
+  CALL FIND_NSP(P(:,4),aentries1)
+  CALL FIND_NSP(Q(:,4),aentries2)
+  IF( verbosity==4 ) THEN
+    msg = "Initial species, atom count:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    DO i=1,SIZE(aentries1,1)
+      WRITE(msg,'(8X,2i8)') NINT(aentries1(i,1)), NINT(aentries1(i,2))
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDDO
+    msg = "Final   species, atom count:"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    DO i=1,SIZE(aentries2,1)
+      WRITE(msg,'(8X,2i8)') NINT(aentries2(i,1)), NINT(aentries2(i,2))
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDDO
   ENDIF
   !
-  !Copy data into final arrays
-  DO i=1,NP
-    P(i,:) = Q(i,:)
-    IF(ALLOCATED(S)) S(i,:) = T(i,:)
-    IF(ALLOCATED(AUX)) AUX(i,:) = newAUX(i,:)
-    IF(ALLOCATED(SELECT)) SELECT(i) = newSELECT(i)
+  !Check that stoichiometry is preserved
+  m=0
+  cp=-1.d0
+  DO i=1,SIZE(aentries1,1)
+    DO j=1,SIZE(aentries2,1)
+      IF( aentries1(i,1)==aentries2(j,1) ) THEN
+        !These entries are about the same atom species
+        !Save ratio between new and old systems
+        vp = aentries1(i,2) / aentries2(j,2)
+        IF( cp<=0.d0 ) THEN
+          !This is the first matching entry: 
+          cp = vp
+        ELSE
+          !This is another matching entry: check that ratio is the same
+          IF( DABS(cp-vp)>0.5d0 ) THEN
+            !Ratios are different: stoichiometry is *not* preserved
+            m=1
+          ENDIF
+        ENDIF
+      ENDIF
+    ENDDO
   ENDDO
   !
+  IF( m==0 ) THEN
+    msg = "Stoichiometry is considered preserved, re-allocating arrays..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !Re-allocate arrays into their final sizes
+    DEALLOCATE(P)
+    ALLOCATE(P(NP,4))
+    IF( ALLOCATED(S) ) THEN
+      DEALLOCATE(S)
+      ALLOCATE(S(NP,4))
+    ENDIF
+    IF( ALLOCATED(AUX) ) THEN
+      j = SIZE(AUX,2)
+      DEALLOCATE(AUX)
+      ALLOCATE(AUX(NP,j))
+    ENDIF
+    IF( ALLOCATED(SELECT) ) THEN
+      DEALLOCATE(SELECT)
+      ALLOCATE(SELECT(NP))
+    ENDIF
+    !
+    !Copy data into final arrays
+    DO i=1,NP
+      P(i,:) = Q(i,:)
+      IF(ALLOCATED(S)) S(i,:) = T(i,:)
+      IF(ALLOCATED(AUX)) AUX(i,:) = newAUX(i,:)
+      IF(ALLOCATED(SELECT)) SELECT(i) = newSELECT(i)
+    ENDDO
+    !
+  ELSE
+    msg = "Stoichiometry is NOT preserved, restoring old system"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    !Non-zero m means that stoichiometry was not preserved
+    !Restore old system as it was
+    H(:,:) = Hold(:,:)
+    NP = SIZE(P,1)
+    reduced(:) = 0
+  ENDIF
+  !
   !Free temporary arrays
-  DEALLOCATE(Q)
+  IF(ALLOCATED(Q)) DEALLOCATE(Q)
   IF(ALLOCATED(T)) DEALLOCATE(T)
   IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
   IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
@@ -289,13 +388,15 @@ IF( ANY( reduced(:)>0 ) ) THEN
     CALL FRAC2CART(S,H)
   ENDIF
   !
+ENDIF
+!
+IF( ANY(reduced(:)>0) ) THEN
+  !At least one cell vector was reduced
   CALL ATOMSK_MSG(2150,(/''/),(/ DBLE(reduced(1)), DBLE(reduced(2)), DBLE(reduced(3)), DBLE(NP) /))
-  !
 ELSE
   !No cell vector was modified: display warning and go on
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2764,(/''/),(/0.d0/))
-  !
 ENDIF
 !
 !

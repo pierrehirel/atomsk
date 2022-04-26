@@ -7,7 +7,10 @@ https://atomsk.univ-lille.fr/
 PURPOSE:
 ========
 Atomsk is a command-line program meant to manipulate
-atomic systems, and convert from and to various file formats.
+atomic systems for materials sciences.
+Atomsk can convert from and to various file formats, and
+offers options to duplicate atomic systems, introduce
+defects, construct crystals and polycrystals, and more.
 
 QUICK START:
 ============

@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 15 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -342,6 +342,8 @@ ENDDO
 !     of atoms or change their order in the array P must also add, remove or
 !     re-order the shells in S and/or auxiliary properties in AUX accordingly.
 !
+WRITE(msg,*) '===================================================='
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 WRITE(msg,*) '===   NOW APPLYING OPTIONS IN SEQUENTIAL ORDER   ==='
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
@@ -1324,7 +1326,7 @@ DO ioptions=1,SIZE(options_array)
       WRITE(msg,*) (TRIM(ADJUSTL(AUXNAMES(i)))//'  ', i=1,MIN(SIZE(AUXNAMES),6) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO i=1,MIN( 20,SIZE(AUX(:,1)) )
-        WRITE(msg,'(6(e9.3,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
+        WRITE(msg,'(6(f9.3,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
       IF(i>=20) THEN
@@ -1445,7 +1447,7 @@ GOTO 1000
 !
 !
 1000 CONTINUE
-WRITE(msg,*) '===                END OF OPTIONS                ==='
+WRITE(msg,*) '================   END OF OPTIONS   ================'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 END SUBROUTINE OPTIONS_AFF

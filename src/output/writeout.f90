@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Oct. 2021                                     *
+!* Last modification: P. Hirel - 26 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -210,6 +210,7 @@ IF( i.NE.0 ) THEN
   ENDIF
   nerr=nerr+1
   CALL ATOMSK_MSG(1802,(/msg/),(/0.d0/))
+  GOTO 1000
 ENDIF
 !
 !
@@ -274,7 +275,7 @@ IF( .NOT.ALLOCATED(outfileformats) .OR. SIZE(outfileformats)==0 ) THEN
   CALL ATOMSK_MSG(3701,(/TRIM(prefix)/),(/0.d0/))
   READ(*,*) newformat
   !check that this format can be recognized
-  IF(.NOT.ANY(listofformats==newformat)) THEN
+  IF(.NOT.ANY(flist(:,1)==newformat)) THEN
     GOTO 150
   ELSE
     CALL SET_OUTPUT(outfileformats,newformat,.TRUE.)

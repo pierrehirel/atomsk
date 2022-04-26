@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 29 March 2022                                    *
+!* Last modification: P. Hirel - 15 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1172,7 +1172,8 @@ DO WHILE(i<SIZE(cla))
     IF( i<SIZE(cla) ) THEN
       i=i+1
       READ(cla(i),'(a128)',END=400,ERR=400) temp
-      IF( temp=="x".OR.temp=="X" .OR. temp=="y".OR.temp=="Y" .OR. temp=="z".OR.temp=="Z" ) THEN
+      IF( temp=="x".OR.temp=="X" .OR. temp=="y".OR.temp=="Y" .OR. temp=="z".OR.temp=="Z" &
+        &  .OR. temp=="p".OR.temp=="P") THEN
         options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       ELSE
         i=i-1

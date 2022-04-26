@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 April 2022                                    *
+!* Last modification: P. Hirel - 12 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -178,22 +178,50 @@ IF( LEN_TRIM(string)<=0 ) THEN
   RETURN
 ENDIF
 !
-!If user wrote things like "2pi", correct it into "2*pi"
-!Same with parenthesis, e.g. 2(3+1) is corrected into 2*(3+1)
-IF( INDEX(string,"pi")>1 .OR. INDEX(string,"(")>1 ) THEN
-  i=1
+IF( INDEX(string,"pi")>1 .OR. INDEX(string,"(")>0 .OR. SCAN(string,"[]{}")>0 ) THEN
+  !If user used [sqare] or {curly} brackets, replace with regular parenthesis
+  i=0
   DO WHILE(i<LEN_TRIM(string))
     i = i+1
-    IF( string(i:i+1)=="pi" .OR. string(i:i)=='(' ) THEN
+    IF( string(i:i)=='[' ) string(i:i)='('
+    IF( string(i:i)==']' ) string(i:i)=')'
+    IF( string(i:i)=='{' ) string(i:i)='('
+    IF( string(i:i)=='}' ) string(i:i)=')'
+  ENDDO
+  !
+  !If user wrote things like "2pi", correct it into "2*pi"
+  !Same with functions, e.g. 2cos(pi/3) is corrected into 2*cos(pi/3)
+  !Same with parenthesis, e.g. 2(3+1) is corrected into 2*(3+1)
+  i=0
+  DO WHILE(i<LEN_TRIM(string))
+    i = i+1
+    m = 0
+    IF( string(i:i+1)=="pi" .OR. string(i:i)=='(' .OR.   &
+      & string(i:i+2)=="cos" .OR. string(i:i+2)=="sin" .OR.string(i:i+2)=="tan" .OR.    &
+      & string(i:i+3)=="acos" .OR. string(i:i+3)=="asin" .OR.string(i:i+3)=="atan" .OR. &
+      & string(i:i+4)=="atan2" .OR. string(i:i+3)=="sqrt" .OR.string(i:i+2)=="abs" .OR. &
+      & string(i:i+2)=="exp" .OR.string(i:i+2)=="log" .OR.string(i:i+1)=="ln" .OR.      &
+      & string(i:i+2)=="int" .OR.string(i:i+2)=="log" .OR.string(i:i+1)=="ln"      ) THEN
+      !
       IF( SCAN(string(i-1:i-1),"0123456789")>0 ) THEN
-        !pi is multiplied by a number
-        string = ADJUSTL(string(1:i-1))//"*"//TRIM(string(i:))
+        IF( .NOT. ( i>5 .AND. string(i-5:i-1)=="atan2" ) ) THEN
+          !pi or function or parenthesis is multiplied by a number
+          string = ADJUSTL(string(1:i-1))//"*"//TRIM(string(i:))
+        ENDIF
       ELSEIF( string(i-1:i-1)=='-' ) THEN
         !pi is multiplied by -1
         string = ADJUSTL(string(1:i-2))//"-1.0*"//TRIM(string(i:))
       ENDIF
     ENDIF
   ENDDO
+ENDIF
+!
+!If string contains strange characters, exit with error
+IF( SCAN(string,"&#'|`@°£$øµ§")>0 .OR. SCAN(string,'"')>0 ) THEN
+  i = SCAN(string,"&#'|`@°£$øµ§")
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  ILLEGAL CHARACTER: "//string(i:i)
+  status=1
+  RETURN
 ENDIF
 !
 !First, try to read a number: if it succeeds, we are done
@@ -986,7 +1014,7 @@ ELSE IF( p1>0 ) THEN
   m=0
   i=p1
   j=1
-  DO WHILE(m==0)
+  DO WHILE(m==0 .AND. i<LEN_TRIM(string) )
     i=i+1
     IF( string(i:i)=="(" ) THEN
       j=j+1
@@ -1001,7 +1029,12 @@ ELSE IF( p1>0 ) THEN
     ENDIF
   ENDDO
   !Save everything after closing parenthesis into string2
-  string2 = TRIM(ADJUSTL(string(p2+1:)))
+  IF( m>0 ) THEN
+    string2 = TRIM(ADJUSTL(string(p2+1:)))
+  ELSE
+    string2 = ""
+    p2=LEN_TRIM(string)+1
+  ENDIF
   !Check if this parenthesis has an exponent or factorial attached after it
   IF( string2(1:1)=="^" ) THEN
     temp1 = string(p1+1:p2-1)
@@ -1010,7 +1043,7 @@ ELSE IF( p1>0 ) THEN
     j = SCAN(string2(2:),"-")+1
     temp = string(p1+1:p2+i-1)
     IF( i>0 ) THEN
-      temp2 = TRIM(string2(2:i-1))
+      temp2 = TRIM(ADJUSTL(string2(2:i-1)))
       string2 = TRIM(ADJUSTL(string2(i:)))
     ELSE IF( j>1 ) THEN
       temp2 = string2(2:i-1)
@@ -1119,7 +1152,7 @@ ELSE IF( SCAN(string,"/")>0 .OR. SCAN(string,":")>0 ) THEN
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   CALL EXPREVAL(string,value,recuri,status)
   !
-!Replace divisions by their value
+!Replace modulo by their value
 ELSE IF( SCAN(string,"%")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED MODULO: ", TRIM(string)
   !Save position of the modulo operator
@@ -1183,6 +1216,7 @@ ELSE IF( SCAN(string,"^")>0 ) THEN
     m=0
     i=i-1
     j=1
+    p2=0
     DO WHILE(m==0 .AND. i>0)
       i=i-1
       IF( string(i:i)=="(" ) THEN
@@ -1197,7 +1231,12 @@ ELSE IF( SCAN(string,"^")>0 ) THEN
         EXIT
       ENDIF
     ENDDO
-    IF( i<1 ) p2=1
+    IF( i<1 .OR. m==0 ) THEN
+      p2=0
+      string1 = ""
+    ELSE
+      string1 = string(1:i-1)
+    ENDIF
     IF( p2<i-2 ) THEN
       temp1 = string(p2+1:i-2)
     ELSE
@@ -1405,15 +1444,15 @@ ELSE IF( SCAN(string,"+")>0 ) THEN
   !
   !
 !Replace subtractions by their value
-ELSE IF( ms>0 ) THEN
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED SUBTRACTION: ", TRIM(string)
-  temp1 = string(:ms-1)
-  temp2 = string(ms+1:)
-  CALL EXPREVAL(temp1,x,recuri,status)
-  CALL EXPREVAL(temp2,y,recuri,status)
-  value = x-y
-  IF(verbosity==4) PRINT*,  TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" - "//TRIM(ADJUSTL(temp2))//"  = ", value
-  WRITE(temp,*) value
+! ELSE IF( ms>0 ) THEN
+!   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED SUBTRACTION: ", TRIM(string)
+!   temp1 = string(:ms-1)
+!   temp2 = string(ms+1:)
+!   CALL EXPREVAL(temp1,x,recuri,status)
+!   CALL EXPREVAL(temp2,y,recuri,status)
+!   value = x-y
+!   IF(verbosity==4) PRINT*,  TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" - "//TRIM(ADJUSTL(temp2))//"  = ", value
+!   WRITE(temp,*) value
   !
   !
 !Replace subtractions by their value

@@ -1006,7 +1006,7 @@ IF( verbosity==4 ) THEN
   DO i=1,SIZE(G,1)
     msg = ""
     DO j=1,3
-      WRITE(msg,'(a,3(2X,g12.6))') TRIM(msg), (G(i,j,k),k=1,3)
+      WRITE(msg,'(a,3(2X,f12.6))') TRIM(msg), (G(i,j,k),k=1,3)
     ENDDO
     WRITE(41,*) Psecond(i,1), Psecond(i,2), "  "//TRIM(ADJUSTL(msg))
   ENDDO

@@ -2197,7 +2197,12 @@ CASE(2148)
   msg = "..> Fertig, "//TRIM(ADJUSTL(temp))//" Werte wurden gerundet."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2149)
-  msg = ">>> Reduzierung der Systemgröße unter Beibehaltung der Periodizität..."
+  !strings(1) = direction to reduce
+  IF( strings(1)=='p' .OR. strings(1)=='P' ) THEN
+    msg = ">>> Reduzierung der Systems in eine primitive Zelle..."
+  ELSE
+    msg = ">>> Reduzierung der Systemgröße unter Beibehaltung der Periodizität..."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2150)
   !reals(1) = 1 if cell was reduced along X, 0 otherwise
@@ -2667,11 +2672,13 @@ CASE(3701)
   msg = "<?> Welches Format der Ausgabedatei soll ich verwenden:"
   CALL DISPLAY_MSG(1,msg,logfile)
   j=0
-  DO i=1,CEILING(SIZE(listofformats)/10.0)
+  DO i=1,CEILING(SIZE(flist,1)/10.0)
     msg = ""
     DO j=1,10
-      IF( 10*(i-1)+j <= SIZE(listofformats) ) THEN
-        msg = TRIM(msg)//' '//listofformats(10*(i-1)+j)
+      IF( 10*(i-1)+j <= SIZE(flist,1) ) THEN
+        IF( flist(10*(i-1)+j,3)=="yes  " ) THEN
+          msg = TRIM(msg)//' '//flist(10*(i-1)+j,1)
+        ENDIF
       ENDIF
     ENDDO
     msg = "        "//TRIM(ADJUSTL(msg))
@@ -2900,9 +2907,9 @@ CASE(4023)
 CASE(4024)
   msg = "<?> In welches Format soll konvertiert werden?"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = '    ('//TRIM(listofformats(1))
-  DO i=2,SIZE(listofformats)
-    msg = TRIM(msg)//','//TRIM(listofformats(i))
+  msg = '    ('//TRIM(flist(1,1))
+  DO i=2,SIZE(flist,1)
+    msg = TRIM(msg)//','//TRIM(flist(i,1))
   ENDDO
   msg = TRIM(msg)//')'
   CALL DISPLAY_MSG(verbosity,msg,logfile)

@@ -96,6 +96,7 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
+neighsearch="cell"  !!!TEMPORARY: force algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -632,7 +633,6 @@ IF( verbosity==4 ) THEN
   CLOSE(56)
 ENDIF
 !
-PRINT*, "Constructing Atom Neighbour List ..."
 WRITE(msg,*) "Constructing Atom Neighbour List ..."
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !Using the previous linked list, construct actual neighbor list
@@ -651,32 +651,33 @@ DO i=1,SIZE(A,1)  !Loop on all atoms
   n = iCell  !Cell_Neigh(iCell,k)
   DO WHILE( k<SIZE(Cell_Neigh,2) .AND. n>0 )   !k=1,SIZE(Cell_Neigh,2) !Loop on all neighbouring cells
     !Get translation vector for this neighbouring cell, accounting for PBC
-    Ix=0
-    Iy=0
-    Iz=0
-    IF( Cell_ijk(iCell,1)==1 ) THEN
-      IF( Cell_ijk(n,1)>Cell_ijk(iCell,1)+1 ) Ix=1
-    ELSEIF( Cell_ijk(iCell,1)==NcellsX(1) ) THEN
-      IF( Cell_ijk(n,1)<Cell_ijk(iCell,1)-1 ) Ix=-1
-    ENDIF
-    IF( Cell_ijk(iCell,2)==1 ) THEN
-      IF( Cell_ijk(n,2)>Cell_ijk(iCell,2)+1 ) Iy=1
-    ELSEIF( Cell_ijk(iCell,2)==NcellsX(2) ) THEN
-      IF( Cell_ijk(n,2)<Cell_ijk(iCell,2)-1 ) Iy=-1
-    ENDIF
-    IF( Cell_ijk(iCell,3)==1 ) THEN
-      IF( Cell_ijk(n,3)>Cell_ijk(iCell,3)+1 ) Iz=1
-    ELSEIF( Cell_ijk(iCell,3)==NcellsX(3) ) THEN
-      IF( Cell_ijk(n,3)<Cell_ijk(iCell,3)-1 ) Iz=-1
-    ENDIF
-    shift(:) = Ix*H(1,:) + Iy*H(2,:) + Iz*H(3,:)
+    shift(:) = 0.d0
+!     Ix=0
+!     Iy=0
+!     Iz=0
+!     IF( Cell_ijk(iCell,1)==1 ) THEN
+!       IF( Cell_ijk(n,1)>Cell_ijk(iCell,1)+1 ) Ix=1
+!     ELSEIF( Cell_ijk(iCell,1)==NcellsX(1) ) THEN
+!       IF( Cell_ijk(n,1)<Cell_ijk(iCell,1)-1 ) Ix=-1
+!     ENDIF
+!     IF( Cell_ijk(iCell,2)==1 ) THEN
+!       IF( Cell_ijk(n,2)>Cell_ijk(iCell,2)+1 ) Iy=1
+!     ELSEIF( Cell_ijk(iCell,2)==NcellsX(2) ) THEN
+!       IF( Cell_ijk(n,2)<Cell_ijk(iCell,2)-1 ) Iy=-1
+!     ENDIF
+!     IF( Cell_ijk(iCell,3)==1 ) THEN
+!       IF( Cell_ijk(n,3)>Cell_ijk(iCell,3)+1 ) Iz=1
+!     ELSEIF( Cell_ijk(iCell,3)==NcellsX(3) ) THEN
+!       IF( Cell_ijk(n,3)<Cell_ijk(iCell,3)-1 ) Iz=-1
+!     ENDIF
+!     shift(:) = Ix*H(1,:) + Iy*H(2,:) + Iz*H(3,:)
     ! Get first atom in cell
     j = LinkedHead(n)
     !Loop on all atoms in LinkedList, until we meet an index equal to 0
-    DO WHILE(j>0)
+    DO !WHILE(j>0)
       !PRINT*, "                Cell #", n, ":", j
-      !IF(j==0) EXIT
-      IF( j.NE.i .AND. .NOT.ANY(NeighList(i,:)==j) ) THEN
+      IF(j==0) EXIT
+      IF( j>i .AND. .NOT.ANY(NeighList(i,:)==j) ) THEN
         !Compute position of atom #j taking PBC into account
         Vfrac(1,1:3) = A(j,1:3) + shift(:)
         !Compute distance between atoms #i and #j

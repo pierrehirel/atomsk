@@ -15,7 +15,7 @@
 
 <h4>Syntax</h4>
 
-<p><code>-reduce-cell &#60;x|y|z&#62;</code></p>
+<p><code>-reduce-cell &#60;x|y|z|p&#62;</code></p>
 
 
 <h4>Description</h4>
@@ -26,7 +26,9 @@
 
 <p>This option preserves the crystal orientation, it just attempts to shorten the cell vectors when it is possible. The resulting final cell should be the shortest for this crystal orientation.</p>
 
-<p>If this option is called with the parameter "x", "y", or "z", then the cell size is reduced only along that direction. In the absence of parameter the cell size is reduced in all dimensions.</p>
+<p>If this option is called with the parameter "<strong>x</strong>", "<strong>y</strong>", or "<strong>z</strong>", then the cell size is reduced only along that direction. In the absence of parameter the cell size is reduced in all dimensions.</p>
+
+<p>If this option is called with the parameter "<strong>p</strong>", then Atomsk will attempt to find the primitive cell, i.e. the smallest vectors that respect the periodicity of the lattice. Note that in this case, the final box vectors may not be aligned with the initial ones.</p>
 
 <p>If the system is rotated and you wish to obtain an orthorhombic unit cell, then use the <a href="./option_orthocell.html">option <code>-orthogonal-cell</code></a> before this one.</p>
 
@@ -53,6 +55,9 @@
 
 <li><code class="command">atomsk initial.cfg -reduce-cell y final.cfg</code>
 <p>This will read the file <code>initial.cfg</code>, and attempt to reduce the cell size along the Y axis. The result will be output in <code>final.cfg</code>.</p></li>
+
+<li><code class="command">atomsk Al_unitcell.cfg -reduce-cell p Al_primitivecell.cfg</code>
+<p>This will read the file <code>Al_unitcell.cfg</code>, and try to find the primitive cell. The result will be output in <code>Al_primitivecell.cfg</code>.</p></li>
 
 </ul>
 

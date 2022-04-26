@@ -11,8 +11,9 @@ export
 # COMPILER:
 FORTRAN=g95
   
-# Comment the following line to disable parallelization with OpenMP
-OPENMP=-DOPENMP -fopenmp
+# NOTE: OpenMP is not available with g95 compiler.
+# If it becomes available, you may edit the following line
+#OPENMP=
 
 # COMPILATION FLAGS:
 # -fmod is used to specify the folder where the compiler will store the *.mod files
