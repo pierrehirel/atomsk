@@ -16,7 +16,7 @@ MODULE symops
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 22 March 2017                                    *
+!* Last modification: P. Hirel - 28 April 2018                                    *
 !**********************************************************************************
 !* Symmetry operation handling and parsing, added by J. Barthel, July 2015        *
 !* SYMOPS_INIT    initializes the array symops_trf to identity                    *
@@ -128,9 +128,6 @@ INTEGER,DIMENSION(:),ALLOCATABLE::SUSE ! intermediate array for new data
 REAL(dp),DIMENSION(:,:),ALLOCATABLE::S1,S2,R1,R2,SAUX1,SAUX2 ! intermediate arrays for new data 
 REAL(dp),DIMENSION(3,3):: G ! inverse of H
 !
-WRITE(msg,*) 'entering SYMOPS_APPLY, Nsym = ', Nsym
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!
 !Initial checks.
 nchk=0
 NP=0
@@ -147,6 +144,9 @@ MP=SIZE(P,2)
 IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   NS=SIZE(S,1)
 ENDIF
+!
+WRITE(msg,*) 'entering SYMOPS_APPLY, Nsym = ', Nsym
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) NP
@@ -216,7 +216,7 @@ DO isym=1,Nsym ! apply each symmetry op. ...
   !Get current transformation parameters
   trf(:) = symops_trf(:,isym)
   IF( verbosity==4 ) THEN
-    WRITE(msg,'(a9,i3,a3,10e10.3)') "Sym.op. #", isym, " : ", (trf(j),j=1,MIN(SIZE(trf),8))
+    WRITE(msg,'(a9,i3,a3,10e11.3)') "Sym.op. #", isym, " : ", (trf(j),j=1,MIN(SIZE(trf),8))
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDIF
   !Apply this transformation from S1 to S2

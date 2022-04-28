@@ -24,7 +24,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 April 2022                                    *
+!* Last modification: P. Hirel - 27 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -64,7 +64,7 @@ INTEGER:: certainty
 INTEGER:: likely
 INTEGER:: strlength, i
 INTEGER:: NP
-INTEGER,DIMENSION(SIZE(flist)):: fscore
+INTEGER,DIMENSION(SIZE(flist,1)):: fscore
 REAL(dp):: testreal
 !
 !
@@ -557,7 +557,7 @@ IF(fileexists) THEN
         !If successful, it could be SIESTA XV format
         READ(test,*,ERR=230,END=230) testreal, testreal, testreal, &
                                    & testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"xv   ",6,1)
+        CALL SET_SCORE(fscore,"xv   ",6,0)
       ENDIF
       !
       230 CONTINUE
@@ -565,33 +565,34 @@ IF(fileexists) THEN
         !Try to read 3 reals
         !If successful for i=3,4,5 then it can be MOLDY or DL_POLY file
         READ(test,*,ERR=240,END=240) testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"dlp  ",3,1)
-        CALL SET_SCORE(fscore,"mol  ",3,1)
+        CALL SET_SCORE(fscore,"dlp  ",2,0)
+        CALL SET_SCORE(fscore,"mol  ",2,0)
       ENDIF
       !
       240 CONTINUE
       IF( i>2 .AND. test(1:1).NE.'#' ) THEN
         !XYZ format has lines  "N x y z"
         READ(test,*,ERR=241,END=241) NP, testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"xyz  ",3,1)
+        CALL SET_SCORE(fscore,"lmp  ",1,0)
+        CALL SET_SCORE(fscore,"xyz  ",1,0)
         GOTO 249
         241 CONTINUE
         !MOLDY format has lines  "x y z N"
         READ(test,*,ERR=242,END=242) testreal, testreal, testreal, NP
-        CALL SET_SCORE(fscore,"mol  ",3,1)
+        CALL SET_SCORE(fscore,"mol  ",1,0)
         GOTO 249
         242 CONTINUE
         !SIESTA XV format has lines  "N Z x y z fx fy fz"
         READ(test,*,ERR=243,END=243) NP, NP, testreal, testreal, testreal, &
                                     & testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"xv   ",5,1)
+        CALL SET_SCORE(fscore,"xv   ",1,0)
         243 CONTINUE
         GOTO 249
         !Atomeye, DL_POLY CONFIG (or REVCON), and VASP POSCAR formats have lines "x y z"
         READ(test,*,ERR=249,END=249) testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"cfg  ",5,1)
-        CALL SET_SCORE(fscore,"dlp  ",5,1)
-        CALL SET_SCORE(fscore,"pos  ",5,1)
+        CALL SET_SCORE(fscore,"cfg  ",2,0)
+        CALL SET_SCORE(fscore,"dlp  ",2,0)
+        CALL SET_SCORE(fscore,"pos  ",2,0)
         249 CONTINUE
       ENDIF
     !

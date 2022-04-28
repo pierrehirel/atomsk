@@ -453,39 +453,30 @@ DO WHILE(i<SIZE(cla))
   !
   !
   !Deal with output formats
-  ELSEIF(clarg=='atsk' .OR. clarg=='atomsk' .OR. clarg=='ATSK' .OR. clarg=='ATOMSK' .OR. clarg=='Atomsk') THEN
+  !First, check if argument is one of the formats in flist(:) (see "globalvar.f90")
+  ELSEIF( ANY(flist(:,1)==StrDnCase(clarg)) ) THEN
+    Nout = Nout+1
+    tempout(Nout) = StrDnCase(clarg)
+  !Second, accept some keywords and save them as format
+  ELSEIF( StrDnCase(clarg)=='atomsk' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'atsk'
-  ELSEIF(clarg=='abinit' .OR. clarg=="ABINIT" .OR. clarg=="Abinit" .OR. clarg=="abin" .OR. clarg=="ABIN") THEN
+  ELSEIF( StrDnCase(clarg)=='abinit' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'abin'
-  ELSEIF(clarg=='bop' .OR. clarg=="BOP") THEN
-    Nout = Nout+1
-    tempout(Nout) = 'bop'
-  ELSEIF(clarg=='bx' .OR. clarg=="BX" .OR. clarg=="bopfox" .OR. clarg=="BOPfox" .OR. clarg=="BOPFOX") THEN
+  ELSEIF( StrDnCase(clarg)=="bopfox" ) THEN
     Nout = Nout+1
     tempout(Nout) = 'bx'
-  ELSEIF( clarg=='cfg' .OR. clarg=='CFG' .OR. clarg=='atomeye' .OR. clarg=='Atomeye' .OR. &
-        & clarg=='ATOMEYE' .OR. clarg=='QSTEM' .OR. clarg=='qstem' .OR. clarg=='Qstem' ) THEN
+  ELSEIF( StrDnCase(clarg)=='atomeye' .OR. StrDnCase(clarg)=='qstem' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'cfg'
-  ELSEIF(clarg=='cel' .OR. clarg=='CEL' .OR. clarg=='drprobe' .OR. clarg=='DrProbe') THEN
+  ELSEIF( StrDnCase(clarg)=='drprobe' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'cel'
-  ELSEIF(clarg=='cif' .OR. clarg=='CIF') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'cif'
-  ELSEIF(clarg=='cml' .OR. clarg=='CML') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'cml'
-  ELSEIF(clarg=='csv' .OR. clarg=='CSV') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'csv'
-  ELSEIF(clarg=='dlp' .OR. clarg=='DLP' .OR. clarg=='dlpoly' .OR. clarg=='DLPOLY' .OR.  &
-        & clarg=="dl_poly" .OR. clarg=="DL_POLY" ) THEN
+  ELSEIF( StrDnCase(clarg)=='dlpoly' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'dlp'
-  ELSEIF(clarg=='config' .OR. clarg=='CONFIG') THEN
+  ELSEIF( StrDnCase(clarg)=='config' ) THEN
     IF(LEN_TRIM(pfiles(1)).NE.0) THEN
       IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'CONFIG'
       Nout = Nout+1
@@ -493,10 +484,10 @@ DO WHILE(i<SIZE(cla))
     ELSE
       pfiles(1) = 'CONFIG'
     ENDIF
-  ELSEIF(clarg=='coo'.OR. clarg=='COO' .OR. clarg=='mbpp' .OR. clarg=='MBPP') THEN
+  ELSEIF( StrDnCase(clarg)=='mbpp' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'coo'
-  ELSEIF(clarg=='coorat' .OR. clarg=='COORAT' .OR. clarg=='mbpp' .OR. clarg=='MBPP') THEN
+  ELSEIF( StrDnCase(clarg)=='coorat' ) THEN
     !if a file name was defined before, 
     IF(LEN_TRIM(pfiles(1)).NE.0) THEN
       IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'COORAT'
@@ -505,41 +496,28 @@ DO WHILE(i<SIZE(cla))
     ELSE
       pfiles(1) = 'COORAT'
     ENDIF
-  ELSEIF(clarg=='CRYSTAL'.OR. clarg=='crystal' .OR. clarg=='d12' .OR. clarg=='D12') THEN
+  ELSEIF( StrDnCase(clarg)=='crystal' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'd12'
-  ELSEIF(clarg=='dd' .OR. clarg=='DD' .OR. clarg=='ddplot') THEN
+  ELSEIF( StrDnCase(clarg)=='ddplot' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'dd'
-  ELSEIF(clarg=='exyz' .OR. clarg=='EXYZ') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'exyz'
-  ELSEIF(clarg=='fdf' .OR. clarg=='FDF' .OR. clarg=='siesta' .OR. clarg=='Siesta' .OR. clarg=='SIESTA') THEN
+  ELSEIF( StrDnCase(clarg)=='siesta' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'fdf'
-  ELSEIF(clarg=='gin' .OR. clarg=='GIN' .OR. clarg=='gulp' .OR. clarg=='GULP') THEN
+  ELSEIF( StrDnCase(clarg)=='gulp' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'gin'
-  ELSEIF(clarg=='imd' .OR. clarg=='IMD') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'imd'
-  ELSEIF(clarg=='jems' .OR. clarg=='JEMS' .OR. clarg=='Jems') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'jems'
-  ELSEIF(clarg=='lammps' .OR. clarg=='LAMMPS' .OR. clarg=='lmp' .OR. clarg=='LMP') THEN
+  ELSEIF( StrDnCase(clarg)=='lammps' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'lmp'
-  ELSEIF( clarg=='mol' .OR. clarg=='MOL' .OR. clarg=='moldy' &
-        & .OR. clarg=='mold' .OR. clarg=='MOLDY'                 ) THEN
+  ELSEIF( StrDnCase(clarg)=='moldy' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'mol'
-  ELSEIF(clarg=='pdb' .OR. clarg=='PDB') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'pdb'
-  ELSEIF(clarg=='pos' .OR. clarg=='POS' .OR. clarg=='vasp' .OR. clarg=='VASP') THEN
+  ELSEIF( StrDnCase(clarg)=='vasp' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'pos'
-  ELSEIF(clarg=='poscar' .OR. clarg=='POSCAR') THEN
+  ELSEIF( StrDnCase(clarg)=='poscar' ) THEN
     IF(LEN_TRIM(pfiles(1)).NE.0) THEN
       IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'POSCAR'
       Nout = Nout+1
@@ -547,36 +525,19 @@ DO WHILE(i<SIZE(cla))
     ELSE
       IF(LEN_TRIM(pfiles(2))==0) pfiles(1) = 'POSCAR'
     ENDIF
-  ELSEIF( clarg=='pw' .OR. clarg=='PW' .OR. clarg=='pwscf' .OR. clarg=='PWscf' .OR. &
-        & clarg=='PWSCF' .OR. clarg=='qe' .OR. clarg=='QE' ) THEN
+  ELSEIF( StrDnCase(clarg)=='pwscf' .OR. StrDnCase(clarg)=='qe' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'pw'
-  ELSEIF(clarg=='vesta' .OR. clarg=='VESTA') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'vesta'
-  ELSEIF(clarg=='xmd' .OR. clarg=='XMD') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'xmd'
-  ELSEIF(clarg=='xsf' .OR. clarg=='XSF' .OR. clarg=='xcrysden' .OR. clarg=='XCrySDen' &
-        & .OR. clarg=='XCrysDen'.OR. clarg=='XCRYSDEN') THEN
+  ELSEIF( StrDnCase(clarg)=='xcrysden' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'xsf'
-  ELSEIF(clarg=='str' .OR. clarg=='STR' .OR. clarg=='stru' .OR. clarg=='STRU') THEN
+  ELSEIF( StrDnCase(clarg)=='stru' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'stru'
-  ELSEIF(clarg=='sxyz' .OR. clarg=='SXYZ') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'sxyz'
-  ELSEIF(clarg=='xv' .OR. clarg=='XV') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'xv'
-  ELSEIF(clarg=='xyz' .OR. clarg=='XYZ') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'xyz'
   ! -- please add new formats in alphabetical order --
   !
   !
-  !Deal with special options
+  !Deal with options
   !For each option we store the option parameters in the string array "options_array"
   ELSEIF(clarg=='-add-atom' .OR. clarg=='-add-atoms' .OR. clarg=='-addatom' .OR. clarg=='-addatoms') THEN
     ioptions = ioptions+1

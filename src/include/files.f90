@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 April 2022                                    *
+!* Last modification: P. Hirel - 28 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,7 +27,7 @@ MODULE files
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* FREEUNIT            returns an unused I/O UNIT number                          *
-!* CHECHFILE           checks if a file exists and behaves accordingly            *
+!* CHECKFILE           checks if a file exists and behaves accordingly            *
 !* SET_OUTPUT          sets one or all output to TRUE or FALSE                    *
 !* FIND_INOUT          among 2files, determine which will be input or output      *
 !* NAME_OUTFILE        names an output file based on the name of an input file    *
@@ -340,7 +340,7 @@ ELSE
     !Get extension of input file
     ext = TRIM(ADJUSTL(test(strlength+1:)))
     !Verify that ext is one of the known extensions
-    IF( ANY( oflist(:)==ext ) ) THEN
+    IF( ANY( flist(:,1)==ext ) ) THEN
       test = test(1:strlength-1)
     ENDIF
   ENDIF

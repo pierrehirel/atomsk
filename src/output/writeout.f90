@@ -73,6 +73,7 @@ USE out_cel
 USE out_cif
 USE out_crystal
 USE out_csv
+USE out_dat
 USE out_dlp_cfg
 USE out_gulp_gin
 USE out_imd
@@ -579,6 +580,16 @@ DO i=1,SIZE(outfileformats)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
       IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
       CALL WRITE_CRYSTAL(H,P,comment,AUXNAMES,AUX,outputfile)
+    ELSE
+      CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
+    ENDIF
+  !
+  CASE('dat','DAT')
+    CALL NAME_OUTFILE(prefix,outputfile,'dat  ')
+    INQUIRE(FILE=outputfile,EXIST=fileexists)
+    IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
+      IF(.NOT.overw) CALL CHECKFILE(outputfile,'writ')
+      CALL WRITE_DAT(H,P,S,comment,AUXNAMES,AUX,outputfile)
     ELSE
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF

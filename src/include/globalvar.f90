@@ -70,7 +70,7 @@ INTEGER:: verbosity          !level of verbosity of the program
 !third column if it can be written by Atomsk.
 !Additional formats may be added here, don't forget to change array size.
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(32,3),PARAMETER:: flist = RESHAPE( (/ &
+CHARACTER(LEN=5),DIMENSION(33,3),PARAMETER:: flist = RESHAPE( (/ &
   & "atsk ","yes  ","yes  ", &
   & "abin ","yes  ","yes  ", &
   & "bop  ","yes  ","yes  ", &
@@ -81,6 +81,7 @@ CHARACTER(LEN=5),DIMENSION(32,3),PARAMETER:: flist = RESHAPE( (/ &
   & "coo  ","yes  ","yes  ", &
   & "csv  ","yes  ","yes  ", &
   & "d12  ","yes  ","yes  ", &
+  & "dat  ","no   ","yes  ", &
   & "dd   ","no   ","yes  ", &
   & "dlp  ","yes  ","yes  ", &
   & "fdf  ","yes  ","yes  ", &

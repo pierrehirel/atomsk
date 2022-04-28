@@ -228,10 +228,11 @@ LOGICAL FUNCTION IS_INTEGER(number)
 !
 IMPLICIT NONE
 REAL(dp),INTENT(IN):: number
+REAL(dp),PARAMETER:: threshold=1.d-15
 !
 IS_INTEGER = .FALSE.
 !
-IF( DABS( DBLE(NINT(number)) - number ) < 1.d-15 ) THEN
+IF( DABS( DBLE(NINT(number)) - number ) < threshold ) THEN
   IS_INTEGER = .TRUE.
 ENDIF
 !
