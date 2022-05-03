@@ -41,7 +41,7 @@
             ...</code></p>
   <p>The displacements can be given for all atoms, or only some of them. If shells are present, but no displacement is specified for them, then they are displaced by the same vector as their core. The displacement vectors are immediately applied to the atom positions (and shells, if any).</p></li>
   
-  <li><strong>Displacement functions</strong> can be defined using the keyword "displacement function", followed by three lines containing functions <code>u<sub>x</sub></code>, <code>u<sub>y</sub></code>, <code>u<sub>z</sub></code>:<br/>
+  <li><strong>Displacement functions</strong> can be defined using the keyword "displacement function", followed by three lines containing functions <code>u<sub>x</sub></code>, <code>u<sub>y</sub></code>, and/or <code>u<sub>z</sub></code>:<br/>
       <p><code>displacement functions<br/>
             ux = &#60;function&#62;<br/>
             uy = &#60;function&#62;<br/>
@@ -50,6 +50,8 @@
   
   <ul>
     <li class="clist"><strong>abs(x)</strong> Absolute value of x</li>
+    <li class="clist"><strong>int(x)</strong> Nearest integer to x</li>
+    <li class="clist"><strong>x!</strong> Factorial of integer part of x</li>
     <li class="clist"><strong>sqrt(x)</strong> Square root of x</li>
     <li class="clist"><strong>exp(x)</strong> Exponential of x</li>
     <li class="clist"><strong>ln(x)</strong> Natural logarithm of x</li>

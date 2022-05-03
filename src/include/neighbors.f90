@@ -96,7 +96,7 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
-neighsearch="cell"  !!!TEMPORARY: force algorithm
+neighsearch="verlet"  !!!TEMPORARY: force algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -200,6 +200,9 @@ DO i=1,3
 ENDDO
 !
 !Loop on all atoms to find their neighbors
+!NOTE: parallelization does not seem to help here...
+!!!$OMP PARALLEL DO DEFAULT(SHARED) &
+!!!$OMP& PRIVATE(i,j,k,l,m,kmin,kmax,lmin,lmax,mmin,mmax,distance,Vfrac,IsCloseToBorder)
 DO i=1,SIZE(A,1)-1
   !Save fractional coordinate of atom i in Vfrac
   Vfrac(1,:) = Afrac(i,1:3)
@@ -290,6 +293,7 @@ DO i=1,SIZE(A,1)-1
           distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
           !
           IF ( distance <= R ) THEN
+            !!!$OMP CRITICAL
             !Atom j is neighbor of atom i
             NNeigh(i) = NNeigh(i)+1
             !Add atom j to the list of neighbors of atom i
@@ -303,6 +307,7 @@ DO i=1,SIZE(A,1)-1
             IF( NNeigh(j) <= SIZE(NeighList,2) ) THEN
               NeighList(j,NNeigh(j)) = i
             ENDIF
+            !!!$OMP END CRITICAL
             !
             !We already found that j is neighbor of i
             !=> no need to keep on looking for replica of atom j
@@ -320,6 +325,7 @@ DO i=1,SIZE(A,1)-1
   ENDDO !j
   !
 ENDDO !i
+!!!$OMP END PARALLEL DO
 !
 IF( ALLOCATED(NeighList) ) THEN
   IF( .NOT.ANY(NeighList(:,:).NE.0) ) THEN

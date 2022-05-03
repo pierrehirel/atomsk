@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 July 2020                                     *
+!* Last modification: P. Hirel - 03 May 2022                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,7 +58,10 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1   !direction along which the files must be concatenated
 INTEGER:: auxcol
 INTEGER:: i, j, k
+INTEGER:: NP       !number of atoms in current system
 INTEGER:: Nfiles  !number of files merged
+INTEGER:: oldsize
+INTEGER:: sysID !column in AUX for storing system ID
 REAL(dp),DIMENSION(3,3):: H, Htemp      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT        !Crystallographic orientation of the system
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
@@ -71,6 +74,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, currAUX, tempAUX  !auxiliary properti
 !Initialize variables
 a1 = 0
 Nfiles = 0
+sysID = 0
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
@@ -159,18 +163,33 @@ DO i=1,SIZE(merge_files)
       ALLOCATE(comment(SIZE(currcomment)))
       comment(:) = currcomment(:)
     ENDIF
+    !Auxiliary properties will always contain AT LEAST one column containing the system ID ("sysID")
     IF( ALLOCATED(currAUXNAMES) .AND. SIZE(currAUXNAMES)>0 ) THEN
-      ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)) )
-      AUXNAMES(:) = currAUXNAMES(:)
+      ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)+1) )
+      sysID = SIZE(AUXNAMES)
       ALLOCATE( AUX( SIZE(currAUX,1),SIZE(currAUX,2) ) )
-      AUX(:,:) = currAUX(:,:)
+      AUX(:,:) = 0.d0
+      DO j=1,SIZE(currAUXNAMES)
+        AUXNAMES(j) = currAUXNAMES(j)
+        DO k=1,SIZE(currAUX,2)
+          AUX(j,k) = currAUX(j,k)
+        ENDDO
+      ENDDO
+    ELSE
+      ALLOCATE( AUXNAMES(1) )
+      sysID = 1
+      ALLOCATE( AUX( SIZE(P,1) , 1 ) )
+      AUX(:,:) = 0.d0
     ENDIF
+    AUXNAMES(sysID) = "sysID"
+    AUX(:,sysID) = 1.d0
     !
   ELSE
     !Next files: merge them with the previous system H, Q
+    NP = SIZE(P,1)  !number of atoms in current system
     !Create array R to store arrays Q and P
     IF(ALLOCATED(R)) DEALLOCATE(R)
-    ALLOCATE( R( SIZE(Q,1)+SIZE(P,1), SIZE(Q,2) ) )
+    ALLOCATE( R( SIZE(Q,1)+NP, SIZE(Q,2) ) )
     IF(ALLOCATED(S)) THEN
       IF(ALLOCATED(U)) DEALLOCATE(U)
       ALLOCATE( U( SIZE(T,1)+SIZE(S,1), SIZE(S,2) ) )
@@ -179,7 +198,7 @@ DO i=1,SIZE(merge_files)
     IF(cat) THEN
       !Concatenate the files
       !The coordinates of P and S must be shifted by H(a1,:)
-      DO j=1,SIZE(P,1)
+      DO j=1,NP
         P(j,:) = P(j,:) + H(a1,:)
       ENDDO
       IF(ALLOCATED(S)) THEN
@@ -196,7 +215,7 @@ DO i=1,SIZE(merge_files)
     DO j=1,SIZE(Q,1)
       R(j,:) = Q(j,:)
     ENDDO
-    DO j=1,SIZE(P,1)
+    DO j=1,NP
       R(SIZE(Q,1)+j,:) = P(j,:)
     ENDDO
     !Copy shells in U
@@ -244,6 +263,7 @@ DO i=1,SIZE(merge_files)
     !If AUX exists, extend it to fit the number of particles in Q
     !For now all auxiliary properties of new atoms are assigned zero values,
     !that will be corrected later if these properties are defined in currAUX
+    oldsize = SIZE(AUX,1)
     IF( ALLOCATED(AUXNAMES) ) THEN
       ALLOCATE( tempAUX( SIZE(Q,1),SIZE(AUX,2) ) )
       tempAUX(:,:) = 0.d0
@@ -255,6 +275,11 @@ DO i=1,SIZE(merge_files)
       AUX(:,:) = tempAUX(:,:)
       DEALLOCATE(tempAUX)
     ENDIF
+    !
+    !Add current system ID
+    DO j=1,NP
+      AUX(oldsize+j,sysID) = DBLE(i)
+    ENDDO
     !
     !If auxiliary properties were read from current file, merge them with existing ones
     IF( ALLOCATED(currAUXNAMES) .AND. ALLOCATED(currAUX) ) THEN
@@ -279,7 +304,7 @@ DO i=1,SIZE(merge_files)
             CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
             !This property already has a column in AUX => complete it
             DO k=1,SIZE(currAUX,1)
-              AUX(SIZE(AUX,1)-SIZE(currAUX,1)+k,auxcol) = currAUX(k,auxcol)
+              AUX(oldsize+k,auxcol) = currAUX(k,auxcol)
             ENDDO
           ELSE
             WRITE(msg,*) 'New property: ', TRIM(ADJUSTL(currAUXNAMES(j)))
@@ -311,12 +336,12 @@ DO i=1,SIZE(merge_files)
         ENDDO
         !
       ELSE
+        !No auxiliary property existed before, the current ones are the first ones
+        !=> define arrays and fill them
         IF( ALLOCATED(AUXNAMES) ) DEALLOCATE(AUXNAMES)
         IF( ALLOCATED(AUX) ) DEALLOCATE(AUX)
         WRITE(msg,*) 'Allocating AUX'
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-        !No auxiliary property existed before, the current ones are the first ones
-        !=> define arrays and fill them
         ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)) )
         AUXNAMES(:) = currAUXNAMES(:)
         ALLOCATE( AUX( SIZE(Q,1),SIZE(currAUX,2) ) )
@@ -324,8 +349,9 @@ DO i=1,SIZE(merge_files)
         DO k=1,SIZE(currAUX,1)
           AUX(SIZE(AUX,1)-SIZE(currAUX,1)+k,:) = currAUX(k,:)
         ENDDO
-      ENDIF
-    ENDIF
+      ENDIF  !endif AUXNAMES
+      !
+    ENDIF !endif currAUX
     !
   ENDIF !Endif i==1
   !
