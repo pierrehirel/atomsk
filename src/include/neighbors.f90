@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 March 2022                                    *
+!* Last modification: P. Hirel - 05 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -93,6 +93,8 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
+IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
+!
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
@@ -136,29 +138,32 @@ REAL(dp),INTENT(IN):: R  !radius in which Neighbors are searched
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 !
-LOGICAL,DIMENSION(6):: IsCloseToBorder !is the atom close to the borders of the box?
-INTEGER:: a1, a2, a3
-INTEGER:: Ix, Iy, Iz
 INTEGER:: i, j, k, l, m, n, u
 INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
-INTEGER,DIMENSION(3):: shift   !replica number along X, Y, Z
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
-REAL(dp):: distance  !distance between two atoms
-REAL(dp):: rho       !average density of the system
+REAL(dp):: distance   !distance between two atoms
+REAL(dp):: dx         !difference of coordinates along a direction
+REAL(dp):: rho        !average density of the system
 REAL(dp):: tempreal
 REAL(dp):: Vsystem   !volume of the box defined by H(:,:)
-REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for periodic replica
+REAL(dp),DIMENSION(3):: shift    !shift due to periodic boundary conditions
 INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
 REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
 REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac  !atom positions in reduced coordinates
-INTEGER,DIMENSION(:,:),ALLOCATABLE:: NLtemp  !temporary neighbor list when resizing
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
 !
+msg = 'entering VERLET_LIST'
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
 !Initialize variables
+IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
 IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
+IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 ALLOCATE(NNeigh(SIZE(A,1)) , STAT=i)
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -167,12 +172,17 @@ IF( i>0 ) THEN
   RETURN
 ENDIF
 NNeigh(:) = 0
-IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
 !NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
 CALL VOLUME_PARA(H,Vsystem)
 rho = DBLE(SIZE(A,1))/Vsystem
 n = MAX( 100 , CEILING(rho*1.5d0*pi*(R**3)) )
+WRITE(msg,*) "N. neighbors/atom estimated from density = ", n
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+IF(n<=0) THEN
+  nerr = nerr+1
+  RETURN
+ENDIF
 ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -181,153 +191,67 @@ IF( i>0 ) THEN
   RETURN
 ENDIF
 NeighList(:,:) = 0
-IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
 !
-!
-msg = 'entering VERLET_LIST'
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Save atom positions in fractional coordinates
 Afrac(:,:) = A(:,:)
 CALL CART2FRAC(Afrac,H)
 !
-!Define "close to border" in reduced units
-DO i=1,3
-  !default=atoms closer than radius R from a border will be duplicated
-  d_border(i) = MAX( 0.1d0 , R/VECLENGTH(H(i,:)) )
-ENDDO
-!
 !Loop on all atoms to find their neighbors
-!NOTE: parallelization does not seem to help here...
-!!!$OMP PARALLEL DO DEFAULT(SHARED) &
-!!!$OMP& PRIVATE(i,j,k,l,m,kmin,kmax,lmin,lmax,mmin,mmax,distance,Vfrac,IsCloseToBorder)
+!$OMP PARALLEL DO DEFAULT(SHARED) &
+!$OMP& PRIVATE(i,j,k,dx,shift,distance)
 DO i=1,SIZE(A,1)-1
-  !Save fractional coordinate of atom i in Vfrac
-  Vfrac(1,:) = Afrac(i,1:3)
-  !
-  !Check if atom i is near a border of the box,
-  !"near" meaning "within the radius R"
-  IsCloseToBorder(:) = .FALSE.
-  IF( DABS(Vfrac(1,1))<d_border(1) ) THEN
-    IsCloseToBorder(1) = .TRUE.
-  ENDIF
-  IF( DABS(1.d0-Vfrac(1,1))<d_border(1) ) THEN
-    IsCloseToBorder(2) = .TRUE.
-  ENDIF
-  IF( DABS(Vfrac(1,2))<d_border(2) ) THEN
-    IsCloseToBorder(3) = .TRUE.
-  ENDIF
-  IF( DABS(1.d0-Vfrac(1,2))<d_border(2) ) THEN
-    IsCloseToBorder(4) = .TRUE.
-  ENDIF
-  IF( DABS(Vfrac(1,3))<d_border(3) ) THEN
-    IsCloseToBorder(5) = .TRUE.
-  ENDIF
-  IF( DABS(1.d0-Vfrac(1,3))<d_border(3) ) THEN
-    IsCloseToBorder(6) = .TRUE.
-  ENDIF
   !
   DO j=i+1,SIZE(A,1)
-    !Save fractional coordinate of atom j in Vfrac
-    Vfrac(1,:) = Afrac(j,1:3)
+    shift(:) = 0.d0
     !
-    !If atom i is close to a border, then
-    !look for periodic replica of atom j across that border
-    kmin = 0
-    kmax = 0
-    lmin = 0
-    lmax = 0
-    mmin = 0
-    mmax = 0
-    IF( IsCloseToBorder(1) ) THEN
-      !Atom #i is close to the left border along x
-      IF( DABS(1.d0-Vfrac(1,1))<d_border(1) ) THEN
-        !Atom #j is close to the right border along x
-        kmin = -1
+    !Compute distance (reduced coordinates) between atoms #i and #j
+    !Account for periodic boundary conditions
+    DO k=1,3  !loop on all 3 directions
+      dx = DABS( Afrac(j,k) - Afrac(i,k) )
+      IF( DABS(1.d0-dx) < dx ) THEN
+        IF( A(j,k)>A(i,k) ) THEN
+          shift(k) = -1.d0
+        ELSE
+          shift(k) = 1.d0
+        ENDIF
       ENDIF
-    ENDIF
-    IF( IsCloseToBorder(2) ) THEN
-      !Atom #i is close to the right border along x
-      IF( DABS(Vfrac(1,1))<d_border(1) ) THEN
-        !Atom #j is close to the left border along x
-        kmax = 1
-      ENDIF
-    ENDIF
-    IF( IsCloseToBorder(3) ) THEN
-      !Atom #i is close to the bottom border along y
-      IF( DABS(1.d0-Vfrac(1,2))<d_border(2) ) THEN
-        !Atom #j is close to the top border along y
-        lmin = -1
-      ENDIF
-    ENDIF
-    IF( IsCloseToBorder(4) ) THEN
-      !Atom #i is close to the top border along y
-      IF( DABS(Vfrac(1,2))<d_border(2) ) THEN
-        !Atom #j is close to the bottom border along y
-        lmax = 1
-      ENDIF
-    ENDIF
-    IF( IsCloseToBorder(5) ) THEN
-      !Atom #i is close to the bottom border along z
-      IF( DABS(1.d0-Vfrac(1,3))<d_border(3) ) THEN
-        !Atom #j is close to the top border along z
-        mmin = -1
-      ENDIF
-    ENDIF
-    IF( IsCloseToBorder(6) ) THEN
-      !Atom #i is close to the top border along z
-      IF( DABS(Vfrac(1,3))<d_border(3) ) THEN
-        !Atom #j is close to the bottom border along z
-        mmax = 1
-      ENDIF
-    ENDIF
+    ENDDO
     !
-    !Loop on periodic images of atom #j
-    DO k=kmin,kmax
-      DO l=lmin,lmax
-        DO m=mmin,mmax
-          !Compute distance between atom i and this replica of atom j
-          Vfrac(1,:) = A(j,1:3) + DBLE(k)*H(1,:) + DBLE(l)*H(2,:) + DBLE(m)*H(3,:)
-          distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
-          !
-          IF ( distance <= R ) THEN
-            !!!$OMP CRITICAL
-            !Atom j is neighbor of atom i
-            NNeigh(i) = NNeigh(i)+1
-            !Add atom j to the list of neighbors of atom i
-            IF( NNeigh(i) <= SIZE(NeighList,2) ) THEN
-              NeighList(i,NNeigh(i)) = j
-            ENDIF
-            !
-            !Atom i is neighbor of atom j
-            NNeigh(j) = NNeigh(j)+1
-            !Add atom i to the list of neighbors of atom j
-            IF( NNeigh(j) <= SIZE(NeighList,2) ) THEN
-              NeighList(j,NNeigh(j)) = i
-            ENDIF
-            !!!$OMP END CRITICAL
-            !
-            !We already found that j is neighbor of i
-            !=> no need to keep on looking for replica of atom j
-            !=> exit the loops on replica
-            GOTO 200
-            !EXIT
-          ENDIF
-          !
-        ENDDO !m
-      ENDDO  !l
-    ENDDO   !k
+    !Save shift of atom #j in Cartesian coordinates
+    shift(:) = shift(1)*H(1,:) + shift(2)*H(2,:) + shift(3)*H(3,:)
     !
-    200 CONTINUE
+    !Compute distance (Cartesian coordinates) between atom #i and atom #j (or replica of #j)
+    distance = VECLENGTH( A(j,1:3) + shift(:) - A(i,1:3) )
+    !
+    IF ( distance <= R ) THEN
+      !$OMP CRITICAL
+      !IF( .NOT.ANY(NeighList(i,:)==j) ) THEN
+        !Atom #j is neighbor of atom #i
+        NNeigh(i) = NNeigh(i)+1
+        !Add atom #j to the list of neighbors of atom #i
+        IF( NNeigh(i) <= SIZE(NeighList,2) ) THEN
+          NeighList(i,NNeigh(i)) = j
+        ENDIF
+      !ENDIF
+      !
+      !Atom #i is also neighbor of atom #j
+      !IF( .NOT.ANY(NeighList(j,:)==i) ) THEN
+        NNeigh(j) = NNeigh(j)+1
+        !Add atom #i to the list of neighbors of atom #j
+        IF( NNeigh(j) <= SIZE(NeighList,2) ) THEN
+          NeighList(j,NNeigh(j)) = i
+        ENDIF
+      !ENDIF
+      !$OMP END CRITICAL
+    ENDIF
     !
   ENDDO !j
   !
 ENDDO !i
-!!!$OMP END PARALLEL DO
+!$OMP END PARALLEL DO
 !
-IF( ALLOCATED(NeighList) ) THEN
+IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
   IF( .NOT.ANY(NeighList(:,:).NE.0) ) THEN
     !Neighbor list contains only zeros, i.e. no neighbor was found
     !=> deallocate NeighList
@@ -335,20 +259,24 @@ IF( ALLOCATED(NeighList) ) THEN
   ENDIF
 ENDIF
 !
-IF( ALLOCATED(NeighList) ) THEN
+IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
   !Count max. number of neighbors
-  n = MAXVAL(Nneigh(:))
-  WRITE(msg,*) 'Max. n. neighbors = ', n
+  n = MAXVAL(NNeigh(:))
+  WRITE(msg,*) "Max. N. neighbors found = ", n
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  !Resize NeighList
-  ALLOCATE( NLtemp( SIZE(NeighList,1) , n ) )
-  DO i=1,SIZE(NeighList,1)
-    NLtemp(i,:) = NeighList(i,1:n)
-  ENDDO
-  DEALLOCATE(NeighList)
-  ALLOCATE( NeighList( SIZE(NLtemp,1) , n ) )
-  NeighList(:,:) = NLtemp(:,:)
-  DEALLOCATE(NLtemp)
+  IF( n>0 .AND. n<SIZE(NeighList,2) ) THEN
+    !Reduce NeighList
+    WRITE(msg,*) "Reducing size of NeighList ..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    m = SIZE(NeighList,1)
+    CALL RESIZE_INTARRAY2(NeighList,m,n,i)
+  ENDIF
+  IF( verbosity==4 ) THEN
+    WRITE(msg,*) SIZE(NeighList,1)
+    WRITE(temp,*) SIZE(NeighList,2)
+    WRITE(msg,*) "Final size of NeighList :  "//TRIM(ADJUSTL(msg))//" x "//TRIM(ADJUSTL(temp))
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
 ELSE
   msg = 'NeighList UNALLOCATED'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -362,7 +290,7 @@ IF( verbosity==4 ) THEN
       WRITE(temp,*) i
       msg = "#"//TRIM(ADJUSTL(temp))
       j=1
-      DO WHILE( j<=SIZE(NeighList,2) .AND. NeighList(i,j)>0 )
+      DO WHILE( j<=MIN(SIZE(NeighList,2),10) .AND. NeighList(i,j)>0 )
         WRITE(temp,*) NeighList(i,j)
         msg = TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(temp))
         j=j+1
@@ -377,8 +305,6 @@ IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
 !
 msg = 'exiting VERLET_LIST'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!
-IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
 !
 END SUBROUTINE VERLET_LIST
 !

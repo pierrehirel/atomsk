@@ -3146,10 +3146,7 @@ CASE(4051)
   msg = "    jusqu'à "//TRIM(ADJUSTL(temp))//" A, en utilisant un pas de "//TRIM(ADJUSTL(temp2))//" A."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4052)
-  !strings(1) = species 1
-  !strings(2) = species 2
-  msg = "..> Calcul de la FDR des atomes de "//TRIM(strings(2))// &
-      & " autour des atomes de "//TRIM(strings(1))
+  msg = "..> Calcul des FDR..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4053)
   !reals(1) = number of files analyzed

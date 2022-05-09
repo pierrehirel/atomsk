@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 April 2022                                    *
+!* Last modification: P. Hirel - 05 April 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -342,9 +342,9 @@ ENDDO
 !     of atoms or change their order in the array P must also add, remove or
 !     re-order the shells in S and/or auxiliary properties in AUX accordingly.
 !
-WRITE(msg,*) '===================================================='
+WRITE(msg,*) "===================================================="
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(msg,*) '===   NOW APPLYING OPTIONS IN SEQUENTIAL ORDER   ==='
+WRITE(msg,*) "===   NOW APPLYING OPTIONS IN SEQUENTIAL ORDER   ==="
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 DO ioptions=1,SIZE(options_array)
@@ -364,10 +364,10 @@ DO ioptions=1,SIZE(options_array)
   region_2(:) = 0.d0
   !
   IF( verbosity==4 ) THEN
-    WRITE(msg,*) '===================================================='
+    WRITE(msg,*) "===================================================="
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     WRITE(temp,*) ioptions
-    msg = 'OPTION # '//TRIM(ADJUSTL(temp))//" : "//TRIM(options_array(ioptions))
+    msg = " ===   OPTION # "//TRIM(ADJUSTL(temp))//" : "//TRIM(options_array(ioptions))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
@@ -1308,13 +1308,15 @@ DO ioptions=1,SIZE(options_array)
     ENDIF
     CLOSE(36)
     !
-    !Write elastic tensor to logfile
-    msg = 'Elastic tensor (GPa):'
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO i=1,9
-      WRITE(msg,'(9(e10.3,2X))') (C_tensor(i,j), j=1,9)
+    IF( ANY(C_tensor(:,:)>0.1d0) ) THEN
+      !Write elastic tensor to logfile
+      msg = 'Elastic tensor (GPa):'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    ENDDO
+      DO i=1,9
+        WRITE(msg,'(9(e10.3,2X))') (C_tensor(i,j), j=1,9)
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDDO
+    ENDIF
     !
     IF( ALLOCATED(AUXNAMES) ) THEN
       WRITE(msg,*) 'Size AUXNAMES, AUX:', SIZE(AUXNAMES), ',', &
@@ -1364,7 +1366,7 @@ DO ioptions=1,SIZE(options_array)
   !
   !
   !In case of error break loop and exit
-  IF(nerr.NE.0) RETURN
+  IF(nerr.NE.0) EXIT
   !
   !
   !If shells exist, check that array S has a smaller size than P
@@ -1412,7 +1414,7 @@ DO ioptions=1,SIZE(options_array)
   !
   !
 !
-ENDDO
+ENDDO  !End Loop on all Options
 !
 !
 !End of options => check sizes of the arrays
@@ -1447,7 +1449,9 @@ GOTO 1000
 !
 !
 1000 CONTINUE
-WRITE(msg,*) '================   END OF OPTIONS   ================'
+WRITE(msg,*) "================   END OF OPTIONS   ================"
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "===================================================="
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 END SUBROUTINE OPTIONS_AFF

@@ -9,7 +9,7 @@ MODULE resize
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 June 2018                                     *
+!* Last modification: P. Hirel - 06 May 2022                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -64,6 +64,7 @@ IF( .NOT.ALLOCATED(Array) ) THEN
   ALLOCATE(Array(L1,L2),STAT=i)
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
+    IF(PRESENT(status)) status = 1
     nerr = nerr+1
     CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
     RETURN
@@ -77,6 +78,7 @@ ELSE
     ALLOCATE( temp_array(L1,L2) , STAT=i )
     IF( i>0 ) THEN
       ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
       nerr = nerr+1
       CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
       RETURN
@@ -93,6 +95,7 @@ ELSE
     ALLOCATE( Array(L1,L2) , STAT=i )
     IF( i>0 ) THEN
       ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
       nerr = nerr+1
       CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
       RETURN
@@ -135,6 +138,7 @@ IF( .NOT.ALLOCATED(Array) ) THEN
   ALLOCATE(Array(L1,L2),STAT=i)
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
+    IF(PRESENT(status)) status = 1
     nerr = nerr+1
     CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
     RETURN
@@ -148,6 +152,7 @@ ELSE
     ALLOCATE( temp_array(L1,L2) , STAT=i )
     IF( i>0 ) THEN
       ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
       nerr = nerr+1
       CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
       RETURN
@@ -164,6 +169,7 @@ ELSE
     ALLOCATE( Array(L1,L2) , STAT=i )
     IF( i>0 ) THEN
       ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
       nerr = nerr+1
       CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
       RETURN
@@ -213,6 +219,7 @@ ELSE
     ALLOCATE( temp_array(L1),STAT=i )
     IF( i>0 ) THEN
       ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
       nerr = nerr+1
       CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
       RETURN
@@ -227,6 +234,7 @@ ELSE
     ALLOCATE( Array(L1) ,STAT=i)
     IF( i>0 ) THEN
       ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
       nerr = nerr+1
       CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
       RETURN

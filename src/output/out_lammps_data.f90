@@ -184,8 +184,8 @@ IF( ALLOCATED(AUXNAMES) ) THEN
       IF( Nshells==0 ) THEN
         !Could not determine number of atom types before
         !Count how many different atom types are in AUX
-        CALL FIND_NSP(AUX(:,typecol),atypes)
-        Ntypes = SIZE(atypes,1)
+        !CALL FIND_NSP(AUX(:,typecol),atypes)
+        Ntypes = MAXVAL(AUX(:,typecol))
         !Verify that atom types are all greater than zero
         IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
           nwarn=nwarn+1

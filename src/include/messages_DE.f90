@@ -3084,10 +3084,7 @@ CASE(4051)
   msg = "    bis zu "//TRIM(ADJUSTL(temp))//" A, innerhalb einer Schale der Breite "//TRIM(ADJUSTL(temp2))//" A."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4052)
-  !strings(1) = species 1
-  !strings(2) = species 2
-  msg = "..> Berechne RDF von "//TRIM(strings(2))//" Atomen um "// &
-      & TRIM(strings(1))//" Atome..."
+  msg = "..> Berechne RDF..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4053)
   !reals(1) = number of files analyzed
