@@ -3400,6 +3400,13 @@ CASE(4718)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Bitte ueberpruefen!"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4719)
+  !strings(1) = chemical symbol
+  !reals(1) = file number
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" Kein "//TRIM(ADJUSTL(strings(1)))// &
+      & " Atom in System N. "//TRIM(ADJUSTL(temp))//" gefunden."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES
 CASE(4800)

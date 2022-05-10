@@ -3461,6 +3461,13 @@ CASE(4718)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4719)
+  !strings(1) = chemical symbol
+  !reals(1) = file number
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" Aucun atome de "//TRIM(ADJUSTL(strings(1)))// &
+      & " n'a été trouvé dans le système No. "//TRIM(ADJUSTL(temp))//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
 CASE(4800)

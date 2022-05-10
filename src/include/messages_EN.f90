@@ -3383,6 +3383,13 @@ CASE(4718)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Are you sure that you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4719)
+  !strings(1) = chemical symbol
+  !reals(1) = file number
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" No "//TRIM(ADJUSTL(strings(1)))// &
+      & " atom found in system N. "//TRIM(ADJUSTL(temp))//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES FOR MODES
 CASE(4800)
@@ -3391,7 +3398,7 @@ CASE(4800)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4801)
   !strings(1) = file format (e.g. "xyz", "cfg"...)
-  msg = TRIM(ADJUSTL(errmsg))//" this file format is not yet supported in mode 1-in-all:" &
+  msg = TRIM(ADJUSTL(errmsg))//' this file format is not yet supported in mode "--unfold":' &
       & //TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4802)

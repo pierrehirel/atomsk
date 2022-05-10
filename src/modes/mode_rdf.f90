@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Nov. 2021                                     *
+!* Last modification: P. Hirel - 10 May 2022                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -65,6 +65,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary prope
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: fileexists !does the file exist?
+LOGICAL:: doanalysis
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: atompair
 INTEGER:: i, id, j, k, l, m, n
@@ -87,7 +88,7 @@ REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 h
 REAL(dp),DIMENSION(3,3):: H      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries, aentries2
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX          !auxiliary properties of atoms (not used)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P            !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S            !shell positions (not used)
@@ -146,6 +147,7 @@ DO  !Loop on files
     INQUIRE(FILE=inputfile,EXIST=fileexists)
     !
     IF(fileexists) THEN
+      doanalysis = .TRUE.
       !Read data: cell size, atom positions...
       CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)
       !
@@ -217,6 +219,35 @@ DO  !Loop on files
         !Allocate array to store the partial RDFs
         ALLOCATE( rdf_partial( SIZE(pairs,1) , rdf_Nsteps ) )
         rdf_partial(:,:) = 0.d0
+        !
+      ELSE
+        !This is not the first file
+        !Count how many different species exist in the system
+        CALL FIND_NSP(P(:,4),aentries2)
+        !Compare with the entries of the first system
+        m = 0
+        DO i=1,SIZE(aentries,1)
+          n=0
+          DO j=1,SIZE(aentries2,1)
+            IF( DABS( aentries(i,1)-aentries2(j,1) ) < 1.d-3 ) THEN
+              n=n+1
+              m=m+1
+              EXIT
+            ENDIF
+          ENDDO
+          IF( n==0 ) THEN
+            !Atoms of type aentries(i,1) existed in first system, but not in current system
+            nwarn=nwarn+1
+            CALL ATOMSPECIES(aentries(i,1),sp1)
+            CALL ATOMSK_MSG(4719,(/sp1/),(/DBLE(Nfiles+1)/))
+          ENDIF
+        ENDDO
+        IF( m==0 ) THEN
+          !No atom species of the first system was found in current system
+          !Something is very wrong (probably the user's fault?)
+          !Anyway, no point in analyzing current system
+          GOTO 290
+        ENDIF
       ENDIF
       !
       !Construct neighbour list
@@ -232,14 +263,16 @@ DO  !Loop on files
       ALLOCATE( rdf_temp( SIZE(rdf_partial,1) , rdf_Nsteps ) )
       rdf_temp(:,:) = 0.d0
       !Loop on all atoms
-      !!!!$OMP PARALLEL DO DEFAULT(SHARED) &
-      !!!!$OMP& PRIVATE(i,id,j,k,l,m,u,v,w,distance,Nneighbors,rdf_radius,rdf_norm,Vector,Vsphere,Vskin) &
-      !!!!!$OMP& REDUCTION(+:progress,rdf_partial)
+      progress=0
+      !$OMP PARALLEL DO DEFAULT(SHARED) &
+      !$OMP& PRIVATE(i,id,j,m,n,u,v,w,atompair,distance,Vector) &
+      !$OMP& REDUCTION(+:rdf_temp)
       DO i=1,SIZE(P,1)
         !
         IF( SIZE(P,1)>20000 ) THEN
+          progress = progress+1
           !If there are many atoms, display a fancy progress bar
-          CALL ATOMSK_MSG(10,(/""/),(/DBLE(i),DBLE(SIZE(P,1))/))
+          CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
         ENDIF
         !
         !Get index of "atompair" for the pair #i-#i
@@ -304,7 +337,7 @@ DO  !Loop on files
         ENDDO
         !
       ENDDO  !loop on atoms (i)
-      !!!!!$OMP END PARALLEL DO
+      !$OMP END PARALLEL DO
       !
       !We are done with this system: free memory
       IF(ALLOCATED(P)) DEALLOCATE(P)
@@ -369,6 +402,7 @@ DO  !Loop on files
     !
   ENDIF   !end if temp.NE."#"
   !
+  290 CONTINUE
   !
 ENDDO  !loop on m files
 !

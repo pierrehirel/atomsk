@@ -995,13 +995,14 @@ IF( verbosity==4 ) THEN
   !DEBUG: Write each component of G tensor into data file (projected in XY plane)
   !If user did not provide output file name or prefix, set a default one
   msg = prefix
+  i = 0
   IF( LEN_TRIM(prefix)<=0 ) THEN
     msg = filesecond
     i = SCAN(msg,".",BACK=.TRUE.)
-    IF(i==0) i=LEN_TRIM(msg)
   ENDIF
+  IF(i==0) i=LEN_TRIM(msg)+1
   msg = TRIM(ADJUSTL(msg(1:i-1)))//"_G.dat"
-  OPEN(UNIT=41,FILE=msg,STATUS="UNKNOWN",FORM="FORMATTED")
+  OPEN(UNIT=41,FILE=TRIM(msg),STATUS="UNKNOWN",FORM="FORMATTED")
   WRITE(41,*) "# Lattice distortion tensor G computed with Atomsk"
   DO i=1,SIZE(G,1)
     msg = ""
