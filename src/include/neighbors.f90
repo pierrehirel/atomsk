@@ -98,7 +98,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
-neighsearch="verlet"  !!!TEMPORARY: force algorithm
+neighsearch="cell"  !!!TEMPORARY/DEBUG: force algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -346,7 +346,7 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_ijk    !index of each cell
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_Neigh  !neighbors of each cell
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NLtemp  !temporary neighbor list when resizing
-REAL(dp):: distance
+REAL(dp):: distance, dx
 REAL(dp):: tempreal
 REAL(dp):: Vsystem   !volume of the box defined by H(:,:)
 REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for periodic replica
@@ -355,6 +355,7 @@ REAL(dp),DIMENSION(3):: shiftvec !shift vector
 REAL(dp),DIMENSION(27):: distance_pbc
 REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Cell_P  !positions of cells
+REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac  !atom positions in reduced coordinates
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
@@ -567,6 +568,11 @@ ENDIF
 !
 WRITE(msg,*) "Constructing Atom Neighbour List ..."
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Save atom positions in fractional coordinates
+Afrac(:,:) = A(:,:)
+CALL CART2FRAC(Afrac,H)
+!
 !Using the previous linked list, construct actual neighbor list
 !!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,iCell,Ix,Iy,Iz,j,k,n,shift,Vfrac,distance)
 DO i=1,SIZE(A,1)  !Loop on all atoms
@@ -611,9 +617,20 @@ DO i=1,SIZE(A,1)  !Loop on all atoms
       IF(j==0) EXIT
       IF( j>i .AND. .NOT.ANY(NeighList(i,:)==j) ) THEN
         !Compute position of atom #j taking PBC into account
-        Vfrac(1,1:3) = A(j,1:3) + shift(:)
+        Vfrac(1,1:3) = A(j,1:3)
         !Compute distance between atoms #i and #j
-        distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
+        !distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
+        DO l=1,3
+          dx = DABS( Afrac(j,k) - Afrac(i,k) )
+          IF( DABS(1.d0-dx) < dx ) THEN
+            IF( A(j,k)>A(i,k) ) THEN
+              shift(k) = -1.d0
+            ELSE
+              shift(k) = 1.d0
+            ENDIF
+          ENDIF
+        ENDDO
+        distance = VECLENGTH( Vfrac(1,1:3) + shift(:) - A(i,1:3) )
         IF ( distance <= R ) THEN
           !PRINT*, "                     is neighbour"
           !Atom #j is neighbour of atom #i
@@ -656,19 +673,12 @@ IF( ALLOCATED(NeighList) ) THEN
   n = MAXVAL(Nneigh(:))
   WRITE(msg,*) "Max. n. neighbors found = ", n
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-  IF( n < SIZE(NeighList,2)-10 ) THEN
-    !Resize NeighList
-    WRITE(msg,*) "Resizing NeighList..."
+  IF( n>0 .AND. n<SIZE(NeighList,2) ) THEN
+    !Reduce NeighList
+    WRITE(msg,*) "Reducing size of NeighList ..."
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    n = MIN(n,SIZE(NeighList,2))
-    ALLOCATE( NLtemp( SIZE(NeighList,1) , n ) )
-    DO i=1,SIZE(NeighList,1)
-      NLtemp(i,:) = NeighList(i,1:n)
-    ENDDO
-    DEALLOCATE(NeighList)
-    ALLOCATE( NeighList( SIZE(NLtemp,1) , n ) )
-    NeighList(:,:) = NLtemp(:,:)
-    DEALLOCATE(NLtemp)
+    m = SIZE(NeighList,1)
+    CALL RESIZE_INTARRAY2(NeighList,m,n,i)
   ENDIF
 ELSE
   msg = "NeighList UNALLOCATED"
