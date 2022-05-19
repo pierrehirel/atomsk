@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 May 2022                                      *
+!* Last modification: P. Hirel - 19 May 2022                                      *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -569,14 +569,14 @@ DO
         P3 = randarray(3*(i-1)+3)
         !
         vorient(i,:,:) = Id_Matrix(:,:)  !unity matrix
-        IF( twodim==0 .OR. twodim==1 ) THEN
-          !Construct the rotation matrix around X
+        IF( twodim==0 .OR. twodim==3 ) THEN
+          !Construct the rotation matrix around Z
           rotmat(:,:) = 0.d0
-          rotmat(1,1) = 1.d0
-          rotmat(2,2) = DCOS(P1)
-          rotmat(2,3) = -1.d0*DSIN(P1)
-          rotmat(3,2) = DSIN(P1)
-          rotmat(3,3) = DCOS(P1)
+          rotmat(3,3) = 1.d0
+          rotmat(1,1) = DCOS(P3)
+          rotmat(1,2) = -1.d0*DSIN(P3)
+          rotmat(2,1) = DSIN(P3)
+          rotmat(2,2) = DCOS(P3)
           vorient(i,:,:) = rotmat(:,:)
         ENDIF
         IF( twodim==0 .OR. twodim==2 ) THEN
@@ -589,14 +589,14 @@ DO
           rotmat(1,1) = DCOS(P2)
           vorient(i,:,:) = MATMUL( rotmat(:,:) , vorient(i,:,:) )
         ENDIF
-        IF( twodim==0 .OR. twodim==3 ) THEN
-          !Construct the rotation matrix around Z
+        IF( twodim==0 .OR. twodim==1 ) THEN
+          !Construct the rotation matrix around X
           rotmat(:,:) = 0.d0
-          rotmat(3,3) = 1.d0
-          rotmat(1,1) = DCOS(P3)
-          rotmat(1,2) = -1.d0*DSIN(P3)
-          rotmat(2,1) = DSIN(P3)
-          rotmat(2,2) = DCOS(P3)
+          rotmat(1,1) = 1.d0
+          rotmat(2,2) = DCOS(P1)
+          rotmat(2,3) = -1.d0*DSIN(P1)
+          rotmat(3,2) = DSIN(P1)
+          rotmat(3,3) = DCOS(P1)
           vorient(i,:,:) = MATMUL( rotmat(:,:) , vorient(i,:,:) )
         ENDIF
       ENDDO
