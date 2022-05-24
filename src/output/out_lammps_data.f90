@@ -340,13 +340,13 @@ ENDIF
 !
 !Write supercell data
 IF( VECLENGTH(K(1,:)) > 1.d-12 ) THEN
-  WRITE(ofu,160) zero, K(1,1), '  xlo xhi'
+  WRITE(ofu,160) MIN(K(1,1), zero), MAX(K(1,1), zero), '  xlo xhi'
 ENDIF
 IF( VECLENGTH(K(2,:)) > 1.d-12 ) THEN
-  WRITE(ofu,160) zero, K(2,2), '  ylo yhi'
+  WRITE(ofu,160) MIN(K(2,2), zero), MAX(K(2,2), zero), '  ylo yhi'
 ENDIF
 IF( VECLENGTH(K(3,:)) > 1.d-12 ) THEN
-  WRITE(ofu,160) zero, K(3,3), '  zlo zhi'
+  WRITE(ofu,160) MIN(K(3,3), zero), MAX(K(3,3), zero), '  zlo zhi'
 ENDIF
 !
 !LAMMPS requires that skew parameters are less than half the box
