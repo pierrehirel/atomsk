@@ -1014,42 +1014,45 @@ IF( verbosity==4 ) THEN
   CLOSE(41)
 ENDIF
 !
-IF( verbosity==4 ) THEN
-  !Write atom coordinates and per-atom matrix G into a CFG file for visualization
-  ALLOCATE( AUX( SIZE(Psecond,1) , 9 ) )
-  AUX(:,:) = 0.d0
-  AUX(:,1) = G(:,1,1)
-  AUX(:,2) = G(:,1,2)
-  AUX(:,3) = G(:,1,3)
-  AUX(:,4) = G(:,2,1)
-  AUX(:,5) = G(:,2,2)
-  AUX(:,6) = G(:,2,3)
-  AUX(:,7) = G(:,3,1)
-  AUX(:,8) = G(:,3,2)
-  AUX(:,9) = G(:,3,3)
-  !
-  ALLOCATE (AUXNAMES(9))
-  AUXNAMES(1)="G_11"
-  AUXNAMES(2)="G_12"
-  AUXNAMES(3)="G_13"
-  AUXNAMES(4)="G_21"
-  AUXNAMES(5)="G_22"
-  AUXNAMES(6)="G_23"
-  AUXNAMES(7)="G_31"
-  AUXNAMES(8)="G_32"
-  AUXNAMES(9)="G_33"
-  !
-  ALLOCATE(comment(1))
-  comment(1) = "# Per-atom G tensor computed by Atomsk"
-  !
-  msg = "atomsk_G.cfg"
-  CALL WRITE_AFF(msg,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
-  !
-  DEALLOCATE(AUX)
-  DEALLOCATE(AUXNAMES)
-  DEALLOCATE(comment)
-  !
+!Write atom coordinates and per-atom matrix G into a CFG file for visualization
+IF( ALLOCATED(AUX) ) DEALLOCATE(AUX)
+IF( ALLOCATED(AUXNAMES) ) DEALLOCATE(AUXNAMES)
+IF( ALLOCATED(comment) ) DEALLOCATE(comment)
+ALLOCATE( AUX( SIZE(Psecond,1) , 9 ) )
+AUX(:,:) = 0.d0
+AUX(:,1) = G(:,1,1)
+AUX(:,2) = G(:,1,2)
+AUX(:,3) = G(:,1,3)
+AUX(:,4) = G(:,2,1)
+AUX(:,5) = G(:,2,2)
+AUX(:,6) = G(:,2,3)
+AUX(:,7) = G(:,3,1)
+AUX(:,8) = G(:,3,2)
+AUX(:,9) = G(:,3,3)
+ALLOCATE (AUXNAMES(9))
+AUXNAMES(1)="G_11"
+AUXNAMES(2)="G_12"
+AUXNAMES(3)="G_13"
+AUXNAMES(4)="G_21"
+AUXNAMES(5)="G_22"
+AUXNAMES(6)="G_23"
+AUXNAMES(7)="G_31"
+AUXNAMES(8)="G_32"
+AUXNAMES(9)="G_33"
+ALLOCATE(comment(1))
+comment(1) = "# Per-atom G tensor computed by Atomsk"
+!If user did not provide output file name or prefix, set a default one
+msg = prefix
+IF( LEN_TRIM(prefix)<=0 ) THEN
+  msg = filesecond
 ENDIF
+i = SCAN(msg,".",BACK=.TRUE.)
+IF(i==0) i=LEN_TRIM(msg)
+msg = TRIM(ADJUSTL(msg(1:i-1)))//"_G.cfg"
+CALL WRITE_AFF(msg,outfileformats,Hsecond,Psecond,S,comment,AUXNAMES,AUX)
+DEALLOCATE(AUX)
+DEALLOCATE(AUXNAMES)
+DEALLOCATE(comment)
 !
 !
 !
