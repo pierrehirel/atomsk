@@ -1005,9 +1005,9 @@ IF( outparam .AND. ofu.NE.6 ) THEN
   WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
   DO i=1,SIZE(vorient,1)
     !Compute corresponding rotation vectors and write them into parameter file
-    P1 = DATAN2( vorient(i,3,2) , vorient(i,3,3) )
-    P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,3,2)**2 + vorient(i,3,3)**2) )
-    P3 = DATAN2( vorient(i,2,1) , vorient(i,1,1) )
+    P2 = DATAN2(-1*vorient(i,3,1),DSQRT(vorient(i,1,1)**2+vorient(i,2,1)**2))
+    P1 = DATAN2(vorient(i,3,2)/DCOS(P2),vorient(i,3,3)/DCOS(P2))
+    P3 = DATAN2(vorient(i,2,1)/DCOS(P2),vorient(i,1,1)/DCOS(P2))
     WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
   ENDDO
   CLOSE(41)
@@ -1090,7 +1090,7 @@ NPgrains(:) = 0
 !
 !Construct template supercell Pt(:,:)
 !Set template box size
-templatebox(1) = 1.1d0*MAX( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
+templatebox(1) = 1.2d0*MAX( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 templatebox(2) = templatebox(1)
 templatebox(3) = templatebox(1)
 IF( twodim>0 ) THEN
