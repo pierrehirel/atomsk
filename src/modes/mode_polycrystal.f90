@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 May 2022                                      *
+!* Last modification: P. Hirel - 31 May 2022                                      *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -790,7 +790,7 @@ DO
           rotmat(3,1) = -1.d0*DSIN(P2)
           rotmat(1,3) = DSIN(P2)
           rotmat(1,1) = DCOS(P2)
-          vorient(Nnodes,:,:) = MATMUL( vorient(Nnodes,:,:) , rotmat(:,:) )
+          vorient(Nnodes,:,:) = MATMUL( rotmat(:,:) , vorient(Nnodes,:,:) )
           !Construct the rotation matrix around Z
           rotmat(:,:) = 0.d0
           rotmat(3,3) = 1.d0
@@ -798,8 +798,8 @@ DO
           rotmat(1,2) = -1.d0*DSIN(P3)
           rotmat(2,1) = DSIN(P3)
           rotmat(2,2) = DCOS(P3)
-          vorient(Nnodes,:,:) = MATMUL( vorient(Nnodes,:,:) , rotmat(:,:) )
-          !Final rotation matrix = Rz.Ry.Rx
+          vorient(Nnodes,:,:) = MATMUL( rotmat(:,:) , vorient(Nnodes,:,:) )
+          !Final rotation matrix = Rz.(Ry.Rx)
         ENDIF
       ENDIF
       !
@@ -1005,9 +1005,12 @@ IF( outparam .AND. ofu.NE.6 ) THEN
   WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
   DO i=1,SIZE(vorient,1)
     !Compute corresponding rotation vectors and write them into parameter file
-    P2 = DATAN2(-1*vorient(i,3,1),DSQRT(vorient(i,1,1)**2+vorient(i,2,1)**2))
-    P1 = DATAN2(vorient(i,3,2)/DCOS(P2),vorient(i,3,3)/DCOS(P2))
-    P3 = DATAN2(vorient(i,2,1)/DCOS(P2),vorient(i,1,1)/DCOS(P2))
+    P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,1,1)**2 + vorient(i,2,1)**2) )
+    P1 = DATAN2( vorient(i,3,2)/DCOS(P2) , vorient(i,3,3)/DCOS(P2) )
+    P3 = DATAN2( vorient(i,2,1)/DCOS(P2) , vorient(i,1,1)/DCOS(P2) )
+!     P1 = DATAN2( vorient(i,3,2) , vorient(i,3,3) )
+!     P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,3,2)**2 + vorient(i,3,3)**2) )
+!     P3 = DATAN2( vorient(i,2,1) , vorient(i,1,1) )
     WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
   ENDDO
   CLOSE(41)

@@ -24,7 +24,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 April 2022                                    *
+!* Last modification: P. Hirel - 31 May 2022                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -190,8 +190,18 @@ IF(fileexists) THEN
       ENDIF
     ENDIF
     !
+    IF( test(1:2)=="#!" ) THEN
+      !Shebang: determine what comes after
+      IF( INDEX(test(3:),"sh")>0 ) THEN
+        !It is a Linux shell script
+      ELSEIF( INDEX(test(3:),"atomsk")>0 ) THEN
+        !It is an Atomsk script
+      ENDIF
+    ELSEIF( test(1:1)=='#' ) THEN
+      !It is just a comment, skip line
+    !
     !Search for patterns corresponding to BOP format
-    IF(test(1:4)=='ITER') THEN
+    ELSEIF(test(1:4)=='ITER') THEN
       CALL SET_SCORE(fscore,"bop  ",2,1)
     ELSEIF(test(1:4)=='A   ') THEN
       CALL SET_SCORE(fscore,"bop  ",2,1)
@@ -250,6 +260,8 @@ IF(fileexists) THEN
     ELSEIF(test(1:19)=='Number of particles') THEN
       IF( i<=2 ) THEN
         CALL SET_SCORE(fscore,"cfg  ",10,1)
+      ELSE
+        CALL SET_SCORE(fscore,"cfg  ",6,1)
       ENDIF
     ELSEIF(test(1:3)=='A =' .OR. test(1:2)=='A=') THEN
       CALL SET_SCORE(fscore,"cfg  ",4,1)
