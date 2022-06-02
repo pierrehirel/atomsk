@@ -12,7 +12,7 @@ MODULE out_dlp_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -120,7 +120,11 @@ IF(ofu.NE.6) THEN
   OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
 ENDIF
 !1st line = comment (limited to 72 characters)
-WRITE(ofu,'(a)') TRIM( comment(1)(1:72) )
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,'(a)') TRIM( comment(1)(1:72) )
+ELSE
+  WRITE(ofu,'(a)') "#"
+ENDIF
 !
 !levcfg: 0=positions only; 1= pos.+velocities; 2=pos.+vel.+forces
 !imcon: 0=no periodicity; 1=cubic BC; 2=orthorhombic BC; 3= parallelepipedic BC

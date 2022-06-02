@@ -11,7 +11,7 @@ MODULE out_crystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,7 +87,11 @@ ENDIF
 ! Write header of CRYSTAL file
 CONTINUE
 !First line is a comment
-WRITE(ofu,*) comment(1)
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,*) comment(1)
+ELSE
+  WRITE(ofu,*) "#"
+ENDIF
 !Second line can be CYSTAL, SLAB, POLYMER, MOLECULE, etc.
 !Here "CRYSTAL" is always assumed
 WRITE(ofu,'(a7)') "CRYSTAL"

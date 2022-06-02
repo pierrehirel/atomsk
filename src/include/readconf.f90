@@ -4,15 +4,19 @@ MODULE readconf
 !*  READCONF                                                                      *
 !**********************************************************************************
 !* This module reads a configuration file containing default parameters           *
-!* for the atomsk program. This config file is usually found in the home          *
-!* directory of the user, i.e.  ~/.atomsk, however this module does not make      *
-!* any assumption as the absolute path is passed through the 'conffile' variable. *
+!* for the atomsk program. The absolute path to the file is passed through        *
+!* the 'conffile' variable.                                                       *
+!* The config files are read in the following order (see atomsk.f90):             *
+!* - /etc/atomsk.conf (global config for all users)                               *
+!* - /home/user/.config/atomsk.conf (user personal config)                        *
+!* - current working directory (./atomsk.conf)                                    *
+!* Any parameter found in a file overrides previous definitions.                  *
 !**********************************************************************************
 !* (C) Dec. 2010 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2022                                    *
+!* Last modification: P. Hirel - 01 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -106,8 +110,8 @@ DO
       CALL ATOMSK_MSG(751,(/conffile/),(/0.d0/))
 #endif
     !
-    ELSEIF(temp(1:11)=='neighsearch' .OR. temp(1:16)=='neighbour_search' ) THEN
-      !if true, display some texts in colour
+    ELSEIF( INDEX(STRDNCASE(temp),"neigh") == 1 ) THEN
+      !user wants to use a specific search algorithm
       i = SCAN(temp," ")
       READ(temp(i+1:),*,END=800,ERR=800) neighsearch
     !

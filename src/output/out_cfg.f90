@@ -11,7 +11,7 @@ MODULE out_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 01 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,11 +87,13 @@ ENDIF
 CONTINUE
 msg = 'writing header of CFG file: '//TRIM(outputfile)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(temp,*) SIZE(P(:,1))
+WRITE(temp,*) SIZE(P,1)
 WRITE(ofu,'(a)') 'Number of particles = '//TRIM(ADJUSTL(temp))
-DO i=1,SIZE(comment)
-  WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(i)))
-ENDDO
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  DO i=1,SIZE(comment)
+    WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(i)))
+  ENDDO
+ENDIF
 WRITE(ofu,'(a45)') 'A = 1.000000000 Angstrom (basic length-scale)'
 WRITE(ofu,102) 'H0(1,1) = ', H(1,1)
 WRITE(ofu,102) 'H0(1,2) = ', H(1,2)

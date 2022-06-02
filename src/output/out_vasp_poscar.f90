@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 April 2022                                    *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -174,7 +174,11 @@ IF(ofu.NE.6) THEN
 ENDIF
 !
 !Write header of POSCAR file
-WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(1)))
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(1)))
+ELSE
+  WRITE(ofu,'(a)') ""
+ENDIF
 WRITE(ofu,'(a8)') '1.000000'
 WRITE(ofu,201) H(1,1), H(1,2), H(1,3)
 WRITE(ofu,201) H(2,1), H(2,2), H(2,3)

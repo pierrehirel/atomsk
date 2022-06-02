@@ -12,7 +12,7 @@ MODULE out_imd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,7 +116,9 @@ WRITE(ofu,'(a3,3(f12.6,1X))') '#X ', H(1,1), H(1,2), H(1,3)
 WRITE(ofu,'(a3,3(f12.6,1X))') '#Y ', H(2,1), H(2,2), H(2,3)
 WRITE(ofu,'(a3,3(f12.6,1X))') '#Z ', H(3,1), H(3,2), H(3,3)
 !Comment
-WRITE(ofu,'(a)') '#'//TRIM(comment(1))
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,'(a)') '#'//TRIM(comment(1))
+ENDIF
 !Label indicating end of header
 WRITE(ofu,'(a2)') '#E'
 !

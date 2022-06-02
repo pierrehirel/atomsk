@@ -18,7 +18,7 @@ MODULE mode_difference
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 01 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,10 +60,10 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: filefirst, filesecond
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: outputfile, msg
-CHARACTER(LEN=128):: diffcfgfile, diffxyzfile, diffnormfile, diffxsffile
-CHARACTER(LEN=128):: bothxsffile, histdatfile, stattxtfile
+CHARACTER(LEN=128):: diffcfgfile
+CHARACTER(LEN=128):: histdatfile, stattxtfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, AUXNAMES1, AUXNAMES2 !names of auxiliary properties
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, comment1, comment2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, l
@@ -96,13 +96,9 @@ Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(Pboth)) DEALLOCATE(Pboth)
 ALLOCATE(comment(1))
- comment(1) = '# Differences in atomic positions'
+ comment(1) = "# Differences between '"//TRIM(filefirst)//"' and '"//TRIM(filesecond)//"'"
 !Set file names
 diffcfgfile = TRIM(ADJUSTL(outputfile))//'_diff.cfg'
-diffxyzfile = TRIM(ADJUSTL(outputfile))//'_diff.xyz'
-diffnormfile = TRIM(ADJUSTL(outputfile))//'_norm.dat'
-diffxsffile = TRIM(ADJUSTL(outputfile))//'_diff.xsf'
-bothxsffile = TRIM(ADJUSTL(outputfile))//'_both.xsf'
 histdatfile = TRIM(ADJUSTL(outputfile))//'_hist.dat'
 stattxtfile = TRIM(ADJUSTL(outputfile))//'_stat.txt'
 !
@@ -112,14 +108,14 @@ CALL ATOMSK_MSG(4038,(/''/),(/0.d0/))
 !
 100 CONTINUE
 !Read atomic positions from filefirst and store them into Pfirst(:,:)
-CALL READ_AFF(filefirst,H1,Pfirst,S,comment,AUXNAMES1,AUX1)
+CALL READ_AFF(filefirst,H1,Pfirst,S,comment2,AUXNAMES1,AUX1)
 !Remove shells
 IF(ALLOCATED(S)) DEALLOCATE(S)
 !Apply options to system 1
 CALL OPTIONS_AFF(options_array,Huc,H1,Pfirst,S,AUXNAMES1,AUX1,ORIENT,SELECT,C_tensor)
 !
 !Read atomic positions from filesecond and store them into Psecond(:,:)
-CALL READ_AFF(filesecond,H2,Psecond,S,comment,AUXNAMES2,AUX2)
+CALL READ_AFF(filesecond,H2,Psecond,S,comment2,AUXNAMES2,AUX2)
 !Remove shells
 IF(ALLOCATED(S)) DEALLOCATE(S)
 !Apply options to system 2
@@ -183,65 +179,31 @@ ENDDO
 !
 !
 400 CONTINUE
-!Check if files already exist
-IF(.NOT.overw) CALL CHECKFILE(diffxyzfile,'writ')
-IF(.NOT.overw) CALL CHECKFILE(diffnormfile,'writ')
-IF(.NOT.overw) CALL CHECKFILE(diffxsffile,'writ')
-IF(.NOT.overw) CALL CHECKFILE(bothxsffile,'writ')
-IF(.NOT.overw) CALL CHECKFILE(stattxtfile,'writ')
-!
 !Write files
 !
-!XYZ file containing atom positions of 1st system + displacements
-CALL WRITE_XYZ(H1,Pfirst,comment,AUXNAMES,AUX,diffxyzfile,'exyz ')
-!
 !CFG file containing atom positions of 1st system + displacements
+IF(.NOT.overw) CALL CHECKFILE(diffcfgfile,'writ')
 CALL WRITE_CFG(H1,Pfirst,comment,AUXNAMES,AUX,diffcfgfile)
 !
-!XSF file containing both systems
-ALLOCATE( Pboth( SIZE(Pfirst,1)+SIZE(Psecond,1), 4 ) )
-DO i=1,SIZE(Pfirst,1)
-  Pboth(i,:) = Pfirst(i,:)
-ENDDO
-DO i=1,SIZE(Psecond,1)
-  Pboth(SIZE(Pfirst,1)+i,:) = Psecond(i,:)
-ENDDO
-CALL WRITE_XSF(H1,Pboth,comment,AUXNAMES,AUX,bothxsffile)
-DEALLOCATE(Pboth)
-!
-!XSF file containing atom positions of 1st system + displacements
-!Change name to trick module into writing displacements to XSF
-AUXNAMES(Naux+1) = 'fx'
-AUXNAMES(Naux+2) = 'fy'
-AUXNAMES(Naux+3) = 'fz'
-CALL WRITE_XSF(H1,Pfirst,comment,AUXNAMES,AUX,diffxsffile)
-!
-!Text file containing the norms of displacements
-ALLOCATE(stattable(SIZE(Pfirst,1),2))
-OPEN(UNIT=36,FILE=diffnormfile,FORM='FORMATTED',STATUS='UNKNOWN')
-DO i=1,SIZE(Pfirst,1)
-  CALL ATOMSPECIES(Pfirst(i,4),species)
-  WRITE(36,416) i, AUX(i,Naux+4), species
-  !
-  !Store norm of displacements in a table
-  !for later statistics calculations (see label 450)
-  stattable(i,1) = Pfirst(i,4)
-  stattable(i,2) = AUX(i,Naux+4)
-ENDDO
-416 FORMAT(i6,1X,f12.6,1X,a3)
-CLOSE(36)
-CALL ATOMSK_MSG(4039,(/TRIM(diffnormfile)/),(/0.d0/))
-!
-!
-430 CONTINUE
-IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 !
 !
 440 CONTINUE
-!Calculate the statistics of displacements
+!Store norm of displacements in a table
+!for later statistics calculations (see label 450)
+ALLOCATE(stattable(SIZE(Pfirst,1),2))
+DO i=1,SIZE(Pfirst,1)
+  stattable(i,1) = Pfirst(i,4)
+  stattable(i,2) = AUX(i,Naux+4)
+ENDDO
+!Don't need AUX any more => free memory
+IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+!
+!Write statistics of displacements in a file
+IF(.NOT.overw) CALL CHECKFILE(stattxtfile,'writ')
 OPEN(UNIT=39,FILE=stattxtfile,FORM='FORMATTED',STATUS='UNKNOWN')
 WRITE(39,*) 'STATISTICS ON THE DISPLACEMENTS'
 WRITE(39,*) 'All values are in angstroms'
+WRITE(39,*) TRIM(comment(1))
 WRITE(39,*) ''
 WRITE(39,*) 'Sp. = atomic Spieces (TO=Total statistics on all atoms)'
 WRITE(39,*) 'm = Minimum displacement'
@@ -300,6 +262,7 @@ CALL ATOMSK_MSG(4039,(/TRIM(stattxtfile)/),(/0.d0/))
 !but that is maximum 1 Angströms
 histstep = MIN( 1.d0 , stat_M/20.d0 )
 !
+IF(.NOT.overw) CALL CHECKFILE(histdatfile,'writ')
 OPEN(UNIT=35,FILE=histdatfile,FORM='FORMATTED',STATUS='UNKNOWN')
 histdown=0.d0
 histup=histstep

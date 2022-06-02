@@ -12,7 +12,7 @@ MODULE out_vesta
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -130,8 +130,8 @@ ENDIF
 !Write header of VESTA file
 WRITE(ofu,'(a27)') "#VESTA_FORMAT_VERSION 3.0.0"
 WRITE(ofu,*) ""
-IF( SIZE(comment) > 1 ) THEN
-  !Large number of comment lines => write a COMMENT section
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  !Write a COMMENT section
   WRITE(ofu,*) "<!-- COMMENT --"
   DO i=1,SIZE(comment)
     WRITE(ofu,'(a)') TRIM(comment(i))
@@ -142,17 +142,22 @@ ENDIF
 WRITE(ofu,'(a7)') "CRYSTAL"
 WRITE(ofu,*) ""
 WRITE(ofu,'(a5)') "TITLE"
-!Search for an appropriate comment
-DO i=1,SIZE(comment)
-  j = INDEX(comment(i),"TITLE")
-  IF( j > 0 ) THEN
-    WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(i)(j+6:)))
-    EXIT
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  !Search for an appropriate comment
+  DO i=1,SIZE(comment)
+    j = INDEX(comment(i),"TITLE")
+    IF( j > 0 ) THEN
+      WRITE(ofu,'(a)') TRIM(ADJUSTL(comment(i)(j+6:)))
+      EXIT
+    ENDIF
+  ENDDO
+  IF( j==0 ) THEN
+    !No title was written yet => juste use first comment
+    WRITE(ofu,'(a)') TRIM(comment(1))
   ENDIF
-ENDDO
-IF( j==0 ) THEN
+ELSE
   !No title was written yet => juste use first comment
-  WRITE(ofu,'(a)') TRIM(comment(1))
+  WRITE(ofu,'(a)') " "
 ENDIF
 WRITE(ofu,*) ""
 WRITE(ofu,'(a5)') "GROUP"

@@ -98,7 +98,6 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
-neighsearch="verlet"  !!!TEMPORARY/DEBUG: force algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -109,9 +108,10 @@ ELSEIF( neighsearch=="cell" .OR. neighsearch=="CELL" ) THEN
   !
 ELSE
   !User did not specify anything: automatically choose VERLET or CELL depending on system size
-  IF( distance>10.d0 .OR. R>10.d0 .OR. SIZE(A,1)>10000 ) THEN
-    !Cell is large, or radius search is large, or number of atoms is large
-    !=> use cell decomposition algorithm
+  !IF( distance>10.d0 .OR. R>10.d0 .OR. SIZE(A,1)>10000 ) THEN
+  IF( R>VECLENGTH(H(1,:)) .AND. R>VECLENGTH(H(2,:)) .AND. R>VECLENGTH(H(3,:)) &
+    & .AND. SIZE(A,1)>20000 )  THEN
+    !Very large system => use cell decomposition algorithm
     CALL CELL_LIST(H,A,R,NeighList)
   ELSE
     !Default: use Verlet algorithm
@@ -128,7 +128,7 @@ END SUBROUTINE NEIGHBOR_LIST
 ! VERLET_LIST
 ! This subroutine constructs a neighbor list using
 ! the most simple Verlet algorithm. It is expected
-! to be robust, but scales poorly with system size.
+! to be robust, but scales poorly with system size (O(N²)).
 !********************************************************
 SUBROUTINE VERLET_LIST(H,A,R,NeighList)
 !
@@ -417,7 +417,7 @@ DO i=1,3
   !Compute max. distance between two ends of the box
   distance = SUM(DABS(H(:,i)))  !MAXVAL(DABS(H(:,i)))
   !Compute how many cells of length R/2 we can fit in that distance
-  tempreal = 0.9d0*distance/R
+  tempreal = 0.9d0*distance/(R/2.d0)
   IF( distance < R .OR. NINT(tempreal) < 2 ) THEN
     !Cell is roughly the same size as cutoff radius
     !Ensure that there is always at least one cells along any given direction
@@ -583,44 +583,22 @@ DO i=1,SIZE(A,1)  !Loop on all atoms
   iCell = (Iz-1)*NcellsX(1)*NcellsX(2) + (Iy-1)*NcellsX(1) + Ix
   !PRINT*, "[ Atom #", i, " , Cell #", iCell, " ]"
   !
-  k=0
+  l=0
   !n = index of current neighbouring cell
   !Begin by searching for neighbours of atom #i in its own cell #iCell
-  n = iCell  !Cell_Neigh(iCell,k)
-  DO WHILE( k<SIZE(Cell_Neigh,2) .AND. n>0 )   !k=1,SIZE(Cell_Neigh,2) !Loop on all neighbouring cells
-    !Get translation vector for this neighbouring cell, accounting for PBC
-    shift(:) = 0.d0
-!     Ix=0
-!     Iy=0
-!     Iz=0
-!     IF( Cell_ijk(iCell,1)==1 ) THEN
-!       IF( Cell_ijk(n,1)>Cell_ijk(iCell,1)+1 ) Ix=1
-!     ELSEIF( Cell_ijk(iCell,1)==NcellsX(1) ) THEN
-!       IF( Cell_ijk(n,1)<Cell_ijk(iCell,1)-1 ) Ix=-1
-!     ENDIF
-!     IF( Cell_ijk(iCell,2)==1 ) THEN
-!       IF( Cell_ijk(n,2)>Cell_ijk(iCell,2)+1 ) Iy=1
-!     ELSEIF( Cell_ijk(iCell,2)==NcellsX(2) ) THEN
-!       IF( Cell_ijk(n,2)<Cell_ijk(iCell,2)-1 ) Iy=-1
-!     ENDIF
-!     IF( Cell_ijk(iCell,3)==1 ) THEN
-!       IF( Cell_ijk(n,3)>Cell_ijk(iCell,3)+1 ) Iz=1
-!     ELSEIF( Cell_ijk(iCell,3)==NcellsX(3) ) THEN
-!       IF( Cell_ijk(n,3)<Cell_ijk(iCell,3)-1 ) Iz=-1
-!     ENDIF
-!     shift(:) = Ix*H(1,:) + Iy*H(2,:) + Iz*H(3,:)
-    ! Get first atom in cell
+  n = iCell  !Cell_Neigh(iCell,l)
+  DO WHILE( l<SIZE(Cell_Neigh,2) .AND. n>0 )   !l=1,SIZE(Cell_Neigh,2) !Loop on all neighbouring cells
+    !Get index of first atom in cell #n
     j = LinkedHead(n)
+    !
     !Loop on all atoms in LinkedList, until we meet an index equal to 0
-    DO !WHILE(j>0)
+    DO WHILE(j>0)
       !PRINT*, "                Cell #", n, ":", j
-      IF(j==0) EXIT
+      !IF(j==0) EXIT
       IF( j>i .AND. .NOT.ANY(NeighList(i,:)==j) ) THEN
-        !Compute position of atom #j taking PBC into account
-        Vfrac(1,1:3) = A(j,1:3)
-        !Compute distance between atoms #i and #j
-        !distance = VECLENGTH( A(i,1:3) - Vfrac(1,1:3) )
-        DO l=1,3
+        !Account for periodic boundary conditions
+        shift(:) = 0.d0
+        DO k=1,3  !loop on all 3 directions
           dx = DABS( Afrac(j,k) - Afrac(i,k) )
           IF( DABS(1.d0-dx) < dx ) THEN
             IF( A(j,k)>A(i,k) ) THEN
@@ -630,7 +608,13 @@ DO i=1,SIZE(A,1)  !Loop on all atoms
             ENDIF
           ENDIF
         ENDDO
-        distance = VECLENGTH( Vfrac(1,1:3) + shift(:) - A(i,1:3) )
+        !
+        !Save shift of atom #j in Cartesian coordinates
+        shift(:) = shift(1)*H(1,:) + shift(2)*H(2,:) + shift(3)*H(3,:)
+        !
+        !Compute distance (Cartesian coordinates) between atom #i and atom #j (or replica of #j)
+        distance = VECLENGTH( A(j,1:3) + shift(:) - A(i,1:3) )
+        !
         IF ( distance <= R ) THEN
           !PRINT*, "                     is neighbour"
           !Atom #j is neighbour of atom #i
@@ -645,11 +629,11 @@ DO i=1,SIZE(A,1)  !Loop on all atoms
     ENDDO  !j
     !
     !After parsing atoms in cell #iCell, parse atoms in neighbouring cells
-    k = k+1
+    l = l+1
     !n = index of next neighbouring cell
-    n = Cell_Neigh(iCell,k)
+    n = Cell_Neigh(iCell,l)
     !
-  ENDDO  !k
+  ENDDO  !l
 ENDDO  !i
 !!!$OMP END PARALLEL DO
 WRITE(msg,*) "Atom Neighbour List COMPLETE ..."
@@ -669,9 +653,11 @@ IF( ALLOCATED(NeighList) ) THEN
   ENDIF
 ENDIF
 !
-IF( ALLOCATED(NeighList) ) THEN
-  n = MAXVAL(Nneigh(:))
-  WRITE(msg,*) "Max. n. neighbors found = ", n
+!
+IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
+  !Count max. number of neighbors
+  n = MAXVAL(NNeigh(:))
+  WRITE(msg,*) "Max. N. neighbors found = ", n
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   IF( n>0 .AND. n<SIZE(NeighList,2) ) THEN
     !Reduce NeighList
@@ -680,8 +666,14 @@ IF( ALLOCATED(NeighList) ) THEN
     m = SIZE(NeighList,1)
     CALL RESIZE_INTARRAY2(NeighList,m,n,i)
   ENDIF
+  IF( verbosity==4 ) THEN
+    WRITE(msg,*) SIZE(NeighList,1)
+    WRITE(temp,*) SIZE(NeighList,2)
+    WRITE(msg,*) "Final size of NeighList :  "//TRIM(ADJUSTL(msg))//" x "//TRIM(ADJUSTL(temp))
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
 ELSE
-  msg = "NeighList UNALLOCATED"
+  msg = 'NeighList UNALLOCATED'
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
 !

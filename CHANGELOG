@@ -10,6 +10,7 @@ Master
 - added possibility to display coloured messages in UNIX/Linux terminals. New subroutine "COLOUR_MSG" allows to colour a string using ANSII escape sequences. This is disabled by default to avoid issues, and can be activated thanks to a new keyword in the user's configuration file (~/.config/atomsk.conf).
 - interactive mode now supports basic calculations with operators, e.g. "3*7" or "cos(pi/2)". Formulae are evaluated with routine EXPREVAL, which can now also generate random numbers with the keyword "rand".
 - in mode "--central-symmetry", atoms with 4 neighbours are now compared to tetrahedral environment; if angles are close to those in a tetrahedron, this criterion is used instead of central symmetry.
+- in mode "--difference", fixed a bug that would cause a segfault when none of the file contained a comment.
 - in mode "--merge", a new auxiliary property "sysID" is created, indicating for each atom the index of the system it belonged to.
 - in mode "--nye", if user does not provide an output file name then a default one in CFG format is created.
 - in mode "--polycrystal", fixed a bug where rotations provided were performed using Z, Y, X permutation instead of X, Y, Z. Thanks to Marcin Minkowsky, Tampere University, Finland, for pointing out this bug.

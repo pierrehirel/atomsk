@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -283,8 +283,10 @@ IF(ofu.NE.6) THEN
 ENDIF
 !
 !Write header of data file
-WRITE(ofu,*) TRIM(ADJUSTL(comment(1)))
-WRITE(ofu,*) ''
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,*) TRIM(ADJUSTL(comment(1)))
+  WRITE(ofu,*) ' '
+ENDIF
 WRITE(ofu,*) SIZE(P,1)+Nshells, ' atoms'
 IF( Nshells>0 ) THEN
   WRITE(ofu,*) Nshells, ' bonds'

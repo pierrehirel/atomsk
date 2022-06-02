@@ -12,7 +12,7 @@ MODULE out_xsf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 01 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,7 +88,9 @@ IF(ofu.NE.6) THEN
 ENDIF
 !
 !Write header of XSF file
-WRITE(ofu,*) TRIM(ADJUSTL(comment(1)))
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,*) TRIM(ADJUSTL(comment(1)))
+ENDIF
 WRITE(ofu,*) "CRYSTAL"
 WRITE(ofu,*) "PRIMVEC"
 WRITE(ofu,105) H(1,1), H(1,2), H(1,3)

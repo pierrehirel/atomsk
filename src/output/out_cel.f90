@@ -13,7 +13,7 @@ MODULE out_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,7 +117,9 @@ WRITE(msg,'(i2,a2,i4)') VALUES(3), ", ", VALUES(1)
 WRITE(tempt,*) TRIM(smonth)//" "//TRIM(ADJUSTL(msg))
 !
 !Write a comment in the first line
-WRITE(ofu,'(a)') comment(1)
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,'(a)') comment(1)
+ENDIF
 !
 !Write cell vectors (conventional notation, size in nm, angles in degrees)
 CALL MATCONV(H,a,b,c,alpha,beta,gamma)

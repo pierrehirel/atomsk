@@ -11,7 +11,7 @@ MODULE out_abinit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -102,9 +102,11 @@ ENDIF
 ! Write header of ABINIT file
 CONTINUE
 !Write comments
-DO i=1,SIZE(comment)
-  WRITE(ofu,*) TRIM(ADJUSTL(comment(i)))
-ENDDO
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  DO i=1,SIZE(comment)
+    WRITE(ofu,*) TRIM(ADJUSTL(comment(i)))
+  ENDDO
+ENDIF
 !
 !Write lattice constant
 WRITE(ofu,'(a12)') "acell    3*1"

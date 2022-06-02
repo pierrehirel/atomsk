@@ -13,7 +13,7 @@ MODULE out_mbpp_coorat
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -112,7 +112,9 @@ CALL ATOMSK_MSG(3002,(/msg,outputfile/),(/0.d0/))
 msg = 'INP'
 CALL CHECKFILE(msg,'writ')
 OPEN(UNIT=41,FILE=msg,STATUS='UNKNOWN',ERR=1000)
-WRITE(41,'(a)') TRIM(comment(1))
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(41,'(a)') TRIM(comment(1))
+ENDIF
 WRITE(41,'(a18)') '#define VERSION1.0'
 WRITE(41,*) ''
 WRITE(41,'(a2)') '10'

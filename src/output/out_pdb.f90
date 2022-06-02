@@ -14,7 +14,7 @@ MODULE out_pdb
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -119,7 +119,7 @@ ENDIF
 !If a keyword cannot be found in comment(:) then produce dummy lines.
 !
 !Header (remove leading # from comment)
-pdbline = 'HEADER   '//comment(1)(2:72)
+pdbline = "HEADER   "
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='HEADER' ) THEN
@@ -131,7 +131,7 @@ ENDIF
 WRITE(ofu,'(a80)') pdbline
 !
 !Title (remove leading # from comment)
-pdbline = 'TITLE    '//comment(1)(2:72)
+pdbline = "TITLE    "
 IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
   DO i=1,SIZE(comment)
     IF( comment(i)(2:7)=='TITLE' ) THEN

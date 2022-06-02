@@ -11,7 +11,7 @@ MODULE out_str
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -118,9 +118,13 @@ ENDIF
 ! Write header of STR file
 CONTINUE
 !Remove leading # from comment
-temp = ADJUSTL(comment(1))
-IF( temp(1:1)=="#" ) THEN
-  temp(1:1) = " "
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  temp = ADJUSTL(comment(1))
+  IF( temp(1:1)=="#" ) THEN
+    temp(1:1) = " "
+  ENDIF
+ELSE
+  temp=""
 ENDIF
 WRITE(ofu,'(a)') "title  "//TRIM(ADJUSTL(temp))
 WRITE(ofu,'(a)') "format pdffit"

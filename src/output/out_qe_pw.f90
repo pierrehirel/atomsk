@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 02 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -113,7 +113,11 @@ ENDIF
 !
 !Write control section
 WRITE(ofu,'(a8)') "&CONTROL"
-WRITE(ofu,'(a)') "  title = '"//TRIM(comment(1))//"'"
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,'(a)') "  title = '"//TRIM(comment(1))//"'"
+ELSE
+  WRITE(ofu,'(a)') "  title = ''"
+ENDIF
 !pseudo_dir: value of the $ESPRESSO_PSEUDO environment variable if set;
 !            '$HOME/espresso/pseudo/' otherwise
 CALL GET_ENVIRONMENT_VARIABLE('ESPRESSO_PSEUDO',pseudo_dir)
