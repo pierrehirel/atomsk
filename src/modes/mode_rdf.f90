@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 May 2022                                      *
+!* Last modification: P. Hirel - 03 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -422,13 +422,25 @@ ENDIF
 !=> divide g(R) by the number of files to make the time-average
 rdf_partial(:,:) = rdf_partial(:,:) / DBLE(Nfiles)
 !
-!Compute the total RDF and save it into rdf_total(:,:)
+!Compute the total RDF
+!= sum of all partial RDFs weighted with number of atoms
 ALLOCATE( rdf_total(SIZE(rdf_partial,2)) )
 rdf_total(:) = 0.d0
+n = 0
 DO i=1,SIZE(rdf_partial,1)
-  rdf_total(:) = rdf_total(:) + rdf_partial(i,:)
+  !Get number of atoms of type #1 of the pair
+  m = 0
+  DO j=1,SIZE(aentries,1)
+    IF( DABS(aentries(j,1)-pairs(i,1)) < 1.d-3 .OR. &
+      & DABS(aentries(j,1)-pairs(i,2)) < 1.d-3      ) THEN
+      m = m + NINT(aentries(j,2))
+    ENDIF
+  ENDDO
+  rdf_total(:) = rdf_total(:) + DBLE(m)*rdf_partial(i,:)
+  n = n+m
 ENDDO
-rdf_total(:) = rdf_total(:) / DBLE(SIZE(rdf_partial,1))
+!Normalize by total number of atoms
+rdf_total(:) = rdf_total(:) / DBLE(n)
 !
 !
 !

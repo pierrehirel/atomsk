@@ -98,6 +98,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
+neighsearch = "verlet"  !TEMPORARY: force use of Verlet algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -417,7 +418,7 @@ DO i=1,3
   !Compute max. distance between two ends of the box
   distance = SUM(DABS(H(:,i)))  !MAXVAL(DABS(H(:,i)))
   !Compute how many cells of length R/2 we can fit in that distance
-  tempreal = 0.9d0*distance/(R/2.d0)
+  tempreal = 0.9d0*distance/(R/4.d0)
   IF( distance < R .OR. NINT(tempreal) < 2 ) THEN
     !Cell is roughly the same size as cutoff radius
     !Ensure that there is always at least one cells along any given direction
