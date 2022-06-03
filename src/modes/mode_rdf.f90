@@ -429,12 +429,14 @@ rdf_total(:) = 0.d0
 n = 0
 DO i=1,SIZE(rdf_partial,1)
   !Get number of atoms of type #1 of the pair
-  m = 0
-  DO j=1,SIZE(aentries,1)
-    IF( DABS(aentries(j,1)-pairs(i,1)) < 1.d-3 .OR. &
-      & DABS(aentries(j,1)-pairs(i,2)) < 1.d-3      ) THEN
-      m = m + NINT(aentries(j,2))
-    ENDIF
+  m = 1
+  DO k=1,2
+    DO j=1,SIZE(aentries,1)
+      IF( DABS(aentries(j,1)-pairs(i,k)) < 1.d-3 ) THEN
+        m = m * NINT(aentries(j,2))
+        EXIT
+      ENDIF
+    ENDDO
   ENDDO
   rdf_total(:) = rdf_total(:) + DBLE(m)*rdf_partial(i,:)
   n = n+m
