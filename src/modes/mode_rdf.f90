@@ -428,20 +428,30 @@ ALLOCATE( rdf_total(SIZE(rdf_partial,2)) )
 rdf_total(:) = 0.d0
 n = 0
 DO i=1,SIZE(rdf_partial,1)
-  !Get number of atoms of type #1 of the pair
   m = 1
+  !Loop over the two atom types of the pair
   DO k=1,2
+    !Search for atoms of type pairs(i,k) in the table aentries
     DO j=1,SIZE(aentries,1)
       IF( DABS(aentries(j,1)-pairs(i,k)) < 1.d-3 ) THEN
+        !Matching type: save type 1 for later
+        !get the number of atoms of this type
         m = m * NINT(aentries(j,2))
-        EXIT
+        IF(k==1) THEN
+          l=NINT(aentries(j,1))
+        ELSE !i.e. if k==2
+          !If species are different, account for factor 2
+          IF( NINT(aentries(j,1)).NE.l ) m = 2*m
+        ENDIF
+        GOTO 310
       ENDIF
     ENDDO
+    310 CONTINUE
   ENDDO
   rdf_total(:) = rdf_total(:) + DBLE(m)*rdf_partial(i,:)
   n = n+m
 ENDDO
-!Normalize by total number of atoms
+!Normalize total RDF
 rdf_total(:) = rdf_total(:) / DBLE(n)
 !
 !
