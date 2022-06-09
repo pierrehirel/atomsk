@@ -13,7 +13,7 @@ MODULE deterH
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 July 2021                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,7 +44,7 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 INTEGER,DIMENSION(3):: Hmodified !index of modified vectors
 INTEGER:: a2, a3
-INTEGER:: i, idfirst, j, m, n
+INTEGER:: i, idfirst, j, n
 INTEGER:: Nmodified  !number of box vectors that were modified
 INTEGER,DIMENSION(3):: Natoms  !number of atoms in each direction
 REAL(dp),PARAMETER:: tol=0.3d0   !tolerance on atom positions (allow for small perturbations)

@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -52,7 +52,7 @@ CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),INTENT(IN):: AUXNAMES !names of auxiliary properties
 LOGICAL:: exceeds100 !does the number of neighbors exceed 100?
 LOGICAL:: hasShells  !does this type of atom have shells?
-LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: addedatoms !number of atoms added
 INTEGER:: atomindex
 INTEGER:: NP !number of particles

@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 June 2022                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,7 +58,7 @@ REAL(dp),INTENT(IN):: rdf_maxR            !maximum radius for RDF
 REAL(dp),INTENT(IN):: rdf_dr              !width of the "skin"
 !
 CHARACTER(LEN=2):: sp1, sp2               !species of atoms type 1, type 2
-CHARACTER(LEN=128):: msg, temp
+CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128):: rdfdat               !Output file names
 CHARACTER(LEN=4096):: inputfile           !name of a file to analyze
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties (not used)
@@ -71,16 +71,13 @@ INTEGER:: atompair
 INTEGER:: i, id, j, k, l, m, n
 INTEGER:: u, umin, umax, v, vmin, vmax, w, wmin, wmax
 INTEGER:: Nfiles     !number of files analyzed
-INTEGER:: Nneighbors !number of neighbors in the skin
 INTEGER:: Nspecies   !number of different atom species in the system
 INTEGER:: progress   !To show calculation progress
 INTEGER:: rdf_Nsteps !number of "skins" for RDF
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !list of neighbours
-REAL(dp):: average_dens !average density of the system
 REAL(dp):: distance     !distance between 2 atoms
 REAL(dp):: rdf_norm     !normalization factor
 REAL(dp):: rdf_radius   !radius of the sphere
-REAL(dp):: sp1number, sp2number  !atomic number of atoms of type #1, type #2
 REAL(dp):: Vsphere, Vskin        !volume of the sphere, skin
 REAL(dp):: Vsystem               !volume of the system
 REAL(dp),DIMENSION(3):: Vector
@@ -96,7 +93,6 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: pairs        !pairs of species
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: rdf_temp     !temporary partial RDFs for 1 system
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: rdf_partial  !final values of the partial RDFs (space- and time-averaged)
 REAL(dp),DIMENSION(:),ALLOCATABLE:: rdf_total      !final values of the total RDF (space- and time-averaged)
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN         !positions of 1st NN
 !
 msg = 'ENTERING RDF_XYZ...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -109,6 +105,9 @@ CALL ATOMSK_MSG(4051,(/""/),(/rdf_maxR,rdf_dr/))
 !Initialize variables
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 atompair=0
+u=0
+v=0
+w=0
 ORIENT(:,:) = 0.d0
 IF(ALLOCATED(pairs)) DEALLOCATE(pairs)
 IF(ALLOCATED(rdf_partial)) DEALLOCATE(rdf_temp)     !partial RDFs for 1 system
@@ -429,6 +428,8 @@ rdf_total(:) = 0.d0
 n = 0
 DO i=1,SIZE(rdf_partial,1)
   m = 1
+  n = 0
+  l = 0
   !Loop over the two atom types of the pair
   DO k=1,2
     !Search for atoms of type pairs(i,k) in the table aentries

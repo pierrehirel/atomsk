@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 Sept. 2021                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -129,6 +129,7 @@ alpha=0.d0
 beta=0.d0
 gamma=0.d0
 IF (ALLOCATED(S)) DEALLOCATE(S)
+IF (ALLOCATED(symop_list)) DEALLOCATE(symop_list)
 IF (ALLOCATED(symops_trf)) DEALLOCATE(symops_trf)
 IF (ALLOCATED(Wyckoff_letters)) DEALLOCATE(Wyckoff_letters)
 !
@@ -864,7 +865,7 @@ IF ( Nsym>0 .AND. ALLOCATED(symops_trf) ) THEN
 ELSE
   !No symmetry operation was defined, but a group symmetry was
   !Apply symmetry operations of that symmetry group
-  IF( sgnumber > 1 .AND. sgnumber <= 230 ) THEN
+  IF( sgnumber > 1 .AND. sgnumber <= 230 .AND. ALLOCATED(symop_list) .AND. SIZE(symop_list)>0 ) THEN
     CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
     ALLOCATE(symops_trf(sgnumber,SIZE(symop_list)))
     !Initialize symmetry operations

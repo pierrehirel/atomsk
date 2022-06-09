@@ -12,7 +12,7 @@ MODULE in_abinit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 May 2019                                      *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -44,13 +44,11 @@ CONTAINS
 SUBROUTINE READ_ABINIT(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: line
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: symop_list  !list of symmetry operations
-INTEGER:: i, j, k, m
+INTEGER:: i, j, k
 INTEGER:: nline  !counter for the line number
 INTEGER:: natom  !counter for total number of particles
 INTEGER:: ntypat !number of different atom types

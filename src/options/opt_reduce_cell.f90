@@ -10,7 +10,7 @@ MODULE reduce_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 April 2022                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -47,8 +47,8 @@ LOGICAL,DIMENSION(3):: reducedir !=TRUE if this direction must be reduced
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT  !mask for atom list
 LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT             !mask for atom list (temporary)
 INTEGER,DIMENSION(3):: reduced !=1 if cell was reduced along X,Y,Z , =0 otherwise
-INTEGER:: i, iref, j, k, NP, m, n, o
-REAL(dp):: cp, vp, tempreal
+INTEGER:: i, iref, j, k, NP, m, n
+REAL(dp):: cp, vp
 REAL(dp),PARAMETER:: rtol=1.d-3  !relative tolerance on atom positions
 REAL(dp),DIMENSION(3):: tol      !tolerance on atom positions along X,Y,Z (angströms)
 REAL(dp),DIMENSION(3):: V

@@ -26,7 +26,7 @@ MODULE in_csv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 Dec. 2018                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,7 +66,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of aux
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
 LOGICAL:: skipfirst     !Should the 1st line be skipped?
 INTEGER:: i, j, k
-INTEGER:: q1, q2
 INTEGER:: Nlines, Ncol  !Number of lines and columns
 INTEGER:: Ncomm, Naux   !Number of comments, of auxiliary properties
 INTEGER:: Nreal         !Number of real numbers in a column
@@ -75,7 +74,6 @@ INTEGER:: Hcol, H11, H12, H13, H21, H22, H23, H31, H32, H33 !column numbers for 
 INTEGER:: atcol, scol, xcol, ycol, zcol !column numbers for atom type, species, x,y,z
 INTEGER:: Sscol, Sxcol, Sycol, Szcol    !column numbers for shells: species, x, y, z
 INTEGER,DIMENSION(100):: auxcol          !Idex of columns containing auxiliary properties (assuming <100)
-REAL(dp):: P1, P2, P3
 REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P
@@ -90,6 +88,7 @@ Nlines=0
 Ncol=0
 Ncomm=0
 Naux=0
+Nreal=0
 atcol = 0
 auxcol(:) = 0
 Hcol = 0

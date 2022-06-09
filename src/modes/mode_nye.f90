@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 March 2022                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -70,7 +70,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 LOGICAL:: firstref  !is the first file used as reference system? (default: yes)
-LOGICAL:: lowp      !does an environment have a low probability?
 LOGICAL:: ucref     !is the reference a unit cell? (default: no)
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, iat
@@ -86,20 +85,16 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE:: siteindex !for each atom, index of its type of site in Pref
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList1, NeighList2  !list of neighbors for systems 1 and 2
 REAL(dp):: alpha, alpha_tmp !angles between two vectors
-REAL(dp):: beta, gamma      !
 REAL(dp),PARAMETER:: maxangvec=27.d0*(2.d0*pi/360.d0)  !if angle between vectors in Pneigh and Qneigh exceed
                                                     !this value, exclude them (Hartley&Mishin used 27°)
 REAL(dp):: NeighFactor !%of tolerance in the radius for neighbor search
-REAL(dp):: P1, P2, P3  !coordinates of a neighbor
 REAL(dp),PARAMETER:: angle_th=pi/5.d0  !threshold to exlude neighbors
 REAL(dp),PARAMETER:: radius=8.d0 !R for neighbor search: 8 A should be enough to find some neighbors in any system
 REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3):: alpha_tensor, test_matrix
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: Hfirst, Hsecond !Box vectors of systems 1 and 2
-REAL(dp),DIMENSION(3,3):: Hneigh, Hnew    !Base vectors for neighbors
 REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation (not used here but necessary for some calls)
-REAL(dp),DIMENSION(3,3):: rot_matrix !a rotation matrix
 REAL(dp),DIMENSION(3,3,3):: A_tensor  !tensor A(IM)
 REAL(dp),DIMENSION(9,9):: C_tensor    !stiffness tensor (not used here but necessary for some calls)
 REAL(dp),DIMENSION(:),ALLOCATABLE:: Stemp

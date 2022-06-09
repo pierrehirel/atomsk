@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 May 2019                                      *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -735,11 +735,11 @@ DO WHILE(i<NP .OR. NS2<NS)
         AUX(:,:) = 0.d0
         ALLOCATE( AUXNAMES(icol) )
         !Set names of auxiliary properties
-        IF(occ>0 .AND. occ<=SIZE(AUX,1)) AUXNAMES(occ) = 'occupancy'
-        IF(radius>0 .AND. radius<=SIZE(AUX,1)) AUXNAMES(radius) = 'bsradius'
-        IF(fixx>0 .AND. fixx<=SIZE(AUX,1)) AUXNAMES(fixx) = 'fixx'
-        IF(fixy>0 .AND. fixy<=SIZE(AUX,1)) AUXNAMES(fixy) = 'fixy'
-        IF(fixz>0 .AND. fixz<=SIZE(AUX,1)) AUXNAMES(fixz) = 'fixz'
+        IF(occ>0 .AND. occ<=SIZE(AUXNAMES)) AUXNAMES(occ) = 'occupancy'
+        IF(radius>0 .AND. radius<=SIZE(AUXNAMES)) AUXNAMES(radius) = 'bsradius'
+        IF(fixx>0 .AND. fixx<=SIZE(AUXNAMES)) AUXNAMES(fixx) = 'fixx'
+        IF(fixy>0 .AND. fixy<=SIZE(AUXNAMES)) AUXNAMES(fixy) = 'fixy'
+        IF(fixz>0 .AND. fixz<=SIZE(AUXNAMES)) AUXNAMES(fixz) = 'fixz'
         !
         IF( chargesC .OR. chargesS ) THEN
           !Charges of cores or shells were defined before (in section "species")

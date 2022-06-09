@@ -552,12 +552,18 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
         Qshell = 0.d0
       ENDIF
       !Determine type of this shell
-      DO iloop=SIZE(typemass,1),1,-1
-        IF( NINT(typemass(iloop,1)) == NINT(S(i,4)) ) THEN
-          Nspecies = iloop
-          EXIT
-        ENDIF
-      ENDDO
+      IF( Stypecol>0 ) THEN
+        !Shell types are in auxiliary properties, use it
+        Nspecies = AUX(i,Stypecol)
+      ELSE
+        !Shell types are undefined
+        !=> set them by order of appearence in array "aentriesS"
+        DO iloop=1,SIZE(aentriesS,1)
+          IF( NINT(S(i,4))==NINT(aentriesS(iloop,1)) ) THEN
+            Nspecies = Ntypes - Nshelltypes + iloop
+          ENDIF
+        ENDDO
+      ENDIF
       WRITE(ofu,212) atomID, moleculeID, Nspecies, Qshell, S(i,1), S(i,2), S(i,3)
     ENDIF
   ENDDO

@@ -52,7 +52,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: pdffit !if .TRUE. format is pdffit, if .FALSE. format is DISCUS
 INTEGER:: i, m, n, o
 INTEGER:: NP   ! number of atoms
-INTEGER:: Ncomments !line where atom positions begin
 INTEGER:: Nsym        !number of symmetry operations
 INTEGER:: sgroupnum  !space group number
 INTEGER:: Nx, Ny, Nz !number of unit cells along X, Y, Z
@@ -68,6 +67,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !Initialize variables
 spcgr = ""
 pdffit = .FALSE.
+i=0
 NP=0
 Nx = 1
 Ny = 1

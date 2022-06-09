@@ -11,7 +11,7 @@ MODULE out_abinit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 June 2022                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,17 +43,12 @@ CONTAINS
 SUBROUTINE WRITE_ABINIT(H,P,comment,AUXNAMES,AUX,outputfile)
 !
 CHARACTER(LEN=*),INTENT(IN):: outputfile
-CHARACTER(LEN=2):: species
-CHARACTER(LEN=12):: test
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
 LOGICAL:: isreduced
 INTEGER:: i, j
 INTEGER:: typecol  !column of AUX containing the atom types
-REAL(dp):: a, b, c, alpha, beta, gamma
-REAL(dp):: smass, snumber
-REAL(dp):: P1, P2, P3
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: G

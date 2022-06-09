@@ -18,7 +18,7 @@ MODULE in_siesta_fdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Jan. 2020                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,29 +49,27 @@ CONTAINS
 SUBROUTINE READ_FDF(inputfile,H,P,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=2):: species
 CHARACTER(LEN=16):: unit
 CHARACTER(LEN=32):: atPosType !type of atomic positions: Cartesian, ScaledCartesian, etc.
 CHARACTER(LEN=4096):: line, msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: comment
-INTEGER:: i, j, k, Nline
+INTEGER:: i, j, Nline
 INTEGER:: NP, Ntypes    !number of particles, of atom types
 INTEGER:: strlength
 INTEGER,DIMENSION(3,3):: M   !Matrix defining a supercell in terms of unit cell
 INTEGER,DIMENSION(20,2):: atypes  !atom types and chemical species
 REAL(dp):: alat   !lattice constant
 REAL(dp):: a, b, c, alpha, beta, gamma   !supercell (conventional notation)
-REAL(dp),DIMENSION(3):: vector   !a temporary vector
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX !auxiliary properties
 !
 !
 !Initialize variables
 atPosType=""
 M(:,:) = 0
+NP = 0
 alat = 1.d0
 H(:,:) = 0.d0
 DO i=1,3

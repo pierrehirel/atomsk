@@ -15,7 +15,7 @@ MODULE dislocation_loop
 !*     Service de Recherches de Métallurgie Physique                              *
 !*     SRMP CEA-Saclay, 91191 Gif-sur-Yvette, France                              *
 !*     emmanuel.clouet@cea.fr                                                     *
-!* Last modification: P. Hirel - 05 Feb. 2018                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* LOOP_SEGMENTS         builds a list of points that form a circular loop        *
@@ -146,7 +146,6 @@ REAL(dp),DIMENSION(3),INTENT(IN):: R !atom coordinates
 REAL(dp),INTENT(IN):: nu ! Poisson coefficient
 REAL(dp),DIMENSION(:,:),INTENT(IN):: xLoop !coordinates of points forming the loop
 !
-CHARACTER(LEN=128):: msg
 INTEGER :: i
 REAL(dp):: omega
 REAL(dp),DIMENSION(1:3):: xA, xB, xC

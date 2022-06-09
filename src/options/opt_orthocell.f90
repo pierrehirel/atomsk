@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2022                                     *
+!* Last modification: P. Hirel - 06 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,7 +49,7 @@ LOGICAL,DIMENSION(3):: vfound  !did we find a suitable vector along X, Y, Z?
 LOGICAL,DIMENSION(3):: aligned, reversed !is box vector aligned along X,Y,Z? Did we just reverse it?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT, newSELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, o
-INTEGER:: mminmax, nminmax, ominmax, lminmax
+INTEGER:: mminmax, nminmax, ominmax
 INTEGER:: mfinal, nfinal, ofinal
 INTEGER:: NP
 INTEGER,DIMENSION(3,3):: mno  !integers used for linear combination

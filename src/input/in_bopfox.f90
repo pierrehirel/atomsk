@@ -45,7 +45,7 @@ SUBROUTINE READ_BOPFOX(inputfile,H,P,comment,AUXNAMES,AUX)
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=1):: flagx, flagy, flagz  !flags for fixed atoms (T or F)
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=4):: coord, ptype
+CHARACTER(LEN=4):: coord
 CHARACTER(LEN=128):: test, test2
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -63,6 +63,12 @@ REAL(dp), DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !Initialize variables
+fixx=0
+fixy=0
+fixz=0
+magx=0
+magy=0
+magz=0
 i = 0
 NP = 0
 NPd = 0

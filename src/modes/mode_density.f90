@@ -341,8 +341,9 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
   !
   !
   progress=0  !to count progress
+  tempreal=0.d0
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,k,m,n,x,y) &
-  !$OMP& REDUCTION(+:o,tempreal,DenGrid2)
+  !$OMP& REDUCTION(+:tempreal,DenGrid2)
   DO i=1,SIZE(P,1)
     progress = progress+1
     IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN

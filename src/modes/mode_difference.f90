@@ -18,7 +18,7 @@ MODULE mode_difference
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 June 2022                                     *
+!* Last modification: P. Hirel - 06 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -63,7 +63,7 @@ CHARACTER(LEN=128):: outputfile, msg
 CHARACTER(LEN=128):: diffcfgfile
 CHARACTER(LEN=128):: histdatfile, stattxtfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, AUXNAMES1, AUXNAMES2 !names of auxiliary properties
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, comment1, comment2
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, comment2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, l
@@ -73,10 +73,10 @@ INTEGER,DIMENSION(100,2):: tabAUX !correspondance table for aux.prop. (assuming 
 REAL(dp):: histstep  !step for histogram in Angstroms
 REAL(dp):: histdown, histup !boundaries for histogram
 REAL(dp):: stat_min, stat_M, stat_A, stat_D, stat_S !statistics on displacements
-REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
-REAL(dp),DIMENSION(3,3):: H, H1, H2   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: Huc        !Box vectors of unit cell (unknown, set to 0 here)
+REAL(dp),DIMENSION(3,3):: H1, H2     !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT     !crystallographic orientation of the system
-REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
+REAL(dp),DIMENSION(9,9):: C_tensor   !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: spi_table !table containing atomic numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, AUX1, AUX2  !auxiliary properties of system 1 and 2
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes

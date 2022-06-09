@@ -59,7 +59,6 @@ LOGICAL:: coreshell  !does the data contain cores and shells? (in the sense of i
 LOGICAL:: isshell    !is the current particle a shell? (in the sense of ionic core-shell model)
 LOGICAL:: flags      !are there replica flags at the end of each line?
 LOGICAL:: molecule   !is there a column "moleculeID" before the column "atom-type"?
-LOGICAL:: velocities !are velocities in the file?
 INTEGER:: flagx, flagy, flagz !replica flags at end of lines (optional)
 INTEGER:: i, id, j, k, Ncol
 INTEGER:: Naux     !number of auxiliary properties

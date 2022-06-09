@@ -21,7 +21,7 @@ MODULE edm
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 June 2020                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -73,7 +73,6 @@ INTEGER:: i, j, k
 INTEGER:: qcol, qscol  !column containing charges in AUX array
 INTEGER:: N1, N2   !number of particles #1 and #2 in the system
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours (not used here)
-INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !neighbor list
 REAL(dp):: mi, M, A, D, T  !for statistics
 REAL(dp):: mass1, mass2 !mass of atoms of type #1 and #2
 REAL(dp):: Q1, Q2 !charge of current species#1, of Pspecies

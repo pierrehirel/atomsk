@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -94,7 +94,6 @@ REAL(dp):: txmin, txmax, tymin, tymax, tzmax  !min/max X,Y,Z coordinates of a tr
 REAL(dp),DIMENSION(3):: e1, e2, td, th, ts, tq !vectors used to detect ray-triangle intersections
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
-REAL(dp),DIMENSION(3):: T1, T2, T3 !positions of vertices of a triangle
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !supercell vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
@@ -113,6 +112,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN    ! positions of 1st nearest neighbo
 !
 !
 !Initialize variables
+line=0
 add = .FALSE.
 rm = .FALSE.
 intersect = .FALSE.

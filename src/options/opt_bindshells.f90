@@ -10,7 +10,7 @@ MODULE bindshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 Sept. 2019                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,6 @@ SUBROUTINE BSHELLS_XYZ(H,P,S,AUXNAMES,AUX,SELECT)
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of auxiliary prop.
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary prop.
 INTEGER:: i, j, k, l
 INTEGER:: Nbound !number of shells that were re-bound
 INTEGER:: NP     !number of cores detected
@@ -51,7 +50,6 @@ INTEGER:: mass, q, qs !columns of AUX where mass, charge of cores and shells
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of nearest shell
 LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
-LOGICAL,DIMENSION(:),ALLOCATABLE:: newSELECT
 REAL(dp):: distance  !distance between 2 particles
 REAL(dp),PARAMETER:: maxCSdistance=1.5d0  !maximum allowed core-shell distance
 REAL(dp),DIMENSION(4):: Stemp !temporary position of a shell
@@ -64,6 +62,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN  !position of nearest shell
 !
 !Initialize variables
 Nbound=0
+NP=0
 mass=0
 q=0
 qs=0

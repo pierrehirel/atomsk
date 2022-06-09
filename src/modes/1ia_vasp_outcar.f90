@@ -12,7 +12,7 @@ MODULE oia_vaspout
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 June 2021                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,6 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their p
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: fileexists
 LOGICAL:: isreduced
-LOGICAL:: cell_defined
 LOGICAL:: readforces
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: NtypesPOTCAR, NtypesNIONS  !number of different atom types

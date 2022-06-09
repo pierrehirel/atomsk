@@ -98,7 +98,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
-neighsearch = "verlet"  !TEMPORARY: force use of Verlet algorithm
+!neighsearch = "verlet"  !TEMPORARY: force use of Verlet algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -139,18 +139,15 @@ REAL(dp),INTENT(IN):: R  !radius in which Neighbors are searched
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 !
-INTEGER:: i, j, k, l, m, n, u
-INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
+INTEGER:: i, j, k, m, n
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
 REAL(dp):: distance   !distance between two atoms
 REAL(dp):: dx         !difference of coordinates along a direction
 REAL(dp):: rho        !average density of the system
-REAL(dp):: tempreal
 REAL(dp):: Vsystem   !volume of the box defined by H(:,:)
 REAL(dp),DIMENSION(3):: shift    !shift due to periodic boundary conditions
 INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
-REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
 REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac  !atom positions in reduced coordinates
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
@@ -325,16 +322,12 @@ REAL(dp),INTENT(IN):: R  !radius in which Neighbors are searched
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 !
-LOGICAL,DIMENSION(6):: IsCloseToBorder !is the atom close to the borders of the box?
-INTEGER:: a1, a2, a3
 INTEGER:: Ix, Iy, Iz
-INTEGER:: i, j, k, l, m, n, u, t
+INTEGER:: i, j, k, l, m, n
 INTEGER:: iCell  !index of a cell
-INTEGER:: kmin, kmax, lmin, lmax, mmin, mmax !Boundaries for neighbour search
 INTEGER:: Maxcells !max number of cells along one direction
 INTEGER:: Ncells   !total number of cells
 INTEGER:: OMP_GET_NUM_THREADS  !number of OpenMP threads
-INTEGER,DIMENSION(3):: shift   !replica number along X, Y, Z
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(3):: NcellsX  !number of cells along X, Y, Z (cell-list algorithm)
 INTEGER,DIMENSION(SIZE(A,1)):: LinkedList
@@ -346,15 +339,11 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_AtomID !index of atoms for each cell
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_ijk    !index of each cell
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: Cell_Neigh  !neighbors of each cell
-INTEGER,DIMENSION(:,:),ALLOCATABLE:: NLtemp  !temporary neighbor list when resizing
 REAL(dp):: distance, dx
 REAL(dp):: tempreal
 REAL(dp):: Vsystem   !volume of the box defined by H(:,:)
-REAL(dp),DIMENSION(3):: d_border !atoms close to a border will be searched for periodic replica
 REAL(dp),DIMENSION(3):: Cell_L   !length of cell along X, Y, Z (cell-list algorithm)
-REAL(dp),DIMENSION(3):: shiftvec !shift vector
-REAL(dp),DIMENSION(27):: distance_pbc
-REAL(dp),DIMENSION(1,3):: Vfrac  !position of an atom in reduced coordinates
+REAL(dp),DIMENSION(3):: shift   !replica number along X, Y, Z
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Cell_P  !positions of cells
 REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac  !atom positions in reduced coordinates
 !
@@ -407,7 +396,7 @@ ENDIF
 !
 !Define max. number of cells along each direction
 !Use max. 8 cells along any given direction
-Maxcells = MIN( 8 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
+Maxcells = MIN( 16 , NINT( SIZE(A,1)**(1.d0/3.d0) ) )
 !Make sure that Maxcells is even
 IF( MOD(Maxcells,2).NE.0 .AND. Maxcells>1 ) Maxcells = Maxcells-1
 WRITE(msg,*) "Max. allowed number of cells along any direction: ", Maxcells
@@ -417,8 +406,8 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 DO i=1,3
   !Compute max. distance between two ends of the box
   distance = SUM(DABS(H(:,i)))  !MAXVAL(DABS(H(:,i)))
-  !Compute how many cells of length R/2 we can fit in that distance
-  tempreal = 0.9d0*distance/(R/4.d0)
+  !Compute how many cells of length R we can fit in that distance
+  tempreal = 0.9d0*distance/R
   IF( distance < R .OR. NINT(tempreal) < 2 ) THEN
     !Cell is roughly the same size as cutoff radius
     !Ensure that there is always at least one cells along any given direction
@@ -727,7 +716,6 @@ END SUBROUTINE CELL_LIST
 SUBROUTINE NEIGHBOR_POS(H,A,V,NeighList,Use_NeighList,radius,PosList)
 !
 IMPLICIT NONE
-CHARACTER(LEN=128):: msg
 LOGICAL:: selfneighbor  !is central atom a neighbor of itself? (because of PBC)
 LOGICAL,INTENT(IN):: Use_NeighList !use provided neighbor list?
 INTEGER:: i, m, n, o

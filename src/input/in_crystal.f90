@@ -12,7 +12,7 @@ MODULE in_crystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Jan. 2020                                     *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,7 +45,6 @@ CONTAINS
 SUBROUTINE READ_CRYSTAL(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: line
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
@@ -67,12 +66,12 @@ REAL(dp),DIMENSION(3,3):: ORIENT    !crystal orientation (defined with SLABCUT)
 REAL(dp),DIMENSION(3,3):: uv        !unit vectors corresponding to new orientation ORIENT(:,:)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P    !Atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S    !Shell positions (dummy array, not used here)
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX  !auxiliary properties
 !
 !
 !Initialize variables
 dimens = 0
+i=0
 NP = 0
 sgnumber = 0
  a = 1.d0

@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2022                                      *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -70,7 +70,6 @@ CHARACTER(LEN=4096):: line
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=4096):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
 CHARACTER(LEN=4096):: distfile, idsizefile !name of file containing grain size distribution, grain sizes
-CHARACTER(LEN=32),DIMENSION(3):: oldvec, newvec !new vectors after orient
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES    !names of auxiliary properties of atoms
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary properties of atoms (temporary)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -144,6 +143,7 @@ outparamfile = TRIM(ADJUSTL(temp))//"_param.txt"
 outparam = .FALSE.
 protectuc = .FALSE.
 sameplane = .FALSE.
+m=0
 Nnodes = 0
 twodim = 0  !assume system will be 3-D
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)

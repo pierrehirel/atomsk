@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 April 2022                                    *
+!* Last modification: P. Hirel - 09 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -137,15 +137,15 @@ CHARACTER(LEN=1):: ang  !is the angle in degrees or radians (default: radians)
 CHARACTER(LEN=7):: operators="+-*/:^%"
 CHARACTER(LEN=256):: prefix
 CHARACTER(LEN=4096):: string1, string2
-CHARACTER(LEN=4096):: temp, temp1, temp2, temp3
-INTEGER:: i, j, k, m, n
+CHARACTER(LEN=4096):: temp, temp1, temp2
+INTEGER:: i, j, m
 INTEGER:: ms  !position of minus sign
 INTEGER,INTENT(INOUT):: recuri  !depth of recursion
 INTEGER:: p1, p2  !position of opening and closing parenthesis
 INTEGER:: status
 REAL(dp),PARAMETER:: low_limit=1.d-15   !in trig.functions, values which are smaller than that
                                         !in absolute will be rounded off to zero
-REAL(dp):: x, y, z  !to store numbers
+REAL(dp):: x, y  !to store numbers
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
 REAL(dp),INTENT(OUT):: value
 !
