@@ -756,7 +756,6 @@ DO
             DO WHILE( vector(j)>180.d0 )
               vector(j) = vector(j)-360.d0
             ENDDO
-            PRINT*, Nnodes, vector(j)
             !Convert into radians
             vector(j) = DEG2RAD(vector(j))
           ENDDO
@@ -839,9 +838,6 @@ DO
           rotmat(3,3) = 1.d0
           !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
           vorient(i,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
-          PRINT*, i, vorient(i,1,:)
-          PRINT*, i, vorient(i,2,:)
-          PRINT*, i, vorient(i,3,:)
         ENDDO
       ENDIF
       !
