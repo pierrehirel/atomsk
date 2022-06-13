@@ -739,67 +739,29 @@ DO
           !Read the first angle from or1
           j=SCAN(or1,"°")
           IF(j>0) or1(j:j)=" "
-          READ(or1,*,END=830,ERR=830) P1
-          !Make sure angle lies between -180° and 180°
-          DO WHILE( P1<=-180.d0 )
-            P1 = P1+360.d0
-          ENDDO
-          DO WHILE( P1>180.d0 )
-            P1 = P1-360.d0
-          ENDDO
-          !Convert into radians
-          P1 = DEG2RAD(P1)
+          READ(or1,*,END=830,ERR=830) vector(1)
           !Read the second angle from or2
           j=SCAN(or2,"°")
           IF(j>0) or2(j:j)=" "
-          READ(or2,*,END=830,ERR=830) P2
-          !Make sure angle lies between -180° and 180°
-          DO WHILE( P2<=-180.d0 )
-            P2 = P2+360.d0
-          ENDDO
-          DO WHILE( P2>180.d0 )
-            P2 = P2-360.d0
-          ENDDO
-          !Convert into radians
-          P2 = DEG2RAD(P2)
+          READ(or2,*,END=830,ERR=830) vector(2)
           !Read the third angle from or3
           j=SCAN(or3,"°")
           IF(j>0) or3(j:j)=" "
-          READ(or3,*,END=830,ERR=830) P3
-          !Make sure angle lies between -180° and 180°
-          DO WHILE( P3<=-180.d0 )
-            P3 = P3+360.d0
+          READ(or3,*,END=830,ERR=830) vector(3)
+          !Make sure angles are between -180° and +180°, convert into radians
+          DO j=1,3
+            DO WHILE( vector(j)<=-180.d0 )
+              vector(j) = vector(j)+360.d0
+            ENDDO
+            DO WHILE( vector(j)>180.d0 )
+              vector(j) = vector(j)-360.d0
+            ENDDO
+            PRINT*, Nnodes, vector(j)
+            !Convert into radians
+            vector(j) = DEG2RAD(vector(j))
           ENDDO
-          DO WHILE( P3>180.d0 )
-            P3 = P3-360.d0
-          ENDDO
-          !Convert into radians
-          P3 = DEG2RAD(P3)
-          !Construct the rotation matrix around X
-          rotmat(:,:) = 0.d0
-          rotmat(1,1) = 1.d0
-          rotmat(2,2) = DCOS(P1)
-          rotmat(2,3) = -1.d0*DSIN(P1)
-          rotmat(3,2) = DSIN(P1)
-          rotmat(3,3) = DCOS(P1)
-          vorient(Nnodes,:,:) = rotmat(:,:)
-          !Construct the rotation matrix around Y
-          rotmat(:,:) = 0.d0
-          rotmat(2,2) = 1.d0
-          rotmat(3,3) = DCOS(P2)
-          rotmat(3,1) = -1.d0*DSIN(P2)
-          rotmat(1,3) = DSIN(P2)
-          rotmat(1,1) = DCOS(P2)
-          vorient(Nnodes,:,:) = MATMUL( rotmat(:,:) , vorient(Nnodes,:,:) )
-          !Construct the rotation matrix around Z
-          rotmat(:,:) = 0.d0
-          rotmat(3,3) = 1.d0
-          rotmat(1,1) = DCOS(P3)
-          rotmat(1,2) = -1.d0*DSIN(P3)
-          rotmat(2,1) = DSIN(P3)
-          rotmat(2,2) = DCOS(P3)
-          vorient(Nnodes,:,:) = MATMUL( rotmat(:,:) , vorient(Nnodes,:,:) )
-          !Final rotation matrix = Rz.(Ry.Rx)
+          !Construct rotation matrix
+          CALL EULER2MAT_ZYX(vector(1),vector(2),vector(3),vorient(Nnodes,:,:))
         ENDIF
       ENDIF
       !
@@ -877,6 +839,9 @@ DO
           rotmat(3,3) = 1.d0
           !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
           vorient(i,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
+          PRINT*, i, vorient(i,1,:)
+          PRINT*, i, vorient(i,2,:)
+          PRINT*, i, vorient(i,3,:)
         ENDDO
       ENDIF
       !
@@ -1005,12 +970,7 @@ IF( outparam .AND. ofu.NE.6 ) THEN
   WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
   DO i=1,SIZE(vorient,1)
     !Compute corresponding rotation vectors and write them into parameter file
-    P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,1,1)**2 + vorient(i,2,1)**2) )
-    P1 = DATAN2( vorient(i,3,2)/DCOS(P2) , vorient(i,3,3)/DCOS(P2) )
-    P3 = DATAN2( vorient(i,2,1)/DCOS(P2) , vorient(i,1,1)/DCOS(P2) )
-!     P1 = DATAN2( vorient(i,3,2) , vorient(i,3,3) )
-!     P2 = DATAN2( -1.d0*vorient(i,3,1) , DSQRT(vorient(i,3,2)**2 + vorient(i,3,3)**2) )
-!     P3 = DATAN2( vorient(i,2,1) , vorient(i,1,1) )
+    CALL MAT2EULER_ZYX(vorient(i,:,:),P1,P2,P3)
     WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
   ENDDO
   CLOSE(41)

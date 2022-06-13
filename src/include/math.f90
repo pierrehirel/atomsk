@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 13 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,6 +45,8 @@ MODULE math
 !* MATCONV             converts matrix into conventional vectors                  *
 !* VOLUME_PARA         computes the volume of a parallelepiped                    *
 !* DERIVATIVE          calculate the derivative of a function                     *
+!* EULER2MAT           converts Euler angles into a rotation matrix               *
+!* MAT2EULER           converts rotation matrix into Euler angles                 *
 !**********************************************************************************
 !
 !
@@ -558,6 +560,63 @@ DO i=2,funcsize-1
 ENDDO
 !
 END SUBROUTINE DERIVATIVE
+!
+!
+!********************************************************
+!  EULER2MAT_ZYX
+!  This subroutine converts Euler angles (a,b,c) (radians)
+!  into a 3x3 rotation matrix, using ZYX convention
+!  i.e. first rotation around X Cartesian axis,
+!  then Y, and finally Z.
+!********************************************************
+!
+SUBROUTINE EULER2MAT_ZYX(a,b,c,rotmat)
+!
+IMPLICIT NONE
+REAL(dp),INTENT(IN):: a, b, c
+REAL(dp):: c1, c2, c3, s1, s2, s3
+REAL(dp),DIMENSION(3,3),INTENT(OUT):: rotmat
+!
+c1 = DCOS(c)
+c2 = DCOS(b)
+c3 = DCOS(a)
+s1 = DSIN(c)
+s2 = DSIN(b)
+s3 = DSIN(a)
+!
+rotmat(:,:) = 0.d0
+rotmat(1,1) = c1*c2
+rotmat(1,2) = c1*s2*s3 - c3*s1
+rotmat(1,3) = s1*s3 + c1*c3*s2
+rotmat(2,1) = c2*s1
+rotmat(2,2) = c1*c3 + s1*s2*s3
+rotmat(2,3) = c3*s1*s2 - c1*s3
+rotmat(3,1) = -1.d0*s2
+rotmat(3,2) = c2*s3
+rotmat(3,3) = c2*c3
+!
+END SUBROUTINE EULER2MAT_ZYX
+!
+!
+!********************************************************
+!  MAT2EULER_ZYX
+!  This subroutine converts a 3x3 rotation matrix into
+!  Euler angles (a,b,c) (in radians), using ZYX convention
+!  i.e. first rotation around X Cartesian axis,
+!  then Y, and finally Z.
+!********************************************************
+!
+SUBROUTINE MAT2EULER_ZYX(rotmat,a,b,c)
+!
+IMPLICIT NONE
+REAL(dp),INTENT(OUT):: a, b, c
+REAL(dp),DIMENSION(3,3),INTENT(IN):: rotmat
+!
+c = DATAN2( rotmat(2,1) , rotmat(1,1) )
+b = DATAN2( -1.d0*rotmat(3,1) , DSQRT(1.d0 - rotmat(3,1)**2) )
+a = DATAN2( rotmat(3,2) , rotmat(3,3) )
+!
+END SUBROUTINE MAT2EULER_ZYX
 !
 !
 !
