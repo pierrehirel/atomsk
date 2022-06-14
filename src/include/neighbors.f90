@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 April 2022                                    *
+!* Last modification: P. Hirel - 13 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -98,7 +98,7 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Compute minimum cell length
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
-!neighsearch = "verlet"  !TEMPORARY: force use of Verlet algorithm
+neighsearch = "verlet"  !TEMPORARY: force use of Verlet algorithm
 IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
@@ -146,9 +146,10 @@ REAL(dp):: distance   !distance between two atoms
 REAL(dp):: dx         !difference of coordinates along a direction
 REAL(dp):: rho        !average density of the system
 REAL(dp):: Vsystem   !volume of the box defined by H(:,:)
-REAL(dp),DIMENSION(3):: shift    !shift due to periodic boundary conditions
+REAL(dp),DIMENSION(3):: shift      !shift due to periodic boundary conditions
+REAL(dp),DIMENSION(3):: V, Vi, Vj  !fractional coordinates
+REAL(dp),DIMENSION(3,3):: G      
 INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
-REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Afrac  !atom positions in reduced coordinates
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
@@ -190,23 +191,32 @@ IF( i>0 ) THEN
 ENDIF
 NeighList(:,:) = 0
 !
-!
-!Save atom positions in fractional coordinates
-Afrac(:,:) = A(:,:)
-CALL CART2FRAC(Afrac,H)
+!Invert cell vector matrix
+CALL INVMAT(H,G)
 !
 !Loop on all atoms to find their neighbors
 !$OMP PARALLEL DO DEFAULT(SHARED) &
-!$OMP& PRIVATE(i,j,k,dx,shift,distance)
+!$OMP& PRIVATE(i,j,k,V,Vi,Vj,dx,shift,distance)
 DO i=1,SIZE(A,1)-1
+  !Convert position of atom #i into fractional coordinates
+  V(:) = A(i,1:3)
+  DO k=1,3
+    Vi(k) = V(1)*G(1,k) + V(2)*G(2,k) + V(3)*G(3,k)
+  ENDDO
   !
   DO j=i+1,SIZE(A,1)
+    !Convert position of atom #i into fractional coordinates
+    V(:) = A(j,1:3)
+    DO k=1,3
+      Vj(k) = V(1)*G(1,k) + V(2)*G(2,k) + V(3)*G(3,k)
+    ENDDO
+    !
     shift(:) = 0.d0
     !
     !Compute distance (reduced coordinates) between atoms #i and #j
     !Account for periodic boundary conditions
     DO k=1,3  !loop on all 3 directions
-      dx = DABS( Afrac(j,k) - Afrac(i,k) )
+      dx = DABS( Vj(k) - Vi(k) )
       IF( DABS(1.d0-dx) < dx ) THEN
         IF( A(j,k)>A(i,k) ) THEN
           shift(k) = -1.d0

@@ -535,28 +535,26 @@ END SUBROUTINE CHECK_ORTHOVEC
 SUBROUTINE CART2FRAC(A,H)
 !
 IMPLICIT NONE
-INTEGER:: i
-REAL(dp):: P1, P2, P3
+INTEGER:: i, j
+REAL(dp),DIMENSION(3):: V
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H
 REAL(dp),DIMENSION(3,3):: G
 REAL(dp),DIMENSION(:,:):: A
 !
-IF( SIZE(A(:,1)).NE.0 .AND. SIZE(A(1,:))>=3 ) THEN
-    CALL INVMAT(H,G)
-    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,P1,P2,P3)
-    DO i=1,SIZE(A,1)
-      P1 = A(i,1)
-      P2 = A(i,2)
-      P3 = A(i,3)
-      A(i,1) = P1*G(1,1) + P2*G(2,1) + P3*G(3,1)
-      A(i,2) = P1*G(1,2) + P2*G(2,2) + P3*G(3,2)
-      A(i,3) = P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
-    END DO
-    !$OMP END PARALLEL DO
+IF( SIZE(A,1)>0 .AND. SIZE(A,2)>=3 ) THEN
+  CALL INVMAT(H,G)
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,V)
+  DO i=1,SIZE(A,1)
+    V(:) = A(i,1:3)
+    DO j=1,3
+      A(i,j) = V(1)*G(1,j) + V(2)*G(2,j) + V(3)*G(3,j)
+    ENDDO
+  END DO
+  !$OMP END PARALLEL DO
 ELSE
-    WRITE(*,*) 'X!X ERROR: could not transform to fractional,'
-    WRITE(*,*) '          inconsistent array size.'
-    nerr = nerr+1
+  WRITE(*,*) 'X!X ERROR: could not transform to fractional,'
+  WRITE(*,*) '          inconsistent array size.'
+  nerr = nerr+1
 ENDIF
 !
 END SUBROUTINE CART2FRAC
@@ -571,26 +569,24 @@ END SUBROUTINE CART2FRAC
 SUBROUTINE FRAC2CART(A,H)
 !
 IMPLICIT NONE
-INTEGER:: i
-REAL(dp):: P1, P2, P3
+INTEGER:: i, j
+REAL(dp),DIMENSION(3):: V
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H
 REAL(dp),DIMENSION(:,:):: A
 !
-IF( SIZE(A(:,1)).NE.0 .AND. SIZE(A(1,:))>=3 ) THEN
-    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,P1,P2,P3)
-    DO i=1,SIZE(A,1)
-      P1 = A(i,1)
-      P2 = A(i,2)
-      P3 = A(i,3)
-      A(i,1) = P1*H(1,1) + P2*H(2,1) + P3*H(3,1)
-      A(i,2) = P1*H(1,2) + P2*H(2,2) + P3*H(3,2)
-      A(i,3) = P1*H(1,3) + P2*H(2,3) + P3*H(3,3)
+IF( SIZE(A,1)>0 .AND. SIZE(A,2)>=3 ) THEN
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,V)
+  DO i=1,SIZE(A,1)
+    V(:) = A(i,1:3)
+    DO j=1,3
+      A(i,j) = V(1)*H(1,j) + V(2)*H(2,j) + V(3)*H(3,j)
     ENDDO
-    !$OMP END PARALLEL DO
+  ENDDO
+  !$OMP END PARALLEL DO
 ELSE
-    WRITE(*,*) 'X!X ERROR: could not transform to cartesian,'
-    WRITE(*,*) '          inconsistent array size.'
-    nerr = nerr+1
+  WRITE(*,*) 'X!X ERROR: could not transform to cartesian,'
+  WRITE(*,*) '          inconsistent array size.'
+  nerr = nerr+1
 ENDIF
 !
 END SUBROUTINE FRAC2CART

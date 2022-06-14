@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 14 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -428,7 +428,6 @@ rdf_total(:) = 0.d0
 n = 0
 DO i=1,SIZE(rdf_partial,1)
   m = 1
-  n = 0
   l = 0
   !Loop over the two atom types of the pair
   DO k=1,2
