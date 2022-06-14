@@ -74,6 +74,7 @@ INTEGER:: Nfiles     !number of files analyzed
 INTEGER:: Nspecies   !number of different atom species in the system
 INTEGER:: progress   !To show calculation progress
 INTEGER:: rdf_Nsteps !number of "skins" for RDF
+INTEGER(KIND=SELECTED_INT_KIND(15)):: nt, ntot !to count atoms of each type
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !list of neighbours
 REAL(dp):: distance     !distance between 2 atoms
 REAL(dp):: rdf_norm     !normalization factor
@@ -425,34 +426,36 @@ rdf_partial(:,:) = rdf_partial(:,:) / DBLE(Nfiles)
 != sum of all partial RDFs weighted with number of atoms
 ALLOCATE( rdf_total(SIZE(rdf_partial,2)) )
 rdf_total(:) = 0.d0
-n = 0
+ntot = 0
 DO i=1,SIZE(rdf_partial,1)
-  m = 1
+  nt = 1
   l = 0
   !Loop over the two atom types of the pair
   DO k=1,2
     !Search for atoms of type pairs(i,k) in the table aentries
     DO j=1,SIZE(aentries,1)
       IF( DABS(aentries(j,1)-pairs(i,k)) < 1.d-3 ) THEN
-        !Matching type: save type 1 for later
-        !get the number of atoms of this type
-        m = m * NINT(aentries(j,2))
+        !Found a match
         IF(k==1) THEN
+          !First atom of the pair: save number of atoms of type k=1
+          nt = NINT(aentries(j,2))
           l=NINT(aentries(j,1))
         ELSE !i.e. if k==2
+          !Second atom of the pair
+          nt = nt * NINT(aentries(j,2))
           !If species are different, account for factor 2
-          IF( NINT(aentries(j,1)).NE.l ) m = 2*m
+          IF( NINT(aentries(j,1)).NE.l ) nt = 2*nt
         ENDIF
         GOTO 310
       ENDIF
     ENDDO
     310 CONTINUE
   ENDDO
-  rdf_total(:) = rdf_total(:) + DBLE(m)*rdf_partial(i,:)
-  n = n+m
+  rdf_total(:) = rdf_total(:) + DBLE(nt)*rdf_partial(i,:)
+  ntot = ntot + nt
 ENDDO
 !Normalize total RDF
-rdf_total(:) = rdf_total(:) / DBLE(n)
+rdf_total(:) = rdf_total(:) / DBLE(ntot)
 !
 !
 !
