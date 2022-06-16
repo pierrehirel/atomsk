@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 June 2022                                     *
+!* Last modification: P. Hirel - 15 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -139,6 +139,7 @@ REAL(dp),INTENT(IN):: R  !radius in which Neighbors are searched
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 !
+LOGICAL:: frac 
 INTEGER:: i, j, k, m, n
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
@@ -150,6 +151,7 @@ REAL(dp),DIMENSION(3):: shift      !shift due to periodic boundary conditions
 REAL(dp),DIMENSION(3):: V, Vi, Vj  !fractional coordinates
 REAL(dp),DIMENSION(3,3):: G      
 INTEGER,DIMENSION(:),ALLOCATABLE:: NNeigh      !number of neighbors of atom #i
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Afrac    !positions in reduced coordinates
 !
 INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: NeighList  !the neighbor list
 !
@@ -160,6 +162,7 @@ WRITE(msg,*) 'Radius for neighbor search (angstroms) = ', R
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !Initialize variables
+frac=.FALSE.
 IF(ALLOCATED(tempList)) DEALLOCATE(tempList)
 IF(ALLOCATED(NNeigh)) DEALLOCATE(NNeigh)
 IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
@@ -191,25 +194,48 @@ IF( i>0 ) THEN
 ENDIF
 NeighList(:,:) = 0
 !
-!Invert cell vector matrix
-CALL INVMAT(H,G)
+!
+!NOTE: storing reduced coordinates in Afrac(:,:) is faster, but uses more memory.
+!If allocation fails (not enough memory/too many atoms), then reduced coordinates
+!will be computed on-the-fly in the loop below, but this is slower
+ALLOCATE( Afrac(SIZE(A,1),SIZE(A,2)) , STAT=i )
+IF( i==0 ) THEN
+  ! Allocation succeeded
+  frac = .TRUE.
+  !Convert atom positions into reduced coordinates
+  Afrac(:,:) = A(:,:)
+  CALL CART2FRAC(Afrac,H)
+ELSE
+  ! Allocation failed (not enough memory)
+  frac = .FALSE.
+  !We will need the inverted cell vector matrix
+  CALL INVMAT(H,G)
+ENDIF
 !
 !Loop on all atoms to find their neighbors
 !$OMP PARALLEL DO DEFAULT(SHARED) &
 !$OMP& PRIVATE(i,j,k,V,Vi,Vj,dx,shift,distance)
 DO i=1,SIZE(A,1)-1
   !Convert position of atom #i into fractional coordinates
-  V(:) = A(i,1:3)
-  DO k=1,3
-    Vi(k) = V(1)*G(1,k) + V(2)*G(2,k) + V(3)*G(3,k)
-  ENDDO
+  IF( frac ) THEN
+    Vi(:) = Afrac(i,1:3)
+  ELSE
+    V(:) = A(i,1:3)
+    DO k=1,3
+      Vi(k) = V(1)*G(1,k) + V(2)*G(2,k) + V(3)*G(3,k)
+    ENDDO
+  ENDIF
   !
   DO j=i+1,SIZE(A,1)
     !Convert position of atom #i into fractional coordinates
-    V(:) = A(j,1:3)
-    DO k=1,3
-      Vj(k) = V(1)*G(1,k) + V(2)*G(2,k) + V(3)*G(3,k)
-    ENDDO
+    IF( frac ) THEN
+      Vj(:) = Afrac(j,1:3)
+    ELSE
+      V(:) = A(j,1:3)
+      DO k=1,3
+        Vj(k) = V(1)*G(1,k) + V(2)*G(2,k) + V(3)*G(3,k)
+      ENDDO
+    ENDIF
     !
     shift(:) = 0.d0
     !
@@ -258,6 +284,8 @@ DO i=1,SIZE(A,1)-1
   !
 ENDDO !i
 !$OMP END PARALLEL DO
+!
+IF(ALLOCATED(Afrac)) DEALLOCATE(Afrac)
 !
 IF( ALLOCATED(NeighList) .AND. SIZE(NeighList,1)>0 ) THEN
   IF( .NOT.ANY(NeighList(:,:).NE.0) ) THEN

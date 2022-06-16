@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2022                                     *
+!* Last modification: P. Hirel - 16 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -74,9 +74,9 @@ INTEGER:: Nfiles     !number of files analyzed
 INTEGER:: Nspecies   !number of different atom species in the system
 INTEGER:: progress   !To show calculation progress
 INTEGER:: rdf_Nsteps !number of "skins" for RDF
-INTEGER(KIND=SELECTED_INT_KIND(15)):: nt, ntot !to count atoms of each type
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !list of neighbours
 REAL(dp):: distance     !distance between 2 atoms
+REAL(dp):: nl, nt, ntot !to count atoms of each type
 REAL(dp):: rdf_norm     !normalization factor
 REAL(dp):: rdf_radius   !radius of the sphere
 REAL(dp):: Vsphere, Vskin        !volume of the sphere, skin
@@ -362,8 +362,6 @@ DO  !Loop on files
           ENDIF
         ENDDO
         !
-        w = u*v
-        !
         !Loop on all skins of width rdf_dr
         DO j=1,rdf_Nsteps
           !Radius of current sphere
@@ -377,7 +375,7 @@ DO  !Loop on files
           Vskin = distance - Vsphere
           !
           !Compute normalization factor: (Nsp1*Nsp2*Vskin)/V
-          rdf_norm = DBLE(w) * Vskin /Vsystem
+          rdf_norm = DBLE(u) * DBLE(v) * Vskin /Vsystem
           !
           !Normalize partial RDFs for current system
           rdf_temp(i,j) = rdf_temp(i,j) / rdf_norm
@@ -426,10 +424,10 @@ rdf_partial(:,:) = rdf_partial(:,:) / DBLE(Nfiles)
 != sum of all partial RDFs weighted with number of atoms
 ALLOCATE( rdf_total(SIZE(rdf_partial,2)) )
 rdf_total(:) = 0.d0
-ntot = 0
+ntot = 0.d0
 DO i=1,SIZE(rdf_partial,1)
-  nt = 1
-  l = 0
+  nt = 1.d0
+  nl = 0.d0
   !Loop over the two atom types of the pair
   DO k=1,2
     !Search for atoms of type pairs(i,k) in the table aentries
@@ -438,24 +436,24 @@ DO i=1,SIZE(rdf_partial,1)
         !Found a match
         IF(k==1) THEN
           !First atom of the pair: save number of atoms of type k=1
-          nt = NINT(aentries(j,2))
-          l=NINT(aentries(j,1))
+          nt = aentries(j,2)
+          nl = aentries(j,1)
         ELSE !i.e. if k==2
           !Second atom of the pair
-          nt = nt * NINT(aentries(j,2))
+          nt = nt * aentries(j,2)
           !If species are different, account for factor 2
-          IF( NINT(aentries(j,1)).NE.l ) nt = 2*nt
+          IF( DABS(aentries(j,1)-nl)>0.1d0 ) nt = 2.d0*nt
         ENDIF
         GOTO 310
       ENDIF
     ENDDO
     310 CONTINUE
   ENDDO
-  rdf_total(:) = rdf_total(:) + DBLE(nt)*rdf_partial(i,:)
+  rdf_total(:) = rdf_total(:) + nt*rdf_partial(i,:)
   ntot = ntot + nt
 ENDDO
 !Normalize total RDF
-rdf_total(:) = rdf_total(:) / DBLE(ntot)
+rdf_total(:) = rdf_total(:) / ntot
 !
 !
 !
