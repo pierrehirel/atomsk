@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 20 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -909,7 +909,7 @@ CASE('in','out')
       CALL FRAC2CART(P,H)
     ENDIF
     !
-  CASE('box')
+  CASE('box','block')
     !Select atoms that are inside/outside a rectangular box
     !region_1(:) = position of first corner of the box
     !region_2(:) = position of last corner of the box

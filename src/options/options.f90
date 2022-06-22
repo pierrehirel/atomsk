@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 April 2022                                    *
+!* Last modification: P. Hirel - 22 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -914,7 +914,7 @@ DO ioptions=1,SIZE(options_array)
       ENDIF
       IF(region_geom=='cell') THEN
         !No other parameter
-      ELSEIF(region_geom=='box') THEN
+      ELSEIF(region_geom=='box' .OR. region_geom=='block') THEN
         IF( LEN_TRIM(select_multiple)>0 ) THEN
           READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp,&
               & region_side, region_geom, treal(1), treal(2), treal(3), &
@@ -1323,12 +1323,21 @@ DO ioptions=1,SIZE(options_array)
                  & SIZE(AUX(:,1)), SIZE(AUX(1,:))
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !Write auxiliary properties to logfile
-      msg = 'Auxiliary properties (1-4):'
+      msg = 'Auxiliary properties:'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       WRITE(msg,*) (TRIM(ADJUSTL(AUXNAMES(i)))//'  ', i=1,MIN(SIZE(AUXNAMES),6) )
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO i=1,MIN( 20,SIZE(AUX(:,1)) )
-        WRITE(msg,'(6(f9.3,2X))') (AUX(i,j), j=1,MIN(SIZE(AUX(1,:)),6))
+        msg = ""
+        DO j=1,MIN(SIZE(AUX,2),6)
+          IF( DABS(AUX(i,j))<10000.d0 ) THEN
+            WRITE(temp,'(f9.3)') AUX(i,j)
+          ELSE
+            WRITE(temp,'(e9.3)') AUX(i,j)
+          ENDIF
+          msg = TRIM(ADJUSTL(msg))//"  "//temp(1:9)
+        ENDDO
+        IF(j>=6) msg = TRIM(ADJUSTL(msg))//"  (...)"
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
       IF(i>=20) THEN

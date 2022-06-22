@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 May 2022                                      *
+!* Last modification: P. Hirel - 22 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -145,7 +145,7 @@ DO i=1,SIZE(merge_files)
     IF( ALLOCATED(currAUX) ) THEN
       WRITE(msg,*) "currAUXNAMES: ", SIZE(currAUXNAMES)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      WRITE(msg,*) "currAUX: ", SIZE(AUX,1), SIZE(AUX,2)
+      WRITE(msg,*) "currAUX: ", SIZE(currAUX,1), SIZE(currAUX,2)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
   ENDIF
@@ -163,15 +163,18 @@ DO i=1,SIZE(merge_files)
       ALLOCATE(comment(SIZE(currcomment)))
       comment(:) = currcomment(:)
     ENDIF
-    !Auxiliary properties will always contain AT LEAST one column containing the system ID ("sysID")
+    !Create array AUX to save auxiliary properties
+    !We add one column to store the system ID ("sysID")
     IF( ALLOCATED(currAUXNAMES) .AND. SIZE(currAUXNAMES)>0 ) THEN
       ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)+1) )
       sysID = SIZE(AUXNAMES)
-      ALLOCATE( AUX( SIZE(currAUX,1),SIZE(currAUX,2) ) )
+      ALLOCATE( AUX( SIZE(currAUX,1),SIZE(currAUX,2)+1 ) )
       AUX(:,:) = 0.d0
       DO j=1,SIZE(currAUXNAMES)
         AUXNAMES(j) = currAUXNAMES(j)
-        DO k=1,SIZE(currAUX,2)
+      ENDDO
+      DO j=1,SIZE(AUX,1)
+        DO k=1,SIZE(AUX,2)
           AUX(j,k) = currAUX(j,k)
         ENDDO
       ENDDO
@@ -265,15 +268,7 @@ DO i=1,SIZE(merge_files)
     !that will be corrected later if these properties are defined in currAUX
     oldsize = SIZE(AUX,1)
     IF( ALLOCATED(AUXNAMES) ) THEN
-      ALLOCATE( tempAUX( SIZE(Q,1),SIZE(AUX,2) ) )
-      tempAUX(:,:) = 0.d0
-      DO j=1,SIZE(AUX,1)
-        tempAUX(j,:) = AUX(j,:)
-      ENDDO
-      DEALLOCATE(AUX)
-      ALLOCATE( AUX( SIZE(tempAUX,1),SIZE(tempAUX,2) ) )
-      AUX(:,:) = tempAUX(:,:)
-      DEALLOCATE(tempAUX)
+      CALL RESIZE_DBLEARRAY2( AUX , SIZE(Q,1) , SIZE(AUXNAMES) )
     ENDIF
     !
     !Add current system ID
@@ -299,22 +294,23 @@ DO i=1,SIZE(merge_files)
             ENDIF
           ENDDO
           !
-          IF( auxexists ) THEN
+          IF( auxexists .AND. auxcol>0 ) THEN
             WRITE(msg,*) 'Property already exists: ', TRIM(ADJUSTL(currAUXNAMES(j)))
             CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
             !This property already has a column in AUX => complete it
             DO k=1,SIZE(currAUX,1)
-              AUX(oldsize+k,auxcol) = currAUX(k,auxcol)
+              AUX(oldsize+k,auxcol) = currAUX(k,j)
             ENDDO
           ELSE
             WRITE(msg,*) 'New property: ', TRIM(ADJUSTL(currAUXNAMES(j)))
             CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
             !This property does not exist in AUX yet => create a new column for it
-            ALLOCATE(tempAUXNAMES(SIZE(AUXNAMES)+1))
+            auxcol = SIZE(AUXNAMES)+1
+            ALLOCATE(tempAUXNAMES(auxcol))
             DO k=1,SIZE(AUXNAMES)
               tempAUXNAMES(k) = AUXNAMES(k)
             ENDDO
-            tempAUXNAMES(SIZE(AUXNAMES)+1) = currAUXNAMES(j)
+            tempAUXNAMES(auxcol) = currAUXNAMES(j)
             DEALLOCATE(AUXNAMES)
             ALLOCATE( AUXNAMES( SIZE(tempAUXNAMES) ) )
             AUXNAMES(:) = tempAUXNAMES(:)
@@ -326,7 +322,7 @@ DO i=1,SIZE(merge_files)
               tempAUX(:,k) = AUX(:,k)
             ENDDO
             DO k=1,SIZE(currAUX,1)
-              tempAUX(SIZE(AUX,1)-SIZE(currAUX,1)+k,SIZE(AUXNAMES)) = currAUX(k,j)
+              tempAUX(oldsize+k,auxcol) = currAUX(k,j)
             ENDDO
             DEALLOCATE(AUX)
             ALLOCATE( AUX( SIZE(tempAUX,1),SIZE(tempAUX,2) ) )
@@ -336,12 +332,12 @@ DO i=1,SIZE(merge_files)
         ENDDO
         !
       ELSE
+        WRITE(msg,*) 'First system with auxiliary properties: allocating AUX'
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
         !No auxiliary property existed before, the current ones are the first ones
         !=> define arrays and fill them
         IF( ALLOCATED(AUXNAMES) ) DEALLOCATE(AUXNAMES)
         IF( ALLOCATED(AUX) ) DEALLOCATE(AUX)
-        WRITE(msg,*) 'Allocating AUX'
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
         ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)) )
         AUXNAMES(:) = currAUXNAMES(:)
         ALLOCATE( AUX( SIZE(Q,1),SIZE(currAUX,2) ) )
@@ -354,6 +350,14 @@ DO i=1,SIZE(merge_files)
     ENDIF !endif currAUX
     !
   ENDIF !Endif i==1
+  !
+  IF( verbosity==4 ) THEN
+    WRITE(msg,*) "Finished treating file #", i, " , '", TRIM(ADJUSTL(merge_files(i))), "'"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    DO j=1,SIZE(AUX,1)
+      PRINT*, AUX(j,:)
+    ENDDO
+  ENDIF
   !
   Nfiles = Nfiles+1
 ENDDO

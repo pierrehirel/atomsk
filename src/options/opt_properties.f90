@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 April 2022                                    *
+!* Last modification: P. Hirel - 22 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -464,7 +464,7 @@ DO
         !AUX is already defined,
         !check if it contains q and qs already
         qcol=0
-        DO i=1,SIZE(AUXNAMES(:))
+        DO i=1,SIZE(AUXNAMES)
           IF( AUXNAMES(i)=="q" ) THEN
             qcol=i
             EXIT
@@ -502,6 +502,29 @@ DO
           ELSE
             ALLOCATE(newAUXNAMES( qcol ))
           ENDIF
+          DO i=1,SIZE(AUXNAMES)
+            newAUXNAMES(i) = AUXNAMES(i)
+          ENDDO
+          DEALLOCATE(AUXNAMES)
+          ALLOCATE(AUXNAMES( SIZE(newAUXNAMES) ))
+          AUXNAMES(:) = newAUXNAMES(:)
+          DEALLOCATE(newAUXNAMES)
+          !
+        ELSEIF( qscol==0 .AND. chargeshell ) THEN
+          qscol = SIZE(AUX,2)+1
+          ALLOCATE( newAUX( SIZE(AUX,1), qscol ) )
+          DO i=1,SIZE(AUX,1)
+            DO j=1,SIZE(AUX,2)
+              newAUX(i,j) = AUX(i,j)
+            ENDDO
+          ENDDO
+          newAUX(:,qscol) = 0.d0
+          DEALLOCATE(AUX)
+          ALLOCATE( AUX( SIZE(newAUX,1), SIZE(newAUX,2) ) )
+          AUX(:,:) = newAUX(:,:)
+          DEALLOCATE(newAUX)
+          !Same with array AUXNAMES
+            ALLOCATE(newAUXNAMES( qscol ))
           DO i=1,SIZE(AUXNAMES(:))
             newAUXNAMES(i) = AUXNAMES(i)
           ENDDO
@@ -531,7 +554,7 @@ DO
         AUXNAMES(qscol) = 'qs'
       ENDIF
       !Save charges in AUX
-      DO i=1,SIZE(P,1)
+      DO i=1,SIZE(AUX,1)
         DO j=1,SIZE(tempprop,1)
           IF( DABS( tempprop(j,1)-P(i,4) )<1.d-9 ) THEN
             AUX(i,qcol) = tempprop(j,2)
