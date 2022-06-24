@@ -16,6 +16,7 @@ Master
 - in mode "--polycrystal", fixed a bug where rotations provided were performed using Z, Y, X permutation instead of X, Y, Z. Thanks to Marcin Minkowsky, Tampere University, Finland, for pointing out this bug.
 - in mode "--rdf", improved efficiency in the computation of the partial RDFs. Also fixed a bug in the computation of the total RDF when atoms of different species and different densities were present.
 - option "-reduce-cell" now checks that stoichiometry is preserved.
+- random number generator will now use file "/dev/urandom" to generate a random seed whenever possible; otherwise, system clock will be used as a seed.
 - fixed a bug when reading and writing POSCAR files where the keywords "Selective dynamics" were involved.
 - fixed a bug when writing LAMMPS data file when atom "types" were defined, but some types were not assigned to any atom in the system. Fixed a bug in the writing of box dimensions, when one or several box vectors had negative components. Thanks to Eerik Voimanen, Tampere University, Finland, for providing a fix for this bug.
 - fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.

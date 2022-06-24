@@ -9,7 +9,7 @@ MODULE random
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 June 2022                                     *
+!* Last modification: P. Hirel - 23 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,10 +43,14 @@ CONTAINS
 !
 !********************************************************
 ! GEN_NRANDNUMBERS
-! This subroutine generates N random real numbers
+! This subroutine generates N "random" real numbers
 ! between 0 and 1 with a uniform distribution,
 ! and returns them in the array randarray(:).
-! It uses the system clock as a seed,
+! On GNU/Linux and BSD or macOS systems, it tries to
+! use the file /dev/urandom as a seed, which should
+! guaranty to have a "true random" seed.
+! On Windows systems, or if the file /dev/urandom can't
+! be read, it uses the system clock as a seed,
 ! which should ensure that the seed is different
 ! every time this subroutine is called.
 ! Note: using a KIND=8 integer for system clock returns
@@ -59,20 +63,43 @@ CONTAINS
 SUBROUTINE GEN_NRANDNUMBERS(N,randarray)
 !
 IMPLICIT NONE
+LOGICAL:: fileexists
 INTEGER:: i, k
 INTEGER(KIND=8):: clock !system clock
 INTEGER,INTENT(IN):: N  !number of random numbers to generate
 INTEGER,DIMENSION(:),ALLOCATABLE:: seed !seed for generating random numbers
 REAL(dp),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: randarray    !random numbers
 !
-!Generate N random numbers
+fileexists=.FALSE.
+!
 CALL RANDOM_SEED(SIZE=k)
 IF(ALLOCATED(seed)) DEALLOCATE(seed)
 ALLOCATE(seed(k))
-CALL SYSTEM_CLOCK(COUNT=clock)
-seed = clock + 42*(/ (i-1, i=1,k) /)
+seed(:) = 0
+!
+#if ! defined(WINDOWS)
+!Detect if file "/dev/urandom" exists on current system
+!(NOTE: we know that this file does not exist on Windows systems, hence the preproc #if instruction)
+INQUIRE(FILE="/dev/urandom",EXIST=fileexists)
+IF( fileexists ) THEN
+  !Use the file /dev/urandom to generate random seed
+  OPEN(50,FILE="/dev/urandom",ACCESS="stream",FORM='UNFORMATTED')
+  READ(50,ERR=10,END=10) seed
+  10 CONTINUE
+  CLOSE(50)
+  !If seed(:) is still filled with zeros, there was a problem
+  IF( .NOT.ANY(seed(:).NE.0) ) fileexists=.FALSE.
+ENDIF
+#endif
+IF( .NOT.fileexists ) THEN
+  !Use system clock as seed
+  CALL SYSTEM_CLOCK(COUNT=clock)
+  seed = clock + 42*(/ (i-1, i=1,k) /)
+ENDIF
+!
 CALL RANDOM_SEED(PUT=seed)
 DEALLOCATE(seed)
+!Use seed to generate N numbers
 IF( ALLOCATED(randarray) ) DEALLOCATE(randarray)
 ALLOCATE(randarray(N))
 randarray(:) = 0.d0

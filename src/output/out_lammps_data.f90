@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 June 2022                                     *
+!* Last modification: P. Hirel - 23 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -74,7 +74,7 @@ REAL(dp):: Smassratio=0.1d0  !ratio (mass of shell)/(mass of core)
 REAL(dp):: tiltbefore
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: K   !copy of H
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: typemass  !array for storing the mass of each atom type
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: typemass  !array for storing at.number and mass of each atom type
 REAL(dp),DIMENSION(:,:),POINTER:: Ppoint  !pointer to P or R
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),TARGET:: P !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: R  !copy of P (if necessary)
@@ -210,7 +210,7 @@ IF( typecol>0 ) THEN
   !For each atom type, find its atomic number and mass and store them in array "typemass"
   ALLOCATE( typemass(Ntypes,2) )
   typemass(:,:) = 0.d0
-  !For each atom type, find its mass
+  
   DO j=1,Ntypes-Nshelltypes
     i = 0
     DO WHILE( i<SIZE(P,1) .AND. typemass(j,1)<0.1d0 )
@@ -230,7 +230,7 @@ IF( typecol>0 ) THEN
       !Use types as defined in AUX
       msg = "Using shell types defined in AUX"
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-      DO WHILE( i<SIZE(S,1) .AND. j<=Ntypes )
+      DO WHILE( i<SIZE(S,1) .AND. j<=Nshelltypes )
         i=i+1
         IF( NINT(AUX(i,Stypecol)) == j+1 ) THEN
           IF( S(i,4)>0.9d0 ) THEN
@@ -244,21 +244,23 @@ IF( typecol>0 ) THEN
       ENDDO
     ELSE
       !Generate new "types" for shells
-      msg = "Generating new particle types for shells"
+      msg = "Generating new particle types for shells..."
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
       !Try to put shells in same order as cores
-      !At this point j = number of types of core
-      j = Ntypes-Nshelltypes
-      !Parse typemass(:,:) from i=1 to number of core types (j)
-      iloop = j
-      DO WHILE( i<=iloop .AND. j<=Ntypes )
+      !At this point iloop = number of types of core
+      iloop = Ntypes-Nshelltypes
+      !Parse typemass(:,:) from i=1 to number of core types (iloop)
+      i=0
+      j=0
+      DO WHILE( i<iloop .AND. j<=Nshelltypes )
         i = i+1
-        !Check if atoms of type i have a shell
-        DO m=1,SIZE(aentriesS,1)  !Loop on all shells
+        !Check if atoms of type #i have a shell
+        DO m=1,SIZE(aentriesS,1)  !Loop on all shell types
           IF( DABS(typemass(i,1)-aentriesS(m,1)) < 0.1d0 ) THEN
-            !This shell has the same species as core of type i
+            !Shells of type #m have the same species as cores of type #i
             j = j+1
-            typemass(j,:) = typemass(i,:)
+            typemass(iloop+j,:) = typemass(i,:)
+            EXIT
           ENDIF
         ENDDO
       ENDDO
