@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 May 2022                                      *
+!* Last modification: P. Hirel - 28 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -105,8 +105,8 @@ CHARACTER(LEN=*):: inputfile
 CHARACTER(LEN=5):: infileformat
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT),OPTIONAL:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT),OPTIONAL:: comment
-CHARACTER(LEN=1024):: msg
-INTEGER:: i, strlength
+CHARACTER(LEN=4096):: msg
+INTEGER:: i, j, strlength
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P !positions of atoms (or ionic cores)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT),OPTIONAL:: S !positions of ionic shells
@@ -285,21 +285,48 @@ IF(verbosity==4) THEN
   !Write positions of cores/shells and auxiliary properties into a file
   OPEN(UNIT=23,FILE="atomsk_readin.adbg",FORM="FORMATTED",STATUS="UNKNOWN")
   WRITE(23,*) SIZE(P,1)
-  WRITE(23,*) "# Atomsk debug: atom positions at end of READ_AFF routine"
-  DO i=1,SIZE(P,1)
-    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      WRITE(23,'(8(1X,f9.3))') P(i,4), P(i,1:3), S(i,1:4)
+  IF( ALLOCATED(S) ) THEN
+    msg = "# N(core)  x         y         z   | N(shell)  x         y         z"
+  ELSE
+    msg = "#   N      x         y         z"
+  ENDIF
+  IF( ALLOCATED(AUX) .AND. ALLOCATED(AUXNAMES) ) THEN
+    IF( ALLOCATED(S) ) THEN
+      msg(73:73) = '|'
     ELSE
-      WRITE(23,'(4(1X,f9.3))') P(i,4), P(i,1:3)
+      msg(37:37) = '|'
     ENDIF
-  ENDDO
-  WRITE(23,*) ""
-  IF(ALLOCATED(AUX)) THEN
-    WRITE(23,'(a6,12(1X,a9))') "AUXNA:", (TRIM(AUXNAMES(i))//' ', i=1,MIN(12,SIZE(AUXNAMES)) )
-    DO strlength=1,SIZE(AUX,1)
-      WRITE(23,'(i6,12(1X,e10.3))') strlength, (AUX(strlength,i), i=1,MIN(12,SIZE(AUX,2)) )
+    DO i=1,SIZE(AUXNAMES)
+      WRITE(msg,'(a,1X,a9)') TRIM(msg), TRIM(AUXNAMES(i))
     ENDDO
   ENDIF
+  WRITE(23,*) TRIM(msg)
+  DO i=1,SIZE(P,1)
+    WRITE(msg,'(i3,3(1X,f9.3))') NINT(P(i,4)), P(i,1:3)
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+      WRITE(msg,'(i3,3(1X,f9.3),a3)') NINT(P(i,4)), P(i,1:3)
+      IF( S(i,4)>0.1d0 ) THEN
+        WRITE(msg,'(a,a3,i3,3(1X,f9.3))') TRIM(msg), "  |", NINT(S(i,4)), S(i,1:3)
+      ELSE
+        msg = TRIM(msg)//"  |  -       -         -         -"
+      ENDIF
+    ENDIF
+    IF( ALLOCATED(AUX) ) THEN
+      IF( ALLOCATED(S) ) THEN
+        msg(73:73) = '|'
+      ELSE
+        msg(37:37) = '|'
+      ENDIF
+      DO j=1,SIZE(AUX,2)
+        IF( IS_INTEGER(AUX(i,j)) ) THEN
+          WRITE(msg,'(a,1X,i9)') TRIM(msg), NINT(AUX(i,j))
+        ELSE
+          WRITE(msg,'(a,1X,e9.3)') TRIM(msg), AUX(i,j)
+        ENDIF
+      ENDDO
+    ENDIF
+    WRITE(23,*) TRIM(msg)
+  ENDDO
   CLOSE(23)
 ENDIF
 !

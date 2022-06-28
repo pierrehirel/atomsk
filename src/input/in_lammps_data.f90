@@ -48,7 +48,7 @@ SUBROUTINE READ_LMP_DATA(inputfile,H,P,S,comment,AUXNAMES,AUX)
 CHARACTER(LEN=*),INTENT(IN):: inputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=16) datatype  !type of data file: "atom" or "charge" or "molecule" or...
-CHARACTER(LEN=4096):: msg, temp
+CHARACTER(LEN=4096):: msg, temp, temp2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
@@ -186,6 +186,8 @@ DO
     !The particles masses follow
     !=> read them, and store them as atomic numbers
     !The array stores [ type | atomic number | 0=atom or core; 1=shell ]
+    WRITE(msg,*) "... Reading 'Masses' section ..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !There must be one blank line after the keyword "Masses"
     READ(30,*)
     ALLOCATE(Masses(100,3))  !allow for maximum 100 different atom types
@@ -202,16 +204,19 @@ DO
         IF( j>0 ) THEN
           !There is a comment: try to read an atom species
           msg = TRIM(ADJUSTL(temp(j+1:)))
-          IF( LEN_TRIM(msg)==2 ) THEN
-            species = msg(1:2)
+          DO WHILE( LEN_TRIM(msg)>0 .AND. LEN_TRIM(species)==0 )
+            READ(msg,*) temp2
+            temp2 = TRIM(ADJUSTL(temp2))
+            species = temp2(1:2)
             !Verify that it is an actual atom species
             CALL ATOMNUMBER(species,c)
             !If not, delete the string in species
             IF(c==0) species=""
-          ENDIF
+            msg = msg(LEN_TRIM(temp2)+1:)
+          ENDDO
         ENDIF
         READ(temp,*,ERR=120,END=120) i, a
-        IF( LEN_TRIM(species)==0 ) THEN
+        IF( LEN_TRIM(species)==0 .OR. species=="XX" ) THEN
           !Use atom mass to determine species
           CALL ATOMMASSSPECIES(a,species)
         ENDIF
@@ -219,14 +224,14 @@ DO
         Masses(k,1) = i       !Atom type is saved in Masses(:,1)
         CALL ATOMNUMBER(species,b)
         Masses(k,2) = NINT(b) !Atomic number is saved in Masses(:,2)
-        Masses(k,3) = 0       !by default the particle is an atom
-        IF( INDEX(temp,'shell')>0 .OR. INDEX(temp,'Shell')>0 .OR. INDEX(temp,'SHELL')>0 ) THEN
+        Masses(k,3) = 0       !by default the particle is an atom (or core)
+        IF( INDEX(STRDNCASE(temp),'shel')>0 ) THEN
           !This type of particle is a shell => mark it as such in Masses(:,3)
           Masses(k,3) = 1
           coreshell = .TRUE.
           isshell = .TRUE.
           Nshells = Nshells+1
-          IF( k>1 ) THEN
+          IF( k>1 .AND. Masses(k,2)==0 ) THEN
             !Try to detect to which core it is associated
             !Parse the previous Masses
             Masses(k,2) = 0
@@ -287,7 +292,7 @@ DO
     !
   ELSEIF(temp(1:5)=='Atoms') THEN
     !Atom positions follow
-    WRITE(msg,*) 'Reading Atoms...'
+    WRITE(msg,*) "... Reading 'Atoms' section ..."
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !The type of data file may follow, e.g. "Atoms  # charge"
     IF( LEN_TRIM(temp(6:))>0 ) THEN
@@ -305,20 +310,28 @@ DO
         END SELECT
       ENDIF
     ENDIF
-    msg = "Data type read from Atoms line: "//TRIM(datatype)
+    msg = "Data type read from 'Atoms' line: "//TRIM(datatype)
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
     !There must be one blank line after the keyword "Atoms"
     READ(30,*,ERR=800,END=800)
     !
     !Convert supercell parameters
-    a = xhi
-    b = DSQRT( yhi**2 + xy**2 )
-    c = DSQRT( zhi**2 + xz**2 + yz**2 )
-    alpha = DACOS( (xy*xz+yhi*yz)/(b*c) )
-    beta = DACOS(xz/c)
-    gamma = DACOS(xy/b)
-    CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
+    IF( DABS(xhi-xlo)>1.d-3 .AND. DABS(yhi-ylo)>1.d-3 .AND. DABS(zhi-zlo)>1.d-3 ) THEN
+      a = xhi
+      b = DSQRT( yhi**2 + xy**2 )
+      c = DSQRT( zhi**2 + xz**2 + yz**2 )
+      alpha = DACOS( (xy*xz+yhi*yz)/(b*c) )
+      beta = DACOS(xz/c)
+      gamma = DACOS(xy/b)
+      CALL CONVMAT(a,b,c,alpha,beta,gamma,H)
+    ELSE
+      !Cell parameters were not defined
+      !Display warning, box vectors will be decided later by routine "determine_H"
+      nwarn = nwarn+1
+      PRINT*, "WARNING: cell vectors were not defined"
+      H(:,:) = 0.d0
+    ENDIF
     !
     !Set number of columns that follow atom-ID according to data type
     !Also set the number of auxiliary properties to allocate AUX and AUXNAMES
@@ -332,9 +345,9 @@ DO
     CASE("charge")
       Ncol = 5
       Naux = Naux+1  !charge
-    CASE("body","edpd","ellipsoid","peri","sphere")
+    CASE("body","edpd","ellipsoid","full","peri","sphere")
       Ncol = 6
-    CASE("electron","full","line","meso","template","tri")
+    CASE("electron","line","template","tri")
       Ncol = 7
     CASE("dipole")
       Ncol = 8
@@ -354,11 +367,13 @@ DO
     !At this point, if P is not allocated then we are in trouble
     IF(.NOT.ALLOCATED(P)) GOTO 820
     !
-     IF( coreshell ) THEN
-       !Some particles are ionic shells => allocate memory
-       ALLOCATE( S(SIZE(P,1),4) )
-       S(:,:) = 0.d0
-     ENDIF
+    IF( coreshell ) THEN
+      !Some particles are ionic shells => allocate memory
+      WRITE(msg,*) "Detected core-shell model, allocating S..."
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      ALLOCATE( S(SIZE(P,1),4) )
+      S(:,:) = 0.d0
+    ENDIF
     !
     !Allocate array AUX to store auxiliary properties
     ALLOCATE( AUX(SIZE(P,1),Naux) )
@@ -371,10 +386,20 @@ DO
     ENDIF
     !
     !Read atom coordinates
-    WRITE(msg,*) 'Reading atom coordinates...'
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-    WRITE(msg,*) 'SIZE P | AUX: ', SIZE(P,1), " | ", SIZE(AUX,1), SIZE(AUX,2)
-    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    IF( verbosity==4 ) THEN
+      WRITE(msg,*) 'Reading atom coordinates...'
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      WRITE(msg,*) 'SIZE P:  ', SIZE(P,1), " x ", SIZE(P,2)
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      IF( coreshell ) THEN
+        WRITE(msg,*) 'SIZE S:  ', SIZE(S,1), " x ", SIZE(S,2)
+        CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      ENDIF
+      WRITE(msg,*) 'SIZE AUX:', SIZE(AUX,1), " x ", SIZE(AUX,2)
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+      WRITE(msg,*) 'AUXNAMES: ', AUXNAMES(:)
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDIF
     i=0
     id=0
     k=0
@@ -419,15 +444,15 @@ DO
           molID = Naux
         ENDIF
         IF( Ncol==4 ) THEN
-          !Only one possibility: data type is "atomic"
+          !Only one possibility: data type is "atomic" = atom-ID atom-type x y z
           datatype = "atomic"
-        ELSEIF( Ncol==6 ) THEN
+        ELSEIF( Ncol==5 ) THEN
           !Assume "atom_style charge" = atom-ID atom-type q x y z
           datatype = "charge"
           Naux = Naux+1
           !Column #3 contains charge
           q = Naux
-        ELSEIF( Ncol==7 ) THEN
+        ELSEIF( Ncol==6 ) THEN
           !Assume "atom_style full" = atom-ID molecule-ID atom-type q x y z
           datatype = "full"
           !Column #4 contains charge
@@ -507,15 +532,17 @@ DO
         CALL ATOMSK_MSG(2742,(/""/),(/DBLE(id)/))
         !
       ELSE
-        !Save atom type as an auxiliary property
-        IF ( datatype=="full" ) THEN
+        !Save atom type
+        SELECT CASE(datatype)
+        CASE("full")
           atomtype = column(Ncol-4)
-        ELSEIF ( datatype=="angle" .OR. datatype=="bond" .OR. datatype=="molecular" .OR. datatype=="template" ) THEN
+        CASE("angle","bond","molecular","template")
           atomtype = column(Ncol-3)
-        ELSE
+        CASE DEFAULT
           atomtype = column(1)
-        ENDIF
-        !Save atom species
+        END SELECT
+        !
+        !Save atomic number
         IF( ALLOCATED(Masses) .AND. SIZE(Masses,1)>0 ) THEN
           !Look for the mass of this type of atom
           j=0
@@ -528,7 +555,7 @@ DO
                   !This atom type is an ionic shell
                   isshell = .TRUE.
                   Nshells = Nshells+1
-                  S(Nshells,4) = Masses(j,2)
+                  S(Ncores,4) = Masses(j,2)
                   EXIT
                 ELSE
                   !This atom type is an ionic core
@@ -544,13 +571,12 @@ DO
             ENDIF
           ENDDO
           !Make sure that the atomic number is not zero
-          IF( Nshells>0 ) THEN
+          IF( coreshell ) THEN
             !We are dealing with core/shell particles
-            IF( S(Nshells,4)<1.d-12 ) THEN
+            IF( isshell .AND. S(Ncores,4)<1.d-12 ) THEN
               !Mass of this shell unknown => use atom type = atom species
-              S(Nshells,4) = DBLE(atomtype)
-            ENDIF
-            IF( P(Ncores,4)<1.d-12 ) THEN
+              S(Ncores,4) = DBLE(atomtype)
+            ELSEIF( P(Ncores,4)<1.d-12 ) THEN
               !Mass of this atom unknown => use atom type = atom species
               P(Ncores,4) = DBLE(atomtype)
             ENDIF
@@ -601,8 +627,7 @@ DO
           !We are dealing with core/shell particles
           IF( isshell ) THEN
             !Current particle is a shell
-            S(Nshells,1:3) = vector(:)
-            isshell = .FALSE. !we don't know if next particle is a shell
+            S(Ncores,1:3) = vector(:)
           ELSE
             !Current particle is a core
             P(Ncores,1:3) = vector(:)
@@ -632,6 +657,8 @@ DO
         ENDIF
       ENDIF
       !
+      isshell = .FALSE. !we don't know if next particle is a shell
+      !
     ENDDO  !end loop on particles positions
     !
     !If cores/shells were detected, resize arrays P, S and AUX
@@ -660,7 +687,7 @@ DO
     !
     !
   ELSEIF(temp(1:10)=='Velocities') THEN
-    WRITE(msg,*) 'Reading Velocities...'
+    WRITE(msg,*) "... Reading 'Velocities' section ..."
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     IF( vx==0 .AND. vy==0 .AND. vz==0 ) THEN
       vx = SIZE(AUXNAMES)+1

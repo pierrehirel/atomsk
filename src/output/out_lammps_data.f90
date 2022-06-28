@@ -39,6 +39,7 @@ USE functions
 USE messages
 USE files
 USE subroutines
+USE resize
 !
 IMPLICIT NONE
 !
@@ -119,10 +120,10 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 CALL FIND_NSP(P(:,4),aentries)
 Ntypes = SIZE(aentries,1)
 IF(verbosity==4) THEN
-  msg = "aentries = at.mass  |  occurrence"
+  msg = "aentries:   at.number |  occurrence"
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   DO i=1,SIZE(aentries,1)
-    WRITE(msg,'(10X,f9.3,a3,i5)') aentries(i,1), " | ", NINT(aentries(i,2))
+    WRITE(msg,'(10X,f9.3,a5,i5)') aentries(i,1), "   | ", NINT(aentries(i,2))
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   ENDDO
 ENDIF
@@ -137,19 +138,27 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   CALL FIND_NSP( S(:,4) , aentriesS )
   Nshells = 0
   Nshelltypes = 0
+  !remove zeros
   DO i=1,SIZE(aentriesS,1)
+    IF( aentriesS(i,1) < 0.1d0 ) THEN
+      DO j=i,SIZE(aentriesS,1)-1
+        aentriesS(j,:) = aentriesS(j+1,:)
+        aentriesS(j+1,:) = 0.d0
+      ENDDO
+    ENDIF
     IF( aentriesS(i,1) > 0.1d0 ) THEN
       Nshelltypes = Nshelltypes+1
       Nshells = Nshells + NINT(aentriesS(i,2))
     ENDIF
   ENDDO
+  CALL RESIZE_DBLEARRAY2(aentriesS,Nshelltypes,SIZE(aentriesS,2))
   !Update total number of atom types
   Ntypes = Ntypes + Nshelltypes
   IF(verbosity==4) THEN
-    msg = "aentriesS = at.number |  occurrence"
+    msg = "aentriesS:  at.number |  occurrence"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     DO i=1,SIZE(aentriesS,1)
-      WRITE(msg,'(10X,f9.3,a3,i5)') aentriesS(i,1), "   | ", NINT(aentriesS(i,2))
+      WRITE(msg,'(10X,f9.3,a5,i5)') aentriesS(i,1), "   | ", NINT(aentriesS(i,2))
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     ENDDO
   ENDIF
@@ -266,8 +275,13 @@ IF( typecol>0 ) THEN
       ENDDO
     ENDIF
   ENDIF
-  !
-  IF( verbosity>=4 ) THEN
+ENDIF
+!
+!
+!
+100 CONTINUE
+IF( verbosity>=4 ) THEN
+  IF( ALLOCATED(typemass) ) THEN
     msg = "Particle Type | At.Number |  Mass"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     DO i=1,SIZE(typemass,1)
@@ -277,9 +291,6 @@ IF( typecol>0 ) THEN
   ENDIF
 ENDIF
 !
-!
-!
-100 CONTINUE
 IF(ofu.NE.6) THEN
   OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
 ENDIF
@@ -451,13 +462,14 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       WRITE(ofu,*) TRIM(msg)
     ENDDO
     !Same with shells
+    j = SIZE(aentries,1)
     DO i=1,SIZE(aentriesS,1)
       IF( aentriesS(i,1)>0.1d0 ) THEN
         j=j+1
         CALL ATOMSPECIES(aentriesS(i,1),species)
         CALL ATOMMASS(species,smass)
         WRITE(temp,'(f16.8)') smass*Smassratio
-        WRITE(msg,*) SIZE(aentries,1)+j, "  ", TRIM(ADJUSTL(temp))
+        WRITE(msg,*) j, "  ", TRIM(ADJUSTL(temp))
         msg(40:) = "# "//species//" shell"
         WRITE(ofu,*) TRIM(msg)
       ENDIF

@@ -10,7 +10,7 @@ MODULE bindshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2022                                     *
+!* Last modification: P. Hirel - 28 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,7 +54,7 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of nearest shell
 LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
 REAL(dp):: distance  !distance between 2 particles
-REAL(dp),PARAMETER:: maxCSdistance=1.5d0  !maximum allowed core-shell distance
+REAL(dp),PARAMETER:: maxCSdistance=1.d0  !maximum allowed core-shell distance
 REAL(dp),DIMENSION(4):: Stemp !temporary position of a shell
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H    !supercell parameters
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P     !positions of cores

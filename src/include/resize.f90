@@ -9,7 +9,7 @@ MODULE resize
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 May 2022                                      *
+!* Last modification: P. Hirel - 28 June 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -72,8 +72,8 @@ IF( .NOT.ALLOCATED(Array) ) THEN
   Array(:,:) = 0.d0
   !
 ELSE
-  !Array is already allocated => resize it
-  IF( L1>0 .AND. L2>0 ) THEN
+  !Array is already allocated => resize it (only if new sizes are different from previous ones)
+  IF( L1>0 .AND. L2>0 .AND. (L1.NE.SIZE(Array,1) .OR. L2.NE.SIZE(Array,2)) ) THEN
     !
     ALLOCATE( temp_array(L1,L2) , STAT=i )
     IF( i>0 ) THEN
@@ -147,7 +147,7 @@ IF( .NOT.ALLOCATED(Array) ) THEN
   !
 ELSE
   !Array is already allocated => resize it
-  IF( L1>0 .AND. L2>0 ) THEN
+  IF( L1>0 .AND. L2>0 .AND. (L1.NE.SIZE(Array,1) .OR. L2.NE.SIZE(Array,2)) ) THEN
     !
     ALLOCATE( temp_array(L1,L2) , STAT=i )
     IF( i>0 ) THEN
@@ -214,7 +214,7 @@ IF( .NOT.ALLOCATED(Array) ) THEN
   !
 ELSE
   !Array is already allocated => resize it
-  IF( L1>0 ) THEN
+  IF( L1>0 .AND. L1.NE.SIZE(Array) ) THEN
     !
     ALLOCATE( temp_array(L1),STAT=i )
     IF( i>0 ) THEN
