@@ -58,7 +58,7 @@ SUBROUTINE E_DIPOLES(H,P,S,AUXNAMES,AUX,NNN,Pspecies,comment,outputfile)
 IMPLICIT NONE
 CHARACTER(LEN=2),INTENT(IN):: Pspecies  !atom species forming the polyhedra (type #2)
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=16):: ion1, ion2
+CHARACTER(LEN=2):: ion1
 CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=128):: outputfile, pxsf, pcfg, pnorm, pstat  !Output file names
 CHARACTER(LEN=128):: poladat, polaxsf, ptot                !Output file names
@@ -206,7 +206,7 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !If N2 is zero we are in trouble
 IF(N2==0) THEN
   nerr = nerr+1
-  CALL ATOMSK_MSG(4809,(/TRIM(ion2)/),(/0.d0/))
+  CALL ATOMSK_MSG(4809,(/TRIM(Pspecies)/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
@@ -286,6 +286,9 @@ DO i=1,SIZE(aentries,1)
   IF( aentries(i,1).NE.sp2number ) THEN
     !Initialize variables
     Q1 = 0.d0
+    !Save species of type #i
+    ion1=""
+    CALL ATOMSPECIES(aentries(i,1),ion1)
     !
     !Count atoms of type #1
     N1 = NINT(aentries(i,2))
@@ -316,7 +319,6 @@ DO i=1,SIZE(aentries,1)
     ENDDO
     !
     !Setup the text messages
-    CALL ATOMSPECIES(aentries(i,1),ion1)
     CALL ATOMSK_MSG(4034,(/TRIM(ion1),TRIM(Pspecies)/),(/NNN/))
     IF( N1>5000 ) THEN
       CALL ATOMSK_MSG(3,(/''/),(/0.d0/))
@@ -324,7 +326,7 @@ DO i=1,SIZE(aentries,1)
     !
     IF(Q1==0.d0) THEN
       nwarn = nwarn+1
-      CALL ATOMSK_MSG(4703,(/TRIM(ion1),TRIM(ion2)/),(/NNN/))
+      CALL ATOMSK_MSG(4703,(/TRIM(ion1),TRIM(Pspecies)/),(/NNN/))
       !
     ELSE
       !Name individual files
