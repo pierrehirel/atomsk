@@ -24,6 +24,7 @@ Master
 - new option "-dislocation file" allows reading a dislocation Burgers vector and position from a file. For now it supports only planar dislocation loops where the Burgers vector is contained in the loop plane.
 - fixed a bug in option "-cell" where option was skipped when requiring zero length for xy, yz, or xz component.
 - fixed a bug in option "-orthogonal-cell" where the new number of atoms was not always correctly estimated, leading to a segmentation fault.
+- fixed a bug when detecting if coordinates are Cartesian or reduced.
 - fixed a bug where the position was not always computed correctly when using an operation with "box", e.g. when introducing dislocations. Thanks to Samaneh Nasiri, Friedrich-Alexander-University Erlangen-Nürnberg, Germany, for pointing out this bug.
 - fixed a bug in EXPREVAL where expressions containing a factorial preceded by a parenthesis would cause a segmentation fault.
 - script "install.sh" now proposes to compile Atomsk if binary does not exist in current directory.

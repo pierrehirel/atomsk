@@ -701,7 +701,8 @@ END SUBROUTINE FIND_NSP
 ! then coordinates have to be reduced.
 ! One possibility cannot be solved by this routine: if
 ! atoms diffuse a lot and are not wrapped, even their
-! reduced coordinate can take large values.
+! reduced coordinate can take large values (>1) that
+! can be confused with values in angströms.
 !********************************************************
 SUBROUTINE FIND_IF_REDUCED(H,array,isreduced)
 !
@@ -718,14 +719,15 @@ avg = 0.d0
 minmax = 0.d0
 D = 0.d0
 th = 3.d0
-IF( SIZE(array,1) < 11 ) THEN
-  th = 1.48d0
-ENDIF
 !
-IF( ANY( DABS(array(:,1:3)) > 1.2d0 ) .OR. ANY( DABS(array(:,1:3)) < -0.5d0 ) ) THEN
+IF( ANY( DABS(array(:,1:3)) > 0.99d0 ) .OR. ANY( DABS(array(:,1:3)) < 1.d-6 ) ) THEN
   !Some coordinates are not contained between 0 and 1
   !Loop on X, Y, Z
   DO i=1,3
+    !
+    IF( SIZE(array,1) < 11 ) THEN
+      th = 0.4d0*VECLENGTH(H(:,i))
+    ENDIF
     !
     !Compute difference between max and min coordinates
     minmax = MAXVAL(array(:,i)) - MINVAL(array(:,i))
@@ -744,8 +746,7 @@ IF( ANY( DABS(array(:,1:3)) > 1.2d0 ) .OR. ANY( DABS(array(:,1:3)) < -0.5d0 ) ) 
     !
     !If minmax is much greater than 1, or if D is greater than 1,
     !then coordinates are Cartesian
-    IF( avg > 1.5d0 .OR. minmax > th .OR. D > th    &
-      & .OR. minmax > 0.6d0*VECLENGTH(H(:,i))       ) THEN
+    IF( avg > 1.5d0 .OR. minmax > th .OR. D > th ) THEN
       isreduced = .FALSE.
     ENDIF
     !
