@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 June 2022                                     *
+!* Last modification: P. Hirel - 05 July 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -48,8 +48,6 @@ CONTAINS
 !
 !********************************************************
 ! NEIGHBOR_LIST
-! This subroutine is just an alias that calls
-! VERLET_LIST or CELL_LIST to construct a neighbor list.
 ! Considering a list of atom positions A, base
 ! vectors H defining periodic conditions, and a radius R,
 ! a list of neighbors is constructed for all atoms,
@@ -61,28 +59,33 @@ CONTAINS
 !    etc.
 ! meaning that neighbors of atom #1 are atoms #2, 4, 6,
 ! neighbors of atom #2 are #1, 3, 4, 5, etc.
-! NOTE: atoms are assumed to be wrapped, i.e. all 
-!      in the box (no atom outside of the box).
-! NOTE2: the neighbor list NeighList(i,:) of the atom #i
-!      may contain trailing zeros, as illustrated above.
-!      These zeros are meant to be ignored. The first zero
-!      encountered means there will be no more neighbors.
-! NOTE3: an atom is *never* counted as its own neighbor.
-!      A neighbor appears only once in the neighbor list.
-!      If the system is such that
-!      replicas of atom #i are neighbors of atom #i,
-!      or such that several replica of an atom #j can
-!      be neighbors to an atom #i, then the replica do
-!      not appear in the list, i.e. the atom #j is
-!      counted only once. If several replica of atom #j
-!      are neighbors of atom #i, that must be corrected for
-!      *after* calling this routine (see NEIGHBOR_POS).
-! NOTE4: if the number of atoms is small, then a
-!      simplistic Verlet search is performed, which
-!      scales as N². Otherwise a cell decomposition
-!      algorithm is used, which scales as N.
-! NOTE5: if no neighbor is found, then the array
-!      NeighList is returned as UNALLOCATED.
+!     NOTES:
+! (1) This subroutine is just an alias that automatically
+!     calls VERLET_LIST or CELL_LIST, depending on criteria.
+!     It remains possible to call VERLET_LIST or CELL_LIST
+!     directly, if desired/necessary.
+! (2) atoms are assumed to be wrapped, i.e. all 
+!     in the box (no atom outside of the box).
+! (3) the neighbor list NeighList(i,:) of the atom #i
+!     may contain trailing zeros, as illustrated above.
+!     These zeros are meant to be ignored. The first zero
+!     encountered means there will be no more neighbors.
+! (4) an atom is *never* counted as its own neighbor.
+!     A neighbor appears only once in the neighbor list.
+!     If the system is such that
+!     replicas of atom #i are neighbors of atom #i,
+!     or such that several replica of an atom #j can
+!     be neighbors to an atom #i, then the replica do
+!     not appear in the list, i.e. the atom #j is
+!     counted only once. If several replica of atom #j
+!     are neighbors of atom #i, that must be corrected for
+!     *after* calling this routine (see NEIGHBOR_POS).
+! (5) if the number of atoms is small, then a
+!     simplistic Verlet search is performed, which
+!     scales as N². Otherwise a cell decomposition
+!     algorithm is used, which scales as N.
+! (6) if no neighbor is found, then the array
+!     NeighList is returned as UNALLOCATED.
 !********************************************************
 SUBROUTINE NEIGHBOR_LIST(H,A,R,NeighList)
 !
@@ -99,11 +102,11 @@ IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 distance = MIN( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
 !
 neighsearch = "verlet"  !TEMPORARY: force use of Verlet algorithm
-IF( neighsearch=="verlet" .OR. neighsearch=="Verlet" .OR. neighsearch=="VERLET" ) THEN
+IF( STRDNCASE(neighsearch)=="verlet" ) THEN
   !User forces use of Verlet algorithm
   CALL VERLET_LIST(H,A,R,NeighList)
   !
-ELSEIF( neighsearch=="cell" .OR. neighsearch=="CELL" ) THEN
+ELSEIF( STRDNCASE(neighsearch)=="cell" ) THEN
   !User forces use of CELL algorithm
   CALL CELL_LIST(H,A,R,NeighList)
   !

@@ -12,7 +12,7 @@ MODULE oia_dlp_history
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 04 July 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -56,10 +56,12 @@ LOGICAL:: isreduced
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j
 INTEGER:: levcfg, imcon, megatm
+INTEGER:: q, qs, fx, fy, fz, vx, vy, vz !position of properties in AUX
 INTEGER:: Natoms, Nshells !number of cores, shells
+INTEGER:: Nline
 INTEGER:: Nsys  !number of systems that were converted
 INTEGER:: snap, timestep !snapshot index, timestep
-REAL(dp):: tempreal
+REAL(dp):: tempreal, tempreal2
 REAL(dp),DIMENSION(3,3):: Huc   !Box vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
@@ -71,8 +73,17 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, tempAUX !auxiliary properties
 !
 !Initialize variables
 outputfile=''
+Nline = 0
 Nsys = 0
 snap = 0
+q=1
+qs=2
+fx=0
+fy=0
+fz=0
+vx=0
+vy=0
+vz=0
 C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 ALLOCATE(comment(1))
@@ -119,6 +130,7 @@ DO
   !
   !Read the timestep
   !If that fails then we are done -> exit
+  Nline = Nline+1
   READ(30,'(a72)',ERR=1000,END=1000) temp
   temp = ADJUSTL(temp)
   IF(temp(1:8).NE.'timestep') THEN
@@ -126,39 +138,57 @@ DO
     nerr=nerr+1
     GOTO 1000
   ENDIF
+  Nline = Nline+1
   READ(temp(10:),*,END=800,ERR=800) timestep, megatm
   !
   !Read supercell vectors
   DO i=1,3
+    Nline = Nline+1
     READ(30,*,END=800,ERR=800) (H(i,j), j=1,3)
   ENDDO
   !
   IF(levcfg==1) THEN
-    !Velocities follow atom positions
-    ALLOCATE(AUXNAMES(3))
-    AUXNAMES(1) = 'vx'
-    AUXNAMES(2) = 'vy'
-    AUXNAMES(3) = 'vz'
-    ALLOCATE( tempAUX( megatm, 3 ) )
-    tempAUX(:,:) = 0.d0
+    !AUX will contain q, qs, vx, vy, vz
+    j = 5
+    vx = 3
+    vy = 4
+    vz = 5
     !
   ELSEIF(levcfg==2) THEN
-    !Velocities + forces follow atom positions
-    ALLOCATE(AUXNAMES(6))
-    AUXNAMES(1) = 'vx'
-    AUXNAMES(2) = 'vy'
-    AUXNAMES(3) = 'vz'
-    AUXNAMES(4) = 'fx'
-    AUXNAMES(5) = 'fy'
-    AUXNAMES(6) = 'fz'
-    ALLOCATE( tempAUX( megatm, 6 ) )
-    tempAUX(:,:) = 0.d0
+    !AUX will contain q, qs, vx, vy, vz, fx, fy, fz
+    j = 8
+    vx = 3
+    vy = 4
+    vz = 5
+    fx = 6
+    fy = 7
+    fz = 8
     !
   ELSEIF(levcfg>2) THEN
     nerr=nerr+1
     CALL ATOMSK_MSG(1808,(/''/),(/0.d0/))
     GOTO 1000
+    !
+  ELSE
+    !AUX will contain q, qs
+    j = 2
   ENDIF
+  !
+  ALLOCATE(AUXNAMES(j))
+  AUXNAMES(q) = 'q'
+  AUXNAMES(qs) = 'qs'
+  IF( vx>0 .AND. vy>0 .AND. vz>0 ) THEN
+    AUXNAMES(vx) = 'vx'
+    AUXNAMES(vy) = 'vy'
+    AUXNAMES(vz) = 'vz'
+  ENDIF
+  IF( fx>0 .AND. fy>0 .AND. fz>0 ) THEN
+    AUXNAMES(fx) = 'fx'
+    AUXNAMES(fy) = 'fy'
+    AUXNAMES(fz) = 'fz'
+  ENDIF
+  ALLOCATE( tempAUX( megatm, SIZE(AUXNAMES) ) )
+  tempAUX(:,:) = 0.d0
   !
   IF(megatm<=0) THEN
     nerr=nerr+1
@@ -193,6 +223,7 @@ DO
     !and that shells are written in the same order as atom cores
     !(either alternating core, shell, core, shell... or all
     !core positions and then all shells positions)
+    Nline = Nline+1
     READ(30,'(a72)',END=800,ERR=800) temp
     !
     !Read atom species
@@ -209,41 +240,55 @@ DO
       !we cannot understand the "atom name".
       !The output will be garbage but I don't care
     ENDIF
+    !Read charge
+    tempreal2 = 0.d0
+    READ(temp,*,END=210,ERR=210) msg, msg, msg, tempreal2
+    210 CONTINUE
     !
     !Detect if it is atom or shell
     IF( INDEX(temp,"_s")==0 ) THEN
       !it's an atom
       Natoms=Natoms+1
+      !Save atom/core charge
+      tempAUX(Natoms,q) = tempreal2
       !Read atom position
+      Nline = Nline+1
       READ(30,*,END=800,ERR=800) (tempP(Natoms,j),j=1,3)
       !Set atom species
       tempP(Natoms,4) = tempreal
       !Read atom auxiliary properties
       IF(levcfg>=1) THEN
         !Line containing velocities
-        READ(30,*,END=800,ERR=800) (tempAUX(Natoms,j),j=1,3)
+        Nline = Nline+1
+        READ(30,*,END=800,ERR=800) (tempAUX(Natoms,j),j=vx,vy)
       ENDIF
       IF(levcfg==2) THEN
         !Line containing forces
-        READ(30,*,END=800,ERR=800) (tempAUX(Natoms,j),j=4,6)
+        Nline = Nline+1
+        READ(30,*,END=800,ERR=800) (tempAUX(Natoms,j),j=fx,fz)
       ENDIF
       ! 
     ELSE
       !it's a shell
       Nshells=Nshells+1
+      !Save shell charge
+      tempAUX(Natoms,qs) = tempreal2
       !Check that index is not zero
       IF(Natoms==0) Natoms=Natoms+1
       !Read shell position
+      Nline = Nline+1
       READ(30,*,END=800,ERR=800) (tempS(Natoms,j),j=1,3)
       !Set shell species
       tempS(Natoms,4) = tempreal
       !Pretend to read auxiliary properties but don't save them
       IF(levcfg>=1) THEN
         !Line containing velocities
+        Nline = Nline+1
         READ(30,*,END=800,ERR=800) temp
       ENDIF
       IF(levcfg==2) THEN
         !Line containing forces
+        Nline = Nline+1
         READ(30,*,END=800,ERR=800) temp
       ENDIF
     ENDIF
@@ -321,7 +366,7 @@ GOTO 1000
 !
 !
 800 CONTINUE
-CALL ATOMSK_MSG(1801,(/TRIM(inputfile)/),(/0.d0/))
+CALL ATOMSK_MSG(1801,(/TRIM(inputfile)/),(/DBLE(Nline)/))
 nerr = nerr+1
 GOTO 1000
 !

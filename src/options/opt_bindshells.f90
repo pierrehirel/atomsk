@@ -206,13 +206,13 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
   NP = 0 !counter for cores
   NS = 0 !counter for shells
   !Loop on all particles in P
-  DO i=1,SIZE(P,1)-1
+  DO i=1,SIZE(P,1)
     l=0 !counter =0 as long as no shell is found for atom #i
     IF( P(i,4)>0.1d0 ) THEN
       !Loop on all other particles in P
-      DO j=i+1,SIZE(P,1)
+      DO j=i,SIZE(P,1)
         !
-        IF( P(j,4)>0.1d0 ) THEN
+        IF( j>i .AND. P(j,4)>0.1d0 ) THEN
           !Compute distance between particles i and j
           distance = VECLENGTH( P(j,1:3) - P(i,1:3) )
           !
@@ -308,126 +308,131 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
   !
   CALL ATOMSK_MSG(2154,(/''/),(/DBLE(NP),DBLE(NS)/))
   !
-  !Resize old arrays
-  IF( ALLOCATED(AUX) .AND. (ALLOCATED(AUXNAMES)) ) THEN
-    DEALLOCATE(AUX)
-    ALLOCATE( AUX( NP , SIZE(newAUX,2) ) )
-    AUX(:,:) = 0.d0
-    DO i=1,NP
-      AUX(i,:) = newAUX(i,:)
+  IF( NP.NE.SIZE(P,1) ) THEN
+    !Among all particles in P, some were detetced to be shells
+    !Resize old arrays
+    IF( ALLOCATED(AUX) .AND. (ALLOCATED(AUXNAMES)) ) THEN
+      DEALLOCATE(AUX)
+      ALLOCATE( AUX( NP , SIZE(newAUX,2) ) )
+      AUX(:,:) = 0.d0
+      DO i=1,NP
+        AUX(i,:) = newAUX(i,:)
+      ENDDO
+      DEALLOCATE(newAUX)
+    ENDIF
+    !
+    !Re-write P so it contains only cores
+    IF(ALLOCATED(P)) DEALLOCATE(P)
+    ALLOCATE(P(NP,4))
+    P(:,:) = 0.d0
+    j=0
+    DO i=1,SIZE(newP,1)
+      IF( newP(i,4)>0.1d0 ) THEN
+        j=j+1
+        P(j,:) = newP(i,:)
+      ENDIF
     ENDDO
-    DEALLOCATE(newAUX)
+    DEALLOCATE(newP)
+    !
+    !Save shells (newS) into array S
+    ALLOCATE(S(NP,4))
+    S(:,:) = 0.d0
+    j=0
+    DO i=1,SIZE(newS,1)
+      IF( newS(i,4)>0.1d0 ) THEN
+        j=j+1
+        S(j,:) = P(i,:)
+      ENDIF
+    ENDDO
+    DEALLOCATE(newS)
   ENDIF
-  !
-  !Re-write P so it contains only cores
-  IF(ALLOCATED(P)) DEALLOCATE(P)
-  ALLOCATE(P(NP,4))
-  P(:,:) = 0.d0
-  j=0
-  DO i=1,SIZE(newP,1)
-    IF( newP(i,4)>0.1d0 ) THEN
-      j=j+1
-      P(j,:) = newP(i,:)
-    ENDIF
-  ENDDO
-  DEALLOCATE(newP)
-  !
-  !Save shells (newS) into array S
-  ALLOCATE(S(NP,4))
-  S(:,:) = 0.d0
-  j=0
-  DO i=1,SIZE(newS,1)
-    IF( newS(i,4)>0.1d0 ) THEN
-      j=j+1
-      S(j,:) = P(i,:)
-    ENDIF
-  ENDDO
-  DEALLOCATE(newS)
   !
 ENDIF
 !
 !
 !
 200 CONTINUE
-DO i=1,SIZE(P,1)
-  !
-  IF( VECLENGTH(S(i,1:3)-P(i,1:3)) > maxCSdistance ) THEN
-    !core-shell distance is very large
-    !
-    !First, let us assume that core #i and shell #i are associated
-    !but that for some reason the shell was shifted by a combination
-    !of box vectors because of PBC, and the core was not
-    Stemp(:) = S(i,:)
-    DO j=-3,3
-      DO k=-3,3
-        DO l=-3,3
-          Stemp(1:3) = S(i,1:3) + DBLE(j)*H(1,:) + DBLE(k)*H(2,:) + DBLE(l)*H(3,:)
-          IF( VECLENGTH(Stemp(1:3)-P(i,1:3)) <= maxCSdistance ) THEN
-            !The position of this periodic image is suitable
-            !Save it in S
-            S(i,:) = Stemp(:)
-            !One more shell was associated
-            Nbound = Nbound+1
-            EXIT
-          ENDIF
-        ENDDO
-      ENDDO
-    ENDDO
-    !
+IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+  DO i=1,SIZE(P,1)
     !
     IF( VECLENGTH(S(i,1:3)-P(i,1:3)) > maxCSdistance ) THEN
-      !Mere translation by box vectors was unsuccessful
-      !=> shell #i does not seem to be associated with core #i
-      !Parse S to see if another shell is better suited to core #i
+      !core-shell distance is very large
       !
-      !Search the shell that is closest to that atom
-      CALL FIND_NNN(H,S,P(i,:),1,V_NN,Nlist,exceeds100)
-      !V_NN(1,:) = position of closest shell
-      !Nlist(1) = index of that shell
-      !
-      !Check that we found a shell that has a different index than i,
-      !and that it is actually a shell
-      IF( Nlist(1).NE.i .AND. NINT(S(Nlist(1),4)).NE.0 ) THEN
-        !This shell was not associated with this core before
-        IF( VECLENGTH( V_NN(1,1:3)-P(i,1:3) ) <= maxCSdistance ) THEN
-          !If distance is smaller than 1.5 A,then
-          !this shell belongs to that core
-          IF( NINT(S(i,4)).NE.0 ) THEN
-            !Present core already had a shell: save this shell position
-            Stemp(:) = S(i,:)
-          ENDIF
-          !
-          !Save closest shell position at current index i
-          S(i,1:3) = V_NN(1,1:3)
-          S(i,4) = P(i,4)
-          !
-          IF( NINT(Stemp(4)).NE.0 ) THEN
-            !Save previous shell of atom i to index Nlist(1)
-            S(Nlist(1),:) = Stemp(:)
-            IF( VECLENGTH( S(Nlist(1),1:3)-P(Nlist(1),1:3) ) <= maxCSdistance ) THEN
-              !This shell belongs to the core at Nlist(1)
+      !First, let us assume that core #i and shell #i are associated
+      !but that for some reason the shell was shifted by a combination
+      !of box vectors because of PBC, and the core was not
+      Stemp(:) = S(i,:)
+      DO j=-3,3
+        DO k=-3,3
+          DO l=-3,3
+            Stemp(1:3) = S(i,1:3) + DBLE(j)*H(1,:) + DBLE(k)*H(2,:) + DBLE(l)*H(3,:)
+            IF( VECLENGTH(Stemp(1:3)-P(i,1:3)) <= maxCSdistance ) THEN
+              !The position of this periodic image is suitable
+              !Save it in S
+              S(i,:) = Stemp(:)
+              !One more shell was associated
               Nbound = Nbound+1
+              EXIT
             ENDIF
+          ENDDO
+        ENDDO
+      ENDDO
+      !
+      !
+      IF( VECLENGTH(S(i,1:3)-P(i,1:3)) > maxCSdistance ) THEN
+        !Mere translation by box vectors was unsuccessful
+        !=> shell #i does not seem to be associated with core #i
+        !Parse S to see if another shell is better suited to core #i
+        !
+        !Search the shell that is closest to that atom
+        CALL FIND_NNN(H,S,P(i,:),1,V_NN,Nlist,exceeds100)
+        !V_NN(1,:) = position of closest shell
+        !Nlist(1) = index of that shell
+        !
+        !Check that we found a shell that has a different index than i,
+        !and that it is actually a shell
+        IF( Nlist(1).NE.i .AND. NINT(S(Nlist(1),4)).NE.0 ) THEN
+          !This shell was not associated with this core before
+          IF( VECLENGTH( V_NN(1,1:3)-P(i,1:3) ) <= maxCSdistance ) THEN
+            !If distance is smaller than 1.5 A,then
+            !this shell belongs to that core
+            IF( NINT(S(i,4)).NE.0 ) THEN
+              !Present core already had a shell: save this shell position
+              Stemp(:) = S(i,:)
+            ENDIF
+            !
+            !Save closest shell position at current index i
+            S(i,1:3) = V_NN(1,1:3)
+            S(i,4) = P(i,4)
+            !
+            IF( NINT(Stemp(4)).NE.0 ) THEN
+              !Save previous shell of atom i to index Nlist(1)
+              S(Nlist(1),:) = Stemp(:)
+              IF( VECLENGTH( S(Nlist(1),1:3)-P(Nlist(1),1:3) ) <= maxCSdistance ) THEN
+                !This shell belongs to the core at Nlist(1)
+                Nbound = Nbound+1
+              ENDIF
+            ELSE
+              !Otherwise, simply delete previous shell position
+              S(Nlist(1),:) = 0.d0
+            ENDIF
+            !
+            !One more shell was associated
+            Nbound = Nbound+1
           ELSE
-            !Otherwise, simply delete previous shell position
-            S(Nlist(1),:) = 0.d0
+            !Otherwise (distance>1.5A) this core has no shell
+            S(i,:) = 0.d0
           ENDIF
-          !
-          !One more shell was associated
-          Nbound = Nbound+1
-        ELSE
-          !Otherwise (distance>1.5A) this core has no shell
-          S(i,:) = 0.d0
         ENDIF
       ENDIF
+      !
+      !
     ENDIF
-    !
-    !
-  ENDIF
-ENDDO
-!
-!
-CALL ATOMSK_MSG(2106,(/''/),(/DBLE(Nbound)/))
+  ENDDO
+  !
+  CALL ATOMSK_MSG(2106,(/''/),(/DBLE(Nbound)/))
+  !
+ENDIF
 !
 !
 !
