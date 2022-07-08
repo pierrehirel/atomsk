@@ -362,7 +362,7 @@ DO i=1,SIZE(aentries,1)
       N1=0
       !Loop on all atoms
       !$OMP PARALLEL DO DEFAULT(SHARED) &
-      !$OMP& PRIVATE(msg,j,k,center,Nlist,V_NN,exceeds100) REDUCTION(+:N1)
+      !$OMP& PRIVATE(msg,j,k,center,Nlist,V_NN,exceeds100)  REDUCTION(+:totpola)
       DO j=1,SIZE(P,1)
         !
         !We want only atoms of type 1
@@ -430,9 +430,7 @@ DO i=1,SIZE(aentries,1)
             normpola(j) = VECLENGTH(pola(j,:))
             !
             !Compute total polarization
-            !$OMP CRITICAL
             totpola(:) = totpola(:)+pola(j,:)
-            !$OMP END CRITICAL
             !
             !Output
             !XSF file

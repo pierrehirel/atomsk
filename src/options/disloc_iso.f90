@@ -13,7 +13,7 @@ MODULE dislocation_iso
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Jan. 2018                                     *
+!* Last modification: P. Hirel - 08 July 2022                                     *
 !**********************************************************************************
 !* List of functions in this module:                                              *
 !* DISPSCREW           applies isotropic disp. of a screw disloc. to 1 atom       *
@@ -121,29 +121,33 @@ END FUNCTION DISPEDGE
 !   sigma_11 = sigma_22 = sigma_33 = sigma_12 = 0
 !   sigma_13 = (-mu*b/2pi) * y/(x²+y²)
 !   sigma_23 = (mu*b/2pi) * x/(x²+y²)
-! NOTE: the shear modulus mu is not passed to this
-! routine, therefore what is resturned is the stress
-! tensor normalized by mu, i.e. sigma/mu.
+! NOTE: if the shear modulus mu is not passed to this
+! routine (or if it is zero), then mu=1 is assumed.
 !********************************************************
 !
-SUBROUTINE STRESSSCREW(P,a1,a2,b,nu,pos1,pos2,sigma)
+SUBROUTINE STRESSSCREW(P,a1,a2,b,mu,nu,pos1,pos2,sigma)
 !
 IMPLICIT NONE
 INTEGER,INTENT(IN):: a1, a2
 REAL(dp),INTENT(IN):: b          !norm of Burgers vector
+REAL(dp),INTENT(IN):: mu         !shear modulus (GPa)
 REAL(dp),INTENT(IN):: nu         !Poisson ratio
 REAL(dp),INTENT(IN):: pos1, pos2 !Position of the dislocation in the plane
                                  !orthogonal to the dislocation line
-REAL(dp):: tempreal
+REAL(dp):: mu0, tempreal
 REAL(dp),DIMENSION(3),INTENT(IN):: P  !Atom position
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: sigma   !dislocation theoretical elastic stresses
 !
+mu0 = mu
+IF( mu<1.d0 ) THEN
+  mu0 = 1.d0
+ENDIF
 sigma(:,:) = 0.d0
 tempreal = (P(a1)-pos1)**2 + (P(a2)-pos2)**2
 !avoid division by zero
 IF(DABS(tempreal)>1.d-6) THEN
-  sigma(2,3) = -1.d0*b/(2.d0*pi) * (P(a2)-pos2)/tempreal
-  sigma(1,3) = b/(2.d0*pi) * (P(a1)-pos1)/tempreal
+  sigma(1,3) = -1.d0*mu0*b/(2.d0*pi) * (P(a2)-pos2)/tempreal
+  sigma(2,3) = mu0*b/(2.d0*pi) * (P(a1)-pos1)/tempreal
 ENDIF
 !
 END SUBROUTINE STRESSSCREW
@@ -158,34 +162,38 @@ END SUBROUTINE STRESSSCREW
 !   sigma_12 = (mu*b/2pi(1-nu)) * x*(x²-y²)/(x²+y²)²
 !   sigma_33 = nu*(sigma_11 + sigma_22)
 !   sigma_13 = sigma_23 = 0
-! NOTE: the shear modulus mu is not passed to this
-! routine, therefore what is returned is the stress
-! tensor normalized by mu, i.e. sigma/mu.
+! NOTE: if the shear modulus mu is not passed to this
+! routine (or if it is zero), then mu=1 is assumed.
 !********************************************************
 !
-SUBROUTINE STRESSEDGE(P,a1,a2,b,nu,pos1,pos2,sigma)
+SUBROUTINE STRESSEDGE(P,a1,a2,b,mu,nu,pos1,pos2,sigma)
 !
 IMPLICIT NONE
 INTEGER,INTENT(IN):: a1, a2
 REAL(dp),INTENT(IN):: b          !norm of Burgers vector
+REAL(dp),INTENT(IN):: mu         !shear modulus (GPa)
 REAL(dp),INTENT(IN):: nu         !Poisson ratio
 REAL(dp),INTENT(IN):: pos1, pos2 !Position of the dislocation in the plane
                                  !orthogonal to the dislocation line
-REAL(dp):: tempreal
+REAL(dp):: mu0, tempreal
 REAL(dp),DIMENSION(3),INTENT(IN):: P  !Atom position
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: sigma   !dislocation theoretical elastic stresses
 !
+mu0 = mu
+IF( mu<1.d0 ) THEN
+  mu0 = 1.d0
+ENDIF
 sigma(:,:) = 0.d0
 tempreal = (P(a1)-pos1)**2 + (P(a2)-pos2)**2
 !avoid division by zero
 IF(DABS(tempreal)>1.d-6) THEN
-  sigma(1,1) = -1.d0*b/(2.d0*pi*(1.d0-nu)) *   &
+  sigma(1,1) = -1.d0*mu0*b/(2.d0*pi*(1.d0-nu)) *   &
           & (P(a2)-pos2)*(3.d0*(P(a1)-pos1)**2+(P(a2)-pos2)**2) &
           & / (tempreal**2)
-  sigma(2,2) = b/(2.d0*pi*(1.d0-nu)) *         &
+  sigma(2,2) = mu0*b/(2.d0*pi*(1.d0-nu)) *         &
             & (P(a2)-pos2)*((P(a1)-pos1)**2-(P(a2)-pos2)**2)    &
             & / (tempreal**2)
-  sigma(1,2) = b/(2.d0*pi*(1.d0-nu)) *         &
+  sigma(1,2) = mu0*b/(2.d0*pi*(1.d0-nu)) *         &
               & (P(a1)-pos1)*((P(a1)-pos1)**2-(P(a2)-pos2)**2)  &
               & / (tempreal**2)
   sigma(3,3) = nu*( sigma(1,1) + sigma(2,2) )
@@ -201,20 +209,24 @@ END SUBROUTINE STRESSEDGE
 !   E = (µb²/4pi) * ( cos²i + sin²i/(1-nu) )
 ! where i is the angle between the Burgers vector b
 ! and the dislocation line: screw i=0, edge i=90°.
-! NOTE: the shear modulus mu is not passed to this
-! routine, therefore what is returned is the energy
-! factor normalized by mu, i.e. E/mu
+! NOTE: if the shear modulus mu is not passed to this
+! routine (or if it is zero), then mu=1 is assumed.
 !********************************************************
 !
-FUNCTION ISO_EFACTOR(b,nu,angle) RESULT(Efactor)
+FUNCTION ISO_EFACTOR(b,mu,nu,angle) RESULT(Efactor)
 !
 IMPLICIT NONE
 REAL(dp),INTENT(IN):: b  !Burgers vector
+REAL(dp),INTENT(IN):: mu !shear modulus (GPa)
 REAL(dp),INTENT(IN):: nu !Poisson ratio
 REAL(dp),INTENT(IN):: angle !angle between b and disloc.line (radians)
-REAL(dp):: Efactor
-!  
-Efactor = ( (DCOS(angle))**2 + ((DSIN(angle))**2)/(1.d0-nu)) * b*b / (4.d0*pi)
+REAL(dp):: Efactor, mu0
+!
+mu0 = mu
+IF( mu<1.d0 ) THEN
+  mu0 = 1.d0
+ENDIF
+Efactor = ( mu0*b*b/(4.d0*pi) ) * ( (DCOS(angle))**2 + ((DSIN(angle))**2)/(1.d0-nu))
 !
 END FUNCTION ISO_EFACTOR
 !

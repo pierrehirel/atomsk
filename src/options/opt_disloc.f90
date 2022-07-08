@@ -86,6 +86,7 @@ INTEGER:: sig1, sig2, sig3, sig4, sig5, sig6 !for indexing stresses
 REAL(dp):: bsign !sign of Burgers vector (+1.d0 or -1.d0)
 REAL(dp),DIMENSION(5):: pos !pos(1:3) = coordinates of dislocation center; pos(4) = radius of loop
 REAL(dp):: Efactor  !prelogarithmic energy factor
+REAL(dp):: mu       !shear modulus (GPa)
 REAL(dp):: tempreal
 REAL(dp):: V1, V2, V3
 REAL(dp),DIMENSION(3):: disp     !elastic displacement applied to an atom
@@ -121,6 +122,7 @@ sig4=0
 sig5=0
 sig6=0
 bsign = 1.d0
+mu = 1.d0    !(dummy value)
 disp_rot_matrix(:,:) = 0.d0
 Vline(:,:) = 0.d0
 Vplane(:,:) = 0.d0
@@ -582,7 +584,7 @@ IF(disloctype=='screw') THEN
         ENDIF
         !
         !Compute stress
-        CALL STRESSSCREW(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+        CALL STRESSSCREW(P(i,1:3),a1,a2,bsign*VECLENGTH(b),mu,nu,pos(1),pos(2),sigma)
         !
         !Add stresses due to this disloc. to existing stresses in AUX
         AUX(i,sig4) = AUX(i,sig4) + sigma(2,3)
@@ -591,7 +593,7 @@ IF(disloctype=='screw') THEN
     ENDDO
     !
     !Compute prelogarithmic energy factor
-    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,0.d0)
+    Efactor = ISO_EFACTOR(VECLENGTH(b),mu,nu,0.d0)
     CALL ATOMSK_MSG(2101,(/'b²/4pi'/),(/Efactor/))
   ENDIF
   !
@@ -661,7 +663,7 @@ ELSEIF(disloctype=='edge') THEN
         !
         !
         !Compute stress
-        CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+        CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),mu,nu,pos(1),pos(2),sigma)
         !
         !Add stresses due to this disloc. to existing stresses in AUX
         AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
@@ -672,7 +674,7 @@ ELSEIF(disloctype=='edge') THEN
     ENDDO
     !
     !Compute prelogarithmic energy factor
-    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
+    Efactor = ISO_EFACTOR(VECLENGTH(b),mu,nu,pi/4.d0)
     CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
     !
   ENDIF
@@ -868,7 +870,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
       ENDIF
       !
       !Compute stress
-      CALL STRESSEDGE(Q(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+      CALL STRESSEDGE(Q(i,1:3),a1,a2,bsign*VECLENGTH(b),mu,nu,pos(1),pos(2),sigma)
       !
       !Add stresses due to this disloc. to existing stresses in AUX
       newAUX(i,sig1) = newAUX(i,sig1) + sigma(1,1)
@@ -878,7 +880,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
     ENDDO
     !
     !Compute prelogarithmic energy factor
-    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
+    Efactor = ISO_EFACTOR(VECLENGTH(b),mu,nu,pi/4.d0)
     CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
     !
   ENDIF  !Endif aniso
@@ -1065,7 +1067,7 @@ ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
       ENDIF
       !
       !Compute stress
-      CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),nu,pos(1),pos(2),sigma)
+      CALL STRESSEDGE(P(i,1:3),a1,a2,bsign*VECLENGTH(b),mu,nu,pos(1),pos(2),sigma)
       !
       !Add stresses due to this disloc. to existing stresses in AUX
       AUX(i,sig1) = AUX(i,sig1) + sigma(1,1)
@@ -1075,7 +1077,7 @@ ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
     ENDDO
     !
     !Compute prelogarithmic energy factor
-    Efactor = ISO_EFACTOR(VECLENGTH(b),nu,pi/4.d0)
+    Efactor = ISO_EFACTOR(VECLENGTH(b),mu,nu,pi/4.d0)
     CALL ATOMSK_MSG(2101,(/'b²/4pi(1-nu)'/),(/Efactor/))
     !
   ENDIF  !Endif aniso
