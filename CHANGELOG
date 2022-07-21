@@ -17,7 +17,7 @@ Master
 - in mode "--rdf", improved efficiency in the computation of the partial RDFs. Also fixed a bug in the computation of the total RDF when atoms of different species and different densities were present.
 - in option "-bind-shells", when no shells are defined, atoms close to one another are considered as associated core/shell pairs.
 - option "-reduce-cell" now checks that stoichiometry is preserved.
-- random number generator will now use file "/dev/urandom" to generate a random seed whenever possible; otherwise, system clock will be used as a seed.
+- random number generator will now use file "/dev/urandom" to generate a random seed whenever possible (only in UNIX/Linux systems); otherwise, system clock will be used as a seed.
 - fixed a bug when reading and writing POSCAR files where the keywords "Selective dynamics" were involved.
 - fixed a bug when writing LAMMPS data file when atom "types" were defined, but some types were not assigned to any atom in the system. Fixed bugs when reading or writing LAMMPS data files when shells were defined. Fixed a bug in the writing of box dimensions, when one or several box vectors had negative components. Thanks to Eerik Voimanen, Tampere University, Finland, for providing a fix for this bug.
 - fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.
@@ -28,6 +28,7 @@ Master
 - fixed a bug when detecting if coordinates are Cartesian or reduced.
 - fixed a bug where the position was not always computed correctly when using an operation with "box", e.g. when introducing dislocations. Thanks to Samaneh Nasiri, Friedrich-Alexander-University Erlangen-Nürnberg, Germany, for pointing out this bug.
 - fixed a bug in EXPREVAL where expressions containing a factorial preceded by a parenthesis would cause a segmentation fault.
+- in mode "--unfold", when reading VASP OUTCAR files produced with IBRION<0, added an error message.
 - script "install.sh" now proposes to compile Atomsk if binary does not exist in current directory.
 
 

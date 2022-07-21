@@ -3624,6 +3624,13 @@ CASE(4832)
   msg = TRIM(ADJUSTL(errmsg))//" Knoten #"//TRIM(ADJUSTL(temp))//" und #"//TRIM(ADJUSTL(temp2))//&
       & " sind an der gleichen Position. Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4833)
+  !reals(1) = value of IBRION
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(errmsg))//" anscheinend wurde VASP mit IBRION = "//TRIM(ADJUSTL(temp))//"  ausgeführt,"
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          daher enthält diese OUTCAR-Datei keine atomare Konfiguration."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" Es kann immer nur ein Modus verwendet werden."
   CALL DISPLAY_MSG(1,msg,logfile)

@@ -3596,6 +3596,13 @@ CASE(4832)
   msg = TRIM(ADJUSTL(errmsg))//" nodes #"//TRIM(ADJUSTL(temp))//" and #"//TRIM(ADJUSTL(temp2))//&
       & " are at the same position, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4833)
+  !reals(1) = value of IBRION
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(errmsg))//" apparently VASP was run with IBRION = "//TRIM(ADJUSTL(temp))//","
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          meaning that this OUTCAR file does not contain any atomic configuration."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" only one mode can be used at a time."
   CALL DISPLAY_MSG(1,msg,logfile)

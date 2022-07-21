@@ -12,7 +12,7 @@ MODULE oia_vaspout
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 21 July 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,7 +58,7 @@ LOGICAL:: isreduced
 LOGICAL:: readforces
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: NtypesPOTCAR, NtypesNIONS  !number of different atom types
-INTEGER:: i, j, NP, Nsnap, snap, strlen
+INTEGER:: i, j, NP, Nline, Nsnap, snap, strlen
 INTEGER:: Nsys  !number of systems converted
 INTEGER,DIMENSION(10,2):: atypes !atom "types" (atomic numbers) and their number
 REAL(dp):: alat  !lattice constant
@@ -127,7 +127,7 @@ P(:,:) = 0.d0
 !Assuming that element name is in 3rd position
 REWIND(30)
 NtypesPOTCAR = 0
-DO
+DO Nline=1,1000  !restrict reading to the first thousand lines
   READ(30,'(a128)',ERR=800,END=800) test
   test = TRIM(ADJUSTL(test))
   IF( test(1:7)=="POTCAR:" ) THEN
@@ -149,8 +149,22 @@ DO
       READ(30,'(a128)',ERR=800,END=800) test
       test = TRIM(ADJUSTL(test))
     ENDDO
-    EXIT
+  ELSEIF( test(1:6)=="IBRION" ) THEN
+    !Read value of IBRION used for this simulation
+    i = SCAN(test,'=')
+    IF(i==0) i=6
+    test = TRIM(ADJUSTL(test(i+1:)))
+    READ(test,*,END=115,ERR=115) j
+    IF(j<0) THEN
+      !IBRION<0 means that a static calculation was performed
+      !(i.e. electronic relaxation, ions are fixed)
+      !Therefore the OUTCAR file does not contain any snapshot
+      nerr=nerr+1
+      CALL ATOMSK_MSG(4833,(/""/),(/DBLE(j)/))
+      GOTO 1000
+    ENDIF
   ENDIF
+  115 CONTINUE
 ENDDO
 120 CONTINUE
 REWIND(30)
