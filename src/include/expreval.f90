@@ -762,13 +762,13 @@ ELSE IF( INDEX(string,"atan2(")>0 ) THEN
     !Interpret this expression, save result in x
     CALL EXPREVAL(temp2,x,recuri,status)
     !Perform the calculation of the arctangent
-    IF( DABS(x)>1.d-12 ) THEN
+    !IF( DABS(x)>1.d-12 ) THEN
       value = DATAN2(y,x)
-    ELSE
-      IF(verbosity==4) PRINT*, " X ! X ERROR: division by zero: ", TRIM(string)
-      status=10
-      RETURN
-    ENDIF
+    !ELSE
+    !  IF(verbosity==4) PRINT*, " X ! X ERROR: division by zero: ", TRIM(string)
+    !  status=10
+    !  RETURN
+    !ENDIF
   ELSE
     !No division: cannot compute an arctan2
     !Perform the calculation of a regular arctangent
