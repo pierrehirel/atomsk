@@ -978,9 +978,9 @@ ENDIF
 !To that we will add 26 self-neighbors in 3-D
 !This will be used to limit the number of iterations in the loops on jnode below
 IF( twodim > 0 ) THEN
-  maxvertex = 21
+  maxvertex = 50
 ELSE
-  maxvertex = 59
+  maxvertex = 60
 ENDIF
 !
 IF(verbosity==4) THEN
