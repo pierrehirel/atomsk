@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 06 Sept. 2022                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -978,7 +978,7 @@ ENDIF
 !To that we will add 26 self-neighbors in 3-D
 !This will be used to limit the number of iterations in the loops on jnode below
 IF( twodim > 0 ) THEN
-  maxvertex = 50
+  maxvertex = 20
 ELSE
   maxvertex = 60
 ENDIF
@@ -1360,10 +1360,18 @@ DO inode=1,Nnodes
   !All neighboring vertices will not be used, only the maxvertex first ones
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes
   IF( SIZE(vvertex,1)>maxvertex ) THEN
-    maxdnodes = vvertex(MIN(maxvertex,Nvertices),4)
+    !Get number of neighboring vertices
+    i = MIN(maxvertex,Nvertices)
+    !Make sure to keep all nodes that are at the same distance as node #i
+    DO WHILE( i<SIZE(vvertex,1) .AND. vvertex(i,4) < maxdnodes+0.1d0 )
+      i = i+1
+    ENDDO
+    maxdnodes = vvertex(i,4)
     WRITE(msg,*) maxdnodes
-    msg = "Keep vertices only up to max.distance: "//TRIM(ADJUSTL(msg))
+    msg = "Keep vertices up to max.distance: "//TRIM(ADJUSTL(msg))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ELSE
+    maxvertex = SIZE(vvertex,1)
   ENDIF
   !
   !Get index of last vertex that is closer than maxdnodes

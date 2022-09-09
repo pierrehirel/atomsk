@@ -11,7 +11,7 @@ MODULE velocity
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 09 Sept. 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -157,7 +157,7 @@ CALL GEN_NRANDGAUSS(3*NP,randarray)
 !Save random numbers as auxiliary properties in array AUX
 !Multiply them by sqrt(k*T/m) to obtain proper Maxwell-Boltzmann distribution
 !(k=Boltzmann constant (J/K); T=target temperature (K); m=mass of atom (a.u.))
-!Multiply by 1.d-10/1.d-12 = 1.d2 to obtain A/ps.
+!Multiply by 1.d10/1.d12 = 1.d-2 to obtain A/ps.
 j=0
 DO i=1,SIZE(AUX,1)
   IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
@@ -166,9 +166,9 @@ DO i=1,SIZE(AUX,1)
     CALL ATOMMASS( species,mass )
     IF( NINT(mass)==0 ) mass=1.d0  !avoid division by zero
     mass = mass * mass_amu  !conversion to kg
-    AUX(i,vx) = randarray(j)      * DSQRT(kB*T/mass) * 1.d2
-    AUX(i,vy) = randarray(NP+j)   * DSQRT(kB*T/mass) * 1.d2
-    AUX(i,vz) = randarray(2*NP+j) * DSQRT(kB*T/mass) * 1.d2
+    AUX(i,vx) = randarray(j)      * DSQRT(kB*T/mass) * 1.d-2
+    AUX(i,vy) = randarray(NP+j)   * DSQRT(kB*T/mass) * 1.d-2
+    AUX(i,vz) = randarray(2*NP+j) * DSQRT(kB*T/mass) * 1.d-2
   ENDIF
 ENDDO
 !
