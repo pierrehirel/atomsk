@@ -12,7 +12,7 @@ MODULE oia_vaspout
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 July 2022                                     *
+!* Last modification: P. Hirel - 14 Sept. 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -92,7 +92,7 @@ IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 ALLOCATE(comment(1))
 !
 !
-msg = 'entering ONEINALL_VASPOUT'
+WRITE(msg,*) "entering ONEINALL_VASPOUT, file name: ", TRIM(ADJUSTL(inputfile))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 OPEN(UNIT=30,FILE=inputfile,FORM='FORMATTED',STATUS='OLD')
@@ -109,9 +109,10 @@ DO WHILE(NP==0)
     test = test(i+1:)
     i = SCAN(test,"=")
     test = test(i+1:)
-    READ(test,*,END=800,ERR=800) NP
+    READ(test,*,END=105,ERR=105) NP
     EXIT
   ENDIF
+  105 CONTINUE
 ENDDO
 !
 110 CONTINUE
@@ -143,8 +144,12 @@ DO Nline=1,1000  !restrict reading to the first thousand lines
         species(2:2) = " "
         CALL ATOMNUMBER(species,snumber)
       ENDIF
-      NtypesPOTCAR = NtypesPOTCAR + 1
-      atypes(NtypesPOTCAR,1) = NINT(snumber)
+      !Verify it is different from previous species
+      IF( NINT(snumber).NE.atypes(NtypesPOTCAR,1) ) THEN
+        !It is different: add a new entry in atypes
+        NtypesPOTCAR = NtypesPOTCAR + 1
+        atypes(NtypesPOTCAR,1) = NINT(snumber)
+      ENDIF
       !Read next line
       READ(30,'(a128)',ERR=800,END=800) test
       test = TRIM(ADJUSTL(test))
@@ -267,6 +272,12 @@ DO WHILE( VECLENGTH(H(1,:))<1.d-6 .OR. VECLENGTH(H(2,:))<1.d-6 .OR. VECLENGTH(H(
     test = test(strlen+1:)
     CALL STR_CHAR2SPACE(test,"(),")
     READ(test,*,ERR=800,END=800) H(3,1), H(3,2), H(3,3)
+  ELSEIF( test(1:22)=="direct lattice vectors" ) THEN
+    !The 3 following lines contain cell vectors
+    DO i=1,3
+      READ(30,'(a128)',ERR=800,END=800) test
+      READ(test,*,ERR=800,END=800) H(i,1), H(i,2), H(i,3)
+    ENDDO
   ENDIF
 ENDDO
 WRITE(msg,*) 'CELL'
