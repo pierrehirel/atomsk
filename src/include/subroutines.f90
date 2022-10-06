@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Feb. 2022                                     *
+!* Last modification: P. Hirel - 15 Sept. 2022                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,6 +26,7 @@ MODULE subroutines
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
+!* CHECKMEM            checks that local computer has enough memory               *
 !* CHECK_ARRAY_CONSISTENCY checks that arrays P, S, AUX, AUXNAMES are consistent  *
 !* STR_RMSPACE         removes all blank spaces in a string                       *
 !* STR_CHAR2SPACE      replaces a character by blank space in a string            *
@@ -55,6 +56,43 @@ IMPLICIT NONE
 !
 !
 CONTAINS
+!
+!
+!
+!********************************************************
+! CHECKMEM
+! This subroutine verifies that the given size
+! is within the limit of signed integers, and that
+! the current computer has enough memory to allocate
+! a real array of size Nx4
+!********************************************************
+SUBROUTINE CHECKMEM(Asize,status)
+!
+IMPLICIT NONE
+REAL(dp),INTENT(IN):: Asize !size of array to allocate
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Atest !test array
+INTEGER,INTENT(OUT):: status !=0 if ok, =1 if Asize exceeds integer limit, =2 
+                             !1=problem with S; 2=problem with AUX; 3=problem with AUXNAMES
+INTEGER:: i
+!
+status = 0
+!
+IF( Asize<=0 .OR. Asize>NATOMS_MAX ) THEN
+  ! Asize is negative or greater than 2 billions (limit of signed integers)
+  ! => It will be impossible to allocate an array that large
+  status = 1
+ELSE
+  !Asize is ok, but does current computer have enough memory?
+  !Try to allocate and check if it works
+  ALLOCATE( Atest(NINT(Asize),4),STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    status = 2
+  ENDIF
+  IF(ALLOCATED(Atest)) DEALLOCATE(Atest)
+ENDIF
+!
+END SUBROUTINE CHECKMEM
 !
 !
 !

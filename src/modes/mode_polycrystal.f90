@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Sept. 2022                                    *
+!* Last modification: P. Hirel - 15 Sept. 2022                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -277,21 +277,14 @@ DO
       IF(ALLOCATED(Q)) DEALLOCATE(Q)
       CALL VOLUME_PARA(Huc,Vmin)  ! Volume of seed
       CALL VOLUME_PARA(H,Volume)  ! Volume of final box
-      m = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
-      IF( m<=0 ) THEN
-        ! if m is negative, it's probably because it exceeded the accuracy of INTEGER
+      P1 = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
+      !Check if number of atoms (P1) is ok
+      CALL CHECKMEM(P1,i)
+      IF( i>0 ) THEN
+        ! N.atoms too large, unable to allocate
         nerr = nerr+1
-        CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+        CALL ATOMSK_MSG(819,(/''/),(/P1/))
         GOTO 1000
-      ELSE
-        ALLOCATE(Q(m,4),STAT=i)
-        IF( i>0 ) THEN
-          ! Allocation failed (not enough memory)
-          nerr = nerr+1
-          CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
-          GOTO 1000
-        ENDIF
-        IF(ALLOCATED(Q)) DEALLOCATE(Q)
       ENDIF
       !
     ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
@@ -1049,30 +1042,31 @@ NPgrains(:) = 0
 !
 !Construct template supercell Pt(:,:)
 !Set template box size
-templatebox(1) = 1.2d0*MAX( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
-templatebox(2) = templatebox(1)
-templatebox(3) = templatebox(1)
 IF( twodim>0 ) THEN
   !System is 2-D: use max distance between the final cell corners
-  templatebox(1) = 1.1d0 * VECLENGTH(H(1,:)+H(2,:)+H(3,:))
-  templatebox(2) = templatebox(1)
-  templatebox(3) = templatebox(1)
+  templatebox(:) = 1.5d0 * VECLENGTH(H(1,:)+H(2,:)+H(3,:))
+  !Don't duplicate template along the short dimension
   templatebox(twodim) = VECLENGTH(H(twodim,:))
-ELSEIF( sameplane ) THEN
-  !All nodes are in the same plane
-  !Increase template size to make sure all grains are covered
-  templatebox(:) = 2.d0*templatebox(:)
-ELSEIF( Nnodes<=1 ) THEN
-  !User asked for only 1 node
-  !Increase template size to make sure all grains are covered
-  templatebox(:) = 2.0d0*templatebox(:)
-ELSEIF( Nnodes<=4 ) THEN
-  !Number of nodes is small
-  !Increase template size to make sure all grains are covered
-  templatebox(:) = 1.5d0*templatebox(:)
-ELSEIF( Nnodes>=10 ) THEN
-  !Many nodes: decrease template size to improve performance
-  templatebox(:) = templatebox(:) * MAX( 0.6d0 , 1.d0 - (Nnodes/200.d0) )
+ELSE
+  !System is 3-D: make sure the template is large enough to cover all grains,
+  !but not too big to limit memory and CPU usage
+  templatebox(:) = 1.25d0*MAX( VECLENGTH(H(1,:)) , VECLENGTH(H(2,:)) , VECLENGTH(H(3,:)) )
+  IF( sameplane ) THEN
+    !System is 3-D, but all nodes are in the same plane
+    !Increase template size to make sure all grains are covered
+    templatebox(:) = 2.d0*templatebox(:)
+  ELSEIF( Nnodes<=1 ) THEN
+    !User asked for only 1 node
+    !Increase template size to make sure all grains are covered
+    templatebox(:) = 1.5d0 * VECLENGTH(H(1,:)+H(2,:)+H(3,:))
+  ELSEIF( Nnodes<=5 ) THEN
+    !Number of nodes is small
+    !Increase template size to make sure all grains are covered
+    templatebox(:) = 1.5d0*templatebox(:)
+  ELSEIF( Nnodes>=10 ) THEN
+    !Many nodes: decrease template size to improve performance
+    templatebox(:) = templatebox(:) * MAX( 0.6d0 , 1.d0 - (Nnodes/200.d0) )
+  ENDIF
 ENDIF
 !Add a few angströms for good measure
 templatebox(:) = templatebox(:) + (/6.d0,6.d0,6.d0/)
@@ -1102,9 +1096,7 @@ expandmatrix(:) = 1
 WRITE(msg,*) "Determining expansion factors:"
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 DO i=1,3
-  IF( VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:)) .OR.  &
-    & VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:)) .OR.  &
-    & VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:))       ) THEN
+  IF( VECLENGTH(Huc(i,:)) < 0.8d0*MAXVAL(templatebox(:)) ) THEN
     !
     !Compute sum of seed vectors components along direction i
     P2 = DBLE( FLOOR( DABS( SUM(Huc(:,i)) )))
@@ -1182,8 +1174,10 @@ DO o = 0 , expandmatrix(3)
         P3 = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
         distance = VECLENGTH( (/P1,P2,P3/) - 0.5d0*(/templatebox(1),templatebox(2),templatebox(3)/) )
         !Check if this position is inside template box
-        IF( P1>-1.d0 .AND. P1<=templatebox(1) .AND. P2>-1.d0 .AND. P2<=templatebox(2) .AND. &
-          & P3>-1.d0 .AND. P3<=templatebox(3) .AND. distance<0.6d0*MAXVAL(templatebox(:)) ) THEN
+        IF( P1>-1.d0 .AND. P1<=templatebox(1) .AND.   &
+          & P2>-1.d0 .AND. P2<=templatebox(2) .AND.   &
+          & P3>-1.d0 .AND. P3<=templatebox(3) .AND.   &
+          & ( twodim>0 .OR. distance<0.72d0*MAXVAL(templatebox(:)) )  ) THEN
           !Yes it is: save atom position and species into newP
           qi = qi+1
           IF( qi > SIZE(newP,1) ) THEN
@@ -1345,33 +1339,34 @@ DO inode=1,Nnodes
   WRITE(msg,'(a,i6)') "N vertices for this grain:", Nvertices
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
+  maxvertex = SIZE(vvertex,1)
+  maxdnodes = MAXVAL( vvertex(:,4) )
+  !
   !Fill the rest of the list with very large distances before sorting.
   !This way, after sorting they will be at the end of the list
   !(those artefacts will be removed later)
   IF( Nvertices<SIZE(vvertex,1) ) THEN
     DO i=Nvertices+1,SIZE(vvertex,1)
-      vvertex(i,4) = 1.d12
+      vvertex(i,4) = HUGE(1.d0)
     ENDDO
   ENDIF
   !
   !Sort vertices by increasing distance
   CALL BUBBLESORT(vvertex,4,"up  ",newindex)
   !
-  !All neighboring vertices will not be used, only the maxvertex first ones
+  !To save time in 3-D, all neighboring vertices will not be used, only the maxvertex first ones
   !If total number of neighboring vertices is greater than maxvertex, then correct maxdnodes
-  IF( SIZE(vvertex,1)>maxvertex ) THEN
+  IF( twodim==0 .AND. SIZE(vvertex,1)>maxvertex ) THEN
     !Get number of neighboring vertices
     i = MIN(maxvertex,Nvertices)
     !Make sure to keep all nodes that are at the same distance as node #i
-    DO WHILE( i<SIZE(vvertex,1) .AND. vvertex(i,4) < maxdnodes+0.1d0 )
+    DO WHILE( i<SIZE(vvertex,1) .AND. vvertex(i,4) < maxdnodes+0.1d0 .AND. vvertex(i,4) < 1.d12 )
       i = i+1
     ENDDO
     maxdnodes = vvertex(i,4)
     WRITE(msg,*) maxdnodes
     msg = "Keep vertices up to max.distance: "//TRIM(ADJUSTL(msg))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  ELSE
-    maxvertex = SIZE(vvertex,1)
   ENDIF
   !
   !Get index of last vertex that is closer than maxdnodes
@@ -1379,6 +1374,7 @@ DO inode=1,Nnodes
   DO WHILE( Nvertices<=SIZE(vvertex,1) .AND. Nvertices<=maxvertex .AND. vvertex(Nvertices+1,4)<=maxdnodes )
     Nvertices = Nvertices+1
   ENDDO
+  !
   !Resize array vvertex to get rid of unused vertices
   IF(twodim>0) THEN
     CALL RESIZE_DBLEARRAY2(vvertex,Nvertices+8,4,status)
@@ -1426,8 +1422,10 @@ DO inode=1,Nnodes
     WRITE(40,*) SIZE(vvertex,1)+1
     WRITE(40,*) "# Position of node # "//TRIM(ADJUSTL(msg))//" and its vertices"
     WRITE(40,*) 2, vnodes(inode,:)
-    DO i=1,SIZE(vvertex,1)
+    i=1
+    DO WHILE ( i<=SIZE(vvertex,1) .AND. vvertex(i,4)<1.d12 )
       WRITE(40,'(i4,6f12.3)') 1, vvertex(i,:)
+      i=i+1
     ENDDO
     CLOSE(40)
   ENDIF

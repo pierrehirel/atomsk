@@ -3755,6 +3755,12 @@ ELSEIF(values(2)==4 .AND. values(3)==1) THEN
   msg = "              /`--;-` "
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
+!April 27: Morse day
+ELSEIF(values(2)==4 .AND. values(3)==27) THEN
+  !"HAPPY MORSE CODE DAY"
+  msg = ".... .- .--. .--. -.-- / -- --- .-. ... . / -.-. --- -.. . / -.. .- -.--"
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
 !May 1
 ELSEIF(values(2)==5 .AND. values(3)==1) THEN
   msg = "*** Sie arbeiten? Tag der Arbeit ist ein FEIERTAG! :-)"
