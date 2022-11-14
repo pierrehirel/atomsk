@@ -12,7 +12,7 @@ MODULE out_dd
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 14 Nov. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,7 +88,7 @@ WRITE(ofu,'(a10)') 'COOR_UNREL'
 !
 !Write positions of ideal system
 DO i=1,SIZE(Pfirst,1)
-  WRITE(ofu,110) Pfirst(i,1), Pfirst(i,2), Pfirst(i,3), Pfirst(i,4)
+  WRITE(ofu,110) Pfirst(i,1), Pfirst(i,2), Pfirst(i,3), NINT(Pfirst(i,4))
 ENDDO
 !
 !Write second section of DD file
