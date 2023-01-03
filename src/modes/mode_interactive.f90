@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 11 April 2022                                    *
+!* Last modification: P. Hirel - 03 Jan. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -946,16 +946,17 @@ DO
           !Maybe it is a formula: try to interpret it
           i=1
           j=0
+          command = instruction
           CALL EXPREVAL(instruction,x,i,j)
           IF( j==0 ) THEN
             !No error: display result
-            IF( IS_INTEGER(x) ) THEN
+            IF( IS_INTEGER(x,1.d-64) ) THEN
               !It is an integer, or close to it: display an integer
               WRITE(msg,*) NINT(x)
             ELSE
               !It is a real number
-              IF( x>=1000.d0 ) THEN
-                WRITE(msg,*) x
+              IF( x>=1.d4 .OR. x<=1.d-4 ) THEN
+                WRITE(msg,'(e21.12)') x
               ELSE
                 WRITE(msg,'(f21.12)') x
               ENDIF
@@ -963,7 +964,7 @@ DO
             WRITE(*,*) "          "//TRIM(ADJUSTL(msg))
           ELSE
             !Unable to interpret: maybe it wasn't a formula, but an unknown command
-            CALL ATOMSK_MSG(808,(/instruction/),(/0.d0/))
+            CALL ATOMSK_MSG(808,(/command/),(/0.d0/))
           ENDIF
           !
         ELSE

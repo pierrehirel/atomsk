@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Dec. 2021                                     *
+!* Last modification: P. Hirel - 13 Dec. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -173,30 +173,36 @@ ENDIF
 ! If Nx, Ny or Nz is too large (i.e. if the box H(:,:) is very wide)
 ! then set Nx, Ny and/or Nz to a smaller value, and increase the step dx, dy and/or dz
 IF( den_type==1 ) THEN
-  ! By default use a step dx=0.2 A
-  dx = 0.2d0
+  ! By default use a step dx=0.1 A
+  dx = 0.1d0
   !Compute Nx
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
-  IF( Nx<200 .OR. Nx>2000 ) THEN
-    Nx = 2000
-    dx = H(a1,a1) / DBLE(Nx)
+  IF( Nx<200 ) THEN
+    Nx = 200
+  ELSEIF( Nx>10000 ) THEN
+    Nx = 10000
   ENDIF
+  dx = H(a1,a1) / DBLE(Nx)
   !
 ELSEIF( den_type==2 ) THEN
-  ! By default use a step dx=dy=1.0 A
+  ! By default use a step dx=dy=0.1 A
   dx = 0.1d0
   dy = 0.1d0
   !Compute Nx and Ny
   Nx = NINT( ( MAXVAL(P(:,a1))-MINVAL(P(:,a1)) ) / dx )
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
-  IF( Nx<50 .OR. Nx>300 ) THEN
-    Nx = 300
-    dx = H(a1,a1) / DBLE(Nx)
+  IF( Nx<20 ) THEN
+    Nx = 20
+  ELSEIF( Nx>100 ) THEN
+    Nx = 100
   ENDIF
-  IF( Ny<50 .OR. Ny>300 ) THEN
-    Ny = 300
-    dy = H(a2,a2) / DBLE(Ny)
+  IF( Ny<20 ) THEN
+    Ny = 20
+  ELSEIF( Ny>100 ) THEN
+    Ny = 100
   ENDIF
+  dx = H(a1,a1) / DBLE(Nx)
+  dy = H(a2,a2) / DBLE(Ny)
   !
 ELSE
   ! By default use a step dx=dy=2.0 A

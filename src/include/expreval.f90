@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 09 Nov. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -135,6 +135,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(INOUT):: string
 CHARACTER(LEN=1):: ang  !is the angle in degrees or radians (default: radians)
 CHARACTER(LEN=7):: operators="+-*/:^%"
+CHARACTER(LEN=12):: illegal="&#'|`@°£$øµ§" !list of illegal characters that will lead to an error
 CHARACTER(LEN=256):: prefix
 CHARACTER(LEN=4096):: string1, string2
 CHARACTER(LEN=4096):: temp, temp1, temp2
@@ -217,8 +218,8 @@ IF( INDEX(string,"pi")>1 .OR. INDEX(string,"(")>0 .OR. SCAN(string,"[]{}")>0 ) T
 ENDIF
 !
 !If string contains strange characters, exit with error
-IF( SCAN(string,"&#'|`@°£$øµ§")>0 .OR. SCAN(string,'"')>0 ) THEN
-  i = SCAN(string,"&#'|`@°£$øµ§")
+IF( SCAN(string,illegal)>0 .OR. SCAN(string,'"')>0 ) THEN
+  i = SCAN(string,illegal)
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  ILLEGAL CHARACTER: "//string(i:i)
   status=1
   RETURN
@@ -227,7 +228,7 @@ ENDIF
 !First, try to read a number: if it succeeds, we are done
 IF( SCAN(string,operators)==0 .AND. SCAN(string,"+-",BACK=.TRUE.)<=1 ) THEN
   READ(string,*,END=100,ERR=100) value
-  IF( IS_INTEGER(value) ) value = DBLE(NINT(value))
+  IF( IS_INTEGER(value,1.d-16) ) value = DBLE(NINT(value))
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  NUMBER(1): ", TRIM(string)
   recuri = recuri-1
   RETURN
@@ -291,6 +292,24 @@ ELSE IF( INDEX(string,"**")>0 ) THEN
   !
 ELSE IF( string=="pi" ) THEN
   value = pi
+  !
+ELSE IF( string=="kB" ) THEN
+  value = kB
+  !
+ELSE IF( string=="hbar" .OR. string=="h_bar" ) THEN
+  value = h_bar
+  !
+ELSE IF( string=="Navo" .OR. string=="Na" ) THEN
+  value = Navo
+  !
+ELSE IF( string=="qe" .OR. string=="Qe" ) THEN
+  value = e_charge
+  !
+ELSE IF( string=="epsilon0" .OR. string=="eps0" .OR. string=="eps_0" ) THEN
+  value = eps_0
+  !
+ELSE IF( string=="mu0" .OR. string=="mu_0" ) THEN
+  value = mu_0
   !
 ELSE IF( string=="rand" .OR. string=="random" ) THEN
   !generate a random number

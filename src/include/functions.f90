@@ -10,7 +10,7 @@ MODULE functions
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 09 Nov. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -224,15 +224,15 @@ END FUNCTION CHARLONG2SHRT
 !  interpreted as an integer. For instance 1.d0, 2.d0
 !  will return TRUE, but 1.0001d0 will return FALSE.
 !********************************************************
-LOGICAL FUNCTION IS_INTEGER(number)
+LOGICAL FUNCTION IS_INTEGER(number,th)
 !
 IMPLICIT NONE
 REAL(dp),INTENT(IN):: number
-REAL(dp),PARAMETER:: threshold=1.d-15
+REAL(dp),INTENT(IN):: th     !threshold to decide if it is an integer
 !
 IS_INTEGER = .FALSE.
 !
-IF( DABS( DBLE(NINT(number)) - number ) < threshold ) THEN
+IF( DABS( DBLE(NINT(number)) - number ) < th ) THEN
   IS_INTEGER = .TRUE.
 ENDIF
 !

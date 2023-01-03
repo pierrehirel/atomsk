@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 June 2022                                     *
+!* Last modification: P. Hirel - 09 Nov. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -318,7 +318,7 @@ IF(verbosity==4) THEN
         msg(37:37) = '|'
       ENDIF
       DO j=1,SIZE(AUX,2)
-        IF( IS_INTEGER(AUX(i,j)) ) THEN
+        IF( IS_INTEGER(AUX(i,j),1.d-15) ) THEN
           WRITE(msg,'(a,1X,i9)') TRIM(msg), NINT(AUX(i,j))
         ELSE
           WRITE(msg,'(a,1X,e9.3)') TRIM(msg), AUX(i,j)

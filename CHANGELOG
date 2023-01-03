@@ -12,7 +12,7 @@ Master
 - in mode "--central-symmetry", atoms with 4 neighbours are now compared to tetrahedral environment; if angles are close to those in a tetrahedron, this criterion is used instead of central symmetry.
 - in mode "--difference", fixed a bug that would cause a segfault when none of the file contained a comment.
 - in mode "--merge", a new auxiliary property "sysID" is created, indicating for each atom the index of the system it belonged to.
-- in mode "--nye", if user does not provide an output file name then a default one in CFG format is created. This mode also always output the G tensor in CFG format.
+- in mode "--nye", when a unit cell is provided as a reference, then reference sites are constructed by assuming that each atom in the unit cell is considered to belong to a separate "site" (i.e., sites are not averaged). Also, if user does not provide an output file name then a default one in CFG format is created. This mode also always output the G tensor in CFG format.
 - in mode "--polycrystal", fixed a bug where rotations provided were performed using Z, Y, X permutation instead of X, Y, Z. Thanks to Marcin Minkowsky, Tampere University, Finland, for pointing out this bug.
 - in mode "--rdf", improved efficiency in the computation of the partial RDFs. Also fixed a bug in the computation of the total RDF when atoms of different species and different densities were present.
 - in mode "--unfold", when reading VASP OUTCAR files produced with IBRION<0, added an error message.
@@ -21,6 +21,7 @@ Master
 - random number generator will now use file "/dev/urandom" to generate a random seed whenever possible (only in UNIX/Linux systems); otherwise, system clock will be used as a seed.
 - fixed a bug when reading and writing POSCAR files where the keywords "Selective dynamics" were involved.
 - fixed a bug when writing LAMMPS data file when atom "types" were defined, but some types were not assigned to any atom in the system. Fixed bugs when reading or writing LAMMPS data files when shells were defined. Fixed a bug in the writing of box dimensions, when one or several box vectors had negative components. Thanks to Eerik Voimanen, Tampere University, Finland, for providing a fix for this bug.
+- fixed a bug when writing files in DDplot format, that resulted in a SEGFAULT. Thanks to Wei Li, University of Hong-Kong, China, for pointing out this bug.
 - fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.
 - new option "-dislocation file" allows reading a dislocation Burgers vector and position from a file. For now it supports only planar dislocation loops where the Burgers vector is contained in the loop plane.
 - fixed a bug in option "-cell" where option was skipped when requiring zero length for xy, yz, or xz component.

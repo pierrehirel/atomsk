@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 June 2022                                     *
+!* Last modification: P. Hirel - 09 Nov. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1378,7 +1378,7 @@ CASE("neigh","neighbors")
       ENDIF
     ENDIF
     !
-  ELSEIF( region_1(1)>0.d0 .AND. IS_INTEGER(region_1(1)) ) THEN
+  ELSEIF( region_1(1)>0.d0 .AND. IS_INTEGER(region_1(1),1.d-12) ) THEN
     !Search for the N closest neighbors
     k=NINT(region_1(1))
     !

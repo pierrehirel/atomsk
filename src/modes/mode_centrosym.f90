@@ -3,7 +3,7 @@ MODULE mode_centrosym
 !**********************************************************************************
 !*  MODE_CENTROSYM                                                                *
 !**********************************************************************************
-!* This module computes a central symmetry parameter for each atom in the system, *
+!* This module computes a symmetry parameter for each atom in the system,         *
 !* and saves it as an auxiliary parameter in the array AUX.                       *
 !* Such a parameter can be useful for visualizing defects.                        *
 !* For unary systems the method employed follows the well-established             *
@@ -16,12 +16,19 @@ MODULE mode_centrosym
 !* In Atomsk, the actual implementation for unary systems (bcc, fcc...)           *
 !* follows the algorithm of Ju Li's Atomeye.                                      *
 !* For binary and ternary systems a variant of this algorithm is used.            *
+!* In addition to centrosymmetry, this mode also computes:                        *
+!* - a "tetrahedral parameter", which is naught if atom is in tetrahedral         *
+!*   environment, and positive otherwise (useful e.g. in diamond lattice).        *
+!* - a "sp2 parameter", which is naught if atom is in a planar sp2 environment    *
+!*   (e.g. graphene), and positive otherwise.                                     *
+!* In the end, only the smallest of these parameters is saved as                  *
+!* a "local symmetry parameter".                                                  *
 !**********************************************************************************
 !* (C) April 2015 - Pierre Hirel                                                  *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 March 2022                                    *
+!* Last modification: P. Hirel - 24 Oct. 2022                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -69,7 +76,7 @@ INTEGER:: c             !column in AUX that will contain the central symmetry pa
 INTEGER:: i, ipairs, j, k, ktemp
 INTEGER:: Mdefault      !most common number of neighbors
 INTEGER,PARAMETER:: Nmax=14 !maximum number of neighbors for any lattice
-INTEGER:: Nneigh        !number of neighbors of an atom
+INTEGER:: Nneigh, Nneigh2   !number of neighbors of an atom
 INTEGER:: Nspecies      !number of species in the system
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
@@ -110,25 +117,34 @@ IF(nerr>0) GOTO 1000
 !
 !If auxiliary properties already exist, add a column to save the central symmetry parameter
 IF( ALLOCATED(AUX) .AND. SIZE(AUX,2)==SIZE(AUXNAMES) ) THEN
-  c = SIZE(AUXNAMES) + 1
-  ALLOCATE(newAUXNAMES(SIZE(AUXNAMES)+1))
+  !If a column named "local_symmetry" already exists, use it
+  c = 0
   DO i=1,SIZE(AUXNAMES)
-    newAUXNAMES(i) = AUXNAMES(i)
+    IF( AUXNAMES(i)=="local_symmetry" ) c=i
   ENDDO
-  DEALLOCATE(AUXNAMES)
-  ALLOCATE(AUXNAMES(SIZE(newAUXNAMES)))
-  AUXNAMES(:) = newAUXNAMES(:)
-  DEALLOCATE(newAUXNAMES)
-  ALLOCATE(newAUX(SIZE(P,1),SIZE(AUX,2)+1))
-  newAUX(:,:) = 0.d0
-  DO i=1,SIZE(AUX,1)
-    newAUX(i,:) = AUX(i,:)
-  ENDDO
-  DEALLOCATE(AUX)
-  ALLOCATE(AUX(SIZE(newAUX,1),SIZE(newAUX,2)))
-  AUX(:,:) = newAUX(:,:)
-  DEALLOCATE(newAUX)
+  !Otherwise, create a new column to store local symmetry parameter
+  IF( c==0 ) THEN
+    c = SIZE(AUXNAMES) + 1
+    ALLOCATE(newAUXNAMES(SIZE(AUXNAMES)+1))
+    DO i=1,SIZE(AUXNAMES)
+      newAUXNAMES(i) = AUXNAMES(i)
+    ENDDO
+    DEALLOCATE(AUXNAMES)
+    ALLOCATE(AUXNAMES(SIZE(newAUXNAMES)))
+    AUXNAMES(:) = newAUXNAMES(:)
+    DEALLOCATE(newAUXNAMES)
+    ALLOCATE(newAUX(SIZE(P,1),SIZE(AUX,2)+1))
+    newAUX(:,:) = 0.d0
+    DO i=1,SIZE(AUX,1)
+      newAUX(i,:) = AUX(i,:)
+    ENDDO
+    DEALLOCATE(AUX)
+    ALLOCATE(AUX(SIZE(newAUX,1),SIZE(newAUX,2)))
+    AUX(:,:) = newAUX(:,:)
+    DEALLOCATE(newAUX)
+  ENDIF
 ELSE
+  !No auxiliary prop. existed: allocate new arrays
   IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
   IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
   c = 1
@@ -137,7 +153,7 @@ ELSE
   AUX(:,:) = 0.d0
 ENDIF
 !
-AUXNAMES(c) = "central_symmetry"
+AUXNAMES(c) = "local_symmetry"
 !
 !
 !
@@ -204,7 +220,6 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 300 CONTINUE
 ! Compute the central symmetry parameter for each atom
-!
 !
 !Construct neighbor list
 CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
@@ -280,9 +295,12 @@ DO i=1,SIZE(P,1)
   IF(ALLOCATED(three_angles)) DEALLOCATE(three_angles)
   !
   !Get the positions of neighbors of atom #i
-  CALL NEIGHBOR_POS(H,P,P(i,1:3),NeighList(i,:),ALLOCATED(NeighList),8.d0,PosList)
+  CALL NEIGHBOR_POS(H,P,P(i,1:3),NeighList(i,:),ALLOCATED(NeighList),6.d0,PosList)
   !
   IF( ALLOCATED(PosList) .AND. SIZE(PosList,1)>0 ) THEN
+    !
+    WRITE(msg,*) "Atom # ", i, " : size of PosList = ", SIZE(PosList,1)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !Sort neighbors by increasing distance
     CALL BUBBLESORT(PosList(:,:),4,'up  ',newindex)
     !
@@ -291,10 +309,12 @@ DO i=1,SIZE(P,1)
     CASE(1)
       !Unary compound, e.g. fcc metal (Al, Cu, Ni...) or bcc metal (Fe, W...)
       !=> follow the recipe of Kelchner et al.
-      !keep only neighbors j that are approx. at the same distance as the 3 first neighbors
+      !keep only neighbors j that are approx. at the same distance as the 2 or 3 first neighbors
       Nneigh = 0
       DO j=1,MIN(Nmax,SIZE(PosList,1))
-        IF( PosList(j,4) < 1.3d0*SUM(PosList(1:3,4))/3.d0 ) THEN
+        k = MIN(3,SIZE(PosList,1))
+        distance = SUM(PosList(1:k,4)) / DBLE(k)
+        IF( PosList(j,4) < 1.3d0*distance ) THEN
           Nneigh = Nneigh+1
           sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
         ELSE
@@ -312,7 +332,9 @@ DO i=1,SIZE(P,1)
         IF( NINT(P(NINT(PosList(j,5)),4))==NINT(P(NINT(PosList(1,5)),4)) ) THEN
           !This neighbor's species is the same as the 3 first neighbor
           !keep only neighbors j that are approx. at the same distance as the 3 first neighbors
-          IF( PosList(j,4) < 1.3d0*SUM(PosList(1:3,4))/3.d0 ) THEN
+          k = MIN(3,SIZE(PosList,1))
+          distance = SUM(PosList(1:k,4)) / DBLE(k)
+          IF( PosList(j,4) < 1.3d0*distance ) THEN
             Nneigh = Nneigh+1
             sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
           ELSE
@@ -339,14 +361,6 @@ DO i=1,SIZE(P,1)
       ENDIF
     ENDDO
     !
-    !We must make pairs of atoms => Nneigh has to be an even number
-    IF( MOD(Nneigh,2) .NE. 0 ) THEN
-      Nneigh = Nneigh-1
-    ENDIF
-    !IF( Nneigh.NE.Mdefault ) THEN
-    !  PRINT*, "Atom # ", i, " has ", Nneigh, "neighbors:" !, (NeighList(i,j),j=1,Nneigh)
-    !ENDIF
-    !
     IF( verbosity==4 ) THEN
       !Some debug messages
       CALL ATOMSPECIES(P(i,4),species)
@@ -369,6 +383,12 @@ DO i=1,SIZE(P,1)
     !
     IF( Nneigh >= 2 ) THEN
       !Atom #i has many neighbors, we can work with that
+      Nneigh2 = Nneigh
+      !
+      !We must make pairs of atoms => Nneigh has to be an even number
+      IF( MOD(Nneigh,2) .NE. 0 ) THEN
+        Nneigh = Nneigh-1
+      ENDIF
       !
       !We will need a table containing pairs of atoms
       ALLOCATE( pairs(Nneigh/2,2) )
@@ -434,6 +454,9 @@ DO i=1,SIZE(P,1)
       DEALLOCATE(pairs_distances)
       !
       !
+      !Restore initial number of neighbours (even if it was not even)
+      Nneigh = Nneigh2
+      !
       !Check if atom #i has 4 neighbours: maybe it has a tetrahedral environment
       !e.g. in silicon or diamond lattice, or in minerals containing SiO4 tetrahedra
       !Actually do this calculation if Nneigh is 3, 4 or 5
@@ -468,11 +491,44 @@ DO i=1,SIZE(P,1)
       ENDIF
       !
       !
+      !Check if atom #i has 3 neighbours: maybe it is a sp2 ("graphene") environment
+      !Actually do this calculation if Nneigh is 3 or 4
+      IF( Nneigh>=3 .AND. Nneigh<=4 ) THEN
+        !Compute angles between pairs of neighbours, using atom #i as central atom
+        !In perfect sp2 we expect 3 unique pairs, but here Nneigh may be 3 or 4
+        !therefore there are  Nneigh*(Nneigh-1)/2  unique pairs
+        ipairs = Nneigh*(Nneigh-1)/2
+        ALLOCATE( three_angles(ipairs) )
+        three_angles(:) = 0.d0
+        ipairs=0
+        DO j=1,Nneigh-1
+          DO k=j+1,Nneigh
+            ipairs=ipairs+1
+            !Compute angle between position vectors r_ij and r_ik
+            dmin = ANGVEC( PosList(j,1:3)-P(i,1:3) , PosList(k,1:3)-P(i,1:3) )
+            !Compute the squared difference of cosine, save it into three_angles(:)
+            !NOTE: in a perfect sp2 the angle is 120°, hence cos(120°)=-1/2
+            three_angles(ipairs) = ( DCOS(dmin) + 0.5d0 )**2
+          ENDDO
+        ENDDO
+        !Compute the sum of all angles and normalize
+        dmin = SUM(three_angles(:)) / SIZE(three_angles)
+        WRITE(msg,*) dmin
+        WRITE(msg,*) "Normalized sum of squared dihedral angles: "//TRIM(ADJUSTL(msg))
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        !If this criterion is smaller than centro-symmetry criterion, use it instead
+        IF( dmin<AUX(i,c) ) THEN
+          AUX(i,c) = dmin
+        ENDIF
+        DEALLOCATE(three_angles)
+      ENDIF
+      !
+      !
     ELSEIF( Nneigh==1 ) THEN
       !Atom #i has only one neighbor
       AUX(i,c) = 1.d0
     ELSE
-      !Isolated atom with no neighbor
+      !Isolated atom with no neighbor: set parameter to zero
       AUX(i,c) = 0.d0
     ENDIF
     !
@@ -480,7 +536,7 @@ DO i=1,SIZE(P,1)
     WRITE(msg,*) "c("//TRIM(ADJUSTL(msg))//") = ", AUX(i,c)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
-    IF( AUX(i,c) > 1.d0 .OR. AUX(i,c)<0.d0 ) THEN
+    IF( AUX(i,c) > 1.d3 .OR. AUX(i,c) < 0.d0 ) THEN
       !Something went wrong in the calculation!
       WRITE(*,*) "/!\ WARNING: auxiliary property out-of-bound for atom: ", i, AUX(i,c)
       AUX(i,c) = 0.d0
@@ -495,6 +551,10 @@ ENDDO
 !
 400 CONTINUE
 !Write atom positions and central symmetry parameters into output file(s)
+IF( .NOT.ALLOCATED(outfileformats) ) THEN
+  ALLOCATE(outfileformats(1))
+  outfileformats(1) = "cfg"
+ENDIF
 CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
 !
 !
