@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 06 Jan. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1047,7 +1047,7 @@ CASE(1803)
              & "stimmt nicht mit der Anzahl der Atome ueberein."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1804)
-  msg = TRIM(ADJUSTL(errmsg))//" Unbekanntes Format."
+  msg = TRIM(ADJUSTL(errmsg))//" Unbekanntes oder nicht unterstütztes Format."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1805)
   !reals(1) = number of particles read
@@ -1115,6 +1115,9 @@ CASE(1814)
   ENDIF
 CASE(1815)
   msg = TRIM(ADJUSTL(errmsg))//" die Nachbarliste ist leer, wahrscheinlich weil Atome zu weit voneinander entfernt sind."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1816)
+  msg = TRIM(ADJUSTL(errmsg))//" Eingabedatei hat ein nicht unterstütztes Binärformat."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -3181,7 +3184,7 @@ CASE(4068)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4069)
   !strings(1) = name of file
-  msg = ">>> Berechnen des zentralen Symmetrieparameters für die Datei: "//TRIM(ADJUSTL(strings(1)))//"..."
+  msg = ">>> Berechnen des lokalen Symmetrieparameters für die Datei: "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4070)
   !strings(1) = name of file

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 June 2022                                     *
+!* Last modification: P. Hirel - 31 Jan. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1602,8 +1602,8 @@ DO WHILE(i<SIZE(cla))
       ENDIF
       !
     ELSEIF( i+2<=SIZE(cla) .AND.                                                           &
-          &  ( cla(i+2)=="neighbors" .OR. cla(i+2)=="neighbours" .OR. cla(i+2)=="neigh" )  &
-          & ) THEN
+          &  ( cla(i+2)=="neighbors" .OR. cla(i+2)=="neighbours" .OR. cla(i+2)=="neigh"    &
+          &    .OR. cla(i+2)=="neighbor" .OR. cla(i+2)=="neighbour" )             ) THEN
       options_array(ioptions) = "-select "//TRIM(select_mul)//" neigh "
       !Read number of neighbors, or cutoff radius for neighbor search
       READ(cla(i),'(a)',END=400,ERR=400) temp

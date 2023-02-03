@@ -33,11 +33,17 @@
 
 <p>Note that the central symmetry parameter cannot be expected to be meaningful in systems that do not have some sort of central symmetry, for instance in diamond, zincblende, or hexagonal lattices. In non-cubic perovskites, the lattice may not be centrosymmetric, making this parameter less relevant.</p>
 
-<p>If an atom has 4 neighbours, then in addition to the central symmetry parameter defined above, Atomsk also computes the angles formed by neighboring vectors. For a central atom <em>i</em> and neighboring atoms <em>j</em> and <em>k</em>, the dihedral angle is defined as the angle between the two vectors joining the central atom, <em>&theta;<sub>jik</sub></em>&nbsp;=&nbsp;(<em><strong>r</strong><sub>j</sub></em> - <em><strong>r</strong><sub>i</sub></em> , <em><strong>r</strong><sub>k</sub></em> - <em><strong>r</strong><sub>i</sub></em>). The difference between the cosine of this angle and the expected angle in a perfect tetrahedon (<em>&theta;</em><sub>0</sub>&approx;109.471°) is computed, squared and summed over all neighbours:
+<p>If an atom has 4 neighbours, then in addition to the central symmetry parameter defined above, Atomsk also computes the angles formed by neighboring vectors. For a central atom <em>i</em> and neighboring atoms <em>j</em> and <em>k</em>, the dihedral angle is defined as the angle between the two vectors joining the central atom, <em>&theta;<sub>jik</sub></em>&nbsp;=&nbsp;(<em><strong>r</strong><sub>j</sub></em> - <em><strong>r</strong><sub>i</sub></em> , <em><strong>r</strong><sub>k</sub></em> - <em><strong>r</strong><sub>i</sub></em>). The difference between the cosine of this angle and the expected angle in a perfect tetrahedon (<em>&theta;</em><sub>0</sub>&approx;109.471°) is computed, squared and summed over all neighbours:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>&beta;<sub>i</sub></em> = &Sum; [ cos(<em>&theta;<sub>jik</sub></em>) &minus; cos(<em>&theta;</em><sub>0</sub>) ]<sup>2</sup></p>
 
 <p>This additional parameter is naught when the atom is in a perfect tetrahedral site (e.g. atoms in diamond lattice), and positive otherwise. It is computed only for atoms that possess exactly 4 neighbours. Then, if its value is smaller than the value of the central symmetry parameter, then it replaces it.</p>
+
+<p>Finally, if an atom has 3 neighbours, then Atomsk also computes the dihedral angles, and compares them to the expected angle in an sp2 environment (<em>&theta;</em><sub>0</sub>&nbsp;=&nbsp;120°):</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>&gamma;<sub>i</sub></em> = &Sum; [ cos(<em>&theta;<sub>jik</sub></em>) &minus; cos(<em>&theta;</em><sub>0</sub>) ]<sup>2</sup></p>
+
+<p>This parameter is naught for atoms in a perfect sp2 environment, as found for instance in graphite or graphene, and positive otherwise. If its value is smaller than the value of the central symmetry parameter, then it replaces it.</p>
 
 <p>If this mode is used with one or several <a href="./options.html">options</a> they will be applied to the system <em>before</em> computing the central symmetry parameter.</p>
 

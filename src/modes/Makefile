@@ -23,7 +23,7 @@ SMO=mode_difference.f90     \
     mode_nye.f90            \
     mode_average.f90        \
     mode_density.f90        \
-    mode_centrosym.f90
+    mode_localsym.f90
 
 # Object files
 OMO=$(SMO:.f90=.o)

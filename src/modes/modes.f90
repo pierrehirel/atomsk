@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 06 Jan. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -64,7 +64,7 @@ USE oia_xyz
 !Module for mode all-in-one
 USE aio
 !Particular modules that compute something
-USE mode_centrosym
+USE mode_localsym
 USE mode_density
 USE mode_difference
 USE edm
@@ -969,13 +969,13 @@ CASE('density')
 !
 5600 CONTINUE
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!  CENTRAL SYMMETRY PARAMETER
+!!!!  LOCAL SYMMETRY PARAMETER
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-CASE('cs')
-  !CENTRAL SYMMETRY PARAMETER mode:
+CASE("cs","localsym")
+  !LOCAL SYMMETRY PARAMETER mode:
   !in this mode the program reads one file
   !and computes the central symmetry parameter for each atom
-  msg = 'CENTRAL SYMMETRY PARAMETER mode file: '//TRIM(filefirst)
+  msg = 'LOCAL SYMMETRY PARAMETER mode file: '//TRIM(filefirst)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   outputfile = TRIM(ADJUSTL(file1))
@@ -998,8 +998,8 @@ CASE('cs')
   !Check if user asked for wrapping of atoms
   CALL CHECK_OPTION_WRAP(options_array)
   !
-  !Compute central symmetry parameter
-  CALL CENTRO_SYM(filefirst,options_array,outputfile,outfileformats)
+  !Compute local symmetry parameter
+  CALL LOCAL_SYM(filefirst,options_array,outputfile,outfileformats)
 !
 !
 !

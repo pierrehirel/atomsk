@@ -33,11 +33,17 @@
 
 <p>Notez que le paramètre de centro-symétrie n'a pas de sens dans les systèmes qui n'ont pas de symétrie centrale, comme les structures diamant, zincblende, ou hexagonales. Dans les perovskites non cubiques, la symétrie centrale peut être perdue, rendant ce critère moins pertinent.</p>
 
-<p>Si un atome possède 4 voisins, alors en plus du critère de centro-symétrie, Atomsk calcule également les angles formés par les atomes voisins. Pour un atome central <em>i</em> et ses voisins <em>j</em> et <em>k</em>, l'angle dièdre est défini comme l'angle entre les deux vecteurs joignant l'atome central, <em>&theta;<sub>jik</sub></em>&nbsp;=&nbsp;(<em><strong>r</strong><sub>j</sub></em> - <em><strong>r</strong><sub>i</sub></em> , <em><strong>r</strong><sub>k</sub></em> - <em><strong>r</strong><sub>i</sub></em>). La différence entre le cosinus de cet angle et le cosinus de l'angle attendu dans un tétraèdre parfait (<em>&theta;</em><sub>0</sub>&approx;109.471°) est calculée, mise au carré, et sommée sur tous les voisins&nbsp;:
+<p>Si un atome possède 4 voisins, alors en plus du critère de centro-symétrie, Atomsk calcule également les angles formés par les atomes voisins. Pour un atome central <em>i</em> et ses voisins <em>j</em> et <em>k</em>, l'angle dièdre est défini comme l'angle entre les deux vecteurs joignant l'atome central, <em>&theta;<sub>jik</sub></em>&nbsp;=&nbsp;(<em><strong>r</strong><sub>j</sub></em> - <em><strong>r</strong><sub>i</sub></em> , <em><strong>r</strong><sub>k</sub></em> - <em><strong>r</strong><sub>i</sub></em>). La différence entre le cosinus de cet angle et le cosinus de l'angle attendu dans un tétraèdre parfait (<em>&theta;</em><sub>0</sub>&approx;109.471°) est calculée, mise au carré, et sommée sur tous les voisins&nbsp;:</p>
 
 <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>&beta;<sub>i</sub></em> = &Sum; [cos(<em>&theta;<sub>jik</sub></em>) &minus; cos(<em>&theta;</em><sub>0</sub>) ]<sup>2</sup></p>
 
 <p>Ce paramètre supplémentaire vaut zéro lorsque l'atome est dans un environnement parfaitement tétraédrique (par exemple dans un réseau type diamant), et positif sinon. Il n'est calculé que pour les atomes qui possèdent exactement 4 voisins. Ensuite, si sa valeur est inférieure à celle du critère de centro-symétrie, alors il le remplace.</p>
+
+<p>Finalement, si un atome a 3 voisins, alors Atomsk calcule aussi les angles dièdres, et les compare à l'angle attendu dans un environnement sp2 (<em>&theta;</em><sub>0</sub>&nbsp;=&nbsp;120°)&nbsp;:</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <em>&gamma;<sub>i</sub></em> = &Sum; [ cos(<em>&theta;<sub>jik</sub></em>) &minus; cos(<em>&theta;</em><sub>0</sub>) ]<sup>2</sup></p>
+
+<p>Ce paramètre est nul pour les atomes dans un environnement sp2 parfait, comme dans un plan de graphène par exemple, et positif sinon. Si sa valeur est inférieure à celle du critère de centro-symétrie, alors il le remplace.</p>
 
 <p>Si ce mode est utilisé avec des <a href="./options.html">options</a> alors ces options seront appliquées <em>avant</em> que le paramètre de symétrie central ne soit calculé.</p>
 

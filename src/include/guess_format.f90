@@ -24,7 +24,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2022                                      *
+!* Last modification: P. Hirel - 02 Feb. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -52,6 +52,7 @@ CONTAINS
 SUBROUTINE GUESS_FORMAT(inputfile,infileformat,fstatus)
 !
 IMPLICIT NONE
+CHARACTER:: c
 CHARACTER(LEN=4):: fstatus   !file status; 'read' or 'writ'
 CHARACTER(LEN=5):: extension, infileformat
 CHARACTER(LEN=128):: msg
@@ -60,9 +61,10 @@ CHARACTER(LEN=1024):: filename
 CHARACTER(LEN=4096),INTENT(IN):: inputfile
 LOGICAL:: fileexists
 LOGICAL:: fileisopened
+LOGICAL:: formatted  !is the file formatted?
 INTEGER:: certainty
 INTEGER:: likely
-INTEGER:: strlength, i
+INTEGER:: strlength, i, j, k
 INTEGER:: NP
 INTEGER,DIMENSION(SIZE(flist,1)):: fscore
 REAL(dp):: testreal
@@ -76,6 +78,7 @@ test=''
 i = 1
 testreal = 0.d0
 fscore(:) = 0  !set all scores to zero
+formatted = .TRUE.
 !
 msg = 'Entering GUESS_FORMAT...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -173,6 +176,23 @@ msg = 'Parsing file content...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 IF(fileexists) THEN
+!
+  !Try to detect non-ASCII characters to check if file is binary
+  j=0
+  k=1  !counter for lines. Reading the first 5 lines should be sufficient
+  DO WHILE( j==0 .AND. formatted .AND. k<=5 )
+    READ(25,'(a1)',IOSTAT=j) c
+    formatted = formatted .AND. ( IACHAR(c)<=127 )
+  ENDDO
+  IF( .NOT.formatted ) THEN
+    !File is in binary format: not supported for now
+    infileformat = "xxx"
+    GOTO 1000
+  ENDIF
+  !
+  !Go back to beginning of file
+  REWIND(25)
+  !
   !Try to confirm the format by reading the contents of the file
   !We limit it to the first 50 lines to avoid loosing too much time
   DO i=1,50

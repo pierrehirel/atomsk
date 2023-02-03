@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 06 Jan. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1030,7 +1030,7 @@ CASE(1799)
 !
 !1800-1899: ERROR MESSAGES
 CASE(1800)
-  msg = "X!X ERREUR: je n'ai pas pu déterminer le format de ce fichier !"
+  msg = TRIM(ADJUSTL(errmsg))//" je n'ai pas pu déterminer le format de ce fichier !"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    C'est peut-être un format non supporté par Atomsk ?"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -1056,7 +1056,7 @@ CASE(1803)
              & "n'est pas cohérente avec le nombre d'atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1804)
-  msg = TRIM(ADJUSTL(errmsg))//" format inconnu."
+  msg = TRIM(ADJUSTL(errmsg))//" format inconnu ou non pris en charge."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1805)
   !reals(1) = number of particles read
@@ -1127,6 +1127,9 @@ CASE(1814)
 CASE(1815)
   msg = TRIM(ADJUSTL(errmsg))//" la liste de voisins est vide, probablement parce que les atomes" &
       & //"sont trop éloignés les uns des autres."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1816)
+  msg = TRIM(ADJUSTL(errmsg))//" le fichier d'entrée est dans un format binaire non pris en charge."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -3238,7 +3241,7 @@ CASE(4068)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4069)
   !strings(1) = name of file
-  msg = ">>> Calcul du paramètre de symétrie centrale pour : "//TRIM(ADJUSTL(strings(1)))//"..."
+  msg = ">>> Calcul du paramètre de symétrie locale pour : "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4070)
   !strings(1) = name of file

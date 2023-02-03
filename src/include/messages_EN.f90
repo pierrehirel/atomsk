@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 06 Jan. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1055,7 +1055,7 @@ CASE(1803)
              & "is not consistent with number of atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1804)
-  msg = TRIM(ADJUSTL(errmsg))//" unknown format."
+  msg = TRIM(ADJUSTL(errmsg))//" unknown or unsupported format."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1805)
   !reals(1) = number of particles read
@@ -1125,6 +1125,9 @@ CASE(1814)
   ENDIF
 CASE(1815)
   msg = TRIM(ADJUSTL(errmsg))//" neighbor list is empty, probably because atoms are too far from one another."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(1816)
+  msg = TRIM(ADJUSTL(errmsg))//" input file is in unsupported binary format."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !
@@ -3171,7 +3174,7 @@ CASE(4068)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4069)
   !strings(1) = name of file
-  msg = ">>> Computing the central symmetry parameter for: "//TRIM(ADJUSTL(strings(1)))//"..."
+  msg = ">>> Computing the local symmetry parameter for: "//TRIM(ADJUSTL(strings(1)))//"..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4070)
   !strings(1) = name of file

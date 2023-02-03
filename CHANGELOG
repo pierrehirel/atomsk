@@ -5,11 +5,11 @@ CHANGELOG FOR ATOMSK
 Master
 ------
 - increased string length when reading files to prevent truncation. This affects many modules (input, modes).
-- re-writing of routine "GUESS_FORMAT" for clarity and better modularity. It should be easier to add new input/output file formats.
-- re-writing of routine "VERLET_LIST" for finding neighbours. It should now be much faster.
+- re-writing of routine "GUESS_FORMAT" for clarity and better modularity. It should also be easier to add new input/output file formats.
+- re-writing and parallelization of routine "VERLET_LIST" for finding neighbours. It should now be much faster.
 - added possibility to display coloured messages in UNIX/Linux terminals. New subroutine "COLOUR_MSG" allows to colour a string using ANSII escape sequences. This is disabled by default to avoid issues, and can be activated thanks to a new keyword in the user's configuration file (~/.config/atomsk.conf).
 - interactive mode now supports basic calculations with operators, e.g. "3*7" or "cos(pi/2)". Formulae are evaluated with routine EXPREVAL, which can now also generate random numbers with the keyword "rand".
-- in mode "--central-symmetry", atoms with 4 neighbours are now compared to tetrahedral environment; if angles are close to those in a tetrahedron, this criterion is used instead of central symmetry.
+- in mode "--local-symmetry" (formerly "--central-symmetry"), atoms with 4 neighbours are now compared to tetrahedral environment; atoms with 3 neighbours are compared to an sp2 environment; if one of these criteria is smaller than the central symmetry parameter, it is used instead. This allows computing a scalar "central symmetry parameter", e.g. in diamond lattices or in graphene.
 - in mode "--difference", fixed a bug that would cause a segfault when none of the file contained a comment.
 - in mode "--merge", a new auxiliary property "sysID" is created, indicating for each atom the index of the system it belonged to.
 - in mode "--nye", when a unit cell is provided as a reference, then reference sites are constructed by assuming that each atom in the unit cell is considered to belong to a separate "site" (i.e., sites are not averaged). Also, if user does not provide an output file name then a default one in CFG format is created. This mode also always output the G tensor in CFG format.
@@ -24,6 +24,7 @@ Master
 - fixed a bug when writing files in DDplot format, that resulted in a SEGFAULT. Thanks to Wei Li, University of Hong-Kong, China, for pointing out this bug.
 - fixed a bug in mode "--density", where the density was not correctly computed if the target property was the atomic mass. Thanks to Jean Furstoss, UMET, University of Lille, France, for pointing out this bug.
 - new option "-dislocation file" allows reading a dislocation Burgers vector and position from a file. For now it supports only planar dislocation loops where the Burgers vector is contained in the loop plane.
+- when input file has a non-supported binary format, an error message explicitely says so.
 - fixed a bug in option "-cell" where option was skipped when requiring zero length for xy, yz, or xz component.
 - fixed a bug in option "-dislocation", where the stress components for a screw dislocation were inverted.
 - fixed a bug in option "-orthogonal-cell" where the new number of atoms was not always correctly estimated, leading to a segmentation fault.
