@@ -1427,6 +1427,11 @@ ENDDO  !End Loop on all Options
 !
 !
 !End of options => check sizes of the arrays
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)==0 ) THEN
+  
+  nerr = nerr+1
+  GOTO 1000
+ENDIF
 CALL CHECK_ARRAY_CONSISTENCY(P,S,AUX,AUXNAMES,i)
 IF( i.NE.0 ) THEN
   IF( i==1 ) THEN

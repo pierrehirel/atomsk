@@ -28,7 +28,8 @@ SGE=globalvar.f90         \
     determine_H.f90       \
     readconf.f90          \
     qepw_ibrav.f90        \
-    in_stl.f90
+    in_stl.f90            \
+    average_env.f90
 
 # Object files
 OGE=$(SGE:.f90=.o)
