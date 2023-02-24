@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 June 2022                                     *
+!* Last modification: P. Hirel - 24 Feb. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -239,7 +239,7 @@ DO  !Loop on files
             !Atoms of type aentries(i,1) existed in first system, but not in current system
             nwarn=nwarn+1
             CALL ATOMSPECIES(aentries(i,1),sp1)
-            CALL ATOMSK_MSG(4719,(/sp1/),(/DBLE(Nfiles+1)/))
+            CALL ATOMSK_MSG(4720,(/sp1/),(/DBLE(Nfiles+1)/))
           ENDIF
         ENDDO
         IF( m==0 ) THEN

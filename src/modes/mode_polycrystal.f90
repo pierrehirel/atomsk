@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Oct. 2022                                     *
+!* Last modification: P. Hirel - 24 Feb. 2023                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -272,6 +272,13 @@ DO
       WRITE(msg,*) "twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       Hset=.TRUE.
+      !
+      Volume = H(1,1) * H(2,2) * H(3,3)
+      IF( twodim==0 .AND. Volume < 8000.d0 ) THEN
+        !Final cell is very small: display warning
+        nwarn = nwarn+1
+        CALL ATOMSK_MSG(4719,(/""/),(/Volume/))
+      ENDIF
       !
       !Check that there will be enough memory for final system
       IF(ALLOCATED(Q)) DEALLOCATE(Q)

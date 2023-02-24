@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Feb. 2022                                     *
+!* Last modification: P. Hirel - 24 Feb. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(100):: tempcomment
 LOGICAL:: allidzero  !are all atom id equal to zero?
 LOGICAL:: dobonds    !are there bonds in the file?
+LOGICAL:: doangles, dodihedrals, doimpropers  !are there angles, dihedrals, impropers?
 LOGICAL:: doneAtoms  !are atom positions read already?
 LOGICAL:: coreshell  !does the data contain cores and shells? (in the sense of ionic core-shell model)
 LOGICAL:: isshell    !is the current particle a shell? (in the sense of ionic core-shell model)
@@ -88,6 +89,9 @@ tempcomment(:)=''
 datatype = ''
 allidzero = .TRUE.
 dobonds = .FALSE.
+doangles = .FALSE.
+dodihedrals = .FALSE.
+doimpropers = .FALSE.
 doneAtoms = .FALSE.
 flags = .FALSE.
 molecule = .FALSE.
@@ -167,6 +171,15 @@ DO
     molecule = .TRUE.
     READ(temp,*,ERR=820,END=820) i
     ALLOCATE(BONDS(i,3))
+  ELSEIF(temp(strlength-5:)=='angles') THEN
+    doangles = .TRUE.
+    molecule = .TRUE.
+  ELSEIF(temp(strlength-8:)=='dihedrals') THEN
+    dodihedrals = .TRUE.
+    molecule = .TRUE.
+  ELSEIF(temp(strlength-8:)=='impropers') THEN
+    doimpropers = .TRUE.
+    molecule = .TRUE.
   ELSEIF(temp(strlength-9:)=='bond types') THEN
     dobonds = .TRUE.
     molecule = .TRUE.
@@ -196,30 +209,35 @@ DO
     Ncores = 0
     Nshells = 0
     DO WHILE( k<SIZE(Masses,1) )
+      !Read line, save it in a string
       READ(30,'(a)',ERR=120,END=120) temp
       IF( LEN_TRIM(temp)>0 ) THEN
         species=""
-        !Check if there is a comment at the end of the line
-        j=SCAN(temp,'#')
-        IF( j>0 ) THEN
-          !There is a comment: try to read an atom species
-          msg = TRIM(ADJUSTL(temp(j+1:)))
-          DO WHILE( LEN_TRIM(msg)>0 .AND. LEN_TRIM(species)==0 )
-            READ(msg,*) temp2
-            temp2 = TRIM(ADJUSTL(temp2))
-            species = temp2(1:2)
-            !Verify that it is an actual atom species
-            CALL ATOMNUMBER(species,c)
-            !If not, delete the string in species
-            IF(c==0) species=""
-            msg = msg(LEN_TRIM(temp2)+1:)
-          ENDDO
-        ENDIF
+        !Read atom mass, use it to determine its species
         READ(temp,*,ERR=120,END=120) i, a
-        IF( LEN_TRIM(species)==0 .OR. species=="XX" ) THEN
-          !Use atom mass to determine species
+        IF( a>0.d0 ) THEN
           CALL ATOMMASSSPECIES(a,species)
         ENDIF
+        !If species could not be determined from mass,
+        !check if there is a comment at the end of the line
+        IF( species=="XX" .OR. LEN_TRIM(species)==0 ) THEN
+          j=SCAN(temp,'#')
+          IF( j>0 ) THEN
+            !There is a comment: try to read an atom species
+            msg = TRIM(ADJUSTL(temp(j+1:)))
+            DO WHILE( LEN_TRIM(msg)>0 .AND. LEN_TRIM(species)==0 )
+              READ(msg,*) temp2
+              temp2 = TRIM(ADJUSTL(temp2))
+              species = temp2(1:2)
+              !Verify that it is an actual atom species
+              CALL ATOMNUMBER(species,c)
+              !If not, delete the string in species
+              IF(c==0) species=""
+              msg = msg(LEN_TRIM(temp2)+1:)
+            ENDDO
+          ENDIF
+        ENDIF
+        !At this point we should know the atom species
         k=k+1
         Masses(k,1) = i       !Atom type is saved in Masses(:,1)
         CALL ATOMNUMBER(species,b)
@@ -361,7 +379,7 @@ DO
       !Unknown data type or garbage => ignore it and proceed
       Ncol = 0
     END SELECT
-    WRITE(msg,*) "Number of columns in Atoms section: ", Ncol
+    WRITE(msg,*) "Corresponding N. of columns in Atoms section: ", Ncol
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
     !At this point, if P is not allocated then we are in trouble
@@ -418,6 +436,7 @@ DO
       flagx=0
       flagy=0
       flagz=0
+      column(:) = 0.d0
       !
       IF( i==1 .AND. Ncol==0 .AND. LEN_TRIM(datatype)==0 ) THEN
         !The number of columns is unknown, determine it
@@ -432,17 +451,9 @@ DO
         WRITE(msg,*) 'Number of columns counted from 1st line of data: ', Ncol
         CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
         Ncol = Ncol-1 !first column is always atom-ID => remove it from count
-        IF( molecule ) THEN
-          !Don't count the "moleculeID" column
-          Ncol = Ncol-1
-        ENDIF
         !
         !We know Ncol, allocate arrays
         Naux=1  !first aux. for storing atom type
-        IF(molecule) THEN
-          Naux = Naux+1
-          molID = Naux
-        ENDIF
         IF( Ncol==4 ) THEN
           !Only one possibility: data type is "atomic" = atom-ID atom-type x y z
           datatype = "atomic"
@@ -458,6 +469,10 @@ DO
           !Column #4 contains charge
           q = Naux
         ENDIF
+        IF( molecule ) THEN
+          Naux = Naux+1
+          molID = Naux
+        ENDIF
         !
         IF( .NOT. ALLOCATED(AUX) ) THEN
           ALLOCATE( AUX(SIZE(P,1),Naux) )
@@ -469,7 +484,7 @@ DO
           ENDIF
         ENDIF
         !
-        !Now read the coordinates for that atom
+        !Now read all the columns of data for that atom
         READ(temp,*,ERR=800,END=800) id, (column(j), j=1,Ncol)
         !
         IF( id==0 ) THEN
@@ -482,14 +497,14 @@ DO
         IF( Ncol>=6 .AND. datatype.NE."full" ) THEN
           !If there are at least 6 columns, determine if
           !the last three columns contain replica flags (check for 3 integers)
-          flagx = NINT(column(Ncol-2))
-          flagy = NINT(column(Ncol-1))
-          flagz = NINT(column(Ncol))
-          IF( DABS(column(Ncol-2) - DBLE(flagx)) < 1.d-12 .AND.      &
-            & DABS(column(Ncol-1) - DBLE(flagy)) < 1.d-12 .AND.      &
-            & DABS(column(Ncol)   - DBLE(flagz)) < 1.d-12       ) THEN
+          IF( IS_INTEGER(column(Ncol-2),1.d-12) .AND.      &
+            & IS_INTEGER(column(Ncol-1),1.d-12) .AND.      &
+            & IS_INTEGER(column(Ncol),1.d-12)         ) THEN
             !The 3 last columns are indeed 3 integers
             flags = .TRUE.
+            flagx = NINT(column(Ncol-2))
+            flagy = NINT(column(Ncol-1))
+            flagz = NINT(column(Ncol))
             WRITE(msg,*) 'Detected replica flags on first line: ', flagx, flagy, flagz
             CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
           ENDIF
@@ -498,7 +513,8 @@ DO
         !
       ELSE
         !The number of columns Ncol is known => read values
-        !First value must always be the atom-ID
+        !First value must always be the atom-ID (here saved in variable k)
+        !so the second column is stored in column(1), and so on
         READ(temp,*,ERR=800,END=800) k, (column(j), j=1,Ncol)
         !
         !Check that the particle id (here read as "k") is within the bounds
@@ -535,11 +551,26 @@ DO
         !Save atom type
         SELECT CASE(datatype)
         CASE("full")
+          !atom-ID molecule-ID atom-type q x y z
+          !Atom "type" is in column Ncol-4
           atomtype = column(Ncol-4)
-        CASE("angle","bond","molecular","template")
+        CASE("angle","bond","molecular")
+          !atom-ID molecule-ID atom-type x y z
+          !Atom "type" is in column Ncol-3
           atomtype = column(Ncol-3)
         CASE DEFAULT
-          atomtype = column(1)
+          IF( molecule ) THEN
+            !Special case for molecules
+            IF( Ncol>5 ) THEN
+              PRINT*, "molecule Ncol>5"
+              atomtype = column(Ncol-4)
+            ELSE
+              atomtype = column(Ncol-3)
+            ENDIF
+          ELSE
+            !In most other formats the atom "type" is in the second column, i.e. in column(1) here
+            atomtype = column(1)
+          ENDIF
         END SELECT
         !
         !Save atomic number

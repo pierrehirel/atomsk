@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Jan. 2023                                     *
+!* Last modification: P. Hirel - 24 Feb. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3387,6 +3387,13 @@ CASE(4718)
   msg = "            Are you sure that you know what you are doing?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4719)
+  !reals(1) = volume of final cell (A^3)
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" final cell is very small ("//TRIM(ADJUSTL(temp))//" A^3)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Are you sure that you know what you are doing?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4720)
   !strings(1) = chemical symbol
   !reals(1) = file number
   WRITE(temp,*) NINT(reals(1))

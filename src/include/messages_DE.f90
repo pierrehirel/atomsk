@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 06 Jan. 2023                                     *
+!* Last modification: P. Hirel - 24 Feb. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -787,7 +787,7 @@ CASE(751)
   ELSE
     temp = "der Datei "//TRIM(ADJUSTL(strings(1)))
   ENDIF
-  msg = "/!\ WARNING: Ignorieren der Direktive 'nthreads' von "//TRIM(ADJUSTL(strings(1)))//"."
+  msg = TRIM(ADJUSTL(warnmsg))//" Ignorieren der Direktive 'nthreads' von "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "    Diese Version von Atomsk wurde ohne OpenMP-Unterstützung kompiliert."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3404,6 +3404,13 @@ CASE(4718)
   msg = "            Bitte ueberpruefen!"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4719)
+  !reals(1) = volume of final cell (A^3)
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" letzte Zelle ist sehr klein ("//TRIM(ADJUSTL(temp))//" A^3)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Bitte ueberpruefen!"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4720)
   !strings(1) = chemical symbol
   !reals(1) = file number
   WRITE(temp,*) NINT(reals(1))

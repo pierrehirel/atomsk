@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Jan. 2023                                     *
+!* Last modification: P. Hirel - 24 Feb. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2431,7 +2431,7 @@ CASE(2729)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2730)
   !string(1) = property
-  msg = "/!\ ALERTE: pas de "//TRIM(ADJUSTL(strings(1)))//&
+  msg = TRIM(ADJUSTL(warnmsg))//" pas de "//TRIM(ADJUSTL(strings(1)))//&
       & " dans les propriétés auxiliaires, abandon..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2731)
@@ -2788,7 +2788,7 @@ CASE(3704)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3705)
   !strings(1) = skew parameter
-  msg = "/!\ ALERTE: l'inclinaison "//TRIM(strings(1))//" est trop grande."
+  msg = TRIM(ADJUSTL(warnmsg))//" l'inclinaison "//TRIM(strings(1))//" est trop grande."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Exécuter LAMMPS avec de tels vecteurs de boîte engendrera le même"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -2815,7 +2815,7 @@ CASE(3708)
       & "écrites dans le fichier CFG."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3709)
-  msg = "/!\ ALERTE: certaines composantes des vecteurs de boîte ne peuvent"
+  msg = TRIM(ADJUSTL(warnmsg))//" certaines composantes des vecteurs de boîte ne peuvent"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    pas être écrits et ce fichier SERA INCORRECT !!!"
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -3459,12 +3459,19 @@ CASE(4718)
   WRITE(temp,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
   WRITE(temp3,'(f18.1)') reals(3)
-  msg = "/!\ ALERTE: les nœuds #"//TRIM(ADJUSTL(temp))//" et #"//TRIM(ADJUSTL(temp2))//&
+  msg = TRIM(ADJUSTL(warnmsg))//" les nœuds #"//TRIM(ADJUSTL(temp))//" et #"//TRIM(ADJUSTL(temp2))//&
       & " sont très proches l'un de l'autre (d = "//TRIM(ADJUSTL(temp3))//" A)."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4719)
+  !reals(1) = volume of final cell (A^3)
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" la boîte finale est très petite ("//TRIM(ADJUSTL(temp))//" A^3)."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Êtes-vous sûr de savoir ce que vous faites ?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4720)
   !strings(1) = chemical symbol
   !reals(1) = file number
   WRITE(temp,*) NINT(reals(1))
