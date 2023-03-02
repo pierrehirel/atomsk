@@ -13,7 +13,7 @@ MODULE deterH
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 01 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -174,7 +174,12 @@ ELSE
       !
     ENDIF
     !
-  ENDDO
+    !In all cases make sure that H(j,:) is not zero
+    IF( H(j,j) < 0.1d0 ) THEN
+      H(j,j) = 2.d0
+    ENDIF
+    !
+  ENDDO !end loop on j (x,y,z)
   !
 ENDIF
 !

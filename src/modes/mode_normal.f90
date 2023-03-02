@@ -56,7 +56,6 @@ USE messages
 USE files
 USE subroutines
 USE guess_form
-USE deterH
 !
 !Module for reading input files
 USE readin
@@ -133,36 +132,6 @@ IF(verbosity==4) THEN
   CALL WRITE_XYZ(H,P,tempcomment,AUXNAMES,AUX,temp,'sxyz ')
 ENDIF
 IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 1000
-!
-!
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!  DETERMINE H
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-300 CONTINUE
-!!Determine if the cell vectors were found or not
-IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
-  !!If basis vectors H were not found in the input file, then compute them
-  ! (this does not work perfectly yet, see determine_H.f90)
-  CALL ATOMSK_MSG(4701,(/''/),(/0.d0/))
-  !
-  CALL DETERMINE_H(H,P)
-  !
-ENDIF
-!
-IF(verbosity==4) THEN
-  msg = 'Base vectors:'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,310) '     | ', H(1,1), H(1,2), H(1,3), '|'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,310) ' H = | ', H(2,1), H(2,2), H(2,3), '|'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,310) '     | ', H(3,1), H(3,2), H(3,3), '|'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  310 FORMAT(a7,3(f10.5,2X),a1)
-ENDIF
-!
-IF(nerr>=1 .OR. .NOT.ALLOCATED(P)) GOTO 810
 !
 !
 !

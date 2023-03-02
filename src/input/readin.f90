@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Nov. 2022                                     *
+!* Last modification: P. Hirel - 01 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,6 +60,7 @@ USE messages
 USE files
 USE subroutines
 USE guess_form
+USE deterH
 !
 !Modules managing input files
 USE in_abinit
@@ -266,6 +267,27 @@ ENDIF
 !
 IF(.NOT.ALLOCATED(P)) nerr=nerr+1
 IF(nerr>=1) GOTO 800
+!
+!Determine if the cell vectors were found or not
+IF( VECLENGTH(H(1,:))==0.d0 .OR. VECLENGTH(H(2,:))==0.d0 .OR. VECLENGTH(H(3,:))==0.d0 ) THEN
+  !!If basis vectors H were not found in the input file, then compute them
+  ! (this does not work perfectly yet, see determine_H.f90)
+  CALL ATOMSK_MSG(4701,(/''/),(/0.d0/))
+  !
+  CALL DETERMINE_H(H,P)
+ENDIF
+!
+IF(verbosity==4) THEN
+  msg = 'Base vectors:'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,310) '     | ', H(1,1), H(1,2), H(1,3), '|'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,310) ' H = | ', H(2,1), H(2,2), H(2,3), '|'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,310) '     | ', H(3,1), H(3,2), H(3,3), '|'
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  310 FORMAT(a7,3(f10.5,2X),a1)
+ENDIF
 !
 !Check sizes of the arrays
 CALL CHECK_ARRAY_CONSISTENCY(P,S,AUX,AUXNAMES,i)

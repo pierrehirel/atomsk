@@ -18,7 +18,8 @@ Master
 - in mode "--unfold", when reading VASP OUTCAR files produced with IBRION<0, added an error message.
 - in option "-bind-shells", when no shells are defined, atoms close to one another are considered as associated core/shell pairs.
 - option "-reduce-cell" now checks that stoichiometry is preserved.
-- random number generator will now use file "/dev/urandom" to generate a random seed whenever possible (only in UNIX/Linux systems); otherwise, system clock will be used as a seed.
+- random number generator will now use file "/dev/urandom" to generate a random seed whenever possible (only in UNIX/Linux systems); otherwise, system clock is used as a seed.
+- after reading an input file, module "readin.f90" now checks immediately if cell vectors are defined; if not it automatically calls "determine_H" to set box vectors. Previously this was done in modes, meaning that module "readin.f90" could return box vectors as naught, causing problems (e.g. when atom coordinates were divided by box vectors in option "-fractional" or when writing CFG files, it resulted in NaN).
 - fixed a bug when reading and writing POSCAR files where the keywords "Selective dynamics" were involved.
 - fixed a bug when writing LAMMPS data file when atom "types" were defined, but some types were not assigned to any atom in the system. Fixed bugs when reading or writing LAMMPS data files when shells were defined. Fixed a bug in the writing of box dimensions, when one or several box vectors had negative components. Thanks to Eerik Voimanen, Tampere University, Finland, for providing a fix for this bug.
 - fixed a bug when writing files in DDplot format, that resulted in a SEGFAULT. Thanks to Wei Li, University of Hong-Kong, China, for pointing out this bug.
