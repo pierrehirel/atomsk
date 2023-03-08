@@ -10,7 +10,7 @@ MODULE shift
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,7 +37,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE SHIFT_XYZ(P,S,shift_dir,shift_dist,shift_axis,shift_tau1,shift_tau2,shift_tau3,ORIENT,SELECT)
+SUBROUTINE SHIFT_XYZ(H,P,S,shift_dir,shift_dist,shift_axis,shift_tau1,shift_tau2,shift_tau3,ORIENT,SELECT)
 !
 !
 IMPLICIT NONE
@@ -53,6 +53,7 @@ REAL(dp),INTENT(IN):: shift_tau1, shift_tau2, shift_tau3  !shift vector
 REAL(dp):: tempreal
 REAL(dp):: V1, V2, V3  !vector components
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !box vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of cores, shells
@@ -136,27 +137,23 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
     !
     !
   CASE DEFAULT
-    !cutdir should contain a crystallograhic direction
-    !convert it to a vector and save it in Vplane(1,:)
-    CALL INDEX_MILLER(shift_axis,Vplane(1,:),j)
-    IF(j>0) GOTO 800
+    !shift_axis should contain a crystallograhic direction
+    !Convert "shift_axis" into a Cartesian vector and save it in Vplane(1,:)
+    CALL MILLER2VEC(H,shift_axis,ORIENT,Vplane(1,:),j)
     !
-    !If the system has a defined crystallographic orientation ORIENT,
-    !then Vplane(1,:) is defined in that basis
-    !=> rotate Vplane(1,:) to express it in cartesian basis
-    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-      DO i=1,3
-        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-      ENDDO
-      V1 = Vplane(1,1)
-      V2 = Vplane(1,2)
-      V3 = Vplane(1,3)
-      Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-      Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-      Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    !Check return status j (0=success, otherwise there was an error)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/shift_axis/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(shift_axis)/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
-    !Normalize Vplane
-    Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
     !
     !Shift atoms (or ion cores)
     DO i=1, SIZE(P,1)

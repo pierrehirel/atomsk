@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,6 +28,7 @@ MODULE crystallography
 !* List of subroutines in this module:                                            *
 !* INDEX_MILLER        find the indices of a plane from a string                  *
 !* INDEX_MILLER_HCP    find the indices of a plane from a string (hcp lattices)   *
+!* MILLER2VEC          translates Miller indices into Cartesian vector            *
 !* ELAST2TENSOR        converts from Voigt notation to full elastic tensor        *
 !* CHECK_CTENSOR       checks if an elastic tensor is symmetric                   *
 !* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
@@ -72,10 +73,10 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: planestring
 CHARACTER(LEN=LEN_TRIM(planestring)):: temp, temp2
 INTEGER:: i, m, mint
-INTEGER:: ifail
+INTEGER,INTENT(OUT):: ifail !0=success; 1=error while reading string
 INTEGER:: strpos
 REAL(dp):: msign   !sign of value
-REAL(dp),DIMENSION(3):: planeindices
+REAL(dp),DIMENSION(3),INTENT(OUT):: planeindices
 !
 ifail=0
 planeindices(:) = 0.d0
@@ -152,7 +153,7 @@ END SUBROUTINE INDEX_MILLER
 !  like "[12_-15_3_14]".
 !  The "planestring" is converted to a real array
 !  containing only the 3 relevant Miller indices hkl,
-! e.g. "1-10" will be converted into (1.d0  -1.d0  0.d0).
+!  e.g. "1-10" will be converted into (1.d0  -1.d0  0.d0).
 !********************************************************
 !
 SUBROUTINE INDEX_MILLER_HCP(planestring,planeindices,ifail)
@@ -161,10 +162,10 @@ IMPLICIT NONE
 CHARACTER(LEN=16),INTENT(IN):: planestring
 CHARACTER(LEN=16):: temp, temp2
 INTEGER:: i, m, mint
-INTEGER:: ifail !0=success; 1=error while reading string; 2=h+k not equal to -i
+INTEGER,INTENT(OUT):: ifail !0=success; 1=error while reading string; 2=h+k not equal to -i
 INTEGER:: strpos
 REAL(dp):: msign   !sign of value
-REAL(dp),DIMENSION(3):: planeindices
+REAL(dp),DIMENSION(3),INTENT(OUT):: planeindices
 !
 ifail=0
 planeindices(:) = 0.d0
@@ -248,6 +249,114 @@ RETURN
 ifail=1
 !
 END SUBROUTINE INDEX_MILLER_HCP
+!
+!
+!********************************************************
+!  MILLER2VEC
+!  This subroutine converts a string containing
+!  Miller indices [hkl] or [hkil], into a
+!  Cartesian vector (x y z). It includes the appropriate
+!  accounting for crystal orientation.
+!********************************************************
+!
+SUBROUTINE MILLER2VEC(H,dir,ORIENT,vector,ifail)
+!
+IMPLICIT NONE
+CHARACTER(LEN=16),INTENT(IN):: dir   !crystallographic direction, e.g. [110] or [2-110]
+INTEGER:: i
+INTEGER,INTENT(OUT):: ifail !0=success; 1=error while reading string; 2=h+k not equal to -i
+REAL(dp):: u, v, w, x, z1, z2
+REAL(dp):: V1, V2, V3
+REAL(dp),DIMENSION(3),INTENT(OUT):: vector
+REAL(dp),DIMENSION(3):: MILLER       !Miller indices
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H !box vectors
+REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
+REAL(dp),DIMENSION(3,3):: ORIENTN !normalized ORIENT
+!
+ifail=0
+vector(:) = 0.d0
+MILLER(:) = 0.d0
+ORIENTN(:,:) = 0.d0
+!
+!Try reading Miller indices [hkl]
+CALL INDEX_MILLER(dir,MILLER,ifail)
+IF(ifail==0) THEN
+  !Reading Miller indices [hkl] was successful
+  !
+  !If the system has a defined crystallographic orientation ORIENT,
+  !then Miller indices are defined in that basis
+  !=> rotate Vplane(1,:) to express it in the basis of H(:,:)
+  IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+    !Normalize orientation vectors
+    DO i=1,3
+      ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+    ENDDO
+    V1 = MILLER(1)
+    V2 = MILLER(2)
+    V3 = MILLER(3)
+    MILLER(1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+    MILLER(2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+    MILLER(3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+  ENDIF
+  !
+ELSE
+  !Try to read [hkil] Miller indices
+  CALL INDEX_MILLER_HCP(dir,MILLER,ifail)
+  IF( ifail==0 ) THEN
+    !Reading Miller indices [hkil] was successful
+    !
+    !If the system has a defined crystallographic orientation ORIENT,
+    !then Miller indices are defined in that basis
+    !=> apply rotation to express it in the basis of H(:,:)
+    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+      !Normalize orientation vectors
+      DO i=1,3
+        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+      ENDDO
+      V1 = MILLER(1)
+      V2 = MILLER(2)
+      V3 = MILLER(3)
+      MILLER(1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+      MILLER(2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+      MILLER(3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    ENDIF
+    !
+    !Convert [hkil] notation into [uvw]
+    u = 2.d0*MILLER(1) + MILLER(2)
+    v = MILLER(1) + 2.d0*MILLER(2)
+    w = MILLER(3)
+    !Check for common divisor
+    IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+      z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+    ELSE
+      z1 = MAX(DABS(u),DABS(v))
+    ENDIF
+    IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+      z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+    ELSE
+      z2 = MAX(DABS(u),DABS(w))
+    ENDIF
+    IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
+      x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
+    ELSE  !i.e. z1==0 or z2==0
+      x = MAX( DABS(z1) , DABS(z2) )
+    ENDIF
+    IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
+    !Save final indices into MILLER
+    MILLER(1) = u / x
+    MILLER(2) = v / x
+    MILLER(3) = w / x
+    !
+  ENDIF
+  !
+ENDIF
+!
+IF( ifail==0 ) THEN
+  !Use Miller indices to define Cartesian vector
+  vector(:) = MILLER(1)*H(1,:) + MILLER(2)*H(2,:) + MILLER(3)*H(3,:)
+ENDIF
+!
+END SUBROUTINE MILLER2VEC
 !
 !
 !********************************************************

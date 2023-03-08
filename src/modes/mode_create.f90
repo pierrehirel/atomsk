@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1613,6 +1613,11 @@ ELSEIF( hexagonal ) THEN
       IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
       !Set box vector
       uv(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
+      !
+      !Update system orientation in ORIENT
+      ORIENT(i,1) = u
+      ORIENT(i,2) = v
+      ORIENT(i,3) = w
     ENDDO
     !
     WRITE(msg,*) "Oriented unit cell vectors:"

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 Jan. 2023                                     *
+!* Last modification: P. Hirel - 06 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1763,12 +1763,20 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp.NE."random" ) THEN
+    IF( temp.NE."random" .AND. temp.NE."reverse" ) THEN
       !Read how to sort it
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      IF( temp.NE.'up' .AND. temp.NE.'down' .AND. temp.NE.'pack') GOTO 120
+      SELECT CASE(temp)
+      CASE("up","UP","down","DOWN","pack","PACK")
+        !These keywords are valid
+        temp = StrDnCase(temp)
+        CONTINUE
+      CASE DEFAULT
+        !Invalid keyword: exit with error
+        GOTO 120
+      END SELECT
     ENDIF
   !
   ELSEIF(clarg=='-spacegroup' .OR. clarg=='-space-group' .OR. clarg=='-sgroup' &

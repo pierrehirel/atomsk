@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Nov. 2022                                     *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,9 +88,11 @@ REAL(dp):: dz        !increment along Z
 REAL(dp):: ta, tf, tt, tu, tv !used to detect ray-triangle intersections
 REAL(dp):: snumber   !atomic number
 REAL(dp):: tempreal
+REAL(dp):: u, v, w, x, z1, z2
 REAL(dp):: V1, V2, V3  !vector components
 REAL(dp):: xmin, xmax, ymin, ymax, zmin, zmax !box parameters
 REAL(dp):: txmin, txmax, tymin, tymax, tzmax  !min/max X,Y,Z coordinates of a triangle
+REAL(dp),DIMENSION(3):: MILLER       !Miller indices
 REAL(dp),DIMENSION(3):: e1, e2, td, th, ts, tq !vectors used to detect ray-triangle intersections
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
@@ -433,24 +435,23 @@ CASE('above','below')
     !
   CASE DEFAULT
     !region_dir should contain a crystallograhic direction
-    !convert it to a vector and save it in Vplane(1,:)
-    CALL INDEX_MILLER(region_dir,Vplane(1,:),j)
-    IF(j>0) GOTO 800
+    !Convert "region_dir" into a Cartesian vector and save it in Vplane(1,:)
+    CALL MILLER2VEC(H,region_dir,ORIENT,Vplane(1,:),j)
     !
-    !If the system has a defined crystallographic orientation ORIENT,
-    !then Vplane(1,:) is defined in that basis
-    !=> rotate Vplane(1,:) to express it in cartesian basis
-    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-      DO i=1,3
-        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-      ENDDO
-      V1 = Vplane(1,1)
-      V2 = Vplane(1,2)
-      V3 = Vplane(1,3)
-      Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-      Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-      Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    !Check return status j (0=success, otherwise there was an error)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/region_dir/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(region_dir)/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
+    !
     !Normalize Vplane
     Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
     WRITE(msg,'(a8,3f12.3)') 'Vplane: ', Vplane(1,:)

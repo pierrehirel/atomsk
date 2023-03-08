@@ -28,12 +28,12 @@
 
 <ul>
   <li><strong>propriété</strong> : la propriété suivant laquelle les atomes seront triés, peut être 'species' ou 's' pour les trier par espèce chimique, 'x', 'y', 'z' pour les trier suivant une coordonnée, ou bien n'importe quelle propriété auxiliaire (telle que lue depuis le fichier d'entrée ou définie avec l'<a href="./option_properties.html">option <code>-properties</code></a>).</li>
-  <li><strong>ordre</strong> : peut être 'up' pour trier les atomes par propriété croissante, 'down' pour les trier par ordre décroissant, ou 'pack' pour simplement rassembler les atomes ayant la même valeur de la propriété donnée (mais sans les trier).</li>
+  <li><strong>ordre</strong> : peut être 'up' pour trier les atomes par propriété croissante, 'down' pour les trier par ordre décroissant, ou 'pack' pour simplement rassembler les atomes ayant la même valeur de la propriété donnée (mais sans les trier). Si l'ordre est 'reverse', alors l'ordre des atomes est inversé.</li>
 </ul>
 
 <p>Si cette option est appelée avec "-sort random", alors la liste des atomes est mélangée dans un ordre aléatoire.</p>
 
-<p>Cette option ne transforme pas le système ni ne modifie les positions atomiques. Elle modifie les <em>indices</em> des atomes, et donc l'ordre dans lequel les atomes apparaissent dans le fichier de sortie.</p>
+<p>Cette option ne transforme pas le système ni ne modifie les positions atomiques. Elle modifie les <em>indices</em> des atomes, et donc l'ordre dans lequel les atomes apparaissent dans le fichier de sortie. Par exemple, après l'application de cette option, l'atome #i de symbole chimique Xx à la position (x,y,z) et avec des valeurs de propriétés auxiliaires A1, A2, etc., sera toujours de la même espèce chimique, il sera à la même position, et aura les mêmes valeurs de ses propriétés auxiliaires, mais il aura un indice #j différent.</p>
 
 
 

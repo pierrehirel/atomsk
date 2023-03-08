@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2023                                     *
+!* Last modification: P. Hirel - 06 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -415,7 +415,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-sort") THEN
   WRITE(*,*) "..> Sort atoms:"
-  WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack>"
+  WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack|reverse>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-spacegroup") THEN
@@ -1728,9 +1728,11 @@ CASE(2086)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2087)
   !strings(1) = property to be sorted
-  !strings(2) = sort order: up, down, pack, random
+  !strings(2) = sort order: up, down, pack, random, reverse
   IF( strings(2)=="random" ) THEN
     msg = ">>> Shuffling atom list in random order..."
+  ELSEIF( strings(2)=="reverse" ) THEN
+    msg = ">>> Reversing atom list..."
   ELSE
     IF(strings(1)=="s") THEN
       temp = "atomic weight"
@@ -3269,11 +3271,11 @@ CASE(4700)
   msg = "    Skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4701)
-  msg = "/!\ I did not find the cell vectors in the input file."
+  msg = TRIM(ADJUSTL(warnmsg))//" I did not find the cell vectors in the input file."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    I will try to guess them, but this is very inaccurate."
+  msg = "    A new bounding box will be generated, but it may not be accurate."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    I advise that you use the option -prop to setup the supercell vectors."
+  msg = "    I advise using option '-prop' or '-cell' to setup the cell vectors."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4702)
   msg = TRIM(ADJUSTL(warnmsg))//" cell is charged, total polarization may be wrong!"

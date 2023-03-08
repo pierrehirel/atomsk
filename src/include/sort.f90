@@ -9,7 +9,7 @@ MODULE sorting
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 March 2018                                    *
+!* Last modification: P. Hirel - 06 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -328,21 +328,34 @@ END SUBROUTINE PACKSORT
 ! IDSORT
 ! This subroutine takes a list of index and an 2-dim.
 ! array A as input, and re-shuffles array A according
-! to the index list.
+! to the given index list.
+! NOTE: idlist *must* have the same size as the first
+! dimension of A, *and* all indices as idlist *must* be
+! positive and smaller or equal to the first dimension of A.
 !********************************************************
 SUBROUTINE IDSORT(idlist,A)
 !
 INTEGER:: i
-INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of sorted indexes
+INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of indexes
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Atemp
+REAL(dp),DIMENSION(SIZE(A,2)):: Atemp !temporary data for an element of array A
 !
-DO i=1,SIZE(idlist)
-  !Exchange entries in A with index i and idlist(i)
-  Atemp(i,:) = A(idlist(i),:)
-ENDDO
-!
-A(:,:) = Atemp(:,:)
+!Check that idlist(:) complies to requirements
+IF( SIZE(idlist) == SIZE(A,1) .AND. .NOT.(ANY(idlist>SIZE(A,1)) .OR. ANY(idlist<=0)) ) THEN
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,Atemp)
+  DO i=1,SIZE(idlist)
+    !Save data of atom #i in temporary array
+    Atemp(:) = A(i,:)
+    !Copy data of atom #idlist(i) in atom #i
+    A(i,:) = A(idlist(i),:)
+    !Copy temporary data to atom #idlist(i)
+    A(idlist(i),:) = Atemp(:)
+  ENDDO
+  !$OMP END PARALLEL DO
+  !
+ELSE
+  PRINT*, "ERROR  size(idlist) != size(A)"
+ENDIF
 !
 END SUBROUTINE IDSORT
 !

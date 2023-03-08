@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2022                                     *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -379,7 +379,7 @@ IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
         IF(j==2) skew(1:1)='y'
         !
         !Check if tilt is too large
-        IF( DABS(K(i,j))>0.5d0*K(j,j) ) THEN
+        IF( DABS(K(i,j))>0.5d0*K(j,j)+1.d-12 ) THEN
           nwarn=nwarn+1
           !Tilt is too large: ask if it should be reduced
           CALL ATOMSK_MSG(3705,(/skew/),(/0.d0/))
@@ -389,13 +389,13 @@ IF( DABS(K(2,1))>1.d-12 .OR. DABS(K(3,1))>1.d-12 .OR. DABS(K(3,2))>1.d-12 ) THEN
             tiltbefore = K(i,j)
             iloop=0
             !If tilt is too large, remove the matching box vector
-            DO WHILE( K(i,j)>0.5d0*K(j,j) )
+            DO WHILE( K(i,j)>0.5d0*K(j,j)+1.d-12 )
               K(i,:) = K(i,:) - K(j,:)
               iloop=iloop+1
               IF(iloop>100) EXIT
             ENDDO
             !If tilt is too negative, add the matching box vector
-            DO WHILE( K(i,j)<-0.5d0*K(j,j) )
+            DO WHILE( K(i,j)<-0.5d0*K(j,j)-1.d-12 )
               K(i,:) = K(i,:) + K(j,:)
               iloop=iloop+1
               IF(iloop>100) EXIT

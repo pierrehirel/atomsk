@@ -12,7 +12,7 @@ MODULE fix
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,7 +39,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE FIX_XYZ(P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELECT)
+SUBROUTINE FIX_XYZ(H,P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELECT)
 !
 !
 IMPLICIT NONE
@@ -58,6 +58,7 @@ REAL(dp),INTENT(IN):: fixdistance
 REAL(dp):: tempreal
 REAL(dp):: V1, V2, V3  !vector components
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !box vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P !atom positions
@@ -193,29 +194,26 @@ IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
     ENDDO
     !
   CASE DEFAULT
-    !cutdir should contain a crystallograhic direction
+    !fixdir should contain a crystallograhic direction
     WRITE(msg,*) 'Looking for a crystal direction... '
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    !convert it to a vector and save it in Vplane(1,:)
-    CALL INDEX_MILLER(fixdir,Vplane(1,:),j)
-    IF(j>0) GOTO 800
     !
-    !If the system has a defined crystallographic orientation ORIENT,
-    !then Vplane(1,:) is defined in that basis
-    !=> rotate Vplane(1,:) to express it in cartesian basis
-    IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-      DO i=1,3
-        ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-      ENDDO
-      V1 = Vplane(1,1)
-      V2 = Vplane(1,2)
-      V3 = Vplane(1,3)
-      Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-      Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-      Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    !Convert "fixdir" into a Cartesian vector and save it in Vplane(1,:)
+    CALL MILLER2VEC(H,fixdir,ORIENT,Vplane(1,:),j)
+    !
+    !Check return status j (0=success, otherwise there was an error)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/fixdir/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(fixdir)/),(/0.d0/))
+        GOTO 1000
+      ENDIF
     ENDIF
-    !Normalize Vplane
-    Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
     !
     DO i=1,SIZE(P,1)
       !determine if atom is above or below the plane

@@ -247,7 +247,7 @@ REAL(dp):: shift_dist       !distance of the "cut plane" to the origin
 REAL(dp):: shift_tau1, shift_tau2, shift_tau3  !shift vector
 !
 !Variables relative to Option: sort
-CHARACTER(LEN=6):: sortorder
+CHARACTER(LEN=8):: sortorder
 CHARACTER(LEN=16):: sortcol
 !
 !Variables relative to Option: stress
@@ -721,7 +721,7 @@ DO ioptions=1,SIZE(options_array)
       fix_dir = ""
       fixdir = ""
     ENDIF
-    CALL FIX_XYZ(P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELECT)
+    CALL FIX_XYZ(H,P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELECT)
   !
   CASE('-frac','-fractional')
     CALL CART2FRAC_XYZ(H,P,S)
@@ -1212,12 +1212,15 @@ DO ioptions=1,SIZE(options_array)
       temp = treal(3)
       GOTO 810
     ENDIF
-    CALL SHIFT_XYZ(P,S,shift_dir,shift_dist,shift_axis,shift_tau1,shift_tau2,shift_tau3,ORIENT,SELECT)
+    CALL SHIFT_XYZ(H,P,S,shift_dir,shift_dist,shift_axis,shift_tau1,shift_tau2,shift_tau3,ORIENT,SELECT)
   !
   CASE('-sort')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
     IF( temp=="random" ) THEN
       sortorder="random"
+      sortcol=""
+    ELSEIF( temp=="reverse" .OR. temp=="r" ) THEN
+      sortorder="reverse"
       sortcol=""
     ELSE
       READ(options_array(ioptions),*,END=800,ERR=800) optionname, sortcol, sortorder

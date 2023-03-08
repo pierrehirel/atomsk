@@ -10,7 +10,7 @@ MODULE sort
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 06 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,16 +42,18 @@ SUBROUTINE SORT_XYZ(P,S,AUXNAMES,AUX,SELECT,sortcol,sortorder)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=6):: sortorder  !up or down or pack or random
+CHARACTER(LEN=8):: sortorder   !up or down or pack or random or reverse
 CHARACTER(LEN=16):: sortcol    !property to be sorted: x, y, z or s, or any name
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
-INTEGER:: i
+INTEGER:: i, j
 INTEGER:: sortnum   !index of column to sort
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX    !auxiliary properties of atoms
-REAL(dp),DIMENSION(:,:),ALLOCATABLE,TARGET:: P, S  !positions of atoms, shells
+REAL(dp),DIMENSION(4):: Pi, Si               !temporary position of an atom
+REAL(dp),DIMENSION(:),ALLOCATABLE:: AUXi     !temporary aux.prop. of an atom
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX    !auxiliary properties of atoms
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S   !positions of atoms, shells
 !
 !Initialize variables
 sortnum = 0
@@ -66,7 +68,7 @@ CALL ATOMSK_MSG(2087,(/sortcol//'   ', sortorder/),(/0.d0/))
 !
 !
 100 CONTINUE
-!Special case if user asked for randomization of the list
+!If sortorder is "random" or "reverse", generate list of new atom indices
 IF( sortorder=="random" ) THEN
   !Generate a list of index in random order
   CALL GEN_NRANDINDEX( SIZE(P,1) , newindex )
@@ -79,7 +81,7 @@ IF( sortorder=="random" ) THEN
     ENDDO
     CLOSE(40)
   ENDIF
-  !Use the list to sort atoms
+  !Use the list generated above to sort atoms
   CALL IDSORT(newindex,P)
   !If shells are defined, sort them accordingly
   IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(newindex) ) THEN
@@ -89,87 +91,112 @@ IF( sortorder=="random" ) THEN
   IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(newindex) ) THEN
     CALL IDSORT(newindex,AUX)
   ENDIF
-  !Finished, go to the end of this module
-  GOTO 300
-ENDIF
-!
-!
-!Find out which property must be sorted
-SELECT CASE (sortcol)
-!
-CASE('species','s','S','x','X','y','Y','z','Z')
-  !The array P must be sorted
-  !Determine the column to be sorted
-  IF( sortcol=="x" .OR. sortcol=="X" ) THEN
-    sortnum = 1
-  ELSEIF( sortcol=="y" .OR. sortcol=="Y" ) THEN
-    sortnum = 2
-  ELSEIF( sortcol=="z" .OR. sortcol=="Z" ) THEN
-    sortnum = 3
-  ELSE
-    sortnum = 4
-  ENDIF
-  WRITE(msg,*) 'Array to sort: P ; sortnum = ', sortnum
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
-  SELECT CASE(sortorder)
-  CASE('up','down')
-    !Sort P by increasing or decreasing values
-    CALL QUICKSORT(P,sortnum,sortorder,newindex)
-  CASE('pack')
-    !Pack identical values of P together
-    CALL PACKSORT(P,sortnum,newindex)
-  CASE DEFAULT
-  END SELECT
   !
-  !newindex(:) now contains the new list of index (after sorting)
-  !=> use it to sort other arrays
-  !If shells are defined, sort them accordingly
-  IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(newindex) ) THEN
-    CALL IDSORT(newindex,S)
-  ENDIF
-  !
-  !If auxiliary properties are defined, sort them accordingly
-  IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(newindex) ) THEN
-    CALL IDSORT(newindex,AUX)
-  ENDIF
-  !
-CASE DEFAULT
-  !If it is none of the above, it has to be an auxiliary property
-  DO i=1,SIZE(AUXNAMES)
-    IF( TRIM(ADJUSTL(AUXNAMES(i)))==TRIM(ADJUSTL(sortcol)) ) THEN
-      sortnum = i
-    ENDIF
+ELSEIF( sortorder=="reverse" ) THEN
+  !Reverse list of atoms
+  IF(ALLOCATED(AUX)) ALLOCATE(AUXi(SIZE(AUX,2)))
+  i=1
+  j=SIZE(P,1)
+  DO WHILE(i<j)
+    !Save data of atom #i in temporary array
+    Pi(:) = P(i,:)
+    IF(ALLOCATED(S)) Si(:) = S(i,:)
+    IF(ALLOCATED(AUX)) AUXi(:) = AUX(i,:)
+    !Copy data of atom #j in atom #i
+    P(i,:) = P(j,:)
+    IF(ALLOCATED(S)) S(i,:) = S(j,:)
+    IF(ALLOCATED(AUX)) AUX(i,:) = AUX(j,:)
+    !Copy temporary data to atom #idlist(i)
+    P(j,:) = Pi(:)
+    IF(ALLOCATED(S)) S(j,:) = Si(:)
+    IF(ALLOCATED(AUX)) AUX(j,:) = AUXi(:)
+    i=i+1
+    j=j-1
   ENDDO
-  WRITE(msg,*) 'Array to sort: AUX ; sortnum = ', sortnum
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  IF(sortnum==0) THEN
-    !no such property exist => display a warning and exit this module
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(2730,(/TRIM(ADJUSTL(sortcol))/),(/0.d0/))
-    GOTO 1000
-  ENDIF
+  IF(ALLOCATED(AUXi)) DEALLOCATE(AUXi)
   !
-  SELECT CASE(sortorder)
-  CASE('up','down')
-    !Sort AUX by increasing or decreasing values
-    CALL QUICKSORT(AUX,sortnum,sortorder,newindex)
-  CASE('pack')
-    !Pack identical values of AUX together
-    CALL PACKSORT(AUX,sortnum,newindex)
+  !
+ELSE
+  !
+  !Find out which property must be sorted
+  SELECT CASE (sortcol)
+  !
+  CASE('species','s','S','x','X','y','Y','z','Z')
+    !The array P must be sorted
+    !Determine the column to be sorted
+    IF( sortcol=="x" .OR. sortcol=="X" ) THEN
+      sortnum = 1
+    ELSEIF( sortcol=="y" .OR. sortcol=="Y" ) THEN
+      sortnum = 2
+    ELSEIF( sortcol=="z" .OR. sortcol=="Z" ) THEN
+      sortnum = 3
+    ELSE
+      sortnum = 4
+    ENDIF
+    WRITE(msg,*) 'Array to sort: P ; sortnum = ', sortnum
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !
+    SELECT CASE(sortorder)
+    CASE("up","down")
+      !Sort P by increasing or decreasing values
+      CALL QUICKSORT(P,sortnum,sortorder,newindex)
+    CASE("pack")
+      !Pack identical values of P together
+      CALL PACKSORT(P,sortnum,newindex)
+    CASE DEFAULT
+    END SELECT
+    !
+    !newindex(:) now contains the new list of index (after sorting)
+    !=> use it to sort other arrays
+    !If shells are defined, sort them accordingly
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(newindex) ) THEN
+      CALL IDSORT(newindex,S)
+    ENDIF
+    !
+    !If auxiliary properties are defined, sort them accordingly
+    IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(newindex) ) THEN
+      CALL IDSORT(newindex,AUX)
+    ENDIF
+    !
   CASE DEFAULT
+    !If it is none of the above, it has to be an auxiliary property
+    DO i=1,SIZE(AUXNAMES)
+      IF( TRIM(ADJUSTL(AUXNAMES(i)))==TRIM(ADJUSTL(sortcol)) ) THEN
+        sortnum = i
+      ENDIF
+    ENDDO
+    WRITE(msg,*) 'Array to sort: AUX ; sortnum = ', sortnum
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    IF(sortnum==0) THEN
+      !no such property exist => display a warning and exit this module
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG(2730,(/TRIM(ADJUSTL(sortcol))/),(/0.d0/))
+      GOTO 1000
+    ENDIF
+    !
+    SELECT CASE(sortorder)
+    CASE('up','down')
+      !Sort AUX by increasing or decreasing values
+      CALL QUICKSORT(AUX,sortnum,sortorder,newindex)
+    CASE('pack')
+      !Pack identical values of AUX together
+      CALL PACKSORT(AUX,sortnum,newindex)
+    CASE DEFAULT
+    END SELECT
+    !
+    !newindex(:) now contains the new list of index (after sorting)
+    !=> use it to sort other arrays
+    CALL IDSORT(newindex,P)
+    !
+    !If shells are defined, sort them accordingly
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(newindex) ) THEN
+      CALL IDSORT(newindex,S)
+    ENDIF
+    !
   END SELECT
   !
-  !newindex(:) now contains the new list of index (after sorting)
-  !=> use it to sort other arrays
-  CALL IDSORT(newindex,P)
-  !
-  !If shells are defined, sort them accordingly
-  IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(newindex) ) THEN
-    CALL IDSORT(newindex,S)
-  ENDIF
-  !
-END SELECT
+ENDIF
 !
 !
 !

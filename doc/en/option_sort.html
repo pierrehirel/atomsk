@@ -28,12 +28,12 @@
 
 <ul>
   <li><strong>property</strong>: atom property to be sorted; can be one of 'species' (or 's'), 'x', 'y', 'z', or any per-atom auxiliary property (read from the input file or defined with the <a href="./option_properties.html">option <code>-properties</code></a>);</li>
-  <li><strong>order</strong>: if 'up' or 'down' the property is sorted by increasing or decreasing values, respectively. If 'pack', identical values of the property is packed so that they are contiguous (but without sorting them by increasing or decreasing values).</li>
+  <li><strong>order</strong>: if 'up' or 'down' the property is sorted by increasing or decreasing values, respectively. If 'pack', identical values of the property is packed so that they are contiguous (but without sorting them by increasing or decreasing values). If 'reverse', then the order of atoms is reversed.</li>
 </ul>
 
 <p>If the option is called as "-sort random", then the list of atoms is shuffled in random order.</p>
 
-<p>This option does not transform the system or move atoms. It changes the <em>index</em> of atoms, i.e. the order in which they appear in the final file.</p>
+<p>This option does not transform the system or move atoms. It changes the <em>index</em> of atoms, i.e. the order in which they appear in the final file. For example, after applying this option, the atom #i of chemical symbol Xx at position (x,y,z) and with auxiliary properties of values A1, A2, etc., will still be of the same chemical species, be at the same position, and have the same values of its auxiliary properties, but it will have a different index #j.</p>
 
 
 

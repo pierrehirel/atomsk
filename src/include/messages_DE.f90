@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 24 Feb. 2023                                     *
+!* Last modification: P. Hirel - 06 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -408,7 +408,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-sort") THEN
   WRITE(*,*) "..> Sortiere Atome:"
-  WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack>"
+  WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack|reverse>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-stress") THEN
@@ -1708,6 +1708,8 @@ CASE(2087)
   !strings(2) = sort order: up, down, pack, random
   IF( strings(2)=="random" ) THEN
     msg = ">>> Mischen der Atomliste in zufälliger Reihenfolge..."
+  ELSEIF( strings(2)=="reverse" ) THEN
+    msg = ">>> Atomliste umkehren..."
   ELSE
     IF(strings(1)=="s") THEN
       temp = "atomare Masse"
@@ -3277,14 +3279,14 @@ CASE(4700)
   msg = "    Ueberspringe..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4701)
-  msg = "/!\ Konnte Basisvektoren der Superzelle in der"// &
+  msg = TRIM(ADJUSTL(warnmsg))//" Konnte Basisvektoren der Superzelle in der"// &
       & " Eingabedatei nicht finden."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Versuche Basisvektoren zu erraten."// &
       & " Vorsicht, das kann sehr ungenau sein."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Es wird empfohlen die Basisvektoren der Superzelle"// &
-      & " mit der Anweisungn -prop zu definieren."
+      & " mit der Anweisungn '-prop' oder '-cell' zu definieren."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4702)
   msg = TRIM(ADJUSTL(warnmsg))//" Zelle ist geladen."// &

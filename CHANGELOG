@@ -17,7 +17,9 @@ Master
 - in mode "--rdf", improved efficiency in the computation of the partial RDFs. Also fixed a bug in the computation of the total RDF when atoms of different species and different densities were present.
 - in mode "--unfold", when reading VASP OUTCAR files produced with IBRION<0, added an error message.
 - in option "-bind-shells", when no shells are defined, atoms close to one another are considered as associated core/shell pairs.
+- options "-fix", "-select", and "-shift", now allow selecting above or below planes using 4-index [hkil] Miller notation.
 - option "-reduce-cell" now checks that stoichiometry is preserved.
+- option "-sort" now allows to reverse atom list.
 - random number generator will now use file "/dev/urandom" to generate a random seed whenever possible (only in UNIX/Linux systems); otherwise, system clock is used as a seed.
 - after reading an input file, module "readin.f90" now checks immediately if cell vectors are defined; if not it automatically calls "determine_H" to set box vectors. Previously this was done in modes, meaning that module "readin.f90" could return box vectors as naught, causing problems (e.g. when atom coordinates were divided by box vectors in option "-fractional" or when writing CFG files, it resulted in NaN).
 - fixed a bug when reading and writing POSCAR files where the keywords "Selective dynamics" were involved.
@@ -29,6 +31,7 @@ Master
 - fixed a bug in option "-cell" where option was skipped when requiring zero length for xy, yz, or xz component.
 - fixed a bug in option "-dislocation", where the stress components for a screw dislocation were inverted.
 - fixed a bug in option "-orthogonal-cell" where the new number of atoms was not always correctly estimated, leading to a segmentation fault.
+- fixed a bug where 4-index [hkil] Miller indices were not treated correctly in some options. Thanks to Roman Gröger, Institute of Physics of Materials, Czech Academy of Sciences, Czech Republic, for pointing out this bug.
 - fixed a bug in option "-velocity" where velocities were not correctly converted to A/ps.
 - fixed a bug when detecting if coordinates are Cartesian or reduced.
 - fixed a bug where the position was not always computed correctly when using an operation with "box", e.g. when introducing dislocations. Thanks to Samaneh Nasiri, Friedrich-Alexander-University Erlangen-Nürnberg, Germany, for pointing out this bug.

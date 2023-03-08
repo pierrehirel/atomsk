@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2023                                     *
+!* Last modification: P. Hirel - 06 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -414,7 +414,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-sort") THEN
   WRITE(*,*) "..> Ranger les atomes :"
-  WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack>"
+  WRITE(*,*) "          -sort <s|x|y|z> <up|down|pack|reverse>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-spacegroup") THEN
@@ -1774,9 +1774,11 @@ CASE(2086)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2087)
   !strings(1) = property to be sorted
-  !strings(2) = sort order: up, down, pack, random
+  !strings(2) = sort order: up, down, pack, random, reverse
   IF( strings(2)=="random" ) THEN
     msg = ">>> Mélange de la liste des atomes dans un ordre aléatoire..."
+  ELSEIF( strings(2)=="reverse" ) THEN
+    msg = ">>> Inversion de l'ordre des atomes..."
   ELSE
     IF( strings(1)=="s" .OR. strings(1)=="species" ) THEN
       temp = "numéros atomiques"
@@ -3337,11 +3339,11 @@ CASE(4700)
   msg = "    Abandon..."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4701)
-  msg = "/!\ Je n'ai pas trouvé les vecteurs de la boîte dans le fichier d'entrée."
+  msg = TRIM(ADJUSTL(warnmsg))//" Je n'ai pas trouvé les vecteurs de la boîte dans le fichier d'entrée."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Je vais tenter de les deviner mais cela peut être imprécis."
+  msg = "    Une nouvelle boîte englobant tous les atomes va être générée, mais cela peut être imprécis."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Je vous recommande d'utiliser l'option -prop pour définir ces vecteurs."
+  msg = "    Je vous recommande d'utiliser l'option '-prop' ou '-cell' pour définir ces vecteurs."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4702)
   msg = TRIM(ADJUSTL(warnmsg))//" le système est chargé, la polarisation totale peut être fausse !"

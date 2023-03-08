@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 08 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -149,82 +149,39 @@ CASE("x","X","y","Y","z","Z")
   !
 CASE DEFAULT
   !cutdir should contain a crystallographic direction
-  !convert it to a vector and save it in Vplane(1,:)
-  MILLER(:) = 0.d0
-  CALL INDEX_MILLER(cutdir,MILLER,j)
-  IF(j>0) THEN
-    !Try to read [hkil Miller indices
-    CALL INDEX_MILLER_HCP(cutdir,MILLER,j)
-    IF( j>0 ) THEN
-      IF( j==2 ) THEN
-        !The error was because i is not equal to -h-k
-        nerr=nerr+1
-        CALL ATOMSK_MSG(815,(/cutdir/),(/0.d0/))
-        GOTO 1000
-      ELSE
-        !Other error, unable to convert this string into a proper vector
-        CALL ATOMSK_MSG(817,(/TRIM(cutdir)/),(/0.d0/))
-        GOTO 1000
-      ENDIF
+  WRITE(msg,*) "Attempting to read Miller indices from string: "//TRIM(cutdir)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !
+  !Convert "cutdir" into a Cartesian vector and save it in Vplane(1,:)
+  CALL MILLER2VEC(H,cutdir,ORIENT,Vplane(1,:),j)
+  !
+  !Check return status j (0=success, otherwise there was an error)
+  IF( j>0 ) THEN
+    IF( j==2 ) THEN
+      !The error was because i is not equal to -h-k
+      nerr=nerr+1
+      CALL ATOMSK_MSG(815,(/cutdir/),(/0.d0/))
+      GOTO 1000
     ELSE
-      !Convert [hkil] notation into [uvw] in MILLER
-      u = 2.d0*MILLER(1) + MILLER(2)
-      v = MILLER(1) + 2.d0*MILLER(2)
-      w = MILLER(3)
-      !Check for common divisor
-      IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
-        z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
-      ELSE
-        z1 = MAX(DABS(u),DABS(v))
-      ENDIF
-      IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
-        z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
-      ELSE
-        z2 = MAX(DABS(u),DABS(w))
-      ENDIF
-      IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
-        x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
-      ELSE  !i.e. z1==0 or z2==0
-        x = MAX( DABS(z1) , DABS(z2) )
-      ENDIF
-      IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
-      !Set normal to plane of cut
-      MILLER(:) = ( u*H(:,1) + v*H(:,2) + w*H(:,3) ) / x
-      !
+      !Other error, unable to convert this string into a proper vector
+      CALL ATOMSK_MSG(817,(/TRIM(cutdir)/),(/0.d0/))
+      GOTO 1000
     ENDIF
-    !
   ENDIF
   !
   !Check that Vplane is not [000]
-  IF( VECLENGTH(MILLER)<1.d-12 ) THEN
+  IF( VECLENGTH(Vplane)<1.d-12 ) THEN
     CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
     nerr=nerr+1
     GOTO 1000
   ENDIF
   !
-  !Use Miller indices to define normal to plane of cut
-  Vplane(1,:) = MILLER(1)*H(1,:) + MILLER(2)*H(2,:) + MILLER(3)*H(3,:)
-  !
-  !If the system has a defined crystallographic orientation ORIENT,
-  !then Vplane(1,:) is defined in that basis
-  !=> rotate Vplane(1,:) to express it in cartesian basis
-  IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-    DO i=1,3
-      ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-    ENDDO
-    V1 = Vplane(1,1)
-    V2 = Vplane(1,2)
-    V3 = Vplane(1,3)
-    Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-    Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-    Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
-  ENDIF
-  !
   !Normalize Vplane
   Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
-  WRITE(msg,'(a8,3f12.3)') 'Vplane: ', Vplane(1,:)
+  WRITE(msg,'(a14,3f12.3)') 'Plane of cut: ', Vplane(1,:)
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
+  !Loop on all atoms
   DO i=1,SIZE(P,1)
     !determine if atom is above or below the plane
     tempreal = VEC_PLANE( Vplane(1,:) , cutdistance , P(i,1:3) )
