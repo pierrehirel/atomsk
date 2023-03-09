@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2023                                    *
+!* Last modification: P. Hirel - 09 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -176,8 +176,6 @@ CASE DEFAULT
     GOTO 1000
   ENDIF
   !
-  !Normalize Vplane
-  Vplane(1,:) = Vplane(1,:)/VECLENGTH(Vplane(1,:))
   WRITE(msg,'(a14,3f12.3)') 'Plane of cut: ', Vplane(1,:)
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !

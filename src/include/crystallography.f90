@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2023                                    *
+!* Last modification: P. Hirel - 09 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -256,7 +256,8 @@ END SUBROUTINE INDEX_MILLER_HCP
 !  This subroutine converts a string containing
 !  Miller indices [hkl] or [hkil], into a
 !  Cartesian vector (x y z). It includes the appropriate
-!  accounting for crystal orientation.
+!  accounting for crystal orientation. The final Cartesian
+!  vector is normalized, i.e. it is a unit vector.
 !********************************************************
 !
 SUBROUTINE MILLER2VEC(H,dir,ORIENT,vector,ifail)
@@ -354,6 +355,8 @@ ENDIF
 IF( ifail==0 ) THEN
   !Use Miller indices to define Cartesian vector
   vector(:) = MILLER(1)*H(1,:) + MILLER(2)*H(2,:) + MILLER(3)*H(3,:)
+  !Normalize vector
+  vector(:) = vector(:) / VECLENGTH(vector(:))
 ENDIF
 !
 END SUBROUTINE MILLER2VEC

@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 09 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -186,28 +186,26 @@ ELSE
     Vline(1,3) = 1.d0
   ELSE
     !It ought to be a vector given by Miller indices
-    !Convert this string into a proper vector
-    CALL INDEX_MILLER(dislocline,Vline(1,:),j)
-    IF(j==0) THEN
-      !If the system has a defined crystallographic orientation ORIENT,
-      !then Vline(1,:) is defined in that basis
-      !=> rotate Vline(1,:) to express it in cartesian basis
-      IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-        DO i=1,3
-          ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-        ENDDO
-        V1 = Vline(1,1)
-        V2 = Vline(1,2)
-        V3 = Vline(1,3)
-        Vline(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-        Vline(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-        Vline(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    !Convert "dislocline" into a Cartesian vector and save it in Vline(1,:)
+    CALL MILLER2VEC(H,dislocline,ORIENT,Vline(1,:),j)
+    !
+    !Check return status j (0=success, otherwise there was an error)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/dislocline/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(dislocline)/),(/0.d0/))
+        GOTO 1000
       ENDIF
-    ELSE
-      !Unable to understand this string => display error message and quit
-      CALL ATOMSK_MSG(2800,(/dislocline/),(/0.d0/))
-      nerr = nerr+1
-      GOTO 1000
+    ENDIF
+    !
+    IF( CROSS_PRODUCT(Vline(1,:),(/0.d0,0.d0,1.d0/)) > 0.1d0 ) THEN
+      !Vline is not along Z => we will have to rotate displacements accordingly
+      rotate = .TRUE.
     ENDIF
     !
   ENDIF
@@ -262,29 +260,28 @@ ELSE
     ENDIF
   ELSE
     !It ought to be a vector given by Miller indices
-    !Convert this string into a proper vector
-    CALL INDEX_MILLER(dislocline,Vplane(1,:),j)
-    IF(j==0) THEN
-      !If the system has a defined crystallographic orientation ORIENT,
-      !then Vplane(1,:) is defined in that basis
-      !=> rotate Vplane(1,:) to express it in cartesian basis
-      IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-        DO i=1,3
-          ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-        ENDDO
-        V1 = Vplane(1,1)
-        V2 = Vplane(1,2)
-        V3 = Vplane(1,3)
-        Vplane(1,1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-        Vplane(1,2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-        Vplane(1,3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+    !Convert "dislocplane" into a Cartesian vector and save it in Vplane(1,:)
+    CALL MILLER2VEC(H,dislocplane,ORIENT,Vplane(1,:),j)
+    !
+    !Check return status j (0=success, otherwise there was an error)
+    IF( j>0 ) THEN
+      IF( j==2 ) THEN
+        !The error was because i is not equal to -h-k
+        nerr=nerr+1
+        CALL ATOMSK_MSG(815,(/dislocplane/),(/0.d0/))
+        GOTO 1000
+      ELSE
+        !Other error, unable to convert this string into a proper vector
+        CALL ATOMSK_MSG(817,(/TRIM(dislocplane)/),(/0.d0/))
+        GOTO 1000
       ENDIF
-    ELSE
-      !Unable to understand this string => display error message and quit
-      CALL ATOMSK_MSG(2800,(/dislocplane/),(/0.d0/))
-      nerr = nerr+1
-      GOTO 1000
     ENDIF
+    !
+    IF( CROSS_PRODUCT(Vplane(1,:),(/0.d0,1.d0,0.d0/)) > 0.1d0 ) THEN
+      !Vplane is not along Y => we will have to rotate displacements accordingly
+      rotate = .TRUE.
+    ENDIF
+    !
   ENDIF
   !
   !Debug messages
