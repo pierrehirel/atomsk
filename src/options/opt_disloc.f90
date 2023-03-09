@@ -203,7 +203,7 @@ ELSE
       ENDIF
     ENDIF
     !
-    IF( CROSS_PRODUCT(Vline(1,:),(/0.d0,0.d0,1.d0/)) > 0.1d0 ) THEN
+    IF( VECLENGTH( CROSS_PRODUCT(Vline(1,:),(/0.d0,0.d0,1.d0/)) ) > 0.1d0 ) THEN
       !Vline is not along Z => we will have to rotate displacements accordingly
       rotate = .TRUE.
     ENDIF
@@ -277,7 +277,7 @@ ELSE
       ENDIF
     ENDIF
     !
-    IF( CROSS_PRODUCT(Vplane(1,:),(/0.d0,1.d0,0.d0/)) > 0.1d0 ) THEN
+    IF( VECLENGTH( CROSS_PRODUCT(Vplane(1,:),(/0.d0,1.d0,0.d0/)) ) > 0.1d0 ) THEN
       !Vplane is not along Y => we will have to rotate displacements accordingly
       rotate = .TRUE.
     ENDIF
