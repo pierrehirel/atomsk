@@ -26,6 +26,9 @@ Converts several files to one file containing all snapshots.
 .B --average
 Averages atomic positions over several configurations.
 .TP
+.B --copy-properties, --cpprop
+Copies auxiliary properties from one system into another.
+.TP
 .B --create, -C
 Creates a system from scratch.
 .TP

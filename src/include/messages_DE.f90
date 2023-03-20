@@ -175,6 +175,10 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                                   C36  |  2 (a und c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
+IF(helpsection=="modes" .OR. helpsection=="cpprop") THEN
+  WRITE(*,*) "..> Mode copy properties:"
+  WRITE(*,*) "          atomsk --copy-properties <file1> <file2> [options] <outputfile> [<formats>]"
+ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> DDplot Modus:"
   WRITE(*,*) "          atomsk --ddplot <file1> <file2> [options]"
@@ -3235,6 +3239,26 @@ CASE(4072)
     msg = "..> "//TRIM(ADJUSTL(temp))//" Dateien wurden analysiert."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4073)
+  !strings(1) = name of 1st file
+  !strings(2) = name of 2nd file
+  msg = ">>> Hilfseigenschaften von "//TRIM(ADJUSTL(strings(1))) &
+      & //" nach "//TRIM(ADJUSTL(strings(2)))//" kopieren."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4074)
+  !reals(1) = number of aux.prop.copied
+  !reals(2) = number of new aux.prop.
+  !reals(3) = number of overwritten aux.prop.
+  !reals(4) = new total number of aux.prop.
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,*) NINT(reals(3))
+  msg = ">>> "//TRIM(ADJUSTL(temp))//" Eigenschaften wurden kopiert: "//TRIM(ADJUSTL(temp2))//" neu, " &
+      & //TRIM(ADJUSTL(temp3))//" überschrieben."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(4))
+  msg = "..> Das System enthält jetzt "//TRIM(ADJUSTL(temp))//" Hilfseigenschaften."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"
   WRITE(*,'(a39)',ADVANCE='NO') " Gittertyp (sc,bcc,fcc,dia,rs,per): "
@@ -3433,6 +3457,17 @@ CASE(4720)
   WRITE(temp,*) NINT(reals(1))
   msg = TRIM(ADJUSTL(warnmsg))//" Kein "//TRIM(ADJUSTL(strings(1)))// &
       & " Atom in System N. "//TRIM(ADJUSTL(temp))//" gefunden."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4721)
+  !reals(1) = N. atoms in 1st system
+  !reals(2) = N. atoms in 2nd system
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,*) MIN(NINT(reals(1)),NINT(reals(2)))
+  msg = TRIM(ADJUSTL(warnmsg))//" Anzahl der Atome unterscheiden ("//TRIM(ADJUSTL(temp))// &
+      & " vs "//TRIM(ADJUSTL(temp2))//")."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Eigenschaften werden nur für die ersten 4 "//TRIM(ADJUSTL(temp3))//" Atome kopiert."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES
@@ -3657,6 +3692,11 @@ CASE(4833)
   msg = TRIM(ADJUSTL(errmsg))//" anscheinend wurde VASP mit IBRION = "//TRIM(ADJUSTL(temp))//"  ausgeführt,"
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          daher enthält diese OUTCAR-Datei keine atomare Konfiguration."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4834)
+  !strings(1) = name of file
+  msg = TRIM(ADJUSTL(errmsg))//" die Datei "//TRIM(ADJUSTL(strings(1)))// &
+      & " enthält keine Hilfseigenschaft, Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" Es kann immer nur ein Modus verwendet werden."

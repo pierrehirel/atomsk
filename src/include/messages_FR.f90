@@ -175,6 +175,10 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                                   C36  |   2 (a et c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
 ENDIF
+IF(helpsection=="modes" .OR. helpsection=="cpprop") THEN
+  WRITE(*,*) "..> Mode copie de propriétés auxiliaires :"
+  WRITE(*,*) "          atomsk --copy-properties <fichier1> <fichier2> [options] <outputfile> [<formats>]"
+ENDIF
 IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
   WRITE(*,*) "..> Mode DDplot :"
   WRITE(*,*) "          atomsk --ddplot <file1> <file2> [options]"
@@ -3292,6 +3296,26 @@ CASE(4072)
     msg = "..> "//TRIM(ADJUSTL(temp))//" fichiers ont été analysés."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4073)
+  !strings(1) = name of 1st file
+  !strings(2) = name of 2nd file
+  msg = ">>> Copie des propriétés auxiliaires depuis "//TRIM(ADJUSTL(strings(1))) &
+      & //" vers "//TRIM(ADJUSTL(strings(2)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4074)
+  !reals(1) = number of aux.prop.copied
+  !reals(2) = number of new aux.prop.
+  !reals(3) = number of overwritten aux.prop.
+  !reals(4) = new total number of aux.prop.
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,*) NINT(reals(3))
+  msg = ">>> "//TRIM(ADJUSTL(temp))//" propriétés ont été copiées ("//TRIM(ADJUSTL(temp2))//" nouvelles, " &
+      & //TRIM(ADJUSTL(temp3))//" écrasées)."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,*) NINT(reals(4))
+  msg = "..> Le système contient maintenant "//TRIM(ADJUSTL(temp))//" propriétés auxiliaires."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "
@@ -3494,6 +3518,18 @@ CASE(4720)
   WRITE(temp,*) NINT(reals(1))
   msg = TRIM(ADJUSTL(warnmsg))//" Aucun atome de "//TRIM(ADJUSTL(strings(1)))// &
       & " n'a été trouvé dans le système No. "//TRIM(ADJUSTL(temp))//"."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4721)
+  !reals(1) = N. atoms in 1st system
+  !reals(2) = N. atoms in 2nd system
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  WRITE(temp3,*) MIN(NINT(reals(1)),NINT(reals(2)))
+  msg = TRIM(ADJUSTL(warnmsg))//" le nombre d'atomes diffère ("//TRIM(ADJUSTL(temp))// &
+      & " vs "//TRIM(ADJUSTL(temp2))//")."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "            Les propriétés ne seront copiées que pour les "//TRIM(ADJUSTL(temp3)) &
+      & //" premiers atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
@@ -3704,6 +3740,11 @@ CASE(4833)
   msg = TRIM(ADJUSTL(errmsg))//" apparemment VASP a été exécuté avec IBRION = "//TRIM(ADJUSTL(temp))//","
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "           donc ce fichier OUTCAR ne contient aucune configuration atomique."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4834)
+  !strings(1) = name of file
+  msg = TRIM(ADJUSTL(errmsg))//" le fichier "//TRIM(ADJUSTL(strings(1)))// &
+      & " ne contient aucune propriété auxiliaire, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" un seul mode peut être utilisé à la fois."

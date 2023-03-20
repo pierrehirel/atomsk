@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 March 2023                                    *
+!* Last modification: P. Hirel - 20 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -131,6 +131,14 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a4096)',END=130,ERR=130) pfiles(3) !File containing atom positions
     IF(LEN_TRIM(pfiles(3))==0 .OR. i>SIZE(cla)) GOTO 130
+    !
+  ELSEIF(clarg=="--copy-properties" .OR. clarg=="--cpprop") THEN
+    mode = "cpprop"
+    i=i+1
+    READ(cla(i),'(a)',END=130,ERR=130) pfiles(3)
+    i=i+1
+    READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
+    IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--create' .OR. clarg=='-C') THEN
     IF(ALLOCATED(mode_param)) GOTO 150
@@ -398,7 +406,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--normal') THEN
+  ELSEIF(clarg=='--normal' .OR. clarg=="convert") THEN
     !nothing special to do, this is normal mode
     !
   ELSEIF(clarg=='--nye') THEN

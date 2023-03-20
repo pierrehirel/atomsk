@@ -8,6 +8,7 @@ Master
 - re-writing of routine "GUESS_FORMAT" for clarity and better modularity. It should also be easier to add new input/output file formats.
 - re-writing and parallelization of routine "VERLET_LIST" for finding neighbours. It should now be much faster.
 - added possibility to display coloured messages in UNIX/Linux terminals. New subroutine "COLOUR_MSG" allows to colour a string using ANSII escape sequences. This is disabled by default to avoid issues, and can be activated thanks to a new keyword in the user's configuration file (~/.config/atomsk.conf).
+- new mode "-copy-properties" allows copying auxiliary properties from one system to another.
 - interactive mode now supports basic calculations with operators, e.g. "3*7" or "cos(pi/2)". Formulae are evaluated with routine EXPREVAL, which can now also generate random numbers with the keyword "rand".
 - in mode "--local-symmetry" (formerly "--central-symmetry"), atoms with 4 neighbours are now compared to tetrahedral environment; atoms with 3 neighbours are compared to an sp2 environment; if one of these criteria is smaller than the central symmetry parameter, it is used instead. This allows computing a scalar "central symmetry parameter", e.g. in diamond lattices or in graphene.
 - in mode "--difference", fixed a bug that would cause a segfault when none of the file contained a comment.

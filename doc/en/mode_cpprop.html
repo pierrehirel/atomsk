@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Atomsk - Mode Copy Properties - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: Copy Properties</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --copy-properties &#60;file1&#62; &#60;file2&#62; [options] [&#60;outputfile&#62;] [formats]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This mode copies auxiliary properties from &#60;file1&#62; into &#60;file2&#62;.</p>
+
+<p>This mode copies all auxiliary properties of &#60;file2&#62; (if any), and then copies the properties from &#60;file1&#62;. If a property has the same name in both systems, then values from &#60;file2&#62; are overwritten by values from &#60;file1&#62;. Otherwise, a new column is created to store the data.</p>
+
+<p>The final system contains the atom positions and auxiliary properties of &#60;file2&#62;, and additionaly the auxiliary properties copied from &#60;file1&#62;.</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a> they will be applied to the &#60;file2&#62; <em>before</em> the properties are copied.</p>
+
+<p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>), then auxiliary properties are copied only for the selected atoms. Other (unselected) atoms will keep the previous values of the properties that were defined in &#60;file2&#62;, or be assigned a zero value for properties that did not exist in &#60;file2&#62;.</p>
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --copy-properties system1.cfg system2.cfg result.cfg</code>
+<p>This will read the files <code>system1.cfg</code> and <code>system2.cfg</code>, and copy auxiliary properties. The output file <code>result.cfg</code> will contain the atom positions and auxiliary properties of <code>system2.cfg</code>, and also the auxiliary properties of <code>system1.cfg</code>. If the same property exist in both systems, only values from <code>system1.cfg</code> will appear in final file.</p></li>
+
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

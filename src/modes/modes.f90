@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 Jan. 2023                                     *
+!* Last modification: P. Hirel - 20 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ USE mode_merge
 USE mode_create
 USE mode_unwrap
 USE mode_average
+USE mode_cpprop
 !Modules for mode 1-in-all
 USE oia_dlp_history
 USE oia_qeout
@@ -726,6 +727,15 @@ CASE('average')
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   CALL AVERAGE_XYZ(listfile,outputfile,outfileformats,options_array)
+!
+!
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  MODE COPY-PROPERTIES
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+CASE("cpprop")
+  !in this mode, copy auxyliary properties from first system into the second
+  CALL COPY_PROPERTIES(filefirst,filesecond,options_array,file1,outfileformats)
 !
 !
 !

@@ -5,6 +5,7 @@
 #      and must NOT be placed in this list
 SMO=mode_difference.f90     \
     mode_normal.f90         \
+    mode_cpprop.f90         \
     mode_create.f90         \
     mode_merge.f90          \
     1ia_dlpoly_history.f90  \
