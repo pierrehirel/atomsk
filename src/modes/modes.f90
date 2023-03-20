@@ -414,7 +414,7 @@ CASE('create')
           IF( k==2 ) THEN
             !The error was because i is not equal to -h-k
             nerr=nerr+1
-            CALL ATOMSK_MSG(815,(/TRIM(temp)/),(/0.d0/))
+            CALL ATOMSK_MSG(815,(/TRIM(temp)/),(/ORIENT(j,1),ORIENT(j,2),ORIENT(j,3)/))
             GOTO 10000
           ELSE
             !Other error, unable to convert this string into a proper vector

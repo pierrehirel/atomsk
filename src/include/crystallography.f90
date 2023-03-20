@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 March 2023                                    *
+!* Last modification: P. Hirel - 13 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -93,12 +93,13 @@ IF( SCAN(planestring,".,:/!")>0 ) THEN
 ENDIF
 !
 !If there are brackets, remove them
-IF( temp(1:1)=='[' ) THEN
-  temp = ADJUSTL(temp(2:))
+strpos = SCAN(temp,'[')
+IF( strpos>0 ) THEN
+  temp = ADJUSTL(temp(strpos+1:))
 ENDIF
-strpos = LEN_TRIM(temp)
-IF( temp(strpos:strpos)==']' ) THEN
-  temp = temp(:strpos-1)
+strpos = SCAN(temp,']')
+IF( strpos>0 ) THEN
+  temp = ADJUSTL(temp(:strpos-1))
 ENDIF
 !
 IF( SCAN(temp,'_').NE.0 ) THEN
@@ -182,12 +183,13 @@ IF( SCAN(planestring,".,:/!")>0 ) THEN
 ENDIF
 !
 !If there are brackets, remove them
-IF( temp(1:1)=='[' ) THEN
-  temp = ADJUSTL(temp(2:))
+strpos = SCAN(temp,'[')
+IF( strpos>0 ) THEN
+  temp = ADJUSTL(temp(strpos+1:))
 ENDIF
-strpos = LEN_TRIM(temp)
-IF( temp(strpos:strpos)==']' ) THEN
-  temp = temp(:strpos-1)
+strpos = SCAN(temp,']')
+IF( strpos>0 ) THEN
+  temp = ADJUSTL(temp(:strpos-1))
 ENDIF
 !
 IF( SCAN(temp,'_').NE.0 ) THEN
@@ -200,16 +202,16 @@ IF( SCAN(temp,'_').NE.0 ) THEN
   strpos = SCAN(temp,'_')
   READ(temp(1:strpos-1),*,ERR=100,END=100) planeindices(2)
   temp = temp(strpos+1:)
-  !read third value
+  !read third value (save it in mint)
   strpos = SCAN(temp,'_')
-  READ(temp(1:strpos-1),*,ERR=100,END=100) planeindices(3)
+  READ(temp(1:strpos-1),*,ERR=100,END=100) mint
+  temp = temp(strpos+1:)
+  !read fourth value
+  READ(temp,*,ERR=100,END=100) planeindices(3)
   !Check that -i=h+k
-  IF( -1*NINT(planeindices(3))==NINT(planeindices(1))+NINT(planeindices(2)) ) THEN
+  IF( -1*mint==NINT(planeindices(1))+NINT(planeindices(2)) ) THEN
     !Notation is good, go on
-    temp = temp(strpos+1:)
-    !read fourth value
-    READ(temp,*,ERR=100,END=100) planeindices(3)
-    strpos=4
+    RETURN
   ELSE
     !h+k is not equal to -i => return with error
     ifail = 2
@@ -234,7 +236,6 @@ ELSE
         !Check that -i=h+k
         IF( -1*NINT(planeindices(3)).NE.NINT(planeindices(1))+NINT(planeindices(2)) ) THEN
           ifail = 2
-          RETURN
         ENDIF
       ENDIF
       m = MIN(3,m+1)

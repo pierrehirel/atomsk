@@ -852,9 +852,24 @@ CASE(814)
   msg = TRIM(ADJUSTL(errmsg))//" Miller Vektor kann nicht [000] sein."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(815)
-  !strings(1) = Miller indices provided by the user
+  !strings(1) = Miller indices provided by the user (string)
+  !reals(1:3) = values of Miller indices
   msg = TRIM(ADJUSTL(errmsg))//" angegebenen Miller-Indizes erfüllen h+k+i=0 nicht: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
+  IF( ANY(DABS(reals(1:3))>0.1d0) ) THEN
+    WRITE(temp,*) NINT(reals(1))
+    WRITE(temp2,*) NINT(reals(2))
+    WRITE(temp3,*) NINT(-1.d0*(reals(1)+reals(2)))
+    WRITE(temp4,*) NINT(reals(3))
+    IF( ANY(DABS(reals(1:3))>9.9d0) ) THEN
+      msg = "           Vorgeschlagene Miller-Indizes: ["//TRIM(ADJUSTL(temp))//"_"// &
+          & TRIM(ADJUSTL(temp2))//"_"//TRIM(ADJUSTL(temp3))//"_"//TRIM(ADJUSTL(temp4))//"]."
+    ELSE
+      msg = "           Vorgeschlagene Miller-Indizes: ["//TRIM(ADJUSTL(temp))// &
+          & TRIM(ADJUSTL(temp2))//TRIM(ADJUSTL(temp3))//TRIM(ADJUSTL(temp4))//"]."
+    ENDIF
+    CALL DISPLAY_MSG(1,msg,logfile)
+  ENDIF
 CASE(816)
   msg = TRIM(ADJUSTL(errmsg))//" Durch Null teilen."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -3752,7 +3767,7 @@ ELSEIF(values(2)==1 .AND. values(3)<=10) THEN
 !
 !March 14 (3/14): Pi day
 ELSEIF(values(2)==3 .AND. values(3)==14) THEN
-  WRITE(msg,'(a8,f51.48)') "    π = ", pi
+  WRITE(msg,'(a10,f19.16,a2)') "    ( π = ", pi, " )"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !March 31

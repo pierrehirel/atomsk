@@ -60,6 +60,9 @@ ifndef FORTRAN
   # -J is used to specify the folder where the compiler will store the *.mod files
   FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
   
+  # Add -fpic to compile Atomsk as a shared library
+  #FFLAGS+=-fPIC
+  
   # Un-comment the following line to use 8-bits integers by default
   # (number of atoms up to 9x10^18 instead of 2x10^9)
   #FFLAGS+=-fdefault-integer-8
@@ -155,6 +158,14 @@ atomsk: message modes
 	@echo ""
 	@echo "    <i> To install Atomsk system-wide, you may now run:"
 	@echo "          sudo make install"
+	@echo ""
+
+# Compile the program as a library
+# Note that the preprocessor must be called (-cpp)
+lib: message modes
+	$(FORTRAN) $(FFLAGS) -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	@echo ""
+	@echo "    \o/ Atomsk was compiled as a shared library file, 'atomsk.so'."
 	@echo ""
 
 # Compile modes modules
