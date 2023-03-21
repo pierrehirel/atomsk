@@ -1832,41 +1832,15 @@ DO WHILE(i<SIZE(cla))
   ELSEIF(clarg=='-swap') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
-    !Read first value to swap (must be X,Y,Z, a chemical species or an integer)
+    !Read first value to swap
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    m = 0
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') THEN
-      !Detect if it contains number or is a long text
-      IF( SCAN(temp,"0123456789")==0 .AND. LEN_TRIM(temp)<=2 ) THEN
-        !It is (probably) an atom species
-        m=-1
-      ELSE
-        !Otherwise it *must* be an integer
-        READ(temp,*,END=120,ERR=120) m
-        !If this failed then there will be an error
-      ENDIF
-    ENDIF
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !Read second value to swap
     i=i+1
     READ(cla(i),*,END=120,ERR=120) temp
     temp = TRIM(ADJUSTL(temp))
-    IF( m>0 ) THEN
-      !the second value must also be an integer
-      READ(temp,*,END=120,ERR=120) m
-    ELSEIF( m==-1 ) THEN
-      !The second value must also be an atom species
-      IF( SCAN(temp,"0123456789")>0 .OR. LEN_TRIM(temp)>2 ) GOTO 120
-    ELSE
-      !the second value must be X,Y or Z
-      IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-        & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') THEN
-        GOTO 120
-      ENDIF
-    ENDIF
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-torsion') THEN

@@ -21,10 +21,12 @@
 
 <p><code>-swap &#60;x|y|z&#62; &#60;x|y|z&#62;</code></p>
 
+<p><code>-swap &#60;prop1&#62; &#60;prop2&#62;</code></p>
+
 
 <h4>Description</h4>
 
-<p>This option swaps the positions of the two atoms of the given indices, or swaps two atom species, or swaps the two given Cartesian axes.</p>
+<p>This option swaps the positions of the two atoms of the given indices, or swaps two atom species, or swaps the two given Cartesian axes, or swaps two auxiliary properties.</p>
 
 <p>Swapping atoms indices means that their positions are exchanged. If shells (in the sense of an ionic core-shell model) and/or auxiliary properties are defined, then they are also swapped.</p>
 
@@ -38,6 +40,8 @@ H'(2,1) = H(1,2)<br/>
 H'(2,2) = H(1,1)</code></p>
 
 <p>The corresponding coordinates of atoms are also exchanged (i.e. following the same example, the coordinates X and Y of each atom are exchanged).</p>
+
+<p>Swapping two auxiliary properties means that their indexes (or location) will be exchanged, so that they will appear in a different order in the output file.</p>
 
 
 <h4>Default</h4>
@@ -57,6 +61,9 @@ H'(2,2) = H(1,1)</code></p>
 
 <li><code class="command">atomsk initial.cfg -swap X Y final.xsf</code>
 <p>This will read the file <code>initial.cfg</code>, and exchange the Cartesian axes X and Y. The final result will be written into <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -swap Epot enthalpy final.cfg</code>
+<p>This will read the file <code>initial.cfg</code>, and exchange the columns of auxiliary properties named "Epot" and "enthalpy". The final result will be written into <code>final.cfg</code>.</p></li>
 
 </ul>
 

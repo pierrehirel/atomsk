@@ -21,6 +21,7 @@ Master
 - options "-fix", "-select", and "-shift", now allow selecting above or below planes using 4-index [hkil] Miller notation.
 - option "-reduce-cell" now checks that stoichiometry is preserved.
 - option "-sort" now allows to reverse atom list.
+- option "-swap" now allows swapping auxiliary properties.
 - random number generator will now use file "/dev/urandom" to generate a random seed whenever possible (only in UNIX/Linux systems); otherwise, system clock is used as a seed.
 - after reading an input file, module "readin.f90" now checks immediately if cell vectors are defined; if not it automatically calls "determine_H" to set box vectors. Previously this was done in modes, meaning that module "readin.f90" could return box vectors as naught, causing problems (e.g. when atom coordinates were divided by box vectors in option "-fractional" or when writing CFG files, it resulted in NaN).
 - fixed a bug when reading and writing POSCAR files where the keywords "Selective dynamics" were involved.

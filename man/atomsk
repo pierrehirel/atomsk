@@ -235,6 +235,9 @@ Applies stress to the system. The elastic tensor must be defined with the option
 .B -substitute <sp1> <sp2>, -sub <sp1> <sp2>
 Substitutes atoms of a given species by another.
 .TP
+.B -swap <id1> <id2>, -swap <sp1> <sp2>, -swap <x|y|z> <x|y|z>, -swap <prop1> <prop2>
+Swaps two atoms, or two atomic species, or two Cartesian axes, or two auxiliary properties.
+.TP
 .B -torsion <axis> <angle>
 Applies a torsion around the given axis of the given angle.
 .TP

@@ -24,6 +24,8 @@
 
 <p>This mode copies all auxiliary properties of &#60;file2&#62; (if any), and then copies the properties from &#60;file1&#62;. If a property has the same name in both systems, then values from &#60;file2&#62; are overwritten by values from &#60;file1&#62;. Otherwise, a new column is created to store the data.</p>
 
+<p>The two files must contain the same number of atoms for the properties to be copied for all atoms. Otherwise, if &#60;file1&#62; and &#60;file2&#62; contain different numbers of atoms N<sub>1</sub> and N<sub>2</sub>, then properties are copied only for the smallest number of atoms. If N<sub>1</sub> &#62; N<sub>2</sub>, then some properties from &#60;file1&#62; can not be copied and are lost. If N<sub>1</sub> &#60; N<sub>2</sub>, then atoms with an index greater than N<sub>1</sub> will have a value equal to zero for copied properties.</p>
+
 <p>The final system contains the atom positions and auxiliary properties of &#60;file2&#62;, and additionaly the auxiliary properties copied from &#60;file1&#62;.</p>
 
 <p>If you use this mode with one or several <a href="./options.html">options</a> they will be applied to the &#60;file2&#62; <em>before</em> the properties are copied.</p>

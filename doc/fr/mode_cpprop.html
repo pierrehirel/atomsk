@@ -26,6 +26,8 @@
 
 <p>Le système final contient les positions des atomes et les propriétés auxiliaires du &#60;fichier2&#62;, ainsi que les propriétés auxiliaires copiées depuis le &#60;fichier1&#62;.</p>
 
+<p>Les deux fichiers doivent avoir le même nombre d'atomes pour que les propriétés soient copiées pour tous les atomes. Sinon, si le &#60;fichier1&#62; et le &#60;fichier2&#62; contiennent des nombres d'atomes différents N<sub>1</sub> et N<sub>2</sub>, alors les propriétés ne sont copiées que jusqu'au plus petit nombre d'atomes. Si N<sub>1</sub> &#62; N<sub>2</sub>, alors certaines valeurs des propriétés de &#60;file1&#62; ne pourront pas être copiées et seront perdues. Si N<sub>1</sub> &#60; N<sub>2</sub>, alors les atomes avec un indice supérieur à N<sub>1</sub> auront une valeur égale à zéro pour les propriétés copiées.</p>
+
 <p>Si vous utilisez ce mode avec une ou plusieurs <a href="./options.html">options</a>, alors elles sont appliquées au &#60;fichier2&#62; <em>avant</em> que les propriétés ne soient copiées.</p>
 
 <p>Si une sélection a été définie (avec l'<a href="./option_select.html">option <code>-select</code></a>), alors les propriétés auxiliaires ne sont copiées que pour les atomes sélectionnées. Les autres atomes (non sélectionnés) garderont les valeurs des propriétés qui étaient définies dans le &#60;fichier2&#62;, ou prendront la valeur zéro pour les propriétés qui n'existaient pas dans le &#60;fichier2&#62;.</p>

@@ -21,6 +21,8 @@
 
 <p><code>-swap &#60;x|y|z&#62; &#60;x|y|z&#62;</code></p>
 
+<p><code>-swap &#60;prop1&#62; &#60;prop2&#62;</code></p>
+
 
 <h4>Description</h4>
 
@@ -38,6 +40,8 @@ H'(2,1) = H(1,2)<br/>
 H'(2,2) = H(1,1)</code></p>
 
 <p>Les coordonnées des atomes sont aussi échangées (en suivant l'exemple ci-dessus, les coordonnées X et Y de chaque atome sont interchangées).</p>
+
+<p>Échanger deux propriétés auxiliaires signifie que leurs indices (ou position) seront échangées, de sorte qu'elles apparaîtront dans un ordre différent dans le fichier final.</p>
 
 
 <h4>Défaut</h4>
@@ -57,6 +61,9 @@ H'(2,2) = H(1,1)</code></p>
 
 <li><code class="command">atomsk initial.cfg -swap X Y final.xsf</code>
 <p>Ceci va lire le fichier <code>initial.cfg</code>, et échangera les deux premiers vecteurs de boîte. Le résultat final sera écrit dans le fichier <code>final.xsf</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -swap Epot enthalpy final.cfg</code>
+<p>Ceci va lire le fichier <code>initial.cfg</code>, et échangera les colonnes des propriétés appelées "Epot" et "enthalpy". Le résultat final sera écrit dans le fichier <code>final.cfg</code>.</p></li>
 
 </ul>
 

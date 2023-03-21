@@ -4,13 +4,14 @@ MODULE swap
 !*  SWAP                                                                          *
 !**********************************************************************************
 !* This module reads cartesian coordinates from an array and swaps atoms          *
-!* of given indices, or swaps the two given Cartesian axes.                       *
+!* of given indices, or swaps the two given Cartesian axes, or swaps two          *
+!* given auxiliary properties.                                                    *
 !**********************************************************************************
 !* (C) August 2015 - Pierre Hirel                                                 *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 21 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,7 +43,7 @@ SUBROUTINE SWAP_XYZ(H,P,S,AUXNAMES,AUX,swap_id,SELECT)
 IMPLICIT NONE
 !
 CHARACTER(LEN=128):: msg
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of auxiliary properties
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: atype, type1, type2
 INTEGER:: i
@@ -69,15 +70,6 @@ id(:)=0
 msg = 'Entering SWAP_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/0.d0/) )
-!
-IF( swap_id(1) == swap_id(2) ) THEN
-  !There is nothing to exchange => slip
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG( 2757, (/""/),(/0.d0/) )
-  GOTO 1000
-ENDIF
-!
 !Try to read integer numbers from swap_id
 !If it succeeds then it means that two atoms must be swapped
 !If it fails it does not matter
@@ -90,6 +82,14 @@ SELECT CASE(swap_id(1))
 !
 CASE('X','x','Y','y','Z','z')
   !Two Cartesian axes must be swapped
+  CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/0.d0/) )
+  !
+  IF( swap_id(1) == swap_id(2) ) THEN
+    !There is nothing to exchange => skip
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG( 2757, (/""/),(/0.d0/) )
+    GOTO 1000
+  ENDIF
   !
   IF( swap_id(1)=="X" .OR. swap_id(1)=="x" ) THEN
     id(1) = 1
@@ -140,6 +140,14 @@ CASE('X','x','Y','y','Z','z')
 CASE DEFAULT
   IF( id(1)>0 .AND. id(2)>0 ) THEN
     !Two atoms must be swapped
+    CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/1.d0/) )
+    !
+    IF( swap_id(1) == swap_id(2) ) THEN
+      !There is nothing to exchange => skip
+      nwarn=nwarn+1
+      CALL ATOMSK_MSG( 2757, (/""/),(/0.d0/) )
+      GOTO 1000
+    ENDIF
     !Read indices of atoms to swap
     !
     !If indices of atoms are out of bounds, abort
@@ -175,48 +183,56 @@ CASE DEFAULT
     ENDIF
     !
   ELSE
-    !The swap_id(:) must contain atom species to swap
+    !The swap_id(:) may contain atom species to swap, *or* the names of auxiliary properties
     Nswap = 0
     CALL ATOMNUMBER(swap_id(1),swap_sp(1))
     CALL ATOMNUMBER(swap_id(2),swap_sp(2))
-    IF( swap_sp(1)<0.1d0 ) THEN
-      CALL ATOMSK_MSG(801,(/swap_id(1)/),(/0.d0/))
-      nerr = nerr+1
-      GOTO 1000
-    ELSEIF( swap_sp(2)<0.1d0 ) THEN
-      CALL ATOMSK_MSG(801,(/swap_id(2)/),(/0.d0/))
-      nerr = nerr+1
-      GOTO 1000
-    ENDIF
+!     IF( swap_sp(1)<0.1d0 ) THEN
+!       CALL ATOMSK_MSG(801,(/swap_id(1)/),(/0.d0/))
+!       nerr = nerr+1
+!       GOTO 1000
+!     ELSEIF( swap_sp(2)<0.1d0 ) THEN
+!       CALL ATOMSK_MSG(801,(/swap_id(2)/),(/0.d0/))
+!       nerr = nerr+1
+!       GOTO 1000
+!     ENDIF
     !
-    !If "type" is defined as auxiliary property, also exchange the two atom types
-    IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
-      !Determine if a column contains "type"
-      atype = 0
-      DO i=1,SIZE(AUXNAMES)
-        IF( AUXNAMES(i)=="type" ) THEN
-          atype = i
-        ENDIF
-      ENDDO
-      !
-      !If "type" was found, determine the type of the atoms to swap
-      IF( atype>0 ) THEN
-        type1 = 0
-        type2 = 0
-        i = 0
-        DO WHILE( type1==0 .OR. type2==0 )
-          i=i+1
-          IF( i>SIZE(P,1) ) EXIT
-          IF( NINT(P(i,4))==NINT(swap_sp(1)) ) THEN
-            type1 = NINT(AUX(i,atype))
-          ELSEIF( NINT(P(i,4))==NINT(swap_sp(2)) ) THEN
-            type2 = NINT(AUX(i,atype))
+    !
+    IF( swap_sp(1)>0.1d0 .AND. swap_sp(2)>0.1d0 ) THEN
+      !Two atomic species must be swapped
+      CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/2.d0/) )
+      IF( swap_id(1) == swap_id(2) ) THEN
+        !There is nothing to exchange => skip
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG( 2757, (/""/),(/0.d0/) )
+        GOTO 1000
+      ENDIF
+      !If "type" is defined as auxiliary property, also exchange the two atom types
+      IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+        !Determine if a column contains "type"
+        atype = 0
+        DO i=1,SIZE(AUXNAMES)
+          IF( AUXNAMES(i)=="type" ) THEN
+            atype = i
           ENDIF
         ENDDO
+        !
+        !If "type" was found, determine the type of the atoms to swap
+        IF( atype>0 ) THEN
+          type1 = 0
+          type2 = 0
+          i = 0
+          DO WHILE( type1==0 .OR. type2==0 )
+            i=i+1
+            IF( i>SIZE(P,1) ) EXIT
+            IF( NINT(P(i,4))==NINT(swap_sp(1)) ) THEN
+              type1 = NINT(AUX(i,atype))
+            ELSEIF( NINT(P(i,4))==NINT(swap_sp(2)) ) THEN
+              type2 = NINT(AUX(i,atype))
+            ENDIF
+          ENDDO
+        ENDIF
       ENDIF
-    ENDIF
-    !
-    IF( swap_sp(1)>0.d0 .AND. swap_sp(2)>0.d0 ) THEN
       !Swap species of types 1 and 2
       DO i=1,SIZE(P,1)
         IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
@@ -245,10 +261,74 @@ CASE DEFAULT
           ENDIF
         ENDIF
       ENDDO
+      !
     ELSE
-      !Unable to determine species
-      nerr = nerr+1
-      GOTO 1000
+      !The swap_id did not contain atom species
+      !Then it must be the names of auxiliary properties
+      CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/3.d0/) )
+      IF( swap_id(1) == swap_id(2) ) THEN
+        !There is nothing to exchange => skip
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG( 2757, (/""/),(/0.d0/) )
+        GOTO 1000
+      ENDIF
+      !Locate those aux.prop. in AUXNAMES
+      type1 = 0
+      type2 = 0
+      DO i=1,SIZE(AUXNAMES)
+        IF( AUXNAMES(i)==swap_id(1) ) THEN
+          type1 = i
+        ENDIF
+        IF( AUXNAMES(i)==swap_id(2) ) THEN
+          type2 = i
+        ENDIF
+      ENDDO
+      !
+      !Check that indices type1 and type2 are positive
+      !NB: it was already tested at the beginning that swap_id(1) != swap_id(2),
+      !    so at this point type1 and type2 *must* be different
+      IF( type1>0 .AND. type2>0 ) THEN
+        !Swap the two aux.prop
+        !Save data from column #type1 in AUXtemp
+        ALLOCATE(AUXtemp(SIZE(AUX,1)))
+        DO i=1,SIZE(AUX,1)
+          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+            AUXtemp(i) = AUX(i,type1)
+          ENDIF
+        ENDDO
+        !Copy data from colum #type2 into column #type1
+        DO i=1,SIZE(AUX,1)
+          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+            AUX(i,type1) = AUX(i,type2)
+          ENDIF
+        ENDDO
+        !Copy data from AUXtemp into column #type2
+        DO i=1,SIZE(AUX,1)
+          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+            AUX(i,type2) = AUXtemp(i)
+            Nswap = Nswap+1
+          ENDIF
+        ENDDO
+        DEALLOCATE(AUXtemp)
+        !
+        !Swap the names of aux.prop. (only if no selection was defined)
+        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          msg = TRIM(ADJUSTL(AUXNAMES(type1)))
+          AUXNAMES(type1) = TRIM(ADJUSTL(AUXNAMES(type2)))
+          AUXNAMES(type2) = TRIM(ADJUSTL(msg))
+        ENDIF
+        !
+      ELSE
+        !No such aux.prop. in AUXNAMES
+        nwarn=nwarn+1
+        IF( type1==0 ) THEN
+          CALL ATOMSK_MSG(2730,(/swap_id(1)/),(/0.d0/))
+        ENDIF
+        IF( type2==0 ) THEN
+          CALL ATOMSK_MSG(2730,(/swap_id(2)/),(/0.d0/))
+        ENDIF
+        GOTO 1000
+      ENDIF
     ENDIF
     !
   ENDIF

@@ -2106,13 +2106,18 @@ CASE(2124)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2125)
+  !reals(1) = type of item to swap: 0=Cartesian axes, 1=atom id, 2= atom species, 3=aux.prop.
   !strings(1) = Cartesian axis, or integer
   !strings(2) = same type as strings(1)
-  SELECT CASE(strings(1))
-  CASE('x','X','y','Y','z','Z')
+  SELECT CASE(NINT(reals(1)))
+  CASE(0)
     msg = ">>> Tauschen die Achsen "//TRIM(ADJUSTL(strings(1)))//" und "//TRIM(ADJUSTL(strings(2)))//"."
-  CASE DEFAULT
+  CASE(1)
     msg = ">>> Tauschen die Atomen #"//TRIM(ADJUSTL(strings(1)))//" und #"//TRIM(ADJUSTL(strings(2)))//"."
+  CASE(2)
+    msg = ">>> Tauschen die "//TRIM(ADJUSTL(strings(1)))//" und "//TRIM(ADJUSTL(strings(2)))//" Atomen."
+  CASE(3)
+    msg = ">>> Tauschen Nebeneigenschaften '"//TRIM(ADJUSTL(strings(1)))//"' und '"//TRIM(ADJUSTL(strings(2)))//"'."
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)

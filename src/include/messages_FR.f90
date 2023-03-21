@@ -2191,22 +2191,24 @@ CASE(2124)
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2125)
+  !reals(1) = type of item to swap: 0=Cartesian axes, 1=atom id, 2= atom species, 3=aux.prop.
   !strings(1) = Cartesian axis, or integer
   !strings(2) = same type as strings(1)
-  SELECT CASE(strings(1))
-  CASE('x','X','y','Y','z','Z')
+  SELECT CASE(NINT(reals(1)))
+  CASE(0)
     msg = ">>> Échange des axes cartésiens "//TRIM(ADJUSTL(strings(1)))//" et "//TRIM(ADJUSTL(strings(2)))//"."
-  CASE DEFAULT
+  CASE(1)
     msg = ">>> Échange des atomes #"//TRIM(ADJUSTL(strings(1)))//" et #"//TRIM(ADJUSTL(strings(2)))//"."
+  CASE(2)
+    msg = ">>> Échange des espèces chimiques "//TRIM(ADJUSTL(strings(1)))//" et "//TRIM(ADJUSTL(strings(2)))//"."
+  CASE(3)
+    msg = ">>> Échange des propriétés auxiliaires '"//TRIM(ADJUSTL(strings(1)))//"' et '"//TRIM(ADJUSTL(strings(2)))//"'."
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2126)
   !reals(1) = number of atoms that were swapped
-  IF( NINT(reals(1))==0 ) THEN
+  IF( NINT(reals(1))<=0 ) THEN
     msg = "..> Aucun atome de ce type dans le système."
-  ELSEIF( NINT(reals(1))>0 ) THEN
-    WRITE(temp,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(temp))//" atomes ont changé d'espèce chimique."
   ELSE
     msg = "..> Échange réussi."
   ENDIF
