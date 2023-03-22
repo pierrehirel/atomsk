@@ -2,8 +2,8 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-Master
-------
+Beta 0.12 (22 March 2023)
+-------------------------
 - increased string length when reading files to prevent truncation. This affects many modules (input, modes).
 - re-writing of routine "GUESS_FORMAT" for clarity and better modularity. It should also be easier to add new input/output file formats.
 - re-writing and parallelization of routine "VERLET_LIST" for finding neighbours. It should now be much faster.
