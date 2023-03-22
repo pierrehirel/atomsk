@@ -11,7 +11,7 @@ MODULE swap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 March 2023                                    *
+!* Last modification: P. Hirel - 22 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -128,6 +128,7 @@ CASE('X','x','Y','y','Z','z')
         S(i,id(2)) = Vtemp(id(1))
       ENDIF
     ENDDO
+    Nswap=2
     !
   CASE DEFAULT
     !swap_id2 is not a Cartesian axis => big problem!
@@ -181,6 +182,7 @@ CASE DEFAULT
       AUX(id(2),:) = AUXtemp(:)
       DEALLOCATE(AUXtemp)
     ENDIF
+    Nswap=2
     !
   ELSE
     !The swap_id(:) may contain atom species to swap, *or* the names of auxiliary properties
