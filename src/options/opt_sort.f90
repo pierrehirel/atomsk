@@ -101,7 +101,6 @@ IF( sortorder=="random" ) THEN
   !
 ELSEIF( sortorder=="reverse" ) THEN
   !Reverse list of atoms
-  IF(ALLOCATED(S)) ALLOCATE(Si(SIZE(S,2)))
   IF(ALLOCATED(AUX)) ALLOCATE(AUXi(SIZE(AUX,2)))
   i=1
   j=SIZE(P,1)
