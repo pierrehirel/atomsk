@@ -360,5 +360,41 @@ ENDIF
 END SUBROUTINE IDSORT
 !
 !
+!********************************************************
+! IDSORT_SELECT
+! This subroutine takes a list of index and a logical 1-dim.
+! array A as input, and re-shuffles array A according
+! to the given index list.
+! NOTE: idlist *must* have the same size as the first
+! dimension of A, *and* all indices as idlist *must* be
+! positive and smaller or equal to the dimension of A.
+!********************************************************
+SUBROUTINE IDSORT_SELECT(idlist,A)
+!
+INTEGER:: i
+INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of indexes
+LOGICAL,DIMENSION(:),INTENT(INOUT):: A
+LOGICAL:: Atemp   !temporary data for an element of array A
+!
+!Check that idlist(:) complies to requirements
+IF( SIZE(idlist) == SIZE(A) .AND. .NOT.(ANY(idlist>SIZE(A)) .OR. ANY(idlist<=0)) ) THEN
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,Atemp)
+  DO i=1,SIZE(idlist)
+    !Save data of atom #i in temporary array
+    Atemp = A(i)
+    !Copy data of atom #idlist(i) in atom #i
+    A(i) = A(idlist(i))
+    !Copy temporary data to atom #idlist(i)
+    A(idlist(i)) = Atemp
+  ENDDO
+  !$OMP END PARALLEL DO
+  !
+ELSE
+  PRINT*, "ERROR  size(idlist) != size(A)"
+ENDIF
+!
+END SUBROUTINE IDSORT
+!
+!
 !
 END MODULE sorting

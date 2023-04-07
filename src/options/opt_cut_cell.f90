@@ -10,7 +10,7 @@ MODULE cut_cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 March 2023                                    *
+!* Last modification: P. Hirel - 23 March 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -119,6 +119,10 @@ CASE("x","X","y","Y","z","Z")
         !This atom does not match criteria for cut => it lives
         NP=NP+1
         Q(NP,:) = P(i,:)
+        IF(ALLOCATED(SELECT)) THEN
+          !Save selection
+          newSELECT(NP) = SELECT(i)
+        ENDIF
         !Save associated shell if any
         IF(ALLOCATED(S)) THEN
           T(NP,:) = S(i,:)

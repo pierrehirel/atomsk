@@ -4,6 +4,13 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- fixed a bug in option "-cut" where, if a selection was defined, remaining atoms were not selected correctly.
+- fixed a bug in option "-dislocation", where the sign of Burgers vector was inverted when constructing climb dislocation loops (only when Burgers vector was normal to loop plane).
+- fixed a bug in option "-sort", where selection was not properly sorted along with atoms.
+
+
+Beta 0.12 (22 March 2023)
+-------------------------
 - increased string length when reading files to prevent truncation. This affects many modules (input, modes).
 - re-writing of routine "GUESS_FORMAT" for clarity and better modularity. It should also be easier to add new input/output file formats.
 - re-writing and parallelization of routine "VERLET_LIST" for finding neighbours. It should now be much faster.
