@@ -156,6 +156,17 @@ ELSE
     CASE DEFAULT
     END SELECT
     !
+    IF( verbosity==4 ) THEN
+      WRITE(msg,*) 'P was sorted, SIZE(newindex) = ', SIZE(newindex)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      OPEN(UNIT=41,FILE="atomsk_newindex.txt",FORM="FORMATTED")
+      WRITE(41,*) "# New atom indices (id) after option '-sort'"
+      DO i=1,SIZE(newindex)
+        WRITE(41,*) i, newindex(i)
+      ENDDO
+      CLOSE(41)
+    ENDIF
+    !
     !newindex(:) now contains the new list of index (after sorting)
     !=> use it to sort other arrays
     !If shells are defined, sort them accordingly
