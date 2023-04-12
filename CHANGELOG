@@ -4,9 +4,10 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- fixed a bug in mode "--merge" that would cause a seg fault. Thanks to Peixin Chen, Shanghai Jiao Tong University, China, for pointing out this bug.
 - fixed a bug in option "-cut" where, if a selection was defined, remaining atoms were not selected correctly.
 - fixed a bug in option "-dislocation", where the sign of Burgers vector was inverted when constructing climb dislocation loops (only when Burgers vector was normal to loop plane).
-- fixed a bug in option "-sort", where selection was not properly sorted along with atoms. Also fixed a bug where auxiliary properties were not correctly sorted alongside with atoms.
+- fixed a bug in option "-sort", where selection was not properly sorted along with atoms. Also fixed a bug where auxiliary properties were not correctly sorted alongside with atoms; thanks to Karine Gouriet, University of Lille, France, for pointing out this bug.
 
 
 Beta 0.12 (22 March 2023)

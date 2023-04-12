@@ -75,8 +75,9 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: c     !column in AUX that will contain the central symmetry parameters c(i)
 INTEGER:: i, ipairs, j, k, ktemp
 INTEGER:: Mdefault      !most common number of neighbors
+INTEGER:: sp1, sp2      !atomic numbers of two atoms
 INTEGER,PARAMETER:: Nmax=14 !maximum number of neighbors for any lattice
-INTEGER:: Nneigh2           !number of neighbors of an atom
+INTEGER:: Nneigh1           !number of first-neighbors of an atom (even)
 INTEGER,DIMENSION(3):: Nneigh  !number of 1st, 2nd, and 3rd neighbors of an atom
 INTEGER,DIMENSION(3):: Neighsp !species of 1st, 2nd, and 3rd neighbors of an atom
 INTEGER:: Nspecies      !number of species among an atom's neighbours
@@ -167,67 +168,6 @@ AUXNAMES(c) = "local_symmetry"
 !
 !
 200 CONTINUE
-! Determine how many different atom species are present, and their number
-CALL FIND_NSP(P(:,4),aentries)
-WRITE(msg,*) "Number of different species:", SIZE(aentries,1)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-IF( SIZE(aentries,1)>1 ) THEN
-  !Sort them by increasing number of atoms
-  CALL BUBBLESORT(aentries(:,:),2,'up  ',newindex)
-ENDIF
-!
-! Determine what type of system it is: unary, binary, ternary, other
-IF( SIZE(aentries,1)==1 ) THEN
-  !No ambiguity, it is a unary system
-  Nspecies = 1
-ELSEIF( SIZE(aentries,1)==2 ) THEN
-  Nspecies = 2
-  !It may be a unary system with just a few solute atoms
-  !Check if a species is a minority
-  IF( aentries(1,2) > 5.d0*aentries(2,2) .OR. aentries(2,2) > 5.d0*aentries(1,2) ) THEN
-    !One of the species is a minority => consider that it is a unary system
-    Nspecies = 1
-  ELSE
-    !Consider that it is a binary system
-    Nspecies = 2
-  ENDIF
-ELSEIF( SIZE(aentries,1)==3 ) THEN
-  Nspecies = 3
-  !It may be a unary system with just a few solute atoms
-  !Check which species is (or are) a minority
-  IF( aentries(1,2) > 3.9d0*aentries(2,2) .AND. aentries(1,2) > 3.9d0*aentries(3,2) ) THEN
-    !Species #1 is a majority compared to #2 and #3 => consider that it is a unary system
-    Nspecies = 1
-  ELSEIF( aentries(2,2) > 3.9d0*aentries(1,2) .AND. aentries(2,2) > 3.9d0*aentries(3,2) ) THEN
-    !Species #2 is a majority compared to #1 and #3 => consider that it is a unary system
-    Nspecies = 1
-  ELSEIF( aentries(3,2) > 3.9d0*aentries(1,2) .AND. aentries(3,2) > 3.9d0*aentries(2,2) ) THEN
-    !Species #3 is a majority compared to #1 and #2 => consider that it is a binary system
-    Nspecies = 1
-  ELSEIF( aentries(1,2) > 3.9d0*aentries(3,2) .AND. aentries(2,2) > 3.9d0*aentries(3,2) ) THEN
-    !Species #3 is a minority compared to #1 and #2 => consider that it is a binary system
-    Nspecies = 2
-  ELSEIF( aentries(1,2) > 3.9d0*aentries(2,2) .AND. aentries(3,2) > 3.9d0*aentries(2,2) ) THEN
-    !Species #2 is a minority compared to #1 and #3 => consider that it is a binary system
-    Nspecies = 2
-  ELSEIF( aentries(2,2) > 3.9d0*aentries(1,2) .AND. aentries(3,2) > 3.9d0*aentries(1,2) ) THEN
-    !Species #1 is a minority compared to #2 and #3 => consider that it is a binary system
-    Nspecies = 2
-  ELSE
-    !No minority species => it is a ternary material
-    Nspecies = 3
-  ENDIF
-ELSE
-  Nspecies = 0
-  !PRINT*, "X!X ERROR Nspecies is zero"
-  GOTO 1000
-ENDIF
-WRITE(msg,*) "Nspecies:", Nspecies
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!
-!
-!
-300 CONTINUE
 ! Compute the central symmetry parameter for each atom
 !
 !Construct neighbor list
@@ -260,7 +200,7 @@ ENDIF
 !
 !
 !$OMP PARALLEL DO DEFAULT(SHARED) &
-!$OMP& PRIVATE(i,j,k,ktemp,ipairs,Nneigh,Neighsp,sum_dj,PosList,newindex) &
+!$OMP& PRIVATE(i,j,k,ktemp,ipairs,Nneigh1,Nneigh,Neighsp,sum_dj,PosList,newindex,sp1,sp2) &
 !$OMP& PRIVATE(pairs,pairs_distances,three_angles,dmin,distance,msg,temp)
 DO i=1,SIZE(P,1)
   !i is the index of the central atom
@@ -282,65 +222,103 @@ DO i=1,SIZE(P,1)
     !
     WRITE(msg,*) "Atom # ", i, " : size of PosList = ", SIZE(PosList,1)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !
     !Sort neighbors by increasing distance
     CALL BUBBLESORT(PosList(:,:),4,'up  ',newindex)
     !
+    ! Determine how many different atom species are present in PosList, and their number
+    Nspecies = 0
+    DO j=1,SIZE(PosList,1)
+      
+    ENDDO
+    WRITE(msg,*) "Nspecies:", Nspecies
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     !Count number of 1st, 2nd, and 3rd neighbours
-    DO j=1,MIN(Nmax,SIZE(PosList,1))
-      !Compute distance between central atom #i and its third neighbour in the list
-      k = MIN(3,SIZE(PosList,1))
-      distance = SUM(PosList(1:k,4)) / DBLE(k)
-      IF( PosList(j,4) < 1.3d0*distance ) THEN
-        !Atom #j's distance to central atom #i is comparable to that of 3rd neighbour
-        !=> count atom #j as a first neighbour of atom #i
-        Nneigh(1) = Nneigh(1)+1
-        sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
-      ENDIF
-      !Save species of 1st neighbour, assume it is the species of all 1st neighbours
-      k = NINT(PosList(1,5))
+    IF( Nspecies>1 ) THEN
+      !If Nspecies>1 ("complex" material), keep only neighbours of same species as 1st neighbour
+      k = NINT(PosList(1,5)) !index of first neighbour
+      sp1 = NINT(P(k,4))     !species of first neighbour
       Neighsp(1) = P(k,4)
-    ENDDO
+      sp2 = sp1
+      j = 1
+      DO WHILE( sp2==sp1 .AND. j<=SIZE(PosList,1) )
+        !Compute distance between central atom #i and its third neighbour in the list
+        k = MIN(1,SIZE(PosList,1))
+        distance = PosList(k,4)  !SUM(PosList(1:k,4)) / DBLE(k)
+        IF( PosList(j,4) < 1.3d0*distance ) THEN
+          !Atom #j's distance to central atom #i is comparable to that of 3rd neighbour
+          !=> count atom #j as a first neighbour of atom #i
+          Nneigh(1) = Nneigh(1)+1
+        ENDIF
+        !Save species of j-th neighbour, assume it is the species of all 1st neighbours
+        j = j+1
+        k = NINT(PosList(j,5))
+        sp2 = NINT(P(k,4))  !species of neighbour #j
+      ENDDO
+      !
+    ELSE
+      !i.e. Nspecies=1, "simple" material
+      DO j=1,MIN(Nmax,SIZE(PosList,1))
+        !Compute distance between central atom #i and its third neighbour in the list
+        k = MIN(3,SIZE(PosList,1))
+        distance = PosList(k,4)  !SUM(PosList(1:k,4)) / DBLE(k)
+        IF( PosList(j,4) < 1.1d0*distance ) THEN
+          !Atom #j's distance to central atom #i is comparable to that of 3rd neighbour
+          !=> count atom #j as a first neighbour of atom #i
+          Nneigh(1) = Nneigh(1)+1
+        ENDIF
+        !Save species of 1st neighbour, assume it is the species of all 1st neighbours
+        k = NINT(PosList(1,5))
+        Neighsp(1) = P(k,4)
+      ENDDO
+    ENDIF
     !Now we know that there are Nneigh(1) first neighbours
-    !Count 2nd neighbours
-    DO j=Nneigh(1)+1,SIZE(PosList,1)
-      !Compute distance between central atom #i and the Nneigh(1)+1 neighbour
-      k = MIN(Nneigh(1)+1,SIZE(PosList,1))
-      distance = PosList(k,4)
-      IF( PosList(j,4) < 1.1d0*distance ) THEN
-        !Atom #j is a second neighbour to atom #i
-        Nneigh(2) = Nneigh(2)+1
-      ENDIF
-      !Save species of 2nd neighbour, assume it is the species of all 2nd neighbours
-      k = NINT(PosList(Nneigh(1)+1,5))
-      Neighsp(2) = P(k,4)
-    ENDDO
+    !Check that PosList contains other neighbours
+    IF( Nneigh(1) < SIZE(PosList,1) ) THEN
+      !Count 2nd neighbours
+      DO j=Nneigh(1)+1,SIZE(PosList,1)
+        !Compute distance between central atom #i and the Nneigh(1)+1 neighbour
+        k = MIN(Nneigh(1)+1,SIZE(PosList,1))
+        distance = PosList(k,4)
+        IF( PosList(j,4) < 1.1d0*distance ) THEN
+          !Atom #j is a second neighbour to atom #i
+          Nneigh(2) = Nneigh(2)+1
+        ENDIF
+        !Save species of 2nd neighbour, assume it is the species of all 2nd neighbours
+        k = NINT(PosList(Nneigh(1)+1,5))
+        Neighsp(2) = P(k,4)
+      ENDDO
+    ENDIF
     !Now we know that there are Nneigh(1) first neighbours and Nneigh(2) second neighbours
-    !Count 3rd neighbours
-    DO j=Nneigh(1)+Nneigh(2)+1,SIZE(PosList,1)
-      !Compute distance between central atom #i and the Nneigh(1)+1 neighbour
-      k = MIN(Nneigh(1)+Nneigh(2)+1,SIZE(PosList,1))
-      distance = PosList(k,4)
-      IF( PosList(j,4) < 1.1d0*distance ) THEN
-        !Atom #j is a third neighbour to atom #i
-        Nneigh(3) = Nneigh(3)+1
-      ENDIF
-      !Save species of 3rd neighbour, assume it is the species of all 3rd neighbours
-      k = NINT(PosList(Nneigh(1)+Nneigh(2)+1,5))
-      Neighsp(3) = P(k,4)
-    ENDDO
+    !Check that PosList still contains other neighbours
+    IF( Nneigh(1)+Nneigh(2) < SIZE(PosList,1) ) THEN
+      !Count 3rd neighbours
+      DO j=Nneigh(1)+Nneigh(2)+1,SIZE(PosList,1)
+        !Compute distance between central atom #i and the Nneigh(1)+1 neighbour
+        k = MIN(Nneigh(1)+Nneigh(2)+1,SIZE(PosList,1))
+        distance = PosList(k,4)
+        IF( PosList(j,4) < 1.1d0*distance ) THEN
+          !Atom #j is a third neighbour to atom #i
+          Nneigh(3) = Nneigh(3)+1
+        ENDIF
+        !Save species of 3rd neighbour, assume it is the species of all 3rd neighbours
+        k = NINT(PosList(Nneigh(1)+Nneigh(2)+1,5))
+        Neighsp(3) = P(k,4)
+      ENDDO
+    ENDIF
     !
     !For the following, keep only first neighbors to compute local symmetry parameter
     !PosList(Nneigh(1)+1:,:) = 0.d0
     !
     !Make the PosList more compact by removing intermediate zeros
-    DO j=2,SIZE(PosList,1)
-      IF( NINT(PosList(j,5))==0 ) THEN
-        DO k=j,SIZE(PosList,1)-1
-          PosList(k,:) = PosList(k+1,:)
-        ENDDO
-      ENDIF
-    ENDDO
+!     DO j=2,SIZE(PosList,1)
+!       IF( NINT(PosList(j,5))==0 ) THEN
+!         DO k=j,SIZE(PosList,1)-1
+!           PosList(k,:) = PosList(k+1,:)
+!         ENDDO
+!       ENDIF
+!     ENDDO
     !
     IF( verbosity==4 ) THEN
       !Some debug messages
@@ -364,22 +342,25 @@ DO i=1,SIZE(P,1)
     !
     IF( Nneigh(1) >= 2 ) THEN
       !Atom #i has many neighbors, we can work with that
-      Nneigh2 = Nneigh(1)
+      Nneigh1 = Nneigh(1)
       !
-      !We must make pairs of atoms => Nneigh has to be an even number
-      IF( MOD(Nneigh2,2) .NE. 0 ) THEN
-        Nneigh2 = Nneigh2-1
+      !We must make pairs of atoms => Nneigh1 has to be an even number
+      IF( MOD(Nneigh1,2) .NE. 0 ) THEN
+        Nneigh1 = Nneigh1-1
       ENDIF
       !
       !We will need a table containing pairs of atoms
-      ALLOCATE( pairs(Nneigh2/2,2) )
+      ALLOCATE( pairs(Nneigh1/2,2) )
       pairs(:,:) = 0
-      ALLOCATE( pairs_distances(Nneigh2/2) )
+      ALLOCATE( pairs_distances(Nneigh1/2) )
       pairs_distances(:) = 0.d0
       !
       !Find atoms j and k that are opposite
       ipairs=0
-      DO j=1,MIN(Nneigh2,Mdefault)
+      sum_dj = 0.d0
+      DO j=1,MIN(Nneigh1,Mdefault)
+        !Sum the square of distances of all neighbours
+        sum_dj = sum_dj + ( VECLENGTH(PosList(j,1:3)-P(i,1:3)) )**2
         IF( .NOT. ANY(pairs(:,:)==j) ) THEN
           !We have the first member of a new pair
           ipairs = ipairs+1
@@ -389,19 +370,15 @@ DO i=1,SIZE(P,1)
           ! *AND* that is of the same species as atom #j
           dmin = 1.d12
           ktemp = 0
-          DO k=j+1,MIN(Nneigh2,Mdefault)
-            IF( NINT(PosList(k,4)) == NINT(PosList(j,4)) ) THEN
-              !Atom #k is of same species as atom #j
-              IF( .NOT. ANY(pairs(:,:)==k) ) THEN
-                !Atom #k was not paired with another atom yet
-                distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
-                IF( distance < dmin ) THEN
-                  dmin = distance
-                  ktemp = k
-                ENDIF
+          DO k=j+1,MIN(Nneigh1,Mdefault)
+            !Atom #k is of same species as atom #j
+            IF( .NOT. ANY(pairs(:,:)==k) ) THEN
+              !Atom #k was not paired with another atom yet
+              distance = ( VECLENGTH( PosList(j,1:3) + PosList(k,1:3) - 2.d0*P(i,1:3) ) )**2
+              IF( distance < dmin ) THEN
+                dmin = distance
+                ktemp = k
               ENDIF
-            ELSE
-              !Species of atom #k is different from atom #j
             ENDIF
           ENDDO
           !Now atom #ktemp is the best match to atom #j
@@ -472,9 +449,9 @@ DO i=1,SIZE(P,1)
       ENDIF
       !
       !
-      !Check if atom #i has 3 neighbours: maybe it is a sp2 ("graphene") environment
+      !Check if atom #i has 3 neighbours of fewer: maybe it is a sp2 ("graphene") environment
       !Actually do this calculation if Nneigh is 3 or 4
-      IF( Nneigh(1)>=3 .AND. Nneigh(1)<=4 ) THEN
+      IF( Nneigh(1)<=4 ) THEN
         !Compute angles between pairs of neighbours, using atom #i as central atom
         !In perfect sp2 we expect 3 unique pairs, but here Nneigh may be 3 or 4
         !therefore there are  Nneigh*(Nneigh-1)/2  unique pairs
