@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 June 2022                                     *
+!* Last modification: P. Hirel - 12 April 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -152,19 +152,24 @@ DO i=1,SIZE(merge_files)
   !
   IF(i==1) THEN
     !First file: allocate arrays and fill them
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
     ALLOCATE( Q( SIZE(P,1), SIZE(P,2) ) )
     Q = P
     IF(ALLOCATED(S)) THEN
+      IF(ALLOCATED(T)) DEALLOCATE(T)
       ALLOCATE( T( SIZE(S,1), SIZE(S,2) ) )
       T = S
     ENDIF
     H = Htemp
     IF( ALLOCATED(currcomment) ) THEN
+      IF(ALLOCATED(comment)) DEALLOCATE(comment)
       ALLOCATE(comment(SIZE(currcomment)))
       comment(:) = currcomment(:)
     ENDIF
     !Create array AUX to save auxiliary properties
     !We add one column to store the system ID ("sysID")
+    IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+    IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
     IF( ALLOCATED(currAUXNAMES) .AND. SIZE(currAUXNAMES)>0 ) THEN
       ALLOCATE( AUXNAMES(SIZE(currAUXNAMES)+1) )
       sysID = SIZE(AUXNAMES)
@@ -173,8 +178,8 @@ DO i=1,SIZE(merge_files)
       DO j=1,SIZE(currAUXNAMES)
         AUXNAMES(j) = currAUXNAMES(j)
       ENDDO
-      DO j=1,SIZE(AUX,1)
-        DO k=1,SIZE(AUX,2)
+      DO j=1,SIZE(currAUX,1)
+        DO k=1,SIZE(currAUX,2)
           AUX(j,k) = currAUX(j,k)
         ENDDO
       ENDDO
@@ -232,20 +237,20 @@ DO i=1,SIZE(merge_files)
     ENDIF
     !
     !Replace old Q with new R
-    DEALLOCATE(Q)
+    IF(ALLOCATED(Q)) DEALLOCATE(Q)
     ALLOCATE( Q( SIZE(R,1), SIZE(R,2) ) )
     Q = R
     !Shells: replace old T with new U
     IF(ALLOCATED(S)) THEN
-      DEALLOCATE(T)
+      IF(ALLOCATED(T)) DEALLOCATE(T)
       ALLOCATE( T( SIZE(U,1), SIZE(U,2) ) )
       T = U
-      DEALLOCATE(U)
-      DEALLOCATE(S)
+      IF(ALLOCATED(U))DEALLOCATE(U)
+      IF(ALLOCATED(S))DEALLOCATE(S)
     ENDIF
-    DEALLOCATE(R)
+    IF(ALLOCATED(R)) DEALLOCATE(R)
     !we don't need P anymore
-    DEALLOCATE(P)
+    IF(ALLOCATED(P)) DEALLOCATE(P)
     !
     !If comments exist, append them to the "comment" array
     IF( ALLOCATED(currcomment) .AND. SIZE(currcomment)>0 ) THEN
@@ -354,9 +359,10 @@ DO i=1,SIZE(merge_files)
   IF( verbosity==4 ) THEN
     WRITE(msg,*) "Finished treating file #", i, " , '", TRIM(ADJUSTL(merge_files(i))), "'"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO j=1,SIZE(AUX,1)
-      PRINT*, AUX(j,:)
-    ENDDO
+!     DO j=1,SIZE(AUX,1)
+!       WRITE(msg,*) AUX(j,:)
+!       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!     ENDDO
   ENDIF
   !
   Nfiles = Nfiles+1

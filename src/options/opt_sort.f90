@@ -10,7 +10,7 @@ MODULE sort
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 March 2023                                    *
+!* Last modification: P. Hirel - 07 April 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,7 +46,9 @@ CHARACTER(LEN=8):: sortorder   !up or down or pack or random or reverse
 CHARACTER(LEN=16):: sortcol    !property to be sorted: x, y, z or s, or any name
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
-LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
+LOGICAL:: SELi
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT   !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECTi  !mask for atom list (temporary)
 INTEGER:: i, j
 INTEGER:: sortnum   !index of column to sort
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
@@ -91,6 +93,10 @@ IF( sortorder=="random" ) THEN
   IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(newindex) ) THEN
     CALL IDSORT(newindex,AUX)
   ENDIF
+  !If selection is defined, sort it accordingly
+  IF( ALLOCATED(SELECT) .AND. SIZE(SELECT)==SIZE(newindex) ) THEN
+    CALL IDSORT_SELECT(newindex,SELECT)
+  ENDIF
   !
   !
 ELSEIF( sortorder=="reverse" ) THEN
@@ -103,14 +109,17 @@ ELSEIF( sortorder=="reverse" ) THEN
     Pi(:) = P(i,:)
     IF(ALLOCATED(S)) Si(:) = S(i,:)
     IF(ALLOCATED(AUX)) AUXi(:) = AUX(i,:)
+    IF(ALLOCATED(SELECT)) SELi = SELECT(i)
     !Copy data of atom #j in atom #i
     P(i,:) = P(j,:)
     IF(ALLOCATED(S)) S(i,:) = S(j,:)
     IF(ALLOCATED(AUX)) AUX(i,:) = AUX(j,:)
+    IF(ALLOCATED(SELECT)) SELECT(i) = SELECT(j)
     !Copy temporary data to atom #idlist(i)
     P(j,:) = Pi(:)
     IF(ALLOCATED(S)) S(j,:) = Si(:)
     IF(ALLOCATED(AUX)) AUX(j,:) = AUXi(:)
+    IF(ALLOCATED(SELECT)) SELECT(j) = SELi
     i=i+1
     j=j-1
   ENDDO
@@ -147,6 +156,17 @@ ELSE
     CASE DEFAULT
     END SELECT
     !
+    IF( verbosity==4 ) THEN
+      WRITE(msg,*) 'P was sorted, SIZE(newindex) = ', SIZE(newindex)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      OPEN(UNIT=41,FILE="atomsk_newindex.txt",FORM="FORMATTED")
+      WRITE(41,*) "# New atom indices (id) after option '-sort'"
+      DO i=1,SIZE(newindex)
+        WRITE(41,*) i, newindex(i)
+      ENDDO
+      CLOSE(41)
+    ENDIF
+    !
     !newindex(:) now contains the new list of index (after sorting)
     !=> use it to sort other arrays
     !If shells are defined, sort them accordingly
@@ -157,6 +177,11 @@ ELSE
     !If auxiliary properties are defined, sort them accordingly
     IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(newindex) ) THEN
       CALL IDSORT(newindex,AUX)
+    ENDIF
+    !
+    !If selection is defined, sort it accordingly
+    IF( ALLOCATED(SELECT) .AND. SIZE(SELECT)==SIZE(newindex) ) THEN
+      CALL IDSORT_SELECT(newindex,SELECT)
     ENDIF
     !
   CASE DEFAULT
@@ -192,6 +217,11 @@ ELSE
     !If shells are defined, sort them accordingly
     IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(newindex) ) THEN
       CALL IDSORT(newindex,S)
+    ENDIF
+    !
+    !If selection is defined, sort it accordingly
+    IF( ALLOCATED(SELECT) .AND. SIZE(SELECT)==SIZE(newindex) ) THEN
+      CALL IDSORT_SELECT(newindex,SELECT)
     ENDIF
     !
   END SELECT

@@ -9,7 +9,7 @@ MODULE sorting
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 March 2023                                    *
+!* Last modification: P. Hirel - 12 April 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -272,7 +272,7 @@ END SUBROUTINE QS_PARTITION
 ! PACKSORT
 ! This subroutine sorts a MxN array by packing
 ! identical values together, but without sorting them
-! (unlike the BUBBLESORT above). E.g. if values like:
+! (unlike other algorithms above). E.g. if values like:
 !      2 4 2 3 1 1 2 4 3 3 2 1 4
 ! are given, this subroutine will pack identical
 ! values so the result is:
@@ -294,13 +294,17 @@ DO i=1,SIZE(newindex)
   newindex(i) = i
 ENDDO
 !
+!Make sure col is not outside the array
+IF(col<0) col = 1
 IF(col>SIZE(A,2)) col = SIZE(A,2)
 !
 DO i=1,SIZE(A,1)
+  !"last" = index where we last saw the value
   last=i
   DO j=i+1,SIZE(A,1)
     IF( A(j,col)==A(i,col) ) THEN
-      !Only consider A(j)==A(i)
+      !Value #i and #j are identical
+      !If j is contiguous to last, then they are already "packed" => ignore
       IF(j==last+1) THEN
         !If the two values are contiguous just go on
         last=j
@@ -309,7 +313,7 @@ DO i=1,SIZE(A,1)
         Atemp(:) = A(j,:)
         l = newindex(j)
         !Shift all previous values in the array
-        DO k=j,last+1,-1
+        DO k=j,last+2,-1
           A(k,:) = A(k-1,:)
           newindex(k) = newindex(k-1)
         ENDDO
@@ -330,34 +334,62 @@ END SUBROUTINE PACKSORT
 ! array A as input, and re-shuffles array A according
 ! to the given index list.
 ! NOTE: idlist *must* have the same size as the first
-! dimension of A, *and* all indices as idlist *must* be
+! dimension of A, *and* all indices in idlist *must* be
 ! positive and smaller or equal to the first dimension of A.
 !********************************************************
 SUBROUTINE IDSORT(idlist,A)
 !
-INTEGER:: i
+INTEGER:: i, idnext
 INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of indexes
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
-REAL(dp),DIMENSION(SIZE(A,2)):: Atemp !temporary data for an element of array A
+REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Atemp !temporary array
 !
 !Check that idlist(:) complies to requirements
 IF( SIZE(idlist) == SIZE(A,1) .AND. .NOT.(ANY(idlist>SIZE(A,1)) .OR. ANY(idlist<=0)) ) THEN
-  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,Atemp)
+  Atemp(:,:) = 0.d0
   DO i=1,SIZE(idlist)
-    !Save data of atom #i in temporary array
-    Atemp(:) = A(i,:)
-    !Copy data of atom #idlist(i) in atom #i
-    A(i,:) = A(idlist(i),:)
-    !Copy temporary data to atom #idlist(i)
-    A(idlist(i),:) = Atemp(:)
+    !Exchange entries in A with index i and idlist(i)
+    Atemp(i,:) = A(idlist(i),:)
   ENDDO
-  !$OMP END PARALLEL DO
-  !
+  !Replace A with sorted array
+  A(:,:) = Atemp(:,:)
 ELSE
   PRINT*, "ERROR  size(idlist) != size(A)"
 ENDIF
 !
 END SUBROUTINE IDSORT
+!
+!
+!********************************************************
+! IDSORT_SELECT
+! This subroutine takes a list of index and a logical 1-dim.
+! array A as input, and re-shuffles array A according
+! to the given index list.
+! NOTE: idlist *must* have the same size as the first
+! dimension of A, *and* all indices in idlist *must* be
+! positive and smaller or equal to the dimension of A.
+!********************************************************
+SUBROUTINE IDSORT_SELECT(idlist,A)
+!
+INTEGER:: i
+INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of indexes
+LOGICAL,DIMENSION(:),INTENT(INOUT):: A
+LOGICAL,DIMENSION(SIZE(A)):: Atemp   !temporary data for an element of array A
+!
+!Check that idlist(:) complies to requirements
+IF( SIZE(idlist) == SIZE(A) .AND. .NOT.(ANY(idlist>SIZE(A)) .OR. ANY(idlist<=0)) ) THEN
+  Atemp(:) = .TRUE.
+  DO i=1,SIZE(idlist)
+    !Exchange entries in A with index i and idlist(i)
+    Atemp(i) = A(idlist(i))
+  ENDDO
+  !Replace A with sorted array
+  A(:) = Atemp(:)
+ELSE
+  PRINT*, "ERROR  size(idlist) != size(A)"
+ENDIF
+!
+END SUBROUTINE IDSORT_SELECT
 !
 !
 !

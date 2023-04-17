@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 March 2023                                    *
+!* Last modification: P. Hirel - 06 April 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1216,7 +1216,7 @@ ELSEIF( disloctype=="loop" ) THEN
   !If Burgers vector has a component normal to the loop plane (=prismatic dislocation loop),
   !duplicate or remove atoms that belong to the loop
   IF( DABS(b(a3))>1.d-2 ) THEN
-    IF( b(a3)<0.d0 ) THEN
+    IF( b(a3)>0.d0 ) THEN
       !The dislocation loop will separate atomic planes
       !=> new atoms must be inserted inside the loop
       !Get total system volume
@@ -1242,7 +1242,7 @@ ELSEIF( disloctype=="loop" ) THEN
         Q(i,:) = P(i,:)
         !Increment r if atom is inside the loop
         r = 0
-        IF( P(i,a3)>pos(a3)+b(a3)/2.d0 .AND. P(i,a3)<pos(a3)-b(a3)/2.d0 ) THEN
+        IF( P(i,a3)<pos(a3)+b(a3)/2.d0 .AND. P(i,a3)>pos(a3)-b(a3)/2.d0 ) THEN
           IF( pos(4)<0.d0 ) THEN
             !"Negative" loop radius: square loop
             IF( P(i,a1)>pos(a1)-pos(4) .AND. P(i,a1)<pos(a1)+pos(4) .AND. &
@@ -1260,7 +1260,7 @@ ELSEIF( disloctype=="loop" ) THEN
           !Atom #i must be duplicated: add it at the end of atom list
           n = n+1
           Q(n,:) = P(i,:)
-          Q(n,a3) = Q(n,a3) - b(a3)/2.d0
+          Q(n,a3) = Q(n,a3) + b(a3)/2.d0
           IF(ALLOCATED(AUX) .AND. SIZE(AUX,1)>0) THEN
             newAUX(n,:) = AUX(i,:)
           ENDIF
@@ -1292,7 +1292,7 @@ ELSEIF( disloctype=="loop" ) THEN
       DO i=1,SIZE(P,1)
         !Increment r if atom is inside the loop
         r = 0
-        IF( P(i,a3)>pos(a3)-b(a3)/2.d0 .AND. P(i,a3)<pos(a3)+b(a3)/2.d0 ) THEN
+        IF( P(i,a3)<pos(a3)-b(a3)/2.d0 .AND. P(i,a3)>pos(a3)+b(a3)/2.d0 ) THEN
           IF( pos(4)<0.d0 ) THEN
             !"Negative" loop radius: square loop
             IF( P(i,a1)>pos(a1)-pos(4) .AND. P(i,a1)<pos(a1)+pos(4) .AND. &
@@ -1347,7 +1347,7 @@ ELSEIF( disloctype=="loop" ) THEN
   !(if atoms were duplicated just before, don't displace them)
   !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,disp)
   DO i=1,MIN(u,SIZE(P,1))
-    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , b, nu, pos(1:3) , xLoop )
+    disp(:) = LOOP_DISPLACEMENT( P(i,1:3) , -1.d0*b, nu, pos(1:3) , xLoop )
     P(i,1:3) = P(i,1:3) + disp(:)
   ENDDO
   !$OMP END PARALLEL DO
