@@ -274,12 +274,12 @@ WRITE(pdbline,160) 'ORIGX2', (ORIGXN(2,j),j=1,3), TN(1)
 WRITE(ofu,'(a80)') pdbline
 WRITE(pdbline,160) 'ORIGX3', (ORIGXN(3,j),j=1,3), TN(1)
 WRITE(ofu,'(a80)') pdbline
-WRITE(pdbline,160) 'SCALE1', (SCALEN(1,j),j=1,3), UN(1)
-WRITE(ofu,'(a80)') pdbline
-WRITE(pdbline,160) 'SCALE2', (SCALEN(2,j),j=1,3), UN(1)
-WRITE(ofu,'(a80)') pdbline
-WRITE(pdbline,160) 'SCALE3', (SCALEN(3,j),j=1,3), UN(1)
-WRITE(ofu,'(a80)') pdbline
+! WRITE(pdbline,160) 'SCALE1', (SCALEN(1,j),j=1,3), UN(1)
+! WRITE(ofu,'(a80)') pdbline
+! WRITE(pdbline,160) 'SCALE2', (SCALEN(2,j),j=1,3), UN(1)
+! WRITE(ofu,'(a80)') pdbline
+! WRITE(pdbline,160) 'SCALE3', (SCALEN(3,j),j=1,3), UN(1)
+! WRITE(ofu,'(a80)') pdbline
 160 FORMAT(a6,5X,3f10.6,6X,f10.5)
 !
 !
