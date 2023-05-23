@@ -21,8 +21,10 @@
 
 export
 
+DATE=$(shell date +'%Y-%m-%d')
+
 # Version of the program
-VER="master"
+VER="master-$(DATE)"
 
 # Name of the final binary
 BIN=atomsk
@@ -151,7 +153,7 @@ all: atomsk
 
 # Compile the program
 # Note that the preprocessor must be called (-cpp)
-atomsk: message modes
+atomsk: message modes general
 	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 -I $(OBJ) $(LAPACK)
 	@echo ""
 	@echo "    \o/ Compilation was successful!"
@@ -192,8 +194,11 @@ options: FORCE
 output: FORCE
 	$(MAKE) $(MFLAGS) -C output
 
-# Compile common modules - this MUST NOT be run in parallel
+# Compile common modules ("include") - this MUST NOT be run in parallel
 general: objdir
+	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/globalvar.f90
+	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
+	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
 	$(MAKE) $(MFLAGS) -j1 -C include
 
 # Create OBJ directory (the - sign indicates to ignore any error)

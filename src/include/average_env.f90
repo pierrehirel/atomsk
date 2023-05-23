@@ -28,7 +28,7 @@ MODULE avgenv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Feb. 2023                                     *
+!* Last modification: P. Hirel - 23 May 2023                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,19 +57,20 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE AVG_ENV(H,P,NeighList,Pref,siteindex)
+SUBROUTINE AVG_ENV(H,P,NeighList,Pref,NeighFactor,siteindex)
 !
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 INTEGER:: iat, i, j, k, n
 INTEGER:: Nneighbors
+INTEGER:: NNmin=3     !minimum number of neighbours to keep
 INTEGER:: Nsites, NneighMax
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: siteindex !for each atom in P, index of its type of site in Pref
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !neighbour list
 REAL(dp):: alpha        !angle between two vectors
-REAL(dp):: NeighFactor=1.1d0 !%of tolerance in the radius for neighbor search
+REAL(dp),INTENT(IN):: NeighFactor !%of tolerance in the radius for neighbor search
 REAL(dp):: radius=8.d0  !R for neighbor search: 8 A should be enough to find some neighbors in any system
 REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H        !cell vectors
@@ -78,7 +79,7 @@ REAL(dp),DIMENSION(20,21,6):: Tref            !references for atoms environments
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList !list of positions of neighbors of one atom
 REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT):: Pref  !references for atoms environments (final)
 !
-msg = "  ENTERING  AVG_ENV"
+WRITE(msg,*) "  ENTERING  AVG_ENV , NeighFactor = ", NeighFactor
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 Nsites=0
@@ -102,9 +103,9 @@ ENDIF
 !Loop on atoms in the system
 msg = "  Parsing atoms ..."
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!!!!!$OMP PARALLEL DO DEFAULT(SHARED) &
-!!!!!$OMP& PRIVATE(i,iat,j,k,n,alpha,tempreal,PosList,newindex,Nneighbors) &
-!!!!!$OMP& REDUCTION(+:Tref(:,:,5))
+!!!!!$OMP !PARALLEL DO DEFAULT(SHARED) &
+!!!!!$OMP& !PRIVATE(i,iat,j,k,n,alpha,tempreal,PosList,newindex,Nneighbors) &
+!!!!!$OMP& !REDUCTION(+:Tref(:,:,5))
 DO iat=1,SIZE(P,1)
   !
   !Using neighbor list, save Cartesian neighbours positions in PosList
@@ -119,7 +120,7 @@ DO iat=1,SIZE(P,1)
   DO j=1,MIN(20,SIZE(PosList,1))
     !Shift all neighbours positions so the central atom is at (0,0,0)
     PosList(j,1:3) = PosList(j,1:3) - P(iat,1:3)
-    IF( PosList(j,4) <= NeighFactor*PosList(3,4) ) THEN
+    IF( PosList(j,4) <= NeighFactor*PosList(NNmin,4) ) THEN
       !IF( NINT(Psecond(NINT(PosList(j,5)),4))==NINT(Psecond(NINT(PosList(1,5)),4)) ) THEN
         !Keep this neighbor
         Nneighbors = Nneighbors+1
@@ -197,8 +198,8 @@ DO iat=1,SIZE(P,1)
         ENDDO
         IF (n>0) THEN
           !Now n is the index of the best matching neighbor in Tref
-          !Add position of atom #n (averaging will be performed later)
-          Tref(i,n,1:3) = Tref(i,n,1:3) + PosList(k,1:3)
+          !Add position of atom #n and perform averaging
+          Tref(i,n,1:3) = ( Tref(i,n,5)*Tref(i,n,1:3) + PosList(k,1:3) ) / (Tref(i,n,5)+1.d0)
           !Save atomic number of this neighbor (only if it's empty)
           IF( NINT(Tref(i,n,4))==0 ) THEN
             Tref(i,n,4) = P(NINT(PosList(k,5)),4)
@@ -217,20 +218,16 @@ DO iat=1,SIZE(P,1)
   ENDIF
   !
 ENDDO !loop on iat
-!!!!!$OMP END PARALLEL DO
+!!!!!$OMP !END PARALLEL DO
 !
 !
 !Get number of different sites and max. number of neighbours
 Nsites = MAXVAL(siteindex)
 Nneighmax = MAXVAL(Tref(:,:,6))
 WRITE(msg,*) "  Sites detected: ", Nsites
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 WRITE(msg,*) "  Max. N.neigh.:  ", Nneighmax
-!
-!Perform average: divide Cartesian positions of neighbours by number of atoms in this type of site
-DO i=1,Nsites
-  Nneighbors = NINT(Tref(i,1,6))
-  Tref(i,2:,1:3) = Tref(i,2:,1:3) / Tref(i,1,5)
-ENDDO
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
 !Save averaged sites in final array Pref(:,:,:)

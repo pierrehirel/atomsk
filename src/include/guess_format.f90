@@ -441,7 +441,7 @@ IF(fileexists) THEN
     !
     !Search for patterns corresponding to LAMMPS custom format
     ELSEIF(test(1:5)=='ITEM:') THEN
-      CALL SET_SCORE(fscore,"lmc  ",10,2)
+      CALL SET_SCORE(fscore,"lmc  ",20,5)
     !
     !Search for patterns corresponding to Protein Data Bank (PDB) format
     ELSEIF(test(1:6)=='HEADER') THEN

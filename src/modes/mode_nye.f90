@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2023                                     *
+!* Last modification: P. Hirel - 23 May 2023                                      *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -76,6 +76,7 @@ LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, iat
 INTEGER:: nb_neigh, eps
 INTEGER:: Nneighbors
+INTEGER:: NNmin   !minimum number of neighbours to keep
 INTEGER:: Nsites  !number of atomic environments
 INTEGER:: ok
 INTEGER:: progress      !To show calculation progress
@@ -87,10 +88,8 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: siteindex !for each atom, index of its type o
 INTEGER,DIMENSION(:),ALLOCATABLE:: sitescore !"score" of reference sites (only when filefirst is a unit cell)
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList1, NeighList2  !list of neighbors for systems 1 and 2
 REAL(dp):: alpha, alpha_tmp !angles between two vectors
-REAL(dp),PARAMETER:: maxangvec=27.d0*(2.d0*pi/360.d0)  !if angle between vectors in Pneigh and Qneigh exceed
-                                                    !this value, exclude them (Hartley&Mishin used 27°)
+REAL(dp):: theta_max  !if angle between vectors in Pneigh and Qneigh exceed this value, exclude them
 REAL(dp):: NeighFactor !%of tolerance in the radius for neighbor search
-REAL(dp),PARAMETER:: angle_th=pi/5.d0  !threshold to exlude neighbors
 REAL(dp),PARAMETER:: radius=8.d0 !R for neighbor search: 8 A should be enough to find some neighbors in any system
 REAL(dp):: tempreal
 REAL(dp),DIMENSION(3,3):: alpha_tensor, test_matrix
@@ -118,9 +117,7 @@ Nsites = 0
 firstref = .TRUE.
 ucref = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-NeighFactor = 1.1d0 !distance to 1st neighbor times 1.1 ensures to exclude second neighbor sphere in bcc metals
-                    !1.1 is expected to be robust for simple lattices (fcc, bcc) but fails for complex
-                    !or distorted systems
+Nnmin=3   !minimum number of neighbours to keep (may change depending on composition, see below)
 Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0     !crystallographic orientation (not used, set to zero)
  C_tensor(:,:) = 0.d0  !stiffness tensor (not used, set to zero)
@@ -160,17 +157,57 @@ IF (ALLOCATED(AUX)) DEALLOCATE(AUX)
 CALL OPTIONS_AFF(options_array,Huc,Hsecond,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 !
 !
+!!!!  Set up NeighFactor and theta_max  !!!!
+!After the neighbor search, neighbors will be sorted by increasing distance
+!Neighbor #3 will be at distance d3
+!Only neighbors within a distance d3*NeighFactor will be kept and used to compute G
+!Default value of 1.2 is expected to be robust for simple lattices (fcc, bcc)
+NeighFactor = 1.25d0
+!Then, neighbours in reference (Pneigh) and in system (Qneigh) will be compared
+!If position vectors form an angle greater than theta_max, they will be excluded from calculation
+!Hartley and Mishin found that a value of 27° gives best results in FCC lattices,
+!i.e. a little less than half the 60° angle between first neighbours
+theta_max = 27.d0   !degrees
+!However these default values fail for complex or distorted systems
+!=> Try to adjust them if system contains more than one atom type
 !Search how many atom types exist in the system2
 CALL FIND_NSP(Psecond(:,4),aentries)
-IF( SIZE(aentries,1)==2 ) THEN
-  !Binary material
-  !=> the default NeighFactor will probably be too small, use larger value
-  NeighFactor = 1.15d0
-ELSE IF( SIZE(aentries,1)>=3 ) THEN
-  !Good chances that it is a complex material
-  !=> boost NeighFactor
-  NeighFactor = 1.33d0   !1.33
+!Get number of different elements
+n = SIZE(aentries,1)
+IF( n>1 ) THEN
+  !There is more than one element in this system
+  !Get max. number of atoms for one element, multiply by 10%
+  tempreal = 0.1d0*MAXVAL(aentries(:,2))
+  IF( n==2 ) THEN
+    !Compare relative concentrations of the two elements
+    IF( aentries(1,2)>0.1d0*tempreal .AND. aentries(2,2)>0.1*tempreal ) THEN
+      !All elements are present in large number => binary material
+      !=> the default NeighFactor will probably be too small, use larger value
+      IF( DABS(aentries(1,2)-aentries(2,2)) < tempreal ) THEN
+        !Both elements are in comparable concentration
+        !Assume rock-salt (NaCl, MgO...), where angle between first neighbours is 90°
+        NeighFactor = 1.3d0
+        theta_max = 43.d0
+      ELSE
+        !One element is more concentrated than the other, e.g. SiO2, Al2O3...
+        NeighFactor = 1.3d0
+        theta_max = 50.d0
+      ENDIF
+    ELSE
+      !Otherwise, one element is present only in small concentration (<10%)
+      !=> probably a unitary compound with few impurities, don't change NeighFactor
+    ENDIF
+    !
+  ELSE IF( n>=3 ) THEN
+    !Good chances that it is a complex material
+    !=> boost NeighFactor
+    NeighFactor = 1.35d0   !1.33
+    theta_max = 55.d0
+  ENDIF
 ENDIF
+!
+!Convert theta_max from degrees to radians
+theta_max = DEG2RAD(theta_max)
 !
 !
 IF( firstref ) THEN
@@ -257,12 +294,12 @@ IF( .NOT.firstref ) THEN
       CALL BUBBLESORT(PosList2,4,'up  ',newindex)
       !
       !Get the relative positions of neighbors with respect to atom #iat
-      !Keep only neighbors that are within NeighFactor times the distance of third neighbor
+      !Keep only neighbors that are within NeighFactor times the distance of NNmin neighbor
       Nneighbors = 0
       DO j=1,MIN(20,SIZE(PosList2,1))
         !Shift all neighbours positions so the central atom is at (0,0,0)
         PosList2(j,1:3) = PosList2(j,1:3) - Ppoint(iat,1:3)
-        IF( PosList2(j,4) <= NeighFactor*PosList2(3,4) ) THEN
+        IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
           !IF( NINT(Psecond(NINT(PosList2(j,5)),4))==NINT(Psecond(NINT(PosList2(1,5)),4)) ) THEN
             !Keep this neighbor
             Nneighbors = Nneighbors+1
@@ -301,7 +338,7 @@ IF( .NOT.firstref ) THEN
     Ppoint => Psecond
     CALL ATOMSK_MSG(4070,(/filesecond/),(/2.d0/))
     !Build "reference" environments by averaging environments found in system 2
-    CALL AVG_ENV(Hsecond,Psecond,NeighList2,Pref,siteindex)
+    CALL AVG_ENV(Hsecond,Psecond,NeighList2,Pref,NeighFactor,siteindex)
   ENDIF
   !
   !
@@ -469,7 +506,7 @@ DO iat=1,SIZE(Psecond,1)
         ENDIF
       ENDDO
       !Clean neighbor list for this atom
-      NeighList1(iat,:) = 0
+      !NeighList1(iat,:) = 0
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
@@ -480,10 +517,10 @@ DO iat=1,SIZE(Psecond,1)
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList1(j,1:3)
           !Add the index of this neighbor to the neighbor list NeighList1
-          IF( PosList1(j,5).NE.iat .AND. .NOT.ANY(NeighList1(iat,:)==NINT(PosList1(j,5))) ) THEN
-            m=m+1
-            NeighList1(iat,m) = NINT(PosList1(j,5))
-          ENDIF
+!           IF( PosList1(j,5).NE.iat .AND. .NOT.ANY(NeighList1(iat,:)==NINT(PosList1(j,5))) ) THEN
+!             m=m+1
+!             NeighList1(iat,m) = NINT(PosList1(j,5))
+!           ENDIF
         ENDIF
       ENDDO
       !We don't need PosList1 for this atom anymore
@@ -643,7 +680,7 @@ DO iat=1,SIZE(Psecond,1)
         ENDIF
       ENDDO
       !Clean neighbor list for this atom
-      NeighList2(iat,:) = 0
+      !NeighList2(iat,:) = 0
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
@@ -653,11 +690,11 @@ DO iat=1,SIZE(Psecond,1)
           !This neighbor is closer than the 3rd neighbor => keep it
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList2(j,1:3)
-          !Add the index of this neighbor to the neighbor list NeighList1
-          IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
-            m=m+1
-            NeighList2(iat,m) = NINT(PosList2(j,5))
-          ENDIF
+          !Add the index of this neighbor to the neighbor list NeighList2
+!           IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
+!             m=m+1
+!             NeighList2(iat,m) = NINT(PosList2(j,5))
+!           ENDIF
         ENDIF
       ENDDO
       !
@@ -748,7 +785,7 @@ DO iat=1,SIZE(Psecond,1)
     nb_neigh=0
     DO j=1,SIZE(Q_neigh,1)
       alpha=DABS(ANGVEC(Q_neigh(j,1:3),P_neigh_tmp(j,1:3)))
-      IF (alpha.gt.maxangvec) THEN
+      IF (alpha.gt.theta_max) THEN
         Tab_PQ(j)=0
       ELSE
         ok=0 
@@ -1288,7 +1325,7 @@ DO iat=1,SIZE(Psecond,1)
     nb_neigh=0
     DO j=1,SIZE(Q_neigh,1)
       alpha = DABS(ANGVEC(Q_neigh(j,1:3),P_neigh_tmp(j,1:3)))
-      IF( alpha > maxangvec ) THEN
+      IF( alpha > theta_max ) THEN
         Tab_PQ(j)=0
       ELSE
         ok=0 
@@ -1372,7 +1409,7 @@ DO iat=1,SIZE(Psecond,1)
         DEALLOCATE (Delta_G_matrix,Q_plus,work_array,Stemp)
         !
         !
-        !Compute the Nye tensor:  alpha(jk) = -epsilon(imk) * T(ijm)   (Eq.22)
+        !Compute the Nye tensor:  alpha(jk) = epsilon(imk) * T(ijm)   (Eq.22)
         !where epsilon is the Levi-Civita permutation symbol, and
         !T(ijm) is the tensor of derivatives of G
         !NOTE: Eq.22 is wrong in the published article by Hartley et al.
@@ -1382,7 +1419,7 @@ DO iat=1,SIZE(Psecond,1)
             DO i=1,3
               DO m=1,3
                 eps = EPS_LEVI_CIVITA(i,m,k)
-                alpha_tensor(j,k) = alpha_tensor(j,k) - DBLE(eps)*A_tensor(i,j,m)
+                alpha_tensor(j,k) = alpha_tensor(j,k) + DBLE(eps)*A_tensor(i,j,m)
               ENDDO
             ENDDO
           ENDDO
