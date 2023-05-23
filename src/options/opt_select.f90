@@ -1715,14 +1715,20 @@ CASE('random','rand','random%','rand%')
     !(this is necessary to avoid selecting twice the same atom, which would make the count wrong)
     161 CONTINUE
     DO i=2,SIZE(randarray)
+      n=0
       DO WHILE( NINT(randarray(i)-randarray(i-1)) <= 0 )
         randarray(i) = randarray(i) + 1
+        !Check that new number is not greater than size of atomlist
+        IF( randarray(i)>SIZE(atomlist) ) THEN
+          !Shift all previous values
+          DO j=i,2,-1
+            randarray(j) = randarray(j-1)
+          ENDDO
+          randarray(1) = 1
+          !Restart the whole procedure
+          GOTO 161
+        ENDIF
       ENDDO
-      !Check that random number is not greater than size of atomlist
-      IF( randarray(i)>SIZE(atomlist) ) THEN
-        randarray(i) = 1
-        GOTO 161
-      ENDIF
     ENDDO
     !
     !Save indices of atoms to (un-)select into atomindices
