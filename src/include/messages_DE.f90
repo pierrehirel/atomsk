@@ -736,6 +736,10 @@ CASE(14)
 CASE(15)
   msg = "..> Fertig."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(16)
+  !strings(1) = name of file
+  msg = ">>> Benutzerkonfigurationsdatei lesen: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNUNG MESSAGES
 CASE(700)
@@ -1972,26 +1976,29 @@ CASE(2113)
       & TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2114)
+  !strings(1) = "xyz" if user provided max.disp. along X,Y,Z
   !reals(1) = max. displacement of an atom along X
   !reals(2) = max. displacement of an atom along Y
   !reals(3) = max. displacement of an atom along Z
   msg = ">>> Zufaellige Verschiebung der Atome,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  IF( DABS(reals(1)-reals(2))<1.d-12 .AND. DABS(reals(1)-reals(3))<1.d-12 ) THEN
-    !All values are equal
-    WRITE(msg,'(f24.3)') reals(1)
-    msg = "..> maximum Distanz: "//TRIM(ADJUSTL(msg))//" A."
-  ELSE
-    !Values are different along each direction
+  IF( strings(1)=="xyz" ) THEN
+    !User provided different values along each direction
     WRITE(temp,'(f24.3)') reals(1)
     WRITE(temp2,'(f24.3)') reals(2)
     WRITE(temp3,'(f24.3)') reals(3)
     msg = "..> max. Distanz: dx="//TRIM(ADJUSTL(temp))//", dy=" &
         & //TRIM(ADJUSTL(temp2))//", dz="//TRIM(ADJUSTL(temp3))//"."
+  ELSE
+    !User provided norm of max.disp.
+    WRITE(msg,'(f24.3)') reals(1)
+    msg = "..> maximum Distanz: "//TRIM(ADJUSTL(msg))//" A."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2115)
-  msg = "..> Atome wurden aus ihrer Gleichgewichtslage verschoben."
+  !reals(1) = number of atoms that were displaced
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> "//TRIM(ADJUSTL(temp))//" Atome wurden aus ihrer Gleichgewichtslage verschoben."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2116)
   !strings(1) = species of added atom(s)
@@ -3264,6 +3271,16 @@ CASE(4074)
   WRITE(temp,*) NINT(reals(4))
   msg = "..> Das System enthält jetzt "//TRIM(ADJUSTL(temp))//" Hilfseigenschaften."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4075)
+  !strings(1) = string containing user values
+  msg = "..> Benutzerdefinierte Werte erzwingen: "
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  DO i=1,SIZE(strings)
+    IF( LEN_TRIM(strings(i))>0 ) THEN
+      msg = "    "//TRIM(ADJUSTL(strings(i)))
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+  ENDDO
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"
   WRITE(*,'(a39)',ADVANCE='NO') " Gittertyp (sc,bcc,fcc,dia,rs,per): "

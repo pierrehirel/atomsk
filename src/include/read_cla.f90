@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 March 2023                                    *
+!* Last modification: P. Hirel - 30 May 2023                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -983,7 +983,9 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
     READ(temp,*,END=120,ERR=120) tempreal
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    tempreal = DABS(tempreal)
+    WRITE(temp,*) tempreal
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(ADJUSTL(temp))
     !try to read the maximum displacement along Y
     i=i+1
     IF( i<=SIZE(cla) ) THEN
@@ -991,20 +993,23 @@ DO WHILE(i<SIZE(cla))
       !Verify that it is a real number
       READ(temp2,*,END=101,ERR=101) tempreal
       !No error? It was the max. displacement along Y, save it
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
+      tempreal = DABS(tempreal)
+      WRITE(temp2,*) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(ADJUSTL(temp2))
       !Proceed with max. disp. along Z
+      !At this point user provided 2 values, there MUST be a third, otherwise it is an error
       i=i+1
       IF(i>SIZE(cla)) GOTO 120
       READ(cla(i),*,END=120,ERR=120) temp2
       READ(temp2,*,END=120,ERR=120) tempreal
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp2)
+      tempreal = DABS(tempreal)
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(ADJUSTL(temp2))
       !We are done reading the 3 real numbers
       GOTO 110
     ENDIF
     101 CONTINUE
     !There was an error while trying to real max. displacement along Y
-    !=> user gave only one value, that will apply in all directions X, Y and Z
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp)
+    !=> user gave only one value which is the maximum displacement
     !Go one step back
     i=i-1
   !

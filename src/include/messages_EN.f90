@@ -751,6 +751,10 @@ CASE(14)
 CASE(15)
   msg = "..> Done."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(16)
+  !strings(1) = name of file
+  msg = ">>> Reading user configuration file: "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
 CASE(700)
@@ -2000,26 +2004,29 @@ CASE(2113)
   msg = "..> Distribution of velocities was written to the file: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2114)
+  !strings(1) = "xyz" if user provided max.disp. along X,Y,Z
   !reals(1) = max. displacement of an atom along X
   !reals(2) = max. displacement of an atom along Y
   !reals(3) = max. displacement of an atom along Z
-  msg = ">>> Applying a perturbation to atom positions,"
+  msg = ">>> Applying a random perturbation to atom positions,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  IF( DABS(reals(1)-reals(2))<1.d-12 .AND. DABS(reals(1)-reals(3))<1.d-12 ) THEN
-    !All values are equal
-    WRITE(msg,'(f24.3)') reals(1)
-    msg = "..> maximum magnitude: "//TRIM(ADJUSTL(msg))//" A."
-  ELSE
-    !Values are different along each direction
+  IF( strings(1)=="xyz" ) THEN
+    !User provided different values along each direction
     WRITE(temp,'(f24.3)') reals(1)
     WRITE(temp2,'(f24.3)') reals(2)
     WRITE(temp3,'(f24.3)') reals(3)
     msg = "..> maximum magnitude: dx="//TRIM(ADJUSTL(temp))//", dy=" &
         & //TRIM(ADJUSTL(temp2))//", dz="//TRIM(ADJUSTL(temp3))//"."
+  ELSE
+    !User provided norm of max.disp.
+    WRITE(msg,'(f24.3)') reals(1)
+    msg = "..> maximum magnitude: "//TRIM(ADJUSTL(msg))//" A."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2115)
-  msg = "..> Atom positions were disturbed."
+  !reals(1) = number of atoms that were displaced
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> "//TRIM(ADJUSTL(temp))//" atoms were disturbed."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2116)
   !strings(1) = species of added atom(s)
@@ -3251,6 +3258,16 @@ CASE(4074)
   WRITE(temp,*) NINT(reals(4))
   msg = "..> System now contains "//TRIM(ADJUSTL(temp))//" auxiliary properties."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4075)
+  !strings(:) = string containing user values
+  msg = "..> Forcing user-defined values: "
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  DO i=1,SIZE(strings)
+    IF( LEN_TRIM(strings(i))>0 ) THEN
+      msg = "    "//TRIM(ADJUSTL(strings(i)))
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+  ENDDO
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"
   WRITE(*,'(a39)',ADVANCE='NO') " Lattice type (sc,bcc,fcc,dia,rs,per): "

@@ -67,11 +67,13 @@ CHARACTER(LEN=*),INTENT(IN):: filefirst, filesecond, prefix
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(IN):: outfileformats !list of output file formats
 CHARACTER(LEN=4096):: msg, temp
+CHARACTER(LEN=128),DIMENSION(2):: user_values !user values of NeighFactor and theta_max
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-LOGICAL:: firstref  !is the first file used as reference system? (default: yes)
-LOGICAL:: ucref     !is the reference a unit cell? (default: no)
+LOGICAL:: fileexists !does the file exist?
+LOGICAL:: firstref   !is the first file used as reference system? (default: yes)
+LOGICAL:: ucref      !is the reference a unit cell? (default: no)
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, m, n, iat
 INTEGER:: nb_neigh, eps
@@ -118,6 +120,7 @@ firstref = .TRUE.
 ucref = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 Nnmin=3   !minimum number of neighbours to keep (may change depending on composition, see below)
+user_values(:) = ""
 Huc(:,:) = 0.d0
 ORIENT(:,:) = 0.d0     !crystallographic orientation (not used, set to zero)
  C_tensor(:,:) = 0.d0  !stiffness tensor (not used, set to zero)
@@ -168,41 +171,78 @@ NeighFactor = 1.25d0
 !Hartley and Mishin found that a value of 27° gives best results in FCC lattices,
 !i.e. a little less than half the 60° angle between first neighbours
 theta_max = 27.d0   !degrees
-!However these default values fail for complex or distorted systems
-!=> Try to adjust them if system contains more than one atom type
-!Search how many atom types exist in the system2
-CALL FIND_NSP(Psecond(:,4),aentries)
-!Get number of different elements
-n = SIZE(aentries,1)
-IF( n>1 ) THEN
-  !There is more than one element in this system
-  !Get max. number of atoms for one element, multiply by 10%
-  tempreal = 0.1d0*MAXVAL(aentries(:,2))
-  IF( n==2 ) THEN
-    !Compare relative concentrations of the two elements
-    IF( aentries(1,2)>0.1d0*tempreal .AND. aentries(2,2)>0.1*tempreal ) THEN
-      !All elements are present in large number => binary material
-      !=> the default NeighFactor will probably be too small, use larger value
-      IF( DABS(aentries(1,2)-aentries(2,2)) < tempreal ) THEN
-        !Both elements are in comparable concentration
-        !Assume rock-salt (NaCl, MgO...), where angle between first neighbours is 90°
-        NeighFactor = 1.3d0
-        theta_max = 43.d0
+!
+!Check if user wrote specific values for these parameters in a file "nye.conf"
+INQUIRE(FILE="nye.conf",EXIST=fileexists)
+IF( fileexists ) THEN
+  CALL ATOMSK_MSG(16,(/"nye.conf"/),(/0.d0/))
+  OPEN(UNIT=31,FILE="nye.conf",STATUS="OLD",FORM="FORMATTED")
+  m = 0
+  DO
+    n=1
+    READ(31,'(a)',ERR=110,END=110) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( temp(1:1).NE.'#' ) THEN
+      IF( StrDnCase(temp(1:11))=="neighfactor" ) THEN
+        READ(temp(12:),*,ERR=105,END=105) NeighFactor
+        m = m+1
+        WRITE(msg,'(f12.3)') NeighFactor
+        user_values(m) = "NeighFactor = "//TRIM(ADJUSTL(msg))
+      ELSEIF( StrDnCase(temp(1:9))=="theta_max" ) THEN
+        READ(temp(10:),*,ERR=105,END=105) theta_max
+        m = m+1
+        WRITE(msg,'(f12.3)') theta_max
+        user_values(m) = "theta_max = "//TRIM(ADJUSTL(msg))
       ELSE
-        !One element is more concentrated than the other, e.g. SiO2, Al2O3...
-        NeighFactor = 1.3d0
-        theta_max = 50.d0
+        PRINT*, "/!\ WARNING: unknown parameter: "//TRIM(temp)
       ENDIF
-    ELSE
-      !Otherwise, one element is present only in small concentration (<10%)
-      !=> probably a unitary compound with few impurities, don't change NeighFactor
     ENDIF
-    !
-  ELSE IF( n>=3 ) THEN
-    !Good chances that it is a complex material
-    !=> boost NeighFactor
-    NeighFactor = 1.35d0   !1.33
-    theta_max = 55.d0
+    n=0
+    105 CONTINUE
+    IF( n>0 ) CALL ATOMSK_MSG(808,(/TRIM(temp)/),(/0.d0/))
+  ENDDO
+  110 CONTINUE
+  CLOSE(31)
+  CALL ATOMSK_MSG(4075,user_values(:),(/0.d0/))
+  !
+ELSE
+  !User did not define values in a file
+  !Default values above fail for complex or distorted systems
+  !=> Try to adjust them if system contains more than one atom type
+  !Search how many atom types exist in the system2
+  CALL FIND_NSP(Psecond(:,4),aentries)
+  !Get number of different elements
+  n = SIZE(aentries,1)
+  IF( n>1 ) THEN
+    !There is more than one element in this system
+    !Get max. number of atoms for one element, multiply by 10%
+    tempreal = 0.1d0*MAXVAL(aentries(:,2))
+    IF( n==2 ) THEN
+      !Compare relative concentrations of the two elements
+      IF( aentries(1,2)>0.1d0*tempreal .AND. aentries(2,2)>0.1*tempreal ) THEN
+        !All elements are present in large number => binary material
+        !=> the default NeighFactor will probably be too small, use larger value
+        IF( DABS(aentries(1,2)-aentries(2,2)) < tempreal ) THEN
+          !Both elements are in comparable concentration
+          !Assume rock-salt (NaCl, MgO...), where angle between first neighbours is 90°
+          NeighFactor = 1.3d0
+          theta_max = 43.d0
+        ELSE
+          !One element is more concentrated than the other, e.g. SiO2, Al2O3...
+          NeighFactor = 1.3d0
+          theta_max = 50.d0
+        ENDIF
+      ELSE
+        !Otherwise, one element is present only in small concentration (<10%)
+        !=> probably a unitary compound with few impurities, don't change NeighFactor
+      ENDIF
+      !
+    ELSE IF( n>=3 ) THEN
+      !Good chances that it is a complex material
+      !=> boost NeighFactor
+      NeighFactor = 1.35d0   !1.33
+      theta_max = 55.d0
+    ENDIF
   ENDIF
 ENDIF
 !
@@ -822,11 +862,11 @@ DO iat=1,SIZE(Psecond,1)
       WRITE(msg,*) '-----Relative positions of neighbors-----'
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO j=1,MIN(SIZE(P_neigh,1),SIZE(Q_neigh,1))
-        WRITE(msg,'(a9,3f12.4,a5,f12.4)') 'P_neigh: ', P_neigh(j,1:3), "| d =", VECLENGTH(P_neigh(j,1:3))
+        WRITE(msg,'(a9,3f12.4,a6,f12.4)') 'P_neigh: ', P_neigh(j,1:3), " | d =", VECLENGTH(P_neigh(j,1:3))
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO  
       DO j=1,SIZE(Q_neigh,1)
-        WRITE(msg,'(a9,3f12.4,a5,f12.4)') 'Q_neigh: ', Q_neigh(j,1:3), "| d =", VECLENGTH(Q_neigh(j,1:3))
+        WRITE(msg,'(a9,3f12.4,a6,f12.4)') 'Q_neigh: ', Q_neigh(j,1:3), " | d =", VECLENGTH(Q_neigh(j,1:3))
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDDO
       WRITE(msg,*) '-----------------------------------------'

@@ -689,8 +689,21 @@ DO ioptions=1,SIZE(options_array)
     CALL DISLOC_XYZ(H,P,S,disloctype,dislocline,dislocplane,b,nu,pos,SELECT,ORIENT,AUXNAMES,AUX,C_tensor)
   !
   CASE('-disturb')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dmax(1), dist_dmax(2), dist_dmax(3)
-    CALL DISTURB_XYZ(dist_dmax,P,S,SELECT)
+    !Read one value
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
+    !Detect if more values follow
+    strlength = LEN_TRIM(temp) + 10
+    temp = TRIM(ADJUSTL(options_array(ioptions)(strlength:)))
+    IF( LEN_TRIM(temp) > 0 ) THEN
+      !There seem to be more values: try to read them
+      j=0
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dmax(1), dist_dmax(2), dist_dmax(3)
+    ELSE
+      !There seems to be only one value : read it
+      j=1
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, dist_dmax(1)
+    ENDIF
+    CALL DISTURB_XYZ(P,S,SELECT,j,dist_dmax)
   !
   CASE('-duplicate', '-dup', '-e', '-expand')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, &

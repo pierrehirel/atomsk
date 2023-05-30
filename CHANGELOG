@@ -4,10 +4,16 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
+- fixed bugs in mode "--nye", where there was a sign error in the computation of the Nye tensor. Also attempted to tune parameters (NeighFactor, theta_max) to improve accuracy in non-fcc materials. User can now specify these parameters manually in a file named "nye.conf".
+- fixed a bug in option "-disturb", where displacements would not be random when running on several threads; thanks to Milan Kočí, Institute of Physics v.v.i., Academy of Sciences, Prague, Czech Republic, for pointing out this bug. Also fixed a bug where, when user provided only one value dmax, then maximum displacements were equal to that value along all directions (i.e. using "-disturb <dmax>" lead to dx=dy=dz=dmax); this is now fixed so that the norm of max.disp. is equal to dmax (i.e. sqrt(dx²+dy²+dz²)=dmax).
+- fixed a bug in option "-select", where program could be stalled in infinite loop under certain conditions. Thanks to Jan Drahokoupil, Institute of Physics v.v.i., Academy of Sciences, Prague, Czech Republic, for pointing out this bug.
+
+
+Beta 0.12.1 (17 April 2023)
+---------------------------
 - fixed a bug in mode "--merge" that would cause a seg fault. Thanks to Peixin Chen, Shanghai Jiao Tong University, China, for pointing out this bug.
 - fixed a bug in option "-cut" where, if a selection was defined, remaining atoms were not selected correctly.
 - fixed a bug in option "-dislocation", where the sign of Burgers vector was inverted when constructing climb dislocation loops (only when Burgers vector was normal to loop plane).
-- fixed a bug in option "-select", where program could be stalled in infinite loop under certain conditions. Thanks to Jan Drahokoupil, Institute of Physics v.v.i., Academy of Sciences, Prague, Czech Republic, for pointing out this bug.
 - fixed a bug in option "-sort", where selection was not properly sorted along with atoms. Also fixed a bug where auxiliary properties were not correctly sorted alongside with atoms; thanks to Karine Gouriet, University of Lille, France, for pointing out this bug.
 
 

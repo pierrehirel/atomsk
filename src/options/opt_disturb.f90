@@ -10,7 +10,7 @@ MODULE disturb
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 30 May 2023                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,28 +37,41 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE DISTURB_XYZ(dmax,P,S,SELECT)
+SUBROUTINE DISTURB_XYZ(P,S,SELECT,dmode,dmax)
 !
 !
 IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
+INTEGER,INTENT(IN):: dmode  !0=user provided values for dmax along x, y, z (default)
+                            !Otherwise user provided norm of max. displacement
 INTEGER:: i, j
-INTEGER:: NP
+INTEGER:: NP, Nmoved
 REAL(dp):: drift  !total displacement along a direction
-REAL(dp),DIMENSION(3),INTENT(IN):: dmax  !maximum displacement of an atom along each cartesian direction
+REAL(dp),DIMENSION(3):: dmax  !maximum displacement of an atom along each cartesian direction
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of cores, shells
 !
 !
 !Initialize variables
 i = 0
+Nmoved = 0
 !
 !
-msg = 'Entering DISTURB_XYZ'
+WRITE(msg,*) 'Entering DISTURB_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL ATOMSK_MSG( 2114, (/''/), (/ dmax(1),dmax(2),dmax(3) /) )
+IF( dmode==0 ) THEN
+  CALL ATOMSK_MSG( 2114, (/"xyz"/), (/ dmax(1),dmax(2),dmax(3) /) )
+ELSE
+  CALL ATOMSK_MSG( 2114, (/''/), (/ dmax(1),0.d0,0.d0 /) )
+  !User provided norm of maximal displacement => compute corresponding max. displacements along X, Y, Z
+  drift = DSQRT((dmax(1)**2)/3.d0)
+  dmax(:) = drift
+ENDIF
+!
+WRITE(msg,*) 'dmax(:) = ', dmax(1), dmax(2), dmax(3)
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !
 !If maximum displacement is zero then skip
@@ -103,29 +116,41 @@ DO i=1,3 !x,y,z
   ENDDO
 ENDDO
 !$OMP END PARALLEL DO
-WRITE(msg,*) 'SIZE randarray = ', SIZE(randarray)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
+IF( verbosity>=4 ) THEN
+  WRITE(msg,*) "randarray (SIZE ", SIZE(randarray), ") ="
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,MIN(SIZE(randarray/3),10)
+    WRITE(msg,'(6X,3f12.6,2X)') randarray(i), randarray(SIZE(P,1)+i), randarray(2*SIZE(P,1)+i)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDDO
+  IF( SIZE(randarray/3)>10 ) THEN
+    msg = "      (...continued...)"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDIF
+ENDIF
 !
 !
 !Use random numbers as displacements along X, Y, Z
-j=0
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:j)
+!j=0
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:Nmoved)
 DO i=1,SIZE(P,1)
   IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
-    j=j+1
-    P(i,1) = P(i,1) + randarray(j)
-    P(i,2) = P(i,2) + randarray(NP+j)
-    P(i,3) = P(i,3) + randarray(2*NP+j)
+    !j=j+1
+    P(i,1) = P(i,1) + randarray(i)
+    P(i,2) = P(i,2) + randarray(NP+i)
+    P(i,3) = P(i,3) + randarray(2*NP+i)
     IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      S(i,1) = S(i,1) + randarray(j)
-      S(i,2) = S(i,2) + randarray(NP+j)
-      S(i,3) = S(i,3) + randarray(2*NP+j)
+      S(i,1) = S(i,1) + randarray(i)
+      S(i,2) = S(i,2) + randarray(NP+i)
+      S(i,3) = S(i,3) + randarray(2*NP+i)
     ENDIF
+    Nmoved = Nmoved+1
   ENDIF
 ENDDO
 !$OMP END PARALLEL DO
 !
-CALL ATOMSK_MSG(2115,(/''/),(/0.d0/))
+CALL ATOMSK_MSG(2115,(/''/),(/DBLE(Nmoved)/))
 GOTO 1000
 !
 !

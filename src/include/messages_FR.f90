@@ -746,6 +746,10 @@ CASE(14)
 CASE(15)
   msg = "..> Terminé."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(16)
+  !strings(1) = name of file
+  msg = ">>> Lecture du fichier de configuration de l'utilisateur : "//TRIM(ADJUSTL(strings(1)))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 ! 700- 799: WARNING MESSAGES
 CASE(700)
@@ -2069,26 +2073,29 @@ CASE(2113)
   msg = "..> La distribution de vitesses a été écrite dans le fichier : "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2114)
+  !strings(1) = "xyz" if user provided max.disp. along X,Y,Z
   !reals(1) = max. displacement of an atom along X
   !reals(2) = max. displacement of an atom along Y
   !reals(3) = max. displacement of an atom along Z
-  msg = ">>> Perturbation des positions des atomes,"
+  msg = ">>> Perturbation aléatoire des positions des atomes,"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  IF( DABS(reals(1)-reals(2))<1.d-12 .AND. DABS(reals(1)-reals(3))<1.d-12 ) THEN
-    !All values are equal
-    WRITE(msg,'(f24.3)') reals(1)
-    msg = "..> déplacement maximal : "//TRIM(ADJUSTL(msg))//" A."
-  ELSE
-    !Values are different along each direction
+  IF( strings(1)=="xyz" ) THEN
+    !User provided different values along each direction
     WRITE(temp,'(f24.3)') reals(1)
     WRITE(temp2,'(f24.3)') reals(2)
     WRITE(temp3,'(f24.3)') reals(3)
     msg = "..> déplacement maximal : dx="//TRIM(ADJUSTL(temp))//", dy=" &
         & //TRIM(ADJUSTL(temp2))//", dz="//TRIM(ADJUSTL(temp3))//"."
+  ELSE
+    !User provided norm of max.disp.
+    WRITE(msg,'(f24.3)') reals(1)
+    msg = "..> déplacement maximal : "//TRIM(ADJUSTL(msg))//" A."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2115)
-  msg = "..> Les atomes ont été déplacés."
+  !reals(1) = number of atoms that were displaced
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> "//TRIM(ADJUSTL(temp))//" atomes ont été déplacés."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2116)
   !strings(1) = species of added atom(s)
@@ -3318,6 +3325,16 @@ CASE(4074)
   WRITE(temp,*) NINT(reals(4))
   msg = "..> Le système contient maintenant "//TRIM(ADJUSTL(temp))//" propriétés auxiliaires."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4075)
+  !strings(1) = string containing user values
+  msg = "..> Forçage des valeurs définies par l'utilisateur : "
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  DO i=1,SIZE(strings)
+    IF( LEN_TRIM(strings(i))>0 ) THEN
+      msg = "    "//TRIM(ADJUSTL(strings(i)))
+      CALL DISPLAY_MSG(verbosity,msg,logfile)
+    ENDIF
+  ENDDO
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "

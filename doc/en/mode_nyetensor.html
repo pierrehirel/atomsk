@@ -28,7 +28,9 @@
 
 <p>Once the tensor <strong>G</strong> is computed for each atom, then the Nye tensor <strong>&alpha;</strong> is computed from its spatial derivatives (&epsilon;<sub>imk</sub> is the Levi-Civita permutation symbol):</p>
 
-<p><strong>&alpha;</strong><sub>jk</sub> = -&epsilon;<sub>imk</sub>  &part;<sub>m</sub><strong>G</strong><sub>ij</sub></p>
+<p><strong>&alpha;</strong><sub>jk</sub> = &epsilon;<sub>imk</sub>  &part;<sub>m</sub><strong>G</strong><sub>ij</sub></p>
+
+<p>Note that the original published article by Hartley and Mishin cited above contained a mistake in this equation. The equation implemented in Atomsk was verified to yield the correct Burgers vector after integration of the Nye tensor.</p>
 
 <p>This mode requires two files: a &#60;file1&#62; containing the reference system, and a &#60;file2&#62; that contains the system to analyze. The reference system may be:</p>
 
