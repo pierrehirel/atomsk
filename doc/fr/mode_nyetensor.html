@@ -32,6 +32,15 @@
 
 <p>Notez que l'article original publié par Hartley et Mishin cité ci-dessus contient une erreur dans cette équation. L'équation implémentée dans Atomsk a été vérifiée pour donner le bon vecteur de Burgers après intégration du tenseur de Nye.</p>
 
+<p>Pour réaliser ce calcul, les voisins jusqu'à une distance <strong>NeighFactor&nbsp;&times;&nbsp;d<sub>3</sub></strong> sont utilisés, où d<sub>3</sub> est la distance du troisième voisin, et NeighFactor est égal à 1.25 par défaut. De plus, un voisin est utilisé seulement si son vecteur position relatif à l'atome central, entre le système de référence et celui étudié, est plus petit qu'un angle critique &theta;<sub>max</sub>. La valeur par défaut est &theta;<sub>max</sub>&nbsp;=&nbsp;27°, ce que Hartley et Mishin one trouvé adapté pour les mailles cfc, puisque c'est à peu près la moitié de l'angle entre premiers voisins (60°).</p>
+
+<p>Les valeurs des paramètres NeighFactor et &theta;<sub>max</sub> peuvent être modifiés en créant un fichier de configuration nommé "atomsk.conf" dans le répertoire courant où est effectué le calcul, et contenant les lignes suivantes&nbsp;:</p>
+
+<p><code>Nye NeighFactor 1.25<br/>
+Nye theta_max 27</code></p>
+
+<p>Les valeurs définies dans ce fichier seront alors utilisées pour le calcul, au lieu des valeurs par défaut.</p>
+
 <p>Ce mode requiert deux fichiers&nbsp;: un &#60;fichier1&#62; contenant un système de référence, et un &#60;fichier2&#62; contenant le système à analyser. Le système de référence peut être&nbsp;:</p>
 
 <ul>
@@ -60,6 +69,13 @@
 
 <li><code class="command">atomsk --nye NULL monsysteme.cfg nye.cfg</code>
 <p>Dans cet exemple, le système de référence est indiqué comme "NULL", c'est-à-dire qu'aucun système de référence n'est fourni. Atomsk va lire les positions des atomes depuis le fichier <code>monsysteme.cfg</code>, et moyennera leurs environnements pour construire la référence. Ensuite, il calculera le tenseur de Nye, et écrira le résultat dans <code>nye.cfg</code>.</p></li>
+
+<li><div class="txtfile"><h5>atomsk.conf</h5>
+<p><code># Changer les valeurs des paramètres pour calculer le tenseur de Nye<br/>
+Nye NeighFactor 1.2<br/>
+Nye theta_max 45<br/>
+</code></p></div>
+<p>Si un fichier nommé "atomsk.conf" existe dans le répertoire courant, alors Atomsk utilisera les valeurs des paramètres NeighFactor et theta_max définis dans ce fichier.</p></li>
 
 </ul>
 

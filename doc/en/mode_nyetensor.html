@@ -32,6 +32,15 @@
 
 <p>Note that the original published article by Hartley and Mishin cited above contained a mistake in this equation. The equation implemented in Atomsk was verified to yield the correct Burgers vector after integration of the Nye tensor.</p>
 
+<p>To perform the calculation, neighbors up to the distance <strong>NeighFactor&nbsp;&times;&nbsp;d<sub>3</sub></strong> are used, where d<sub>3</sub> is the distance to the third neighbor, and NeighFactor is 1.25 by default. Moreover, a neighbor is used only its position vectors relative to the central atom, between the reference and analyzed systems, is smaller than a threshold value &theta;<sub>max</sub>. The default value is &theta;<sub>max</sub>&nbsp;=&nbsp;27°, which Hartley and Mishin found appropriate for fcc lattices, as it is about half the angle between first neighbors (60°).</p>
+
+<p>The values of the parameters NeighFactor and &theta;<sub>max</sub> can be modified by creating a configuration file named "atomsk.conf" in the working directory where the calculation is performed, and containing the following lines:</p>
+
+<p><code>Nye NeighFactor 1.25<br/>
+Nye theta_max 27</code></p>
+
+<p>The values defined in this file will be used for the calculation, instead of the default ones.</p>
+
 <p>This mode requires two files: a &#60;file1&#62; containing the reference system, and a &#60;file2&#62; that contains the system to analyze. The reference system may be:</p>
 
 <ul>
@@ -60,6 +69,14 @@
 
 <li><code class="command">atomsk --nye NULL mysystem.cfg nye.cfg</code>
 <p>In this example the reference system is specified as "NULL", i.e. no reference is provided. Atomsk will read atom positions from the file <code>mysystem.cfg</code>, and average their environments to construct the reference. Then, it will compute the Nye tensor and write the result into <code>nye.cfg</code>.</p></li>
+
+<li>
+<div class="txtfile"><h5>atomsk.conf</h5>
+<p><code># Change values of parameters for Nye tensor calculation<br/>
+Nye NeighFactor 1.2<br/>
+Nye theta_max 45<br/>
+</code></p></div>
+<p>If a file named "atomsk.conf" exists in current directory, then Atomsk will use the values of the parameters NeighFactor and theta_max defined in this file.</p></li>
 
 </ul>
 
