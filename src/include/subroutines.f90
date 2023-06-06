@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 Sept. 2022                                    *
+!* Last modification: P. Hirel - 06 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,7 @@ MODULE subroutines
 !* FIND_NSP            find the number of different entries in an array           *
 !* FIND_IF_REDUCED     determines if values of an array are within 0 and 1        *
 !* UNWRAP              unwrap atoms that have jumped a boundary                   *
-!* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
+!* LIST_SELECTED_ATOMS makes a list of selected atoms (chem.species/number)       *
 !**********************************************************************************
 !
 !
@@ -830,6 +830,50 @@ DO i=2, SIZE(atoms_v(:,1))
 ENDDO
 !
 END SUBROUTINE UNWRAP
+!
+!
+!********************************************************
+!  LIST_SELECTED_ATOMS
+!  This subroutine generates a table containing
+!  chemical species and number of selected atoms.
+!********************************************************
+!
+SUBROUTINE LIST_SELECTED_ATOMS(P,SELECT,selectedlist)
+!
+IMPLICIT NONE
+INTEGER:: i, j
+INTEGER:: Nspecies
+INTEGER,DIMENSION(20,2):: templist !assume maximum 20 different chemical species
+INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: selectedlist
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT
+REAL(dp),DIMENSION(:,:),INTENT(IN):: P
+!
+Nspecies=0
+templist(:,:) = 0
+IF(ALLOCATED(selectedlist)) DEALLOCATE(selectedlist)
+!
+DO i=1,SIZE(P,1)
+  IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    DO j=1,SIZE(templist,1)
+      IF( templist(j,1) == NINT(P(i,4)) ) THEN
+        templist(j,2) = templist(j,2) + 1
+        EXIT
+      ELSEIF( templist(j,1) == 0 ) THEN
+        templist(j,1) = NINT(P(i,4))
+        templist(j,2) = templist(j,2) + 1
+        Nspecies = Nspecies + 1
+        EXIT
+      ENDIF
+    ENDDO
+  ENDIF
+ENDDO
+!
+ALLOCATE(selectedlist(Nspecies,2))
+DO j=1,SIZE(selectedlist,1)
+  selectedlist(j,:) = templist(j,:)
+ENDDO
+!
+END SUBROUTINE LIST_SELECTED_ATOMS
 !
 !
 !

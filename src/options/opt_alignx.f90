@@ -16,7 +16,7 @@ MODULE alignx
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 06 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,7 +34,7 @@ MODULE alignx
 !
 USE comv
 USE constants
-USE crystallography
+USE elasticity
 USE functions
 USE messages
 USE files

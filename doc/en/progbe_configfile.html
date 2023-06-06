@@ -22,9 +22,9 @@
 
 <p>The default behaviour of Atomsk can be changed by setting up a configuration file.</p>
 
-<p><strong>When running on UNIX/Linux systems</strong>, the behaviour of the program can be set in a system-wide configuration file <code>/etc/atomsk.conf</code>. Each user can also customize the behaviour of the program by setting up his own personal configuration file, which must be placed in the user's configuration directory (defined by the environment variable <code>&#36;XDG_CONFIG_HOME</code> or, if the latter is not defined, defined to be the hidden directory <code>&#36;HOME/.config/</code>) and named <code>atomsk.conf</code>.</p>
+<p><strong>When running on UNIX/Linux systems</strong>, the behaviour of the program can be set in a system-wide configuration file <code>/etc/atomsk.conf</code>. Each user can also customize the behaviour of the program by setting up his own personal configuration file, which must be placed in the user's configuration directory (defined by the environment variable <code>&#36;XDG_CONFIG_HOME</code> or, if the latter is not defined, defined to be the hidden directory <code>&#36;HOME/.config/</code>) and named <code>atomsk.conf</code>. Finally, a configuration file named <code>atomsk.conf</code> may also exist in the current directory.</p>
 
-<p><strong>When running on Microsoft&reg; Windows&reg; environments</strong>, each user can customize the behaviour of the program by setting up a personal configuration file, which must be placed in the user's personal directory (defined by the <code>%HOMEPATH%</code> environment variable) and named <code>atomsk.ini</code> (text file).</p>
+<p><strong>When running on Microsoft&reg; Windows&reg; environments</strong>, each user can customize the behaviour of the program by setting up a personal configuration file, which must be placed in the user's personal directory (defined by the <code>%HOMEPATH%</code> environment variable) and named <code>atomsk.ini</code> (text file). Finally, a configuration file named <code>atomsk.ini</code> may also exist in the current directory</p>
 
 <p>This configuration file has a pretty simple format. Empty lines and lines starting with the hash symbol (&#35;) are ignored, and the following keywords can be used:</p>
 
@@ -54,7 +54,15 @@
 
 <h4>Default</h4>
 
-<p>By default, no output format is active. The language is the one used by the operating system, or defaults to English. Atomsk does not ignore nor overwrite files, but prompts the user what to do. The number of threads is the one set by the operating system's environment variable OMP_NUM_THREADS, or takes the maximum value by default. Coloured messages are disabled. These defaults are overridden by this configuration file. The values in this configuration file are then overridden by those entered in the command-line.</p>
+<p>By default, no output format is active. The language is the one used by the operating system, or defaults to English. Atomsk does not ignore nor overwrite files, but prompts the user what to do. The number of threads is the one set by the operating system's environment variable OMP_NUM_THREADS, or takes the maximum value by default. Coloured messages are disabled.</p>
+
+<p>These default parameters are successively replaced (overwritten) by those defined in:</p>
+<ul>
+  <li>/etc/atomsk.conf</li>
+  <li>${HOME}/.config/atomsk.conf</li>
+  <li>./atomsk.conf</li>
+  <li>command-line arguments</li>
+</ul>
 
 
 

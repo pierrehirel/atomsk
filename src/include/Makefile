@@ -12,6 +12,7 @@ SGE=globalvar.f90         \
     atoms.f90             \
     subroutines.f90       \
     crystallography.f90   \
+    elasticity.f90        \
     sort.f90              \
     display_messages.f90  \
     messages_EN.f90       \

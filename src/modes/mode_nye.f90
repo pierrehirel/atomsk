@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 May 2023                                      *
+!* Last modification: P. Hirel - 06 June 2023                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -66,6 +66,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: filefirst, filesecond, prefix
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE,INTENT(IN):: outfileformats !list of output file formats
+CHARACTER(LEN=4096):: conffile
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(2):: user_values !user values of NeighFactor and theta_max
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -172,29 +173,38 @@ NeighFactor = 1.25d0
 !i.e. a little less than half the 60° angle between first neighbours
 theta_max = 27.d0   !degrees
 !
-!Check if user wrote specific values for these parameters in a file "nye.conf"
-INQUIRE(FILE="nye.conf",EXIST=fileexists)
+!Check if user wrote specific values for these parameters in a configuration file
+!(UNIX/Linux: "atomsk.conf", Windows: "atomsk.ini"), with the format:
+! nye neighfactor <value>
+! nye theta_max <value>
+#if defined(WINDOWS)
+conffile = "atomsk.ini"
+#else
+conffile = "atomsk.conf"
+#endif
+INQUIRE(FILE=conffile,EXIST=fileexists)
 IF( fileexists ) THEN
-  CALL ATOMSK_MSG(16,(/"nye.conf"/),(/0.d0/))
-  OPEN(UNIT=31,FILE="nye.conf",STATUS="OLD",FORM="FORMATTED")
+  CALL ATOMSK_MSG(16,(/conffile/),(/0.d0/))
+  OPEN(UNIT=31,FILE=conffile,STATUS="OLD",FORM="FORMATTED")
   m = 0
   DO
     n=1
     READ(31,'(a)',ERR=110,END=110) temp
     temp = TRIM(ADJUSTL(temp))
     IF( temp(1:1).NE.'#' ) THEN
-      IF( StrDnCase(temp(1:11))=="neighfactor" ) THEN
-        READ(temp(12:),*,ERR=105,END=105) NeighFactor
-        m = m+1
-        WRITE(msg,'(f12.3)') NeighFactor
-        user_values(m) = "NeighFactor = "//TRIM(ADJUSTL(msg))
-      ELSEIF( StrDnCase(temp(1:9))=="theta_max" ) THEN
-        READ(temp(10:),*,ERR=105,END=105) theta_max
-        m = m+1
-        WRITE(msg,'(f12.3)') theta_max
-        user_values(m) = "theta_max = "//TRIM(ADJUSTL(msg))
-      ELSE
-        PRINT*, "/!\ WARNING: unknown parameter: "//TRIM(temp)
+      IF( StrDnCase(temp(1:3))=="nye" ) THEN
+        temp = TRIM(ADJUSTL(temp(4:)))
+        IF( StrDnCase(temp(1:11))=="neighfactor" ) THEN
+          READ(temp(12:),*,ERR=105,END=105) NeighFactor
+          m = m+1
+          WRITE(msg,'(f12.3)') NeighFactor
+          user_values(m) = "NeighFactor = "//TRIM(ADJUSTL(msg))
+        ELSEIF( StrDnCase(temp(1:9))=="theta_max" ) THEN
+          READ(temp(10:),*,ERR=105,END=105) theta_max
+          m = m+1
+          WRITE(msg,'(f12.3)') theta_max
+          user_values(m) = "theta_max = "//TRIM(ADJUSTL(msg))
+        ENDIF
       ENDIF
     ENDIF
     n=0

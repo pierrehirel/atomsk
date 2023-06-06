@@ -32,7 +32,7 @@ OMO=$(SMO:.f90=.o)
 VPATH=..$(SEP)$(OBJ)
 #Default rule to make targets
 %.o : %.f90
-	$(FORTRAN) $(FFLAGS) -o ..$(SEP)$(OBJ)$(SEP)$@  -c $<
+	$(FORTRAN) $(FFLAGS) -cpp -o ..$(SEP)$(OBJ)$(SEP)$@  -c $<
 
 modes: $(OMO)
 	$(FORTRAN) $(FFLAGS) -o ..$(SEP)$(OBJ)$(SEP)mode_list.o -c mode_list.f90

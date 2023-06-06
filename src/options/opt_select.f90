@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 March 2023                                    *
+!* Last modification: P. Hirel - 06 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,6 +83,7 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: atomindices !indices of atom(s) that must be 
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex    !list of sorted indexes
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of neighbours
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList  !the neighbor list
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: selectedlist !list of species and number of selected atoms
 REAL(dp):: distance  !distance of an atom to the center of the sphere
 REAL(dp):: dz        !increment along Z
 REAL(dp):: ta, tf, tt, tu, tv !used to detect ray-triangle intersections
@@ -101,8 +102,8 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H      !supercell vectors
 REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray    !random numbers
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: randsort   !random numbers (sorted)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries   !species, Natoms of this species
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: randsort   !random numbers (sorted)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX        !auxiliary properties of atoms/shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: GRID       !positions of elements in a finite-element grid
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: facenormals !vectors normal to faces (prism)
@@ -2091,7 +2092,26 @@ IF( selectmul .AND. ALLOCATED(prevSELECT) ) THEN
     ENDDO
   ENDIF
 ENDIF
-CALL ATOMSK_MSG(2078,(/''/),(/DBLE(Nselect),DBLE(Nadded),DBLE(Nrm)/))
+!
+!Make a list of atoms that are now selected
+CALL LIST_SELECTED_ATOMS(P,SELECT,selectedlist)
+!Write selected list into a string
+msg = ""
+IF( ALLOCATED(selectedlist) ) THEN
+  IF( SIZE(selectedlist,1)==1 ) THEN
+    CALL ATOMSPECIES(DBLE(selectedlist(1,1)),species)
+    msg = species
+  ELSE
+    DO i=1,SIZE(selectedlist,1)
+      CALL ATOMSPECIES(DBLE(selectedlist(i,1)),species)
+      WRITE(temp,*) selectedlist(i,2)
+      WRITE(msg,*) TRIM(ADJUSTL(msg))//", "//TRIM(species)//": "//TRIM(ADJUSTL(temp))
+    ENDDO
+    msg = TRIM(ADJUSTL(msg(3:))) !remove first comma
+  ENDIF
+ENDIF
+!Display selected/added/removed atoms
+CALL ATOMSK_MSG(2078,(/TRIM(msg)/),(/DBLE(Nselect),DBLE(Nadded),DBLE(Nrm)/))
 GOTO 1000
 !
 !

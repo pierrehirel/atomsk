@@ -4,9 +4,10 @@ CHANGELOG FOR ATOMSK
 
 Master
 ------
-- fixed bugs in mode "--nye", where there was a sign error in the computation of the Nye tensor. Also attempted to tune parameters (NeighFactor, theta_max) to improve accuracy in non-fcc materials. User can now specify these parameters manually in a file named "nye.conf".
+- fixed bugs in mode "--nye", where there was a sign error in the computation of the Nye tensor. Also attempted to tune parameters (NeighFactor, theta_max) to improve accuracy in non-fcc materials. User can now specify these parameters manually in a configuration file "atomsk.conf".
 - fixed a bug in option "-disturb", where displacements would not be random when running on several threads; thanks to Milan Kočí, Institute of Physics v.v.i., Academy of Sciences, Prague, Czech Republic, for pointing out this bug. Also fixed a bug where, when user provided only one value dmax, then maximum displacements were equal to that value along all directions (i.e. using "-disturb <dmax>" lead to dx=dy=dz=dmax); this is now fixed so that the norm of max.disp. is equal to dmax (i.e. sqrt(dx²+dy²+dz²)=dmax).
 - fixed a bug in option "-select", where program could be stalled in infinite loop under certain conditions. Thanks to Jan Drahokoupil, Institute of Physics v.v.i., Academy of Sciences, Prague, Czech Republic, for pointing out this bug.
+- option "-select" now displays chemical species of selected atoms.
 
 
 Beta 0.12.1 (17 April 2023)

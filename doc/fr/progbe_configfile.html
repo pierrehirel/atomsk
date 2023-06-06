@@ -22,9 +22,9 @@
 
 <p>Le comportement par défaut de Atomsk peut être personnalisé grâce à un fichier de configuration.</p>
 
-<p><strong>Sur les systèmes UNIX/Linux</strong>, le comportement du programme peut être modifié pour l'ensemble des utilisateurs du système grâce au fichier de configuration <code>/etc/atomsk.conf</code>. De plus, chaque utilisateur peut posséder son propre fichier de configuration dans son dossier personnel (défini par la variable d'environnement <code>&#36;XDG_CONFIG_HOME</code> ou, le cas échéant, défini comme étant le dossier caché <code>&#36;HOME/.config/</code>) et nommé <code>atomsk.conf</code>.</p>
+<p><strong>Sur les systèmes UNIX/Linux</strong>, le comportement du programme peut être modifié pour l'ensemble des utilisateurs du système grâce au fichier de configuration <code>/etc/atomsk.conf</code>. De plus, chaque utilisateur peut posséder son propre fichier de configuration dans son dossier personnel (défini par la variable d'environnement <code>&#36;XDG_CONFIG_HOME</code> ou, le cas échéant, défini comme étant le dossier caché <code>&#36;HOME/.config/</code>) et nommé <code>atomsk.conf</code>. Enfin, un fichier de configuration nommé <code>atomsk.conf</code> peut aussi exister dans le dossier courant.</p>
 
-<p><strong>Sur les systèmes Microsoft&reg; Windows&reg;</strong>, chaque utilisateur peut posséder son propre fichier de configuration dans son dossier personnel (défini par la variable d'environnement <code>%HOMEPATH%</code>) et nommé <code>atomsk.ini</code>.</p>
+<p><strong>Sur les systèmes Microsoft&reg; Windows&reg;</strong>, chaque utilisateur peut posséder son propre fichier de configuration dans son dossier personnel (défini par la variable d'environnement <code>%HOMEPATH%</code>) et nommé <code>atomsk.ini</code>. Enfin, un fichier de configuration nommé <code>atomsk.ini</code> peut aussi exister dans le dossier courant.</p>
 
 <p>Ce fichier de configuration est un fichier texte. Les lignes vides ou commençant avec un croisillon (&#35;) sont ignorées, et les mots-clé suivants peuvent être utilisés :</p>
 
@@ -54,7 +54,15 @@
 
 <h4>Défaut</h4>
 
-<p>Par défaut, aucun format de sortie n'est actif. La langue est celle utilisée par le système d'exploitation, ou l'anglais par défaut. Atomsk n'ignore ni n'écrase pas les fichiers, il demande à l'utilisateur ce qu'il faut faire. Le nombre de processus est celui défini par la variable d'environnement OMP_NUM_THREADS, ou prend la valeur maximale par défaut. Les messages en couleur sont désactivés. Ces paramètres par défaut sont remplacés par ceux définis dans le fichier de configuration décrit sur cette page. Les valeurs de ce fichier sont ensuite écrasés par ceux entrés en ligne de commandes.</p>
+<p>Par défaut, aucun format de sortie n'est actif. La langue est celle utilisée par le système d'exploitation, ou l'anglais par défaut. Atomsk n'ignore ni n'écrase pas les fichiers, il demande à l'utilisateur ce qu'il faut faire. Le nombre de processus est celui défini par la variable d'environnement OMP_NUM_THREADS, ou prend la valeur maximale par défaut. Les messages en couleur sont désactivés.</p>
+
+<p>Ces paramètres par défaut sont successivement remplacés (écrasés) par ceux définis dans&nbsp;:</p>
+<ul>
+  <li>/etc/atomsk.conf</li>
+  <li>${HOME}/.config/atomsk.conf</li>
+  <li>./atomsk.conf</li>
+  <li>les arguments en ligne de commande</li>
+</ul>
 
 
 

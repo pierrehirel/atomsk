@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2022                                     *
+!* Last modification: P. Hirel - 05 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -53,11 +53,13 @@ INTEGER:: mminmax, nminmax, ominmax
 INTEGER:: mfinal, nfinal, ofinal
 INTEGER:: NP
 INTEGER,DIMENSION(3,3):: mno  !integers used for linear combination
+REAL(dp):: alpha !angle between two vectors
 REAL(dp):: vlen  !length of a vector
-REAL(dp),DIMENSION(3):: vector !just a vector
-REAL(dp),DIMENSION(4):: tempP  !temporary atom position and species
-REAL(dp),DIMENSION(3,3):: uv   !new vectors along each Cartesian direction
-REAL(dp),DIMENSION(3,3):: H    !Base vectors of the supercell
+REAL(dp),DIMENSION(3):: CartVec !a Cartesian vector: (1,0,0) or (0,1,0) or (0,0,1)
+REAL(dp),DIMENSION(3):: vector  !just a vector
+REAL(dp),DIMENSION(4):: tempP   !temporary atom position and species
+REAL(dp),DIMENSION(3,3):: uv    !new vectors along each Cartesian direction
+REAL(dp),DIMENSION(3,3):: H     !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S, Q, T !positions of atoms, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX   !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties (temporary)
@@ -121,7 +123,7 @@ ENDIF
 !NOTE: the triple loop is first parsed with small values of mminmax, nminmax and ominmax
 !  This should ensure a fast search for simple systems/orientations
 !  If it fails, these values are increased and the loops are parsed again (see label 200 below)
-DO i=1,3
+DO i=1,3  !x,y,z
   new=.FALSE.
   mfinal = 0
   nfinal = 0
@@ -136,6 +138,8 @@ DO i=1,3
     j = 1
     k = 2
   ENDIF
+  CartVec(:) = 0.d0
+  CartVec(i) = 1.d0
   !
   IF( DABS(VECLENGTH(H(i,:))-DABS(H(i,i))) < 1.d-6 .OR. aligned(i) ) THEN
     !Vector H is already aligned with Cartesian axis
@@ -159,37 +163,43 @@ DO i=1,3
     !Search for the smallest linear combination that produces a vector aligned with i
     uv(i,i) = 1.d12
     !$OMP PARALLEL DO DEFAULT(SHARED) &
-    !$OMP& PRIVATE(m,n,o,vector,vlen)
+    !$OMP& PRIVATE(alpha,m,n,o,vector,vlen)
     DO m=-mminmax,mminmax
       DO n=-nminmax,nminmax
         DO o=-ominmax,ominmax
           vector(:) = m*H(1,:) + n*H(2,:) + o*H(3,:)
           vlen = VECLENGTH(vector)
-          IF( DABS(vector(j))<1.d-1 .AND. DABS(vector(k))<1.d-1 .AND. vlen>1.d0 ) THEN
-            !This vector is (almost) aligned with the Cartesian axis
-            new = .TRUE.
-            IF( vlen < VECLENGTH(uv(i,:)) ) THEN
-              !Vector is shorter => save it into uv
-              !$OMP CRITICAL
-              uv(i,:) = DABS(vector(:))
-              mfinal = m
-              nfinal = n
-              ofinal = o
-              !$OMP END CRITICAL
-            ENDIF
-          ELSEIF( DABS(vector(j))<1.d-3 .AND. DABS(vector(k))<1.d-3 .AND. vlen>1.d0 ) THEN
-            IF( DABS(vector(j))<uv(i,j) .AND. DABS(vector(k))<uv(i,k) ) THEN
-              !This vector is better aligned with Cartesian axis than previously found vector
-              !(although this may mean that it is longer)
-              !$OMP CRITICAL
+          !Check that vector length is not zero
+          IF( vlen>1.d0 ) THEN
+            !Compute angle between this vector and the current Cartesian axis
+            alpha = ANGVEC( CartVec , vector ) * 180.d0/pi  !alpha in degrees
+            !Check if current vector(:) is aligned with current Cartesian axis
+            IF( alpha<1.0d-2 .OR. (DABS(vector(j))<1.d-1 .AND. DABS(vector(k))<1.d-1) ) THEN
+              !This vector is (almost) aligned with the Cartesian axis
               new = .TRUE.
-              uv(i,:) = DABS(vector(:))
-              mfinal = m
-              nfinal = n
-              ofinal = o
-              !$OMP END CRITICAL
+              IF( vlen < VECLENGTH(uv(i,:)) ) THEN
+                !Vector is shorter => save it into uv
+                !$OMP CRITICAL
+                uv(i,:) = DABS(vector(:))
+                mfinal = m
+                nfinal = n
+                ofinal = o
+                !$OMP END CRITICAL
+              ENDIF
+            ELSEIF( alpha<1.d-3 .OR. (DABS(vector(j))<1.d-3 .AND. DABS(vector(k))<1.d-3) ) THEN
+              IF( DABS(vector(j))<uv(i,j) .AND. DABS(vector(k))<uv(i,k) ) THEN
+                !This vector is better aligned with Cartesian axis than previously found vector
+                !(although this may mean that it is longer)
+                !$OMP CRITICAL
+                new = .TRUE.
+                uv(i,:) = DABS(vector(:))
+                mfinal = m
+                nfinal = n
+                ofinal = o
+                !$OMP END CRITICAL
+              ENDIF
             ENDIF
-          ENDIF
+          ENDIF !end if vlen
           !
         ENDDO !o
       ENDDO !n

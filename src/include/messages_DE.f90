@@ -1604,6 +1604,12 @@ CASE(2078)
   !reals(1) = number of atoms that were selected
   !reals(2) = number of atoms that were ADDED to the selection
   !reals(3) = number of atoms that were REMOVED from the selection
+  !strings(1) = list of atoms selected
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    temp3 = " ("//TRIM(ADJUSTL(strings(1)))//")"
+  ELSE
+    temp3 = ""
+  ENDIF
   IF( NINT(reals(2))>0 .OR. NINT(reals(3))>0 ) THEN
     msg = "..>"
     IF( NINT(reals(2))>0 ) THEN
@@ -1628,10 +1634,10 @@ CASE(2078)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 Atom ist ausgewaehlt."
+    msg = "..> 1 Atom"//TRIM(temp3)//" ist ausgewaehlt."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(temp,*) NINT( reals(1) )
-    msg = "..> "//TRIM(ADJUSTL(temp))//" Atome sind ausgewaehlt."
+    msg = "..> "//TRIM(ADJUSTL(temp))//" Atome sind ausgewaehlt"//TRIM(temp3)//"."
   ELSE
     msg = "..> Kein Atom ist ausgewaehlt."
   ENDIF
