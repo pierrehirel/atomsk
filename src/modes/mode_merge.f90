@@ -47,7 +47,7 @@ IMPLICIT NONE
 CHARACTER(LEN=1),INTENT(IN):: merge_dir  !if systems must be concatenated another along X, Y or Z
 CHARACTER(LEN=*),DIMENSION(:),INTENT(IN):: merge_files
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats
-CHARACTER(LEN=128):: msg
+CHARACTER(LEN=4096):: msg
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, currAUXNAMES, tempAUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, currcomment, tempcomment
@@ -128,13 +128,17 @@ CALL ATOMSK_MSG(4030,(/merge_dir/),(/DBLE(j)/))
 200 CONTINUE
 !Read files
 DO i=1,SIZE(merge_files)
+  !
+  WRITE(msg,*) "MODE MERGE: reading file #", i, " : ", TRIM(ADJUSTL(merge_files(i)))
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
   !Read the current file
   CALL READ_AFF(merge_files(i),Htemp,P,S,currcomment,currAUXNAMES,currAUX)
   IF(nerr>0) GOTO 800
   !
   IF( verbosity==4 ) THEN
     !Print some debug messages
-    msg = 'Size of arrays for file:'//TRIM(ADJUSTL(merge_files(i)))
+    msg = 'Size of arrays for file: '//TRIM(ADJUSTL(merge_files(i)))
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     WRITE(msg,*) "P: ", SIZE(P,1), SIZE(P,2)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -195,12 +199,24 @@ DO i=1,SIZE(merge_files)
   ELSE
     !Next files: merge them with the previous system H, Q
     NP = SIZE(P,1)  !number of atoms in current system
-    !Create array R to store arrays Q and P
-    IF(ALLOCATED(R)) DEALLOCATE(R)
-    ALLOCATE( R( SIZE(Q,1)+NP, SIZE(Q,2) ) )
-    IF(ALLOCATED(S)) THEN
-      IF(ALLOCATED(U)) DEALLOCATE(U)
-      ALLOCATE( U( SIZE(T,1)+SIZE(S,1), SIZE(S,2) ) )
+    !Resize array R to store arrays Q and P
+    CALL RESIZE_DBLEARRAY2( R , SIZE(Q,1)+NP , SIZE(Q,2) , k )
+    IF( k.NE.0 ) THEN
+      CALL ATOMSK_MSG(818,(/"R"/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    !IF(ALLOCATED(R)) DEALLOCATE(R)
+    !ALLOCATE( R( SIZE(Q,1)+NP, SIZE(Q,2) ) )
+    IF( ALLOCATED(S) ) THEN
+      CALL RESIZE_DBLEARRAY2( U , SIZE(T,1)+SIZE(S,1) , SIZE(S,2) , k )
+      IF( k.NE.0 ) THEN
+        CALL ATOMSK_MSG(818,(/"U"/),(/0.d0/))
+        nerr = nerr+1
+        GOTO 1000
+      ENDIF
+      !IF(ALLOCATED(U)) DEALLOCATE(U)
+      !ALLOCATE( U( SIZE(T,1)+SIZE(S,1), SIZE(S,2) ) )
     ENDIF
     !
     IF(cat) THEN
@@ -217,9 +233,16 @@ DO i=1,SIZE(merge_files)
       !
       !The box must be extended along a1
       H(a1,:) = H(a1,:) + Htemp(a1,:)
+      !
+      WRITE(msg,*)  "MODE MERGE: stacking systems along dimension ", a1
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      WRITE(msg,*)  "MODE MERGE: new system size ", H(a1,:)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
     !
     !Copy atom coordinates in R
+    WRITE(msg,*)  "MODE MERGE: merging Q and P into R"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     DO j=1,SIZE(Q,1)
       R(j,:) = Q(j,:)
     ENDDO
@@ -228,6 +251,8 @@ DO i=1,SIZE(merge_files)
     ENDDO
     !Copy shells in U
     IF(ALLOCATED(S)) THEN
+      WRITE(msg,*)  "MODE MERGE: merging T and S into U"
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       DO j=1,SIZE(T,1)
         U(j,:) = T(j,:)
       ENDDO
@@ -237,16 +262,32 @@ DO i=1,SIZE(merge_files)
     ENDIF
     !
     !Replace old Q with new R
-    IF(ALLOCATED(Q)) DEALLOCATE(Q)
-    ALLOCATE( Q( SIZE(R,1), SIZE(R,2) ) )
+    WRITE(msg,*)  "MODE MERGE: replacing old Q with new R"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    CALL RESIZE_DBLEARRAY2( Q , SIZE(R,1) , SIZE(R,2) , k )
+    IF( k.NE.0 ) THEN
+      CALL ATOMSK_MSG(818,(/"Q"/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
+    ENDIF
+    !IF(ALLOCATED(Q)) DEALLOCATE(Q)
+    !ALLOCATE( Q( SIZE(R,1), SIZE(R,2) ) )
     Q = R
     !Shells: replace old T with new U
     IF(ALLOCATED(S)) THEN
-      IF(ALLOCATED(T)) DEALLOCATE(T)
-      ALLOCATE( T( SIZE(U,1), SIZE(U,2) ) )
+      WRITE(msg,*)  "MODE MERGE: replacing old T with new U"
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      CALL RESIZE_DBLEARRAY2( T , SIZE(U,1) , SIZE(U,2) , k )
+      IF( k.NE.0 ) THEN
+        CALL ATOMSK_MSG(818,(/"T"/),(/0.d0/))
+        nerr = nerr+1
+        GOTO 1000
+      ENDIF
+      !IF(ALLOCATED(T)) DEALLOCATE(T)
+      !ALLOCATE( T( SIZE(U,1), SIZE(U,2) ) )
       T = U
-      IF(ALLOCATED(U))DEALLOCATE(U)
-      IF(ALLOCATED(S))DEALLOCATE(S)
+      IF(ALLOCATED(U)) DEALLOCATE(U)
+      IF(ALLOCATED(S)) DEALLOCATE(S)
     ENDIF
     IF(ALLOCATED(R)) DEALLOCATE(R)
     !we don't need P anymore
@@ -255,25 +296,39 @@ DO i=1,SIZE(merge_files)
     !If comments exist, append them to the "comment" array
     IF( ALLOCATED(currcomment) .AND. SIZE(currcomment)>0 ) THEN
       IF(ALLOCATED(tempcomment)) DEALLOCATE(tempcomment)
-      ALLOCATE(tempcomment(SIZE(comment)+SIZE(currcomment)))
-      DO j=1,SIZE(comment)
-        tempcomment(j) = comment(j)
-      ENDDO
+      IF(ALLOCATED(comment)) THEN
+        k = SIZE(comment)
+      ELSE
+        k = 0
+      ENDIF
+      ALLOCATE(tempcomment(k+SIZE(currcomment)))
+      IF(ALLOCATED(comment)) THEN
+        DO j=1,k
+          tempcomment(j) = comment(j)
+        ENDDO
+      ENDIF
       DO j=1,SIZE(currcomment)
-        tempcomment(SIZE(comment)+j) = currcomment(j)
+        tempcomment(k+j) = currcomment(j)
       ENDDO
-      DEALLOCATE(comment)
+      IF(ALLOCATED(comment)) DEALLOCATE(comment)
       ALLOCATE(comment(SIZE(tempcomment)))
       comment(:) = tempcomment(:)
       DEALLOCATE(tempcomment)
     ENDIF
     !
-    !If AUX exists, extend it to fit the number of particles in Q
-    !For now all auxiliary properties of new atoms are assigned zero values,
-    !that will be corrected later if these properties are defined in currAUX
+    !Extend array AUX to fit the number of particles in Q
+    !NOTE: at this point AUX *must have been allocated* while reading first system,
+    !      so we know that there is at least 1 aux.prop. (sysID).
+    !For now all auxiliary properties of new atoms are assigned zero values.
+    !If current system #i has aux.prop. (in currAUX), they will be copied later
     oldsize = SIZE(AUX,1)
-    IF( ALLOCATED(AUXNAMES) ) THEN
-      CALL RESIZE_DBLEARRAY2( AUX , SIZE(Q,1) , SIZE(AUXNAMES) )
+    WRITE(msg,*)  "MODE MERGE: resizing AUX"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    CALL RESIZE_DBLEARRAY2( AUX , SIZE(Q,1) , SIZE(AUXNAMES) , k )
+    IF( k.NE.0 ) THEN
+      CALL ATOMSK_MSG(818,(/"AUX"/),(/0.d0/))
+      nerr = nerr+1
+      GOTO 1000
     ENDIF
     !
     !Add current system ID
@@ -358,6 +413,8 @@ DO i=1,SIZE(merge_files)
   !
   IF( verbosity==4 ) THEN
     WRITE(msg,*) "Finished treating file #", i, " , '", TRIM(ADJUSTL(merge_files(i))), "'"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    WRITE(msg,*) "   =  =  =  =  =  =  =  =  =  ="
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !     DO j=1,SIZE(AUX,1)
 !       WRITE(msg,*) AUX(j,:)
