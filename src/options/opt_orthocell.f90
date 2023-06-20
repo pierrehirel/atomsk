@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 June 2023                                     *
+!* Last modification: P. Hirel - 12 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,8 +42,10 @@ SUBROUTINE ORTHOCELL_XYZ(H,P,S,AUX,SELECT)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=128):: msg
+CHARACTER(LEN=4096):: conffile
+CHARACTER(LEN=4096):: msg, temp
 LOGICAL:: doshells, doaux !are shells/auxiliary properties present?
+LOGICAL:: fileexists !does the file exist?
 LOGICAL:: new  !is the duplicated atom new?
 LOGICAL,DIMENSION(3):: vfound  !did we find a suitable vector along X, Y, Z?
 LOGICAL,DIMENSION(3):: aligned, reversed !is box vector aligned along X,Y,Z? Did we just reverse it?
@@ -54,6 +56,7 @@ INTEGER:: mfinal, nfinal, ofinal
 INTEGER:: NP
 INTEGER,DIMENSION(3,3):: mno  !integers used for linear combination
 REAL(dp):: alpha !angle between two vectors
+REAL(dp):: accuracy=1.d-2 !relative accuracy of angle or tilt
 REAL(dp):: vlen  !length of a vector
 REAL(dp),DIMENSION(3):: CartVec !a Cartesian vector: (1,0,0) or (0,1,0) or (0,0,1)
 REAL(dp),DIMENSION(3):: vector  !just a vector
@@ -97,6 +100,47 @@ IF( verbosity>=4 ) THEN
   WRITE(msg,*) "  H(3,:) = ", H(3,:)
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ENDIF
+msg = ""
+!
+!Check if user wrote accuracy value in a configuration file
+!(UNIX/Linux: "atomsk.conf", Windows: "atomsk.ini"), with the format:
+! orthocell accuracy <value>
+#if defined(WINDOWS)
+conffile = "atomsk.ini"
+#else
+conffile = "atomsk.conf"
+#endif
+INQUIRE(FILE=conffile,EXIST=fileexists)
+IF( fileexists ) THEN
+  CALL ATOMSK_MSG(16,(/conffile/),(/0.d0/))
+  OPEN(UNIT=31,FILE=conffile,STATUS="OLD",FORM="FORMATTED")
+  m = 0
+  DO
+    n=1
+    READ(31,'(a)',ERR=109,END=109) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( temp(1:1).NE.'#' ) THEN
+      IF( StrDnCase(temp(1:9))=="orthocell" ) THEN
+        temp = TRIM(ADJUSTL(temp(10:)))
+        IF( StrDnCase(temp(1:8))=="accuracy" ) THEN
+          READ(temp(10:),*,ERR=105,END=105) accuracy
+          m = m+1
+          WRITE(msg,'(f12.3)') accuracy
+          msg = "accuracy = "//TRIM(ADJUSTL(msg))
+        ENDIF
+      ENDIF
+    ENDIF
+    n=0
+    105 CONTINUE
+    IF( n>0 ) THEN
+      nwarn = nwarn+1
+      CALL ATOMSK_MSG(808,(/TRIM(temp)/),(/0.d0/))
+    ENDIF
+  ENDDO
+  109 CONTINUE
+  CLOSE(31)
+  CALL ATOMSK_MSG(4075,(/msg/),(/0.d0/))
+ENDIF
 !
 !Check if cell vectors are already aligned with Cartesian axes
 IF( DABS(VECLENGTH(H(1,:))-DABS(H(1,1))) < 1.d-6 .AND. H(1,1)>0.d0 .AND. &
@@ -104,7 +148,7 @@ IF( DABS(VECLENGTH(H(1,:))-DABS(H(1,1))) < 1.d-6 .AND. H(1,1)>0.d0 .AND. &
   & DABS(VECLENGTH(H(3,:))-DABS(H(3,3))) < 1.d-6 .AND. H(3,3)>0.d0        ) THEN
   !Cell vectors already orthogonal => skip to the end
   nwarn=nwarn+1
-  CALL ATOMSK_MSG(2760,(/msg/),(/0.d0/))
+  CALL ATOMSK_MSG(2760,(/""/),(/0.d0/))
   GOTO 1000
 ENDIF
 !
@@ -174,7 +218,7 @@ DO i=1,3  !x,y,z
             !Compute angle between this vector and the current Cartesian axis
             alpha = ANGVEC( CartVec , vector ) * 180.d0/pi  !alpha in degrees
             !Check if current vector(:) is aligned with current Cartesian axis
-            IF( alpha<1.0d-2 .OR. (DABS(vector(j))<1.d-1 .AND. DABS(vector(k))<1.d-1) ) THEN
+            IF( alpha<accuracy/1.d1 .OR. (DABS(vector(j))<accuracy .AND. DABS(vector(k))<accuracy) ) THEN
               !This vector is (almost) aligned with the Cartesian axis
               new = .TRUE.
               IF( vlen < VECLENGTH(uv(i,:)) ) THEN
@@ -186,7 +230,7 @@ DO i=1,3  !x,y,z
                 ofinal = o
                 !$OMP END CRITICAL
               ENDIF
-            ELSEIF( alpha<1.d-3 .OR. (DABS(vector(j))<1.d-3 .AND. DABS(vector(k))<1.d-3) ) THEN
+            ELSEIF( alpha<accuracy/1.d2 .OR. (DABS(vector(j))<0.1d0*accuracy .AND. DABS(vector(k))<0.1d0*accuracy) ) THEN
               IF( DABS(vector(j))<uv(i,j) .AND. DABS(vector(k))<uv(i,k) ) THEN
                 !This vector is better aligned with Cartesian axis than previously found vector
                 !(although this may mean that it is longer)

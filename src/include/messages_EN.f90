@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 March 2023                                    *
+!* Last modification: P. Hirel - 15 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3274,6 +3274,30 @@ CASE(4075)
       CALL DISPLAY_MSG(verbosity,msg,logfile)
     ENDIF
   ENDDO
+CASE(4076)
+  msg = ">>> Matching atom IDs of two systems..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4077)
+  msg = ">>> Searching for equivalent atoms between the two systems..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4078)
+  !reals(1) = number of atom pairs matched
+  !reals(2) = number of unpaired atoms
+  WRITE(temp,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Done, "//TRIM(ADJUSTL(temp))//" equivalences found"
+  IF( NINT(reals(2))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//", "//TRIM(ADJUSTL(temp2))//" unpaired."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//"."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4079)
+  msg = "..> Marking new atoms..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4080)
+  msg = "..> Sorting atoms of the second system..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"
   WRITE(*,'(a39)',ADVANCE='NO') " Lattice type (sc,bcc,fcc,dia,rs,per): "
@@ -3694,6 +3718,11 @@ CASE(4834)
   !strings(1) = name of file
   msg = TRIM(ADJUSTL(errmsg))//" the file "//TRIM(ADJUSTL(strings(1)))// &
       & " does not contain any auxiliary property, aborting."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4835)
+  msg = TRIM(ADJUSTL(errmsg))//" No equivalence could be found between atoms of system 1 and those of system 2."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "          Are you sure the two systems are of the same sort?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" only one mode can be used at a time."

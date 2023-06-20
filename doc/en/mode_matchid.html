@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Atomsk - Mode match-id - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Mode: match-id</h2>
+
+<h4>Syntax</h4>
+
+<p><code>atomsk --match-id &#60;file1&#62; &#60;file2&#62; [options] [&#60;outputfile&#62;] [&#60;formats&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>This mode reads two files, and attempts to sort atoms from &#60;file2&#62; in the same order as atoms from &#60;file1&#62;. The two files may be in different formats as long as these formats are <a href="./formats.html">supported by Atomsk</a>. Both files shall correspond to the same system (i.e. same atom types, same lattice, etc.) for the computation to make sense.</p>
+
+<p>If both files contain exactly the same number of atoms, then Atomsk creates unique pairs of atoms from &#60;file1&#62; and &#60;file2&#62;.</p>
+
+<p>If the two files contain different numbers of atoms, then atoms from the &#60;file1&#62; are paired to those from &#60;file2&#62; in an injective way, i.e. so that each atom from &#60;file1&#62; is paired at maximum with only one atom from &#60;file2&#62;. If &#60;file1&#62; contains fewer atoms, then some atoms from &#60;file2&#62; will not be paired, and will appear at the end of the list in the final file. Atomsk then creates a new auxiliary property named "new_atoms", equal to zero for all atoms that were paired, and to 1 for atoms that could not be paired (i.e. atoms that were added when going from &#60;file1&#62; to &#60;file2&#62;). If &#60;file1&#62; contains the most atoms, then all atoms from &#60;file2&#62; should be paired and sorted accordingly. The final file will contain as many atoms as the &#60;file2&#62;.</p>
+
+<p>If shells (in the sense of an ionic core-shell model) and/or auxiliary properties exist in both systems, then they are also sorted so that each atom keeps its properties</p>
+
+<p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied on the final file <em>after</em> atoms are sorted.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk --matchid config1.cfg config2.xsf final.cfg</code>
+<p>This will read <code>config1.cfg</code> and <code>config2.xsf</code>, and sort atoms from <code>config2.xsf</code> so that they are in the same order as in <code>config1.cfg</code>. The final result will be written in <code>final.cfg</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

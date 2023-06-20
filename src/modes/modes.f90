@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 March 2023                                    *
+!* Last modification: P. Hirel - 14 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,6 +55,7 @@ USE mode_create
 USE mode_unwrap
 USE mode_average
 USE mode_cpprop
+USE mode_matchid
 !Modules for mode 1-in-all
 USE oia_dlp_history
 USE oia_qeout
@@ -98,7 +99,7 @@ CHARACTER(LEN=128):: msg, test, temp
 CHARACTER(LEN=128):: property !name of the property whose density will be calculated (mode DENSITY)
 CHARACTER(LEN=4096):: file1, file2  !should be inputfile, ouputfile (or vice-versa)
 CHARACTER(LEN=4096):: listfile      !used by modes 'filelist' and 'rdf'
-CHARACTER(LEN=4096):: filefirst, filesecond !used by modes 'ddplot' and 'merge'
+CHARACTER(LEN=4096):: filefirst, filesecond !used by modes 'ddplot', 'merge', 'matchid'
 CHARACTER(LEN=4096):: inputfile, outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: commentfirst, commentsecond !used by modes 'ddplot' and 'merge'
@@ -736,6 +737,43 @@ CASE('average')
 CASE("cpprop")
   !in this mode, copy auxyliary properties from first system into the second
   CALL COPY_PROPERTIES(filefirst,filesecond,options_array,file1,outfileformats)
+!
+!
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  MODE MATCH-ID
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+CASE('match-id','matchid')
+  !Match-id mode:
+  !in this mode the program reads two files (no matter their format)
+  !and sorts the second array so that its matches indices in first array
+  !
+  !If we have an output file name, activate its extension
+  outputfile = TRIM(ADJUSTL(file1))
+  IF(LEN_TRIM(outputfile).NE.0) THEN
+    CALL GUESS_FORMAT(outputfile,outfileformat,'writ')
+    IF(outfileformat.NE.'xxx') CALL SET_OUTPUT(outfileformats,outfileformat,.TRUE.)
+  ELSE
+    j=SCAN(filesecond,pathsep,BACK=.TRUE.)
+    strlength = SCAN(filesecond,'.',BACK=.TRUE.)
+    IF(strlength>j) THEN
+      outputfile = filesecond(1:strlength-1)
+    ELSE
+      outputfile = filesecond
+    ENDIF
+    outputfile = TRIM(ADJUSTL(outputfile))//"_matchid"
+  ENDIF
+  msg = 'outputfile: '//TRIM(outputfile)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  !Make sure there is at least one output format active (default to CFG)
+  IF( .NOT.ALLOCATED(outfileformats) ) THEN
+    ALLOCATE(outfileformats(1))
+    outfileformats(1) = "cfg"
+  ENDIF
+  !
+  !Match atom indices between the two files
+  CALL MATCHID_XYZ(filefirst,filesecond,options_array,outputfile,outfileformats)
 !
 !
 !

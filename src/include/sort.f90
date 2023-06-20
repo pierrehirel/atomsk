@@ -9,7 +9,7 @@ MODULE sorting
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 April 2023                                    *
+!* Last modification: P. Hirel - 20 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,6 +29,7 @@ MODULE sorting
 !* QUICKSORT           sorts an array by increasing or decreasing values          *
 !* PACKSORT            sorts an array by packing identical values together        *
 !* IDSORT              sorts an array according to the provided list of index     *
+!* FIND_MATCHING_ID    matches atom indices between two arrays based on distances *
 !**********************************************************************************
 !
 !
@@ -333,28 +334,44 @@ END SUBROUTINE PACKSORT
 ! This subroutine takes a list of index and an 2-dim.
 ! array A as input, and re-shuffles array A according
 ! to the given index list.
-! NOTE: idlist *must* have the same size as the first
-! dimension of A, *and* all indices in idlist *must* be
-! positive and smaller or equal to the first dimension of A.
+! NOTE: idlist *must* have the same size as A(1,:).
+! If idlist(:) contains zeros (i.e. atoms that are not indexed),
+! then these atoms will appear at the end of the list.
+! If idlist(:) contains indices larger than A(1,:),
+! then these indices are ignored.
 !********************************************************
 SUBROUTINE IDSORT(idlist,A)
 !
-INTEGER:: i, idnext
+INTEGER:: i, NP
 INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of indexes
 REAL(dp),DIMENSION(:,:),INTENT(INOUT):: A
 REAL(dp),DIMENSION(SIZE(A,1),SIZE(A,2)):: Atemp !temporary array
 !
-!Check that idlist(:) complies to requirements
-IF( SIZE(idlist) == SIZE(A,1) .AND. .NOT.(ANY(idlist>SIZE(A,1)) .OR. ANY(idlist<=0)) ) THEN
+NP = 0  !counter for atoms that were already sorted
+!
+!Check that array A(:,:) has non-zero size
+IF( SIZE(A,1)>1 .AND. SIZE(A,2)>0 ) THEN
   Atemp(:,:) = 0.d0
   DO i=1,SIZE(idlist)
-    !Exchange entries in A with index i and idlist(i)
-    Atemp(i,:) = A(idlist(i),:)
+    IF( idlist(i)>0 .AND. idlist(i)<=SIZE(A,1) ) THEN
+      !Atom #i must be replaced by atom #idlist(i)
+      Atemp(i,:) = A(idlist(i),:)
+    ELSE  !i.e. if idlist(i)==0
+      !No ID to copy atom #i to
+      !Check if another atom has replaced (or will replace) atom #i
+      NP = FINDLOC(idlist(:),i,DIM=1)
+      IF( NP>0 ) THEN
+        !Atom #NP will occupies the slot of atom #i
+        !=> copy atom #i into #NP
+        Atemp(NP,:) = A(i,:)
+      ELSE
+        !Atom #i will not be replaced, its ID is free
+        Atemp(i,:) = A(i,:)
+      ENDIF
+    ENDIF
   ENDDO
   !Replace A with sorted array
   A(:,:) = Atemp(:,:)
-ELSE
-  PRINT*, "ERROR  size(idlist) != size(A)"
 ENDIF
 !
 END SUBROUTINE IDSORT
@@ -366,30 +383,131 @@ END SUBROUTINE IDSORT
 ! array A as input, and re-shuffles array A according
 ! to the given index list.
 ! NOTE: idlist *must* have the same size as the first
-! dimension of A, *and* all indices in idlist *must* be
-! positive and smaller or equal to the dimension of A.
+! dimension of A.
+! If idlist(:) contains zeros (i.e. atoms that are not indexed),
+! then these atoms will appear at the end of the list.
+! If idlist(:) contains indices larger than A,
+! then these indices are ignored.
 !********************************************************
 SUBROUTINE IDSORT_SELECT(idlist,A)
 !
-INTEGER:: i
+INTEGER:: i, NP
 INTEGER,DIMENSION(:),INTENT(IN):: idlist !list of indexes
 LOGICAL,DIMENSION(:),INTENT(INOUT):: A
 LOGICAL,DIMENSION(SIZE(A)):: Atemp   !temporary data for an element of array A
 !
-!Check that idlist(:) complies to requirements
-IF( SIZE(idlist) == SIZE(A) .AND. .NOT.(ANY(idlist>SIZE(A)) .OR. ANY(idlist<=0)) ) THEN
+NP = 0  !counter for atoms that were already sorted
+!
+!Check that array A(:) has non-zero size
+IF( SIZE(A)>1 ) THEN
   Atemp(:) = .TRUE.
   DO i=1,SIZE(idlist)
-    !Exchange entries in A with index i and idlist(i)
-    Atemp(i) = A(idlist(i))
+    IF( idlist(i)>0 .AND. idlist(i)<=SIZE(A) ) THEN
+      !Atom #i must be replaced by atom #idlist(i)
+      NP = NP+1
+      Atemp(NP) = A(idlist(i))
+    ENDIF
   ENDDO
+  !If idlist(:) contains zeros, copy these atoms at the end of the list
+  IF( ANY(idlist==0) ) THEN
+    DO i=1,SIZE(idlist)
+      IF( idlist(i)<=0 ) THEN
+        NP = NP+1
+        Atemp(NP) = A(i)
+      ENDIF
+    ENDDO
+  ENDIF
   !Replace A with sorted array
   A(:) = Atemp(:)
-ELSE
-  PRINT*, "ERROR  size(idlist) != size(A)"
 ENDIF
 !
 END SUBROUTINE IDSORT_SELECT
+!
+!
+!********************************************************
+! FIND_MATCHING_ID
+! This subroutine takes two 2-D arrays, and try to pair each
+! atom in P1 with the closest atom of same species in P2.
+! If P1 is smaller, then all atoms in P1 should be
+! paired (but some atoms in P2 are not).
+! If P1 is larger, then some atomes in P1 can not be paired,
+! and will be paired with a zero index.
+! Be careful that such a zero index is not valid, and
+! take it into account when you use this routine.
+!********************************************************
+SUBROUTINE FIND_MATCHING_ID(P1,P2,idlist,Npaired)
+!
+INTEGER:: i, j
+INTEGER,INTENT(OUT):: Npaired !number of equivalent pairs found
+REAL(dp):: distance, dmin
+REAL(dp),DIMENSION(:,:),INTENT(IN):: P1, P2  !atom positions
+INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: idlist !list of indexes
+!
+ALLOCATE( idlist(SIZE(P1,1)) )
+idlist(:) = 0
+Npaired = 0
+!
+!Loop on all atoms in first system
+!!!!!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,distance,dmin)
+DO i=1,SIZE(P1,1)
+  dmin = 1.d16
+  !Check if this atom was paired already
+  IF( idlist(i)>0 ) THEN
+    !Compute distance between this pair of atoms
+    dmin = VECLENGTH( P2(idlist(i),1:3) - P1(i,1:3) )
+    !Then we will see if another atom is a better match
+  ENDIF
+  !
+  !Loop on all atoms in second system
+  !Try to find an atom matching atom #i (same chem.species, close in distance)
+  DO j=1,SIZE(P2,1)
+    !Check if atom #j is of same chem.species as atom #i
+    IF( NINT(P2(j,4))==NINT(P1(i,4)) ) THEN
+      !Compute distance between both atoms
+      distance = VECLENGTH( P2(j,1:3) - P1(i,1:3) )
+      IF( distance<dmin ) THEN
+        !Save its index in idlist(i)
+        idlist(i) = j
+        dmin = distance
+      ENDIF
+      !
+      IF( distance<0.5d0 ) THEN
+        !Distance is very small: it is very unlikely that another atom in P2 is closer to
+        !atom #i (that would mean that two atoms in P2 are closer than 1 A)
+        !=> we can exit the loop on j
+        EXIT
+      ENDIF
+    ENDIF
+  ENDDO !j
+  IF(idlist(i)>0) Npaired = Npaired+1
+ENDDO !i
+!!!!!$OMP END PARALLEL DO
+!
+!
+!Remove duplicates: each atom in P1 can have only one partner in P2
+DO i=1,SIZE(idlist)-1
+  DO j=i+1,SIZE(idlist)
+    !Check if it was already paired with another atom
+    IF( idlist(j)>0 .AND. idlist(j)==idlist(i) ) THEN
+      !Atom idlist(i) is also paired with atom idlist(j)
+      !Find which pair is closest
+      IF( VECLENGTH(P2(idlist(j),1:3)-P1(j,1:3)) < VECLENGTH(P2(idlist(i),1:3)-P1(i,1:3)) ) THEN
+        !Pair j-idlist(j) is closest
+        !Wipe out the other pairing
+        idlist(i) = 0
+        Npaired = Npaired-1
+      ELSE
+        !Pair i-idlist(i) is closest
+        !Wipe out the other pairing
+        idlist(j) = 0
+        Npaired = Npaired-1
+      ENDIF
+    ENDIF
+  ENDDO !j
+ENDDO !i
+!
+!
+END SUBROUTINE FIND_MATCHING_ID
 !
 !
 !

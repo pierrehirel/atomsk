@@ -16,7 +16,7 @@ MODULE readconf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2023                                     *
+!* Last modification: P. Hirel - 12 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,11 +49,12 @@ SUBROUTINE READ_CONF(conffile)
 IMPLICIT NONE
 CHARACTER(LEN=5):: ext
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to write
-CHARACTER(LEN=128):: conffile, msg, temp
-INTEGER:: i, Nthreads
+CHARACTER(LEN=128):: conffile, msg, temp, keyword
+INTEGER:: i, sp, Nthreads
 !
 !
 Nthreads = 0
+sp = 0
 !
 !
 msg = "reading conffile = "//TRIM(conffile)
@@ -67,28 +68,38 @@ DO
   !
   IF( LEN_TRIM(temp)>0 .AND. temp(1:1).NE.'#' ) THEN
     !
-    IF( StrDnCase(temp(1:9))=='verbosity' ) THEN
-      !read level of verbosity
-      READ(temp(10:),*,END=800,ERR=800) verbosity
+    !Detect position of next space character
+    sp = SCAN(temp," ")
+    IF(sp<=0) sp=1
     !
-    ELSEIF( StrDnCase(temp(1:6))=='format') THEN
+    !Read first word ("keyword") from line
+    READ(temp,*) keyword
+    !Convert keyword into lower-case characters
+    keyword = TRIM(ADJUSTL( StrDnCase(keyword) ))
+    !
+    SELECT CASE(keyword)
+    CASE("verbosity")
+      !read level of verbosity
+      READ(temp(sp:),*,END=800,ERR=800) verbosity
+    !
+    CASE("format")
       !read formats that will always be activated for output
-      READ(temp(7:),*,END=800,ERR=800) ext
+      READ(temp(sp:),*,END=800,ERR=800) ext
       CALL SET_OUTPUT(outfileformats,ext,.TRUE.)
     !
-    ELSEIF( StrDnCase(temp(1:5))=='overw'  ) THEN
+    CASE("ow","overw")
       !if true, file will always be overwritten without prompt
-      READ(temp(6:),*,END=800,ERR=800) temp
+      READ(temp(sp:),*,END=800,ERR=800) temp
       CALL STR2BOOL(temp,overw)
     !
-    ELSEIF( StrDnCase(temp(1:6))=='ignore' ) THEN
+    CASE("ig","ignore")
       !if true, existing file will always be ignored without prompt
-      READ(temp(7:),*,END=800,ERR=800) temp
+      READ(temp(sp:),*,END=800,ERR=800) temp
       CALL STR2BOOL(temp,ignore)
     !
-    ELSEIF( StrDnCase(temp(1:4))=='lang' ) THEN
+    CASE("lang","language")
       !read language for messages
-      READ(temp(5:),*,END=800,ERR=800) msg
+      READ(temp(sp:),*,END=800,ERR=800) msg
       msg = ADJUSTL(msg)
       IF( INDEX(msg,"fr")>0 .OR. INDEX(msg,"FR")>0 ) THEN
         lang="fr"
@@ -98,7 +109,7 @@ DO
         lang="en"
       ENDIF
     !
-    ELSEIF( StrDnCase(temp(1:8))=='nthreads' ) THEN
+    CASE("nthreads","threads")
       !read max. number of OpenMP threads to use
       READ(temp(9:),*,END=800,ERR=800) Nthreads
 #if defined(OPENMP)
@@ -110,47 +121,49 @@ DO
       CALL ATOMSK_MSG(751,(/conffile/),(/0.d0/))
 #endif
     !
-    ELSEIF( INDEX(StrDnCase(temp),"neigh") == 1 ) THEN
+    CASE("neigh","neighbor","neighbour","neigh_search","neighbor_search","neighbour_search")
       !user wants to use a specific search algorithm
       i = SCAN(temp," ")
       READ(temp(i+1:),*,END=800,ERR=800) neighsearch
     !
-    ELSEIF( StrDnCase(temp(1:7))=='colour ' ) THEN
+    CASE("colour","color")
       !if true, display some texts in colour
       IF( LEN_TRIM(temp(7:))>0 ) THEN
         READ(temp(7:),*,END=800,ERR=800) temp
         CALL STR2BOOL(temp,colourtext)
       ENDIF
     !
-    ELSEIF( StrDnCase(temp(1:14))=='colour_default' ) THEN
+    CASE("colour_default","color_default")
       !change default text colour
       IF( colourtext ) THEN
         colourdef = TRIM(temp(15:))
       ENDIF
     !
-    ELSEIF( StrDnCase(temp(1:14))=='colour_warning' ) THEN
+    CASE("colour_warning","color_warning")
       !change warning text colour
       IF( colourtext ) THEN
         colourwarn = TRIM(temp(15:))
       ENDIF
     !
-    ELSEIF( StrDnCase(temp(1:12))=='colour_error' ) THEN
+    CASE("colour_error","color_error")
       !change error text colour
       IF( colourtext ) THEN
         colourerr = TRIM(temp(13:))
       ENDIF
     !
     !
-    !Special keywords that will be treated by modes are ignored here
-    ELSEIF( StrDnCase(temp(1:3))=='nye' ) THEN
+    !Special keywords that will be treated by modes/options are ignored here
+    CASE("nye","orthocell")
       CONTINUE
     !
     !
     !Unrecognized keywords will trigger a warning
-    ELSE
+    CASE DEFAULT
       nwarn = nwarn+1
       CALL ATOMSK_MSG(1702,(/temp,conffile/),(/0.d0/))
-    ENDIF
+    !
+    END SELECT
+    !
   ENDIF
 ENDDO
 !

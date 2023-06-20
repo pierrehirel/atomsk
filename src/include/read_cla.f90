@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 May 2023                                      *
+!* Last modification: P. Hirel - 14 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -368,6 +368,14 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(5)
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
+    !
+  ELSEIF(clarg=='--match-id' .OR. clarg=='--matchid' ) THEN
+    mode = 'match-id'
+    i=i+1
+    READ(cla(i),'(a128)',END=130,ERR=130) pfiles(3)
+    i=i+1
+    READ(cla(i),'(a128)',END=130,ERR=130) pfiles(4)
+    IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--merge' .OR. clarg=='-M' .OR. clarg=="--stack") THEN
     IF(ALLOCATED(mode_param)) GOTO 150

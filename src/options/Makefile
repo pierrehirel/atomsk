@@ -9,7 +9,7 @@ OOP=$(SOP:.f90=.o)
 VPATH=..$(SEP)$(OBJ)
 #Default rule to make targets
 %.o : %.f90
-	$(FORTRAN) $(FFLAGS) -o ..$(SEP)$(OBJ)$(SEP)$@  -c $<
+	$(FORTRAN) $(FFLAGS) -cpp -o ..$(SEP)$(OBJ)$(SEP)$@  -c $<
 
 options: $(OOP)
 	$(FORTRAN) $(FFLAGS) -o ..$(SEP)$(OBJ)$(SEP)options.o  -c options.f90
