@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 June 2023                                     *
+!* Last modification: P. Hirel - 03 July 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -75,7 +75,7 @@ INTEGER:: Ngrid    !number of elements in the grid
 INTEGER:: Nperline !number of grid element per line
 INTEGER:: Nselect  !number of atoms selected
 INTEGER:: Nadded, Nrm  !number of atoms added or removed from selection
-INTEGER:: progress !to show calculation progress
+INTEGER:: progress, previouspc !to show calculation progress
 INTEGER:: rand_N   !number of atoms to select randomly
 INTEGER:: sp_N     !number of atoms of the given species that exist in P
 INTEGER,DIMENSION(:),ALLOCATABLE:: atomlist, templist    !indices of atom(s) of a given species
@@ -94,7 +94,7 @@ REAL(dp):: V1, V2, V3  !vector components
 REAL(dp):: xmin, xmax, ymin, ymax, zmin, zmax !box parameters
 REAL(dp):: txmin, txmax, tymin, tymax, tzmax  !min/max X,Y,Z coordinates of a triangle
 REAL(dp),DIMENSION(3):: MILLER       !Miller indices
-REAL(dp),DIMENSION(3):: e1, e2, td, th, ts, tq !vectors used to detect ray-triangle intersections
+REAL(dp),DIMENSION(3):: e1, e2, ray, th, ts, tq !vectors used to detect ray-triangle intersections
 REAL(dp),DIMENSION(3):: region_1 !First corner for'box', or center of sphere
 REAL(dp),DIMENSION(3):: region_2 !Last corner for'box', or radius of sphere
 REAL(dp),DIMENSION(1,3):: Vplane  !crystallographic vector defining the plane
@@ -1890,12 +1890,22 @@ CASE('stl','STL')
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
     !
+    !Increase slightly bounding box
+    xmin = xmin - 1.d0
+    xmax = xmax + 1.d0
+    ymin = ymin - 1.d0
+    ymax = ymax + 1.d0
+    zmin = zmin - 1.d0
+    zmax = zmax + 1.d0
+    !
     ALLOCATE( SELECT(SIZE(P,1)) )
     SELECT(:) = .FALSE.
     !
     !Loop on all atoms
-    td = (/0.d0,0.d0,1.d0/)  !vector of ray = [001]
+    CALL ATOMSK_MSG(2076,(/""/),(/0.d0/))
+    ray = (/0.d0,0.d0,1.d0/)  !vector of ray = [001]
     progress = 0
+    previouspc = -1
     !$OMP PARALLEL DO DEFAULT(SHARED) &
     !$OMP& PRIVATE(i,k,keep,txmin,txmax,tymin,tymax,tzmax,e1,e2,ta,tf,th,tu,ts,tq,tv,tt) &
     !$OMP& REDUCTION(+:Nselect)
@@ -1919,49 +1929,55 @@ CASE('stl','STL')
         !
         !Loop on all triangles
         DO k=1,SIZE(triangles,1)
-          txmin = MIN( triangles(k,4) , triangles(k,7) , triangles(k,10) ) - 1.d-3
-          txmax = MAX( triangles(k,4) , triangles(k,7) , triangles(k,10) ) + 1.d-3
-          tymin = MIN( triangles(k,5) , triangles(k,8) , triangles(k,11) ) - 1.d-3
-          tymax = MAX( triangles(k,5) , triangles(k,8) , triangles(k,11) ) + 1.d-3
-          tzmax = MAX( triangles(k,6) , triangles(k,9) , triangles(k,12) ) + 1.d-3
-          IF( P(i,3)<tzmax .AND. P(i,1)>txmin .AND. P(i,1)<txmax .AND. &
-            & P(i,2)>tymin .AND. P(i,2)<tymax   ) THEN
+          !Initialize
+          ta = 0.d0
+          th = (/0.d0,0.d0,0.d0/)
+          !
+          txmin = MIN( triangles(k,4) , triangles(k,7) , triangles(k,10) ) - 1.d-1
+          txmax = MAX( triangles(k,4) , triangles(k,7) , triangles(k,10) ) + 1.d-1
+          tymin = MIN( triangles(k,5) , triangles(k,8) , triangles(k,11) ) - 1.d-1
+          tymax = MAX( triangles(k,5) , triangles(k,8) , triangles(k,11) ) + 1.d-1
+          tzmax = MAX( triangles(k,6) , triangles(k,9) , triangles(k,12) ) + 1.d-1
+          IF( P(i,1)>txmin .AND. P(i,1)<txmax .AND.               &
+            & P(i,2)>tymin .AND. P(i,2)<tymax .AND. P(i,3)<tzmax  ) THEN
             !Current triangle appears to be above (or close to) current atom
-            !Determine if ray [001] passing through atom #i intersects the triangle #k
-            !Note: this part follows the algorithm proposed in this Web site:
+            !Determine if ray (0,0,1) passing through atom #i intersects the triangle #k
+            !Note: this part is inspired by the algorithm proposed in this Web site:
             !  http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
             e1(:) = triangles(k,7:9) - triangles(k,4:6)
             e2(:) = triangles(k,10:12) - triangles(k,4:6)
             !
-            th = CROSS_PRODUCT(td,e2)
+            th = CROSS_PRODUCT(ray,e2)
             ta = DOT_PRODUCT(e1,th)
             !
-            IF( DABS(ta) > -1.d-5 ) THEN
+            IF( DABS(ta) > 1.d-5 ) THEN
               tf = 1.d0/ta
-              ts(:) = P(i,1:3) - triangles(k,4:6) + (/1.d-3,1.d-3,0.d0/)
+              !Compute relative position of atom with respect to first triangle corner
+              !Add arbitrary vector (slightly inclined) to fix issues when atom is exactly under corner
+              ts(:) = P(i,1:3) - triangles(k,4:6) + (/1.12d-3,-1.13d-3,0d0/)
               tu = tf * DOT_PRODUCT(ts,th)
               !
-              IF( tu > -1.d-12 .AND. tu < 1.d0-1.d-10 ) THEN
+              IF( tu >= 0.d0 .AND. tu <= 1.d0 ) THEN
                 !Ray seems to intersect triangle
                 tq = CROSS_PRODUCT(ts,e1)
-                tv = tf * DOT_PRODUCT(td,tq)
+                tv = tf * DOT_PRODUCT(ray,tq)
                 !
-                IF( tv > -1.d-12 .AND. tu+tv < 1.d0-1.d-5 ) THEN
+                IF( tv > 0.d0 .AND. tu+tv <= 1.d0 ) THEN
                   !There is a line or ray intersection
                   ! at this stage we can compute t to find out where
                   ! the intersection point is on the line
                   tt = tf * DOT_PRODUCT(e2,tq)
                   !
-                  IF( tt > 1.d-10 ) THEN
+                  IF( tt > 1.d-3 ) THEN
                     !The ray intersects the triangle
                     !=> invert status of atom
                     keep = .NOT.keep
                   ENDIF
-                ENDIF
-              ENDIF
-            ENDIF
+                ENDIF  !end if tv
+              ENDIF  !end if tu
+            ENDIF !end if DABS(ta)
             !
-          ENDIF
+          ENDIF !end if P inside (txmin,txmax) etc.
           !
         ENDDO !end loop on k
         !

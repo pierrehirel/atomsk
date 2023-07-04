@@ -663,64 +663,9 @@ CASE(10)
   !reals(2) = total number of elements
   !SPECIAL: this writes a message on the screen without advancing, so
   ! it is restricted to verbosity levels that display something on screen
+  ! (see include/display_messages.f90)
   IF( verbosity==1 .OR. verbosity>=3 ) THEN
-    temp = ""
-    tempreal = 100.d0*reals(1)/reals(2) !percentage of progress
-    WRITE(temp2,'(i3)') NINT(tempreal)
-    IF( tempreal >=50.d0 ) THEN
-      IF(tempreal>=100.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [====================]"
-      ELSEIF(tempreal>=95.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [===================>]"
-      ELSEIF(tempreal>=90.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [==================> ]"
-      ELSEIF(tempreal>=85.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [=================>  ]"
-      ELSEIF(tempreal>=80.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [================>   ]"
-      ELSEIF(tempreal>=75.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [===============>    ]"
-      ELSEIF(tempreal>=70.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [==============>     ]"
-      ELSEIF(tempreal>=65.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [=============>      ]"
-      ELSEIF(tempreal>=60.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [============>       ]"
-      ELSEIF(tempreal>=55.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [===========>        ]"
-      ELSE
-        temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
-      ENDIF
-    ELSE  
-      IF(tempreal<5.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [>                   ]"
-      ELSEIF(tempreal<10.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [=>                  ]"
-      ELSEIF(tempreal<15.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [==>                 ]"
-      ELSEIF(tempreal<20.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [===>                ]"
-      ELSEIF(tempreal<25.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [====>               ]"
-      ELSEIF(tempreal<30.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [=====>              ]"
-      ELSEIF(tempreal<35.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [======>             ]"
-      ELSEIF(tempreal<40.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [=======>            ]"
-      ELSEIF(tempreal<45.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [========>           ]"
-      ELSEIF(tempreal<50.d0) THEN
-        temp = TRIM(ADJUSTL(temp2))//"% [=========>          ]"
-      ELSE
-        temp = TRIM(ADJUSTL(temp2))//"% [==========>         ]"
-      ENDIF
-    ENDIF
-    !Display the progress bar
-    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//" "//TRIM(temp)
-    IF( NINT(reals(1)) >= NINT(reals(2)) ) THEN
-      WRITE(*,'(a)',ADVANCE="YES") ""
-    ENDIF
+    IF(progressbar.NE."none") CALL DISPLAY_PROGBAR(reals(1),reals(2))
   ENDIF
 CASE(11)
   msg = ">>> Konstruiere Nachbarliste..."
@@ -1402,8 +1347,8 @@ CASE(2075)
   msg = "..> Einlesen der Systemeigenschaften abgeschlossen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2076)
-  !msg = ">>> Waehle alle Atome aus."
-  !CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "..> Waehle Atome..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2077)
   !strings(1) = region_side: in or out
   !strings(2) = region_geom: sphere or box or cylinder

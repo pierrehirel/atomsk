@@ -9,7 +9,7 @@ MODULE random
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2022                                     *
+!* Last modification: P. Hirel - 03 July 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -141,8 +141,8 @@ END SUBROUTINE GEN_NRANDGAUSS
 !
 !********************************************************
 ! GEN_NRANDINDEX
-! This subroutine generates an array of N integers
-! from 1 to N in a random order.
+! This subroutine generates a list of N atom indices
+! in a random order.
 !********************************************************
 SUBROUTINE GEN_NRANDINDEX(N,idlist)
 !

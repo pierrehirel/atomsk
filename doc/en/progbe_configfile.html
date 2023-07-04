@@ -48,13 +48,15 @@
   <li><strong>colour_warning &#60;colour&#62;</strong>:  if option "colour" above was enabled, then the given &#60;colour&#62; will be used by default for warning messages.</li>
   
   <li><strong>colour_error &#60;colour&#62;</strong>:  if option "colour" above was enabled, then the given &#60;colour&#62; will be used by default for error messages.</li>
+
+  <li><strong>progressbar &#60;style&#62;</strong>: customizes the style of progress bars. The &#60;style&#62; can be one of: "linear", "dots", "rotate", "clock", "barrier", "inflate", "jump", "wave", "bounce", "snail", "pacman", "face", "percentage", or "none". With the one before last, only the percentage is displayed. With the last one, no progress bar or percentage is displayed. Any other &#60;style&#62; is replaced with "percentage" by default. If this keyword is not used, progress bars are displayed with the style "linear".</li>
 </ul>
 
 
 
 <h4>Default</h4>
 
-<p>By default, no output format is active. The language is the one used by the operating system, or defaults to English. Atomsk does not ignore nor overwrite files, but prompts the user what to do. The number of threads is the one set by the operating system's environment variable OMP_NUM_THREADS, or takes the maximum value by default. Coloured messages are disabled.</p>
+<p>By default, no output format is active. The language is the one used by the operating system, or defaults to English. Atomsk does not ignore nor overwrite files, but prompts the user what to do. The number of threads is the one set by the operating system's environment variable OMP_NUM_THREADS, or takes the maximum value by default. Coloured messages are disabled. Progress bars are displayed with the style "linear".</p>
 
 <p>These default parameters are successively replaced (overwritten) by those defined in:</p>
 <ul>

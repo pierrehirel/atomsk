@@ -9,7 +9,7 @@ MODULE resize
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 June 2022                                     *
+!* Last modification: P. Hirel - 21 June 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,7 +66,7 @@ IF( .NOT.ALLOCATED(Array) ) THEN
     ! Allocation failed (not enough memory)
     IF(PRESENT(status)) status = 1
     nerr = nerr+1
-    CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(L1)/))
     RETURN
   ENDIF
   Array(:,:) = 0.d0
@@ -80,7 +80,7 @@ ELSE
       ! Allocation failed (not enough memory)
       IF(PRESENT(status)) status = 1
       nerr = nerr+1
-      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Array,1)+L1)/))
       RETURN
     ENDIF
     !
@@ -97,7 +97,7 @@ ELSE
       ! Allocation failed (not enough memory)
       IF(PRESENT(status)) status = 1
       nerr = nerr+1
-      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Array,1)+L1)/))
       RETURN
     ENDIF
     Array(:,:) = temp_array(:,:)

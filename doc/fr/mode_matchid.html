@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Mode match-id - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Mode : match-id</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>atomsk --match-id &#60;fichier1&#62; &#60;fichier2&#62; [options] [&#60;fichier sortie&#62;] [&#60;formats&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Ce mode lit deux fichiers, et essaye de trier les atomes du &#60;fichier2&#62; dans le même ordre que ceux du &#60;fichier1&#62;. Les deux fichiers peuvent être dans des formats différents, tant que ces formats sont <a href="./formats.html">pris en charge par Atomsk</a>. Les deux fichiers devraient correspondre au même type de système (mêmes types d'atomes, même réseau cristallin, etc.) pour que le calcul ait du sens.</p>
+
+<p>Si les deux fichiers contiennent exactement le même nombre d'atomes, alors Atomsk crée des paires uniques d'atomes entre le &#60;fichier1&#62; et le &#60;fichier2&#62;.</p>
+
+<p>Si les deux fichiers ne contiennent pas le même nombre d'atomes, alors les atomes du &#60;fichier1&#62; sont appairés à ceux du &#60;fichier2&#62; de façon injective, c'est-à-dire que chaque atome du &#60;fichier1&#62; n'est appairé au maximum qu'à un seul atome du &#60;fichier2&#62;. Si le &#60;fichier1&#62; contient le moins d'atomes, alors certains atomes du &#60;fichier2&#62; ne seront pas appairés, et ils apparaîtront à la fin dans le fichier final. Atomsk crée alors une nouvelle propriété auxiliaire appelée "new_atoms" ("atomes nouveaux"), qui vaut zéro pour les atomes appairés, et 1 pour les atomes qui n'ont pas d'équivalent dans le &#60;fichier1&#62; (autrement dit, les atomes qui ont été ajoutés entre le &#60;fichier1&#62; et le &#60;fichier2&#62;). Si le &#60;fichier1&#62; contient le plus d'atomes, alors tous les atomes du &#60;fichier2&#62; devraient être appairés et triés. Le fichier final contiendra autant d'atomes que le &#60;fichier2&#62;.</p>
+
+<p>Si des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille) et/ou des propriétés auxiliaires existent dans le &#60;fichier2&#62;, alors elles sont aussi triées de façon à ce que chaque atome conserve ses propriétés.</p>
+
+<p>Si ce mode est appelé avec des <a href="./options.html">options</a>, alors ces options seront appliquées au système final <em>après</em> que les atomes auront été triés.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk --matchid config1.cfg config2.xsf final.cfg</code>
+<p>Ceci va lire <code>config1.cfg</code> et <code>config2.xsf</code>, et triera les atomes de <code>config2.xsf</code> pour qu'ils apparaissent dans le même ordre que les atomes dans <code>config1.cfg</code>. Le résultat final sera écrit da,s <code>final.cfg</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

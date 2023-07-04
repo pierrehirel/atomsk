@@ -1,5 +1,4 @@
-# Makefile for compiling Atomsk and
-# linking statically.
+# Makefile for compiling Atomsk and linking statically.
 # All defaults are used (see main Makefile)
 # except the compilation flags, defined below.
 

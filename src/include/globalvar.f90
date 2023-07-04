@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'master-2023-06-20'
+CHARACTER(LEN=24),PARAMETER:: version = 'master-2023-07-04'
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: il = SELECTED_INT_KIND(9)        !integers up to 10^9
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
@@ -49,9 +49,6 @@ CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" a
   CHARACTER(LEN=16),PARAMETER:: pathnull='2>/dev/null'  !redirection to NULL for UNIX/Linux
   LOGICAL:: colourtext=.FALSE.   !by default, don't colour text in UNIX/Linux environments
 #endif
-CHARACTER(LEN=32):: colourdef="none"               !default colour for all messages
-CHARACTER(LEN=32):: colourerr="red bold blink"     !default colour for ERROR
-CHARACTER(LEN=32):: colourwarn="yellow bold blink" !default colour for WARNING
 !
 !**********************************
 !*  PROGRAM BEHAVIOR
@@ -60,6 +57,14 @@ CHARACTER(LEN=16):: neighsearch !algorithm for neighbor search (default: auto)
 CHARACTER(LEN=128):: logfile !name of logfile for the program
 LOGICAL:: overw, ignore      !automatically overwrite/ignore existing files?
 INTEGER:: verbosity          !level of verbosity of the program
+!
+!**********************************
+!*  DISPLAY STYLES
+!**********************************
+CHARACTER(LEN=32):: colourdef="none"               !default colour for all messages
+CHARACTER(LEN=32):: colourerr="red bold blink"     !default colour for ERROR
+CHARACTER(LEN=32):: colourwarn="yellow bold blink" !default colour for WARNING
+CHARACTER(LEN=32):: progressbar="linear"           !default style for progress bar
 !
 !**********************************
 !*  INPUT/OUTPUT

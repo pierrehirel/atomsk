@@ -48,13 +48,15 @@
   <li><strong>colour_warning &#60;couleur&#62;</strong>: si l'option "colour" ci-dessus a été activée, alors la &#60;couleur&#62; donnée sera utilisée par défaut pour les messages d'alerte (<em>warnings</em>).</li>
   
   <li><strong>colour_error &#60;couleur&#62;</strong>: si l'option "colour" ci-dessus a été activée, alors la &#60;couleur&#62; donnée sera utilisée par défaut pour les messages d'erreur.</li>
+
+  <li><strong>progressbar &#60;style&#62;</strong>: personnalise l'apparence des barres de progression. Le &#60;style&#62; peut être&nbsp;: "linear", "dots", "rotate", "clock", "barrier", "inflate", "jump", "wave", "bounce", "snail", "pacman", "face", "percentage", ou "none". Avec l'avant-dernier, seul le pourcentage est affiché. Avec le dernier, aucune barre de progression n'est affichée. Tout autre &#60;style&#62; (non valide) est remplacé par "percentage" par défaut. Si ce mot-clé n'est pas utilisé, alors les barres de progression sont affichées avec le style "linear".</li>
 </ul>
 
 
 
 <h4>Défaut</h4>
 
-<p>Par défaut, aucun format de sortie n'est actif. La langue est celle utilisée par le système d'exploitation, ou l'anglais par défaut. Atomsk n'ignore ni n'écrase pas les fichiers, il demande à l'utilisateur ce qu'il faut faire. Le nombre de processus est celui défini par la variable d'environnement OMP_NUM_THREADS, ou prend la valeur maximale par défaut. Les messages en couleur sont désactivés.</p>
+<p>Par défaut, aucun format de sortie n'est actif. La langue est celle utilisée par le système d'exploitation, ou l'anglais par défaut. Atomsk n'ignore ni n'écrase pas les fichiers, il demande à l'utilisateur ce qu'il faut faire. Le nombre de processus est celui défini par la variable d'environnement OMP_NUM_THREADS, ou prend la valeur maximale par défaut. Les messages en couleur sont désactivés. Les barres de progression sont affichées avec le style "linear".</p>
 
 <p>Ces paramètres par défaut sont successivement remplacés (écrasés) par ceux définis dans&nbsp;:</p>
 <ul>
