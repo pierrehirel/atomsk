@@ -13,7 +13,7 @@ MODULE cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2022                                    *
+!* Last modification: P. Hirel - 18 July 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -70,7 +70,6 @@ a3 = 0
 Nmodified = 0
 Hmodified(:) = 0
 dH = 0.d0
- cartvec(:) = 0.d0
 !
 !
 100 CONTINUE
@@ -86,19 +85,16 @@ CASE("H1",'x','X')
   Hmodified(1) = 1
   Hmodified(2) = 0
   Hmodified(3) = 0
-  cartvec(1) = 1.d0
 CASE("H2",'y','Y')
   checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 1
   Hmodified(3) = 0
-  cartvec(2) = 1.d0
 CASE("H3",'z','Z')
   checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 0
   Hmodified(3) = 1
-  cartvec(3) = 1.d0
 CASE("xyz","XYZ","all","ALL")
   checkzero=.TRUE.
   Hmodified(1) = 1
@@ -166,11 +162,14 @@ IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
     ENDDO
     !
   CASE('x','X','y','Y','z','Z',"xyz","XYZ","all","ALL")
-    !Expand box along Cartesian axis
+    !Expand the "bounding box" along Cartesian axes
     !Modify vector length along given directions
-    DO i=1,3
+    DO i=1,3  !loop on X, Y, Z
       IF( Hmodified(i)==1 ) THEN
-        !Determine which cell vector has longest component along Cartesian direction i
+        !Set up Cartesian vector corresponding to that direction
+        cartvec(:) = 0.d0
+        cartvec(i) = 1.d0
+        !Determine which cell vector has longest component along current Cartesian direction i
         IF( H(1,i)>H(2,i) .AND. H(1,i)>H(3,i) ) THEN
           !H1 will be modified
           a1 = 1
@@ -183,7 +182,7 @@ IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
         ENDIF
         !Compute length of this cell vector
         vl = VECLENGTH(H(a1,:))
-        !Compute angle between this cell vector and given Cartesian axis
+        !Compute angle between this cell vector and current Cartesian axis
         alpha = ANGVEC( H(a1,:) , cartvec )
         IF( cellop=="set" ) THEN
           !Resize vector to specified length

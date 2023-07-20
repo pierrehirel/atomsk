@@ -22,7 +22,13 @@
 
 <p>This option allows to modify the cell vectors.</p>
 
-<p>It is possible to add, remove, or set a given length &#60;d&#62; to the provided component of the box. H1, H2, H3 refer to the three box vectors, while x, y, z refer to the Cartesian axes. The components xy, xz, yx, yz, zx, zy are non-diagonal elements of the cell vectors matrix. The component "xyz" means that the same distance &#60;d&#62; will be added (or removed) to all diagonal components.</p>
+<p>It is possible to add, remove, or set a given length &#60;d&#62; to the provided component(s) of the cell.</p>
+
+<p>Keywords H1, H2, H3 refer to the three box vectors. Adding a distance &#60;d&#62; to a cell vector means that it will keep the same direction, but its norm will be longer by &#60;d&#62;. The same logic applies for removing (rm) or setting (set) the distance.</p>
+
+<p>Keywords x, y, z, refer to the Cartesian components of cell vectors. Adding a distance &#60;d&#62; to the x component, means that the cell vector with the largest component along X will be rescaled so that the "bounding box" (difference between maximum and minimum coordinates along X) will be longer by &#60;d&#62;. Cell vectors will keep their respective directions and relative angles. Note that if cell vectors are inclined with respect to Cartesian axes, then their length is not modified by &#60;d&#62; but by another amount. The component "xyz" means that the same distance &#60;d&#62; will be added (or removed) to all Cartesian components. The components xy, xz, yx, yz, zx, zy are non-diagonal elements of the cell vectors matrix.</p>
+
+<p>Note that if cell vectors are aligned with Cartesian axis, such that H1//x, H2//y, and H3//z, then using "H1" is equivalent to using "x", because H1 only has a non-zero component along x. The same is true for H2 and y, and for H3 and z.</p>
 
 <p>The distance &#60;d&#62; must be given in angströms (&Aring;), and should be positive to avoid confusion. Using "add" with a negative value of &#60;d&#62; will actually reduce the length of a box vector. Similarly, using "rm" with a negative value of &#60;d&#62; will increase the vector length.</p>
 
