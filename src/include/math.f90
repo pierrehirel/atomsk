@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 June 2022                                     *
+!* Last modification: P. Hirel - 10 July 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -39,6 +39,8 @@ MODULE math
 !* ROTMAT_AXIS         provides the matrix for rotation of angle around axis      *
 !* ROTMAT_VECTORS      provides the matrix for rotation between 2 vectors         *
 !* EPS_LEVI_CIVITA     calculates the Levi-Civita symbol, given i,j,k             *
+!* MATTRACE            computes the trace of a NxN matrix                         *
+!* MATDET              computes the determinant of a 3x3 matrix                   *
 !* List of subroutines in this file:                                              *
 !* INVMAT              inverts a NxN matrix                                       *
 !* CONVMAT             converts conventional vectors into a matrix                *
@@ -380,15 +382,53 @@ INTEGER:: i, j, k, eps_ijk
 !
 eps_ijk=0
 !
-IF (i.eq.1 .AND. j.eq.2 .AND. k.eq.3) eps_ijk=1
-IF (i.eq.2 .AND. j.eq.3 .AND. k.eq.1) eps_ijk=1
-IF (i.eq.3 .AND. j.eq.1 .AND. k.eq.2) eps_ijk=1
+IF (i==1 .AND. j==2 .AND. k==3) eps_ijk=1
+IF (i==2 .AND. j==3 .AND. k==1) eps_ijk=1
+IF (i==3 .AND. j==1 .AND. k==2) eps_ijk=1
 !
-IF (i.eq.3 .AND. j.eq.2 .AND. k.eq.1) eps_ijk=-1
-IF (i.eq.1 .AND. j.eq.3 .AND. k.eq.2) eps_ijk=-1
-IF (i.eq.2 .AND. j.eq.1 .AND. k.eq.3) eps_ijk=-1
+IF (i==3 .AND. j==2 .AND. k==1) eps_ijk=-1
+IF (i==1 .AND. j==3 .AND. k==2) eps_ijk=-1
+IF (i==2 .AND. j==1 .AND. k==3) eps_ijk=-1
 !
 END FUNCTION EPS_LEVI_CIVITA
+!
+!
+!********************************************************
+! MATTRACE
+! This function computes the trace of a NxN matrix.
+!********************************************************
+FUNCTION MATTRACE(A) RESULT(Tr)
+!
+!
+REAL(dp),DIMENSION(:,:),INTENT(IN):: A(:,:)
+REAL(dp):: Tr
+!
+Tr = 0.d0
+DO i=1,MIN(SIZE(A,1),SIZE(A,2))
+  Tr = Tr + A(i,i)
+ENDDO
+!
+END FUNCTION MATTRACE
+!
+!
+!********************************************************
+! MATDET
+! This function computes the determinant of a 3x3 matrix.
+!********************************************************
+FUNCTION MATDET(A) RESULT(DET)
+!
+!
+REAL(dp),DIMENSION(3,3),INTENT(IN):: A(:,:)
+REAL(dp):: DET
+!
+DET =   A(1,1)*A(2,2)*A(3,3) &
+    & + A(1,2)*A(2,3)*A(3,1) &
+    & + A(1,3)*A(2,1)*A(3,2) &
+    & - A(3,1)*A(2,2)*A(1,3) &
+    & - A(3,2)*A(2,3)*A(1,1) &
+    & - A(3,3)*A(2,1)*A(1,2)
+!
+END FUNCTION MATDET
 !
 !
 !********************************************************

@@ -11,7 +11,7 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Mode : Nye tensor</h2>
+<h2>Mode : tenseur de Nye</h2>
 
 <h4>Syntaxe</h4>
 
@@ -20,26 +20,7 @@
 
 <h4>Description</h4>
 
-<p>Ce mode calcule le tenseur de Nye de chaque atome, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des défauts cristallins, comme les défauts ponctuels, les dislocations, ou les défauts planaires (défauts d'empilement, macles, joints de grains...).</p>
-
-<p>Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313. Soit une maille de référence définie par un jeu de positions atomiques <strong>P</strong> et un réseau déformé défini par <strong>Q</strong>, le tenseur de correspondance est calculé de la façon suivante&nbsp;:</p>
-
-<p><strong>G</strong> = (<strong>Q</strong><sup>T</sup> <strong>Q</strong>)<sup>-1</sup> <strong>Q</strong><sup>T</sup> <strong>P</strong> </p>
-
-<p>Une fois que le tenseur <strong>G</strong> est calculé pour chaque atome, alors le tenseur de Nye <strong>&alpha;</strong> est calculé à partir de ses dérivées spatiales (&epsilon;<sub>imk</sub> est le symbole de Levi-Civita)&nbsp;:</p>
-
-<p><strong>&alpha;</strong><sub>jk</sub> = &epsilon;<sub>imk</sub>  &part;<sub>m</sub><strong>G</strong><sub>ij</sub></p>
-
-<p>Notez que l'article original publié par Hartley et Mishin cité ci-dessus contient une erreur dans cette équation. L'équation implémentée dans Atomsk a été vérifiée pour donner le bon vecteur de Burgers après intégration du tenseur de Nye.</p>
-
-<p>Pour réaliser ce calcul, les voisins jusqu'à une distance <strong>NeighFactor&nbsp;&times;&nbsp;d<sub>3</sub></strong> sont utilisés, où d<sub>3</sub> est la distance du troisième voisin, et NeighFactor est égal à 1.25 par défaut. De plus, un voisin est utilisé seulement si son vecteur position relatif à l'atome central, entre le système de référence et celui étudié, est plus petit qu'un angle critique &theta;<sub>max</sub>. La valeur par défaut est &theta;<sub>max</sub>&nbsp;=&nbsp;27°, ce que Hartley et Mishin one trouvé adapté pour les mailles cfc, puisque c'est à peu près la moitié de l'angle entre premiers voisins (60°).</p>
-
-<p>Les valeurs des paramètres NeighFactor et &theta;<sub>max</sub> peuvent être modifiés en créant un fichier de configuration nommé "atomsk.conf" dans le répertoire courant où est effectué le calcul, et contenant les lignes suivantes&nbsp;:</p>
-
-<p><code>Nye NeighFactor 1.25<br/>
-Nye theta_max 27</code></p>
-
-<p>Les valeurs définies dans ce fichier seront alors utilisées pour le calcul, au lieu des valeurs par défaut.</p>
+<p>Ce mode calcule le tenseur des déformations pour chaque atome, puis le tenseur de Nye, une quantité liée au gradient de déformation locale. Le tenseur de Nye peut être utile pour visualiser des défauts cristallins, comme les défauts ponctuels, les dislocations, ou les défauts planaires (défauts d'empilement, macles, joints de grains...).</p>
 
 <p>Ce mode requiert deux fichiers&nbsp;: un &#60;fichier1&#62; contenant un système de référence, et un &#60;fichier2&#62; contenant le système à analyser. Le système de référence peut être&nbsp;:</p>
 
@@ -51,7 +32,53 @@ Nye theta_max 27</code></p>
 
 <p>Les deux fichiers &#60;fichier1&#62; et &#60;fichier2&#62; peuvent être du même format, ou bien de formats différents, tant que ces formats font partie de <a href="./formats.html">ceux supportés par Atomsk</a>.</p>
 
-<p>Les neuf composantes du tenseur de Nye sont enregistrées comme propriétés auxiliaires pour chaque atome (dans l'ordre suivant&nbsp;: &alpha;<sub>11</sub>, &alpha;<sub>12</sub>, &alpha;<sub>13</sub>, &alpha;<sub>21</sub>, &alpha;<sub>22</sub>, &alpha;<sub>23</sub>, &alpha;<sub>31</sub>, &alpha;<sub>32</sub>, &alpha;<sub>33</sub>). Notez que Atomsk n'écrira ces propriétés auxiliaires que si le format du fichier de sortie le supporte, comme c'est le cas du <a href="./format_cfg.html">format CFG d'Atomeye</a> (voir <a href="./formats.html">cette page</a> pour une liste des formats supportant les propriétés auxiliaires).</p>
+<p>Le calcul suit la méthode décrite dans C.S. Hartley, Y. Mishin, <em>Acta Mater.</em> <strong>53</strong> (2005) 1313. Soit une maille de référence définie par un jeu de positions atomiques <strong>P</strong> et un réseau déformé défini par <strong>Q</strong>, le tenseur de correspondance <strong>G</strong> est défini comme la transformation d'un réseau à l'autre&nbsp;:</p>
+
+<p><strong>P</strong> = <strong>Q</strong> &middot; <strong>G</strong> </p>
+
+<p>Une fois que le tenseur <strong>G</strong> est calculé pour chaque atome, Atomsk l'utilise pour calculer le tenseur de déformation pour chaque atome (où le symbole de Kronecker &delta;<sub>ij</sub>=1 si i=j, et 0 sinon)&nbsp;:</p>
+
+<p><strong>&epsilon;</strong><sub>ij</sub> = &frac12; [ (&delta;<sub>ij</sub> &minus; <strong>G</strong><sub>ij</sub>) + (&delta;<sub>ji</sub> &minus; <strong>G</strong><sub>ji</sub>) ] </p>
+
+<p>De là, les invariants de déformation sont aussi calculés&nbsp;:</p>
+
+<p><em>I</em><sub>1</sub> = Trace(<strong>&epsilon;</strong>)</p>
+<p><em>I</em><sub>2</sub> = &frac12; [ Trace(<strong>&epsilon;</strong>)<sup>2</sup> &minus; Trace(<strong>&epsilon;</strong><sup>2</sup>) ]</p>
+<p><em>I</em><sub>3</sub> = Det(<strong>&epsilon;</strong>)</p>
+
+<p>À partir de <strong>G</strong>, le tenseur de rotation est aussi calculé pour chaque atome&nbsp;:</p>
+
+<p><strong>R</strong><sub>ij</sub> = &frac12; [ (&delta;<sub>ij</sub> &minus; <strong>G</strong><sub>ij</sub>) &minus; (&delta;<sub>ji</sub> &minus; <strong>G</strong><sub>ji</sub>) ] </p>
+
+<p>Enfin, le tenseur de Nye <strong>&alpha;</strong> est calculé à partir des dérivées spatiales de <strong>G</strong> (&epsilon;<sub>imk</sub> est le symbole de Levi-Civita)&nbsp;:</p>
+
+<p><strong>&alpha;</strong><sub>jk</sub> = &epsilon;<sub>imk</sub>  &part;<sub>m</sub><strong>G</strong><sub>ij</sub></p>
+
+<p>Notez que l'article original publié par Hartley et Mishin cité ci-dessus contient une erreur dans cette équation. L'équation implémentée dans Atomsk a été vérifiée pour donner le bon vecteur de Burgers après intégration du tenseur de Nye.</p>
+
+<hr/>
+
+<p>Pour réaliser ce calcul, les voisins jusqu'à une distance <strong>NeighFactor&nbsp;&times;&nbsp;d<sub>3</sub></strong> sont utilisés, où d<sub>3</sub> est la distance du troisième voisin, et NeighFactor est égal à 1.25 par défaut. De plus, un voisin est utilisé seulement si son vecteur position relatif à l'atome central, entre le système de référence et celui étudié, est plus petit qu'un angle critique &theta;<sub>max</sub>. La valeur par défaut est &theta;<sub>max</sub>&nbsp;=&nbsp;27°, ce que Hartley et Mishin one trouvé adapté pour les mailles cfc, puisque c'est à peu près la moitié de l'angle entre premiers voisins (60°).</p>
+
+<p>Les valeurs des paramètres NeighFactor et &theta;<sub>max</sub> peuvent être modifiés en créant un fichier de configuration nommé "atomsk.conf" dans le répertoire courant où est effectué le calcul, et contenant les lignes suivantes&nbsp;:</p>
+
+<p><code>Nye NeighFactor 1.25<br/>
+Nye theta_max 27</code></p>
+
+<p>Les valeurs définies dans ce fichier seront alors utilisées pour le calcul, au lieu des valeurs par défaut.</p>
+
+<hr/>
+
+<p>Ce mode écrit ses résultats dans plusieurs fichiers de sortie&nbsp;:</p>
+
+<ul>
+  <li><strong>*_G.cfg</strong> contient le tenseur de correspondance <strong>G</strong> (un tenseur 3&times;3) pour chaque atome&nbsp;;</li>
+  <li><strong>*_strain.cfg</strong> contient le tenseur des déformations </strong>&epsilon;</strong> (un tenseur 3&times;3) pour chaque atome&nbsp;, ainsi que les invariants de déformation <em>I</em><sub>1</sub>, <em>I</em><sub>2</sub>, <em>I</em><sub>3</sub>;</li>
+  <li><strong>*_rot.cfg</strong> contient le tenseur des rotations <strong>R</strong> (un tenseur 3&times;3) pour chaque atome&nbsp;;</li>
+  <li><strong>*_Nye.cfg</strong> contient le tenseur de Nye <strong>&alpha;</strong> (un tenseur 3&times;3) pour chaque atome&nbsp;.</li>
+</ul>
+
+<p>Toutes ces grandeurs sont écrites dans des fichiers au <a href="./format_cfg.html">format CFG</a> afin d'être facilement visualisés, par exemple avec OVITO.</p>
 
 <p>Si ce mode est utilisé avec une ou plusieurs <a href="./options.html">options</a> alors celles-ci seront appliquées au &#60;fichier1&#62; et au &#60;fichier2&#62; <em>avant</em> que le tenseur de Nye ne soit calculé.</p>
 

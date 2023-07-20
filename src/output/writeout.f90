@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 18 July 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -182,6 +182,15 @@ WRITE(msg,*) 'Looking for NaN in array P...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 k = MIN(10000,SIZE(P,1))
 CALL CHECKNAN(P(1:k,:),i)
+IF( i.NE.0 ) THEN
+  nerr=nerr+1
+  CALL ATOMSK_MSG(3803,(/""/),(/DBLE(i)/))
+  GOTO 1000
+ENDIF
+!Also check cell vectors
+WRITE(msg,*) 'Looking for NaN in cell vectors H...'
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+CALL CHECKNAN(H(:,:),i)
 IF( i.NE.0 ) THEN
   nerr=nerr+1
   CALL ATOMSK_MSG(3803,(/""/),(/DBLE(i)/))

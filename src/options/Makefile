@@ -1,4 +1,4 @@
-# Makefile for compiling options modules of atomsk
+# Makefile for compiling options modules of Atomsk
 
 SOP=disloc_iso.f90   \
     disloc_aniso.f90 \

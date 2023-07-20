@@ -1,4 +1,4 @@
-# Makefile for compiling common modules of atomsk
+# Makefile for compiling common modules of Atomsk
 
 # List of source files (order is very important here)
 # Localization (l10n) modules: additional languages can be added here

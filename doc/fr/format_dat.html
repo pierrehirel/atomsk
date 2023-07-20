@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Format DAT - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Format : DAT</h2>
+
+<p><strong>Nom :</strong> colonnes de données</p>
+
+<p><strong>Extension :</strong> dat</p>
+
+<p><strong>Spécification :</strong> pas de standard</p>
+
+<p><strong>Programmes de visualisation :</strong> aucun</p>
+
+
+<h4>Restrictions</h4>
+
+<p>Un fichier au format DAT est un fichier texte contenant des colonnes de données. Lorsqu'il écrit un fichier DAT, Atomsk écrit sur chaque ligne le numéro atomique suivi des coordonnées x, y, z de chaque atome. Si des propriétés auxiliaires existent, elles sont écrites à la suite. Notez que les vecteurs de boîte et les commentaires <em>ne sont pas écrits</em> dans un fichier DAT.</p>
+
+<p>Lorsqu'il lit un fichier DAT, Atomsk suppose qu'il respecte le format CSV, sauf que les valeurs sont séparées par des espaces au lieu de virgules. Lisez la <a href="./format_csv.html">page sur le format CSV</a> pour plus d'information. Puisque les vecteurs de boîte ne peuvent pas être lus depuis un fichier DAT, Atomsk construira automatiquement une boîte parallélépipédique englobant tous les atomes.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk mon_systeme.cfg dat</code>
+<p>Ceci va lire le fichier <code>mon_systeme.cfg</code>, et le convertira en <code>mon_systeme.dat</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

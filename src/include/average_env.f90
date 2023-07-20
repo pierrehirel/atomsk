@@ -28,7 +28,7 @@ MODULE avgenv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 May 2023                                      *
+!* Last modification: P. Hirel - 05 July 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,6 +62,7 @@ SUBROUTINE AVG_ENV(H,P,NeighList,Pref,NeighFactor,siteindex)
 IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
+INTEGER:: NeighIndex  !index of a neighbour
 INTEGER:: iat, i, j, k, n
 INTEGER:: Nneighbors
 INTEGER:: NNmin=3     !minimum number of neighbours to keep
@@ -170,14 +171,15 @@ DO iat=1,SIZE(P,1)
   !Add atom to average only if number of neighbors is greater than 3, lower than 14, even, and
   !not multiple of 5 (because an atom in any material is not supposed to have 5 or 10 neighbors)
   !i.e. we consider only atoms with 4, 6, 8, 12, 14 neighbors are in "perfect" environments
-  IF( Nneighbors>3 .AND. Nneighbors<=14 .AND. MOD(Nneighbors,2)==0 .AND. MOD(Nneighbors,5)>0 ) THEN
+  IF( Nneighbors>3 .AND. Nneighbors<14 .AND. MOD(Nneighbors,2)==0 .AND. MOD(Nneighbors,5)>0 ) THEN
     !Add neighbors positions to already known positions for averaging
     IF( NINT(Tref(i,1,5))==1 ) THEN
       !No neighbor was found for this site yet
       !Simply store rel. pos. of neighbors of atom #iat in Tref(i,:,:)
       DO k=1,Nneighbors
+        NeighIndex = NINT(PosList(k,5))
         Tref(i,k+1,1:3) = PosList(k,1:3)
-        Tref(i,k+1,4) = P(NINT(PosList(k,5)),4)
+        Tref(i,k+1,4) = P(NeighIndex,4)
       ENDDO
     ELSE
       !Some atoms were already found in this site
@@ -201,8 +203,9 @@ DO iat=1,SIZE(P,1)
           !Add position of atom #n and perform averaging
           Tref(i,n,1:3) = ( Tref(i,n,5)*Tref(i,n,1:3) + PosList(k,1:3) ) / (Tref(i,n,5)+1.d0)
           !Save atomic number of this neighbor (only if it's empty)
+          NeighIndex = NINT(PosList(k,5))
           IF( NINT(Tref(i,n,4))==0 ) THEN
-            Tref(i,n,4) = P(NINT(PosList(k,5)),4)
+            Tref(i,n,4) = P(NeighIndex,4)
           ENDIF
           !Increment number of neighbors at this position
           Tref(i,n,5) = Tref(i,n,5) + 1.d0
@@ -250,48 +253,48 @@ ENDIF
 1000 CONTINUE
 !Now Pref contains the averaged relative positions of neighbors for each type of atom site
 !Write some debugging information
-IF( verbosity==4 ) THEN
-  IF( ALLOCATED(Pref) .AND. SIZE(Pref,1)>0 ) THEN
-    !For each site, write position of central atom (that should always be (0,0,0))
-    !and positions of neighbors into a XYZ file named "site_i.xyz" for visualization
-    msg = " ATOMIC  ENVIRONMENTS  DETECTED:"
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-    DO i=1,MIN(Nsites,SIZE(Pref,1))
-      !PRINT*, "Site #", i, ": ", NINT(Pref(i,1,5)), " atoms in this site"
-      !Check if number of neighbours for site #i is positive
-      IF( NINT(Pref(i,1,6))>0 ) THEN
-        WRITE(msg,*) i
-        OPEN(UNIT=23,FILE="atomsk_site_"//TRIM(ADJUSTL(msg))//".xyz",FORM="FORMATTED")
-        WRITE(23,*) NINT(Pref(i,1,6))+1
-        WRITE(23,*) "# Averaged environment for site #", i
-        CALL ATOMSPECIES(Pref(i,1,4),species)
-        WRITE(msg,*) i
-        WRITE(temp,*) NINT(Pref(i,1,6))
-        WRITE(23,'(a2,3X,3f16.8)') species, Pref(i,1,1:3)
-        WRITE(msg,*) "  Site # "//TRIM(ADJUSTL(msg))//" occupied by "//species// &
-                    & " atom, has "//TRIM(ADJUSTL(temp))//" neighbors:"
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-        DO j=2,NINT(Pref(i,1,6))+1
-          CALL ATOMSPECIES(Pref(i,j,4),species)
-          WRITE(23,'(a2,3X,3f16.8)') species, Pref(i,j,1:3)
-          WRITE(msg,'(8X,a2,3X,3f12.3)') species, Pref(i,j,1:3)
-          CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-        ENDDO
-        CLOSE(23)
-      ENDIF
-    ENDDO
-    OPEN(UNIT=23,FILE="atomsk_siteindex.txt",FORM="FORMATTED")
-    WRITE(23,*) SIZE(P,1)
-    WRITE(23,*) "# Atomsk AVG_ENV: atom id and type of site they occupy"
-    DO i=1,SIZE(siteindex,1)
-      WRITE(23,*) i, siteindex(i)
-    ENDDO
-    CLOSE(23)
-  ELSE
-    msg = " ERROR:  NO ATOM ENVIRONMENT DETECTED!"
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  ENDIF
-ENDIF
+! IF( verbosity==4 ) THEN
+!   IF( ALLOCATED(Pref) .AND. SIZE(Pref,1)>0 ) THEN
+!     !For each site, write position of central atom (that should always be (0,0,0))
+!     !and positions of neighbors into a XYZ file named "atomsk_site_i.xyz" for visualization
+!     msg = " ATOMIC  ENVIRONMENTS  DETECTED:"
+!     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!     DO i=1,MIN(Nsites,SIZE(Pref,1))
+!       !PRINT*, "Site #", i, ": ", NINT(Pref(i,1,5)), " atoms in this site"
+!       !Check if number of neighbours for site #i is positive
+!       IF( NINT(Pref(i,1,6))>0 ) THEN
+!         WRITE(msg,*) i
+!         OPEN(UNIT=23,FILE="atomsk_site_"//TRIM(ADJUSTL(msg))//".xyz",FORM="FORMATTED")
+!         WRITE(23,*) NINT(Pref(i,1,6))+1
+!         WRITE(23,*) "# Averaged environment for site #", i
+!         CALL ATOMSPECIES(Pref(i,1,4),species)
+!         WRITE(msg,*) i
+!         WRITE(temp,*) NINT(Pref(i,1,6))
+!         WRITE(23,'(a2,3X,3f16.8)') species, Pref(i,1,1:3)
+!         WRITE(msg,*) "  Site # "//TRIM(ADJUSTL(msg))//" occupied by "//species// &
+!                     & " atom, has "//TRIM(ADJUSTL(temp))//" neighbors:"
+!         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!         DO j=2,NINT(Pref(i,1,6))+1
+!           CALL ATOMSPECIES(Pref(i,j,4),species)
+!           WRITE(23,'(a2,3X,3f16.8)') species, Pref(i,j,1:3)
+!           WRITE(msg,'(8X,a2,3X,3f12.3)') species, Pref(i,j,1:3)
+!           CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!         ENDDO
+!         CLOSE(23)
+!       ENDIF
+!     ENDDO
+!     OPEN(UNIT=23,FILE="atomsk_siteindex.txt",FORM="FORMATTED")
+!     WRITE(23,*) SIZE(P,1)
+!     WRITE(23,*) "# Atomsk AVG_ENV: atom id and type of site they occupy"
+!     DO i=1,SIZE(siteindex,1)
+!       WRITE(23,*) i, siteindex(i)
+!     ENDDO
+!     CLOSE(23)
+!   ELSE
+!     msg = " ERROR:  NO ATOM ENVIRONMENT DETECTED!"
+!     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!   ENDIF
+! ENDIF
 !
 msg = "  EXITING  AVG_ENV"
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

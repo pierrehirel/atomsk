@@ -1,4 +1,4 @@
-# Makefile for compiling input modules of atomsk
+# Makefile for compiling input modules of Atomsk
 
 SIN=$(wildcard in_*.f90)
 OIN=$(SIN:.f90=.o)

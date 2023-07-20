@@ -1,5 +1,5 @@
-# Makefile for compiling Atomsk on a Unix/Linux machine.
-# Tested and works with GNU make and gfortran >4.4
+
+# General Makefile for compiling Atomsk.
 
 #####################################################################
 #
@@ -12,6 +12,12 @@
 # necessary variables and calling this one. See e.g. the
 # files "Makefile.ifort" or "Makefile.g95" or "Makefile.windows".
 
+# REQUIREMENTS:
+# - Atomsk uses some intrinsic functions of the Fortran 2008 standard,
+#   therefore the compiler must be compatible with this standard.
+#   If you use GNU Fortran (gfortran), version 9 or greater is required.
+#
+
 # USAGE:
 #    make atomsk
 # Or, to use parallel compilation:
@@ -21,10 +27,8 @@
 
 export
 
-DATE=$(shell date +'%Y-%m-%d')
-
 # Version of the program
-VER="master-$(DATE)"
+VER="master"
 
 # Name of the final binary
 BIN=atomsk
@@ -50,7 +54,7 @@ endif
 # if compiler was not defined before, the following defaults are used
 ifndef FORTRAN
   # GNU Fortran as the default Fortran compiler
-  # NOTE: use gfortran version 4.4 or greater. Versions prior to gfortran 4.4 may cause problems
+  # NOTE: use gfortran version 9 or greater, or any compiler compatible with Fortran 2008.
   FORTRAN=gfortran
   
   # Comment the following line to disable parallelization with OpenMP
@@ -153,7 +157,7 @@ all: atomsk
 
 # Compile the program
 # Note that the preprocessor must be called (-cpp)
-atomsk: message modes general
+atomsk: message modes compute general
 	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 -I $(OBJ) $(LAPACK)
 	@echo ""
 	@echo "    \o/ Compilation was successful!"
@@ -164,15 +168,19 @@ atomsk: message modes general
 
 # Compile the program as a library
 # Note that the preprocessor must be called (-cpp)
-lib: message modes
+lib: message compute modes
 	$(FORTRAN) $(FFLAGS) -shared -o atomsk.so $(OBJ)$(SEP)*.o
 	@echo ""
 	@echo "    \o/ Atomsk was compiled as a shared library file, 'atomsk.so'."
 	@echo ""
 
 # Compile modes modules
-modes: aux FORCE
+modes: aux compute FORCE
 	$(MAKE) $(MFLAGS) -C modes
+
+# Compile compute modules
+compute: general FORCE
+	$(MAKE) $(MFLAGS) -C compute
 
 # Compile input, options and output - this can be run in parallel
 aux: general
@@ -194,11 +202,8 @@ options: FORCE
 output: FORCE
 	$(MAKE) $(MFLAGS) -C output
 
-# Compile common modules ("include") - this MUST NOT be run in parallel
+# Compile common modules ("include") - NOTE: this MUST NOT be run in parallel (-j1)
 general: objdir
-	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/globalvar.f90
-	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
-	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
 	$(MAKE) $(MFLAGS) -j1 -C include
 
 # Create OBJ directory (the - sign indicates to ignore any error)

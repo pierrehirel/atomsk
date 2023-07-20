@@ -1,4 +1,4 @@
-# Makefile for compiling output modules of atomsk
+# Makefile for compiling output modules of Atomsk
 
 SOU=$(wildcard out_*.f90)
 OOU=$(SOU:.f90=.o)

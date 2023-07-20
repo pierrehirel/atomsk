@@ -1,4 +1,4 @@
-# Makefile for compiling common modules of atomsk
+# Makefile for compiling common modules of Atomsk
 
 # Modes modules
 # Note: "mode_interactive.f90" and "mode_list.f90" depend on "mode_normal.f90"

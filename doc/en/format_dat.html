@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Atomsk - DAT format - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: DAT</h2>
+
+<p><strong>Name:</strong> data columns format</p>
+
+<p><strong>Extension:</strong> dat</p>
+
+<p><strong>Specification:</strong> no standard</p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+
+<h4>Restrictions</h4>
+
+<p>A file in the DAT format is a plain-text file containing columns of values. When writing a DAT file, Atomsk writes the atomic number followed by the coordinates x,y,z of each atom. If auxiliary properties exist, then they are written. Note that the box vectors, comments are <em>not</em> written in a DAT file.</p>
+
+<p>When reading a DAT file, Atomsk actually assumes it follows the CSV format with values separated by blank spaces instead of commas. Read the <a href="./format_csv.html">page on CSV format</a> for more information. Since the box vectors cannot be read from a DAT file, then Atomsk will construct a bounding box.</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.cfg dat</code>
+<p>This will read the file <code>my_system.cfg</code>, and convert it to <code>my_system.dat</code>.</p></li>
+</ul>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>
