@@ -15,7 +15,7 @@ MODULE out_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 28 Aug. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -101,6 +101,11 @@ IF(ofu.NE.6) THEN
   OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=800)
 ENDIF
 !
+!
+WRITE(ofu,'(a)') "# Draft CIF file generated with Atomsk"
+WRITE(ofu,'(a)') ""
+WRITE(ofu,'(a)') "data_I"
+WRITE(ofu,'(a)') ""
 !
 CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
 CALL INT2MONTH(VALUES(2),month,smonth)
@@ -305,6 +310,9 @@ DO i=1,SIZE(P,1)
   ! write to file
   WRITE(ofu,'(a)') TRIM(ADJUSTL(temp(1:80)))
 ENDDO
+!
+WRITE(ofu,'(a)') ""
+WRITE(ofu,'(a17)') "# end of cif file"
 !
 !
 !
