@@ -387,7 +387,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<Achse>] <x1> <y1> <z1> <x2> [<y2> <z2>] [alpha]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<axis>] <x1> <y1> [<z1>] [<x2> <y2> <z2>] [R [r]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
@@ -1149,21 +1149,23 @@ CASE(2057)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2058)
   !reals(1) = deformation
+  !reals(2) = Poisson coefficient
   !strings(1) = direction of deformation: x, y or z
-  WRITE(msg,"(f16.3)") reals(1)*100.d0
-  msg = ">>> Deformiere das System um "//TRIM(ADJUSTL(msg))// &
-      & "% entlang "//TRIM(strings(1))
+  WRITE(temp,"(f16.3)") reals(1)*100.d0
+  SELECT CASE(StrDnCase(strings(1)))
+  CASE('x','y','z')
+    msg = ">>> Deformiere das System um "//TRIM(ADJUSTL(temp))//"% entlang "//TRIM(strings(1))
+    IF(DABS(reals(2))>1.d-16) THEN
+      WRITE(temp2,"(f16.3)") reals(2)
+      msg = TRIM(ADJUSTL(msg))//", Poisson Verhaeltnis: "//TRIM(ADJUSTL(temp2))
+    ENDIF
+  CASE DEFAULT
+    msg = ">>> Scherung des Systems um "//TRIM(ADJUSTL(temp))//"% entlang "//TRIM(strings(1))
+  END SELECT
+  msg = TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2059)
-  !reals(1) = Poisson coefficient
-  IF(reals(1)==0.d0) THEN
-    msg = "..> Uniaxiale Verzerrung."
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSE
-    WRITE(msg,"(f16.3)") reals(1)
-    msg = "..> Uniaxiale Spannung, Poisson Verhaeltnis: "//TRIM(ADJUSTL(msg))
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ENDIF
+  !
 CASE(2060)
   msg = "..> Das System wurde erfolgreich deformiert."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2278,6 +2280,17 @@ CASE(2154)
   WRITE(temp2,*) NINT(reals(2))
   msg = "..> Erkannte "//TRIM(ADJUSTL(temp))//" Kerne und "//TRIM(ADJUSTL(temp2))//" Schalen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2155)
+  !strings(1) = component to be un-tilted
+  IF( LEN_TRIM(strings(1))==0 ) THEN
+    msg = ">>> Entkippen der Kiste..."
+  ELSE
+    msg = ">>> Entfernen der Neigungskomponente "//TRIM(ADJUSTL(strings(1)))//"..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2156)
+  msg = "..> Box was untilted."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
   !strings(2) = second option
@@ -2480,15 +2493,24 @@ CASE(2763)
 CASE(2764)
   msg = TRIM(ADJUSTL(warnmsg))//" es wurde kein kürzerer periodischer Vektor gefunden, das System bleibt das gleiche."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2765)
+  msg = TRIM(ADJUSTL(warnmsg))//" Abstand d ist Null, Überspringe..."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2766)
+  msg = TRIM(ADJUSTL(warnmsg))//" Die Poissonzahl kann nicht für die Scherdehnung verwendet werden, ihr Wert wird ignoriert."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2767)
+  msg = TRIM(ADJUSTL(warnmsg))//" Box ist nicht gekippt. Ueberspringe."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option
-  msg = TRIM(ADJUSTL(warnmsg))//" Option "//TRIM(ADJUSTL(strings(1)))// &
-      & " ist ueberholt und wird bald entfernt."
+  msg = TRIM(ADJUSTL(warnmsg))//" Option '"//TRIM(ADJUSTL(strings(1)))// &
+      & "' ist ueberholt und wird bald entfernt."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Bitte benutzen Sie stattdessen die Option "// &
-      & TRIM(ADJUSTL(strings(2)))//"."
+  msg = "    Bitte benutzen Sie stattdessen die Option '"// &
+      & TRIM(ADJUSTL(strings(2)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !2800-2899: FEHLER MESSAGES

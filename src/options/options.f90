@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 June 2023                                     *
+!* Last modification: P. Hirel - 18 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -102,6 +102,7 @@ USE substitute
 USE swap
 USE torsion
 USE unit
+USE untilt
 USE unskew
 USE velocity
 USE wrap
@@ -168,7 +169,7 @@ CHARACTER(LEN=16):: cutdir   !x, y, z, or crystallographic direction
 REAL(dp):: cutdistance
 !
 !Variables relative to Option: deform
-CHARACTER(LEN=1):: def_dir       !direction of applied strain (X, Y or Z)
+CHARACTER(LEN=2):: def_dir       !direction of applied strain (X, Y or Z)
 REAL(dp):: def_strain, def_poisson  !applied strain and Poisson's ratio
 !
 !Variables relative to Option: dislocation
@@ -262,6 +263,9 @@ CHARACTER(LEN=16),DIMENSION(2):: swap_id  !Cartesian axes or indices of atoms to
 !
 !Variables relative to Option: unit
 CHARACTER(LEN=128):: unit1, unit2
+!
+!Variables relative to Option: untilt
+CHARACTER(LEN=2):: untilt_dir  !strain component: xy, xz, yz, yx, zx, zy (or empty)
 !
 !Variables relative to Option: velocity
 REAL(dp):: vel_T  !target temperature for Maxwell-Boltzmann distribution
@@ -460,7 +464,7 @@ DO ioptions=1,SIZE(options_array)
   !
   CASE('-cell')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, cellop, celllength, celldir
-    CALL CELL_XYZ(H,P,cellop,celllength,celldir)
+    CALL CELL_XYZ(H,cellop,celllength,celldir)
   !
   CASE('-center')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, center_atom
@@ -507,22 +511,40 @@ DO ioptions=1,SIZE(options_array)
     CALL CUTCELL(H,P,S,AUX,cut_dir,cutdistance,cutdir,ORIENT,SELECT)
   !
   CASE('-def', '-deform')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & def_dir, treal(1), def_poisson
-    !treal may contain the shear strain expressed in percent, e.g. "3%"
-    SELECT CASE(def_dir)
-    CASE('x','X')
+    j=0
+    def_poisson = 0.d0
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, def_dir, treal(1)
+    !treal may contain the strain expressed in percent, e.g. "3%"
+    SELECT CASE(StrDnCase(def_dir))
+    CASE('x')
       i=1
-    CASE('y','Y')
+    CASE('y')
       i=2
-    CASE('z','Z')
+    CASE('z')
       i=3
+    CASE("yx","zx")
+      i=1
+      j=1
+    CASE("xy","zy")
+      i=2
+      j=1
+    CASE("xz","yz")
+      i=3
+      j=1
     END SELECT
     CALL BOX2DBLE( H(:,i) , treal(1) , def_strain , status )
     IF(status>0) THEN
       temp = treal(1)
       GOTO 810
     ENDIF
+    !user may have specified a Poisson ratio; if not, just skip it
+    READ(options_array(ioptions),*,END=102,ERR=102) optionname, def_dir, tempreal, def_poisson
+    IF( j==1 ) THEN
+      !user specified a Poisson ratio, but asked for shear strain
+      !=> display warning message that value of Poisson ratio will be ignored
+      CALL ATOMSK_MSG(2766,(/""/),(/0.d0/))
+    ENDIF
+    102 CONTINUE
     CALL DEFORM_XYZ(H,P,S,def_dir,def_strain,def_poisson,SELECT)
   !
   CASE('-disloc', '-dislocation')
@@ -1278,6 +1300,12 @@ DO ioptions=1,SIZE(options_array)
     temp = temp(strlength:)
     unit2 = ADJUSTL(temp)
     CALL UNIT_XYZ(H,P,S,AUXNAMES,AUX,unit1,unit2,SELECT)
+  !
+  CASE('-untilt')
+    untilt_dir = ""
+    READ(options_array(ioptions),*,END=161,ERR=161) optionname, untilt_dir
+    161 CONTINUE
+    CALL UNTILT_XYZ(H,P,S,untilt_dir)
   !
   CASE('-unskew')
     CALL UNSKEW_XYZ(H)

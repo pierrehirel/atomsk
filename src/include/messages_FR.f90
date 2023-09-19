@@ -393,7 +393,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<axe>] <x1> <y1> <z1> <x2> [<y2> <z2>] [alpha]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<axis>] <x1> <y1> [<z1>] [<x2> <y2> <z2>] [R [r]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
@@ -1169,21 +1169,24 @@ CASE(2057)
   msg = TRIM(ADJUSTL(msg))//", "//TRIM(ADJUSTL(temp))//" atomes restants."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2058)
-  !reals(1) = deformation in %
+  !reals(1) = deformation
+  !reals(2) = Poisson coefficient
   !strings(1) = direction of deformation: x, y or z
-  WRITE(msg,"(f16.3)") reals(1)*100.d0
-  msg = ">>> Déformation du système de "//TRIM(ADJUSTL(msg))//"% suivant "//TRIM(strings(1))
+  WRITE(temp,"(f16.3)") reals(1)*100.d0
+  SELECT CASE(StrDnCase(strings(1)))
+  CASE('x','y','z')
+    msg = ">>> Déformation du système de "//TRIM(ADJUSTL(temp))//"% suivant "//TRIM(strings(1))
+    IF(DABS(reals(2))>1.d-16) THEN
+      WRITE(temp2,"(f16.3)") reals(2)
+      msg = TRIM(ADJUSTL(msg))//", coefficient de Poisson : "//TRIM(ADJUSTL(temp2))
+    ENDIF
+  CASE DEFAULT
+    msg = ">>> Cisaillement du système de "//TRIM(ADJUSTL(temp))//"% suivant "//TRIM(strings(1))
+  END SELECT
+  msg = TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2059)
-  !reals(1) = Poisson coefficient
-  IF(reals(1)==0.d0) THEN
-    msg = "..> Déformation uniaxiale."
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSE
-    WRITE(msg,"(f16.3)") reals(1)
-    msg = "..> Contrainte uniaxiale, coefficient de Poisson : "//TRIM(ADJUSTL(msg))
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ENDIF
+  !
 CASE(2060)
   msg = "..> Le système a bien été déformé."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2360,6 +2363,17 @@ CASE(2154)
   WRITE(temp2,*) NINT(reals(2))
   msg = "..> Detecté "//TRIM(ADJUSTL(temp))//" cœurs et "//TRIM(ADJUSTL(temp2))//" coquilles."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2155)
+  !strings(1) = component to be un-tilted
+  IF( LEN_TRIM(strings(1))==0 ) THEN
+    msg = ">>> Désinclinaison de la boîte..."
+  ELSE
+    msg = ">>> Suppression de l'inclinaison "//TRIM(ADJUSTL(strings(1)))//"..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2156)
+  msg = "..> L'inclinaison a été supprimée."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
   !strings(2) = second option
@@ -2562,13 +2576,19 @@ CASE(2764)
 CASE(2765)
   msg = TRIM(ADJUSTL(warnmsg))//" la distance d est nulle, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2766)
+  msg = TRIM(ADJUSTL(warnmsg))//" le coefficient de Poisson ne peut pas être utilisé en cisaillement, sa valeur sera ignorée."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2767)
+  msg = TRIM(ADJUSTL(warnmsg))//" la boîte n'est pas inclinée, abandon."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option
-  msg = TRIM(ADJUSTL(warnmsg))//" l'option "//TRIM(ADJUSTL(strings(1)))//" est obsolète et sera supprimée."
+  msg = TRIM(ADJUSTL(warnmsg))//" l'option '"//TRIM(ADJUSTL(strings(1)))//"' est obsolète et sera supprimée."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Veuillez employer l'option "//TRIM(ADJUSTL(strings(2)))//" à la place."
+  msg = "    Veuillez employer l'option '"//TRIM(ADJUSTL(strings(2)))//"' à la place."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !2800-2899: ERROR MESSAGES

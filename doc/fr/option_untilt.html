@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Option untilt - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option&nbsp;: untilt</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-untilt [&#60;xy|xz|yz|yx|zx|zy&#62;]</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option déforme le système (boîte et atomes) de sorte à supprimer toute inclinaison de la boîte. Cela peut être utile lorsqu'un système a été cisaillé, et que l'on souhaite le "dé-cisailler".</p>
+
+<p>Après l'application de cette option, les composantes non-diagonales de la matrice des vecteurs de boîte deviennent nuls, de sorte que les vecteurs de boîte deviennent H1=(h1,0,0), H2=(0,h2,0), H3=(0,0,h3). Autrement dit, la boîte devient orthogonale.</p>
+
+<p>Il est possible de ne supprimer qu'une seule composante d'inclinaison, en spécifiant 'xy', 'xz', 'yz', 'zx', ou 'zy'.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut l'inclinaison de la boîte n'est pas altérée.</p>
+
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.cfg -untilt final.xyz</code>
+<p>Ceci va lire le système <code>initial.cfg</code>, et supprimera toute inclinaison. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+
+<li><code class="command">atomsk initial.cfg -untilt xy final.xyz</code>
+<p>Ceci va lire le système <code>initial.cfg</code>, et supprimera la composante xy, autrement dit la composante H(2,1) deviendra nulle. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

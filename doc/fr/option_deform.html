@@ -15,32 +15,28 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-deform &#60;direction&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
+<p><code>-deform &#60;x|y|z|xy|xz|yz|yx|zx|zy&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet d'appliquer une déformation uniaxiale à un système.</p>
+<p>Cette option permet de déformer un système, en appliquant une tension ou compression uniaxiale, ou un cisaillement.</p>
 
-<p>Les paramètres associés à cette option sont :</p>
+<p>L'utilisateur doit fournir la composante à déformer, la valeur de la déformation, et si besoin, le coefficient de Poisson du matériau. Le programme déforme alors le système dans la direction donnée, en appliquant le coefficient de Poisson dans les autres directions. Les paramètres associés à cette option sont&nbsp;:</p>
 
 <ul>
-  <li><strong>direction</strong> : direction de la déformation appliquée, doit être x, y ou z.</li>
-  <li><strong>&epsilon;</strong> : valeur de déformation appliquée (le symbole &#37; peut être utilisé pour donner un pourcentage). Une valeur positive provoquera une tension, une valeur négative une compression.</li>
-  <li><strong>&nu;</strong>: coefficient de Poisson du matériau.</li>
+  <li><strong>composante</strong>&nbsp;: composante de la boîte qui sera déformée. 'X', 'Y', ou 'Z' applique une déformation uniaxiale suivant la direction donnée. Les autres composantes appliquent un cisaillement. 'xy' fait référence à la composante H(2,1), c'est-à-dire la composante X du second vecteur de boîte&nbsp;; 'yz' correspond à H(3,2), c'est-à-dire la composante Y du troisième vecteur de boîte, et ainsi de suite.</li>
+  <li><strong>&epsilon;</strong>&nbsp;: valeur de la déformation (le symbole &#37; peut être utilisé pour donner un pourcentage). Une valeur positive provoquera une tension, une valeur négative une compression.</li>
+  <li><strong>&nu;</strong> (optionel)&nbsp;: coefficient de Poisson du matériau (possible seulement pour une déformation uniaxiale, c'est-à-dire si la composante était 'x', 'y', ou 'z').</li>
 </ul>
 
-<p>Cette transformation devrait résulter en une <strong>contrainte uniaxiale</strong>, c-à-d. que la contrainte sera non-nulle suivant la &#60;direction&#62; mais devrait être nulle dans les autres directions (si le coefficient de Poisson est correct).</p>
+<p>Si la composante est 'x', 'y' ou 'z', la transformation résultera en une <strong>déformation uniaxiale</strong>. Si une valeur du coefficient de Poisson est donnée, alors la transformation résultera en une <strong>contrainte uniaxiale</strong>, c'est-à-dire que la contrainte sera non-nulle uniquement suivant la direction donnée. Les autres directions seront déformées suivant le coefficient de Poisson, ce qui devrait leur conférer une contrainte nulle. Pour appliquer la même déformation dans toutes les directions, alors entrez une valeur de -1 au coefficient de Poisson. Cela peut être utile, par exemple, pour déformer un système conformément à son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;<em>T</em>, où <em>T</em> est la température à atteindre. Pour appliquer une <strong>déformation anisotrope</strong>, il est possible d'utiliser cette option trois fois de suite suivant les trois axes cartésiens, en utilisant &nu;=0 et différentes valeurs de &epsilon; (voir l'exemple 3 ci-dessous).</p>
 
-<p>Pour appliquer une <strong>déformation uniaxiale</strong> (c-à-d. déformer une seule dimension) il suffit d'utiliser un coefficient de Poisson nul.</p>
-
-<p>Pour appliquer une <strong>déformation anisotrope</strong> il est possible d'utiliser cette option suivant chaque axe en utilisant &nu;=0 et des valeurs différentes de &epsilon; (voir l'exemple 3 ci-dessous).</p>
-
-<p>Pour appliquer la même déformation dans toutes les directions il faut utiliser un coefficient de Poisson égal à -1. Ceci peut être utile par ex. pour déformer un matériau d'après son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;<em>T</em>, où <em>T</em> est la température cible.</p>
+<p>Si la composante est 'xy', 'xz', 'yz', 'zx', ou 'zy', alors la transformation résultera en un <strong>cisaillement</strong> du système. Dans ce cas il n'est pas possible de spécifier un coefficient de Poisson.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls la déformation ne s'appliquera qu'aux atomes sélectionnés, et la boîte ne sera pas déformée.</p>
 
-<p>Pour appliquer un cisaillement référez-vous à l'<a href="./option_shear.html">option <code>-shear</code></a>. Pour appliquer un état de contrainte il est possible d'utiliser l'<a href="./option_stress.html">option <code>-stress</code></a>.</p>
+<p>Pour appliquer une contrainte, référez-vous à l'<a href="./option_stress.html">option <code>-stress</code></a>.</p>
 
 
 <h4>Défaut</h4>
@@ -52,8 +48,11 @@
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.cfg -deform x 0.06 final.xyz</code>
+<p>Ceci allongera le système <code>initial.cfg</code> de &epsilon;=6&#37; suivant X&nbsp;; ceci est équivalent à une déformation uniaxiale. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+
 <li><code class="command">atomsk initial.cfg -deform x 0.06 0.3 final.xyz</code>
-<p>Ceci allongera le système <code>initial.cfg</code> de &epsilon;=6&#37; suivant X, avec un coefficient de Poisson de 0.3 ; ceci est équivalent à une contrainte uniaxiale. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
+<p>Ceci allongera le système <code>initial.cfg</code> de &epsilon;=6&#37; suivant X, avec un coefficient de Poisson de 0.3&nbsp;; ceci est équivalent à une contrainte uniaxiale. Le résultat sera écrit dans <code>final.xyz</code>.</p></li>
 
 <li><code class="command">atomsk initial.cfg -def y 2.5&#37; 0.0 final.xyz</code>
 <p>Ceci appliquera une déformation uniaxiale (parce que le coefficient de Poisson vaut 0) de 2.5&#37; suivant Y.</p></li>
@@ -63,6 +62,9 @@
 
 <li><code class="command">atomsk initial.cfg -def x 0.003 -1 final.xyz</code>
 <p>Ceci appliquera une tension de 0.3&#37; dans toutes les directions, mimant l'effet d'un coefficient d'expansion thermique &alpha;=10<sup>-5</sup> K<sup>-1</sup> à une température <em>T</em>=300 K.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def yx 3% final.xyz</code>
+<p>Ceci va incliner le deuxième vecteur de boîte de 3% suivant X, résultant en un cisaillement.</p></li>
 </ul>
 
 <p><a href="./index.html">Retour au menu principal</a></p>

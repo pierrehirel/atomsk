@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 Dec. 2022                                     *
+!* Last modification: P. Hirel - 05 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -60,13 +60,17 @@ INTEGER,INTENT(IN):: den_type       !type of density to output: 1, 2 or 3 (for 1
 REAL(dp),INTENT(IN):: Sigma         !square root of variance
 !
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=128):: msg
-CHARACTER(LEN=4096):: outputfile
+CHARACTER(LEN=128):: msg, temp
+CHARACTER(LEN=4096):: outputfile, conffile
+CHARACTER(LEN=128),DIMENSION(2,3):: user_values !user values of Nx, Ny, Nz
+CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: strings
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of output file formats
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-LOGICAL:: peak, dip  !is it a peak/dip in the density?
+LOGICAL:: fileexists
+LOGICAL:: userdefined !did the user provide custom values? (NX, NY, and/or NZ)
+LOGICAL:: peak, dip   !is it a peak/dip in the density?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1, a2, a3
 INTEGER:: progress      !To show calculation progress
@@ -98,6 +102,8 @@ REAL(dp),DIMENSION(:),POINTER:: PropPoint !pointer to the property whose density
 !
 !
 !Initialize variables
+user_values(:,:) = ""
+IF(ALLOCATED(strings)) DEALLOCATE(strings)
 a1=1
 a2=2
 a3=3
@@ -113,6 +119,64 @@ snumber = 0.d0
 IF(ALLOCATED(DenGrid1)) DEALLOCATE(DenGrid1)
 IF(ALLOCATED(DenGrid2)) DEALLOCATE(DenGrid2)
 IF(ALLOCATED(DenGrid3)) DEALLOCATE(DenGrid3)
+!Check if user wrote specific values for these parameters in a configuration file
+!(UNIX/Linux: "atomsk.conf", Windows: "atomsk.ini"), with the format:
+! density NX <value>
+! density NY <value>
+! density NZ <value>
+#if defined(WINDOWS)
+conffile = "atomsk.ini"
+#else
+conffile = "atomsk.conf"
+#endif
+INQUIRE(FILE=conffile,EXIST=fileexists)
+IF( fileexists ) THEN
+  CALL ATOMSK_MSG(16,(/conffile/),(/0.d0/))
+  OPEN(UNIT=31,FILE=conffile,STATUS="OLD",FORM="FORMATTED")
+  m = 0
+  DO
+    n=1
+    READ(31,'(a)',ERR=110,END=110) temp
+    temp = TRIM(ADJUSTL(temp))
+    IF( temp(1:1).NE.'#' ) THEN
+      IF( StrDnCase(temp(1:3))=="density" ) THEN
+        temp = TRIM(ADJUSTL(temp(4:)))
+        IF( StrDnCase(temp(1:6))=="nx" ) THEN
+          READ(temp(7:),*,ERR=105,END=105) Nx
+          m = m+1
+          user_values(1,m) = "Nx"
+          WRITE(user_values(2,m),*) Nx
+          userdefined = .TRUE.
+        ELSEIF( StrDnCase(temp(1:6))=="ny" ) THEN
+          READ(temp(7:),*,ERR=105,END=105) Ny
+          m = m+1
+          user_values(1,m) = "Ny"
+          WRITE(user_values(2,m),*) Ny
+          userdefined = .TRUE.
+        ELSEIF( StrDnCase(temp(1:6))=="nz" ) THEN
+          READ(temp(7:),*,ERR=105,END=105) Nz
+          m = m+1
+          user_values(1,m) = "Nz"
+          WRITE(user_values(2,m),*) Nz
+          userdefined = .TRUE.
+        ENDIF
+      ENDIF
+    ENDIF
+    n=0
+    105 CONTINUE
+    IF( n>0 ) CALL ATOMSK_MSG(808,(/TRIM(temp)/),(/0.d0/))
+  ENDDO
+  110 CONTINUE
+  CLOSE(31)
+  ALLOCATE(strings(m))
+  strings(:) = ""
+  DO i=1,m
+    strings(i) = user_values(i,1)//" = "//user_values(i,2)
+  ENDDO
+  CALL ATOMSK_MSG(4075,(/user_values(1,:),user_values(2,:)/),(/0.d0/))
+  DEALLOCATE(strings)
+  !
+ENDIF
 !
 !
 CALL ATOMSK_MSG(4066,(/property/),(/DBLE(den_type),Sigma/))
@@ -182,6 +246,13 @@ IF( den_type==1 ) THEN
   ELSEIF( Nx>10000 ) THEN
     Nx = 10000
   ENDIF
+  IF(userdefined) THEN
+    DO i=1,SIZE(user_values)
+      IF( StrDnCase(user_values(i,1))=="nx" ) THEN
+        READ(user_values(i,2),*) Nx
+      ENDIF
+    ENDDO
+  ENDIF
   dx = H(a1,a1) / DBLE(Nx)
   !
 ELSEIF( den_type==2 ) THEN
@@ -193,13 +264,22 @@ ELSEIF( den_type==2 ) THEN
   Ny = NINT( ( MAXVAL(P(:,a2))-MINVAL(P(:,a2)) ) / dy )
   IF( Nx<20 ) THEN
     Nx = 20
-  ELSEIF( Nx>100 ) THEN
-    Nx = 100
+  ELSEIF( Nx>200 ) THEN
+    Nx = 200
   ENDIF
   IF( Ny<20 ) THEN
     Ny = 20
-  ELSEIF( Ny>100 ) THEN
-    Ny = 100
+  ELSEIF( Ny>200 ) THEN
+    Ny = 200
+  ENDIF
+  IF(userdefined) THEN
+    DO i=1,SIZE(user_values)
+      IF( StrDnCase(user_values(i,1))=="nx" ) THEN
+        READ(user_values(i,2),*) Nx
+      ELSEIF( StrDnCase(user_values(i,1))=="ny" ) THEN
+        READ(user_values(i,2),*) Ny
+      ENDIF
+    ENDDO
   ENDIF
   dx = H(a1,a1) / DBLE(Nx)
   dy = H(a2,a2) / DBLE(Ny)
@@ -215,16 +295,27 @@ ELSE
   Nz = NINT( ( MAXVAL(P(:,a3))-MINVAL(P(:,a3)) ) / dz )
   IF( Nx<40 .OR. Nx>100 ) THEN
     Nx = 100
-    dx = H(a1,a1) / DBLE(Nx)
   ENDIF
   IF( Ny<40 .OR. Ny>100 ) THEN
     Ny = 100
-    dy = H(a2,a2) / DBLE(Ny)
   ENDIF
   IF( Nz<40 .OR. Nz>100 ) THEN
     Nz = 100
-    dz = H(a3,a3) / DBLE(Nz)
   ENDIF
+  IF(userdefined) THEN
+    DO i=1,SIZE(user_values)
+      IF( StrDnCase(user_values(i,1))=="nx" ) THEN
+        READ(user_values(i,2),*) Nx
+      ELSEIF( StrDnCase(user_values(i,1))=="ny" ) THEN
+        READ(user_values(i,2),*) Ny
+      ELSEIF( StrDnCase(user_values(i,1))=="nz" ) THEN
+        READ(user_values(i,2),*) Nz
+      ENDIF
+    ENDDO
+  ENDIF
+  dx = H(a1,a1) / DBLE(Nx)
+  dy = H(a2,a2) / DBLE(Ny)
+  dz = H(a3,a3) / DBLE(Nz)
 ENDIF
 WRITE(msg,'(a13,3(i6,1X))') 'Nx, Ny, Nz = ', Nx, Ny, Nz
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

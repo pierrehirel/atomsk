@@ -203,6 +203,10 @@ output: FORCE
 	$(MAKE) $(MFLAGS) -C output
 
 # Compile common modules ("include") - NOTE: this MUST NOT be run in parallel (-j1)
+l10n: general
+	$(MAKE) $(MFLAGS) -j1 -C include
+
+# Compile common modules ("include") - NOTE: this MUST NOT be run in parallel (-j1)
 general: objdir
 	$(MAKE) $(MFLAGS) -j1 -C include
 

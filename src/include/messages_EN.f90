@@ -284,8 +284,8 @@ IF(helpsection=="options" .OR. helpsection=="-cut") THEN
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-deform" .OR. helpsection=="-def") THEN
-  WRITE(*,*) "..> Apply uniaxial stress or strain:"
-  WRITE(*,*) "          -def <x|y|z> <strain> <Poissons ratio>"
+  WRITE(*,*) "..> Apply uniaxial or shear strain:"
+  WRITE(*,*) "          -def <x|y|z> <strain> [<Poissons ratio>]"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-dislocation" .OR. helpsection=="-disloc") THEN
@@ -393,7 +393,7 @@ IF(helpsection=="options" .OR. helpsection=="-select") THEN
   WRITE(*,*) "          -select <species>"
   WRITE(*,*) "          -select <index>"
   WRITE(*,*) "          -select <above|below> <d> <normal>"
-  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<axis>] <x1> <y1> <z1> <x2> [<y2> <z2>] [alpha]]"
+  WRITE(*,*) "          -select <in|out> <box|sphere|cylinder|cone|torus> [<axis>] <x1> <y1> [<z1>] [<x2> <y2> <z2>] [R [r]]"
   WRITE(*,*) "          -select prop <prop> <value>"
   WRITE(*,*) "          -select random <N> <species>"
   WRITE(*,*) "          -select <NNN> <species> neighbors <index>"
@@ -1158,20 +1158,23 @@ CASE(2057)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2058)
   !reals(1) = deformation
+  !reals(2) = Poisson coefficient
   !strings(1) = direction of deformation: x, y or z
-  WRITE(msg,"(f16.3)") reals(1)*100.d0
-  msg = ">>> Deforming the system by "//TRIM(ADJUSTL(msg))//"% along "//TRIM(strings(1))
+  WRITE(temp,"(f16.3)") reals(1)*100.d0
+  SELECT CASE(StrDnCase(strings(1)))
+  CASE('x','y','z')
+    msg = ">>> Deforming the system by "//TRIM(ADJUSTL(temp))//"% along "//TRIM(strings(1))
+    IF(DABS(reals(2))>1.d-16) THEN
+      WRITE(temp2,"(f16.3)") reals(2)
+      msg = TRIM(ADJUSTL(msg))//", Poisson ratio: "//TRIM(ADJUSTL(temp2))
+    ENDIF
+  CASE DEFAULT
+    msg = ">>> Shearing the system by "//TRIM(ADJUSTL(temp))//"% along "//TRIM(strings(1))
+  END SELECT
+  msg = TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2059)
-  !reals(1) = Poisson coefficient
-  IF(reals(1)==0.d0) THEN
-    msg = "..> Uniaxial strain."
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ELSE
-    WRITE(msg,"(f16.3)") reals(1)
-    msg = "..> Uniaxial stress, Poisson ratio: "//TRIM(ADJUSTL(msg))
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-  ENDIF
+  !
 CASE(2060)
   msg = "..> System was successfully deformed."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -2292,6 +2295,17 @@ CASE(2154)
   WRITE(temp2,*) NINT(reals(2))
   msg = "..> Detected "//TRIM(ADJUSTL(temp))//" cores and "//TRIM(ADJUSTL(temp2))//" shells."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2155)
+  !strings(1) = component to be un-tilted
+  IF( LEN_TRIM(strings(1))==0 ) THEN
+    msg = ">>> Un-tilting the box..."
+  ELSE
+    msg = ">>> Removing the tilt component "//TRIM(ADJUSTL(strings(1)))//"..."
+  ENDIF
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2156)
+  msg = "..> Box was untilted."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
   !strings(2) = second option
@@ -2493,13 +2507,19 @@ CASE(2764)
 CASE(2765)
   msg = TRIM(ADJUSTL(warnmsg))//" distance d is zero, skipping..."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2766)
+  msg = TRIM(ADJUSTL(warnmsg))//" Poisson ratio cannot be used for shear strain, its value will be ignored."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2767)
+  msg = TRIM(ADJUSTL(warnmsg))//" box is not tilted, skipping."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option
   !strings(2) = name of new option
-  msg = TRIM(ADJUSTL(warnmsg))//" option "//TRIM(ADJUSTL(strings(1)))//" is deprecated and will be removed."
+  msg = TRIM(ADJUSTL(warnmsg))//" option '"//TRIM(ADJUSTL(strings(1)))//"' is deprecated and will be removed."
   CALL DISPLAY_MSG(1,msg,logfile)
-  msg = "    Please use option "//TRIM(ADJUSTL(strings(2)))//" instead."
+  msg = "    Please use option '"//TRIM(ADJUSTL(strings(2)))//"' instead."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !2800-2899: ERROR MESSAGES

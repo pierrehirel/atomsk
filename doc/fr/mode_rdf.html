@@ -15,7 +15,7 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>atomsk --rdf &#60;fichierliste&#62; &#60;dR&#62; [options]</code></p>
+<p><code>atomsk --rdf &#60;fichier&#62; &#60;dR&#62; [options]</code></p>
 
 <h4>Description</h4>
 
@@ -23,7 +23,9 @@
 
 <p>L'analyse est faite pour toutes les "peaux" [R;R+dR] où R varie de 0 jusqu'à &#60;R<sub>max</sub>&#62;, et est moyennée sur tous les atomes (moyenne spatiale). Le rayon maximal &#60;R<sub>max</sub>&#62; et l'épaisseur &#60;dR&#62; de la "peau" doivent être fournis (en &Aring;). Le rayon maximal &#60;R<sub>max</sub>&#62; peut être supérieur à la taille du système.</p>
 
-<p>Le &#60;fichierliste&#62; doit contenir une liste de fichiers à traiter, chacun de ces fichiers contenant une configuration d'une simulation en dynamique moléculaire par exemple. La fonction de distribution radiale finale est moyennée sur toutes ces configurations, autrement dit il s'agit d'une moyenne spatiale et temporelle.</p>
+<p>Si le &#60;fichier&#62; contient un système atomique (dans l'un des <a href="./formats.html">formats supportés par Atomsk</a>), alors la RDF est calculée pour ce système.</p>
+
+<p>Si le &#60;fichier&#62; contient une liste de fichiers à traiter, alors la RDF est calculée pour chacun de ces fichiers, et moyennée sur toutes ces configurations, autrement dit il s'agit d'une moyenne spatiale et temporelle. Les fichiers devraient tous correspondre au même système (par exemple, des instantanés d'une simulation en dynamique moléculaire) pour que le calcul ait du sens.</p>
 
 <p>Si les systèmes contiennent plusieurs espèces chimiques alors les fonctions de distribution radiale partielles sont calculées. Par exemple si des atomes A et B existent, alors Atomsk calculera les fonctions de distribution des atomes A autour des atomes A, de B autour de A, et B autour de B.</p>
 
@@ -44,6 +46,9 @@
 <h4>Exemples</h4>
 
 <ul>
+<li><code class="command">atomsk --rdf systeme.cfg 10 0.1</code>
+<p>Ceci calculera la fonction de distribution radiale pour le système contenu dans <code>systeme.cfg</code>, de 0 à 10&nbsp;&Aring;, en utilisant un pas dR=0.1&nbsp;&Aring;.</p></li>
+
 <li><code class="command">atomsk --rdf liste.lst 10 0.1</code>
 <p>Ceci calculera les fonctions de distribution radiale pour tous les systèmes contenus dans <code>liste.lst</code>, de 0 à 10&nbsp;&Aring;, en utilisant un pas dR=0.1&nbsp;&Aring;.</p></li>
 

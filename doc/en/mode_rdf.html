@@ -15,15 +15,17 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --rdf &#60;listfile&#62; &#60;R<sub>max</sub>&#62; &#60;dR&#62; [options]</code></p>
+<p><code>atomsk --rdf &#60;file&#62; &#60;R<sub>max</sub>&#62; &#60;dR&#62; [options]</code></p>
 
 <h4>Description</h4>
 
-<p>In this mode Atomsk computes the radial distribution function(s) (RDF) for the systems in &#60;listfile&#62;.</p>
+<p>In this mode Atomsk computes the radial distribution function(s) (RDF) for one or several systems.</p>
 
 <p>The analysis is performed for all skins [R;R+dR] with R ranging from 0 up to &#60;R<sub>max</sub>&#62;, and averaged over all atoms (i.e. space-averaged). The maximum radius &#60;R<sub>max</sub>&#62; and the width &#60;dR&#62; of the skin (or shell) must be provided (in &Aring;). The maximum radius &#60;R<sub>max</sub>&#62; can be greater than the system size.</p>
 
-<p>The &#60;listfile&#62; must contain a list of files to process, which should be consecutive snapshots of a molecular dynamics run. The final RDF is averaged over all these snapshots, i.e. it is both space- and time-averaged.</p>
+<p>If the &#60;file&#62; contains an atomic system (in one of the <a href="./formats.html">formats supported by Atomsk</a>), then the RDF is computed for this system.</p>
+
+<p>If the &#60;file&#62; contains a list of file names, then the RDF is computed for all of these files, and averaged over all these snapshots, i.e. it is both space- and time-averaged. All files should correspond to the same system (for example, snapshots of a molecular dynamics run) for the calculation to make sense.</p>
 
 <p>If the system contains several atom species then all the partial RDFs are computed. E.g. if atoms A and B exist, then Atomsk will compute the RDF for A atoms around A atoms, B around A, and B around B.</p>
 
@@ -45,6 +47,9 @@
 <h4>Examples</h4>
 
 <ul>
+<li><code class="command">atomsk --rdf aluminium.cfg 10 0.1</code>
+<p>This will compute the radial distribution function for the system <code>aluminium.cfg</code>, from 0 to 10&nbsp;&Aring;, using a shell width dR=0.1&nbsp;&Aring;.</p></li>
+
 <li><code class="command">atomsk --rdf list.lst 10 0.1</code>
 <p>This will compute the radial distribution function for all systems in <code>list.lst</code>, from 0 to 10&nbsp;&Aring;, using a shell width dR=0.1&nbsp;&Aring;.</p></li>
 

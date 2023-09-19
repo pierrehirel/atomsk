@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2023                                     *
+!* Last modification: P. Hirel - 18 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -796,6 +796,7 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   ELSEIF(clarg=='-deform' .OR. clarg=='-def') THEN
+    j=0
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read deformation direction (x, y or z)
@@ -805,6 +806,8 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
       & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
+    IF( StrDnCase(temp(1:2))=="x " .OR. StrDnCase(temp(1:2))=="y " .OR. StrDnCase(temp(1:2))=="z " ) &
+      & j=1
     !read deformation
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
@@ -813,17 +816,20 @@ DO WHILE(i<SIZE(cla))
     IF(m>0) THEN
       temp(m:m)=" "
       READ(temp,*,END=120,ERR=120) tempreal
-      WRITE(temp,'(f16.3)') tempreal/100.d0
+      WRITE(temp,'(f16.6)') tempreal/100.d0
     ELSE
       IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
     ENDIF
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     READ(temp,*,END=120,ERR=120) tempreal
-    !read Poisson ratio
+    !attempt reading Poisson ratio
     i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
+    READ(cla(i),'(a)',END=110,ERR=110) temp
+    READ(temp,*,END=102,ERR=102) tempreal
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    READ(temp,*,END=120,ERR=120) tempreal
+    GOTO 110
+    102 CONTINUE
+    i=i-1
   !
   ELSEIF(clarg=='-dislocation' .OR. clarg=='-disloc') THEN
     m=0
@@ -1697,6 +1703,7 @@ DO WHILE(i<SIZE(cla))
 !     ENDIF
   !
   ELSEIF(clarg=='-shear') THEN
+    CALL ATOMSK_MSG(2799,(/'-shear ','-deform'/),(/0.d0/))
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the normal to the sheared surface (x, y or z)
@@ -1906,6 +1913,22 @@ DO WHILE(i<SIZE(cla))
     temp = cla(i)
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
+  ELSEIF(clarg=='-untilt') THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
+    !Read component
+    i=i+1
+    READ(cla(i),*,END=109,ERR=109) temp
+    temp = ADJUSTL(temp)
+    SELECT CASE(temp)
+    CASE('xy','XY','yx','YX','zx','ZX','xz','XZ','zy','ZY','yz','YZ')
+      !store it in the option parameters
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    CASE DEFAULT
+      !It was not a tilt component but something else
+      i=i-1
+    END SELECT
+  !
   ELSEIF(clarg=='-unskew') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
@@ -1961,6 +1984,11 @@ DO WHILE(i<SIZE(cla))
 !     CALL ATOMSK_MSG(703,(/TRIM(clarg)/),(/0.d0/))
   !
   ENDIF
+  !
+  GOTO 110
+  !
+  109 CONTINUE
+  i=i-1
   !
   110 CONTINUE
   IF(i>SIZE(cla)) GOTO 120

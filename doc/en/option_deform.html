@@ -15,32 +15,30 @@
 
 <h4>Syntax</h4>
 
-<p><code>-deform &#60;direction&#62; &#60;&epsilon;&#62; &#60;&nu;&#62;</code></p>
+<p><code>-deform &#60;x|y|z&#62; &#60;&epsilon;&#62; [&#60;&nu;&#62;]</code></p>
+
+<p><code>-deform &#60;xy|xz|yz|yx|zx|zy&#62; &#60;&epsilon;&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to apply a uniaxial stress or strain to a system.</p>
+<p>This option allows to deform a system, by applying uniaxial strain or shear strain.</p>
 
-<p>The user has to provide the direction of deformation, the applied strain, and the Poisson's ratio of the material. The program deforms the material in the given direction according to the applied strain, and deforms it in the other directions according to Poisson's ratio. The command-line parameters of importance are:</p>
+<p>The user has to provide the component of deformation, the value of the applied strain, and optionally, the Poisson's ratio of the material. The program deforms the material in the given direction according to the applied strain, and deforms it in the other directions according to Poisson's ratio. The command-line parameters of importance are:</p>
 
 <ul>
-  <li><strong>direction</strong>: direction in which to apply the uniaxial stress, it must be x, y or z.</li>
-  <li><strong>&epsilon;</strong>: value of the applied strain (if given in percent the symbol &#37; must be used). Use a positive value for tension, or a negative value for compression.</li>
-  <li><strong>&nu;</strong>: value of Poisson's ratio for this material.</li>
+  <li><strong>component</strong>: component of the box that will be deformed. 'X', 'Y', or 'Z' will result in uniaxial strain in the corresponding direction. Other components will result in shear strain. 'xy' refers to H(2,1) i.e. the X component of the second cell vector; 'yz' refers to H(3,2) i.e. the Y component of the third cell vector, and so on.</li>
+  <li><strong>&epsilon;</strong>: value of the deformation (if given in percent the symbol &#37; must be used). Use a positive value for tension, or a negative value for compression.</li>
+  <li><strong>&nu;</strong> (optional): value of Poisson's ratio for this material (only possible for uniaxial deformation, i.e. if component was 'x', 'y', or 'z').</li>
 </ul>
 
-<p>This transformation should result in an <strong>uniaxial stress</strong>: the stress should be non-zero in one direction, and should be zero in the other directions (that is, if Poisson's ratio is specified correctly).</p>
+<p>If the component is 'x', 'y' or 'z', the transformation will result in <strong>uniaxial strain</strong>. If a value is provided for Poisson's ratio, then the transformation will result in an <strong>uniaxial stress</strong>, i.e. the stress should be non-zero only in the given direction. Other directions will be deformed according to Poisson's ratio, which should result in zero stress. To apply the same deformation in all directions, set the Poisson's ratio value to -1. This can be useful, for instance, to deform a system according to its thermal expansion coefficient &alpha;, in which case one should use &epsilon;=&alpha;<em>T</em>, where <em>T</em> is the target temperature. To apply an <strong>anisotropic deformation</strong> one can use this option three times along the three axes, using &nu;=0 and different values of &epsilon; (see example 3 below).</p>
 
-<p>In order to apply an <strong>uniaxial strain</strong> (i.e. elongate only one dimension), set Poisson's ratio to zero.</p>
-
-<p>In order to apply an <strong>anisotropic deformation</strong> one can use this option three times along the three axes, using &nu;=0 and different values of &epsilon; (see example 3 below).</p>
-
-<p>In order to apply the same deformation in all directions, set the Poisson's ratio value to -1. This can be useful, for instance, to deform a system according to its thermal expansion coefficient &alpha;, in which case one should use &epsilon;=&alpha;<em>T</em>, where <em>T</em> is the target temperature.</p>
+<p>If the component is 'xy', 'xz', 'yz', 'zx', or 'zy', then the transformation will result in <strong>shear strain</strong>. In this case it is not possible to provide a Poisson ratio.</p>
 
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the deformation applies only to selected atoms, and the box is not deformed.</p>
 
-<p>For shear strain one can use the <a href="./option_shear.html">option <code>-shear</code></a>. In order to apply stress one can use the <a href="./option_stress.html">option <code>-stress</code></a>.</p>
+<p>To apply stress, refer to <a href="./option_stress.html">option <code>-stress</code></a>.</p>
 
 
 <h4>Default</h4>
@@ -52,6 +50,9 @@
 <h4>Examples</h4>
 
 <ul>
+<li><code class="command">atomsk initial.cfg -deform x 0.06 final.xyz</code>
+<p>This will elongate the system <code>initial.cfg</code> by &epsilon;=6&#37; along X (uniaxial strain). The result will be output into <code>final.xyz</code>.</p></li>
+
 <li><code class="command">atomsk initial.cfg -deform x 0.06 0.3 final.xyz</code>
 <p>This will elongate the system <code>initial.cfg</code> by &epsilon;=6&#37; along X, applying a Poisson's ratio of 0.3 along the other axes; this is equivalent to uniaxial stress. The result will be output into <code>final.xyz</code>.</p></li>
 
@@ -63,6 +64,9 @@
 
 <li><code class="command">atomsk initial.cfg -def x 0.003 -1 final.xyz</code>
 <p>This will apply a tension of 0.3&#37; in all directions, thus mimicking the effects of a thermal expansion coefficient &alpha;=10<sup>-5</sup> K<sup>-1</sup> at a temperature <em>T</em>=300 K.</p></li>
+
+<li><code class="command">atomsk initial.cfg -def yx 3% final.xyz</code>
+<p>This will tilt the second box vector by 3% along X, resulting in shear strain.</p></li>
 </ul>
 
 <p><a href="./index.html">Back to main menu</a></p>

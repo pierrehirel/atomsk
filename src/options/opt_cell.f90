@@ -40,7 +40,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE CELL_XYZ(H,P,cellop,celllength,celldir)
+SUBROUTINE CELL_XYZ(H,cellop,celllength,celldir)
 !
 !
 IMPLICIT NONE
@@ -58,7 +58,6 @@ REAL(dp):: vl  !length of a cell vector
 REAL(dp),DIMENSION(3):: cartvec  !coordinates of a Cartesian vector
 REAL(dp),INTENT(IN):: celllength  !value by which the cell will be modified
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P  !positions of atoms (not modified by this module)
 !
 !
 !Initialize variables

@@ -16,7 +16,7 @@ MODULE readconf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 June 2023                                     *
+!* Last modification: P. Hirel - 19 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -121,7 +121,7 @@ DO
       CALL ATOMSK_MSG(751,(/conffile/),(/0.d0/))
 #endif
     !
-    CASE("neigh","neighbor","neighbour","neigh_search","neighbor_search","neighbour_search")
+    CASE("neigh","neighlist","neighbor","neighbour","neigh_search","neighbor_search","neighbour_search")
       !user wants to use a specific search algorithm
       i = SCAN(temp," ")
       READ(temp(i+1:),*,END=800,ERR=800) neighsearch
@@ -158,7 +158,7 @@ DO
     !
     !
     !Special keywords that will be treated by modes/options are ignored here
-    CASE("nye","orthocell")
+    CASE("density","nye","orthocell")
       CONTINUE
     !
     !

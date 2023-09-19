@@ -77,18 +77,18 @@ ENDIF
 !
 !
 100 CONTINUE
-SELECT CASE(stress_in)
-CASE('x','xx','X','XX')
+SELECT CASE(StrDnCase(stress_in))
+CASE('x','xx')
   vstress(1) = stress
-CASE('y','yy','Y','YY')
+CASE('y','yy')
   vstress(2) = stress
-CASE('z','zz','Z','ZZ')
+CASE('z','zz')
   vstress(3) = stress
-CASE('yz','YZ','zy','ZY')
+CASE('yz','zy')
   vstress(4) = stress
-CASE('xz','XZ','zx','ZX')
+CASE('xz','zx')
   vstress(5) = stress
-CASE('xy','XY','yx','YX')
+CASE('xy','yx')
   vstress(6) = stress
 CASE('p','P')
   !"stress" is actually the value of isostatic pressure

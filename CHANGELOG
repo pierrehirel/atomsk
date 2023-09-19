@@ -6,8 +6,11 @@ Master
 ------
 - new mode "--match-id" allows to sort atoms from a file, so that their IDs match those from another file.
 - mode "--difference" now accepts that the two systems have different numbers of atoms. If atoms change chemical species in the two files, a new auxiliary property "diff_Z" is created.
-- when writing files in Protein Data Base (*.pdb) format, lines starting with SCALE are not written any more to avoid issues when visualising with OVITO. OVITO was also patched to fix this issue, see discussion [https://www.ovito.org/forum/topic/polyhedral-visualazation/] and Git commit [https://gitlab.com/stuko/ovito/-/commit/2a5f55736f4b6bdce7c18931a7fb30da84bb6320].
+- mode "--rdf" now accepts a single file name, in addition to a list of files.
+- when writing files in Protein Data Base (*.pdb) format, lines starting with SCALE are not written any more to avoid issues when visualising with OVITO. OVITO was also patched to fix this issue, see their Git commit [https://gitlab.com/stuko/ovito/-/commit/2a5f55736f4b6bdce7c18931a7fb30da84bb6320].
+- new option "-untilt" allows removing tilt components of a system.
 - option "-select" now displays chemical species of selected atoms.
+- option "-deform" now allows to apply shear deformation. Option "-shear" becomes obsolete.
 - progress bars can now be customized with a new keyword in configuration file (atomsk.conf). Available styles are linear (default), dots, rotate, clock, barrier, inflate, jump, wave, bounce, snail, pacman, face, none.
 - fixed a bug in mode "--merge" that was causing a segfault when the first system did not contain comments. Thanks to Abhay Vincent, Cranfield University, UK, for pointing out this bug.
 - fixed bugs in mode "--nye", where there was a sign error in the computation of the Nye tensor. Also attempted to tune computation parameters to improve accuracy in non-fcc materials. User can now specify parameters for the computation (NeighFactor, theta_max, NNmin, ) in a configuration file "atomsk.conf". Thanks to Houssam Kharouji and Vincent Taupin, LEM3, Univ. Lorraine, France, for helping improve the computation of Nye tensor.
