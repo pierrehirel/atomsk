@@ -32,13 +32,15 @@
   <li><strong>&nu;</strong> (optional): value of Poisson's ratio for this material (only possible for uniaxial deformation, i.e. if component was 'x', 'y', or 'z').</li>
 </ul>
 
-<p>If the component is 'x', 'y' or 'z', the transformation will result in <strong>uniaxial strain</strong>. If a value is provided for Poisson's ratio, then the transformation will result in an <strong>uniaxial stress</strong>, i.e. the stress should be non-zero only in the given direction. Other directions will be deformed according to Poisson's ratio, which should result in zero stress. To apply the same deformation in all directions, set the Poisson's ratio value to -1. This can be useful, for instance, to deform a system according to its thermal expansion coefficient &alpha;, in which case one should use &epsilon;=&alpha;<em>T</em>, where <em>T</em> is the target temperature. To apply an <strong>anisotropic deformation</strong> one can use this option three times along the three axes, using &nu;=0 and different values of &epsilon; (see example 3 below).</p>
+<p>If the component is 'x', 'y' or 'z', the transformation will result in <strong>uniaxial strain</strong>. If a value is provided for Poisson's ratio, then the other directions will be deformed according to it, which should result in <strong>uniaxial stress</strong>, i.e. the stress should be non-zero only along the given direction. To apply the same deformation in all directions, set the Poisson's ratio value to -1. This can be useful, for instance, to deform a system according to its thermal expansion coefficient &alpha;, in which case one should use &epsilon;=&alpha;<em>T</em>, where <em>T</em> is the target temperature. To apply an <strong>anisotropic deformation</strong> one can use this option three times along the three axes, using &nu;=0 and different values of &epsilon; (see example 3 below).</p>
 
-<p>If the component is 'xy', 'xz', 'yz', 'zx', or 'zy', then the transformation will result in <strong>shear strain</strong>. In this case it is not possible to provide a Poisson ratio.</p>
+<p>If the component is 'xy', 'xz', 'yz', 'yx', 'zx', or 'zy', then the transformation will result in <strong>shear strain</strong>. In this case it is not possible to provide a Poisson ratio.</p>
 
 <p>If a selection was defined (with the <a href="./option_select.html">option <code>-select</code></a>) then the deformation applies only to selected atoms, and the box is not deformed.</p>
 
 <p>To apply stress, refer to <a href="./option_stress.html">option <code>-stress</code></a>.</p>
+
+<p>To remove all tilt components of the box, refer to <a href="./option_untilt.html">option <code>-untilt</code></a>.</p>
 
 
 <h4>Default</h4>

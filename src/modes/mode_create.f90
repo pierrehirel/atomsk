@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2023                                    *
+!* Last modification: P. Hirel - 20 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -30,6 +30,7 @@ MODULE mode_create
 USE atoms
 USE comv
 USE constants
+USE crystallography
 USE messages
 USE files
 USE subroutines
@@ -1591,33 +1592,13 @@ ELSEIF( hexagonal ) THEN
     !The oriented unit cell vectors are defined by the Miller indices
     DO i=1,3
       !Convert [hkil] notation into [uvw]
-      u = 2.d0*ORIENT(i,1) + ORIENT(i,2)
-      v = ORIENT(i,1) + 2.d0*ORIENT(i,2)
-      w = ORIENT(i,3)
-      !Check for common divisor
-      IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
-        z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
-      ELSE
-        z1 = MAX(DABS(u),DABS(v))
-      ENDIF
-      IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
-        z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
-      ELSE
-        z2 = MAX(DABS(u),DABS(w))
-      ENDIF
-      IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
-        x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
-      ELSE  !i.e. z1==0 or z2==0
-        x = MAX( DABS(z1) , DABS(z2) )
-      ENDIF
-      IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
-      !Set box vector
-      uv(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
-      !
+      CALL HKIL2UVW(ORIENT(i,1),ORIENT(i,2),0.d0,ORIENT(i,3),u,v,w)
       !Update system orientation in ORIENT
       ORIENT(i,1) = u
       ORIENT(i,2) = v
       ORIENT(i,3) = w
+      !Set box vector
+      uv(i,:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
     ENDDO
     !
     WRITE(msg,*) "Oriented unit cell vectors:"
@@ -1632,6 +1613,8 @@ ELSEIF( hexagonal ) THEN
     !For each atom in the unit cell H(:,:), keep only periodic replica that are inside the uv(:)
     !and store it in Q(:,:)
     WRITE(msg,*) "Duplicating atoms inside oriented unit cell..."
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    WRITE(msg,*) "lminmax = ", lminmax
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !Estimate new number of particles NP by comparing volumes of old and new unit cells
     NP = 1.2d0*CEILING( SIZE(P,1) * DABS( DABS(uv(1,1)*uv(2,2)*uv(3,3)) / &
@@ -1659,12 +1642,14 @@ ELSEIF( hexagonal ) THEN
               & tempP(1,3)>=-1.d-12 .AND. tempP(1,3)<1.d0-1.d-12       ) THEN
               !This replica is inside the new cell, mark it as new
               new = .TRUE.
-              !Verify that its position is different from all previous atoms
-              DO m=1,NP
-                IF( DABS( VECLENGTH(tempP(1,1:3)-Q(m,1:3)) )<1.d-6 ) THEN
-                  new = .FALSE.
-                ENDIF
-              ENDDO
+              IF( NP>1 ) THEN
+                !Verify that its position is different from all previous atoms
+                DO m=1,NP
+                  IF( DABS( VECLENGTH(tempP(1,1:3)-Q(m,1:3)) )<1.d-6 ) THEN
+                    new = .FALSE.
+                  ENDIF
+                ENDDO
+              ENDIF
               !
               IF( new ) THEN
                 NP = NP+1

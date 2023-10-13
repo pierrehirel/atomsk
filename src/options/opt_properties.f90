@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 June 2023                                     *
+!* Last modification: P. Hirel - 20 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -66,6 +66,7 @@ REAL(dp):: a, b, c, alpha, beta, gamma
 REAL(dp):: aniA, aniH !anisotropy factors
 REAL(dp):: snumber
 REAL(dp):: tempreal, tempreal2, tempreal3
+REAL(dp):: u, v, w
 REAL(dp),DIMENSION(9):: Voigt     !Elastic constants (Voigt notation)
 REAL(dp),DIMENSION(3,3):: rot_matrix  !rotation matrix
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
@@ -135,13 +136,41 @@ DO
       msg = 'system orientation'
       READ(35,*,END=800,ERR=800) miller
       CALL INDEX_MILLER(miller,ORIENT(1,:),j)
-      IF(j>0) GOTO 800
-      READ(35,*,END=800,ERR=800) miller
-      CALL INDEX_MILLER(miller,ORIENT(2,:),j)
-      IF(j>0) GOTO 800
-      READ(35,*,END=800,ERR=800) miller
-      CALL INDEX_MILLER(miller,ORIENT(3,:),j)
-      IF(j>0) GOTO 800
+      IF(j>0) THEN !Failed to read [hkl]: try to read [hkil] indices
+        DO i=1,3
+          CALL INDEX_MILLER_HCP(miller,ORIENT(i,:),j)
+          IF( j>0 ) THEN
+            IF( j==2 ) THEN
+              !The error was because i is not equal to -h-k
+              nerr=nerr+1
+              CALL ATOMSK_MSG(815,(/miller/),(/0.d0/))
+              GOTO 1000
+            ELSE
+              !Other error, unable to convert this string into a proper vector
+              nerr = nerr+1
+              CALL ATOMSK_MSG(817,(/TRIM(miller)/),(/0.d0/))
+              GOTO 1000
+            ENDIF
+          ENDIF
+          !Convert [hkil] into [uvw]
+          CALL HKIL2UVW(ORIENT(i,1),ORIENT(i,2),0.d0,ORIENT(i,3),u,v,w)
+          !Set box vectors in ORIENT
+          ORIENT(i,1) = u
+          ORIENT(i,2) = v
+          ORIENT(i,3) = w
+          !read next line
+          IF(i<=3) READ(35,*,END=800,ERR=800) miller
+        ENDDO
+        !
+      ELSE
+        !Succeeded reading [hkl]: read the [hkl] along the other two directions
+        READ(35,*,END=800,ERR=800) miller
+        CALL INDEX_MILLER(miller,ORIENT(2,:),j)
+        IF(j>0) GOTO 800
+        READ(35,*,END=800,ERR=800) miller
+        CALL INDEX_MILLER(miller,ORIENT(3,:),j)
+        IF(j>0) GOTO 800
+      ENDIF
       !
       IF(verbosity==4) THEN
         !Debug messages

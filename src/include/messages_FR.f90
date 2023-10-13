@@ -2582,6 +2582,9 @@ CASE(2766)
 CASE(2767)
   msg = TRIM(ADJUSTL(warnmsg))//" la boîte n'est pas inclinée, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2768)
+  msg = TRIM(ADJUSTL(warnmsg))//" il ne reste plus aucun atome dans le système."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option

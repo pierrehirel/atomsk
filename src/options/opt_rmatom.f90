@@ -10,7 +10,7 @@ MODULE rmatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 Nov. 2016                                     *
+!* Last modification: P. Hirel - 05 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -78,7 +78,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 100 CONTINUE
 !Read "rmatom_prop" to know what to remove
-IF( rmatom_prop(1:3)=="sel" .OR. rmatom_prop(1:3)=="SEL" ) THEN
+IF( STRDNCASE(rmatom_prop(1:3))=="sel" .OR. STRDNCASE(rmatom_prop(1:3))=="all" ) THEN
   method=1
   CALL ATOMSK_MSG(2102,(/"SEL"/),(/0.d0/))
 ELSE
@@ -148,9 +148,10 @@ IF( method==1 ) THEN
     clear_sel = .TRUE.
     !
   ELSE
-    !No selection is defined => do not remove any atom
-    nwarn=nwarn+1
-    CALL ATOMSK_MSG(2752,(/species/),(/DBLE(atomindex)/))
+    !No selection is defined => all atoms will be deleted
+    rmatoms = SIZE(P,1)
+    !nwarn=nwarn+1
+    !CALL ATOMSK_MSG(2752,(/species/),(/DBLE(atomindex)/))
   ENDIF
   !
   !
@@ -264,12 +265,13 @@ ENDIF
 !Replace old P by newP; same with S, AUX and SELECT if necessary
 IF( rmatoms>=SIZE(P,1) ) THEN
   !All atoms were removed! Just de-allocate arrays
-  DEALLOCATE(P)
+  IF(ALLOCATED(P)) DEALLOCATE(P)
   IF(ALLOCATED(S)) DEALLOCATE(S)
   IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
   !
 ELSEIF( rmatoms>0 ) THEN
-  DEALLOCATE(P)
+  IF(ALLOCATED(P)) DEALLOCATE(P)
   IF(ALLOCATED(S)) DEALLOCATE(S)
   IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
   IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
@@ -299,6 +301,7 @@ ENDIF
 IF(ALLOCATED(newP)) DEALLOCATE(newP)
 IF(ALLOCATED(newS)) DEALLOCATE(newS)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
+IF(ALLOCATED(newSELECT)) DEALLOCATE(newSELECT)
 !
 !
 CALL ATOMSK_MSG(2080,(/species/),(/DBLE(rmatoms),DBLE(SIZE(P,1))/))

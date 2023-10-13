@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 March 2023                                    *
+!* Last modification: P. Hirel - 20 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,6 +28,8 @@ MODULE crystallography
 !* List of subroutines in this module:                                            *
 !* INDEX_MILLER        find the indices of a plane from a string                  *
 !* INDEX_MILLER_HCP    find the indices of a plane from a string (hcp lattices)   *
+!* HKIL2UVW            converts Miller-Bravais [hkil] into Miller [uvw]           *
+!* UVW2HKIL            converts Miller [uvw] into Miller-Bravais [hkil]           *
 !* MILLER2VEC          translates Miller indices into Cartesian vector            *
 !* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
 !**********************************************************************************
@@ -245,6 +247,82 @@ RETURN
 ifail=1
 !
 END SUBROUTINE INDEX_MILLER_HCP
+!
+!
+!********************************************************
+!  HKIL2UVW
+!  This subroutine converts Miller-Bravais [hkil] notation
+!  into Miller [uvw] notation.
+!  This routine returns the minimum integer indices,
+!  i.e. it attempts to divide u,v,w by their common divisor.
+!  NOTE: index i is passed to this routine but not used,
+!  therefore its value can be set to anything.
+!********************************************************
+!
+SUBROUTINE HKIL2UVW(h,k,i,l,u,v,w)
+!
+REAL(dp):: a, b, c
+REAL(dp),INTENT(IN):: h, k, i, l
+REAL(dp),INTENT(OUT):: u, v, w
+!
+c = 1.d0
+!
+!Convert
+u = 2.d0*h + k
+v = h + 2.d0*k
+w = l
+!Check for common divisor
+IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
+  a = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
+ELSE
+  a = MAX(DABS(u),DABS(v))
+ENDIF
+IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
+  b = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
+ELSE
+  b = MAX(DABS(u),DABS(w))
+ENDIF
+IF( DABS(a)>0.1d0 .AND. NINT(b)>0.1d0 ) THEN
+  c = GCD( NINT(DABS(a)),NINT(DABS(b)) )
+ELSE  !i.e. a==0 or b==0
+  c = MAX( DABS(a) , DABS(b) )
+ENDIF
+IF( DABS(c)<0.1d0 ) c=1.d0  !avoid division by zero
+!Update uvw
+u = u / c
+v = v / c
+w = w / c
+!
+!
+END SUBROUTINE HKIL2UVW
+!
+!
+!********************************************************
+!  UVW2HKIL
+!  This subroutine converts Miller notation [uvw]
+!  into Miller-Bravais notation [hkil].
+!  This routine returns the minimum integer indices,
+!  i.e. it attempts to divide u,v,w by their common divisor.
+!********************************************************
+!
+SUBROUTINE UVW2HKIL(u,v,w,h,k,i,l)
+!
+REAL(dp):: a, b, c
+REAL(dp),INTENT(IN):: u, v, w
+REAL(dp),INTENT(OUT):: h, k, i, l
+!
+a = 1.d0
+b = 1.d0
+c = 1.d0
+!
+!Convert
+h = (2.d0*u-v)/3.d0
+k = (2.d0*v-u)/3.d0
+i = -1.d0*(h+k)
+l = l
+!
+!
+END SUBROUTINE UVW2HKIL
 !
 !
 !********************************************************

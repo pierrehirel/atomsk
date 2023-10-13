@@ -30,13 +30,15 @@
   <li><strong>&nu;</strong> (optionel)&nbsp;: coefficient de Poisson du matériau (possible seulement pour une déformation uniaxiale, c'est-à-dire si la composante était 'x', 'y', ou 'z').</li>
 </ul>
 
-<p>Si la composante est 'x', 'y' ou 'z', la transformation résultera en une <strong>déformation uniaxiale</strong>. Si une valeur du coefficient de Poisson est donnée, alors la transformation résultera en une <strong>contrainte uniaxiale</strong>, c'est-à-dire que la contrainte sera non-nulle uniquement suivant la direction donnée. Les autres directions seront déformées suivant le coefficient de Poisson, ce qui devrait leur conférer une contrainte nulle. Pour appliquer la même déformation dans toutes les directions, alors entrez une valeur de -1 au coefficient de Poisson. Cela peut être utile, par exemple, pour déformer un système conformément à son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;<em>T</em>, où <em>T</em> est la température à atteindre. Pour appliquer une <strong>déformation anisotrope</strong>, il est possible d'utiliser cette option trois fois de suite suivant les trois axes cartésiens, en utilisant &nu;=0 et différentes valeurs de &epsilon; (voir l'exemple 3 ci-dessous).</p>
+<p>Si la composante est 'x', 'y' ou 'z', la transformation résultera en une <strong>déformation uniaxiale</strong>. Si une valeur du coefficient de Poisson est donnée, alors les autres directions seront déformées en conséquence, ce qui devrait résulter en une <strong>contrainte uniaxiale</strong>, c'est-à-dire que la contrainte sera non-nulle uniquement suivant la direction donnée.Pour appliquer la même déformation dans toutes les directions, alors entrez une valeur de -1 au coefficient de Poisson. Cela peut être utile, par exemple, pour déformer un système conformément à son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;<em>T</em>, où <em>T</em> est la température à atteindre. Pour appliquer une <strong>déformation anisotrope</strong>, il est possible d'utiliser cette option trois fois de suite suivant les trois axes cartésiens, en utilisant &nu;=0 et différentes valeurs de &epsilon; (voir l'exemple 3 ci-dessous).</p>
 
-<p>Si la composante est 'xy', 'xz', 'yz', 'zx', ou 'zy', alors la transformation résultera en un <strong>cisaillement</strong> du système. Dans ce cas il n'est pas possible de spécifier un coefficient de Poisson.</p>
+<p>Si la composante est 'xy', 'xz', 'yz', 'yx', 'zx', ou 'zy', alors la transformation résultera en un <strong>cisaillement</strong> du système. Dans ce cas il n'est pas possible de spécifier un coefficient de Poisson.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls la déformation ne s'appliquera qu'aux atomes sélectionnés, et la boîte ne sera pas déformée.</p>
 
 <p>Pour appliquer une contrainte, référez-vous à l'<a href="./option_stress.html">option <code>-stress</code></a>.</p>
+
+<p>Pour supprimer toute inclinaison de la boîte, référez-vous à l'<a href="./option_untilt.html">option <code>-untilt</code></a>.</p>
 
 
 <h4>Défaut</h4>

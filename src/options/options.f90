@@ -1422,28 +1422,35 @@ DO ioptions=1,SIZE(options_array)
   IF(nerr.NE.0) EXIT
   !
   !
-  !If shells exist, check that array S has a smaller size than P
-  IF( ALLOCATED(S) ) THEN
-    IF( SIZE(S,1) .NE. SIZE(P,1) ) THEN
-      nerr = nerr+1
-      CALL ATOMSK_MSG(2810,(/""/),(/0.d0/))
+  IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+    !No atom left in system: warn user
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2768,(/""/),(/0.d0/))
+    !
+  ELSE
+    !If shells exist, check that array S has a smaller size than P
+    IF( ALLOCATED(S) ) THEN
+      IF( SIZE(S,1) .NE. SIZE(P,1) ) THEN
+        nerr = nerr+1
+        CALL ATOMSK_MSG(2810,(/""/),(/0.d0/))
+      ENDIF
     ENDIF
-  ENDIF
-  !
-  !If a selection exists, check for size consistency
-  IF( ALLOCATED(SELECT) ) THEN
-    IF( SIZE(SELECT)<=0 .OR. .NOT.ANY(SELECT(:)) ) THEN
-      !No atom is selected => clear selection by de-allocating SELECT
-      nwarn=nwarn+1
-      IF( ALLOCATED(SELECT)) DEALLOCATE(SELECT)
-      CALL ATOMSK_MSG(2750,(/""/),(/0.d0/))
-    ELSEIF( SIZE(SELECT).NE.SIZE(P,1) ) THEN
-      !Resize SELECT array so that its size matches the number of atoms
-      CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
-      IF( i>0 ) THEN
-        nerr=nerr+1
-        CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
-        GOTO 1000
+    !
+    !If a selection exists, check for size consistency
+    IF( ALLOCATED(SELECT) ) THEN
+      IF( SIZE(SELECT)<=0 .OR. .NOT.ANY(SELECT(:)) ) THEN
+        !No atom is selected => clear selection by de-allocating SELECT
+        nwarn=nwarn+1
+        IF( ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+        CALL ATOMSK_MSG(2750,(/""/),(/0.d0/))
+      ELSEIF( SIZE(SELECT).NE.SIZE(P,1) ) THEN
+        !Resize SELECT array so that its size matches the number of atoms
+        CALL RESIZE_LOGICAL1(SELECT,SIZE(P,1),i)
+        IF( i>0 ) THEN
+          nerr=nerr+1
+          CALL ATOMSK_MSG(818,(/"SELECT"/),(/0.d0/))
+          GOTO 1000
+        ENDIF
       ENDIF
     ENDIF
   ENDIF

@@ -2513,6 +2513,9 @@ CASE(2766)
 CASE(2767)
   msg = TRIM(ADJUSTL(warnmsg))//" box is not tilted, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2768)
+  msg = TRIM(ADJUSTL(warnmsg))//" there is no atom left in the system."
+  CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)
   !strings(1) = name of obsolete option

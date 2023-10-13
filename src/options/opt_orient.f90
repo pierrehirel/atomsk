@@ -11,7 +11,7 @@ MODULE ORIENT
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2023                                     *
+!* Last modification: P. Hirel - 20 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -142,54 +142,18 @@ ENDIF
 IF(hcp) THEN
   !Convert [hkil] notation into [uvw] in Hstart
   DO i=1,3
-    u = 2.d0*Hstart(i,1) + Hstart(i,2)
-    v = Hstart(i,1) + 2.d0*Hstart(i,2)
-    w = Hstart(i,3)
-    !Check for common divisor
-    IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
-      z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
-    ELSE
-      z1 = MAX(DABS(u),DABS(v))
-    ENDIF
-    IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
-      z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
-    ELSE
-      z2 = MAX(DABS(u),DABS(w))
-    ENDIF
-    IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
-      x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
-    ELSE  !i.e. z1==0 or z2==0
-      x = MAX( DABS(z1) , DABS(z2) )
-    ENDIF
-    IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
-    !Set box vector
-    Hstart(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
+    !Convert [hkil] notation into [uvw]
+    CALL HKIL2UVW(Hstart(i,1),Hstart(i,2),0.d0,Hstart(i,3),u,v,w)
+    !Set box vectors in Hstart
+    Hstart(i,:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
   ENDDO
   !
   !Convert [hkil] notation into [uvw] in Hend
   DO i=1,3
-    u = 2.d0*Hend(i,1) + Hend(i,2)
-    v = Hend(i,1) + 2.d0*Hend(i,2)
-    w = Hend(i,3)
-    !Check for common divisor
-    IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
-      z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
-    ELSE
-      z1 = MAX(DABS(u),DABS(v))
-    ENDIF
-    IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
-      z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
-    ELSE
-      z2 = MAX(DABS(u),DABS(w))
-    ENDIF
-    IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
-      x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
-    ELSE  !i.e. z1==0 or z2==0
-      x = MAX( DABS(z1) , DABS(z2) )
-    ENDIF
-    IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
-    !Set box vector
-    Hend(i,:) = ( u*H(1,:) + v*H(2,:) + w*H(3,:) ) / x
+    !Convert [hkil] notation into [uvw]
+    CALL HKIL2UVW(Hend(i,1),Hend(i,2),0.d0,Hend(i,3),u,v,w)
+    !Set box vectors in Hend
+    Hend(i,:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
   ENDDO
 ENDIF
 !

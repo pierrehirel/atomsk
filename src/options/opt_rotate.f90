@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2023                                     *
+!* Last modification: P. Hirel - 20 Sept. 2023                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -148,29 +148,10 @@ ELSE
       !Miller direction may be given for hexagonal
       CALL INDEX_MILLER_HCP(rot_axis,MILLER,i)
       IF(i==0) THEN
-        !Convert [hkil] notation into [uvw] in MILLER
-        u = 2.d0*MILLER(1) + MILLER(2)
-        v = MILLER(1) + 2.d0*MILLER(2)
-        w = MILLER(3)
-        !Check for common divisor
-        IF( DABS(u)>0.1d0 .AND. NINT(DABS(v))>0.1d0 ) THEN
-          z1 = GCD( NINT(DABS(u)) , NINT(DABS(v)) )
-        ELSE
-          z1 = MAX(DABS(u),DABS(v))
-        ENDIF
-        IF( DABS(u)>0.1d0 .AND. NINT(DABS(w))>0.1d0 ) THEN
-          z2 = GCD( NINT(DABS(u)) , NINT(DABS(w)) )
-        ELSE
-          z2 = MAX(DABS(u),DABS(w))
-        ENDIF
-        IF( DABS(z1)>0.1d0 .AND. NINT(z2)>0.1d0 ) THEN
-          x = GCD( NINT(DABS(z1)),NINT(DABS(z2)) )
-        ELSE  !i.e. z1==0 or z2==0
-          x = MAX( DABS(z1) , DABS(z2) )
-        ENDIF
-        IF( DABS(x)<0.1d0 ) x=1.d0  !avoid division by zero
-        !Set normal to plane of cut
-        MILLER(:) = ( u*H(:,1) + v*H(:,2) + w*H(:,3) ) / x
+        !Convert [hkil] notation into [uvw]
+        CALL HKIL2UVW(MILLER(1),MILLER(2),0.d0,MILLER(3),u,v,w)
+        !Set indices in MILLER
+        MILLER(:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
       ENDIF
     ENDIF
     IF(i==0) THEN
