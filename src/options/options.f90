@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Sept. 2023                                    *
+!* Last modification: P. Hirel - 16 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -102,7 +102,6 @@ USE substitute
 USE swap
 USE torsion
 USE unit
-USE untilt
 USE unskew
 USE velocity
 USE wrap
@@ -263,9 +262,6 @@ CHARACTER(LEN=16),DIMENSION(2):: swap_id  !Cartesian axes or indices of atoms to
 !
 !Variables relative to Option: unit
 CHARACTER(LEN=128):: unit1, unit2
-!
-!Variables relative to Option: untilt
-CHARACTER(LEN=2):: untilt_dir  !strain component: xy, xz, yz, yx, zx, zy (or empty)
 !
 !Variables relative to Option: velocity
 REAL(dp):: vel_T  !target temperature for Maxwell-Boltzmann distribution
@@ -513,32 +509,53 @@ DO ioptions=1,SIZE(options_array)
   CASE('-def', '-deform')
     j=0
     def_poisson = 0.d0
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, def_dir, treal(1)
-    !treal may contain the strain expressed in percent, e.g. "3%"
-    SELECT CASE(StrDnCase(def_dir))
-    CASE('x')
-      i=1
-    CASE('y')
-      i=2
-    CASE('z')
-      i=3
-    CASE("yx","zx")
-      i=1
-      j=1
-    CASE("xy","zy")
-      i=2
-      j=1
-    CASE("xz","yz")
-      i=3
-      j=1
-    END SELECT
-    CALL BOX2DBLE( H(:,i) , treal(1) , def_strain , status )
-    IF(status>0) THEN
-      temp = treal(1)
-      GOTO 810
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, def_dir, temp
+    IF( temp=="untilt" ) THEN
+      !Set the shear strain to untilt the box
+      SELECT CASE(StrDnCase(def_dir))
+      CASE("yx")
+        def_strain = -1.d0*H(1,2)/H(1,1)
+      CASE("zx")
+        def_strain = -1.d0*H(1,3)/H(1,1)
+      CASE("xy")
+        def_strain = -1.d0*H(2,1)/H(2,2)
+      CASE("zy")
+        def_strain = -1.d0*H(2,3)/H(2,2)
+      CASE("xz")
+        def_strain = -1.d0*H(3,1)/H(3,3)
+      CASE("yz")
+        def_strain = -1.d0*H(3,2)/H(3,3)
+      END SELECT
+      !
+    ELSE
+      !"temp" should contain a number: read it
+      READ(temp,*,ERR=800,END=800) treal(1)
+      !treal may contain the strain expressed in percent, e.g. "3%"
+      SELECT CASE(StrDnCase(def_dir))
+      CASE('x')
+        i=1
+      CASE('y')
+        i=2
+      CASE('z')
+        i=3
+      CASE("yx","zx")
+        i=1
+        j=1
+      CASE("xy","zy")
+        i=2
+        j=1
+      CASE("xz","yz")
+        i=3
+        j=1
+      END SELECT
+      CALL BOX2DBLE( H(:,i) , treal(1) , def_strain , status )
+      IF(status>0) THEN
+        temp = treal(1)
+        GOTO 810
+      ENDIF
     ENDIF
     !user may have specified a Poisson ratio; if not, just skip it
-    READ(options_array(ioptions),*,END=102,ERR=102) optionname, def_dir, tempreal, def_poisson
+    READ(options_array(ioptions),*,END=102,ERR=102) optionname, def_dir, temp, def_poisson
     IF( j==1 ) THEN
       !user specified a Poisson ratio, but asked for shear strain
       !=> display warning message that value of Poisson ratio will be ignored
@@ -1300,12 +1317,6 @@ DO ioptions=1,SIZE(options_array)
     temp = temp(strlength:)
     unit2 = ADJUSTL(temp)
     CALL UNIT_XYZ(H,P,S,AUXNAMES,AUX,unit1,unit2,SELECT)
-  !
-  CASE('-untilt')
-    untilt_dir = ""
-    READ(options_array(ioptions),*,END=161,ERR=161) optionname, untilt_dir
-    161 CONTINUE
-    CALL UNTILT_XYZ(H,P,S,untilt_dir)
   !
   CASE('-unskew')
     CALL UNSKEW_XYZ(H)

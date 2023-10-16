@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Sept. 2023                                    *
+!* Last modification: P. Hirel - 16 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -811,25 +811,33 @@ DO WHILE(i<SIZE(cla))
     !read deformation
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
-    !if user entered the symbol "%" then remove it and convert
-    m=SCAN(temp,"%")
-    IF(m>0) THEN
-      temp(m:m)=" "
-      READ(temp,*,END=120,ERR=120) tempreal
-      WRITE(temp,'(f16.6)') tempreal/100.d0
+    temp = TRIM(ADJUSTL(temp))
+    IF( j==0 .AND. StrDnCase(temp(1:7))=="untilt " ) THEN
+      !Tilt
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     ELSE
-      IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
+      !if user entered the symbol "%" then remove it and convert
+      m=SCAN(temp,"%")
+      IF(m>0) THEN
+        temp(m:m)=" "
+        READ(temp,*,END=120,ERR=120) tempreal
+        WRITE(temp,'(f16.6)') tempreal/100.d0
+      ELSE
+        IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
+      ENDIF
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      READ(temp,*,END=120,ERR=120) tempreal
     ENDIF
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    READ(temp,*,END=120,ERR=120) tempreal
-    !attempt reading Poisson ratio
-    i=i+1
-    READ(cla(i),'(a)',END=110,ERR=110) temp
-    READ(temp,*,END=102,ERR=102) tempreal
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    GOTO 110
-    102 CONTINUE
-    i=i-1
+    IF( j==1 ) THEN
+      !attempt reading Poisson ratio
+      i=i+1
+      READ(cla(i),'(a)',END=110,ERR=110) temp
+      READ(temp,*,END=102,ERR=102) tempreal
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+      GOTO 110
+      102 CONTINUE
+      i=i-1
+    ENDIF
   !
   ELSEIF(clarg=='-dislocation' .OR. clarg=='-disloc') THEN
     m=0
@@ -1912,22 +1920,6 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     temp = cla(i)
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-  !
-  ELSEIF(clarg=='-untilt') THEN
-    ioptions = ioptions+1
-    options_array(ioptions) = TRIM(clarg)
-    !Read component
-    i=i+1
-    READ(cla(i),*,END=109,ERR=109) temp
-    temp = ADJUSTL(temp)
-    SELECT CASE(temp)
-    CASE('xy','XY','yx','YX','zx','ZX','xz','XZ','zy','ZY','yz','YZ')
-      !store it in the option parameters
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    CASE DEFAULT
-      !It was not a tilt component but something else
-      i=i-1
-    END SELECT
   !
   ELSEIF(clarg=='-unskew') THEN
     ioptions = ioptions+1
