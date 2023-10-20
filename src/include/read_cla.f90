@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Oct. 2023                                     *
+!* Last modification: P. Hirel - 18 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -812,7 +812,7 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    IF( j==0 .AND. StrDnCase(temp(1:7))=="untilt " ) THEN
+    IF( j==0 .AND. (StrDnCase(temp(1:7))=="untilt " .OR. StrDnCase(temp(1:8))=="unshear ") ) THEN
       !Tilt
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     ELSE

@@ -648,7 +648,7 @@ CASE(4)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Do you want to overwrite it ("//langyes//"/"//langno//") ("&
       & //langBigYes//"=overwrite all)?"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(5)
   !strings(1) = name of file
   msg = "..> OK, I will overwrite "//TRIM(strings(1))
@@ -658,7 +658,7 @@ CASE(6)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(7)
   msg = "<?> Enter a name for the file to write:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(8)
   !strings(1) = name of file
   IF( LEN_TRIM(strings(1))>0 ) THEN
@@ -671,7 +671,7 @@ CASE(8)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(9)
   msg = "<?> Enter the name of an existing file:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(10)
   !reals(1) = index of current element
   !reals(2) = total number of elements
@@ -719,12 +719,12 @@ CASE(701)
   msg = "/!\ None of these files exist: "//TRIM(strings(1))//" nor "//TRIM(strings(2))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Please provide the name of an existing file:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(702)
   msg = "/!\ No input file was specified."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Please provide the name of an existing file:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(703)
   !strings(1) = name of command line argument
   msg = TRIM(ADJUSTL(warnmsg))//" Unrecognized command-line argument: "//TRIM(strings(1))

@@ -644,7 +644,7 @@ CASE(4)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Voulez-vous l'écraser ("//langyes//"/"//langno//") ("&
       & //langBigYes//"=tout écraser) ?"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(5)
   !strings(1) = name of file
   msg = "..> Écrasement du fichier : "//TRIM(strings(1))
@@ -654,7 +654,7 @@ CASE(6)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(7)
   msg = "<?> Entrez le nom du fichier à écrire:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(8)
   !strings(1) = name of file
   IF( LEN_TRIM(strings(1))>0 ) THEN
@@ -667,7 +667,7 @@ CASE(8)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(9)
   msg = "<?> Entrez le nom d'un fichier existant :"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(10)
   !reals(1) = index of current element
   !reals(2) = total number of elements
@@ -714,12 +714,12 @@ CASE(701)
   msg = "/!\ Aucun de ces fichiers n'existe : "//TRIM(strings(1))//" ni "//TRIM(strings(2))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Veuillez fournir le nom d'un fichier existant :"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(702)
   msg = "/!\ Aucun fichier d'entrée spécifié."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Veuillez fournir le nom d'un fichier existant :"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(703)
   !strings(1) = name of command line argument
   msg = TRIM(ADJUSTL(warnmsg))//" argument inconnu dans la ligne de commande : "//TRIM(strings(1))

@@ -9,7 +9,7 @@ MODULE display_messages
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 Oct. 2023                                     *
+!* Last modification: P. Hirel - 20 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,6 +27,7 @@ MODULE display_messages
 !
 !
 USE comv
+USE functions
 !
 !
 CONTAINS
@@ -37,11 +38,14 @@ CONTAINS
 ! This subroutine displays a message depending on the
 ! level of verbosity
 !********************************************************
-SUBROUTINE DISPLAY_MSG(verb,msg,logfile)
+SUBROUTINE DISPLAY_MSG(verb,msg,logfile,advin)
 !
 IMPLICIT NONE
-CHARACTER(LEN=128):: logfile     !The log file to write messages into
-CHARACTER(LEN=128):: msg, msg2  !The message itself
+CHARACTER(LEN=2),OPTIONAL:: advin  !if present and set to 'NO', WRITE will not advance to next line
+CHARACTER(LEN=2):: adv  !if present and set to 'NO', WRITE will not advance to next line
+CHARACTER(LEN=128):: logfile       !The log file to write messages into
+CHARACTER(LEN=128):: msg, msg2     !The message itself
+INTEGER:: l      !length of message string
 INTEGER:: verb   !Level of verbosity:
                  !0=silent, no message is ever displayed nor written in log file
                  !1=messages are written on the screen only
@@ -52,7 +56,11 @@ INTEGER:: verb   !Level of verbosity:
                  !The latter value (4) should be used only for
                  !programming/debugging purposes
 !
+adv = ""
+IF( PRESENT(advin) ) adv=advin
+!
 msg2 = TRIM(ADJUSTL(msg))
+!
 !Write message in log file if verbosity>=2 or if debug message
 IF( (verb>=2.AND.msg2(1:5).NE.'debug') .OR. verb==4 ) THEN
   OPEN(UNIT=20,FILE=logfile,FORM='FORMATTED',POSITION='APPEND')
@@ -62,7 +70,12 @@ ENDIF
 !Display message on screen if verbosity==1,3,4, or if error/warning message
 IF( (verb==1 .OR. verb>=3).AND.msg2(1:5).NE.'debug' .OR. &
   & msg2(1:3)=='/!\' .OR. msg2(1:3)=='X!X' ) THEN
-  WRITE(*,*) COLOUR_MSG(TRIM(msg),colourdef)
+  l = LEN_TRIM(msg2)
+  IF( StrUpCase(adv)=='NO' ) THEN
+    WRITE(*,'(a)',ADVANCE='NO') TRIM(COLOUR_MSG(msg,colourdef))//" "
+  ELSE
+    WRITE(*,'(a)') TRIM(COLOUR_MSG(msg,colourdef))
+  ENDIF
 ENDIF
 !
 END SUBROUTINE DISPLAY_MSG

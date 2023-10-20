@@ -634,7 +634,7 @@ CASE(4)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "    Moechten Sie sie ueberschreiben? ("//langyes//"/"//langno//") ("&
       & //langBigYes//"=alles ueberschreiben)?"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(5)
   !strings(1) = name of file
   msg = "..> OK, ich will "//TRIM(strings(1))//" ueberschreiben."
@@ -644,7 +644,7 @@ CASE(6)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(7)
   msg = "<?> Geben Sie einen Namen fuer die zu schreibende Datei an:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(8)
   !strings(1) = name of file
   IF( LEN_TRIM(strings(1))>0 ) THEN
@@ -657,7 +657,7 @@ CASE(8)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(9)
   msg = "<?> Geben Sie den Namen einer vorhandenen Datei an:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(10)
   !reals(1) = index of current element
   !reals(2) = total number of elements
@@ -704,12 +704,12 @@ CASE(701)
   msg = "/!\ Keine dieser Dateien ist vorhanden: "//TRIM(strings(1))//" oder "//TRIM(strings(2))
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Bitte geben Sie den Namen einer vorhandenen Datei an:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(702)
   msg = "/!\ Es wurde Keine Eingabedatei angegeben."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "<?> Bitte geben Sie den Namen einer vorhandenen Datei an:"
-  CALL DISPLAY_MSG(1,msg,logfile)
+  CALL DISPLAY_MSG(1,msg,logfile,'NO')
 CASE(703)
   !strings(1) = name of command line argument
   msg = TRIM(ADJUSTL(warnmsg))//" Nicht erkannte Befehlszeilenargument: "//TRIM(strings(1))
