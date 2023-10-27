@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 June 2023                                     *
+!* Last modification: P. Hirel - 27 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -162,6 +162,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                              fluorite  |       1        |     2"
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                                   A15  |       1        |     2"
   WRITE(*,*) "                                   C15  |       1        |     2"
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             MAILLES                st  |   2 (a et c)   |   1 ou 2"
@@ -171,6 +172,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             MAILLES               hcp  |   2 (a et c)   |   1 ou 2"
   WRITE(*,*) "             HEXAGONALES      wurtzite  |   2 (a et c)   |     2"
   WRITE(*,*) "                              graphite  |   2 (a et c)   |   1 ou 2"
+  WRITE(*,*) "                                    BN  |   2 (a et c)   |     2"
   WRITE(*,*) "                                   C14  |   2 (a et c)   |     2"
   WRITE(*,*) "                                   C36  |   2 (a et c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
@@ -2606,7 +2608,7 @@ CASE(2801)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
   !strings(1) = property that was not read properly
-  msg = "X!X ERREUR en lisant "//TRIM(ADJUSTL(strings(1)))//"."
+  msg = TRIM(ADJUSTL(errmsg))//" en lisant "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2803)
   msg = TRIM(ADJUSTL(errmsg))//" il y a eu une erreur en tentant de recalculer les vecteurs de boîte."
@@ -3254,9 +3256,11 @@ CASE(4070)
     msg = ">>> Maille élémentaire utilisée comme référence : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
+    temp=""
+    IF( LEN_TRIM(strings(1))>0 ) temp=" : "//TRIM(ADJUSTL(strings(1)))
     msg = ">>> Aucune référence fournie. Construction des environnements atomiques de référence"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "    en moyennant les sites du système fourni : "//TRIM(ADJUSTL(strings(1)))//"..."
+    msg = "    en moyennant les sites du système à analyser"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(4071)

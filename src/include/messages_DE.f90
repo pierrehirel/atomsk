@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 15 June 2023                                     *
+!* Last modification: P. Hirel - 27 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -162,6 +162,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                              fluorite  |       1        |     2"
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                                   A15  |       1        |     2"
   WRITE(*,*) "                                   C15  |       1        |     2"
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             TETRAGONALE            st  |  2 (a und c)   | 1 oder 2"
@@ -171,6 +172,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             HEXAGONALE            hcp  |  2 (a und c)   | 1 oder 2"
   WRITE(*,*) "             GITTER           wurtzite  |  2 (a und c)   |     2"
   WRITE(*,*) "                              graphite  |  2 (a und c)   | 1 oder 2"
+  WRITE(*,*) "                                    BN  |  2 (a und c)   |     2"
   WRITE(*,*) "                                   C14  |  2 (a und c)   |     2"
   WRITE(*,*) "                                   C36  |  2 (a und c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
@@ -2530,7 +2532,7 @@ CASE(2801)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
   !strings(1) = property that was not read properly
-  msg = "X!X FEHLER beim Lesen von "//TRIM(ADJUSTL(strings(1)))//"."
+  msg = TRIM(ADJUSTL(errmsg))//" beim Lesen von "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2803)
   msg = "X!X FEHLER beim Bestimmen der Basisvektoren der Superzellen."
@@ -3202,9 +3204,11 @@ CASE(4070)
     msg = ">>> Elementarzelle als Referenz : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
+    temp=""
+    IF( LEN_TRIM(strings(1))>0 ) temp=" : "//TRIM(ADJUSTL(strings(1)))
     msg = ">>> Kein Bezugssystem vorhanden. Erzeugen atomarer Referenzumgebungen durch Mittelung"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "    von Standorten aus dem bereitgestellten System: "//TRIM(ADJUSTL(strings(1)))//"..."
+    msg = "    der Standorte des zu analysierenden Systems"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)

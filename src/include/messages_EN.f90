@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 June 2023                                     *
+!* Last modification: P. Hirel - 27 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -161,6 +161,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "                              fluorite  |       1        |     2"
   WRITE(*,*) "                             rock-salt  |       1        |     2"
   WRITE(*,*) "                            perovskite  |       1        |     3"
+  WRITE(*,*) "                                   A15  |       1        |     2"
   WRITE(*,*) "                                   C15  |       1        |     2"
   WRITE(*,*) "                           -------------+----------------+----------"
   WRITE(*,*) "             TETRAGONAL             st  |  2 (a and c)   |   1 or 2"
@@ -170,6 +171,7 @@ IF(helpsection=="modes" .OR. helpsection=="create") THEN
   WRITE(*,*) "             HEXAGONAL             hcp  |  2 (a and c)   |   1 or 2"
   WRITE(*,*) "             LATTICES         wurtzite  |  2 (a and c)   |     2"
   WRITE(*,*) "                              graphite  |  2 (a and c)   |   1 or 2"
+  WRITE(*,*) "                                    BN  |  2 (a and c)   |     2"
   WRITE(*,*) "                                   C14  |  2 (a and c)   |     2"
   WRITE(*,*) "                                   C36  |  2 (a and c)   |     2"
   WRITE(*,*) "          atomsk --create nanotube <a> <m> <n> <sp1> [<sp2>] [options] <outputfile> [<formats>]"
@@ -2537,7 +2539,7 @@ CASE(2801)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2802)
   !strings(1) = property that was not read properly
-  msg = "X!X ERROR while reading "//TRIM(ADJUSTL(strings(1)))//"."
+  msg = TRIM(ADJUSTL(errmsg))//" while reading "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2803)
   msg = TRIM(ADJUSTL(errmsg))//" there were errors while trying to determine supercell vectors."
@@ -3187,9 +3189,11 @@ CASE(4070)
     msg = ">>> Unit cell provided as a reference : "//TRIM(ADJUSTL(strings(1)))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
+    temp=""
+    IF( LEN_TRIM(strings(1))>0 ) temp=": "//TRIM(ADJUSTL(strings(1)))
     msg = ">>> No reference provided. Generating reference atomic environments"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "    by averaging sites from provided system: "//TRIM(ADJUSTL(strings(1)))//"..."
+    msg = "    by averaging sites from system to be analyzed"//TRIM(ADJUSTL(temp))//"..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(4071)

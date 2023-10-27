@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'master-2023-10-18'
+CHARACTER(LEN=24),PARAMETER:: version = "master-2023-10-27"
 INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
 INTEGER,PARAMETER:: il = SELECTED_INT_KIND(9)        !integers up to 10^9
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
@@ -40,13 +40,13 @@ CHARACTER(LEN=3):: lang !language in which the program will run (should be 2 let
 CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" and "no", e.g. "y", "n"
 #if defined(WINDOWS)
   CHARACTER(LEN=1),PARAMETER:: pathsep='\'     !path separator for Windows
-  CHARACTER(LEN=3),PARAMETER:: system_ls='dir' !command to list current directory
-  CHARACTER(LEN=16),PARAMETER:: pathnull='2>nul'  !redirection to NULL for Windows
+  CHARACTER(LEN=3),PARAMETER:: system_ls="dir" !command to list current directory
+  CHARACTER(LEN=16),PARAMETER:: pathnull="2>nul"  !redirection to NULL for Windows
   LOGICAL:: colourtext=.FALSE.  !by default, don't colour text in Windows
 #else
   CHARACTER(LEN=1),PARAMETER:: pathsep='/'     !path separator for UNIX/Linux
-  CHARACTER(LEN=3),PARAMETER:: system_ls='ls ' !command to list current directory
-  CHARACTER(LEN=16),PARAMETER:: pathnull='2>/dev/null'  !redirection to NULL for UNIX/Linux
+  CHARACTER(LEN=3),PARAMETER:: system_ls="ls " !command to list current directory
+  CHARACTER(LEN=16),PARAMETER:: pathnull="2>/dev/null"  !redirection to NULL for UNIX/Linux
   LOGICAL:: colourtext=.FALSE.   !by default, don't colour text in UNIX/Linux environments
 #endif
 !

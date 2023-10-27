@@ -135,6 +135,8 @@ DO
     ELSEIF(temp(1:11)=='orientation') THEN
       msg = 'system orientation'
       READ(35,*,END=800,ERR=800) miller
+      WRITE(temp2,*) TRIM(miller)
+      CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
       CALL INDEX_MILLER(miller,ORIENT(1,:),j)
       IF(j>0) THEN !Failed to read [hkl]: try to read [hkil] indices
         DO i=1,3
@@ -159,15 +161,23 @@ DO
           ORIENT(i,2) = v
           ORIENT(i,3) = w
           !read next line
-          IF(i<=3) READ(35,*,END=800,ERR=800) miller
+          IF(i<3) THEN
+            READ(35,*,END=800,ERR=800) miller
+            WRITE(temp2,*) TRIM(miller)
+            CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
+          ENDIF
         ENDDO
         !
       ELSE
         !Succeeded reading [hkl]: read the [hkl] along the other two directions
         READ(35,*,END=800,ERR=800) miller
+        WRITE(temp2,*) TRIM(miller)
+        CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
         CALL INDEX_MILLER(miller,ORIENT(2,:),j)
         IF(j>0) GOTO 800
         READ(35,*,END=800,ERR=800) miller
+        WRITE(temp2,*) TRIM(miller)
+        CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
         CALL INDEX_MILLER(miller,ORIENT(3,:),j)
         IF(j>0) GOTO 800
       ENDIF

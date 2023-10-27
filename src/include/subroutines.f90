@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 June 2023                                     *
+!* Last modification: P. Hirel - 27 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -581,14 +581,12 @@ REAL(dp),DIMENSION(:,:):: A
 !
 IF( SIZE(A,1)>0 .AND. SIZE(A,2)>=3 ) THEN
   CALL INVMAT(H,G)
-  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,V)
   DO i=1,SIZE(A,1)
     V(:) = A(i,1:3)
     DO j=1,3
       A(i,j) = V(1)*G(1,j) + V(2)*G(2,j) + V(3)*G(3,j)
     ENDDO
   END DO
-  !$OMP END PARALLEL DO
 ELSE
   WRITE(*,*) 'X!X ERROR: could not transform to fractional,'
   WRITE(*,*) '          inconsistent array size.'
@@ -613,14 +611,12 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H
 REAL(dp),DIMENSION(:,:):: A
 !
 IF( SIZE(A,1)>0 .AND. SIZE(A,2)>=3 ) THEN
-  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,V)
   DO i=1,SIZE(A,1)
     V(:) = A(i,1:3)
     DO j=1,3
       A(i,j) = V(1)*H(1,j) + V(2)*H(2,j) + V(3)*H(3,j)
     ENDDO
   ENDDO
-  !$OMP END PARALLEL DO
 ELSE
   WRITE(*,*) 'X!X ERROR: could not transform to cartesian,'
   WRITE(*,*) '          inconsistent array size.'

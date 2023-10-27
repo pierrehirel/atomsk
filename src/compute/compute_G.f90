@@ -30,7 +30,7 @@ MODULE cmpt_G
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 July 2023                                     *
+!* Last modification: P. Hirel - 23 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -642,10 +642,10 @@ DO iat=1,SIZE(P2,1)
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList1(j,1:3)
           !Add the index of this neighbor to the neighbor list NeighList1
-!           IF( PosList1(j,5).NE.iat .AND. .NOT.ANY(NeighList1(iat,:)==NINT(PosList1(j,5))) ) THEN
-!             m=m+1
-!             NeighList1(iat,m) = NINT(PosList1(j,5))
-!           ENDIF
+          IF( PosList1(j,5).NE.iat .AND. .NOT.ANY(NeighList1(iat,:)==NINT(PosList1(j,5))) ) THEN
+            m=m+1
+            NeighList1(iat,m) = NINT(PosList1(j,5))
+          ENDIF
         ENDIF
       ENDDO
       !We don't need PosList1 for this atom anymore
@@ -809,7 +809,7 @@ DO iat=1,SIZE(P2,1)
         ENDIF
       ENDDO
       !Clean neighbor list for this atom
-      !NeighList2(iat,:) = 0
+      NeighList2(iat,:) = 0
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
@@ -820,10 +820,10 @@ DO iat=1,SIZE(P2,1)
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList2(j,1:3)
           !Add the index of this neighbor to the neighbor list NeighList2
-!           IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
-!             m=m+1
-!             NeighList2(iat,m) = NINT(PosList2(j,5))
-!           ENDIF
+          IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
+            m=m+1
+            NeighList2(iat,m) = NINT(PosList2(j,5))
+          ENDIF
         ENDIF
       ENDDO
       !
@@ -838,7 +838,7 @@ DO iat=1,SIZE(P2,1)
         ENDIF
       ENDDO
       !Clean neighbor list for this atom
-      !NeighList2(iat,:) = 0
+      NeighList2(iat,:) = 0
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
@@ -849,10 +849,10 @@ DO iat=1,SIZE(P2,1)
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList2(j,1:3)
           !Add the index of this neighbor to the neighbor list NeighList2
-!           IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
-!             k=k+1
-!             NeighList2(iat,k) = NINT(PosList2(j,5))
-!           ENDIF
+          IF( PosList2(j,5).NE.iat .AND. .NOT.ANY(NeighList2(iat,:)==NINT(PosList2(j,5))) ) THEN
+            k=k+1
+            NeighList2(iat,k) = NINT(PosList2(j,5))
+          ENDIF
         ENDIF
       ENDDO
     ENDIF  !end if firstref

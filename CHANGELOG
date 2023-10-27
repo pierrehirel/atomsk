@@ -8,7 +8,8 @@ Master
 - mode "--difference" now accepts that the two systems have different numbers of atoms. Atoms that exist in first system but not the second are marked with a new auxiliary property "deleted_atom". Also, if atoms change chemical species between the two files, a new auxiliary property "diff_Z" is created.
 - mode "--rdf" now accepts a single file name, if a single file must be analyzed.
 - when writing files in Protein Data Base (*.pdb) format, lines starting with SCALE are not written any more to avoid issues when visualising with OVITO. OVITO was also patched to fix this issue, see their Git commit [https://gitlab.com/stuko/ovito/-/commit/2a5f55736f4b6bdce7c18931a7fb30da84bb6320].
-- option "-deform" now allows to apply shear deformation. Option "-shear" becomes obsolete.
+- mode "--create" now supports the following lattices: A15, Boron nitride (or B12). Also fixed a performance issue when generating oriented unit cells.
+- option "-deform" now allows to apply shear deformation, and to untilt the cell. Option "-shear" becomes obsolete.
 - option "-remove-atoms all" will now remove all atoms.
 - option "-select" now displays chemical species of selected atoms.
 - progress bars can now be customized with a new keyword in configuration file (atomsk.conf).

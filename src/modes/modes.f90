@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 June 2023                                     *
+!* Last modification: P. Hirel - 26 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -114,6 +114,7 @@ INTEGER:: Nimages   !number of images (mode --interpolate)
 INTEGER:: strlength
 INTEGER,DIMENSION(2):: NT_mn
 REAL(dp):: NNN, rdf_maxR, rdf_dr, smass
+REAL(dp):: u, v, w
 REAL(dp),DIMENSION(3):: create_a0
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
@@ -149,28 +150,28 @@ IF(verbosity==4) THEN
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   IF(ALLOCATED(mode_param)) THEN
-    msg = 'MODE_PARAM ARRAY:'
+    msg = 'MODES: MODE_PARAM ARRAY:'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     i=1
     DO WHILE( LEN_TRIM(mode_param(i)).NE.0 .AND. i<=SIZE(mode_param) )
-      msg = mode_param(i)
+      msg = "     |  "//TRIM(mode_param(i))
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       i=i+1
     ENDDO
   ENDIF
   !
   IF(ALLOCATED(options_array)) THEN
-    msg = 'OPTIONS ARRAY:'
+    msg = 'MODES: OPTIONS ARRAY:'
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ioptions = 0
     DO i=1,SIZE(options_array)
       ioptions = ioptions+1
-      msg = TRIM(options_array(ioptions))
+      msg = "     |  "//TRIM(options_array(ioptions))
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
   ENDIF
   !
-  msg = 'running mode: '//TRIM(mode)
+  msg = 'MODES: SELECTED MODE: '//TRIM(mode)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 ENDIF
 !
@@ -182,8 +183,6 @@ SELECT CASE(mode)
 !!!!  MODE NORMAL
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('normal')
-  msg = 'Mode normal'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Normal mode: we just convert a single file to another format.
   !
   !If inputfile is not known already, and if file1 and/or file2
@@ -234,8 +233,6 @@ CASE('normal')
 !!!!  MODE LIST
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('list')
-  msg = 'Mode list'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   listfile = file1
   !List mode:
   !in this mode the program has to read a file containing
@@ -251,8 +248,6 @@ CASE('list')
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('ddplot')
   CALL SET_OUTPUT(outfileformats,'all  ',.FALSE.)
-  msg = 'Mode ddplot'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !DDplot mode:
   !in this mode the program has to read 2 files (no matter their format)
   !and create a file for ddplot.
@@ -297,9 +292,6 @@ CASE('merge')
   !Merge mode:
   !in this mode the program reads m files (no matter their format)
   !and merges them into one single file
-  !
-  msg = 'MERGE MODE:'
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
   !Read array mode_param(:)
   i=1
@@ -355,22 +347,19 @@ CASE('create')
   create_a0(2) = create_a0(1)
   create_a0(3) = create_a0(1)
   i=2
-  IF( create_struc=='graphite' .OR. create_struc=='hcp'    .OR.  &
-    & create_struc=='wurtzite' .OR. create_struc=='wz'     .OR.  &
-    & create_struc=='c14'      .OR. create_struc=='C14'    .OR.  &
-    & create_struc=='c36'      .OR. create_struc=='C36'    .OR.  &
-    & create_struc=='L10'      .OR. create_struc=='L1_0'   .OR.  &
-    & create_struc=='limo2'    .OR. create_struc=='LiMO2'  .OR.  &
-    & create_struc=='st'       .OR. create_struc=='bct'    .OR.  &
-    & create_struc=="fct"      ) THEN
-    i=i+1
-    READ(mode_param(i),*,END=7000,ERR=7000) create_a0(3)
-  ELSEIF(create_struc=='nanotube' .OR. create_struc=='NT' .OR. create_struc=='nt') THEN
+  IF( StrDnCase(create_struc)=="nanotube" .OR. StrDnCase(create_struc)=="nt") THEN
     i=i+1
     READ(mode_param(i),*,END=7000,ERR=7000) NT_mn(1)
     i=i+1
     READ(mode_param(i),*,END=7000,ERR=7000) NT_mn(2)
+  ELSE
+    !Try reading another lattice constant (c)
+    READ(mode_param(i+1),*,END=502,ERR=502) u
+    !No error => save value of c in create_a0(3)
+    i=i+1
+    create_a0(3) = u
   ENDIF
+  502 CONTINUE
   !Get the atomic species for the structure
   !There must always be at least one species
   i=i+1
@@ -385,7 +374,8 @@ CASE('create')
   DO j=2,20
     i=i+1
     READ(mode_param(i),*,END=510,ERR=510) temp
-    IF(LEN_TRIM(temp)<=2 .AND. temp(1:1).NE.'-' ) THEN
+    temp = TRIM(ADJUSTL(temp))
+    IF( LEN_TRIM(temp)<=2 .AND. temp(1:1).NE.'-' ) THEN
       READ(temp,*,END=510,ERR=510) species
       CALL ATOMNUMBER(species,smass)
       IF(smass==0.d0) THEN
@@ -396,6 +386,7 @@ CASE('create')
       ENDIF
     ELSE
       i=i-1
+      GOTO 510
     ENDIF
   ENDDO
   510 CONTINUE
@@ -403,52 +394,40 @@ CASE('create')
   i=i+1
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
-    SELECT CASE(create_struc)
-    CASE('hcp','HCP','Hcp','wurtzite','wz','WZ','graphite','C14','c14','C36','c36','limo2','LiMO2')
-      msg = 'Reading the [hkil] ...'
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      !Three Miller vectors follow, they must have notation [hkil] with i=-h-k
-      DO j=1,3
-        i=i+1
+    !Three Miller vectors follow, they must have notation [hkl]
+    msg = 'Reading Miller indices ...'
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    DO j=1,3
+      i=i+1
+      IF( LEN_TRIM(mode_param(i))>0 ) THEN
         READ(mode_param(i),*,END=520,ERR=520) temp
-        CALL INDEX_MILLER_HCP(temp,ORIENT(j,:),k)
+        IF( temp(1:2)=="X=" ) THEN
+          CALL INDEX_MILLER(temp(3:),ORIENT(1,:),k)
+        ELSEIF( temp(1:2)=="Y=" ) THEN
+          CALL INDEX_MILLER(temp(3:),ORIENT(2,:),k)
+        ELSEIF( temp(1:2)=="Z=" ) THEN
+          CALL INDEX_MILLER(temp(3:),ORIENT(3,:),k)
+        ELSE
+          CALL INDEX_MILLER(temp,ORIENT(j,:),k)
+        ENDIF
         IF( k>0 ) THEN
-          IF( k==2 ) THEN
-            !The error was because i is not equal to -h-k
-            nerr=nerr+1
-            CALL ATOMSK_MSG(815,(/TRIM(temp)/),(/ORIENT(j,1),ORIENT(j,2),ORIENT(j,3)/))
-            GOTO 10000
+          !There was some error, try reading [hkil]
+          CALL INDEX_MILLER_HCP(temp,ORIENT(j,:),k)
+          IF( k==0 ) THEN
+            !Convert [hkil] to [uvw]
+            CALL HKIL2UVW(ORIENT(j,1),ORIENT(j,2),0.d0,ORIENT(j,3),u,v,w)
+            !Update system orientation in ORIENT
+            ORIENT(j,1) = u
+            ORIENT(j,2) = v
+            ORIENT(j,3) = w
           ELSE
-            !Other error, unable to convert this string into a proper vector
+            !There was some error => abort everything
             CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
-            GOTO 10000
+            GOTO 8000
           ENDIF
         ENDIF
-      ENDDO
-    CASE DEFAULT
-      !Three Miller vectors follow, they must have notation [hkl]
-      msg = 'Reading the [hkl] ...'
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-      DO j=1,3
-        i=i+1
-        IF( LEN_TRIM(mode_param(i))>0 ) THEN
-          READ(mode_param(i),*,END=520,ERR=520) temp
-          IF( temp(1:2)=="X=" ) THEN
-            CALL INDEX_MILLER(temp(3:),ORIENT(1,:),k)
-          ELSEIF( temp(1:2)=="Y=" ) THEN
-            CALL INDEX_MILLER(temp(3:),ORIENT(2,:),k)
-          ELSEIF( temp(1:2)=="Z=" ) THEN
-            CALL INDEX_MILLER(temp(3:),ORIENT(3,:),k)
-          ELSE
-            CALL INDEX_MILLER(temp,ORIENT(j,:),k)
-          ENDIF
-          IF( k>0 ) THEN
-            CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
-            GOTO 10000
-          ENDIF
-        ENDIF
-      ENDDO
-    END SELECT
+      ENDIF
+    ENDDO
   ENDIF
   520 CONTINUE
   IF(ALLOCATED(mode_param)) DEALLOCATE(mode_param)
@@ -456,39 +435,10 @@ CASE('create')
   !Make sure we have an output file name
   outputfile = TRIM(ADJUSTL(file1))
   IF(LEN_TRIM(outputfile)==0) outputfile = TRIM(ADJUSTL(filefirst))
-  !If user didn't specify a name (filefirst), generate one based on lattice and atom species
-  IF(LEN_TRIM(outputfile)==0) THEN
-    SELECT CASE(create_struc)
-    CASE('L12','L1_2')
-      !L12 lattice: generate a name of the type "Cu3Au"
-      outputfile = TRIM(create_species(1))//'3'//TRIM(create_species(2))
-    CASE('c15','C15')
-      !C15 lattice: generate a name of the type "Cu2Mg"
-      outputfile = TRIM(create_species(1))//'2'//TRIM(create_species(2))
-    CASE('fluorite','fluorine','c14','C14')
-      !fluorite or c14 lattice: generate a name of the type "CaF2"
-      DO i=1,SIZE(create_species)
-        outputfile = TRIM(outputfile)//TRIM(create_species(i))
-      ENDDO
-      outputfile = TRIM(outputfile)//'2'
-    CASE('c36','C36')
-      !C36 lattice: generate a name of the type "Ni2Mg"
-      outputfile = TRIM(create_species(1))//'2'//TRIM(create_species(2))
-    CASE('per','perovskite')
-      !Perovskite lattice: generate a name of the type "SrTiO3"
-      DO i=1,SIZE(create_species)
-        outputfile = TRIM(outputfile)//TRIM(create_species(i))
-      ENDDO
-      outputfile = TRIM(outputfile)//'3'
-    CASE DEFAULT
-      !Default (bcc, fcc, diamond, rocksalt, hcp...): generate a name of the type "Al" or "NiAl"
-      outputfile = TRIM(create_species(1))//TRIM(create_species(2))
-    END SELECT
-  ENDIF
   msg = 'CREATE mode: outputfile: '//TRIM(outputfile)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Activate the extension for this output file
-  IF(LEN_TRIM(outputfile).NE.0) THEN
+  IF(LEN_TRIM(outputfile)>0) THEN
     CALL GUESS_FORMAT(outputfile,outfileformat,'writ')
     IF(outfileformat.NE.'xxx') CALL SET_OUTPUT(outfileformats,outfileformat,.TRUE.)
   ENDIF

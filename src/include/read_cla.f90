@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Oct. 2023                                     *
+!* Last modification: P. Hirel - 25 Oct. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -174,20 +174,15 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     m=m+1
     READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    IF( mode_param(1)=='graphite' .OR. mode_param(1)=='hcp'      .OR.  &
-      & mode_param(1)=='HCP'      .OR. mode_param(1)=='Wurtzite' .OR.  &
-      & mode_param(1)=='wurtzite' .OR. mode_param(1)=='wz'       .OR.  &
-      & mode_param(1)=='c14'      .OR. mode_param(1)=='C14'      .OR.  &
-      & mode_param(1)=='c36'      .OR. mode_param(1)=='C36'      .OR.  &
-      & mode_param(1)=='L10'      .OR. mode_param(1)=='L1_0'     .OR.  &
-      & mode_param(1)=='limo2'    .OR. mode_param(1)=='LiMO2'    .OR.  &
-      & mode_param(1)=='st'       .OR. mode_param(1)=='ST'       .OR.  &
-      & mode_param(1)=='bct'      .OR. mode_param(1)=='fct'            ) THEN
+    !Detect if a second lattice constant (c) or chiral indices must be read
+    SELECT CASE(StrDnCase(temp))
+    CASE("graphite","hcp","wurtzite","wz","c14","c36","l10","l1_0","limo2", &
+        & "st","bct","fct")
       !Get lattice constant c
       i=i+1
       m=m+1
       READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    ELSEIF(mode_param(1)=='nanotube' .OR. mode_param(1)=='NT' .OR. mode_param(1)=='nt') THEN
+    CASE("nanotube","nt")
       !Get chiral indices (m,n) of the nanotube
       i=i+1
       m=m+1
@@ -195,7 +190,7 @@ DO WHILE(i<SIZE(cla))
       i=i+1
       m=m+1
       READ(cla(i),*,END=130,ERR=130) mode_param(m)
-    ENDIF
+    END SELECT
     !Get the atomic species for the structure
     DO WHILE( i+1<=SIZE(cla) )
       i=i+1
@@ -234,43 +229,18 @@ DO WHILE(i<SIZE(cla))
       i=i+1
       temp = ADJUSTL(cla(i))
       IF( temp=="orient" ) THEN
-        SELECT CASE(mode_param(1))
-        CASE('sc','SC','fcc','FCC','L10','L1_0','L12','L1_2','bcc','BCC','CsCl','diamond','dia','zincblende','zb','ZB','B3', &
-            & 'perovskite','per','rocksalt','rs','RS','B1','fluorite','fluorine','c15','C15')
-          !Cubic lattice => read crystal orientation
-          m=m+1
-          mode_param(m) = "orient"
-          !Get Miller indices [hkl] of the crystal orientation along X, Y, Z
-          i=i+1
-          m=m+1
-          READ(cla(i),*,END=130,ERR=130) mode_param(m)
-          i=i+1
-          m=m+1
-          READ(cla(i),*,END=130,ERR=130) mode_param(m)
-          i=i+1
-          m=m+1
-          READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        CASE('hcp','HCP','wurtzite','wz','WZ','graphite','c14','C14','c36','C36','limo2','LiMO2')
-          !Hexagonal lattice => read crystal orientation
-          m=m+1
-          mode_param(m) = "orient"
-          !Get Miller indices [hkil] of the crystal orientation
-          i=i+1
-          m=m+1
-          READ(cla(i),*,END=130,ERR=130) mode_param(m)
-          i=i+1
-          m=m+1
-          READ(cla(i),*,END=130,ERR=130) mode_param(m)
-          i=i+1
-          m=m+1
-          READ(cla(i),*,END=130,ERR=130) mode_param(m)
-        CASE DEFAULT
-          !Lattice is not cubic nor hexagonal: crystal orientation not implemented yet
-          !Display error message and exit
-          CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
-          nerr = nerr+1
-          GOTO 1000
-        END SELECT
+        m=m+1
+        mode_param(m) = "orient"
+        !Get Miller indices [hkl] or [hkil] of the crystal orientation along X, Y, Z
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
+        i=i+1
+        m=m+1
+        READ(cla(i),*,END=130,ERR=130) mode_param(m)
       ELSE
         i=i-1
       ENDIF
