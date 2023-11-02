@@ -875,7 +875,7 @@ CASE(819)
   msg = "          Essayez avec un ordinateur qui possède davantage de mémoire."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(820)
-  msg = TRIM(ADJUSTL(errmsg))//" ne pas mélanger les notations de Miller [hkl] et [hkil]."
+  msg = TRIM(ADJUSTL(errmsg))//" ne pas mélanger les notations de Miller [hkil] et [uvw]."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(821)
   !reals(1) = estimated number of atoms
@@ -3589,7 +3589,12 @@ CASE(4804)
       temp = TRIM(ADJUSTL(temp))//" ou "//TRIM(ADJUSTL(temp2))
     ENDIF
   ENDIF
-  msg = TRIM(ADJUSTL(errmsg))//" cette structure requiert "//TRIM(ADJUSTL(temp))//" espèces chimiques."
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    temp2 = "le réseau "//TRIM(ADJUSTL(strings(1)))
+  ELSE
+    temp2 = "ce type de réseau"
+  ENDIF
+  msg = TRIM(ADJUSTL(errmsg))//TRIM(ADJUSTL(temp2))//" requiert "//TRIM(ADJUSTL(temp))//" espèces chimiques."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4805)
   !strings(1) = structure type

@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Oct. 2023                                     *
+!* Last modification: P. Hirel - 02 Nov. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -95,6 +95,7 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=5):: outfileformat
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
 CHARACTER(LEN=10):: create_struc
+CHARACTER(LEN=32),DIMENSION(3):: create_Miller
 CHARACTER(LEN=128):: msg, test, temp
 CHARACTER(LEN=128):: property !name of the property whose density will be calculated (mode DENSITY)
 CHARACTER(LEN=4096):: file1, file2  !should be inputfile, ouputfile (or vice-versa)
@@ -135,6 +136,7 @@ filefirst = pfiles(3)
 filesecond = pfiles(4)
 listfile = pfiles(5)
  create_species(:) = ''
+ create_Miller(:) = ''
 Huc(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
@@ -394,38 +396,12 @@ CASE('create')
   i=i+1
   READ(mode_param(i),*,END=520,ERR=520) temp
   IF(temp=="orient") THEN
-    !Three Miller vectors follow, they must have notation [hkl]
-    msg = 'Reading Miller indices ...'
-    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    !Three Miller vectors follow: save them in create_Miller(:)
+    create_Miller(:) = " "
     DO j=1,3
       i=i+1
-      IF( LEN_TRIM(mode_param(i))>0 ) THEN
-        READ(mode_param(i),*,END=520,ERR=520) temp
-        IF( temp(1:2)=="X=" ) THEN
-          CALL INDEX_MILLER(temp(3:),ORIENT(1,:),k)
-        ELSEIF( temp(1:2)=="Y=" ) THEN
-          CALL INDEX_MILLER(temp(3:),ORIENT(2,:),k)
-        ELSEIF( temp(1:2)=="Z=" ) THEN
-          CALL INDEX_MILLER(temp(3:),ORIENT(3,:),k)
-        ELSE
-          CALL INDEX_MILLER(temp,ORIENT(j,:),k)
-        ENDIF
-        IF( k>0 ) THEN
-          !There was some error, try reading [hkil]
-          CALL INDEX_MILLER_HCP(temp,ORIENT(j,:),k)
-          IF( k==0 ) THEN
-            !Convert [hkil] to [uvw]
-            CALL HKIL2UVW(ORIENT(j,1),ORIENT(j,2),0.d0,ORIENT(j,3),u,v,w)
-            !Update system orientation in ORIENT
-            ORIENT(j,1) = u
-            ORIENT(j,2) = v
-            ORIENT(j,3) = w
-          ELSE
-            !There was some error => abort everything
-            CALL ATOMSK_MSG(817,(/TRIM(temp)/),(/0.d0/))
-            GOTO 8000
-          ENDIF
-        ENDIF
+      IF( i<=SIZE(mode_param) ) THEN
+        READ(mode_param(i),*,END=520,ERR=520) create_Miller(j)
       ENDIF
     ENDDO
   ENDIF
@@ -445,7 +421,8 @@ CASE('create')
   IF(nerr>0) GOTO 10000
   !
   !Create the unit cell
-  CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.TRUE.,H,P)
+  CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,create_Miller, &
+                  & options_array,outputfile,outfileformats,.TRUE.,H,P)
   IF(nerr>0) GOTO 10000
 !
 !

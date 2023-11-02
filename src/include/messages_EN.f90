@@ -875,7 +875,7 @@ CASE(819)
   msg = "          Try on a computer with more memory."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(820)
-  msg = TRIM(ADJUSTL(errmsg))//" cannot mix [hkl] and [hkil] Miller notations."
+  msg = TRIM(ADJUSTL(errmsg))//" cannot mix up [hkil] and [uvw] Miller notations."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(821)
   !reals(1) = estimated number of atoms
@@ -3497,6 +3497,7 @@ CASE(4803)
   msg = "          Theory: "//TRIM(ADJUSTL(msg))//"; Found: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4804)
+  !strings(1) = name of lattice
   !reals(1) = number of species required
   !reals(2) = alternative number of species required (optional)
   !reals(3) = alternative number of species required (optional)
@@ -3510,7 +3511,12 @@ CASE(4804)
       temp = TRIM(ADJUSTL(temp))//" or "//TRIM(ADJUSTL(temp2))
     ENDIF
   ENDIF
-  msg = TRIM(ADJUSTL(errmsg))//" this structure requires "//TRIM(ADJUSTL(temp))//" atom species."
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    temp2 = "the "//TRIM(ADJUSTL(strings(1)))//" lattice"
+  ELSE
+    temp2 = "this lattice"
+  ENDIF
+  msg = TRIM(ADJUSTL(errmsg))//TRIM(ADJUSTL(temp2))//" requires "//TRIM(ADJUSTL(temp))//" atom species."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4805)
   !strings(1) = structure type

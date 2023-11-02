@@ -9,7 +9,7 @@ MODULE display_messages
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Oct. 2023                                     *
+!* Last modification: P. Hirel - 02 Nov. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -133,8 +133,8 @@ END SUBROUTINE DISPLAY_HEADER
 ! This subroutine displays a fancy progress bar.
 ! Available styles are:
 !    barrier  bounce   clock    dots     face
-!    inflate  jump     linear   pacman   rotate
-!    snail    tunnel   wave
+!    inflate  jump     linear   newton   pacman
+!    rotate   snail    tunnel   wave
 ! Default style is "linear", it can be customized
 ! in config. file "atomsk.conf" with the keyword:
 !    progressbar <style>
@@ -156,164 +156,197 @@ temp = ""
 tempreal = 100.d0*r1/r2 !percentage of progress
 WRITE(pc,'(i3)') NINT(tempreal)
 !
-IF( NINT(r1) >= NINT(r2) .OR. NINT(tempreal)>=100 ) THEN
-  !Just erase the whole line (carriage return)
-  WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//msg
-  WRITE(*,'(a)',ADVANCE="NO") CHAR(13)
+IF( StrDnCase(progressbar).NE."none" ) THEN
   !
-ELSE
-  !
-  SELECT CASE(progressbar)
+  IF( NINT(r1) >= NINT(r2) .OR. NINT(tempreal)>=100 ) THEN
+    !Just erase the whole line (carriage return)
+    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//msg
+    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)
     !
-  CASE("barrier")
-    !Imitate a dot crossing a barrier
-    j = MOD(NINT(tempreal),12)
-    IF( j<=2 ) THEN
-      msg = "[.. ] "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j>=6 .AND. j<=8 ) THEN
-      msg = "[ ..] "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      msg = "[ : ] "//TRIM(ADJUSTL(pc))//"%"
-    ENDIF
+  ELSE
     !
-  CASE("bounce")
-    !Display a bar bouncing from left to right
-    j = 2*MIN( MOD(NINT(tempreal),50)+1 , 50-MOD(NINT(tempreal),50)-1 ) + 1
-    bar(j:j+2) = "-=-"
-    bar(1:1) = "["
-    bar(52:53) = "] "
-    msg = TRIM(ADJUSTL(bar))//" "//TRIM(ADJUSTL(pc))//"%"
-    !
-  CASE("clock")
-    !Imitate a clock
-    j = MOD(NINT(tempreal),13)
-    IF( j<=2 ) THEN
-      msg = "(` ) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=4 ) THEN
-      msg = "( ´) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=6 ) THEN
-      msg = "( -) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=8 ) THEN
-      msg = "( .) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=10 ) THEN
-      msg = "(, ) "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      msg = "(- ) "//TRIM(ADJUSTL(pc))//"%"
-    ENDIF
-    !
-  CASE("dots")
-    !Display dots
-    DO j=1,NINT(tempreal/2.d0)
-      bar = TRIM(ADJUSTL(bar))//"."
-    ENDDO
-    msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
-    !
-  CASE("face")
-    !Imitate a human face
-    IF( NINT(tempreal)>90 ) THEN
-      msg = "(^o^)  "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      j = MOD(NINT(tempreal),5)
-      IF( j==0 ) THEN
-        msg = "(-.-)  "//TRIM(ADJUSTL(pc))//"%"
+    SELECT CASE(StrDnCase(progressbar))
+      !
+    CASE("barrier")
+      !Imitate a dot crossing a barrier
+      j = MOD(NINT(tempreal),12)
+      IF( j<=2 ) THEN
+        msg = "[.. ] "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j>=6 .AND. j<=8 ) THEN
+        msg = "[ ..] "//TRIM(ADJUSTL(pc))//"%"
       ELSE
-        msg = "(°.°)  "//TRIM(ADJUSTL(pc))//"%"
+        msg = "[ : ] "//TRIM(ADJUSTL(pc))//"%"
       ENDIF
-    ENDIF
+      !
+    CASE("bounce")
+      !Display a bar bouncing from left to right
+      j = 2*MIN( MOD(NINT(tempreal),50)+1 , 50-MOD(NINT(tempreal),50)-1 ) + 1
+      bar(j:j+2) = "-=-"
+      bar(1:1) = "["
+      bar(52:53) = "] "
+      msg = TRIM(ADJUSTL(bar))//" "//TRIM(ADJUSTL(pc))//"%"
+      !
+    CASE("clock")
+      !Imitate a clock
+      j = MOD(NINT(tempreal),13)
+      IF( j<=2 ) THEN
+        msg = "(` ) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=4 ) THEN
+        msg = "( ´) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=6 ) THEN
+        msg = "( -) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=8 ) THEN
+        msg = "( .) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=10 ) THEN
+        msg = "(, ) "//TRIM(ADJUSTL(pc))//"%"
+      ELSE
+        msg = "(- ) "//TRIM(ADJUSTL(pc))//"%"
+      ENDIF
+      !
+    CASE("dots")
+      !Display dots
+      DO j=1,NINT(tempreal/2.d0)
+        bar = TRIM(ADJUSTL(bar))//"."
+      ENDDO
+      msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
+      !
+    CASE("face")
+      !Imitate a human face
+      IF( NINT(tempreal)>90 ) THEN
+        msg = "(^o^)  "//TRIM(ADJUSTL(pc))//"%"
+      ELSE
+        j = MOD(NINT(tempreal),5)
+        IF( j==0 ) THEN
+          msg = "(-.-)  "//TRIM(ADJUSTL(pc))//"%"
+        ELSE
+          msg = "(°.°)  "//TRIM(ADJUSTL(pc))//"%"
+        ENDIF
+      ENDIF
+      !
+    CASE("inflate")
+      !Display round characters of different sizes
+      j = MOD(NINT(tempreal),19)
+      IF( j<=4 ) THEN
+        msg = "[.] "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j>=10 .AND. j<=14 ) THEN
+        msg = "[O] "//TRIM(ADJUSTL(pc))//"%"
+      ELSE
+        msg = "[o] "//TRIM(ADJUSTL(pc))//"%"
+      ENDIF
+      !
+    CASE("jump")
+      !Imitate a jumping dot
+      j = MOD(NINT(tempreal),12)
+      IF( j<=2 ) THEN
+        msg = "[:] "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=5 ) THEN
+        msg = "['] "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=8 ) THEN
+        msg = "[:] "//TRIM(ADJUSTL(pc))//"%"
+      ELSE
+        msg = "[.] "//TRIM(ADJUSTL(pc))//"%"
+      ENDIF
+      !
+    CASE("linear")
+      !Display a linear progress bar (default)
+      DO j=1,NINT(tempreal/2.d0)
+        bar = TRIM(ADJUSTL(bar))//"="
+      ENDDO
+      bar = "["//TRIM(ADJUSTL(bar))//">"
+      bar(52:52) = "]"
+      msg = TRIM(ADJUSTL(bar))//" "//TRIM(ADJUSTL(pc))//"%"
+      !
+    CASE("newton")
+      !Imitate a Newton pendulum
+      j = MOD(NINT(tempreal),29)
+      IF( j<=3 ) THEN
+        msg = " O   OOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=6 ) THEN
+        msg = "  O  OOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=8 ) THEN
+        msg = "   O OOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=9 ) THEN
+        msg = "    OOOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=11 ) THEN
+        msg = "    OOOO O       ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=14 ) THEN
+        msg = "    OOOO  O      ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=18 ) THEN
+        msg = "    OOOO   O     ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=21 ) THEN
+        msg = "    OOOO  O      ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=23 ) THEN
+        msg = "    OOOO O       ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=24 ) THEN
+        msg = "    OOOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSEIF( j<=26 ) THEN
+        msg = "   O OOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ELSE
+        msg = "  O  OOOO        ["//TRIM(ADJUSTL(pc))//"%]"
+      ENDIF
+      !
+    CASE("pacman")
+      !Display Pacman
+      j = NINT(tempreal/2.d0)
+      bar = " *   *   *   *   *   *   *   *   *   *   *   *   *  "
+      bar(1:j) = ""
+      IF( bar(j+2:j+2)=="*" ) THEN
+        bar(j:j+2) = ' (='
+      ELSE
+        bar(j:j+2) = ' (<'
+      ENDIF
+      msg = bar(1:52)//"  ["//TRIM(ADJUSTL(pc))//"%]"
+      !
+    CASE("rotate")
+      !Imitate rotation
+      j = MOD(NINT(tempreal),12)
+      IF( j<=2 ) THEN
+        msg = "[\] "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=5 ) THEN
+        msg = "[|] "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=8 ) THEN
+        msg = "[/] "//TRIM(ADJUSTL(pc))//"%"
+      ELSE
+        msg = "[—] "//TRIM(ADJUSTL(pc))//"%"
+      ENDIF
+      !
+    CASE("snail")
+      !Display a snail
+      j = NINT(tempreal/2.d0)
+      bar(j:j+4) = ' _@" '
+      msg = TRIM(bar)//"  ["//TRIM(ADJUSTL(pc))//"%]"
+      !
+    CASE("tunnel")
+      !Imitate a tunnel
+      j = MOD(NINT(tempreal),10)
+      IF( j<=2 ) THEN
+        msg = "(   .   ) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=4 ) THEN
+        msg = "(   o   ) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=6 ) THEN
+        msg = "(  (.)  ) "//TRIM(ADJUSTL(pc))//"%"
+      ELSEIF( j<=8 ) THEN
+        msg = "( ( . ) ) "//TRIM(ADJUSTL(pc))//"%"
+      ELSE
+        msg = "((  .  )) "//TRIM(ADJUSTL(pc))//"%"
+      ENDIF
+      !
+    CASE("wave")
+      !Imitate a wave
+      j = MOD(NINT(tempreal),19)+1
+      temp = "..::!!!::...::!!!::...::!!!::...::!!!::...::!!!::...::!!!::...::!!!::."
+      bar = temp(j+1:j+50)
+      msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
+      !
+    CASE DEFAULT
+      !Default style: only percentage is displayed
+      msg = "["//TRIM(ADJUSTL(pc))//"%]"
+    END SELECT
     !
-  CASE("inflate")
-    !Display round characters of different sizes
-    j = MOD(NINT(tempreal),12)
-    IF( j<=2 ) THEN
-      msg = "[.] "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j>=6 .AND. j<=8 ) THEN
-      msg = "[O] "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      msg = "[o] "//TRIM(ADJUSTL(pc))//"%"
-    ENDIF
+    !Display the progress bar
+    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//"     "//TRIM(msg)
     !
-  CASE("jump")
-    !Imitate a jumping dot
-    j = MOD(NINT(tempreal),12)
-    IF( j<=2 ) THEN
-      msg = "[:] "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=5 ) THEN
-      msg = "['] "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=8 ) THEN
-      msg = "[:] "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      msg = "[.] "//TRIM(ADJUSTL(pc))//"%"
-    ENDIF
-    !
-  CASE("linear")
-    !Display a linear progress bar (default)
-    DO j=1,NINT(tempreal/2.d0)
-      bar = TRIM(ADJUSTL(bar))//"="
-    ENDDO
-    bar = "["//TRIM(ADJUSTL(bar))//">"
-    bar(52:52) = "]"
-    msg = TRIM(ADJUSTL(bar))//" "//TRIM(ADJUSTL(pc))//"%"
-    !
-  CASE("pacman")
-    !Display Pacman
-    j = NINT(tempreal/2.d0)
-    bar = " *   *   *   *   *   *   *   *   *   *   *   *   *  "
-    bar(1:j) = ""
-    IF( bar(j+2:j+2)=="*" ) THEN
-      bar(j:j+2) = ' (='
-    ELSE
-      bar(j:j+2) = ' (<'
-    ENDIF
-    msg = bar(1:52)//"  ["//TRIM(ADJUSTL(pc))//"%]"
-    !
-  CASE("rotate")
-    !Imitate rotation
-    j = MOD(NINT(tempreal),12)
-    IF( j<=2 ) THEN
-      msg = "[\] "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=5 ) THEN
-      msg = "[|] "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=8 ) THEN
-      msg = "[/] "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      msg = "[—] "//TRIM(ADJUSTL(pc))//"%"
-    ENDIF
-    !
-  CASE("snail")
-    !Display a snail
-    j = NINT(tempreal/2.d0)
-    bar(j:j+4) = ' _@" '
-    msg = TRIM(bar)//"  ["//TRIM(ADJUSTL(pc))//"%]"
-    !
-  CASE("tunnel")
-    !Imitate a tunnel
-    j = MOD(NINT(tempreal),10)
-    IF( j<=2 ) THEN
-      msg = "(   .   ) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=4 ) THEN
-      msg = "(   o   ) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=6 ) THEN
-      msg = "(  (.)  ) "//TRIM(ADJUSTL(pc))//"%"
-    ELSEIF( j<=8 ) THEN
-      msg = "( ( . ) ) "//TRIM(ADJUSTL(pc))//"%"
-    ELSE
-      msg = "((  .  )) "//TRIM(ADJUSTL(pc))//"%"
-    ENDIF
-    !
-  CASE("wave")
-    !Imitate a wave
-    j = MOD(NINT(tempreal),19)+1
-    temp = "..::!!!::...::!!!::...::!!!::...::!!!::...::!!!::...::!!!::...::!!!::."
-    bar = temp(j+1:j+50)
-    msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
-    !
-  CASE DEFAULT
-    !Default style: only percentage is displayed
-    msg = "["//TRIM(ADJUSTL(pc))//"%]"
-  END SELECT
-  !
-  !Display the progress bar
-  WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//"     "//TRIM(msg)
+  ENDIF
   !
 ENDIF
 !

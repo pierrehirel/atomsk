@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Jan. 2023                                     *
+!* Last modification: P. Hirel - 02 Nov. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ CHARACTER(LEN=10):: time
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
+CHARACTER(LEN=32),DIMENSION(3):: create_Miller  !Miller indices for mode "create"
 CHARACTER(LEN=128):: cwd, msg, test, temp
 CHARACTER(LEN=128):: question, solution
 CHARACTER(LEN=128):: username
@@ -772,16 +773,15 @@ DO
           i=0
           DO j=1,3
             i=i+1
-            READ(mode_param(i),*,END=400,ERR=400) test
-            CALL INDEX_MILLER(test,ORIENT(j,:),k)
-            IF(k>0) GOTO 400
+            READ(mode_param(i),*,END=400,ERR=400) create_Miller
           ENDDO
           !
         ENDIF
         !
         250 CONTINUE
         !Run the mode create (but don't write any output file)
-        CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,.FALSE.,H,P)
+        CALL CREATE_CELL(create_a0,create_struc,create_species,NT_mn,create_Miller, &
+                        & options_array,outputfile,outfileformats,.FALSE.,H,P)
         !
         !
         !

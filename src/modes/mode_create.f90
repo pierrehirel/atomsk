@@ -42,17 +42,17 @@ USE writeout
 CONTAINS
 !
 !
-SUBROUTINE CREATE_CELL(create_a0,create_struc,create_species,NT_mn,ORIENT,options_array,outputfile,outfileformats,wof,H,P)
+SUBROUTINE CREATE_CELL(create_a0,create_struc,create_species,NT_mn,create_Miller,options_array,outputfile,outfileformats,wof,H,P)
 !
 !
 IMPLICIT NONE
 !Input parameters
 CHARACTER(LEN=2),DIMENSION(20),INTENT(IN):: create_species !chemical species of atoms
-REAL(dp),DIMENSION(3),INTENT(IN):: create_a0               !the lattice constants
-REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the cell
+CHARACTER(LEN=10):: create_struc  !structure to create (fcc, bcc...) (may be modified)
+CHARACTER(LEN=32),DIMENSION(3):: create_Miller    !Miller vectors along X, Y, Z
+REAL(dp),DIMENSION(3),INTENT(IN):: create_a0      !lattice constants
 !
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
-CHARACTER(LEN=10):: create_struc  !structure to create (fcc, bcc...)
 CHARACTER(LEN=32):: NT_type       !type of nanotube (zig-zag or armchair or chiral)
 CHARACTER(LEN=128):: msg, temp
 CHARACTER(LEN=4096):: outputfile
@@ -67,6 +67,7 @@ LOGICAL,DIMENSION(3):: orthovec  !are vectors orthogonal?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k, l, m
 INTEGER:: lminmax  !min and max values for loops when orienting cubic systems
+INTEGER:: Nhkil !number of Bravais-Miller indices [hkil] that were read
 INTEGER:: NP
 INTEGER:: d, NT_NP, nspecies, r, t
 INTEGER,DIMENSION(2):: NT_mn
@@ -78,6 +79,7 @@ REAL(dp),DIMENSION(1,4):: tempP  !temporary position
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ips, uv     !interplanar spacing, unit vectors corresponding to new orientation ORIENT(:,:)
+REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the cell
 REAL(dp),DIMENSION(3,3):: ORIENTN     !normalized ORIENT
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S  !positions of atoms, shells
@@ -92,6 +94,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
  renameof = .FALSE.
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 nspecies = 0
+Nhkil=0
 Huc(:,:) = 0.d0
 H(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
@@ -110,11 +113,11 @@ WRITE(msg,'(a19,3f12.3)') "lattice constants: ", create_a0(:)
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 WRITE(msg,*) "atomic species:    ", create_species(:)
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-WRITE(msg,*) "lattice orientation:  | X = ", ORIENT(1,:)
+WRITE(msg,*) "lattice orientation:  | X = ", TRIM(create_Miller(1))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-WRITE(msg,*) "                      | Y = ", ORIENT(2,:)
+WRITE(msg,*) "                      | Y = ", TRIM(create_Miller(2))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-WRITE(msg,*) "                      | Z = ", ORIENT(3,:)
+WRITE(msg,*) "                      | Z = ", TRIM(create_Miller(3))
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
@@ -158,7 +161,7 @@ SELECT CASE(StrDnCase(create_struc))
 CASE("sc","ah","a_h")
   cubic = .TRUE.
   IF(nspecies.NE.1) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(1,4))
@@ -178,7 +181,7 @@ CASE("sc","ah","a_h")
 CASE("bcc","cscl","a2")
   cubic = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(2,4))
@@ -213,7 +216,7 @@ CASE("bcc","cscl","a2")
 CASE("fcc","a1")
   cubic = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(4,4))
@@ -252,7 +255,7 @@ CASE("fcc","a1")
 CASE("l12","l1_2")
   cubic = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(4,4))
@@ -287,7 +290,7 @@ CASE("l12","l1_2")
 CASE("dia","diamond","zincblende","zb")
   cubic = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(8,4))
@@ -295,7 +298,7 @@ CASE("dia","diamond","zincblende","zb")
   P(:,:) = 0.d0
   P(2,1:3) = (/ 0.5d0 , 0.5d0 , 0.0d0 /)
   P(3,1:3) = (/ 0.0d0 , 0.5d0 , 0.5d0 /)
-  P(4,1:3) = (/ 0.5d0 , 0.5d0 , 0.0d0 /)
+  P(4,1:3) = (/ 0.5d0 , 0.0d0 , 0.5d0 /)
   P(5,1:3) = (/ 0.25d0 , 0.25d0 , 0.25d0 /)
   P(6,1:3) = (/ 0.75d0 , 0.75d0 , 0.25d0 /)
   P(7,1:3) = (/ 0.75d0 , 0.25d0 , 0.75d0 /)
@@ -334,7 +337,7 @@ CASE("dia","diamond","zincblende","zb")
 CASE("rocksalt","rs","b1")
   cubic = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(8,4))
@@ -369,7 +372,7 @@ CASE("rocksalt","rs","b1")
 CASE("fluorite","fluorine")
   cubic = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(12,4))
@@ -415,7 +418,7 @@ CASE("fluorite","fluorine")
 CASE("a15","cr3si")
   cubic = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(8,4))
@@ -457,7 +460,7 @@ CASE("a15","cr3si")
 CASE("c15")
   cubic = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(24,4))
@@ -516,7 +519,7 @@ CASE("c15")
 CASE("per","perovskite")
   cubic = .TRUE.
   IF(nspecies.NE.3) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 3.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(5,4))
@@ -553,7 +556,7 @@ CASE("per","perovskite")
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  TETRAGONAL LATTICES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE("st")
   IF(nspecies.NE.1) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(1,4))
@@ -572,7 +575,7 @@ CASE("st")
 !
 CASE("bct")
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(2,4))
@@ -606,7 +609,7 @@ CASE("bct")
 !
 CASE("fct","l10","l1_0")
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(4,4))
@@ -646,7 +649,7 @@ CASE("fct","l10","l1_0")
 CASE("hcp","a3")
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   ALLOCATE(P(2,4))
@@ -683,7 +686,7 @@ CASE("hcp","a3")
 CASE("wurtzite","wz","b4")
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   !Set up the unit cell
@@ -727,7 +730,7 @@ CASE("wurtzite","wz","b4")
 CASE("graphite","a9")
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   !Set up the unit cell
@@ -763,7 +766,7 @@ CASE("graphite","a9")
 CASE("bn","b12")
   hexagonal = .TRUE.
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   !Set up the unit cell
@@ -799,7 +802,7 @@ CASE("bn","b12")
 CASE("c14")
   hexagonal = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   !Set up the unit cell
@@ -848,7 +851,7 @@ CASE("c14")
 CASE("c36")
   hexagonal = .TRUE.
   IF(nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   !Set up the unit cell
@@ -910,7 +913,7 @@ CASE("c36")
 CASE("limo2")
   hexagonal = .TRUE.
   IF(nspecies.NE.3) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 3.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 3.d0 /))
     GOTO 810
   ENDIF
   !Set up the unit cell
@@ -988,7 +991,7 @@ CASE("limo2")
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  OTHER STRUCTURES  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE("nanotube","NT")
   IF(nspecies.NE.1 .AND. nspecies.NE.2) THEN
-    CALL ATOMSK_MSG(4804,(/''/),(/ 1.d0,2.d0 /))
+    CALL ATOMSK_MSG(4804,(/create_struc/),(/ 1.d0,2.d0 /))
     GOTO 810
   ENDIF
   IF(NT_mn(1)<=0 .AND. NT_mn(2)<=0) THEN
@@ -1161,10 +1164,20 @@ IF( verbosity==4 ) THEN
   ENDIF
 ENDIF
 !
-!Orient the system according to ORIENT(:,:) - CUBIC SYSTEMS ONLY!
+!Orient the system according to Miller indices - CUBIC SYSTEMS ONLY!
 IF( cubic ) THEN
-  IF( VECLENGTH(ORIENT(1,:))>1.d-12 .OR. VECLENGTH(ORIENT(2,:))>1.d-12 &
-    & .OR. VECLENGTH(ORIENT(3,:))>1.d-12 ) THEN
+  !Convert strings in create_Miller into
+  IF( .NOT.ANY( LEN_TRIM(create_Miller)<=0 ) ) THEN
+    !
+    !Convert strings into proper vectors in ORIENT(:,:)
+    DO i=1,3
+      CALL INDEX_MILLER(create_Miller(i),ORIENT(i,:),j)
+      IF( j.NE.0 ) THEN
+        nerr = nerr+1
+        CALL ATOMSK_MSG(817,(/create_Miller(i)/),(/0.d0/))
+        GOTO 1000
+      ENDIF
+    ENDDO
     !
     !Check that no vector in ORIENT is [000]
     IF( VECLENGTH(ORIENT(1,:))<1.d-12 .OR. VECLENGTH(ORIENT(2,:))<1.d-12 &
@@ -1205,11 +1218,11 @@ IF( cubic ) THEN
     !
     !Generate text with target orientation
     oriented = .TRUE.
-    comment(1) = TRIM(comment(1))//' oriented'
+    comment(1) = TRIM(comment(1))//" oriented"
     DO i=1,3
-      IF(i==1) comment(1) = TRIM(comment(1))//' X=['
-      IF(i==2) comment(1) = TRIM(comment(1))//' Y=['
-      IF(i==3) comment(1) = TRIM(comment(1))//' Z=['
+      IF(i==1) comment(1) = TRIM(comment(1))//" X=["
+      IF(i==2) comment(1) = TRIM(comment(1))//", Y=["
+      IF(i==3) comment(1) = TRIM(comment(1))//", Z=["
       DO j=1,3
         m = NINT(ORIENT(i,j))
         WRITE(msg,*) m
@@ -1485,14 +1498,47 @@ IF( cubic ) THEN
     ENDDO
     !
   ELSE
-    comment(1) = TRIM(comment(1))//" oriented X=[100] Y=[010] Z=[001]"
+    comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
     oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
   ENDIF  !end if oriented
     !
     !
 ELSEIF( hexagonal ) THEN
-  IF( VECLENGTH(ORIENT(1,:))>1.d-12  .OR. VECLENGTH(ORIENT(2,:))>1.d-12 &
-    & .OR. VECLENGTH(ORIENT(3,:))>1.d-12 ) THEN
+  IF( .NOT.ANY( LEN_TRIM(create_Miller)<=0 ) ) THEN
+    !
+    !Convert strings into proper vectors in ORIENT(:,:)
+    Nhkil=0
+    DO i=1,3
+      !Try reading Bravais-Miller [hkil] indices
+      CALL INDEX_MILLER_HCP(create_Miller(i),ORIENT(i,:),j)
+      IF( j==0 ) THEN
+        !Success: convert [hkil] into [uvw]
+        Nhkil=Nhkil+1
+        CALL HKIL2UVW(ORIENT(i,1),ORIENT(i,2),0.d0,ORIENT(i,3),u,v,w)
+        !Update system orientation in ORIENT
+        ORIENT(i,1) = u
+        ORIENT(i,2) = v
+        ORIENT(i,3) = w
+      ELSE
+        !Failed to read [hkil] => try reading [uvw]
+        CALL INDEX_MILLER(create_Miller(i),ORIENT(i,:),j)
+        IF( j==0 ) THEN
+          !Success reading [uvw]
+          !Check if it is not mixed up with some [hkil]
+          IF( Nhkil>0 ) THEN
+            !Error: can't mix up [hkil] and [uvw]
+            nerr = nerr+1
+            CALL ATOMSK_MSG(820,(/""/),(/0.d0/))
+            GOTO 1000
+          ENDIF
+        ELSE
+          !Reading [uvw] also failed: error
+          nerr = nerr+1
+          CALL ATOMSK_MSG(817,(/create_Miller(i)/),(/0.d0/))
+          GOTO 1000
+        ENDIF
+      ENDIF
+    ENDDO
     !
     !Check that no vector in ORIENT is [000]
     IF( VECLENGTH(ORIENT(1,:))<1.d-12 .OR. VECLENGTH(ORIENT(2,:))<1.d-12 &
@@ -1514,31 +1560,10 @@ ELSEIF( hexagonal ) THEN
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
     oriented = .TRUE.
-    comment(1) = TRIM(comment(1))//' with box vectors'
-    DO i=1,3
-      IF(i==1) comment(1) = TRIM(comment(1))//' H1=['
-      IF(i==2) comment(1) = TRIM(comment(1))//' H2=['
-      IF(i==3) comment(1) = TRIM(comment(1))//' H3=['
-      DO j=1,3
-        m = NINT(ORIENT(i,j))
-        WRITE(msg,*) m
-        IF( j>1 .AND. ( ANY(ABS(NINT(ORIENT(i,:)))>=10) .OR. ABS(NINT(ORIENT(i,1)+ORIENT(i,2)))>=10 ) ) THEN
-          comment(1) = TRIM(comment(1))//"_"//TRIM(ADJUSTL(msg))
-        ELSE
-          comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
-        ENDIF
-        IF( j==2 ) THEN
-          m = -1*NINT(ORIENT(i,1)) - NINT(ORIENT(i,2))
-          WRITE(msg,*) m
-          IF( j>1 .AND. ( ANY(ABS(NINT(ORIENT(i,:)))>=10) .OR. ABS(NINT(ORIENT(i,1)+ORIENT(i,2)))>=10 ) ) THEN
-            comment(1) = TRIM(comment(1))//"_"//TRIM(ADJUSTL(msg))
-          ELSE
-            comment(1) = TRIM(comment(1))//TRIM(ADJUSTL(msg))
-          ENDIF
-        ENDIF
-        IF(j==3) comment(1) = TRIM(comment(1))//']'
-      ENDDO
-    ENDDO
+    comment(1) = TRIM(comment(1))//" with box vectors"//    &
+               & " H1="//TRIM(ADJUSTL(create_Miller(1)))// &
+               & ", H2="//TRIM(ADJUSTL(create_Miller(2)))// &
+               & ", H3="//TRIM(ADJUSTL(create_Miller(3)))
     !
     WRITE(msg,*) "orienting the system:"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -1552,16 +1577,8 @@ ELSEIF( hexagonal ) THEN
     !Set lminmax = 2 * largest value in ORIENT
     lminmax = MIN( 10 , 2 * NINT(MAXVAL(DABS(ORIENT(:,:)))) )
     !
-    !The oriented unit cell vectors are defined by the Miller indices
+    !The oriented unit cell vectors are defined by the [uvw] Miller indices
     DO i=1,3
-!       !Convert [hkil] notation into [uvw]
-!       CALL HKIL2UVW(ORIENT(i,1),ORIENT(i,2),0.d0,ORIENT(i,3),u,v,w)
-!       !Update system orientation in ORIENT
-!       ORIENT(i,1) = u
-!       ORIENT(i,2) = v
-!       ORIENT(i,3) = w
-!       !Set box vector
-!       uv(i,:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
       uv(i,:) = ORIENT(i,1)*H(1,:) + ORIENT(i,2)*H(2,:) + ORIENT(i,3)*H(3,:)
     ENDDO
     !

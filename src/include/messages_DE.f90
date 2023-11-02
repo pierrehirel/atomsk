@@ -865,7 +865,7 @@ CASE(819)
   msg = "          Versuchen Sie einen Computer mit mehr Speicher."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(820)
-  msg = TRIM(ADJUSTL(errmsg))//" kann nicht [hkl] und [hkil] Miller-Notationen mischen."
+  msg = TRIM(ADJUSTL(errmsg))//" kann nicht [hkil] und [uvw] Miller-Notationen mischen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(821)
   !reals(1) = estimated number of atoms
@@ -3537,7 +3537,12 @@ CASE(4804)
       temp = TRIM(ADJUSTL(temp))//" or "//TRIM(ADJUSTL(temp2))
     ENDIF
   ENDIF
-  msg = TRIM(ADJUSTL(errmsg))//" Diese Struktur benoetigt "//TRIM(ADJUSTL(temp))// &
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    temp2 = "die "//TRIM(ADJUSTL(strings(1)))//" Struktur"
+  ELSE
+    temp2 = "Diese Struktur"
+  ENDIF
+  msg = TRIM(ADJUSTL(errmsg))//TRIM(ADJUSTL(temp2))//" benoetigt "//TRIM(ADJUSTL(temp))// &
       & " Elemente."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4805)
