@@ -149,26 +149,6 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     m=1
     READ(cla(i),*,END=130,ERR=130) temp
-    !Make the mode_param(1) variable straight
-    !in case the user mistyped 'diamand' or 'pervoskite'
-    SELECT CASE(temp(1:2))
-    CASE('di','Di','DI')
-      temp = 'diamond'
-    CASE('gr','Gr','GR')
-      temp = 'graphite'
-    CASE('hc','Hc','HC')
-      temp = 'hcp'
-    CASE('na','NA','nt','NT')
-      temp = 'nanotube'
-    CASE('pe','Pe','PE')
-      temp = 'perovskite'
-    CASE('st','St','ST')
-      temp = 'st'
-    CASE('wu','Wu','WU','wz','Wz','WZ')
-      temp = 'wurtzite'
-    CASE('zi','Zi','zb','ZB')
-      temp = 'zincblende'
-    END SELECT
     mode_param(m) = TRIM(ADJUSTL(temp))
     !Get the lattice constant a
     i=i+1

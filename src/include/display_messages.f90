@@ -134,7 +134,7 @@ END SUBROUTINE DISPLAY_HEADER
 ! Available styles are:
 !    barrier  bounce   clock    dots     face
 !    inflate  jump     linear   newton   pacman
-!    rotate   snail    tunnel   wave
+!    rotate   snail    tunnel   wave     wheel
 ! Default style is "linear", it can be customized
 ! in config. file "atomsk.conf" with the keyword:
 !    progressbar <style>
@@ -338,8 +338,25 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       bar = temp(j+1:j+50)
       msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
       !
+    CASE("wheel")
+      !Imitate a wheel rotating
+      j = MOD(NINT(tempreal),12)
+      IF( j<=2 ) THEN
+        msg = "(\)"
+      ELSEIF( j<=5 ) THEN
+        msg = "(|)"
+      ELSEIF( j<=8 ) THEN
+        msg = "(/)"
+      ELSE
+        msg = "(—)"
+      ENDIF
+      j = NINT(tempreal/2.d0)
+      bar(1:j) = ""
+      bar(j+1:) = TRIM(msg)
+      msg = TRIM(bar)//"  ["//TRIM(ADJUSTL(pc))//"%]"
+      !
     CASE DEFAULT
-      !Default style: only percentage is displayed
+      !Default (or unrecognized) style: only percentage is displayed
       msg = "["//TRIM(ADJUSTL(pc))//"%]"
     END SELECT
     !
