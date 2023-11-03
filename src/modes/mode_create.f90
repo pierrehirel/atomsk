@@ -1574,8 +1574,8 @@ ELSEIF( hexagonal ) THEN
     WRITE(msg,'(3f16.6)') ORIENT(3,:)
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     !
-    !Set lminmax = 2 * largest value in ORIENT
-    lminmax = MIN( 10 , 2 * NINT(MAXVAL(DABS(ORIENT(:,:)))) )
+    !Set lminmax = 10 * largest value in ORIENT
+    lminmax = 10 * NINT(MAXVAL(DABS(ORIENT(:,:))))
     !
     !The oriented unit cell vectors are defined by the [uvw] Miller indices
     DO i=1,3

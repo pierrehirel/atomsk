@@ -236,12 +236,11 @@ tar:
 	          ../doc/*/*.png  ../doc/index.html                             \
 	          ../etc/atomsk.conf                                            \
 	          ../examples/                                                  \
-	          ../man/atomsk                                                 \
+	          ../man/atomsk  ../src/Makefile                                \
 	          ../src/atomsk.f90 ../src/include/*.f90 ../src/input/*.f90     \
 	          ../src/options/*.f90 ../src/output/*.f90 ../src/modes/*.f90   \
-	          ../src/Makefile ../src/Makefile.* ../src/*/Makefile           \
-	          ../tools/*                                                    \
-	          ../README ../LICENSE ../CHANGELOG
+	          ../src/compute/*.f90 ../src/Makefile.* ../src/*/Makefile      \
+	          ../tools/*  ../README ../LICENSE ../CHANGELOG
 	@echo ">>> The program was successfully archived in ../$(ARCNAME).tar.gz"
 
 
