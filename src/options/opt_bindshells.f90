@@ -10,7 +10,7 @@ MODULE bindshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 June 2022                                     *
+!* Last modification: P. Hirel - 13 Nov. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,7 +46,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of a
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary prop. (temporary)
 LOGICAL:: doaux
 INTEGER:: icore, ishell
-INTEGER:: i, j, k, l
+INTEGER:: i, j, k, l, m, n, o
 INTEGER:: Nbound !number of shells that were re-bound
 INTEGER:: NP, NS !number of cores detected
 INTEGER:: mass, q, qs !columns of AUX where mass, charge of cores and shells
@@ -54,8 +54,9 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist !index of nearest shell
 LOGICAL:: exceeds100 !does the number of neighbours exceed 100?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: SELECT
 REAL(dp):: distance  !distance between 2 particles
-REAL(dp),PARAMETER:: maxCSdistance=1.d0  !maximum allowed core-shell distance
-REAL(dp),DIMENSION(4):: Stemp !temporary position of a shell
+REAL(dp),PARAMETER:: maxCSdistance=1.5d0  !maximum allowed core-shell distance
+REAL(dp),DIMENSION(3):: shift
+REAL(dp),DIMENSION(4):: Ptemp, Stemp !temporary position of a core, shell
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H    !supercell parameters
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P     !positions of cores
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: S     !positions of shells
@@ -206,101 +207,127 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
   NP = 0 !counter for cores
   NS = 0 !counter for shells
   !Loop on all particles in P
-  DO i=1,SIZE(P,1)
+  DO i=1,SIZE(P,1)-1
     l=0 !counter =0 as long as no shell is found for atom #i
     IF( P(i,4)>0.1d0 ) THEN
       !Loop on all other particles in P
-      DO j=i,SIZE(P,1)
+      DO j=i+1,SIZE(P,1)
         !
-        IF( j>i .AND. P(j,4)>0.1d0 ) THEN
-          !Compute distance between particles i and j
-          distance = VECLENGTH( P(j,1:3) - P(i,1:3) )
+        IF( l==0 ) THEN
+          !Loop on periodic replica of particle #j
+          DO o=-1,1
+            DO n=-1,1
+              DO m=-1,1
+                shift(:) = DBLE(m)*H(1,:) + DBLE(n)*H(2,:) + DBLE(o)*H(3,:)
+                Stemp(1:3) = P(j,1:3) + shift(:)  !assuming j is shell
+                !Compute distance between particles i and j
+                distance = VECLENGTH( Stemp(1:3) - P(i,1:3) )
+                !
+                IF( distance < maxCSdistance ) THEN
+                  !Particles i and j are very close to each other, they form a core-shell pair
+                  !Core will stay at same position, shell may be shifted using PBC
+                  !Determine which one is the core and which the shell
+                  l=1 !to indicate a pair was found
+                  NP=NP+1 !counter for cores
+                  NS=NS+1 !counter for shells
+                  IF( q>0 .AND. qs>0 ) THEN
+                    IF( AUX(i,q)>0.d0 ) THEN
+                      !Charge of i is positive
+                      IF( AUX(i,q)>AUX(j,q) .OR. AUX(i,q)>AUX(j,qs) ) THEN
+                        !qi > qj => i is the core, j is the shell
+                        icore = i
+                        ishell = j
+                      ELSE
+                        !Otherwise j is the core, i is the shell
+                        icore = j
+                        ishell = i
+                        Stemp(1:3) = P(i,1:3) - shift(:)
+                      ENDIF
+                    ELSE
+                      !Particle i has negative charge
+                      IF( AUX(j,qs)<AUX(i,q) ) THEN
+                        !qi > qj => i is the core, j is the shell
+                        icore = i
+                        ishell = j
+                      ELSE
+                        !Otherwise j is the core, i is the shell
+                        icore = j
+                        ishell = i
+                        Stemp(1:3) = P(i,1:3) - shift(:)
+                      ENDIF
+                    ENDIF
+                  ELSEIF( mass>0 ) THEN
+                    IF( AUX(i,mass)>AUX(j,mass) ) THEN
+                      !i is the core, j is the shell
+                      icore = i
+                      ishell = j
+                    ELSE
+                      !j is the core, i is the shell
+                      icore = j
+                      ishell = i
+                      Stemp(1:3) = P(i,1:3) - shift(:)
+                    ENDIF
+                  ELSEIF( q>0 ) THEN
+                    IF( AUX(i,q)>0.d0 ) THEN
+                      !i is the core, j is the shell
+                      icore = i
+                      ishell = j
+                    ELSE
+                      !Particle i has negative charge
+                      IF( AUX(j,q)<AUX(i,q) ) THEN
+                        icore = i
+                        ishell = j
+                      ELSE
+                        icore = j
+                        ishell = i
+                        Stemp(1:3) = P(i,1:3) - shift(:)
+                      ENDIF
+                    ENDIF
+                  ELSE
+                    !No property to rely on => assume that i is the core and j the shell
+                    icore = i
+                    ishell = j
+                  ENDIF
+                  !Save position of core and shell in new arrays
+                  newP(NP,:) = P(icore,:)
+                  newS(NS,1:3) = Stemp(1:3)
+                  newS(NS,4) = P(icore,4)
+                  !Delete data from P (set all =0, arrays will be rewritten later)
+                  P(icore,:) = 0.d0
+                  P(ishell,:) = 0.d0
+                  IF(doaux) THEN
+                    DO k=1,SIZE(AUX,2)
+                      newAUX(NP,k) = AUX(icore,k)
+                    ENDDO
+                    IF(q>0) THEN
+                      IF( qs>0 ) THEN
+                        newAUX(NP,qs) = AUX(ishell,q)
+                      ELSE
+                        newAUX(NP,SIZE(newAUX,2)) = AUX(ishell,q)
+                      ENDIF
+                    ENDIF
+                  ENDIF
+                  WRITE(msg,*) "Bound particles # ", icore, " (core) and # ", ishell, " (shell)"
+                  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+                  !We have found a core/shell pair, we can break the loop on atoms j
+                  GOTO 130
+                ENDIF
+              ENDDO  !m
+            ENDDO  !n
+          ENDDO  !o
           !
-          IF( distance < maxCSdistance ) THEN
-            !Particles i and j are very close to each other, they form a core-shell pair
-            !Determine which one is the core and which the shell
-            !and remove the shell from P (set all =0, arrays will be rewritten later)
-            l=1 !to indicate a pair was found
-            NP=NP+1 !counter for cores
-            NS=NS+1 !counter for shells
-            IF( q>0 .AND. qs>0 ) THEN
-              IF( AUX(i,q)>0.d0 ) THEN
-                !Charge of i is positive
-                IF( AUX(i,q)>AUX(j,q) .OR. AUX(i,q)>AUX(j,qs) ) THEN
-                  !qi > qj => i is the core, j is the shell
-                  icore = i
-                  ishell = j
-                ELSE
-                  !Otherwise j is the core, i is the shell
-                  icore = j
-                  ishell = i
-                ENDIF
-              ELSE
-                !Particle i has negative charge
-                IF( AUX(j,qs)<AUX(i,q) ) THEN
-                  icore = i
-                  ishell = j
-                ELSE
-                  icore = j
-                  ishell = i
-                ENDIF
-              ENDIF
-            ELSEIF( mass>0 ) THEN
-              IF( AUX(i,mass)>AUX(j,mass) ) THEN
-                !i is the core, j is the shell
-                icore = i
-                ishell = j
-              ELSE
-                !j is the core, i is the shell
-                icore = j
-                ishell = i
-              ENDIF
-            ELSEIF( q>0 ) THEN
-              IF( AUX(i,q)>0.d0 ) THEN
-                !i is the core, j is the shell
-                icore = i
-                ishell = j
-              ELSE
-                !Particle i has negative charge
-                IF( AUX(j,q)<AUX(i,q) ) THEN
-                  icore = i
-                  ishell = j
-                ELSE
-                  icore = j
-                  ishell = i
-                ENDIF
-              ENDIF
-            ELSE
-              !No property to rely on => assume that i is the core and j the shell
-              icore = i
-              ishell = j
-            ENDIF
-            newP(NP,:) = P(icore,:)
-            newS(NS,:) = P(ishell,:)
-            newS(NS,4) = P(icore,4)
-            P(icore,:) = 0.d0
-            P(ishell,:) = 0.d0
-            IF(doaux) THEN
-              DO k=1,SIZE(AUX,2)
-                newAUX(NS,k) = AUX(icore,k)
-              ENDDO
-              IF(qs>0) newAUX(NP,SIZE(newAUX,2)) = AUX(icore,qs)
-            ENDIF
-            !We have found a core/shell pair, we can break the loop on atoms j
-            EXIT
-          ENDIF
-          !
-        ENDIF
+        ENDIF  !end if (j>i .AND. ...)
         !
       ENDDO !end loop on j
       !
+      130 CONTINUE
       IF( l==0 ) THEN
         !No particle was found close to particle #i
         !=> consider that particle #i is a core
         !Particle #j is not a shell and will be dealt with in another loop
         NP=NP+1
         newP(NP,:) = P(i,:)
-        newAUX(NP,:) = P(i,:)
+        newAUX(NP,:) = AUX(i,:)
       ENDIF
       !
     ENDIF

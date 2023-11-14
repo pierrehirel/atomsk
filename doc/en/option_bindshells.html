@@ -24,13 +24,15 @@
 
 <p>In the framework of an ionic core-shell model, each ion is described as a central core (usually positively charged) bound to a shell mimicking the electronic cloud (usually negative). This option re-associates the shells with their core, making sure that each shell is correctly associated with its core.</p>
 
-<p>First, if no shell is defined in the system, then Atomsk will search for atoms that are very close to one another (&#060;1&nbsp;&Aring;). If two atoms are found very close, then the one with the highest electric charge, or the largest mass, or by default the first to appear in the list, is considered as a core, and the other one as its associated shell.</p>
+<p>First, if no shell is defined in the system, then Atomsk will search for atoms that are very close to one another (&#060;1.5&nbsp;&Aring;). If two atoms are found very close, then the one with the highest electric charge, or the largest mass, or by default the first to appear in the list, is considered as a core, and the other one as its associated shell.</p>
 
-<p>Second, it is assumed that the lists of cores and shells match. If a shell is close to its core (at a distance smaller than 1.5 &Aring;) then it is considered as already associated. But, if the shell is far away from the corresponding core, the periodic images of the shell are searched for. If one of the periodic images is close to the core, then the position of the shell is replaced by the position of that image. This can be useful if some shells, but not their cores, were translated because of periodic boundary conditions.</p>
+<p>Second, if shells exist in the system, then it is assumed that the lists of cores and shells match. If a shell is close to its core (at a distance smaller than 1.5 &Aring;) then it is considered as already associated. But, if the shell is far away from the corresponding core, the periodic images of the shell are searched for. If one of the periodic images is close to the core, then the position of the shell is replaced by the position of that image. This can be useful if some shells, but not their cores, were translated because of periodic boundary conditions.</p>
 
-<p>Finally, if no periodic image seems to be associated with the core, it is assumed that the shell does not belong to this core, and the rest of the shell list is parsed. If another shell is found closer than 1.5 &Aring; from the core, then it is associated with the core. This can be useful when reading files where the positions of cores and shells are written in different orders. Finally, if no shell is found close to a core, then it is assumed that this core has no shell.</p>
+<p>Third, if no periodic image seems to be associated with the core, it is assumed that the shell does not belong to this core, and the rest of the shell list is parsed. If another shell is found closer than 1.5 &Aring; from the core, then it is associated with the core. This can be useful when reading files where the positions of cores and shells are written in different orders.</p>
 
-<p>Shells must exist in the system for this option to apply. Note that the indices of shells may be modified, and their positions may be translated by one or more box vectors. The positions of cores is not modified by this option.</p>
+<p>Finally, if no shell is found close to a core, then it is assumed that this core has no shell.</p>
+
+<p>By applying this option, note that the indices of shells may be modified, and their positions may be translated by one or more box vectors. The positions and indices of cores are not modified by this option.</p>
 
 
 <h4>Default</h4>
