@@ -12,7 +12,7 @@ MODULE in_lmp_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2023                                     *
+!* Last modification: P. Hirel - 24 Nov. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,7 +46,7 @@ CONTAINS
 SUBROUTINE READ_LMP_DATA(inputfile,H,P,S,comment,AUXNAMES,AUX)
 !
 CHARACTER(LEN=*),INTENT(IN):: inputfile
-CHARACTER(LEN=2):: species
+CHARACTER(LEN=2):: species, spshell
 CHARACTER(LEN=16) datatype  !type of data file: "atom" or "charge" or "molecule" or...
 CHARACTER(LEN=4096):: msg, temp, temp2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
@@ -212,34 +212,42 @@ DO
       !Read line, save it in a string
       READ(30,'(a)',ERR=120,END=120) temp
       IF( LEN_TRIM(temp)>0 ) THEN
+        !Read atom type, save it in Masses(:,:)
+        READ(temp,*,ERR=120,END=120) i
+        k=k+1
+        Masses(k,1) = i
         species=""
-        !Read atom mass, use it to determine its species
-        READ(temp,*,ERR=120,END=120) i, a
-        IF( a>0.d0 ) THEN
-          CALL ATOMMASSSPECIES(a,species)
-        ENDIF
-        !If species could not be determined from mass,
-        !check if there is a comment at the end of the line
-        IF( species=="XX" .OR. LEN_TRIM(species)==0 ) THEN
-          j=SCAN(temp,'#')
-          IF( j>0 ) THEN
-            !There is a comment: try to read an atom species
-            msg = TRIM(ADJUSTL(temp(j+1:)))
-            DO WHILE( LEN_TRIM(msg)>0 .AND. LEN_TRIM(species)==0 )
-              READ(msg,*) temp2
-              temp2 = TRIM(ADJUSTL(temp2))
-              species = temp2(1:2)
-              !Verify that it is an actual atom species
+        !First, check if there is a comment at the end of the line
+        j=SCAN(temp,'#')
+        IF( j>0 ) THEN
+          !There is a comment: try to read an atom species
+          msg = TRIM(ADJUSTL(temp(j+1:)))
+          DO WHILE( LEN_TRIM(msg)>0 .AND. LEN_TRIM(species)==0 )
+            READ(msg,*) temp2
+            temp2 = TRIM(ADJUSTL(temp2))
+            species = temp2(1:2)
+            !Verify that it is an actual atom species
+            CALL ATOMNUMBER(species,c)
+            IF( c==0 ) THEN
+              !Failed, try with first letter only
+              species = temp2(1:1)
               CALL ATOMNUMBER(species,c)
-              !If not, delete the string in species
-              IF(c==0) species=""
-              msg = msg(LEN_TRIM(temp2)+1:)
-            ENDDO
+            ENDIF
+            !If not, delete the string in species
+            IF(c==0) THEN
+              species=""
+              msg = ""
+            ENDIF
+          ENDDO
+        ENDIF !end if j>0
+        !No comment, or failed to read atom species: use mass to determine species
+        IF( species=="XX" .OR. LEN_TRIM(species)==0 ) THEN
+          READ(temp,*,ERR=120,END=120) i, a
+          IF( a>0.d0 ) THEN
+            CALL ATOMMASSSPECIES(a,species)
           ENDIF
         ENDIF
         !At this point we should know the atom species
-        k=k+1
-        Masses(k,1) = i       !Atom type is saved in Masses(:,1)
         CALL ATOMNUMBER(species,b)
         Masses(k,2) = NINT(b) !Atomic number is saved in Masses(:,2)
         Masses(k,3) = 0       !by default the particle is an atom (or core)
@@ -249,17 +257,29 @@ DO
           coreshell = .TRUE.
           isshell = .TRUE.
           Nshells = Nshells+1
+          spshell = species
           IF( k>1 .AND. Masses(k,2)==0 ) THEN
             !Try to detect to which core it is associated
-            !Parse the previous Masses
             Masses(k,2) = 0
             DO i=1,k-1
               CALL ATOMSPECIES(DBLE(Masses(i,2)),species)
-              CALL ATOMMASS(species,c)
-              IF( DABS( c - 10.d0*a )<=0.9d0 ) THEN
+              IF( species == spshell ) THEN
+                !This shell has same species as atom #i
+                !Save atomic number of shell
                 Masses(k,2) = Masses(i,2)
               ENDIF
             ENDDO
+            !If previous search failed, try to find an atom that has around 10*mass of shell
+            IF( Masses(k,2)==0 ) THEN
+              DO i=1,k-1
+                CALL ATOMMASS(species,a)
+                CALL ATOMMASS(spshell,b)
+                c = DABS( a/b )
+                IF( c>8.d0 .AND. b<=12.d0 ) THEN
+                  Masses(k,2) = Masses(i,2)
+                ENDIF
+              ENDDO
+            ENDIF
           ENDIF
           !
           IF( Masses(k,2)==0 ) THEN
