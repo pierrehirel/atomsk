@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 27 Oct. 2023                                     *
+!* Last modification: P. Hirel - 12 Dec. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -758,7 +758,7 @@ CASE(801)
 CASE(802)
   !reals(1) = index of atom that caused the error
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X FEHLER beim Versuch, Atom #"//TRIM(ADJUSTL(msg))//" zu lesen."
+  msg = TRIM(ADJUSTL(errmsg))//" beim Versuch, Atom #"//TRIM(ADJUSTL(msg))//" zu lesen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(803)
   !strings(1) = unit
@@ -777,7 +777,7 @@ CASE(807)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(808)
   !strings(1) = string where conversion failed
-  msg = "X!X FEHLER beim Konvertieren von '"//TRIM(strings(1))// &
+  msg = TRIM(ADJUSTL(errmsg))//" beim Konvertieren von '"//TRIM(strings(1))// &
       & "' in einen numerischen Wert."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(809)
@@ -792,12 +792,12 @@ CASE(810)
 CASE(811)
   !reals(1) = space group number
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X FEHLER beim Zugriff auf Daten der Raumgruppe "// &
+  msg = TRIM(ADJUSTL(errmsg))//" beim Zugriff auf Daten der Raumgruppe "// &
       & TRIM(ADJUSTL(msg))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(812)
   !strings(1) = non-conformal symmetry operation string
-  msg = "X!X FEHLER beim Interpretieren der Symmetrieoperationen '"// &
+  msg = TRIM(ADJUSTL(errmsg))//" beim Interpretieren der Symmetrieoperationen '"// &
       & TRIM(strings(1))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(813)
@@ -1000,7 +1000,7 @@ CASE(1800)
 CASE(1801)
   !strings(1) = file name
   !reals(1) = line number
-  msg = "X!X FEHLER beim Lesen aus der Datei: " &
+  msg = TRIM(ADJUSTL(errmsg))//" beim Lesen aus der Datei: " &
       & //TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(1,msg,logfile)
   IF( NINT(reals(1))>0 ) THEN
@@ -1060,7 +1060,7 @@ CASE(1812)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1813)
   !strings(1) = string where conversion failed
-  msg = "X!X FEHLER beim Analysieren der Operation in '"// &
+  msg = TRIM(ADJUSTL(errmsg))//" beim Analysieren der Operation in '"// &
       & TRIM(strings(1))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1814)
@@ -2535,10 +2535,10 @@ CASE(2802)
   msg = TRIM(ADJUSTL(errmsg))//" beim Lesen von "//TRIM(ADJUSTL(strings(1)))//"."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2803)
-  msg = "X!X FEHLER beim Bestimmen der Basisvektoren der Superzellen."
+  msg = TRIM(ADJUSTL(errmsg))//" beim Bestimmen der Basisvektoren der Superzellen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2804)
-  msg = "X!X FEHLER beim Ausfuehren von Anweisungen."
+  msg = TRIM(ADJUSTL(errmsg))//" beim Ausfuehren von Anweisungen."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2805)
   !strings(1) = name of unknown option
@@ -2821,11 +2821,11 @@ CASE(3800)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3801)
   !strings(1) = name of file
-  msg = "X!X FEHLER waehrend des Schreibens der Datei: "// &
+  msg = TRIM(ADJUSTL(errmsg))//" waehrend des Schreibens der Datei: "// &
       & TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3802)
-  msg = "X!X FEHLER waehrend des Schreibens von Dateien."
+  msg = TRIM(ADJUSTL(errmsg))//" waehrend des Schreibens von Dateien."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3803)
   !reals(1) = index of atom that has a NaN coordinate

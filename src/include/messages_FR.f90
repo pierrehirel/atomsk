@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2023                                     *
+!* Last modification: P. Hirel - 12 Dec. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2618,7 +2618,7 @@ CASE(2804)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2805)
   !strings(1) = name of unknown option
-  msg = "X!X ERREUR: option inconnue : "//TRIM(strings(1))
+  msg = TRIM(ADJUSTL(errmsg))//" option inconnue : "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2806)
   !strings(1) = name of option
@@ -3610,7 +3610,7 @@ CASE(4807)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4808)
   !strings(1) = atomic species that has zero charge
-  msg = "X!X ERREUR: les ions "//TRIM(strings(1))//" ne peuvent pas avoir une charge nulle."
+  msg = TRIM(ADJUSTL(errmsg))//" les ions "//TRIM(strings(1))//" ne peuvent pas avoir une charge nulle."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4809)
   !strings(1) = atomic species

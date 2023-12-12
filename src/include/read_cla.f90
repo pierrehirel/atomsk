@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Oct. 2023                                     *
+!* Last modification: P. Hirel - 12 Dec. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -598,12 +598,7 @@ DO WHILE(i<SIZE(cla))
       !
     END SELECT
   !
-  ELSEIF( clarg=='-add-shells' .OR. clarg=='-addshells' .OR. clarg=='-as' .OR. &
-        & clarg=='-create-shells' .OR. clarg=='-cs') THEN
-    IF( clarg=='-create-shells' .OR. clarg=='-cs') THEN
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(2799,(/'-create-shells','-add-shells   '/),(/0.d0/))
-    ENDIF
+  ELSEIF( clarg=='-add-shells' .OR. clarg=='-addshells' ) THEN
     ioptions = ioptions+1
     options_array(ioptions) = '-add-shells'
     !read atom species for which the shells must be created
@@ -1659,39 +1654,6 @@ DO WHILE(i<SIZE(cla))
 !     ELSE
 !       i=i-1
 !     ENDIF
-  !
-  ELSEIF(clarg=='-shear') THEN
-    CALL ATOMSK_MSG(2799,(/'-shear ','-deform'/),(/0.d0/))
-    ioptions = ioptions+1
-    options_array(ioptions) = TRIM(clarg)
-    !read the normal to the sheared surface (x, y or z)
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
-    !read the tilt vector (in A) or shear strain (in %)
-    i=i+1
-    READ(cla(i),'(a)',END=400,ERR=400) temp
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    !make sure it contains a real number
-    m = SCAN(temp,'%')
-    IF( m>0 ) THEN
-      temp2 = temp(1:m-1)
-      READ(temp2,'(a)',END=120,ERR=120) tempreal
-    ELSE
-      m = SCAN(temp,'A')
-      IF(m>0) temp(m:m)=" "
-      READ(temp,'(a)',END=120,ERR=120) tempreal
-    ENDIF
-    !read the shear direction (x, y or z)
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z') GOTO 120
   !
   ELSEIF(clarg=='-shift') THEN
     ioptions = ioptions+1

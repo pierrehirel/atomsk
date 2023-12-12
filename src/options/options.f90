@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Oct. 2023                                     *
+!* Last modification: P. Hirel - 12 Dec. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -93,7 +93,6 @@ USE rotate
 USE roundoff
 USE select
 USE separate
-USE shear
 USE shift
 USE sort
 USE spacegroup
@@ -1203,25 +1202,6 @@ DO ioptions=1,SIZE(options_array)
   CASE('-separate','sep')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, sep_radius, sep_dist
     CALL SEPARATE_XYZ(H,P,S,sep_radius,sep_dist,SELECT)
-  !
-  CASE('-shear')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, &
-        & shear_surf, treal(1), shear_dir
-    !treal may contain the shear strain expressed in percent, e.g. "3%"
-    SELECT CASE(shear_surf)
-    CASE('x','X')
-      i=1
-    CASE('y','Y')
-      i=2
-    CASE('z','Z')
-      i=3
-    END SELECT
-    CALL BOX2DBLE( H(:,i) , treal(1) , shear_strain , status )
-    IF(status>0) then
-      temp = treal(1)
-      goto 810
-    endif
-    CALL SHEAR_XYZ(H,P,S,shear_surf,shear_strain,shear_dir)
   !
   CASE('-shift')
     shift_dir = TRIM(ADJUSTL(options_array(ioptions)(7:)))
