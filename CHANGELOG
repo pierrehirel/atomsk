@@ -6,6 +6,7 @@ Master
 ------
 - new mode "--match-id" allows to sort atoms from a file, so that their IDs match those from another file.
 - mode "--difference" now accepts that the two systems have different numbers of atoms. Atoms that exist in first system but not the second are marked with a new auxiliary property "deleted_atom". Also, if atoms change chemical species between the two files, a new auxiliary property "diff_Z" is created.
+- in mode "--rdf", when several files are treated, neighbour list is rebuilt only if atom displacements are larger than skin width dR.
 - mode "--rdf" now accepts a single file name, if a single file must be analyzed.
 - when writing files in Protein Data Base (*.pdb) format, lines starting with SCALE are not written any more to avoid issues when visualising with OVITO. OVITO was also patched to fix this issue, see their Git commit [https://gitlab.com/stuko/ovito/-/commit/2a5f55736f4b6bdce7c18931a7fb30da84bb6320].
 - mode "--create" now supports the following lattices: A15, Boron nitride (or B12). Also fixed a performance issue when generating oriented unit cells.
@@ -13,6 +14,7 @@ Master
 - option "-remove-atoms all" will now remove all atoms.
 - option "-select" now displays chemical species of selected atoms.
 - progress bars can now be customized with a new keyword in configuration file (atomsk.conf).
+- computationnally heavy routines (like computation of G tensor or RDF) are separated in new "compute_*.f90" modules to improve maintainability and flexibility. It also means that these routines can now be called by different modes.
 - fixed a bug in mode "--merge" that was causing a segfault when the first system did not contain comments. Thanks to Abhay Vincent, Cranfield University, UK, for pointing out this bug.
 - fixed bugs in mode "--nye", where there was a sign error in the computation of the Nye tensor. Also attempted to tune computation parameters to improve accuracy in non-fcc materials. User can now specify parameters for the computation (NeighFactor, theta_max, NNmin, ) in a configuration file "atomsk.conf". Thanks to Houssam Kharouji and Vincent Taupin, LEM3, Univ. Lorraine, France, for helping improve the computation of Nye tensor.
 - fixed bugs in option "-bind-shells" where, when a system did not contain shells, particles too close to one another were not properly detected as core and shell, or charges were not attributed properly.
