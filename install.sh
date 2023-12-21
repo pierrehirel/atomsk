@@ -27,10 +27,43 @@ if [ ! -e 'atomsk' ] ; then
   else
 
     echo "<i> INFO: the executable 'atomsk' does not exist in current directory."
+
+    if [ ! -d "src" ] ; then
+
+      printf "<?> Do you wish to download Atomsk from the Web site? (y/n) "
+      read answer
+
+      if [ "${answer}" = "y" ] ; then
+
+        wget ${web}/version.txt
+        if [ -e "version.txt" ] ; then
+          ver=$(more version.txt)
+          wget ${web}/code/atomsk_b${ver}.tar.gz
+          rm version.txt
+          if [ -e "atomsk_b${ver}.tar.gz" ] ; then
+            tar -xzf atomsk_b${ver}.tar.gz
+            cd atomsk_b${ver}
+          else
+            echo "X!X ERROR: unable to reach ${web} , aborting."
+            exit
+          fi
+        else
+          echo "X!X ERROR: unable to reach ${web} , aborting."
+          exit
+        fi
+
+      else
+
+        echo ">>> Installation cancelled."
+        exit
+
+      fi
+
+    fi
     
     if [ -d "src" ] ; then
     
-      echo "<?> Do you wish to compile Atomsk from the source code? (y/n)"
+      printf "<?> Do you wish to compile Atomsk from the source code? (y/n) "
       read answer
 
       if [ "${answer}" = "y" ] ; then
@@ -49,10 +82,10 @@ if [ ! -e 'atomsk' ] ; then
           echo "          or download a binary version from ${web}."
         
         fi
-        
-    
+
+
       else
-    
+
         echo ">>> Installation cancelled."
         exit
     
@@ -75,7 +108,7 @@ if [ ! "$UID" -eq 0 ] ; then
 
   echo "<!> INFO: I must have super-user rights (su) to install Atomsk in your system (${BINPATH})."
   echo "<!>       If you choose no, then Atomsk will be installed in the /bin/ directory in your home (${HOME}/bin)."
-  echo "<?> Do you wish to activate super-user rights to install Atomsk system-wide? (y/n)"
+  printf "<?> Do you wish to activate super-user rights to install Atomsk system-wide? (y/n) "
   read answer
 
   if [ "${answer}" = "y" ] ; then

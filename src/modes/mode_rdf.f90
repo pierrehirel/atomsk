@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Dec. 2023                                     *
+!* Last modification: P. Hirel - 19 Dec. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,7 +83,7 @@ REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 h
 REAL(dp),DIMENSION(3,3):: H      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries, aentries2
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX          !auxiliary properties of atoms (not used)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P            !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pref         !"reference" atom positions
@@ -109,6 +109,7 @@ u=0
 v=0
 w=0
 ORIENT(:,:) = 0.d0
+IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 IF(ALLOCATED(Pref)) DEALLOCATE(Pref)
 IF(ALLOCATED(pairs)) DEALLOCATE(pairs)
 IF(ALLOCATED(rdf_temp)) DEALLOCATE(rdf_temp)        !partial RDFs for 1 system
@@ -186,7 +187,7 @@ DO fid=1,SIZE(inputfiles) !Loop on files
     !
     !If this is the first file, then save atom positions as "reference"
     IF( Nfiles==0 ) THEN
-      ALLOCATE( Pref(SIZE(P,1),4) )
+      ALLOCATE( Pref(SIZE(P,1),SIZE(P,2)) )
       Pref(:,:) = P(:,:)
     ELSE
       !Otherwise, compute the difference in atom positions
@@ -324,7 +325,9 @@ IF(SIZE(aentries,1)>1) THEN
       CALL ATOMSPECIES(aentries(l,1),sp2)
       rdfdat = 'rdf_'//TRIM(sp1)//TRIM(sp2)//'.dat'
       IF(.NOT.overw) CALL CHECKFILE(rdfdat,'writ')
-      OPEN(UNIT=40,FILE=rdfdat)
+      OPEN(UNIT=40,FILE=rdfdat,FORM="FORMATTED",STATUS="UNKNOWN")
+      msg = "# "//TRIM(sp1)//"-"//TRIM(sp2)//" partial RDF computed with Atomsk"
+      WRITE(40,'(a)') TRIM(ADJUSTL(msg))
       !
       DO i=1,SIZE(rdf_partial,2)-1
         WRITE(40,'(2f24.8)') DBLE(i-1)*rdf_dr, rdf_partial(atompair,i)
@@ -339,7 +342,9 @@ ENDIF
 !Output total RDF
 rdfdat = 'rdf_total.dat'
 IF(.NOT.overw) CALL CHECKFILE(rdfdat,'writ')
-OPEN(UNIT=40,FILE=rdfdat)
+OPEN(UNIT=40,FILE=rdfdat,FORM="FORMATTED",STATUS="UNKNOWN")
+msg = "# Total RDF computed with Atomsk"
+WRITE(40,'(a)') TRIM(ADJUSTL(msg))
 DO i=1,SIZE(rdf_total,1)-1
   WRITE(40,'(2f24.8)') DBLE(i-1)*rdf_dr, rdf_total(i)
 ENDDO

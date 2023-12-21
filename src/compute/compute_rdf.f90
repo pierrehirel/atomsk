@@ -20,7 +20,7 @@ MODULE cmpt_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Dec. 2023                                     *
+!* Last modification: P. Hirel - 21 Dec. 2023                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,7 +116,7 @@ IF ( VECLENGTH(H(3,:))<=rdf_maxR ) THEN
 ENDIF
 !
 !Count how many different species exist in the system
-IF( .NOT.ALLOCATED(pairs) ) THEN
+IF( .NOT.ALLOCATED(aentries) ) THEN
   CALL FIND_NSP(P(:,4),aentries)
 ENDIF
 Nspecies = SIZE(aentries,1)
@@ -216,7 +216,7 @@ DO i=1,SIZE(P,1)
   DO WHILE ( m<=SIZE(NeighList,2)  .AND. NeighList(i,m)>0 )
     !Get the index of the #m-th neighbor of atom #i
     id = NeighList(i,m)
-    !Get index of "atompair" for the pair #i-#j
+    !Get index of "atompair" for the pair #i-#id
     atompair = 0
     DO j=1,SIZE(pairs,1)
       IF( DABS(P(i,4)-pairs(j,1)) < 1.d-3 .AND. &
@@ -277,7 +277,6 @@ DO i=1,SIZE(pairs,1)
     !Save average density of atoms sp2
     IF( DABS(aentries(j,1)-pairs(i,2))<1.d-3 ) THEN
       v = NINT(aentries(j,2))
-      !average_dens = aentries(j,2) / Vsystem
     ENDIF
   ENDDO
   !

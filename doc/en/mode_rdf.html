@@ -40,7 +40,7 @@
 
 <h4>Performance</h4>
 
-<p>This mode relies on a neighbor search algorithm, which admittedly was not optimized in Atomsk. The time required for neighbor search increases linearly with the volume (i.e. as R<sup>3</sup>). Therefore it is advised to use a value of R<sub>max</sub> as small as possible, typically between 10 and 20&nbsp;&Aring;. After that, the time required for computing the RDF itself increases linearly with the step dR and with the number of particles.</p>
+<p>This mode relies on a neighbor search algorithm, which admittedly was not optimized in Atomsk. The time required for neighbor search increases linearly with the volume (i.e. as R<sup>3</sup>). Therefore it is advised to use a value of R<sub>max</sub> as small as possible, typically between 10 and 20&nbsp;&Aring;. To save computational time, the neighbour list is rebuilt only if the maximum displacement of an atom exceeds the value of &#60;dR&#62;. After that, the time required for computing the RDF itself increases linearly with the step dR and with the number of particles.</p>
 
 
 
