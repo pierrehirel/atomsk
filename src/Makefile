@@ -28,7 +28,7 @@
 export
 
 # Version of the program
-VER="master"
+VER="0.13"
 
 # Name of the final binary
 BIN=atomsk
@@ -108,7 +108,7 @@ ifndef CONFPATH
 endif
 
 # Name for the tar.gz archive (do NOT add extension like .tar.gz)
-ARCNAME=atomsk_$(VER)
+ARCNAME=atomsk_b$(VER)
 
 # Define folders where objects are found
 VPATH=$(OBJ)
@@ -148,7 +148,7 @@ message:
 	@echo "       o---o     ___________"
 	@echo "      o---o|     A T O M S K"
 	@echo "      |   |o"
-	@echo "      o---o      Version ${VER}"
+	@echo "      o---o      Version Beta ${VER}"
 	@echo ""
 
 # All = compile the code
@@ -228,9 +228,9 @@ clean:
 # Create an archive of the package (only on UNIX and Linux systems)
 # NOTE: Source files are modified with sed to match target version defined above
 tar:
-	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = '${VER}'" include/globalvar.f90
-	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/en/index.html
-	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version ${VER}</p>" ../doc/fr/index.html
+	@sed -i "/CHARACTER(LEN=24),PARAMETER:: version =/ c\CHARACTER(LEN=24),PARAMETER:: version = 'Beta ${VER}'" include/globalvar.f90
+	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version Beta ${VER}</p>" ../doc/en/index.html
+	@sed -i "/<p>&copy;/ c\<p>&copy; Pierre Hirel 2010 - Version Beta ${VER}</p>" ../doc/fr/index.html
 	@tar --exclude-vcs -czf ../$(ARCNAME).tar.gz                            \
 	          ../doc/*/*.html ../doc/*/*.css   ../doc/*/*.svg               \
 	          ../doc/*/*.png  ../doc/index.html                             \
@@ -247,7 +247,7 @@ tar:
 # Install the program (only on UNIX and Linux systems)
 install:
 	@echo ""
-	@echo "  >>> Installation of Atomsk version $(VER):"
+	@echo "  >>> Installation of Atomsk version Beta $(VER):"
 	@echo "  ..> The program was successfuly installed in $(BINPATH)"
 	@echo "      To run it, enter 'atomsk' in a terminal."
 	@mkdir -p $(DOCPATH)/atomsk
