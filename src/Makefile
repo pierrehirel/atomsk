@@ -240,7 +240,7 @@ tar:
 	          ../src/atomsk.f90 ../src/include/*.f90 ../src/input/*.f90     \
 	          ../src/options/*.f90 ../src/output/*.f90 ../src/modes/*.f90   \
 	          ../src/compute/*.f90 ../src/Makefile.* ../src/*/Makefile      \
-	          ../tools/*  ../README ../LICENSE ../CHANGELOG
+	          ../tools/*  ../README ../LICENSE ../CHANGELOG ../install.sh ../uninstall.sh
 	@echo ">>> The program was successfully archived in ../$(ARCNAME).tar.gz"
 
 
