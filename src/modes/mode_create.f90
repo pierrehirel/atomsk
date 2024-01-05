@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Oct. 2023                                     *
+!* Last modification: P. Hirel - 05 Jan. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -97,6 +97,7 @@ nspecies = 0
 Nhkil=0
 Huc(:,:) = 0.d0
 H(:,:) = 0.d0
+ORIENT(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
 ips(:,:) = 0.d0
 uv(:,:) = 0.d0
@@ -1686,8 +1687,7 @@ ELSEIF( hexagonal ) THEN
   !
 ELSE
   !The lattice is not cubic nor hexagonal
-  IF( VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 &
-    & .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
+  IF( .NOT.ANY( LEN_TRIM(create_Miller)<=0 ) ) THEN
     !The user asked for a crystal orientation, but the lattice is not cubic
     !=> write error message and exit
     CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
