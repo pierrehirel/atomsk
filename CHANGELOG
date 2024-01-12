@@ -2,6 +2,11 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
+Beta 0.13.1 (12 January 2024)
+-----------------------------
+- in mode "--create", fixed a bug that prevented generating tetragonal lattices and nanotubes.
+
+
 Beta 0.13 (22 December 2023)
 ----------------------------
 - new mode "--match-id" allows to sort atoms from a file, so that their IDs match those from another file.

@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Oct. 2023                                     *
+!* Last modification: P. Hirel - 05 Jan. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -97,6 +97,7 @@ nspecies = 0
 Nhkil=0
 Huc(:,:) = 0.d0
 H(:,:) = 0.d0
+ORIENT(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
 ips(:,:) = 0.d0
 uv(:,:) = 0.d0
@@ -932,7 +933,7 @@ CASE("limo2")
   !   0     0     0
   ! 2/3   1/3   1/3
   ! 1/3   2/3   2/3
-  P(2,1) = y*H(1,1) + x*H(2,1)  
+  P(2,1) = y*H(1,1) + x*H(2,1)
   P(2,2) = x*H(2,2)
   P(2,3) = x*H(3,3)
   P(3,1) = x*H(1,1) + y*H(2,1)
@@ -943,9 +944,9 @@ CASE("limo2")
   ! 2/3   1/3   0.833
   ! 1/3   2/3   0.167
   P(4,3) = 0.50d0*H(3,3)
-  P(5,1) = y*H(1,1) + x*H(2,1)  
+  P(5,1) = y*H(1,1) + x*H(2,1)
   P(5,2) = x*H(2,2)
-  P(5,3) = 0.833d0*H(3,3) 
+  P(5,3) = 0.833d0*H(3,3)
   P(6,1) = x*H(1,1) + y*H(2,1)
   P(6,2) = y*H(2,2)
   P(6,3) = 0.167d0*H(3,3)
@@ -1686,8 +1687,7 @@ ELSEIF( hexagonal ) THEN
   !
 ELSE
   !The lattice is not cubic nor hexagonal
-  IF( VECLENGTH(ORIENT(1,:)).NE.0.d0 .AND. VECLENGTH(ORIENT(2,:)).NE.0.d0 &
-    & .AND. VECLENGTH(ORIENT(3,:)).NE.0.d0 ) THEN
+  IF( .NOT.ANY( LEN_TRIM(create_Miller)<=0 ) ) THEN
     !The user asked for a crystal orientation, but the lattice is not cubic
     !=> write error message and exit
     CALL ATOMSK_MSG(4827,(/""/),(/0.d0/))
