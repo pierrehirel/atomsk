@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2023                                     *
+!* Last modification: P. Hirel - 19 Feb. 2024                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -166,6 +166,8 @@ CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !     than the final polycrystal, i.e. Huc(:,:) may be smaller than H(:,:), but
 !     it might also be larger. Keep that in mind if you modify this routine
 CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
+!
+IF( nerr>0 ) GOTO 1000
 !
 !Check if seed contains shells (in the sense of core-shell model) and/or auxiliary properties
 IF( ALLOCATED(Suc) .AND. SIZE(Suc,1)>0 ) THEN

@@ -2,8 +2,13 @@ CHANGELOG FOR ATOMSK
 ====================
 
 
-Master
-------
+Beta 0.13.1 (12 January 2024)
+-----------------------------
+- in mode "--create", fixed a bug that prevented generating tetragonal lattices and nanotubes.
+
+
+Beta 0.13 (22 December 2023)
+----------------------------
 - new mode "--match-id" allows to sort atoms from a file, so that their IDs match those from another file.
 - mode "--difference" now accepts that the two systems have different numbers of atoms. Atoms that exist in first system but not the second are marked with a new auxiliary property "deleted_atom". Also, if atoms change chemical species between the two files, a new auxiliary property "diff_Z" is created.
 - in mode "--rdf", when several files are treated, neighbour list is rebuilt only if atom displacements are larger than skin width dR.
