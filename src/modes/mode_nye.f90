@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 July 2023                                     *
+!* Last modification: P. Hirel - 19 Feb. 2024                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -146,6 +146,7 @@ IF( StrUpCase(filefirst)=="NULL" ) THEN
 ELSE
   !Read atomic positions from filefirst and store them into P1(:,:)
   CALL READ_AFF(filefirst,H1,P1,S,comment,AUXNAMES,AUX)
+  IF(nerr>0 .OR. .NOT.ALLOCATED(P1)) GOTO 1000
   !Get rid of shells and auxiliary properties
   IF (ALLOCATED(S)) DEALLOCATE(S)
   IF (ALLOCATED(comment)) DEALLOCATE(comment)
@@ -157,6 +158,7 @@ ENDIF
 !
 !Read atomic positions from filesecond and store them into P2(:,:)
 CALL READ_AFF(filesecond,H2,P2,S,comment,AUXNAMES,AUX)
+IF(nerr>0 .OR. .NOT.ALLOCATED(P2)) GOTO 1000
 !Get rid of shells and auxiliary properties
 IF (ALLOCATED(S)) DEALLOCATE(S)
 IF (ALLOCATED(comment)) DEALLOCATE(comment)

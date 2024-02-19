@@ -167,7 +167,7 @@ CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !     it might also be larger. Keep that in mind if you modify this routine
 CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
 !
-IF( nerr>0 ) GOTO 1000
+IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 1000
 !
 !Check if seed contains shells (in the sense of core-shell model) and/or auxiliary properties
 IF( ALLOCATED(Suc) .AND. SIZE(Suc,1)>0 ) THEN

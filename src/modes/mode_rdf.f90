@@ -17,7 +17,7 @@ MODULE mode_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Dec. 2023                                     *
+!* Last modification: P. Hirel - 19 Feb. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -175,6 +175,7 @@ DO fid=1,SIZE(inputfiles) !Loop on files
   IF(fileexists) THEN
     !Read data: cell size, atom positions...
     CALL READ_AFF(inputfiles(fid),H,P,S,comment,AUXNAMES,AUX)
+    IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 1000
     !
     !We won't use shell positions nor auxiliary properties: free memory
     IF(ALLOCATED(S)) DEALLOCATE(S)

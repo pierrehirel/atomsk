@@ -15,7 +15,7 @@ MODULE mode_unwrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 19 Feb. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -94,13 +94,13 @@ CALL CHECKFILE(filesecond,'read')
 !
 !Read first file
 CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
-IF(nerr>=1) GOTO 1000
+IF(nerr>0 .OR. .NOT.ALLOCATED(Pfirst)) GOTO 1000
 CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>=1) GOTO 1000
 !
 !Read second file
 CALL READ_AFF(filesecond,H,Psecond,S,commentsecond,AUXNAMES,AUX)
-IF(nerr>=1) GOTO 1000
+IF(nerr>0 .OR. .NOT.ALLOCATED(Psecond)) GOTO 1000
 CALL OPTIONS_AFF(options_array,Huc,H,Psecond,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>=1) GOTO 1000
 !

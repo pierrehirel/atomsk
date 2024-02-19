@@ -87,6 +87,7 @@ CALL ATOMSK_MSG(4073,(/filefirst,filesecond/),(/0.d0/))
 !**********************************************************************************
 !Read atomic positions from filefirst and store them into P1(:,:)
 CALL READ_AFF(filefirst,H1,P1,S1,comment1,AUXNAMES1,AUX1)
+IF(nerr>0 .OR. .NOT.ALLOCATED(P1)) GOTO 1000
 !Get rid of atoms and shells
 IF (ALLOCATED(P1)) DEALLOCATE(P1)
 IF (ALLOCATED(S1)) DEALLOCATE(S1)
@@ -102,6 +103,7 @@ ENDIF
 !
 !Read atomic positions from filesecond and store them into P2(:,:)
 CALL READ_AFF(filesecond,H2,P2,S2,comment2,AUXNAMES2,AUX2)
+IF(nerr>0 .OR. .NOT.ALLOCATED(P2)) GOTO 1000
 !Apply options to system 2
 CALL OPTIONS_AFF(options_array,Huc,H2,P2,S2,AUXNAMES1,AUX1,ORIENT,SELECT,C_tensor)
 !

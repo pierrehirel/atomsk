@@ -10,7 +10,7 @@ MODULE mode_average
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 May 2020                                      *
+!* Last modification: P. Hirel - 19 Feb. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -109,7 +109,7 @@ DO
     IF(fileexists) THEN
       !Read atom positions
       CALL READ_AFF(inputfile,Htemp,Ptemp,Stemp,commenttemp,AUXNAMEStemp,AUXtemp)
-      IF(nerr>0) GOTO 1000
+      IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 1000
       !
       !Convert atom positions to reduced coordinates
       CALL CART2FRAC(Ptemp,Htemp)

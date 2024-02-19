@@ -21,7 +21,7 @@ MODULE aio
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Feb. 2018                                     *
+!* Last modification: P. Hirel - 19 Feb. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -188,7 +188,7 @@ DO i=1,totsnap
       !
       !Read file
       CALL READ_AFF(inputfile,H,P,S,comment,AUXNAMES,AUX)
-      IF(nerr>0) GOTO 300
+      IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 300
       !
       !Apply options if any
       CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
