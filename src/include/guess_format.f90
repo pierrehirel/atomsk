@@ -24,7 +24,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Feb. 2023                                     *
+!* Last modification: P. Hirel - 22 Feb. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -56,7 +56,7 @@ CHARACTER:: c
 CHARACTER(LEN=4):: fstatus   !file status; 'read' or 'writ'
 CHARACTER(LEN=5):: extension, infileformat
 CHARACTER(LEN=128):: msg
-CHARACTER(LEN=1024):: test
+CHARACTER(LEN=1024):: test, test2
 CHARACTER(LEN=1024):: filename
 CHARACTER(LEN=4096),INTENT(IN):: inputfile
 LOGICAL:: fileexists
@@ -65,6 +65,7 @@ LOGICAL:: formatted  !is the file formatted?
 INTEGER:: certainty
 INTEGER:: likely
 INTEGER:: strlength, i, j, k
+INTEGER:: Ncol
 INTEGER:: NP
 INTEGER,DIMENSION(SIZE(flist,1)):: fscore
 REAL(dp):: testreal
@@ -566,8 +567,8 @@ IF(fileexists) THEN
           !Try to read an integer
           !If successful, it can be XYZ or MOLDY format
           READ(test,*,ERR=220,END=220) NP
-          CALL SET_SCORE(fscore,"xyz  ",6,1)
-          CALL SET_SCORE(fscore,"mol  ",6,1)
+          CALL SET_SCORE(fscore,"xyz  ",2,1)
+          CALL SET_SCORE(fscore,"mol  ",2,1)
         ENDIF
         !
       ELSEIF( i==2 ) THEN
@@ -603,29 +604,45 @@ IF(fileexists) THEN
       !
       240 CONTINUE
       IF( i>2 .AND. test(1:1).NE.'#' ) THEN
-        !XYZ format has lines  "N x y z"
-        READ(test,*,ERR=241,END=241) NP, testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"lmp  ",1,0)
-        CALL SET_SCORE(fscore,"xyz  ",1,0)
-        GOTO 249
+        !Determine number of columns of data
+        Ncol = 0
+        test2 = ADJUSTL(test)
+        DO WHILE(LEN_TRIM(test2)>0)
+          READ(test2,*,ERR=241,END=241) msg
+          j = LEN_TRIM(msg) + 1
+          test2 = ADJUSTL(test2(j:))
+          Ncol=Ncol+1
+        ENDDO
         241 CONTINUE
-        !MOLDY format has lines  "x y z N"
-        READ(test,*,ERR=242,END=242) testreal, testreal, testreal, NP
-        CALL SET_SCORE(fscore,"mol  ",1,0)
-        GOTO 249
-        242 CONTINUE
-        !SIESTA XV format has lines  "N Z x y z fx fy fz"
-        READ(test,*,ERR=243,END=243) NP, NP, testreal, testreal, testreal, &
-                                    & testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"xv   ",1,0)
-        243 CONTINUE
-        GOTO 249
-        !Atomeye, DL_POLY CONFIG (or REVCON), and VASP POSCAR formats have lines "x y z"
-        READ(test,*,ERR=249,END=249) testreal, testreal, testreal
-        CALL SET_SCORE(fscore,"cfg  ",2,0)
-        CALL SET_SCORE(fscore,"dlp  ",2,0)
-        CALL SET_SCORE(fscore,"pos  ",2,0)
-        249 CONTINUE
+        !
+        IF( Ncol==3 ) THEN
+          !Atomeye, DL_POLY CONFIG (or REVCON), and VASP POSCAR formats have lines "x y z"
+          READ(test,*,ERR=260,END=260) testreal, testreal, testreal
+          CALL SET_SCORE(fscore,"cfg  ",2,0)
+          CALL SET_SCORE(fscore,"dlp  ",2,0)
+          CALL SET_SCORE(fscore,"pos  ",2,0)
+        ELSEIF( Ncol==4 ) THEN
+          !XYZ format has lines  "N x y z"
+          j=1
+          READ(test,*,ERR=243,END=243) NP, testreal, testreal, testreal
+          CALL SET_SCORE(fscore,"lmp  ",1,0)
+          CALL SET_SCORE(fscore,"xyz  ",1,0)
+          GOTO 260
+          243 CONTINUE
+          j=2
+          !MOLDY format has lines  "x y z N"
+          READ(test,*,ERR=244,END=244) testreal, testreal, testreal, NP
+          CALL SET_SCORE(fscore,"mol  ",1,0)
+          GOTO 260
+          244 CONTINUE
+        ELSEIF( Ncol==8 ) THEN
+          !SIESTA XV format has lines  "N Z x y z fx fy fz"
+          READ(test,*,ERR=260,END=260) NP, NP, testreal, testreal, testreal, &
+                                      & testreal, testreal, testreal
+          CALL SET_SCORE(fscore,"xv   ",1,0)
+        ENDIF
+        !
+        260 CONTINUE
       ENDIF
     !
     ! -- Add other formats here --
