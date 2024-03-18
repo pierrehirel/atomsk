@@ -2777,7 +2777,17 @@ CASE(3713) ! missing absorption data
   msg = TRIM(ADJUSTL(warnmsg))//" absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3714)
-  msg = TRIM(ADJUSTL(warnmsg))//" einige Atome haben einen ungültigen 'type'."
+  !reals(1) = number of atoms with a zero "type"
+  !reals(2) = index of first atom with a zero "type"
+  WRITE(temp,*) NINT(reals(2))
+  msg = TRIM(ADJUSTL(warnmsg))
+  IF( NINT(reals(1))==1 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" Atom #"//TRIM(ADJUSTL(temp))//" hat einen ungültigen 'type'."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//" einige Atome haben einen ungültigen 'type' (das erste ist Atom #" &
+        & //TRIM(ADJUSTL(temp))//")."
+  ENDIF
+  msg = TRIM(ADJUSTL(warnmsg))//" ."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Sie können die Option '-remove-property type' verwenden, um Atomtypen zu entfernen,"
   CALL DISPLAY_MSG(1,msg,logfile)

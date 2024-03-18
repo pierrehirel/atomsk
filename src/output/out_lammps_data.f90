@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2023                                    *
+!* Last modification: P. Hirel - 18 March 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -104,6 +104,7 @@ Nbond = 0
 Nshells = 0
 Nshelltypes = 0
 Nspecies = 0
+Ntypes = 0
 K=H
 IF(ALLOCATED(atypes)) DEALLOCATE(atypes)
 IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
@@ -116,9 +117,60 @@ msg = 'entering WRITE_LMP_DATA'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
 !
-!Find how many different species are in P
-CALL FIND_NSP(P(:,4),aentries)
-Ntypes = SIZE(aentries,1)
+!Check if auxiliary properties relevant to LAMMPS data files are present
+IF( ALLOCATED(AUXNAMES) ) THEN
+  DO i=1,SIZE(AUXNAMES)
+    IF( TRIM(ADJUSTL(AUXNAMES(i)))=='vx' ) THEN
+      vx = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vy' ) THEN
+      vy = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vz' ) THEN
+      vz = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='molID' ) THEN
+      molID = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='q' ) THEN
+      q = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='qs' ) THEN
+      qs = i
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='type' ) THEN
+      typecol = i
+      IF( Ntypes==0 ) THEN
+        !Could not determine number of atom types before
+        !Count how many different atom types are in AUX
+        Ntypes = MAXVAL(AUX(:,typecol))
+        !Verify that atom types are all greater than zero
+        IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
+          !Count how many atoms have a zero "type"
+          l = 0
+          m = 0
+          DO j=1,SIZE(AUX,1)
+            IF( AUX(j,typecol)<0.9d0 ) THEN
+              l = l+1
+              IF(m==0) m=j
+            ENDIF
+          ENDDO
+          nwarn=nwarn+1
+          CALL ATOMSK_MSG(3714,(/""/),(/DBLE(l),DBLE(m)/))
+        ENDIF
+      ENDIF
+    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='Stype' ) THEN
+      Stypecol = i
+    ENDIF
+  ENDDO
+  !
+  IF( vx>0 .AND. vy>0 .AND. vz>0 ) velocities = .TRUE.
+  IF( q>0 ) charges = .TRUE.
+  !
+  WRITE(msg,*) "AUX columns: vx vy vz ", vx, vy, vz, "; type ", typecol
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+ENDIF
+!
+IF( Ntypes==0 ) THEN
+  !Find how many different species are in P, this will be the number of atom 'types'
+  CALL FIND_NSP(P(:,4),aentries)
+  Ntypes = SIZE(aentries,1)
+ENDIF
+!
 IF(verbosity==4) THEN
   msg = "aentries:   at.number |  occurrence"
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
@@ -173,53 +225,13 @@ CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 WRITE(msg,*) "         Number of shell types = ", Nshelltypes
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !
-!Check if auxiliary properties relevant to LAMMPS data files are present
-IF( ALLOCATED(AUXNAMES) ) THEN
-  DO i=1,SIZE(AUXNAMES)
-    IF( TRIM(ADJUSTL(AUXNAMES(i)))=='vx' ) THEN
-      vx = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vy' ) THEN
-      vy = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vz' ) THEN
-      vz = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='molID' ) THEN
-      molID = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='q' ) THEN
-      q = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='qs' ) THEN
-      qs = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='type' ) THEN
-      typecol = i
-      IF( Nshells==0 ) THEN
-        !Could not determine number of atom types before
-        !Count how many different atom types are in AUX
-        !CALL FIND_NSP(AUX(:,typecol),atypes)
-        Ntypes = MAXVAL(AUX(:,typecol))
-        !Verify that atom types are all greater than zero
-        IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
-          nwarn=nwarn+1
-          CALL ATOMSK_MSG(3714,(/""/),(/0.d0/))
-        ENDIF
-      ENDIF
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='Stype' ) THEN
-      Stypecol = i
-    ENDIF
-  ENDDO
-  !
-  IF( vx>0 .AND. vy>0 .AND. vz>0 ) velocities = .TRUE.
-  IF( q>0 ) charges = .TRUE.
-  !
-  WRITE(msg,*) "AUX columns: vx vy vz ", vx, vy, vz, "; type ", typecol
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ENDIF
-!
 !
 IF( typecol>0 ) THEN
   !A column for atom types is defined
   !For each atom type, find its atomic number and mass and store them in array "typemass"
   ALLOCATE( typemass(Ntypes,2) )
   typemass(:,:) = 0.d0
-  
+  !
   DO j=1,Ntypes-Nshelltypes
     i = 0
     DO WHILE( i<SIZE(P,1) .AND. typemass(j,1)<0.1d0 )

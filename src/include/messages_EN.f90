@@ -768,7 +768,7 @@ CASE(801)
 CASE(802)
   !reals(1) = index of atom that caused the error
   WRITE(msg,"(i18)") NINT(reals(1))
-  msg = "X!X ERROR while trying to read atom #"//TRIM(ADJUSTL(msg))
+  msg = TRIM(ADJUSTL(errmsg))//" while trying to read atom #"//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(803)
   !strings(1) = unit
@@ -2772,7 +2772,16 @@ CASE(3713) ! missing absorption data
   msg = TRIM(ADJUSTL(warnmsg))//" absorption factors are missing, they will be set to 0.03 for all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3714)
-  msg = TRIM(ADJUSTL(warnmsg))//" some atoms have an invalid 'type'."
+  !reals(1) = number of atoms with a zero "type"
+  !reals(2) = index of first atom with a zero "type"
+  WRITE(temp,*) NINT(reals(2))
+  msg = TRIM(ADJUSTL(warnmsg))
+  IF( NINT(reals(1))==1 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" atom #"//TRIM(ADJUSTL(temp))//" has an invalid 'type'."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//" some atoms have an invalid 'type' (first is atom #" &
+        & //TRIM(ADJUSTL(temp))//")."
+  ENDIF
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            You may use the option '-remove-property type' to remove atom types,"
   CALL DISPLAY_MSG(1,msg,logfile)

@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 June 2022                                     *
+!* Last modification: P. Hirel - 27 Feb. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -146,6 +146,7 @@ ENDIF
 !
 WRITE(ofu,'(a)') "  pseudo_dir = '"//TRIM(ADJUSTL(pseudo_dir))//"'"
 WRITE(ofu,'(a)') "  calculation = 'scf'"
+WRITE(ofu,'(a)') "  restart_mode = 'from_scratch'"
 WRITE(ofu,'(a1)') "/"
 !
 !Write system section
@@ -219,7 +220,7 @@ DO i=1,SIZE(aentries,1)
   ENDIF
   !
   CALL ATOMMASS(species,smass)
-  WRITE(ofu,'(a2,2X,f6.3,2X,a)') species, smass, TRIM(msg)
+  WRITE(ofu,'(a2,2X,f9.3,2X,a)') species, smass, TRIM(msg)
 ENDDO
 !
 !Write cell parameters
