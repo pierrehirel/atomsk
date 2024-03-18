@@ -26,6 +26,8 @@
 
 <p>Si les systèmes initial et final contiennent des coquilles (dans le sens d'un modèle ionique de type c&oelig;ur-coquille) alors les positions des coquilles seront aussi interpolées. Si seulement l'un des fichiers contient des coquilles mais pas l'autre, alors les coquilles seront ignorées et n'apparaîtront pas dans les images interpolées.</p>
 
+<p>Si les systèmes initial et final contiennent des propriétés auxiliaires, alors les propriétés qui se correspondent (c'est-à-dire celles qui portent le même nom dans les systèmes initial et final) seront aussi interpolées. Les propriétés qui n'existent que dans un seul système (initial ou final mais pas les deux) seront ignorées.</p>
+
 <p>Si ce mode est utilisé avec une ou plusieurs <a href="./options.html">options</a>, alors ces options s'appliqueront à chacune des configurations interpolées.</p>
 
 <p>Ce mode produit &#60;N&#62;+2 fichiers de sortie, numérotés de 0 jusqu'à &#60;N&#62;+1. La configuration 0 correspond à l'état initial, la configuration numéro &#60;N&#62;+1 à l'état final, de telle sorte que les configurations intermédiaires sont numérotées de 1 à &#60;N&#62;.</p>

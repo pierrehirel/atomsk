@@ -26,6 +26,8 @@
 
 <p>If the initial and final systems contain shells (in the sense of an ionic core-shell model) then the positions of shells will also be interpolated. If only one of the initial or final system contains shells but not the other, then shells will be ignored and will not appear in interpolated images.</p>
 
+<p>If the initial and final systems contain auxiliary properties, then matching properties (i.e. those that have the same name in both initial and final systems) will also be interpolated. Properties that exist in only one system (initial or final but not both) will be ignored.</p>
+
 <p>If you use this mode with one or several <a href="./options.html">options</a>, then these options will be applied to each interpolated configuration.</p>
 
 <p>This mode produces &#60;N&#62;+2 output configurations, numbered from 0 up to &#60;N&#62;+1. The configuration 0 corresponds to the initial state, configuration number &#60;N&#62;+1 to the final one, so that the intermediate configurations are indexed from 1 to &#60;N&#62;.</p>
