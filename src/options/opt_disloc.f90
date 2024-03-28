@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2023                                    *
+!* Last modification: P. Hirel - 28 March 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1234,6 +1234,11 @@ ELSEIF( disloctype=="loop" ) THEN
       Q(:,:) = 0.d0
       IF( doaux ) THEN
         ALLOCATE( newAUX(u+n,SIZE(AUX,2)) )
+        newAUX(:,:) = 0.d0
+        !Copy data from AUX to newAUX
+        DO i=1,SIZE(AUX,1)
+          newAUX(:,1:SIZE(AUX,2)) = AUX(:,:)
+        ENDDO
       ENDIF
       n = u
       !Copy atom positions and duplicated atoms in temporary array Q(:,:)

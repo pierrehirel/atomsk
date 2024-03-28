@@ -5,8 +5,9 @@ CHANGELOG FOR ATOMSK
 Master
 ------
 - in mode "--interpolate", auxiliary properties will now be interpolated between initial and final systems.
+- in mode "--unwrap", a new auxiliary property "unwrapped_atom" is defined that is equal to 1 if an atom is unwrapped, and 0 otherwise.
 - fixed a bug in mode "--polycrystal" that stopped the mode just after reading the seed.
-- fixed a bug when writing LAMMPS data files (*.lmp), where the atom "types" were not correctly counted when several types corresponded to the same chemical species. Thanks to Benedikt Eggle-Sievers, Max-Planck-Institut fuer Eisenforschung GmbH, Germany, for pointing out this bug.
+- fixed a bug where option "-dislocation loop" would erase all auxiliary properties when introducing a prismatic dislocation loop where new atoms are added to the system. Thanks to Benedikt Eggle-Sievers, Max-Planck-Institut fuer Eisenforschung GmbH, Germany, for pointing out this bug.
 
 
 Beta 0.13.1 (12 January 2024)

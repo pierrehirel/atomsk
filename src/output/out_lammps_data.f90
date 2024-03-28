@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 March 2024                                    *
+!* Last modification: P. Hirel - 28 March 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -135,9 +135,9 @@ IF( ALLOCATED(AUXNAMES) ) THEN
     ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='type' ) THEN
       typecol = i
       IF( Ntypes==0 ) THEN
-        !Could not determine number of atom types before
         !Count how many different atom types are in AUX
-        Ntypes = MAXVAL(AUX(:,typecol))
+        !Ntypes = MAXVAL(AUX(:,typecol))
+        CALL FIND_NSP(AUX(:,typecol),aentries)
         !Verify that atom types are all greater than zero
         IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
           !Count how many atoms have a zero "type"
@@ -149,8 +149,10 @@ IF( ALLOCATED(AUXNAMES) ) THEN
               IF(m==0) m=j
             ENDIF
           ENDDO
-          nwarn=nwarn+1
-          CALL ATOMSK_MSG(3714,(/""/),(/DBLE(l),DBLE(m)/))
+          IF( l>0 ) THEN
+            nwarn=nwarn+1
+            CALL ATOMSK_MSG(3714,(/""/),(/DBLE(l),DBLE(m)/))
+          ENDIF
         ENDIF
       ENDIF
     ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='Stype' ) THEN

@@ -15,7 +15,7 @@ MODULE mode_unwrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2024                                     *
+!* Last modification: P. Hirel - 28 March 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,11 +57,13 @@ CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to o
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES      !names of auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES   !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: commentfirst, commentsecond !comments
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, j, k
 INTEGER:: Nunwrap !number of atoms unwrapped
+INTEGER:: coluw   !index of column in AUX containing "unwrapped" property
 REAL(dp):: distance
 REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of unit cell (unknown, set to 0 here)
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
@@ -70,8 +72,9 @@ REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pfirst  !positions of "reference"
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Psecond !positions of "configuration"
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S       !positions of shells in "configuration"
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX     !positions of "configuration"
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX     !auxiliary properties
 !
+coluw = 0
 ORIENT(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
 !
@@ -82,6 +85,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 CALL ATOMSK_MSG(4046,(/TRIM(msg)/),(/0.d0/))
 !
 !Initialize variables
+IF(ALLOCATED(newAUXNAMES)) DEALLOCATE(newAUXNAMES)
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 Nunwrap=0
 distance=0.d0
@@ -96,6 +100,11 @@ CALL CHECKFILE(filesecond,'read')
 CALL READ_AFF(filefirst,H,Pfirst,S,commentfirst,AUXNAMES,AUX)
 IF(nerr>0 .OR. .NOT.ALLOCATED(Pfirst)) GOTO 1000
 CALL OPTIONS_AFF(options_array,Huc,H,Pfirst,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
+!Ignore S, AUXNAMES, AUX, SELECT from "reference"
+IF(ALLOCATED(S)) DEALLOCATE(S)
+IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(nerr>=1) GOTO 1000
 !
 !Read second file
@@ -123,6 +132,25 @@ IF( SIZE(Pfirst,1).NE.SIZE(Psecond,1) ) THEN
   GOTO 1000
 ENDIF
 !
+!Add new auxiliary property "unwrapped_atom"
+IF( ALLOCATED(AUX) ) THEN
+  coluw = SIZE(AUX,2) + 1
+  CALL RESIZE_DBLEARRAY2(AUX,SIZE(AUX,1),SIZE(AUX,2)+1,i)
+  AUX(:,coluw) = 0.d0
+  ALLOCATE(newAUXNAMES(SIZE(AUXNAMES)+1))
+  newAUXNAMES(1:SIZE(AUXNAMES)) = AUXNAMES(:)
+  DEALLOCATE(AUXNAMES)
+  ALLOCATE(AUXNAMES(SIZE(newAUXNAMES)))
+  AUXNAMES(:) = newAUXNAMES(:)
+  DEALLOCATE(newAUXNAMES)
+ELSE
+  ALLOCATE(AUX(SIZE(Pfirst,1),1))
+  AUX(:,:) = 0.d0
+  ALLOCATE(AUXNAMES(1))
+  coluw = 1
+ENDIF
+AUXNAMES(coluw) = "unwrapped_atom"
+!
 !Convert positions to reduced coordinates
 CALL CART2FRAC(Pfirst,H)
 CALL CART2FRAC(Psecond,H)
@@ -138,6 +166,7 @@ DO i=1,SIZE(Pfirst,1)
       !Count this atom as unwrapped
       IF(k.NE.i) THEN
         k=i
+        AUX(i,coluw) = 1.d0
         Nunwrap=Nunwrap+1
       ENDIF
     ENDDO
@@ -156,6 +185,18 @@ CALL ATOMSK_MSG(4047,(/""/),(/DBLE(Nunwrap)/))
 !
 !
 300 CONTINUE
+!If user did not provide output file name, set a default one
+IF( LEN_TRIM(outputfile)<=0 ) THEN
+  outputfile = filesecond
+  i = SCAN(outputfile,".",BACK=.TRUE.)
+  IF(i==0) i=LEN_TRIM(outputfile)+1
+  outputfile = TRIM(ADJUSTL(outputfile(1:i-1)))//"_unwrap.cfg"
+  IF( .NOT.ALLOCATED(outfileformats) .OR. SIZE(outfileformats)<=0 ) THEN
+    IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
+    ALLOCATE(outfileformats(1))
+    outfileformats(1) = "cfg"
+  ENDIF
+ENDIF
 !Write unwrapped coordinates to output file(s)
 CALL WRITE_AFF(outputfile,outfileformats,H,Psecond,S,commentfirst,AUXNAMES,AUX)
 !

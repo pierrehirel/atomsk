@@ -536,14 +536,14 @@ CASE('unwrap')
   IF(LEN_TRIM(outputfile).NE.0) THEN
     CALL GUESS_FORMAT(outputfile,outfileformat,'writ')
     IF(outfileformat.NE.'xxx') CALL SET_OUTPUT(outfileformats,outfileformat,.TRUE.)
-  ELSE
-    j=SCAN(inputfile,pathsep,BACK=.TRUE.)
-    strlength = SCAN(filesecond,'.',BACK=.TRUE.)
-    IF(strlength>j) THEN
-      outputfile = filesecond(1:strlength-1)
-    ELSE
-      outputfile = filesecond
-    ENDIF
+!   ELSE
+!     j=SCAN(inputfile,pathsep,BACK=.TRUE.)
+!     strlength = SCAN(filesecond,'.',BACK=.TRUE.)
+!     IF(strlength>j) THEN
+!       outputfile = filesecond(1:strlength-1)
+!     ELSE
+!       outputfile = filesecond
+!     ENDIF
   ENDIF
   msg = 'outputfile: '//TRIM(outputfile)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
