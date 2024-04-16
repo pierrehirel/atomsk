@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,6 @@ MODULE readin
 !Load modules
 USE comv
 USE constants
-USE functions
 USE messages
 USE files
 USE subroutines

@@ -41,7 +41,6 @@ USE comv
 USE constants
 USE messages
 USE files
-USE functions
 USE subroutines
 !
 !

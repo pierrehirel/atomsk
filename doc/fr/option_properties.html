@@ -41,29 +41,13 @@
             ...</code></p>
   <p>Les déplacements peuvent être donnés pour tous les atomes, ou seulement certains d'entre eux. S'il existe des coquilles dans le système, mais qu'aucun vecteur de déplacement n'est donné pour elles, alors elles seront déplacées du même vecteur que leur c&oelig;ur. Ces déplacements seront immédiatement appliqués aux positions des atomes (et des coquilles s'il y en a).</p></li>
   
-  <li><strong>Des déplacements sous forme de fonction</strong> peuvent être définies grâce au mo-clé "displacement functions", suivi de trois lignes donnant les fonctions <code>u<sub>x</sub></code>, <code>u<sub>y</sub></code>, <code>u<sub>z</sub></code>:<br/>
+  <li><strong>Des déplacements sous forme de fonctions</strong> peuvent être définies grâce au mo-clé "displacement functions", suivi de trois lignes donnant les fonctions <code>u<sub>x</sub></code>, <code>u<sub>y</sub></code>, <code>u<sub>z</sub></code>:<br/>
       <p><code>displacement functions<br/>
             ux = &#60;fonction&#62;<br/>
             uy = &#60;fonction&#62;<br/>
             uz = &#60;fonction&#62;<br/></code></p>
-  <p>Les fonctions peuvent être composées d'opérateurs mathématiques (+, -, *, /, %, ^, e, !)&nbsp;; de nombres entiers ou réels&nbsp;; du mot-clé "pi"&nbsp;; des mots-clés Hx, Hy, Hz, qui désignent les dimensions de la boîte suivant les axes cartésiens X, Y, Z respectivement&nbsp;; des variables x, y, z, qui font référence à la position de l'atome&nbsp;; et/ou de fonctions mathématiques. Les fonctions suivantes sont supportées&nbsp;:</p>
-  
-  <ul>
-    <li class="clist"><strong>abs(x)</strong> Valeur absolue de x</li>
-    <li class="clist"><strong>int(x)</strong> Valeur entière de x</li>
-    <li class="clist"><strong>x!</strong> Factorielle de la partie entière de x</li>
-    <li class="clist"><strong>sqrt(x)</strong> Racine carrée de x</li>
-    <li class="clist"><strong>exp(x)</strong> Exponentielle de x</li>
-    <li class="clist"><strong>ln(x)</strong> Logarithme naturel de x</li>
-    <li class="clist"><strong>log(x)</strong> Logarithme base-10 de x</li>
-    <li class="clist"><strong>cos(x)</strong> Cosinus de x (x doit être en degrés)</li>
-    <li class="clist"><strong>sin(x)</strong> Sinus de x (x doit être en degrés)</li>
-    <li class="clist"><strong>tan(x)</strong> Tangente de x (x doit être en degrés)</li>
-    <li class="clist"><strong>acos(x)</strong> Arccosinus de x (x doit être compris entre -1 et 1)</li>
-    <li class="clist"><strong>asin(x)</strong> Arcsinus de x (x doit être compris entre -1 et 1)</li>
-    <li class="clist"><strong>atan(x)</strong> Arctangente de x (x doit être compris entre -1 et 1)</li>
-    <li class="clist"><strong>atan2(x,y)</strong> <a href="https://fr.wikipedia.org/wiki/Atan2">Arctangente à 2 arguments</a> (x doit être différent de zéro)</li>
-  </ul>
+
+  <p>La syntaxe pour écrire des fonctions est détaillée <a href="./functions.html">sur cette page</a>.</p>
   
   <p>Pour chaque atome, les fonctions ux, uy et uz sont évaluées en utilisant ses coordonnées x, y, z, et l'atome est immédiatement déplacé de la quantité calculée. Des exemples sont donnés ci-dessous.</p></li>
   

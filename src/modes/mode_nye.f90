@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2024                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -46,7 +46,6 @@ MODULE mode_nye
 !General modules and routines
 USE comv
 USE subroutines
-USE functions
 USE math
 USE messages
 USE neighbors

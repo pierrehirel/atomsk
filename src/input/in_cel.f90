@@ -13,7 +13,7 @@ MODULE in_cel
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 02 Oct. 2020                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,7 +31,6 @@ MODULE in_cel
 !
 USE comv
 USE constants
-USE functions
 USE messages
 USE files
 USE subroutines

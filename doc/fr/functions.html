@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Fonctions - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Écrire des fonctions</h2>
+
+<p>Dans le <a href="./mode_interactive.html">mode interactif</a>, Atomsk peut être utilisé comme une calculatrice pour évaluer certaines opérations basiques. Certaines options, comme l'<a href="./option_properties.html">option "<code>-properties</code>"</a>, permet aussi de définir des fonctions qui prennent des valeurs différentes pour chaque atome dans le système, en fonction de ses coordonnées (x,y,z). Cette page décrit la façon de définir de telles fonctions pour que Atomsk puisse les interpréter.</p>
+
+<p>Les opérateurs mathématiques suivants sont supportés, dans l'ordre de priorité&nbsp;:</p>
+
+<ul>
+    <li class="clist"><strong>^</strong> Exposant</li>
+    <li class="clist"><strong>e</strong> Puissance de 10</li>
+    <li class="clist"><strong>*</strong> Multiplication</li>
+    <li class="clist"><strong>/</strong> Division</li>
+    <li class="clist"><strong>+</strong> Addition</li>
+    <li class="clist"><strong>-</strong> Soustraction</li>
+</ul>
+
+<p>Les fonctions mathématiques suivantes sont supportées&nbsp;:</p>
+
+<ul>
+    <li class="clist"><strong>abs(x)</strong> Valeur absolue de x</li>
+    <li class="clist"><strong>int(x)</strong> Entier le plus proche de x</li>
+    <li class="clist"><strong>x!</strong> Factorielle de la partie entière de x</li>
+    <li class="clist"><strong>a%b</strong> Reste de la division a/b</li>
+    <li class="clist"><strong>sqrt(x)</strong> Racine carrée x</li>
+    <li class="clist"><strong>exp(x)</strong> Exponentielle de x</li>
+    <li class="clist"><strong>ln(x)</strong> Logarithme naturel de x</li>
+    <li class="clist"><strong>log(x)</strong> Logarithme en base 10 de x</li>
+    <li class="clist"><strong>cos(x)</strong> Cosinus de x (x doit être en radians)</li>
+    <li class="clist"><strong>sin(x)</strong> Sinus de x (x doit être en radians)</li>
+    <li class="clist"><strong>tan(x)</strong> Tangente de x (x doit être en radians)</li>
+    <li class="clist"><strong>acos(x)</strong> Arccosinus de x (x doit être entre -1 et 1)</li>
+    <li class="clist"><strong>asin(x)</strong> Arcsinus de x (x doit être entre -1 et 1)</li>
+    <li class="clist"><strong>atan(x)</strong> Arctangent de x (x doit être entre -1 et 1)</li>
+    <li class="clist"><strong>atan2(x,y)</strong> <a href="https://fr.wikipedia.org/wiki/Atan2">Arctangente à 2 arguments</a> (x doit être différent de zéro)</li>
+</ul>
+
+<p>Les constantes mathématiques et physiques suivantes sont automatiquement remplacées par leur valeur&nbsp;:</p>
+
+<ul>
+    <li class="clist"><strong>pi</strong> &pi;&nbsp;&asymp;&nbsp;3.141592...</li>
+    <li class="clist"><strong>kB</strong> Constante de Boltzmann <em>k</em><sub>B</sub>&nbsp;=&nbsp;1.3806504&middot;10<sup>-23</sup>&nbsp;J&middot;K<sup>-1</sup></li>
+    <li class="clist"><strong>qe</strong> Charge électrique élémentaire <em>e</em>&nbsp;=&nbsp;1.60217646&middot;10<sup>-19</sup>&nbsp;C</li>
+    <li class="clist"><strong>Navo</strong> Nombre d'Avogadro <em>N</em><sub>A</sub>&nbsp;=&nbsp;6.02214179&middot;10<sup>23</sup></li>
+    <li class="clist"><strong>rand</strong> Un nombre réel aléatoire entre 0 et 1</li>
+</ul>
+
+<p>Enfin, les mot-clés suivants se rapportant au système atomique courant peuvent être utilisés (seulement si un système atomique est défini)&nbsp;:</p>
+
+<ul>
+    <li class="clist"><strong>Hx</strong> Dimension courante de la boîte suivant la direction cartésienne X</li>
+    <li class="clist"><strong>Hy</strong> Dimension courante de la boîte suivant la direction cartésienne Y</li>
+    <li class="clist"><strong>Hz</strong> Dimension courante de la boîte suivant la direction cartésienne Z</li>
+    <li class="clist"><strong>x</strong> Coordonnée x de l'atome courant</li>
+    <li class="clist"><strong>y</strong> Coordonnée y de l'atome courant</li>
+    <li class="clist"><strong>z</strong> Coordonnée z de l'atome courant</li>
+</ul>
+
+<h4>Exemples</h4>
+
+<p><code>sqrt(2)</code></p>
+<p><code>3*cos(pi/2)</code></p>
+<p><code>3.2*atan2(x/y)</code></p>
+<p><code>3*cos(pi*x/Hx) + 2*sin(pi*y/Hy)</code></p>
+
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

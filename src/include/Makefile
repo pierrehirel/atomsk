@@ -6,9 +6,11 @@ L10N=messages_FR.f90 messages_DE.f90
 
 SGE=globalvar.f90         \
     constants.f90         \
+    selection.f90         \
+    strings.f90           \
     math.f90              \
     random.f90            \
-    functions.f90         \
+    date_time.f90         \
     atoms.f90             \
     subroutines.f90       \
     crystallography.f90   \
@@ -18,11 +20,11 @@ SGE=globalvar.f90         \
     messages_EN.f90       \
     $(L10N)               \
     messages.f90          \
+    files.f90             \
     expreval.f90          \
     resize.f90            \
     spacegroups.f90       \
     neighbors.f90         \
-    files.f90             \
     symops.f90            \
     guess_format.f90      \
     read_cla.f90          \

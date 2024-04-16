@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 April 2022                                    *
+!* Last modification: P. Hirel - 15 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -50,19 +50,31 @@ CONTAINS
 !  corresponding to a I/O UNIT that is not used.
 !  This number can then safely be used in an OPEN
 !  statement, e.g.:
-!  OPEN(UNIT=FREEUNIT(),FORM="FORMATTED",STATUS="UNKNOWN")
+!    fu = FREEUNIT()
+!    OPEN(UNIT=fu,FORM="FORMATTED",STATUS="UNKNOWN")
 !********************************************************
-FUNCTION FREEUNIT() RESULT(iunit)
+FUNCTION FREEUNIT(imin,imax) RESULT(iunit)
 !
 IMPLICIT NONE
-INTEGER:: i
-INTEGER:: iunit
+INTEGER:: i, iunit, istart, iend
+INTEGER,OPTIONAL:: imin
+INTEGER,OPTIONAL:: imax
 LOGICAL:: isopen
 !
 iunit = 0
+IF( PRESENT(imin) ) THEN
+  istart = imin
+ELSE
+  istart = 11
+ENDIF
+IF( PRESENT(imax) ) THEN
+  iend = imax
+ELSE
+  iend = 99
+ENDIF
 !
-i=10
-DO WHILE( i<99 .AND. iunit==0 )
+i=istart
+DO WHILE( i<iend .AND. iunit==0 )
   !
   i=i+1
   INQUIRE (UNIT=i,OPENED=isopen)

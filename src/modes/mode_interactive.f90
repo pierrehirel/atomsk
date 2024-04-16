@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Nov. 2023                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,7 +29,6 @@ MODULE mode_interactive
 USE comv
 USE constants
 USE crystallography
-USE functions
 USE messages
 USE files
 USE random
@@ -73,7 +72,7 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(4)=filesecond
                                           !pfiles(5)=listfile
 INTEGER:: a1, a2, a3
-INTEGER:: i, j, k
+INTEGER:: i, j, k, status
 INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
 INTEGER,DIMENSION(8):: timeval !values for DATE_AND_TIME function
@@ -945,10 +944,10 @@ DO
               & .OR. INDEX(instruction,"rand")>0 ) THEN
           !Maybe it is a formula: try to interpret it
           i=1
-          j=0
+          status=0
           command = instruction
-          CALL EXPREVAL(instruction,x,i,j)
-          IF( j==0 ) THEN
+          x = EXPREVAL(instruction,i,status)
+          IF( status==0 ) THEN
             !No error: display result
             IF( IS_INTEGER(x,1.d-64) ) THEN
               !It is an integer, or close to it: display an integer
@@ -963,8 +962,13 @@ DO
             ENDIF
             WRITE(*,*) "          "//TRIM(ADJUSTL(msg))
           ELSE
-            !Unable to interpret: maybe it wasn't a formula, but an unknown command
-            CALL ATOMSK_MSG(808,(/command/),(/0.d0/))
+            IF(status==10) THEN
+              !There was a division by zero
+              CALL ATOMSK_MSG(816,(/""/),(/0.d0/))
+            ELSE
+              !Unable to convert that string into a number
+              CALL ATOMSK_MSG(2813,(/instruction/),(/0.d0/))
+            ENDIF
           ENDIF
           !
         ELSE

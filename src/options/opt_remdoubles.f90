@@ -10,7 +10,7 @@ MODULE remdoubles
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 March 2017                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,7 +111,7 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
       DO j=1,SIZE(PosList,1)
         iat = NINT(PosList(j,5))  !index of current neighbor
-        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(iat) ) THEN  !remove only selected atoms
+        IF( IS_SELECTED(SELECT,iat) ) THEN  !remove only selected atoms
           !Only consider atoms that were not removed before
           IF( P(iat,4) > 0.1d0 ) THEN
             Nremoved = Nremoved+1

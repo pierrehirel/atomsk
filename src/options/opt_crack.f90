@@ -15,7 +15,7 @@ MODULE crack
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2017                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* CRACK_XYZ           main subroutine - introduces a crack                       *
@@ -212,13 +212,13 @@ ENDIF
 !Introduce displacements due to the crack
 IF(crackmode=="I") THEN
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       CALL DISPMODEI(i,P(i,:),a1,a2,pos1,pos2,crackK,mu,kappa)
     ENDIF
   ENDDO
   IF(ALLOCATED(S)) THEN
     DO i=1,SIZE(S,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         CALL DISPMODEI(i,S(i,:),a1,a2,pos1,pos2,crackK,mu,kappa)
       ENDIF
     ENDDO
@@ -228,13 +228,13 @@ IF(crackmode=="I") THEN
   !
 ELSEIF(crackmode=="II") THEN
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       CALL DISPMODEII(i,P(i,:),a1,a2,pos1,pos2,crackK,mu,kappa)
     ENDIF
   ENDDO
   IF(ALLOCATED(S)) THEN
     DO i=1,SIZE(S,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         CALL DISPMODEII(i,S(i,:),a1,a2,pos1,pos2,crackK,mu,kappa)
       ENDIF
     ENDDO
@@ -242,13 +242,13 @@ ELSEIF(crackmode=="II") THEN
   !
 ELSEIF(crackmode=="III") THEN
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       CALL DISPMODEIII(i,P(i,:),a1,a2,a3,pos1,pos2,crackK,mu)
     ENDIF
   ENDDO
   IF(ALLOCATED(S)) THEN
     DO i=1,SIZE(S,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         CALL DISPMODEIII(i,S(i,:),a1,a2,a3,pos1,pos2,crackK,mu)
       ENDIF
     ENDDO

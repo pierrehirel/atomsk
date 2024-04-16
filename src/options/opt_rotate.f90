@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Sept. 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,6 +28,8 @@ MODULE rotate
 !
 USE comv
 USE constants
+USE math
+USE exprev
 USE crystallography
 USE elasticity
 USE messages
@@ -38,33 +40,36 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE ROTATE_XYZ(H,P,S,AUXNAMES,AUX,com,rot_axis,rot_angle,ORIENT,SELECT,C_tensor)
+SUBROUTINE ROTATE_XYZ(H,P,S,AUXNAMES,AUX,com,rot_axis,rot_angle,rot_file,ORIENT,SELECT,C_tensor)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=*),INTENT(IN):: rot_axis  ! Cartesian x, y or z axis, Miller vector, or 3 real numbers
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
+CHARACTER(LEN=4096):: line
+CHARACTER(LEN=4096):: expr
+CHARACTER(LEN=4096),INTENT(IN):: rot_axis ! Cartesian x, y or z axis, Miller vector, or 3 real numbers
+CHARACTER(LEN=4096),INTENT(IN):: rot_file !file containing rotation matrix
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 INTEGER:: a1, a2, a3
 INTEGER,INTENT(IN):: com  !=1 if rotation around the system center of mass, 0 otherwise
-INTEGER:: i
+INTEGER:: i, j, k, status
 INTEGER,DIMENSION(3):: Fxyz, Vxyz !columns of AUX containing forces, velocities
 LOGICAL:: velocities, forces
-LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
+LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 REAL(dp):: H1, H2, H3
 REAL(dp):: rot_angle      !angle in degrees
 REAL(dp):: smass          !mass of an atom
 REAL(dp):: totmass        !mass of all (or selected) atoms
 REAL(dp):: V1, V2, V3
-REAL(dp):: u, v, w, x, z1, z2
+REAL(dp):: u, v, w
 REAL(dp),DIMENSION(3):: MILLER       !Miller indices
 REAL(dp),DIMENSION(3):: Vcom !position of center of rotation
 REAL(dp),DIMENSION(3):: Vrot !vector around which the rotation is made
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(3,3),INTENT(IN):: ORIENT !current crystallographic orientation of the system
+REAL(dp),DIMENSION(3,3),INTENT(INOUT):: ORIENT !current crystallographic orientation of the system
 REAL(dp),DIMENSION(3,3):: ORIENTN      !normalized ORIENT
-REAL(dp),DIMENSION(3,3):: rot_matrix
+REAL(dp),DIMENSION(3,3):: rot_matrix   !rotation matrix that will be applied to system or atoms
 REAL(dp),DIMENSION(9,9),INTENT(INOUT):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S !positions of cores, shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties of atoms/shells
@@ -72,12 +77,13 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX  !auxiliary properties o
 !Initialize variables
 forces=.FALSE.
 velocities=.FALSE.
-a1=0
-a2=0
-a3=0
-i = 0
+a1=1
+a2=2
+a3=3
+i = 1
 Fxyz(:)=0
 Vxyz(:)=0
+H1 = 0.d0
 H2 = 0.d0
 H3 = 0.d0
 MILLER(:) = 0.d0
@@ -91,19 +97,7 @@ ENDDO
 msg = 'Entering ROTATE_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-CALL ATOMSK_MSG(2081,(/rot_axis/),(/rot_angle,DBLE(com)/))
-!
-!If angle is more than 360°, reduce it
-DO WHILE(DABS(rot_angle)>=360.d0)
-  IF(rot_angle>=360.d0)  rot_angle = rot_angle-360.d0
-  IF(rot_angle<=-360.d0) rot_angle = rot_angle+360.d0
-ENDDO
-!
-IF( DABS(rot_angle)<=1.d-12) THEN
-  nwarn=nwarn+1
-  CALL ATOMSK_MSG(2734,(/''/),(/0.d0/))
-  GOTO 1000
-ENDIF
+CALL ATOMSK_MSG(2081,(/rot_axis,rot_file/),(/rot_angle,DBLE(com)/))
 !
 !If rotation around center of mass, compute position of COM
 IF( com .NE. 0 ) THEN
@@ -122,97 +116,159 @@ IF( com .NE. 0 ) THEN
   Vcom(:) = Vcom(:) / totmass
 ENDIF
 !
-!Define the axes
-IF(rot_axis=='x' .OR. rot_axis=='X') THEN
-  a1 = 1
-  a2 = 2
-  a3 = 3
-ELSEIF(rot_axis=='y' .OR. rot_axis=='Y') THEN
-  a1 = 2
-  a2 = 3
-  a3 = 1
-ELSEIF(rot_axis=='z' .OR. rot_axis=='Z') THEN
-  a1 = 3
-  a2 = 1
-  a3 = 2
-ELSE
-  !Directions will be simply a1=X, a2=Y, a3=Z
-  a1 = 1
-  a2 = 2
-  a3 = 3
+IF( LEN_TRIM(rot_file)>0 ) THEN
+  !User provided the name of a file, it should contain a rotation matrix
+  CALL CHECKFILE(rot_file,"read ")
+  OPEN(UNIT=36,FILE=rot_file,STATUS="UNKNOWN",FORM="FORMATTED")
+  DO i=1,3
+    READ(36,'(a)',ERR=802,END=802) line
+    line = TRIM(ADJUSTL(line))
+    DO j=1,3
+      status = 0
+      !read expression from line
+      k = SCAN(line,' ')
+      expr = TRIM(line(1:k-1))
+      IF( LEN_TRIM(expr) > 0 ) THEN
+        !expression now saved in expr => delete it from line
+        line = TRIM(ADJUSTL(line(k+1:)))
+        !evaluate this expression
+        rot_matrix(i,j) = EXPREVAL(expr,k,status)
+        IF(status==10) THEN
+          !There was a division by zero
+          CALL ATOMSK_MSG(816,(/""/),(/0.d0/))
+          !Just consider zero displacement
+          rot_matrix(i,j) = 0.d0
+        ELSEIF(status>0) THEN
+          !Unable to convert that string into a number
+          CALL ATOMSK_MSG(2813,(/expr/),(/0.d0/))
+          rot_matrix(i,j) = 0.d0
+          nerr = nerr+1
+          GOTO 1000
+        ENDIF
+      ELSE
+        !empty expression => error
+        nerr = nerr+1
+        GOTO 802
+      ENDIF
+    ENDDO
+  ENDDO
+  CLOSE(36)
+  !Check if it is a rotation matrix
+  IF( .NOT.IS_ROTMAT(rot_matrix) ) THEN
+    CALL ATOMSK_MSG(2823,(/TRIM(ADJUSTL(rot_file))/),(/0.d0/))
+    nerr = nerr+1
+    GOTO 1000
+  ENDIF
   !
-  IF( SCAN(rot_axis,'[]_')>0 ) THEN
-    !It may be a Miller direction
-    CALL INDEX_MILLER(rot_axis,MILLER,i)
-    IF( i>0 ) THEN
-      !Miller direction may be given for hexagonal
-      CALL INDEX_MILLER_HCP(rot_axis,MILLER,i)
+ELSE
+  !User provided an axis and rotation angle
+  !If angle is more than 360°, reduce it
+  DO WHILE(DABS(rot_angle)>=360.d0)
+    IF(rot_angle>=360.d0)  rot_angle = rot_angle-360.d0
+    IF(rot_angle<=-360.d0) rot_angle = rot_angle+360.d0
+  ENDDO
+  !
+  IF( DABS(rot_angle)<=1.d-12) THEN
+    nwarn=nwarn+1
+    CALL ATOMSK_MSG(2734,(/''/),(/0.d0/))
+    GOTO 1000
+  ENDIF
+  !
+  !Define the axes
+  IF(rot_axis=='x' .OR. rot_axis=='X') THEN
+    a1 = 1
+    a2 = 2
+    a3 = 3
+  ELSEIF(rot_axis=='y' .OR. rot_axis=='Y') THEN
+    a1 = 2
+    a2 = 3
+    a3 = 1
+  ELSEIF(rot_axis=='z' .OR. rot_axis=='Z') THEN
+    a1 = 3
+    a2 = 1
+    a3 = 2
+  ELSE
+    !Directions will be simply a1=X, a2=Y, a3=Z
+    a1 = 1
+    a2 = 2
+    a3 = 3
+    !
+    IF( SCAN(rot_axis,'[]_')>0 ) THEN
+      !It may be a Miller direction
+      CALL INDEX_MILLER(rot_axis,MILLER,i)
+      IF( i>0 ) THEN
+        !Miller direction may be given for hexagonal
+        CALL INDEX_MILLER_HCP(rot_axis,MILLER,i)
+        IF(i==0) THEN
+          !Convert [hkil] notation into [uvw]
+          CALL HKIL2UVW(MILLER(1),MILLER(2),0.d0,MILLER(3),u,v,w)
+          !Set indices in MILLER
+          MILLER(:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
+        ENDIF
+      ENDIF
       IF(i==0) THEN
-        !Convert [hkil] notation into [uvw]
-        CALL HKIL2UVW(MILLER(1),MILLER(2),0.d0,MILLER(3),u,v,w)
-        !Set indices in MILLER
-        MILLER(:) = u*H(1,:) + v*H(2,:) + w*H(3,:)
-      ENDIF
-    ENDIF
-    IF(i==0) THEN
-      !It was a Miller direction
-      !Check that it is not [000]
-      IF( VECLENGTH(MILLER)<1.d-12 ) THEN
-        CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
-        nerr=nerr+1
-        GOTO 1000
+        !It was a Miller direction
+        !Check that it is not [000]
+        IF( VECLENGTH(MILLER)<1.d-12 ) THEN
+          CALL ATOMSK_MSG(814,(/""/),(/0.d0/))
+          nerr=nerr+1
+          GOTO 1000
+        ENDIF
+        !
+        !If the system has a defined crystallographic orientation ORIENT,
+        !then Vrot(1,:) is defined in that basis
+        !=> rotate Vrot(1,:) to express it in cartesian basis
+        IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
+          DO i=1,3
+            ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
+          ENDDO
+          V1 = MILLER(1)
+          V2 = MILLER(2)
+          V3 = MILLER(3)
+          MILLER(1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
+          MILLER(2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
+          MILLER(3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
+        ENDIF
+        !
+        Vrot(:) = MILLER(:)
+      ELSE
+        !It was not a Miller vector: impossible to understand, abort
+        GOTO 801
       ENDIF
       !
-      !If the system has a defined crystallographic orientation ORIENT,
-      !then Vrot(1,:) is defined in that basis
-      !=> rotate Vrot(1,:) to express it in cartesian basis
-      IF( ANY( NINT(ORIENT(:,:)).NE.0 ) ) THEN
-        DO i=1,3
-          ORIENTN(i,:) = ORIENT(i,:) / VECLENGTH(ORIENT(i,:))
-        ENDDO
-        V1 = MILLER(1)
-        V2 = MILLER(2)
-        V3 = MILLER(3)
-        MILLER(1) = ORIENTN(1,1)*V1 + ORIENTN(1,2)*V2 + ORIENTN(1,3)*V3
-        MILLER(2) = ORIENTN(2,1)*V1 + ORIENTN(2,2)*V2 + ORIENTN(2,3)*V3
-        MILLER(3) = ORIENTN(3,1)*V1 + ORIENTN(3,2)*V2 + ORIENTN(3,3)*V3
-      ENDIF
-      !
-      Vrot(:) = MILLER(:)
     ELSE
-      !It was not a Miller vector: impossible to understand, abort
-      GOTO 801
+      !Last possibility: rot_axis should contain 3 real numbers
+      READ(rot_axis,*,ERR=801,END=801) V1, V2, V3
+      Vrot(:) = (/ V1 , V2 , V3 /)
     ENDIF
+  ENDIF !end if rot_axis...
+  !
+  !
+  WRITE(msg,'(a6,3f12.3)') 'Vrot: ', Vrot(:)
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  !
+  IF( VECLENGTH(Vrot(:))<1.d-6 ) THEN
+    !convert the angle into radians
+    rot_angle = DEG2RAD(rot_angle)
+    !set the rotation matrix
+    rot_matrix(:,:) = 0.d0
+    rot_matrix(a1,a1) = 1.d0
+    rot_matrix(a2,a2) = DCOS(rot_angle)
+    rot_matrix(a2,a3) = -DSIN(rot_angle)
+    rot_matrix(a3,a2) = DSIN(rot_angle)
+    rot_matrix(a3,a3) = DCOS(rot_angle)
     !
   ELSE
-    !Last possibility: rot_axis should contain 3 real numbers
-    READ(rot_axis,*,ERR=801,END=801) V1, V2, V3
-    Vrot(:) = (/ V1 , V2 , V3 /)
+    !Direction was Miller index or a vector
+    !Normalize Vrot
+    Vrot(:) = Vrot(:)/VECLENGTH(Vrot(:))
+    !
+    !Construct rotation matrix
+    rot_matrix = ROTMAT_AXIS(Vrot,rot_angle)
   ENDIF
-ENDIF
-!
-WRITE(msg,'(a6,3f12.3)') 'Vrot: ', Vrot(:)
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!
-IF( VECLENGTH(Vrot(:))<1.d-6 ) THEN
-  !convert the angle into radians
-  rot_angle = DEG2RAD(rot_angle)
-  !set the rotation matrix
-  rot_matrix(:,:) = 0.d0
-  rot_matrix(a1,a1) = 1.d0
-  rot_matrix(a2,a2) = DCOS(rot_angle)
-  rot_matrix(a2,a3) = -DSIN(rot_angle)
-  rot_matrix(a3,a2) = DSIN(rot_angle)
-  rot_matrix(a3,a3) = DCOS(rot_angle)
   !
-ELSE
-  !Direction was Miller index or a vector
-  !Normalize Vrot
-  Vrot(:) = Vrot(:)/VECLENGTH(Vrot(:))
-  !
-  !Construct rotation matrix
-  rot_matrix = ROTMAT_AXIS(Vrot,rot_angle)
-ENDIF
+ENDIF !end if LEN_TRIM(rot_file)
+!
 !
 IF(verbosity==4) THEN
   msg = 'debug --> Rotation matrix:'
@@ -230,7 +286,7 @@ IF(verbosity==4) THEN
 ENDIF
 !
 !Parse auxiliary properties, search for known vectors
-IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
+IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 .AND. SIZE(AUX,1)==SIZE(P,1) ) THEN
   DO i=1,SIZE(AUXNAMES)
     IF( AUXNAMES(i)=="fx" ) THEN
       Fxyz(1)=i
@@ -262,7 +318,7 @@ ENDIF
 !Rotate only atoms that are selected in SELECT
 !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,H1,H2,H3)
 DO i=1,SIZE(P,1)
-  IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+  IF( IS_SELECTED(SELECT,i) ) THEN
     H1 = P(i,a1) - Vcom(a1)
     H2 = P(i,a2) - Vcom(a2)
     H3 = P(i,a3) - Vcom(a3)
@@ -270,8 +326,8 @@ DO i=1,SIZE(P,1)
     P(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
     P(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
     !
-    !Same with shell if they exist
-    IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+    !Same with shells if they exist
+    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
       H1 = S(i,a1) - Vcom(a1)
       H2 = S(i,a2) - Vcom(a2)
       H3 = S(i,a3) - Vcom(a3)
@@ -348,6 +404,11 @@ GOTO 1000
 801 CONTINUE
 !Nothing worked: impossible to understand this direction
 CALL ATOMSK_MSG(2800,(/rot_axis/),(/0.d0/))
+nerr = nerr+1
+GOTO 1000
+!
+802 CONTINUE
+CALL ATOMSK_MSG(807,(/''/),(/DBLE(i)/))
 nerr = nerr+1
 GOTO 1000
 !

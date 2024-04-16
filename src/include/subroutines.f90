@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2023                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,28 +28,20 @@ MODULE subroutines
 !* List of subroutines in this module:                                            *
 !* CHECKMEM            checks that local computer has enough memory               *
 !* CHECK_ARRAY_CONSISTENCY checks that arrays P, S, AUX, AUXNAMES are consistent  *
-!* STR_RMSPACE         removes all blank spaces in a string                       *
-!* STR_CHAR2SPACE      replaces a character by blank space in a string            *
-!* STR2BOOL            transforms a string into a boolean value                   *
-!* INT2MONTH           transforms an integer into a month                         *
-!* INT2DAY             transforms an integer into a day                           *
-!* BOX2DBLE            transforms a string into a real number                     *
 !* CHECKNAN            checks an array for NaN (Not a Number) values              *
 !* DO_STATS            do some statistics on a 1-dimensional array                *
-!* CHECK_ORTHOVEC      checks if two vectors are normal to each other             *
 !* CART2FRAC           converts cartesian coordinates to fractional               *
 !* FRAC2CART           converts fractional coordinates to cartesian               *
 !* COUNT_OUTBOX        given a list of positions, counts how many are out of box  *
 !* FIND_NSP            find the number of different entries in an array           *
 !* FIND_IF_REDUCED     determines if values of an array are within 0 and 1        *
 !* UNWRAP              unwrap atoms that have jumped a boundary                   *
-!* LIST_SELECTED_ATOMS makes a list of selected atoms (chem.species/number)       *
 !**********************************************************************************
 !
 !
 USE comv
 USE constants
-USE functions
+USE selection
 USE math
 !
 IMPLICIT NONE
@@ -154,329 +146,6 @@ ENDIF
 END SUBROUTINE CHECK_ARRAY_CONSISTENCY
 !
 !
-!
-!********************************************************
-! STR_RMSPACE
-! This subroutine removes all blank spaces in a string,
-! 
-!********************************************************
-SUBROUTINE STR_RMSPACE(string)
-!
-IMPLICIT NONE
-CHARACTER(LEN=*),INTENT(INOUT):: string
-INTEGER:: i
-!
-IF( LEN_TRIM(string) > 1 ) THEN
-  DO i=1,LEN_TRIM(string)
-    IF( string(i:i)==" " ) THEN
-      string(i:) = string(i+1:)
-    ENDIF
-  ENDDO
-ENDIF
-!
-END SUBROUTINE STR_RMSPACE
-!
-!
-!
-!********************************************************
-! STR_CHAR2SPACE
-! This subroutine parses a string, replacing some
-! characters with a space character.
-!********************************************************
-SUBROUTINE STR_CHAR2SPACE(string,characters)
-!
-IMPLICIT NONE
-CHARACTER(LEN=*),INTENT(INOUT):: string
-CHARACTER(LEN=*),INTENT(IN):: characters
-INTEGER:: i, j
-!
-IF( LEN_TRIM(string) > 0 ) THEN
-  DO i=1,LEN_TRIM(string)
-    DO j=1,LEN_TRIM(characters)
-      IF( string(i:i)==characters(j:j) ) THEN
-        string(i:i) = " "
-      ENDIF
-    ENDDO
-  ENDDO
-ENDIF
-!
-END SUBROUTINE STR_CHAR2SPACE
-!
-!
-!
-!********************************************************
-! STR2BOOL
-! This subroutine transforms a string into a
-! boolean value
-!********************************************************
-SUBROUTINE STR2BOOL(string,bool)
-!
-IMPLICIT NONE
-CHARACTER(LEN=*),INTENT(IN):: string
-LOGICAL:: bool
-!
-SELECT CASE(string)
-CASE('n','N','no','NO','No','nO','f','F','false','False','FALSE','.false.','.FALSE.','0','OFF','Off','off')
-  bool = .FALSE.
-CASE('y','Y','yes','YES','Yes','yES','yEs','yeS','yeah','YEAH','t','T','true','True','TRUE','.true.','.TRUE.','1','ON','On','on')
-  bool = .TRUE.
-CASE DEFAULT
-  WRITE(*,*) 'X!X ERROR: unable to convert this string to a boolean: ', TRIM(string)
-  nerr=nerr+1
-END SELECT
-!
-END SUBROUTINE STR2BOOL
-!
-!
-!
-!********************************************************
-! INT2MONTH
-! Converts an integer to strings containing the
-! month in long and short forms.
-! Integer should be between 1 and 12
-! (otherwise "December" is returned).
-!********************************************************
-SUBROUTINE INT2MONTH(number,month,smonth)
-CHARACTER(LEN=16),INTENT(OUT):: month, smonth
-INTEGER,INTENT(IN):: number
-!
-SELECT CASE(number)
-CASE(1)
-  month = "January"
-  smonth = "Jan."
-CASE(2)
-  month = "February"
-  smonth = "Feb."
-CASE(3)
-  month = "March"
-  smonth = "March"
-CASE(4)
-  month = "April"
-  smonth = "Apr."
-CASE(5)
-  month = "May"
-  smonth = "May"
-CASE(6)
-  month = "June"
-  smonth = "June"
-CASE(7)
-  month = "July"
-  smonth = "July"
-CASE(8)
-  month = "August"
-  smonth = "Aug."
-CASE(9)
-  month = "September"
-  smonth = "Sept."
-CASE(10)
-  month = "October"
-  smonth = "Oct."
-CASE(11)
-  month = "November"
-  smonth = "Nov."
-CASE(12)
-  month = "December"
-  smonth = "Dec."
-CASE DEFAULT
-  month = "Unknown"
-  smonth = "N/A"
-END SELECT
-!
-END SUBROUTINE INT2MONTH
-!
-!
-!********************************************************
-! INT2DAY
-! Converts an integer to strings containing the
-! day in long and short forms.
-! Integer should be between 1 and 12
-! (otherwise "Sunday" is returned).
-!********************************************************
-SUBROUTINE INT2DAY(number,day,sday)
-CHARACTER(LEN=16),INTENT(OUT):: day,sday
-INTEGER,INTENT(IN):: number
-!
-SELECT CASE(number)
-CASE(0,7)
-  day = "Sunday"
-  sday = "Sun."
-CASE(1)
-  day = "Monday"
-  sday = "Mon."
-CASE(2)
-  day = "Tuesday"
-  sday = "Tue."
-CASE(3)
-  day = "Wednesday"
-  sday = "Wed."
-CASE(4)
-  day = "Thursday"
-  sday = "Thu."
-CASE(5)
-  day = "Friday"
-  sday = "Fri."
-CASE(6)
-  day = "Saturday"
-  sday = "Sat."
-CASE DEFAULT
-  day = "Unknown"
-  sday = "N/A"
-END SELECT
-!
-END SUBROUTINE INT2DAY
-!
-!
-!
-!********************************************************
-! BOX2DBLE
-! This subroutine transforms a string containing one
-! of the keywords "BOX" (or "box"), "INF" or "-INF",
-! or "%", into a real number.
-! The box vector vbox must be provided.
-! NOTE: this routine will work only for simple
-!      expressions involving only one occurence of
-!      "BOX", one operator, and one real number.
-!      More complex strings (like "2*BOX-0.2") will
-!      NOT be understood!!
-!********************************************************
-SUBROUTINE BOX2DBLE( vbox,text,number, status )
-!
-IMPLICIT NONE
-CHARACTER(LEN=1):: op
-CHARACTER(LEN=128):: text
-INTEGER:: posbox, posop  !position of 'BOX' and operator in the string "text"
-INTEGER,INTENT(OUT):: status !return status of this routine (0=success; >0=error)
-REAL(dp):: areal
-REAL(dp):: numbersign
-REAL(dp),INTENT(OUT):: number !final real number that is returned
-REAL(dp),DIMENSION(3),INTENT(IN):: vbox    !components of box vectors in current direction
-!
-posbox=0
-status = 0
-number = 0.d0
-numbersign = 1.d0
-!
-IF( INDEX(text,"-INF")>0 .OR. INDEX(text,"-inf")>0 ) THEN
-  number = -1.d0*HUGE(1.d0)
-  !
-ELSEIF( text=="INF" .OR. INDEX(text,"inf")>0 ) THEN
-  number = 1.d0*HUGE(1.d0)
-  !
-ELSEIF( text=='BOX' .OR. text=='box' ) THEN
-  !Total length of the box
-  number = MAX(0.d0,MAXVAL(vbox)) + DABS(MIN(0.d0,MINVAL(vbox)))
-  !
-ELSEIF( text=='-BOX' .OR. text=='-box' ) THEN
-  !Opposite of total length of the box
-  number = -1.d0 * ( MAX(0.d0,MAXVAL(vbox)) + DABS(MIN(0.d0,MINVAL(vbox))) )
-  !
-ELSEIF( INDEX(text,'BOX')>0 .OR. INDEX(text,'box')>0) THEN
-  !There is an operation, e.g. '0.6*BOX' or 'BOX/2'
-  !We have to convert that to a number
-  !TODO: replace "BOX" by a number and call a parser (see GNU libmatheval)
-  !
-  !Check if the text starts with a sign (+ or -)
-  !If so, remove it
-  IF( text(1:1)=="-" ) THEN
-    numbersign = -1.d0
-    text = text(2:)
-  ELSEIF( text(1:1)=="+" ) THEN
-    numbersign = +1.d0
-    text = text(2:)
-  ENDIF
-  !
-  text = ADJUSTL(text)
-  !Detect the position of the keyword "BOX"
-  posbox = INDEX(text,'BOX')
-  IF(posbox==0) posbox = INDEX(text,'box')
-  !
-  !Detect where the operator is: it must be just before or just after "box"
-  op = ""
-  op = text(posbox+3:posbox+3)
-  posop = SCAN(op,'*+-:/')
-  IF(posop>0) THEN
-    !Save position of operator in text
-    posop = posbox+3
-  ELSE
-    !operator was not after "box" => search before "box"
-    op = text(posbox-1:posbox-1)
-    posop = SCAN(op,'*+-:/')
-    IF(posop>0) THEN
-      !Save position of operator in text
-      posop = posbox-1
-    ELSE
-      !no operator => assume it is a multiplication
-      op="*"
-      IF( posbox==1 ) THEN
-        posop = posbox+2
-      ELSE
-        posop = posbox
-      ENDIF
-    ENDIF
-  ENDIF
-  !
-  !Evaluate the expression and save it to "number"
-  IF( posop<=posbox ) THEN
-    !Read what is before 'BOX'
-    READ(text(1:posop-1),*,END=800,ERR=800) areal
-    !Do the operation
-    IF( op=='+' ) THEN
-      number = areal + MAX(0.d0,MAXVAL(vbox))
-    ELSEIF( op=='-' ) THEN
-      number = areal - MAX(0.d0,MAXVAL(vbox))
-    ELSEIF( op=='*' ) THEN
-      number = areal * SUM(vbox)
-    ELSEIF( op==':' .OR. op=='/' ) THEN
-      IF( DABS(vbox(1))<1.d-12 .OR. DABS(vbox(2))<1.d-12 .OR. DABS(vbox(3))<1.d-12 ) THEN
-        number = HUGE(areal)
-      ELSE
-        number = areal / SUM(vbox)
-      ENDIF
-    ENDIF
-  ELSE
-    !Read what is after the operator
-    READ(text(posop+1:),*,END=800,ERR=800) areal
-    !Do the operation
-    IF( op=='+' ) THEN
-      number = MAX(0.d0,MAXVAL(vbox)) + areal
-    ELSEIF( op=='-' ) THEN
-      number = MAX(0.d0,MAXVAL(vbox)) - areal
-    ELSEIF( op=='*' ) THEN
-      number = areal * SUM(vbox)
-    ELSEIF( op==':' .OR. op=='/' ) THEN
-      IF( DABS(areal)<1.d-12 ) THEN
-        number = HUGE(vbox)
-      ELSE
-        number = SUM(vbox) / areal
-      ENDIF
-    ENDIF
-  ENDIF
-  !
-  !If the text was starting with a sign, apply it
-  number = numbersign * number
-  !
-ELSEIF( INDEX(text,'%')>0 ) THEN
-  !This is a number given in percent: read the number and divide it by 100
-  posbox=INDEX(text,'%')
-  text(posbox:posbox) = " "
-  READ( text,*,END=800,ERR=800) areal
-  number = SUM(vbox) * areal/100.d0
-  !
-ELSE
-  !easy case: there should just be a number
-  READ(text,*,END=800,ERR=800) number
-  !
-ENDIF
-!
-RETURN
-!
-800 CONTINUE
-!something failed
-status=1
-!
-END SUBROUTINE BOX2DBLE
-!
-!
 !********************************************************
 ! CHECKNAN
 ! This subroutine reads an array and, if any number
@@ -542,26 +211,6 @@ D = D/DBLE(a_size)
 S = DSQRT( S/DBLE(a_size) )
 !
 END SUBROUTINE DO_STATS
-!
-!
-!********************************************************
-! CHECK_ORTHOVEC
-! This subroutine checks if two vectors are
-! orthogonal and returns .TRUE. if they are,
-! .FALSE. otherwise.
-!********************************************************
-SUBROUTINE CHECK_ORTHOVEC(V1,V2,areortho)
-!
-IMPLICIT NONE
-LOGICAL,INTENT(OUT):: areortho
-REAL(dp),DIMENSION(3),INTENT(IN):: V1, V2
-!
-areortho = .FALSE.
-IF(DOT_PRODUCT(V1,V2)==0.d0) THEN
-  areortho = .TRUE.
-ENDIF
-!
-END SUBROUTINE CHECK_ORTHOVEC
 !
 !
 !********************************************************
@@ -826,50 +475,6 @@ DO i=2, SIZE(atoms_v(:,1))
 ENDDO
 !
 END SUBROUTINE UNWRAP
-!
-!
-!********************************************************
-!  LIST_SELECTED_ATOMS
-!  This subroutine generates a table containing
-!  chemical species and number of selected atoms.
-!********************************************************
-!
-SUBROUTINE LIST_SELECTED_ATOMS(P,SELECT,selectedlist)
-!
-IMPLICIT NONE
-INTEGER:: i, j
-INTEGER:: Nspecies
-INTEGER,DIMENSION(20,2):: templist !assume maximum 20 different chemical species
-INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: selectedlist
-LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT
-REAL(dp),DIMENSION(:,:),INTENT(IN):: P
-!
-Nspecies=0
-templist(:,:) = 0
-IF(ALLOCATED(selectedlist)) DEALLOCATE(selectedlist)
-!
-DO i=1,SIZE(P,1)
-  IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
-    DO j=1,SIZE(templist,1)
-      IF( templist(j,1) == NINT(P(i,4)) ) THEN
-        templist(j,2) = templist(j,2) + 1
-        EXIT
-      ELSEIF( templist(j,1) == 0 ) THEN
-        templist(j,1) = NINT(P(i,4))
-        templist(j,2) = templist(j,2) + 1
-        Nspecies = Nspecies + 1
-        EXIT
-      ENDIF
-    ENDDO
-  ENDIF
-ENDDO
-!
-ALLOCATE(selectedlist(Nspecies,2))
-DO j=1,SIZE(selectedlist,1)
-  selectedlist(j,:) = templist(j,:)
-ENDDO
-!
-END SUBROUTINE LIST_SELECTED_ATOMS
 !
 !
 !

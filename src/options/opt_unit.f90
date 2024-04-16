@@ -10,7 +10,7 @@ MODULE unit
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -226,21 +226,21 @@ IF( transform==-1 ) THEN
   CASE('x','X')
     !Multiply all X coordinates by the given factor
     DO i=1,SIZE(P,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         P(i,1) = factor*P(i,1)
       ENDIF
     ENDDO
   CASE('y','Y')
     !Multiply all Y coordinates by the given factor
     DO i=1,SIZE(P,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         P(i,2) = factor*P(i,2)
       ENDIF
     ENDDO
   CASE('z','Z')
     !Multiply all Z coordinates by the given factor
     DO i=1,SIZE(P,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         P(i,3) = factor*P(i,3)
       ENDIF
     ENDDO
@@ -258,7 +258,7 @@ IF( transform==-1 ) THEN
     IF( j>0 ) THEN
       !Multiply all values of this auxiliary property by the factor
       DO i=1,SIZE(AUX,1)
-        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        IF( IS_SELECTED(SELECT,i) ) THEN
           AUX(i,j) = factor*AUX(i,j)
         ENDIF
       ENDDO
@@ -273,7 +273,7 @@ IF( transform==-1 ) THEN
 ELSEIF( transform==0 ) THEN
   !Convert atom coordinates
   DO i=1,SIZE(P,1)
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       DO j=1,3
         P(i,j) = P(i,j)*factor
       ENDDO
@@ -283,7 +283,7 @@ ELSEIF( transform==0 ) THEN
   !Same with shells if they exist
   IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
     DO i=1,SIZE(S,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         DO j=1,3
           S(i,j) = S(i,j)*factor
         ENDDO
@@ -303,21 +303,21 @@ ELSEIF( transform==1 ) THEN
   !Convert atom velocities
   IF(vx>0 ) THEN
     DO i=1,SIZE(AUX,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(i,vx) = AUX(i,vx) * factor / factor2
       ENDIF
     ENDDO
   ENDIF
   IF(vy>0 ) THEN
     DO i=1,SIZE(AUX,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(i,vy) = AUX(i,vy) * factor / factor2
       ENDIF
     ENDDO
   ENDIF
   IF(vz>0 ) THEN
     DO i=1,SIZE(AUX,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(i,vz) = AUX(i,vz) * factor / factor2
       ENDIF
     ENDDO

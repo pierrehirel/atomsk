@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 12 Dec. 2023                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,8 @@ MODULE messages_DE
 USE atoms
 USE comv
 USE constants
-USE functions
+USE date_time
+USE strings
 USE random
 USE subroutines
 USE display_messages
@@ -1625,12 +1626,16 @@ CASE(2080)
 CASE(2081)
   !strings(1) = rotation axis: x, y or z
   !reals(1) = rotation angle in degrees
-  WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rotatiere das System um "//TRIM(ADJUSTL(msg))//"°"
-  IF( SCAN(strings(1),'xXyYzZ[]')>0 ) THEN
-    msg = TRIM(msg)//" um die Achse "//TRIM(strings(1))//"."
+  IF( LEN_TRIM(strings(2))>0 ) THEN
+    msg = ">>> Lesen der Rotationsmatrix aus: "//TRIM(ADJUSTL(strings(2)))
   ELSE
-    msg = TRIM(msg)//" um die Vektor ("//TRIM(strings(1))//")."
+    WRITE(msg,"(f16.2)") reals(1)
+    msg = ">>> Rotatiere das System um "//TRIM(ADJUSTL(msg))//"°"
+    IF( SCAN(strings(1),'xXyYzZ[]')>0 ) THEN
+      msg = TRIM(msg)//" um die Achse "//TRIM(strings(1))//"."
+    ELSE
+      msg = TRIM(msg)//" um die Vektor ("//TRIM(strings(1))//")."
+    ENDIF
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2082)
@@ -2620,6 +2625,11 @@ CASE(2822)
   msg = TRIM(ADJUSTL(errmsg))//" diese Option akzeptiert keine Operationen mit 'box'."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "           Bitte Entfernungen in Angström angeben."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  !strings(1) = name of matrix or file containing matrix
+  temp = "Dies"
+  IF( LEN_TRIM(strings(1))>0 ) temp = "'"//TRIM(ADJUSTL(strings(1)))//"'"
+  msg = TRIM(ADJUSTL(errmsg))//" "//TRIM(ADJUSTL(temp))//" ist keine Rotationsmatrix."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

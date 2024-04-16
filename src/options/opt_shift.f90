@@ -10,7 +10,7 @@ MODULE shift
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -117,7 +117,7 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
     !
     !Shift atoms (or ion cores)
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( shiftdir>0 .AND. P(i,a1)>shift_dist  .OR.                       &
           & shiftdir<0 .AND. P(i,a1)<shift_dist          ) THEN
           NPshifted = NPshifted+1
@@ -157,7 +157,7 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
     !
     !Shift atoms (or ion cores)
     DO i=1, SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         !determine if atom position is above or below the plane
         tempreal = VEC_PLANE( Vplane(1,:) , shift_dist , P(i,1:3) )
         !
@@ -185,7 +185,7 @@ IF( shift_dir=='above' .OR. shift_dir=='below' ) THEN
 ELSE
   !Shift all atoms (or selected atoms)
   DO i=1,SIZE(P,1)
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       NPshifted = NPshifted+1
       P(i,1) = P(i,1) + shift_tau1
       P(i,2) = P(i,2) + shift_tau2

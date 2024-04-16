@@ -10,7 +10,7 @@ MODULE duplicate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 June 2018                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -96,7 +96,7 @@ ELSE
   !Count how many atoms are selected in the original system
   qi=0
   DO i=1,SIZE(SELECT)
-    IF(SELECT(i)) qi=qi+1
+    IF(IS_SELECTED(SELECT,i)) qi=qi+1
   ENDDO
   tempreal = DBLE(SIZE(P,1)) + DBLE(qi)*( DABS(DBLE(dupmatrix(1))*DBLE(dupmatrix(2))*DBLE(dupmatrix(3))) - 1.d0)
 ENDIF
@@ -148,7 +148,7 @@ DO o = 0 , dupmatrix(3)-SIGN(1,dupmatrix(3)) , SIGN(1,dupmatrix(3))
   DO n = 0 , dupmatrix(2)-SIGN(1,dupmatrix(2)) , SIGN(1,dupmatrix(2))
     DO m = 0 , dupmatrix(1)-SIGN(1,dupmatrix(1)) , SIGN(1,dupmatrix(1))
       DO i=1,SIZE(P,1)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i) .OR. (o==0.AND.n==0.AND.m==0) ) THEN
+        IF( IS_SELECTED(SELECT,i) .OR. (o==0.AND.n==0.AND.m==0) ) THEN
           qi = qi+1
           IF( qi>SIZE(Q,1) ) THEN
             nerr = nerr+1

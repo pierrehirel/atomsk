@@ -12,7 +12,7 @@ MODULE wrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2020                                     *
+!* Last modification: P. Hirel - 15 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -81,7 +81,7 @@ ENDIF
 !
 !Second, wrap all coordinates greater than 1
 DO i=1,SIZE(P,1) !loop on all atoms
-  IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+  IF( IS_SELECTED(SELECT,i) ) THEN
     DO j=1,3  !loop on xyz
       nloop=0
       IF(P(i,j)>=1.d0 .OR. P(i,j)<0.d0) NPwrap = NPwrap+1

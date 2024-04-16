@@ -11,7 +11,7 @@ MODULE swap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 March 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -237,7 +237,7 @@ CASE DEFAULT
       ENDIF
       !Swap species of types 1 and 2
       DO i=1,SIZE(P,1)
-        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        IF( IS_SELECTED(SELECT,i) ) THEN
           IF( NINT(P(i,4))==NINT(swap_sp(1)) ) THEN
             P(i,4) = swap_sp(2)
             Nswap = Nswap+1
@@ -294,19 +294,19 @@ CASE DEFAULT
         !Save data from column #type1 in AUXtemp
         ALLOCATE(AUXtemp(SIZE(AUX,1)))
         DO i=1,SIZE(AUX,1)
-          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          IF( IS_SELECTED(SELECT,i) ) THEN
             AUXtemp(i) = AUX(i,type1)
           ENDIF
         ENDDO
         !Copy data from colum #type2 into column #type1
         DO i=1,SIZE(AUX,1)
-          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          IF( IS_SELECTED(SELECT,i) ) THEN
             AUX(i,type1) = AUX(i,type2)
           ENDIF
         ENDDO
         !Copy data from AUXtemp into column #type2
         DO i=1,SIZE(AUX,1)
-          IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          IF( IS_SELECTED(SELECT,i) ) THEN
             AUX(i,type2) = AUXtemp(i)
             Nswap = Nswap+1
           ENDIF
@@ -314,7 +314,7 @@ CASE DEFAULT
         DEALLOCATE(AUXtemp)
         !
         !Swap the names of aux.prop. (only if no selection was defined)
-        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+        IF( IS_SELECTED(SELECT,i) ) THEN
           msg = TRIM(ADJUSTL(AUXNAMES(type1)))
           AUXNAMES(type1) = TRIM(ADJUSTL(AUXNAMES(type2)))
           AUXNAMES(type2) = TRIM(ADJUSTL(msg))

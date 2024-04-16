@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 March 2024                                    *
+!* Last modification: P. Hirel - 15 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -542,7 +542,7 @@ IF(disloctype=='screw') THEN
   IF( aniso ) THEN
     !Anisotropic elasticity
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
         P(i,1:3) = P(i,1:3) + disp(:)
         !
@@ -571,7 +571,7 @@ IF(disloctype=='screw') THEN
   ELSE
     !Isotropic elasticity
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         disp = DISPSCREW(i,P(i,:),a1,a2,a3,b(a3),pos(1),pos(2))
         P(i,1:3) = P(i,1:3) + disp(:)
         !
@@ -607,7 +607,7 @@ ELSEIF(disloctype=='edge') THEN
   IF( aniso ) THEN
     !Anisotropic elasticity
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
         P(i,1:3) = P(i,1:3) + disp(:)
         !
@@ -637,7 +637,7 @@ ELSEIF(disloctype=='edge') THEN
   ELSE
     !Isotropic elasticity
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( P(i,a1)>pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
           P(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
           IF( doshells ) THEN
@@ -689,7 +689,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
   !Count k = number of atoms that will be inserted
   k = 0
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
         & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
         & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
@@ -723,7 +723,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
   IF( doshells ) THEN
     k = 0
     DO i=1,SIZE(S,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( S(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
           & S(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
           & (S(i,a2)-pos(2))*bsign>=0.d0                ) THEN
@@ -742,7 +742,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
     !Store positions of inserted atoms into Q
     k = 0
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
           & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
           & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
@@ -777,7 +777,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
     DO i=1,SIZE(Q,1)
       IF( i <= SIZE(P,1) ) THEN
         Q(i,:) = P(i,:)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF(IS_SELECTED(SELECT,i)) THEN
           IF( P(i,a1)>=pos(1) .AND. (P(i,a2)-pos(2))*bsign>=0.d0 ) THEN
             Q(i,a1) = P(i,a1)+DABS(b(a1))
             IF( doshells ) THEN
@@ -816,7 +816,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
     !Store positions of inserted atoms into Q
     k = 0
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( P(i,a1)>=pos(1)+DABS(b(a1))            .AND.                  &
           & P(i,a1)<pos(1)+2.d0*DABS(b(a1))-0.01d0 .AND.                  &
           & (P(i,a2)-pos(2))*bsign>=0.d0                ) THEN
@@ -850,7 +850,7 @@ ELSEIF(disloctype=='edge_add' .OR. disloctype=='edge-add') THEN
     DO i=1,SIZE(Q,1)
       IF( i <= SIZE(P,1) ) THEN
         Q(i,:) = P(i,:)
-        IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+        IF(IS_SELECTED(SELECT,i)) THEN
           IF( P(i,a1)>=pos(1) ) THEN
             Q(i,a1) = P(i,a1)+DABS(b(a1))/2.d0
             IF( doshells ) THEN
@@ -945,7 +945,7 @@ ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
   !Count k = number of removed atoms
   k = 0
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       IF( P(i,a1)>=pos(1) .AND. P(i,a1)<pos(1)+DABS(b(a1))-0.01d0 .AND. &
         & (P(i,a2)-pos(2))*bsign<=0.d0                              ) THEN
         !This atom is removed
@@ -1004,7 +1004,7 @@ ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
     !Anisotropic elasticity
     !Apply elastic displacements to all atoms
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( P(i,a1)>=pos(1) .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
           P(i,a1) = P(i,a1)-DABS(b(a1))
           IF( doshells ) THEN
@@ -1041,7 +1041,7 @@ ELSEIF(disloctype=='edge_rm' .OR. disloctype=='edge-rm') THEN
     !Isotropic elasticity
     !Apply elastic displacements to all atoms
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( P(i,a1)>=pos(1)+0.1d0 .AND. (P(i,a2)-pos(2))*bsign<=0.d0 ) THEN
           P(i,a1) = P(i,a1)-DABS(b(a1))/2.d0
           IF( doshells ) THEN
@@ -1092,7 +1092,7 @@ ELSEIF(disloctype=='mixed') THEN
   IF( aniso ) THEN
     !Anisotropic elasticity
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         disp = ANISO_DISP(i,P(i,:),a1,a2,a3,pos(1),pos(2),A_kn,Dn,Pn)
         P(i,1:3) = P(i,1:3) + disp(:)
         IF( doshells ) THEN

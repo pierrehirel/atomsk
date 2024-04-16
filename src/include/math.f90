@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 July 2023                                     *
+!* Last modification: P. Hirel - 16 Avril 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,6 +26,7 @@ MODULE math
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of functions in this file:                                                *
+!* IS_INTEGER          determines if a real number is an integer                  *
 !* VECLENGTH           calculates the length of a vector                          *
 !* VEC_PLANE           determines if a point is above or below a plane            *
 !* VEC_ANGLE           computes angle between 2 vectors                           *
@@ -34,6 +35,7 @@ MODULE math
 !* ANGVEC              calculates angle between 2 vectors                         *
 !* DEG2RAD             converts angles from degrees to radians                    *
 !* RAD2DEG             converts angles from radians to degrees                    *
+!* ORTHOVEC            checks if two vectors are normal to each other             *
 !* CROSS_PRODUCT       calculates the cross product of two vectors                *
 !* SCALAR_TRIPLE_PRODUCT computes scalar triple product ez (ex ^ ey).             *
 !* ROTMAT_AXIS         provides the matrix for rotation of angle around axis      *
@@ -49,6 +51,7 @@ MODULE math
 !* DERIVATIVE          calculate the derivative of a function                     *
 !* EULER2MAT           converts Euler angles into a rotation matrix               *
 !* MAT2EULER           converts rotation matrix into Euler angles                 *
+!* IS_ROTMAT           returns TRUE if a rotation matrix, FALSE otherwise         *
 !**********************************************************************************
 !
 !
@@ -57,6 +60,28 @@ USE constants
 !
 !
 CONTAINS
+!
+!
+!
+!********************************************************
+!  IS_INTEGER
+!  This function determines if a real number can be
+!  interpreted as an integer. For instance 1.d0, 2.d0
+!  will return TRUE, but 1.0001d0 will return FALSE.
+!********************************************************
+LOGICAL FUNCTION IS_INTEGER(number,th)
+!
+IMPLICIT NONE
+REAL(dp),INTENT(IN):: number
+REAL(dp),INTENT(IN):: th     !threshold to decide if it is an integer
+!
+IS_INTEGER = .FALSE.
+!
+IF( DABS( DBLE(NINT(number)) - number ) < th ) THEN
+  IS_INTEGER = .TRUE.
+ENDIF
+!
+END FUNCTION IS_INTEGER
 !
 !
 !********************************************************
@@ -230,6 +255,24 @@ angdeg = angrad*180.d0 / pi
 RETURN
 !
 END FUNCTION RAD2DEG
+!
+!
+!********************************************************
+! ORTHOVEC
+! This function returns .TRUE. if two vectors are
+! orthogonal, and .FALSE. otherwise.
+!********************************************************
+LOGICAL FUNCTION ORTHOVEC(V1,V2)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3),INTENT(IN):: V1, V2
+!
+ORTHOVEC = .FALSE.
+IF(DOT_PRODUCT(V1,V2)==0.d0) THEN
+  ORTHOVEC = .TRUE.
+ENDIF
+!
+END FUNCTION ORTHOVEC
 !
 !
 !********************************************************
@@ -657,6 +700,43 @@ b = DATAN2( -1.d0*rotmat(3,1) , DSQRT(1.d0 - rotmat(3,1)**2) )
 a = DATAN2( rotmat(3,2) , rotmat(3,3) )
 !
 END SUBROUTINE MAT2EULER_ZYX
+!
+!
+!********************************************************
+!  IS_ROTMAT
+!  This function checks if a 3x3 matrix M is a rotation
+!  matrix, by computing M.Mt where Mt is the transpose.
+!  If M.Mt yields the identity matrix then M is a
+!  rotation matrix, otherwise it is not.
+!********************************************************
+!
+FUNCTION IS_ROTMAT(matrix) RESULT(isrotmat)
+!
+IMPLICIT NONE
+INTEGER:: i, j
+LOGICAL:: isrotmat
+REAL(dp),DIMENSION(3,3):: IdMat
+REAL(dp),DIMENSION(3,3),INTENT(IN):: matrix
+!
+isrotmat = .TRUE.
+IdMat(:,:) = 0.d0
+!
+IdMat = MATMUL( matrix , TRANSPOSE(matrix) )
+!
+DO i=1,3
+  DO j=1,3
+    IF( i==j .AND. DABS(1.d0-IdMat(i,j))>1.d-6 ) THEN
+      !This non-diagonal element is not equal to 1
+      isrotmat = .FALSE.
+    ENDIF
+    IF( i.NE.j .AND. DABS(IdMat(i,j))>1.d-6 ) THEN
+      !This non-diagonal element is non-zero
+      isrotmat = .FALSE.
+    ENDIF
+  ENDDO
+ENDDO
+!
+END FUNCTION IS_ROTMAT
 !
 !
 !

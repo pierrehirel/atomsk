@@ -61,7 +61,6 @@ MODULE symops
 !
 USE comv
 USE constants
-USE functions
 USE messages
 USE files
 USE subroutines

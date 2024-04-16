@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 Dec. 2023                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,6 +27,7 @@ MODULE read_cla
 !
 USE atoms
 USE comv
+USE strings
 USE constants
 USE messages
 USE files
@@ -1231,6 +1232,10 @@ DO WHILE(i<SIZE(cla))
       READ(temp2,*,END=120,ERR=120) tempreal
       !Save it into options_array
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)//' '//TRIM(temp2)
+    ELSEIF( SCAN(StrDnCase(temp),'abcdefghijklmnopqrstuvwxyz')>0 ) THEN
+      !It is probably the name of a file containing a rotation matrix
+      !Save it into options_array
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     ELSE
       !There should be 3 real numbers, the first one is already in temp
       !Verify that it is a real number

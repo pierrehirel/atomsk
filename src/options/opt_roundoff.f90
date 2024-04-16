@@ -10,7 +10,7 @@ MODULE roundoff
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Nov. 2019                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -151,7 +151,7 @@ END SELECT
 100 CONTINUE
 !Loop on all values
 DO i=1,SIZE(Ppoint,1)
-  IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+  IF( IS_SELECTED(SELECT,i) ) THEN
     !
     IF( jprop>0 ) THEN
       !Only one property must be rounded off

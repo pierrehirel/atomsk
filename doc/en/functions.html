@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <title>Atomsk - Functions - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Writing functions</h2>
+
+<p>When running in <a href="./mode_interactive.html">interactive mode</a>, Atomsk may be used as a calculator to evaluate some basic operations. Some options, like the <a href="./option_properties.html">option "<code>-properties</code>"</a>, also allow to define functions that take a different value for each atom in the system, depending on its coordinates (x,y,z). This page describes how to define such functions for Atomsk to interpret.</p>
+
+<p>The following mathematical operators are supported, by order of priority:</p>
+
+<ul>
+    <li class="clist"><strong>^</strong> Exponent</li>
+    <li class="clist"><strong>e</strong> Power of 10</li>
+    <li class="clist"><strong>*</strong> Multiplication</li>
+    <li class="clist"><strong>/</strong> Division</li>
+    <li class="clist"><strong>+</strong> Addition</li>
+    <li class="clist"><strong>-</strong> Subtraction</li>
+</ul>
+
+<p>The following mathematical functions are supported:</p>
+
+<ul>
+    <li class="clist"><strong>abs(x)</strong> Absolute value of x</li>
+    <li class="clist"><strong>int(x)</strong> Nearest integer to x</li>
+    <li class="clist"><strong>x!</strong> Factorial of integer part of x</li>
+    <li class="clist"><strong>a%b</strong> Remainder of the division a/b</li>
+    <li class="clist"><strong>sqrt(x)</strong> Square root of x</li>
+    <li class="clist"><strong>exp(x)</strong> Exponential of x</li>
+    <li class="clist"><strong>ln(x)</strong> Natural logarithm of x</li>
+    <li class="clist"><strong>log(x)</strong> Base-10 logarithm of x</li>
+    <li class="clist"><strong>cos(x)</strong> Cosinus of x (x must be in radians)</li>
+    <li class="clist"><strong>sin(x)</strong> Sinus of x (x must be in radians)</li>
+    <li class="clist"><strong>tan(x)</strong> Tangent of x (x must be in radians)</li>
+    <li class="clist"><strong>acos(x)</strong> Arccosinus of x (x must be between -1 and 1)</li>
+    <li class="clist"><strong>asin(x)</strong> Arcsinus of x (x must be between -1 and 1)</li>
+    <li class="clist"><strong>atan(x)</strong> Arctangent of x (x must be between -1 and 1)</li>
+    <li class="clist"><strong>atan2(x,y)</strong> <a href="https://en.wikipedia.org/wiki/Atan2">2-arguments arctangent</a> (x must be non-zero)</li>
+</ul>
+
+<p>The following mathematical and physical constants are replaced by their corresponding value:</p>
+
+<ul>
+    <li class="clist"><strong>pi</strong> &pi;&nbsp;&asymp;&nbsp;3.141592...</li>
+    <li class="clist"><strong>kB</strong> Boltzmann's constant <em>k</em><sub>B</sub>&nbsp;=&nbsp;1.3806504&middot;10<sup>-23</sup>&nbsp;J&middot;K<sup>-1</sup></li>
+    <li class="clist"><strong>qe</strong> Elementary electric charge <em>e</em>&nbsp;=&nbsp;1.60217646&middot;10<sup>-19</sup>&nbsp;C</li>
+    <li class="clist"><strong>Navo</strong> Avogadro constant <em>N</em><sub>A</sub>&nbsp;=&nbsp;6.02214179&middot;10<sup>23</sup></li>
+    <li class="clist"><strong>rand</strong> A random real number between 0 and 1</li>
+</ul>
+
+<p>Finally, the following keywords relative to the current atomic system can be used (only when an atomic system is actually defined):</p>
+
+<ul>
+    <li class="clist"><strong>Hx</strong> Current box dimension along Cartesian X axis</li>
+    <li class="clist"><strong>Hy</strong> Current box dimension along Cartesian Y axis</li>
+    <li class="clist"><strong>Hz</strong> Current box dimension along Cartesian Z axis</li>
+    <li class="clist"><strong>x</strong> Current atom's x coordinate</li>
+    <li class="clist"><strong>y</strong> Current atom's y coordinate</li>
+    <li class="clist"><strong>z</strong> Current atom's z coordinate</li>
+</ul>
+
+<h4>Examples</h4>
+
+<p><code>sqrt(2)</code></p>
+<p><code>3*cos(pi/2)</code></p>
+<p><code>3.2*atan2(x/y)</code></p>
+<p><code>3*cos(pi*x/Hx) + 2*sin(pi*y/Hy)</code></p>
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>

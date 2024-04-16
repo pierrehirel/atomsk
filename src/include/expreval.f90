@@ -10,7 +10,7 @@ MODULE exprev
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Nov. 2022                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -79,7 +79,7 @@ END SUBROUTINE STR_EXP2VAL
 !
 !********************************************************
 !  EXPREVAL
-!  This subroutine reads an input string containing
+!  This function reads an input string containing
 !  numbers and operations, and evaluates it to produce
 !  a real number ("value").
 !  This subroutine is recursive and calls itself to
@@ -129,7 +129,7 @@ END SUBROUTINE STR_EXP2VAL
 !  - It is not complete: all functions are not supported.
 !  - Only real numbers are supported (not complex numbers)
 !********************************************************
-RECURSIVE SUBROUTINE EXPREVAL(string,value,recuri,status)
+RECURSIVE FUNCTION EXPREVAL(string,recuri,status) RESULT(eval)
 !
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(INOUT):: string
@@ -148,7 +148,7 @@ REAL(dp),PARAMETER:: low_limit=1.d-15   !in trig.functions, values which are sma
                                         !in absolute will be rounded off to zero
 REAL(dp):: x, y  !to store numbers
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
-REAL(dp),INTENT(OUT):: value
+REAL(dp):: eval
 !
 !Initialize variables and empty strings
 prefix = ""
@@ -163,7 +163,9 @@ p2 = 0
 IF( recuri>100 ) THEN
   status=recuri
 ENDIF
-
+!
+IF( recuri<=1 ) status=0
+!
 IF( status>0 ) RETURN
 !
 DO i=0,recuri
@@ -175,7 +177,7 @@ recuri = recuri+1
 !
 !In case of empty string, return zero
 IF( LEN_TRIM(string)<=0 ) THEN
-  value = 0.d0
+  eval = 0.d0
   RETURN
 ENDIF
 !
@@ -227,8 +229,8 @@ ENDIF
 !
 !First, try to read a number: if it succeeds, we are done
 IF( SCAN(string,operators)==0 .AND. SCAN(string,"+-",BACK=.TRUE.)<=1 ) THEN
-  READ(string,*,END=100,ERR=100) value
-  IF( IS_INTEGER(value,1.d-16) ) value = DBLE(NINT(value))
+  READ(string,*,END=100,ERR=100) eval
+  IF( IS_INTEGER(eval,1.d-16) ) eval = DBLE(NINT(eval))
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  NUMBER(1): ", TRIM(string)
   recuri = recuri-1
   RETURN
@@ -237,7 +239,7 @@ ENDIF
 !
 100 CONTINUE
 !Reading a number failed: try to interpret the expression
-value = 0.d0
+eval = 0.d0
 !
 !Save position of first opening parenthesis (if any)
 p1 = SCAN(string,"(")
@@ -270,53 +272,53 @@ IF( INDEX(string,"--")>0 ) THEN
   i = INDEX(string,"--")
   string(i:i) = '+'
   string(i+1:) = string(i+2:)
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"+-")>0 ) THEN
   i = INDEX(string,"+-")
   string(i:i) = '-'
   string(i+1:) = string(i+2:)
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"-+")>0 ) THEN
   i = INDEX(string,"-+")
   string(i:i) = '-'
   string(i+1:) = string(i+2:)
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"**")>0 ) THEN
   i = INDEX(string,"**")
   string(i:i) = '^'
   string(i+1:) = string(i+2:)
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( string=="pi" ) THEN
-  value = pi
+  eval = pi
   !
 ELSE IF( string=="kB" ) THEN
-  value = kB
+  eval = kB
   !
 ELSE IF( string=="hbar" .OR. string=="h_bar" ) THEN
-  value = h_bar
+  eval = h_bar
   !
 ELSE IF( string=="Navo" .OR. string=="Na" ) THEN
-  value = Navo
+  eval = Navo
   !
 ELSE IF( string=="qe" .OR. string=="Qe" ) THEN
-  value = e_charge
+  eval = e_charge
   !
 ELSE IF( string=="epsilon0" .OR. string=="eps0" .OR. string=="eps_0" ) THEN
-  value = eps_0
+  eval = eps_0
   !
 ELSE IF( string=="mu0" .OR. string=="mu_0" ) THEN
-  value = mu_0
+  eval = mu_0
   !
 ELSE IF( string=="rand" .OR. string=="random" ) THEN
   !generate a random number
   CALL GEN_NRANDNUMBERS(1,randarray)
-  value = randarray(1)
+  eval = randarray(1)
   !
-!Replace functions by their value
+!Replace functions by their eval
 ELSE IF( INDEX(string,"sqrt(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED SQUARE ROOT: ", TRIM(string)
   !Save position of the expression "sqrt"
@@ -356,24 +358,24 @@ ELSE IF( INDEX(string,"sqrt(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = TRIM(ADJUSTL(temp(1:p2-1)))
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Eliminate round-off errors
   IF( DABS(x)<low_limit ) x=0.d0
   !Perform the calculation of the square root
   IF( x>=0.d0 ) THEN
-    value = DSQRT(x)
+    eval = DSQRT(x)
   ELSE
-    IF(verbosity==4) PRINT*, " X ! X ERROR: negative value inside square root"
+    IF(verbosity==4) PRINT*, " X ! X ERROR: negative eval inside square root"
     status=1
     GOTO 900
   ENDIF
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: sqrt("//TRIM(ADJUSTL(temp))//") = ", value
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: sqrt("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(temp)//TRIM(string2)
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"abs(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ABSOLUTE VALUE: ", TRIM(string)
@@ -414,16 +416,16 @@ ELSE IF( INDEX(string,"abs(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
-  !Perform the calculation of the absolute value
-  value = DABS(x)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: |"//TRIM(ADJUSTL(temp))//"| = ", value
+  x = EXPREVAL(temp,recuri,status)
+  !Perform the calculation of the absolute eval
+  eval = DABS(x)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: |"//TRIM(ADJUSTL(temp))//"| = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"int(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED INT: ", TRIM(string)
@@ -464,16 +466,16 @@ ELSE IF( INDEX(string,"int(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the nearest integer
-  value = NINT(x)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: |"//TRIM(ADJUSTL(temp))//"| = ", value
+  eval = NINT(x)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: |"//TRIM(ADJUSTL(temp))//"| = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"acos(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ARCCOSINUS: ", TRIM(string)
@@ -514,16 +516,16 @@ ELSE IF( INDEX(string,"acos(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the arccosinus
-  value = DACOS(x)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: acos("//TRIM(ADJUSTL(temp))//") = ", value
+  eval = DACOS(x)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: acos("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"cos(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED COSINUS: ", TRIM(string)
@@ -564,19 +566,19 @@ ELSE IF( INDEX(string,"cos(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the cosinus
-  value = DCOS(x)
+  eval = DCOS(x)
   !Eliminate round-off errors
-  IF( DABS(value)<=low_limit ) value = 0.d0
-  IF( DABS(1.d0-DABS(value))<=low_limit ) value = value/DABS(value)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: cos("//TRIM(ADJUSTL(temp))//") = ", value
+  IF( DABS(eval)<=low_limit ) eval = 0.d0
+  IF( DABS(1.d0-DABS(eval))<=low_limit ) eval = eval/DABS(eval)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: cos("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"asin(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ARCSINUS: ", TRIM(string)
@@ -617,16 +619,16 @@ ELSE IF( INDEX(string,"asin(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the arcsinus
-  value = DASIN(x)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: asin("//TRIM(ADJUSTL(temp))//") = ", value
+  eval = DASIN(x)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: asin("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"sin(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED SINUS: ", TRIM(string)
@@ -667,19 +669,19 @@ ELSE IF( INDEX(string,"sin(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the sinus
-  value = DSIN(x)
+  eval = DSIN(x)
   !Eliminate round-off errors
-  IF( DABS(value)<=low_limit ) value = 0.d0
-  IF( DABS(1.d0-DABS(value))<=low_limit ) value = value/DABS(value)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: sin("//TRIM(ADJUSTL(temp))//") = ", value
+  IF( DABS(eval)<=low_limit ) eval = 0.d0
+  IF( DABS(1.d0-DABS(eval))<=low_limit ) eval = eval/DABS(eval)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: sin("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"atan(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ARCTANGENT: ", TRIM(string)
@@ -720,16 +722,16 @@ ELSE IF( INDEX(string,"atan(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the arctangent
-  value = DATAN(x)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: atan("//TRIM(ADJUSTL(temp))//") = ", value
+  eval = DATAN(x)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: atan("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"atan2(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ARCTANGENT2: ", TRIM(string)
@@ -775,14 +777,14 @@ ELSE IF( INDEX(string,"atan2(")>0 ) THEN
     !Save numerator into temp1
     temp1 = temp(1:i-1)
     !Interpret this expression, save result in y
-    CALL EXPREVAL(temp1,y,recuri,status)
+    y = EXPREVAL(temp1,recuri,status)
     !Save denominator into temp2
     temp2 = temp(i+1:)
     !Interpret this expression, save result in x
-    CALL EXPREVAL(temp2,x,recuri,status)
+    x = EXPREVAL(temp2,recuri,status)
     !Perform the calculation of the arctangent
     !IF( DABS(x)>1.d-12 ) THEN
-      value = DATAN2(y,x)
+      eval = DATAN2(y,x)
     !ELSE
     !  IF(verbosity==4) PRINT*, " X ! X ERROR: division by zero: ", TRIM(string)
     !  status=10
@@ -792,17 +794,17 @@ ELSE IF( INDEX(string,"atan2(")>0 ) THEN
     !No division: cannot compute an arctan2
     !Perform the calculation of a regular arctangent
     !Interpret the expression that is inside the parenthesis, save result in x
-    CALL EXPREVAL(temp,x,recuri,status)
+    x = EXPREVAL(temp,recuri,status)
     !Perform the calculation of the arctangent
-    value = DATAN(x)
+    eval = DATAN(x)
   ENDIF
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: atan2("//TRIM(ADJUSTL(temp))//") = ", value
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: atan2("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"tan(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED TANGENT: ", TRIM(string)
@@ -843,19 +845,19 @@ ELSE IF( INDEX(string,"tan(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the tangent
-  value = DTAN(x)
+  eval = DTAN(x)
   !Eliminate round-off errors
-  IF( DABS(value)<=low_limit ) value = 0.d0
-  IF( DABS(1.d0-DABS(value))<=low_limit ) value = value/DABS(value)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: tan("//TRIM(ADJUSTL(temp))//") = ", value
+  IF( DABS(eval)<=low_limit ) eval = 0.d0
+  IF( DABS(1.d0-DABS(eval))<=low_limit ) eval = eval/DABS(eval)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: tan("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"exp(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED EXPONENTIAL: ", TRIM(string)
@@ -896,16 +898,16 @@ ELSE IF( INDEX(string,"exp(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the exponential
-  value = DEXP(x)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: exp("//TRIM(ADJUSTL(temp))//") = ", value
+  eval = DEXP(x)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: exp("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"ln(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED LN: ", TRIM(string)
@@ -947,22 +949,22 @@ ELSE IF( INDEX(string,"ln(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the natural logarithm
   IF( x>0.d0 ) THEN
-    value = DLOG(x)
+    eval = DLOG(x)
   ELSE
     IF(verbosity==4) PRINT*, "X ! X ERROR: cannot compute logarithm of negative number"
     status=1
     GOTO 900
   ENDIF
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ln("//TRIM(ADJUSTL(temp))//") = ", value
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ln("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"log(")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED LOG: ", TRIM(string)
@@ -1004,22 +1006,22 @@ ELSE IF( INDEX(string,"log(")>0 ) THEN
   !      will contain everything that is after opening parenthesis
   temp = temp(1:p2-1)
   !Interpret the expression that is inside the parenthesis, save result in x
-  CALL EXPREVAL(temp,x,recuri,status)
+  x = EXPREVAL(temp,recuri,status)
   !Perform the calculation of the logarithm
   IF( x>0.d0 ) THEN
-    value = DLOG10(x)
+    eval = DLOG10(x)
   ELSE
     IF(verbosity==4) PRINT*, "X ! X ERROR: cannot compute logarithm of negative number"
     status=1
     GOTO 900
   ENDIF
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ln("//TRIM(ADJUSTL(temp))//") = ", value
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ln("//TRIM(ADJUSTL(temp))//") = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 !If it is not a function but there is a parenthesis, interpret the parenthesis
 ELSE IF( p1>0 ) THEN
@@ -1073,43 +1075,43 @@ ELSE IF( p1>0 ) THEN
     ENDIF
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED PARENTHESIS w/ EXPONENT: ", TRIM(temp)
     !Evaluate expression inside parenthesis
-    CALL EXPREVAL(temp1,x,recuri,status)
+    x = EXPREVAL(temp1,recuri,status)
     IF(verbosity==4) PRINT*, "                   ", TRIM(temp2)
     !Evaluate exponent
-    CALL EXPREVAL(temp2,y,recuri,status)
-    value = x**y
+    y = EXPREVAL(temp2,recuri,status)
+    eval = x**y
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//&
-                   & ") ^ "//TRIM(ADJUSTL(temp2))//"  = ", value
+                   & ") ^ "//TRIM(ADJUSTL(temp2))//"  = ", eval
   ELSEIF( string2(1:1)=="!" ) THEN
     temp1 = string(p1+1:p2-1)
     temp = string(p1:p2+1)
     string2 = TRIM(ADJUSTL(string2(2:)))
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED PARENTHESIS w/ FACTORIAL: ", TRIM(temp)
     !Evaluate expression inside parenthesis
-    CALL EXPREVAL(temp1,x,recuri,status)
+    x = EXPREVAL(temp1,recuri,status)
     !Evaluate factorial
-    value = 1.d0
+    eval = 1.d0
     DO i=1,NINT(x)
-      value = value * DBLE(i)
+      eval = eval * DBLE(i)
     ENDDO
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//&
-                   & ")! = ", value
+                   & ")! = ", eval
   ELSE
     temp = string(p1+1:p2-1)
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED PARENTHESIS: ", TRIM(temp)
     !Evaluate expression inside parenthesis
-    CALL EXPREVAL(temp,value,recuri,status)
+    eval = EXPREVAL(temp,recuri,status)
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: ("//TRIM(ADJUSTL(temp1))//&
-                   & ") = ", value
+                   & ") = ", eval
   ENDIF
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
-!Replace divisions by their value
+!Replace divisions by their eval
 ELSE IF( SCAN(string,"/")>0 .OR. SCAN(string,":")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED DIVISION: ", TRIM(string)
   !Save position of the division operator
@@ -1157,21 +1159,21 @@ ELSE IF( SCAN(string,"/")>0 .OR. SCAN(string,":")>0 ) THEN
     string2 = ""
   ENDIF
   IF(verbosity==4) PRINT*, "          ", TRIM(temp2)
-  CALL EXPREVAL(temp1,x,recuri,status)
-  CALL EXPREVAL(temp2,y,recuri,status)
+  x = EXPREVAL(temp1,recuri,status)
+  y = EXPREVAL(temp2,recuri,status)
   IF( DABS(y)<low_limit ) THEN
     IF(verbosity==4) PRINT*, " X ! X ERROR: division by zero: ", TRIM(string)
     status=10
     RETURN
   ELSE
-    value = x/y
+    eval = x/y
   ENDIF
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" / "//TRIM(ADJUSTL(temp2))//"  = ", value
-  WRITE(temp,*) value
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" / "//TRIM(ADJUSTL(temp2))//"  = ", eval
+  WRITE(temp,*) eval
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
-!Replace modulo by their value
+!Replace modulo by their eval
 ELSE IF( SCAN(string,"%")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED MODULO: ", TRIM(string)
   !Save position of the modulo operator
@@ -1216,15 +1218,15 @@ ELSE IF( SCAN(string,"%")>0 ) THEN
     string2 = ""
   ENDIF
   IF(verbosity==4) PRINT*, "          ", TRIM(temp2)
-  CALL EXPREVAL(temp1,x,recuri,status)
-  CALL EXPREVAL(temp2,y,recuri,status)
-  value = MOD(x,y)
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" % "//TRIM(ADJUSTL(temp2))//"  = ", value
-  WRITE(temp,*) value
+  x = EXPREVAL(temp1,recuri,status)
+  y = EXPREVAL(temp2,recuri,status)
+  eval = MOD(x,y)
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" % "//TRIM(ADJUSTL(temp2))//"  = ", eval
+  WRITE(temp,*) eval
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
-!Replace exponents by their value
+!Replace exponents by their eval
 ELSE IF( SCAN(string,"^")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED EXPONENT: ", TRIM(string)
   i = SCAN(string,"^")
@@ -1288,13 +1290,13 @@ ELSE IF( SCAN(string,"^")>0 ) THEN
     string2 = ""
   ENDIF
   IF(verbosity==4) PRINT*, "          ", TRIM(temp2)
-  CALL EXPREVAL(temp1,x,recuri,status)
-  CALL EXPREVAL(temp2,y,recuri,status)
-  value = x**y
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" ^ "//TRIM(ADJUSTL(temp2))//"  = ", value
-  WRITE(temp,*) value
+  x = EXPREVAL(temp1,recuri,status)
+  y = EXPREVAL(temp2,recuri,status)
+  eval = x**y
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" ^ "//TRIM(ADJUSTL(temp2))//"  = ", eval
+  WRITE(temp,*) eval
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 ELSE IF( INDEX(string,"!")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED FACTORIAL: ", TRIM(string)
@@ -1346,26 +1348,26 @@ ELSE IF( INDEX(string,"!")>0 ) THEN
     ENDIF
   ENDIF
   !Interpret the expression that is before the exclamation mark, save result in x
-  CALL EXPREVAL(temp1,x,recuri,status)
+  x = EXPREVAL(temp1,recuri,status)
   !Perform the calculation of the factorial
   IF( NINT(x)<0 ) THEN
     IF(verbosity==4) PRINT*, "X ! X ERROR: cannot compute factorial of negative number"
     status=1
     GOTO 900
   ENDIF
-  value = 1.d0
+  eval = 1.d0
   DO i=1,NINT(x)
-    value = value * DBLE(i)
+    eval = eval * DBLE(i)
   ENDDO
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//"! = ", value
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//"! = ", eval
   !Write the result into temp
-  WRITE(temp,*) value
+  WRITE(temp,*) eval
   !Re-write the string by concatenating string1, temp, and string2
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
   !Evaluate the resulting string
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
-!Replace products by their value
+!Replace products by their eval
 ELSE IF( SCAN(string,"*")>0 ) THEN
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED MULTIPLICATION: ", TRIM(string)
   i = SCAN(string,"*")
@@ -1410,20 +1412,20 @@ ELSE IF( SCAN(string,"*")>0 ) THEN
   ENDIF
   IF(verbosity==4) PRINT*, "          ", TRIM(temp2)
   IF( LEN_TRIM(temp1)>0 ) THEN
-    CALL EXPREVAL(temp1,x,recuri,status)
+    x = EXPREVAL(temp1,recuri,status)
   ELSE
     x = 1.d0
   ENDIF
   IF( LEN_TRIM(temp2)>0 ) THEN
-    CALL EXPREVAL(temp2,y,recuri,status)
+    y = EXPREVAL(temp2,recuri,status)
   ELSE
     y = 1.d0
   ENDIF
-  value = x*y
-  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" * "//TRIM(ADJUSTL(temp2))//"  = ", value
-  WRITE(temp,*) value
+  eval = x*y
+  IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" * "//TRIM(ADJUSTL(temp2))//"  = ", eval
+  WRITE(temp,*) eval
   string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-  CALL EXPREVAL(string,value,recuri,status)
+  eval = EXPREVAL(string,recuri,status)
   !
 !Reject all other characters
 ELSE IF( SCAN(string,"ABCDFGHIJKLMNOPQRSTUVWXYZabcdfghijklmnopqrstuvwxyz?,;&éè@àçè|={}")>0 ) THEN
@@ -1432,66 +1434,66 @@ ELSE IF( SCAN(string,"ABCDFGHIJKLMNOPQRSTUVWXYZabcdfghijklmnopqrstuvwxyz?,;&éè
   GOTO 900
   !
   !
-!Replace sums by their value
+!Replace sums by their eval
 ELSE IF( SCAN(string,"+")>0 ) THEN
   i = SCAN(string,"+",BACK=.TRUE.)
   IF( i==1 ) THEN
     !It is a positive number located at the beginning of the string
-    !Return its value
+    !Return its eval
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED NUMBER(+): ", TRIM(string)
     string = ADJUSTL(string(2:))
-    CALL EXPREVAL(string,value,recuri,status)
+    eval = EXPREVAL(string,recuri,status)
     !
   ELSEIF( string(i-1:i-1)=="E" .OR. string(i-1:i-1)=="e" ) THEN
     !It is a negative number located at the beginning of the string
-    !return its value
+    !return its eval
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED NUMBER(E+): ", TRIM(string)
-    READ(string,*,END=900,ERR=900) value
+    READ(string,*,END=900,ERR=900) eval
     !
   ELSE
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED ADDITION: ", TRIM(string)
     temp1 = string(:i-1)
     temp2 = string(i+1:)
-    CALL EXPREVAL(temp1,x,recuri,status)
-    CALL EXPREVAL(temp2,y,recuri,status)
-    value = x+y
-    IF(verbosity==4) PRINT*,  TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" + "//TRIM(ADJUSTL(temp2))//"  = ", value
-    WRITE(temp,*) value
+    x = EXPREVAL(temp1,recuri,status)
+    y = EXPREVAL(temp2,recuri,status)
+    eval = x+y
+    IF(verbosity==4) PRINT*,  TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" + "//TRIM(ADJUSTL(temp2))//"  = ", eval
+    WRITE(temp,*) eval
 !     string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-!     CALL EXPREVAL(string,value,recuri,status)
+!     CALL EXPREVAL(string,eval,recuri,status)
   ENDIF
   !
   !
-!Replace subtractions by their value
+!Replace subtractions by their eval
 ! ELSE IF( ms>0 ) THEN
 !   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED SUBTRACTION: ", TRIM(string)
 !   temp1 = string(:ms-1)
 !   temp2 = string(ms+1:)
 !   CALL EXPREVAL(temp1,x,recuri,status)
 !   CALL EXPREVAL(temp2,y,recuri,status)
-!   value = x-y
-!   IF(verbosity==4) PRINT*,  TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" - "//TRIM(ADJUSTL(temp2))//"  = ", value
-!   WRITE(temp,*) value
+!   eval = x-y
+!   IF(verbosity==4) PRINT*,  TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" - "//TRIM(ADJUSTL(temp2))//"  = ", eval
+!   WRITE(temp,*) eval
   !
   !
-!Replace subtractions by their value
+!Replace subtractions by their eval
 ELSE IF( SCAN(string,"-",BACK=.TRUE.)>0 ) THEN
   i = SCAN(string,"-",BACK=.TRUE.)
   IF( i==1 ) THEN
     !It is a negative number located at the beginning of the string
-    !return its value
+    !return its eval
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED NUMBER(-): ", TRIM(string)
-    READ(string,*,END=900,ERR=900) value
+    READ(string,*,END=900,ERR=900) eval
     !
   ELSEIF( string(i-1:i-1)=="E" .OR. string(i-1:i-1)=="e" ) THEN
     !It is a negative number located at the beginning of the string
-    !return its value
+    !return its eval
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED NUMBER(E-): ", TRIM(string)
-    READ(string,*,END=900,ERR=900) value
+    READ(string,*,END=900,ERR=900) eval
     !
   ELSEIF( SCAN(string(i-1:i-1),"*+:")>0 ) THEN
     !It is a negative number located after another operator
-    !Return its value
+    !Return its eval
     p1 = i
     temp = ADJUSTL(string(i:))
     j = SCAN(TRIM(temp),operators)
@@ -1503,7 +1505,7 @@ ELSE IF( SCAN(string,"-",BACK=.TRUE.)>0 ) THEN
       string2 = ""
     ENDIF
     IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED NEGATIVE NUMBER: ", TRIM(temp2)
-    READ(temp2,*,END=900,ERR=900) value
+    READ(temp2,*,END=900,ERR=900) eval
     !
   ELSE
     !It is an actual subtraction
@@ -1511,22 +1513,22 @@ ELSE IF( SCAN(string,"-",BACK=.TRUE.)>0 ) THEN
     p1 = i
     temp1 = string(:i-1)
     temp2 = string(i+1:)
-    CALL EXPREVAL(temp1,x,recuri,status)
-    CALL EXPREVAL(temp2,y,recuri,status)
-    value = x-y
-    IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" - "//TRIM(ADJUSTL(temp2))//"  = ", value
-    WRITE(temp,*) value
+    x = EXPREVAL(temp1,recuri,status)
+    y = EXPREVAL(temp2,recuri,status)
+    eval = x-y
+    IF(verbosity==4) PRINT*, TRIM(prefix)//"  RESULT: "//TRIM(ADJUSTL(temp1))//" - "//TRIM(ADJUSTL(temp2))//"  = ", eval
+    WRITE(temp,*) eval
 !     string = TRIM(string1)//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(string2))
-!     CALL EXPREVAL(string,value,recuri,status)
+!     CALL EXPREVAL(string,eval,recuri,status)
   ENDIF
   !
 ELSE
   IF(verbosity==4) PRINT*, TRIM(prefix)//"  DETECTED NUMBER(F): ", TRIM(string)
-  READ(string,*,END=900,ERR=900) value
+  READ(string,*,END=900,ERR=900) eval
 ENDIF
 !
-!IF( DABS(value)<=low_limit ) value = 0.d0
-IF(verbosity==4) PRINT*, TRIM(prefix)//"  END CALL TO EXPREVAL, RETURN VALUE = ", value
+!IF( DABS(eval)<=low_limit ) eval = 0.d0
+IF(verbosity==4) PRINT*, TRIM(prefix)//"  END CALL TO EXPREVAL, RETURN VALUE = ", eval
 recuri = recuri-1
 RETURN
 !
@@ -1537,7 +1539,7 @@ status = 1
 RETURN
 !
 !
-END SUBROUTINE EXPREVAL
+END FUNCTION EXPREVAL
 !
 !
 !

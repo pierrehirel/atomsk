@@ -12,7 +12,7 @@ MODULE mirror
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 06 April 2022                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,7 +116,7 @@ CASE("x","X","y","Y","z","Z")
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       !Apply mirror to atom position
       tempreal = P(i,a1) - mirror_d
       P(i,a1) = P(i,a1) - 2.d0*tempreal
@@ -183,7 +183,7 @@ CASE DEFAULT
   CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       !compute shortest vector between atom #i and the mirror plane
       vector = P(i,1:3) - mirror_d*Vplane(1,:)/VECLENGTH(Vplane(1,:))
       P(i,1:3) = P(i,1:3) - 2.d0*vector(:)

@@ -26,7 +26,7 @@ MODULE in_csv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,7 +45,6 @@ MODULE in_csv
 !
 USE comv
 USE constants
-USE functions
 USE messages
 USE files
 USE subroutines
@@ -327,7 +326,7 @@ DO j=1,SIZE(fields,2)
     xcol = j
     !Verify if this column contains something else than real numbers
     DO i=2,MIN(20,SIZE(fields,1))
-      IF( .NOT.IS_REAL(fields(i,j)) ) THEN
+      IF( .NOT.STR_REAL(fields(i,j)) ) THEN
         xcol=0
         GOTO 340
       ENDIF
@@ -337,7 +336,7 @@ DO j=1,SIZE(fields,2)
     ycol = j
     !Verify if this column contains something else than real numbers
     DO i=2,MIN(20,SIZE(fields,1))
-      IF( .NOT.IS_REAL(fields(i,j)) ) THEN
+      IF( .NOT.STR_REAL(fields(i,j)) ) THEN
         ycol=0
         GOTO 340
       ENDIF
@@ -347,7 +346,7 @@ DO j=1,SIZE(fields,2)
     zcol = j
     !Verify if this column contains something else than real numbers
     DO i=2,MIN(20,SIZE(fields,1))
-      IF( .NOT.IS_REAL(fields(i,j)) ) THEN
+      IF( .NOT.STR_REAL(fields(i,j)) ) THEN
         zcol=0
         GOTO 340
       ENDIF
@@ -360,7 +359,7 @@ DO j=1,SIZE(fields,2)
     Sxcol = j
     !Verify if this column contains something else than real numbers
     DO i=2,MIN(20,SIZE(fields,1))
-      IF( .NOT.IS_REAL(fields(i,j)) ) THEN
+      IF( .NOT.STR_REAL(fields(i,j)) ) THEN
         Sxcol=0
         GOTO 340
       ENDIF
@@ -370,7 +369,7 @@ DO j=1,SIZE(fields,2)
     Sycol = j
     !Verify if this column contains something else than real numbers
     DO i=2,MIN(20,SIZE(fields,1))
-      IF( .NOT.IS_REAL(fields(i,j)) ) THEN
+      IF( .NOT.STR_REAL(fields(i,j)) ) THEN
         Sycol=0
         GOTO 340
       ENDIF
@@ -380,7 +379,7 @@ DO j=1,SIZE(fields,2)
     Szcol = j
     !Verify if this column contains something else than real numbers
     DO i=2,MIN(20,SIZE(fields,1))
-      IF( .NOT.IS_REAL(fields(i,j)) ) THEN
+      IF( .NOT.STR_REAL(fields(i,j)) ) THEN
         Szcol=0
         GOTO 340
       ENDIF

@@ -35,7 +35,6 @@ MODULE sorting
 !
 USE comv
 USE constants
-USE functions
 USE math
 !
 IMPLICIT NONE

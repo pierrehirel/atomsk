@@ -9,7 +9,7 @@ MODULE rmshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2017                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -92,7 +92,7 @@ ELSE
     !
     !Remove shells that belong to that species *and* are selected
     DO i=1,SIZE(P,1)
-      IF( NINT(P(i,4))==NINT(snumber) .AND. (.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) ) THEN
+      IF( NINT(P(i,4))==NINT(snumber) .AND. IS_SELECTED(SELECT,i) ) THEN
         !Remove this shell
         S(i,:) = 0.d0
         rmshells = rmshells+1

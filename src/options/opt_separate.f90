@@ -9,7 +9,7 @@ MODULE separate
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 Feb. 2017                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,7 +83,7 @@ DO i=1,SIZE(P,1)-1  !Loop on all atoms
     DO j=1,SIZE(PosList,1)
       iat = NINT(PosList(j,5))  !index of current neighbor
       IF( iat>0 .AND. iat<=SIZE(P,1) ) THEN
-        IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(iat) ) THEN  !remove only selected atoms
+        IF( IS_SELECTED(SELECT,iat) ) THEN  !remove only selected atoms
           Pvector(:) = P(i,1:3) - PosList(j,1:3)
           vl = VECLENGTH(Pvector(:))
           IF( vl > 1d-6 ) THEN

@@ -27,8 +27,11 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'master-2024-03-28'
-INTEGER:: nwarn, nerr  !number of warnings/errors encountered during run
+CHARACTER(LEN=24),PARAMETER:: version = 'master-2024-04-16'
+!
+!**********************************
+!*  DATA TYPES / PRECISION
+!**********************************
 INTEGER,PARAMETER:: il = SELECTED_INT_KIND(9)        !integers up to 10^9
 INTEGER,PARAMETER:: dp = SELECTED_REAL_KIND(15,307)  !reals with 64-bits precision
 INTEGER(il),PARAMETER:: NATOMS_MAX = HUGE(INT(0,il)) !maximum number of atoms that Atomsk can handle
@@ -56,6 +59,7 @@ CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" a
 CHARACTER(LEN=16):: neighsearch !algorithm for neighbor search (default: auto)
 CHARACTER(LEN=128):: logfile !name of logfile for the program
 LOGICAL:: overw, ignore      !automatically overwrite/ignore existing files?
+INTEGER:: nwarn, nerr        !number of warnings/errors encountered during run
 INTEGER:: verbosity          !level of verbosity of the program
 !
 !**********************************

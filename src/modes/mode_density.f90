@@ -16,7 +16,7 @@ MODULE mode_density
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Sept. 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -412,7 +412,7 @@ IF( den_type==1 ) THEN    !!!!!!!   1-D DENSITY   !!!!!!!
       !
       prefactor = PropPoint(i) * A
       !
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         distance = x - P(i,a1)
         DenGrid1(j) = DenGrid1(j) + prefactor * DEXP( -(distance**2) / (2.d0*Sigma**2) )
         !
@@ -443,7 +443,7 @@ ELSEIF( den_type==2 ) THEN   !!!!!!!   2-D DENSITY   !!!!!!!
   !$OMP& REDUCTION(+:tempreal,DenGrid2)
   DO i=1,SIZE(P,1)
     progress = progress+1
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       !
       IF( SIZE(P,1)>10000 ) THEN
         !If there are many atoms, display a fancy progress bar
@@ -504,7 +504,7 @@ ELSE                       !!!!!!!   3-D DENSITY   !!!!!!!
   !$OMP& REDUCTION(+:DenGrid3)
   DO i=1,SIZE(P,1)
     progress = progress+1
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       IF( SIZE(P,1)>1000 ) THEN
         !If there are many atoms, display a fancy progress bar
         CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))

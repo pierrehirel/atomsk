@@ -16,7 +16,7 @@ MODULE mode_epola
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 March 2014                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,6 @@ MODULE mode_epola
 !Load modules
 USE comv        !global variables
 USE constants   !math and physics constants
-USE functions   !functions used by the program
 USE messages
 USE subroutines !subroutines for this program
 USE out_cfg     !For writing CFG file

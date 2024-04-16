@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 Dec. 2023                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,7 +36,8 @@ MODULE messages_FR
 USE atoms
 USE comv
 USE constants
-USE functions
+USE strings
+USE date_time
 USE random
 USE subroutines
 USE display_messages
@@ -1681,13 +1682,18 @@ CASE(2080)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2081)
   !strings(1) = rotation axis: x, y or z
+  !strings(2) = file name
   !reals(1) = rotation angle in degrees
-  WRITE(msg,"(f16.2)") reals(1)
-  msg = ">>> Rotation du système de "//TRIM(ADJUSTL(msg))//"°"
-  IF( SCAN(strings(1),'xXyYzZ[]')>0 ) THEN
-    msg = TRIM(msg)//" autour de l'axe "//TRIM(strings(1))//"."
+  IF( LEN_TRIM(strings(2))>0 ) THEN
+    msg = ">>> Lecture d'une matrice de rotation depuis : "//TRIM(ADJUSTL(strings(2)))
   ELSE
-    msg = TRIM(msg)//" autour du vecteur ("//TRIM(strings(1))//")."
+    WRITE(msg,"(f16.2)") reals(1)
+    msg = ">>> Rotation du système de "//TRIM(ADJUSTL(msg))//"°"
+    IF( SCAN(strings(1),'xXyYzZ[]')>0 ) THEN
+      msg = TRIM(msg)//" autour de l'axe "//TRIM(strings(1))//"."
+    ELSE
+      msg = TRIM(msg)//" autour du vecteur ("//TRIM(strings(1))//")."
+    ENDIF
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2082)
@@ -2693,6 +2699,12 @@ CASE(2822)
   msg = TRIM(ADJUSTL(errmsg))//" cette option n'accepte pas les opérations avec 'box'."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Veuillez entrer les distances en angströms."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2823)
+  !strings(1) = name of matrix or file containing matrix
+  temp = "cela"
+  IF( LEN_TRIM(strings(1))>0 ) temp = "'"//TRIM(ADJUSTL(strings(1)))//"'"
+  msg = TRIM(ADJUSTL(errmsg))//" "//TRIM(ADJUSTL(temp))//" n'est pas une matrice de rotation."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !

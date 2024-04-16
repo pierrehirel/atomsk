@@ -10,7 +10,7 @@ MODULE mode_cpprop
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 March 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,7 +28,6 @@ MODULE mode_cpprop
 !
 USE comv
 USE subroutines
-USE functions
 USE messages
 !Module for reading input files
 USE readin
@@ -142,7 +141,7 @@ IF( ALLOCATED(AUXNAMES2) ) THEN
   DO j=1,SIZE(AUXNAMES2)
     AUXNAMES(j) = AUXNAMES2(j)
     DO i=1,SIZE(AUX2,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(:,j) = AUX2(:,j)
       ENDIF
     ENDDO
@@ -172,7 +171,7 @@ IF( ALLOCATED(AUXNAMES2) ) THEN
     !NB: systems 1 and 2 may have different numbers of atoms, hence P2 and AUX1
     !    may not have the same length, use the smallest of the two
     DO i=1,MIN(SIZE(P2,1),SIZE(AUX1,1))
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUXNAMES(j) = AUXNAMES1(m)
         AUX(i,j) = AUX1(i,m)
       ENDIF

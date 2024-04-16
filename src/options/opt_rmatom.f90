@@ -10,7 +10,7 @@ MODULE rmatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Oct. 2023                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -179,7 +179,7 @@ ELSEIF( method==2 ) THEN
   !
   !Remove all atoms that belong to that species *and* are selected
   DO i=1,SIZE(P,1)
-    IF( NINT(P(i,4))==NINT(snumber) .AND. (.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) ) THEN
+    IF( NINT(P(i,4))==NINT(snumber) .AND. IS_SELECTED(SELECT,i) ) THEN
       !This atom dies
       rmatoms=rmatoms+1
       !
@@ -225,7 +225,7 @@ ELSEIF( method==3 ) THEN
     ENDIF
     !
     !Remove only atom with that index (but only if it is selected)
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(atomindex) ) THEN
+    IF( IS_SELECTED(SELECT,atomindex) ) THEN
       !Atom that must be removed is in the selection => proceed
       DO i=1,SIZE(P,1)
         IF(i==atomindex) THEN

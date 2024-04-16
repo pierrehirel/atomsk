@@ -11,7 +11,7 @@ MODULE velocity
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Sept. 2022                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -160,7 +160,7 @@ CALL GEN_NRANDGAUSS(3*NP,randarray)
 !Multiply by 1.d10/1.d12 = 1.d-2 to obtain A/ps.
 j=0
 DO i=1,SIZE(AUX,1)
-  IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+  IF( IS_SELECTED(SELECT,i) ) THEN
     j=j+1
     CALL ATOMSPECIES( P(i,4),species )
     CALL ATOMMASS( species,mass )
@@ -195,14 +195,14 @@ ELSE
   !A selection is defined => rescale only velocities of selected atoms
   tempreal = 0.d0
   DO i=1,SIZE(AUX,1)
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       tempreal = tempreal + AUX(i,vx)
     ENDIF
   ENDDO
   tempreal = tempreal / NP
   IF( DABS(tempreal) > 1.d-12 ) THEN
     DO i=1,SIZE(AUX,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(i,vx) = AUX(i,vx) - tempreal
       ENDIF
     ENDDO
@@ -210,14 +210,14 @@ ELSE
   !
   tempreal = 0.d0
   DO i=1,SIZE(AUX,1)
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       tempreal = tempreal + AUX(i,vy)
     ENDIF
   ENDDO
   tempreal = tempreal / NP
   IF( DABS(tempreal) > 1.d-12 ) THEN
     DO i=1,SIZE(AUX,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(i,vy) = AUX(i,vy) - tempreal
       ENDIF
     ENDDO
@@ -225,14 +225,14 @@ ELSE
   !
   tempreal = 0.d0
   DO i=1,SIZE(AUX,1)
-    IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+    IF( IS_SELECTED(SELECT,i) ) THEN
       tempreal = tempreal + AUX(i,vz)
     ENDIF
   ENDDO
   tempreal = tempreal / NP
   IF( DABS(tempreal) > 1.d-12 ) THEN
     DO i=1,SIZE(AUX,1)
-      IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+      IF( IS_SELECTED(SELECT,i) ) THEN
         AUX(i,vz) = AUX(i,vz) - tempreal
       ENDIF
     ENDDO

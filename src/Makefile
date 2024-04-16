@@ -169,7 +169,7 @@ atomsk: message modes compute general
 # Compile the program as a library
 # Note that the preprocessor must be called (-cpp)
 lib: message compute modes
-	$(FORTRAN) $(FFLAGS) -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -shared -o atomsk.so $(OBJ)$(SEP)*.o
 	@echo ""
 	@echo "    \o/ Atomsk was compiled as a shared library file, 'atomsk.so'."
 	@echo ""

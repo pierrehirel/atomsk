@@ -11,7 +11,7 @@ MODULE out_siesta_xv
 !* (C) Jan. 2012 - Eva Marie Kalivoda                                             *
 !*     Fraunhofer Institute für Werkstoffmechanik IWM                             *
 !*     Wöhlerstr. 11, 79108 Freiburg im Breisgau                                  *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,7 +29,6 @@ MODULE out_siesta_xv
 !
 USE comv
 USE constants
-USE functions
 USE messages
 USE files
 USE subroutines

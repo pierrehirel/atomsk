@@ -19,14 +19,18 @@
 
 <p><code>-rotate [com] [<em>hkl</em>] &#60;&theta;&#62;</code></p>
 
-<p><code>-rotate [com] &#60;v<sub>x</sub>&#62; &#60;v<sub>y</sub>&#62; &#60;v<sub>z</sub>&#62; &#60;&theta;&#62;</code></p>
+<p><code>-rotate [com] &#60;V<sub>x</sub>&#62; &#60;V<sub>y</sub>&#62; &#60;V<sub>z</sub>&#62; &#60;&theta;&#62;</code></p>
+
+<p><code>-rotate [com] &#60;filename&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to rotate the system (i.e. both the box and atoms) around a given axis.</p>
+<p>This option applies a rotation to the whole system (i.e. both the box and atoms).</p>
 
-<p>The axis of rotation can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices  (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001]. It is also possible to give any other direction by entering the Cartesian coordinates of a vector (v<sub>x</sub> v<sub>y</sub> v<sub>z</sub>) in angströms. The angle of rotation &theta; must be provided in degrees.</p>
+<p>The axis of rotation can be one of 'x', 'y', 'z' (referring to cartesian axes), or a crystallographic direction defined by its Miller indices  (see <a href="./options.html">how to specify Miller indices</a>). If the crystallographic orientation of the system is defined (e.g. through the <a href="./option_properties.html">option <code>-properties</code></a>) then the Miller indices are considered with respect to that orientation. Otherwise the orientation assumed is X=[100], Y=[010], Z=[001]. It is also possible to give any other direction by entering the Cartesian coordinates of a vector (V<sub>x</sub> V<sub>y</sub> V<sub>z</sub>) in angströms. The angle of rotation &theta; must be provided in degrees.</p>
+
+<p>If a &#60;filename&#62; is provided, then this file must contain a rotation matrix in the form of three lines, with three entrees per line. Each entry can be a real number, or a function. Syntax for writing functions is detailed in <a href="./functions.html">this page</a>.</p>
 
 <p>If the keyword "com" is used, then the center of rotation is the center of mass of the system. Otherwise (i.e. if the keyword is omitted), the center of rotation is the Cartesian origin (0,0,0).</p>
 
@@ -61,6 +65,18 @@
 
 <li><code class="command">atomsk initial.cfg -rotate 1.2 0.0 3.9 21.7 final.xyz</code>
 <p>This will rotate the whole system (atoms and cell) by 21.7 degrees around the Cartesian vector of components (1.2 0.0 3.9).</p></li>
+
+
+<li>
+<div class="txtfile">
+<h5>rot_matrix.txt</h5>
+<p><code># A rotation to apply to my system<br/>
+1 0 0<br/>
+0 0.5 -sqrt(3)/2<br/>
+0 sqrt(3)/2 1/2<br/></code></p></div>
+<code class="command">atomsk initial.cfg -rotate rot_matrix.txt final.cfg</code>
+<p>This will read the rotation matrix from the file "<code>rot_matrix.txt</code>", and rotate the system accordingly. Note that values can be written as numerical values or as mathematical functions in the file. In this example, the rotation matrix corresponds to a 60 degrees rotation around the X axis.</p>
+</li>
 
 </ul>
 

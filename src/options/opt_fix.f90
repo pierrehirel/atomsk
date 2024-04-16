@@ -12,7 +12,7 @@ MODULE fix
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 March 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -172,7 +172,7 @@ IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
     !Fix atoms that are above/below <fixdistance> along <fixdir>
     ! *or* atoms that are selected inside the region
     DO i=1,SIZE(P,1)
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( (fix_dir=='above' .AND. P(i,a1)>fixdistance) .OR.        &
           & (fix_dir=='below' .AND. P(i,a1)<fixdistance)      ) THEN
           !If atom is in the region of interest, fix it
@@ -218,7 +218,7 @@ IF( fix_dir=='above' .OR. fix_dir=='below' ) THEN
     DO i=1,SIZE(P,1)
       !determine if atom is above or below the plane
       tempreal = VEC_PLANE( Vplane(1,:) , fixdistance , P(i,1:3) )
-      IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+      IF(IS_SELECTED(SELECT,i)) THEN
         IF( (fix_dir=='above' .AND. tempreal>0.d0) .OR.        &
           & (fix_dir=='below' .AND. tempreal<0.d0)       ) THEN
           !If atom is in the region of interest, fix it
@@ -247,7 +247,7 @@ ELSE
   WRITE(msg,*) 'FIX: all atoms'
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO i=1,SIZE(P,1)
-    IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+    IF(IS_SELECTED(SELECT,i)) THEN
       !If atom is in the region of interest, fix it
       SELECT CASE(fixaxis)
       CASE("x","X")

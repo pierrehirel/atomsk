@@ -10,7 +10,7 @@ MODULE substitute
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2014                                     *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -102,7 +102,7 @@ ENDIF
 100 CONTINUE
 !Substitute the atoms
 DO i=1,SIZE(P,1)
-  IF(.NOT.ALLOCATED(SELECT) .OR. SELECT(i)) THEN
+  IF(IS_SELECTED(SELECT,i)) THEN
     CALL ATOMSPECIES(P(i,4),species)
     IF(species==sp1) THEN
       CALL ATOMNUMBER(sp2,P(i,4))

@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Sept. 2023                                    *
+!* Last modification: P. Hirel - 16 April 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -192,9 +192,9 @@ DO
       CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
       !
       !If vectors are not orthonormal, display a warning
-      CALL CHECK_ORTHOVEC( ORIENT(1,:), ORIENT(2,:), areortho(1) )
-      CALL CHECK_ORTHOVEC( ORIENT(2,:), ORIENT(3,:), areortho(2) )
-      CALL CHECK_ORTHOVEC( ORIENT(3,:), ORIENT(1,:), areortho(3) )
+      areortho(1) = ORTHOVEC( ORIENT(1,:), ORIENT(2,:) )
+      areortho(2) = ORTHOVEC( ORIENT(2,:), ORIENT(3,:)  )
+      areortho(3) = ORTHOVEC( ORIENT(3,:), ORIENT(1,:) )
       IF( ANY(.NOT.areortho(:)) ) THEN
         nwarn=nwarn+1
         CALL ATOMSK_MSG(2739,(/""/),(/0.d0/))
@@ -356,7 +356,7 @@ DO
         !$OMP PARALLEL DO DEFAULT(SHARED) &
         !$OMP& PRIVATE(i,j,func_ui,strlength,status,tempreal,tempreal2,tempreal3)
         DO i=1,SIZE(P,1)
-          IF( .NOT. ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+          IF( IS_SELECTED(SELECT,i) ) THEN
             !In each function string, replace the  variables x, y, z
             !by their actual values for atom i
             status = 0
@@ -378,7 +378,7 @@ DO
               IF( LEN_TRIM(func_ui(j))>0 ) THEN
                 strlength=0
                 status=0
-                CALL EXPREVAL(func_ui(j),tempreal3,strlength,status)
+                tempreal3 = EXPREVAL(func_ui(j),strlength,status)
               ELSE
                 tempreal3 = 0.d0
               ENDIF
@@ -431,7 +431,7 @@ DO
             j=1
             172 CONTINUE
             IF( i>0 .AND. i<=SIZE(P,1) ) THEN
-              IF( .NOT.ALLOCATED(SELECT) .OR. SELECT(i) ) THEN
+              IF( IS_SELECTED(SELECT,i) ) THEN
                 P(i,1) = P(i,1) + a
                 P(i,2) = P(i,2) + b
                 P(i,3) = P(i,3) + c
