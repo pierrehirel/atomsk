@@ -10,7 +10,7 @@ MODULE subroutines
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 13 May 2024                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -401,7 +401,7 @@ isreduced = .TRUE.
 avg = 0.d0
 minmax = 0.d0
 D = 0.d0
-th = 3.d0
+th = 1.24d0
 !
 IF( ANY( DABS(array(:,1:3)) > 0.99d0 ) .OR. ANY( DABS(array(:,1:3)) < 1.d-6 ) ) THEN
   !Some coordinates are not contained between 0 and 1
