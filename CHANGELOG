@@ -10,6 +10,7 @@ Master
 - in option "-rotate" it is now possible to provide a file containing a rotation matrix.
 - new function "IS_SELECTED" returns true if array SELECT is unallocated or if an atom is selected (false otherwise). This function is now used in most modes and options.
 - fixed a bug in mode "--polycrystal" that stopped the mode just after reading the seed.
+- fixed a bug in option "-bind-shells" where, if no shell existed in the system, and if particles were close to one another, then particles detected as shells would be given the same position as their core. Thanks to Himal Wijekoon, ICAMS, Bochum University, Germany, for pointing out this bug.
 - fixed a bug where option "-dislocation loop" would erase all auxiliary properties when introducing a prismatic dislocation loop where new atoms are added to the system. Thanks to Benedikt Eggle-Sievers, Max-Planck-Institut fuer Eisenforschung GmbH, Germany, for pointing out this bug.
 - fixed a bug where Cartesian coordinates would sometimes be detected as reduced when the cell is very small. Thanks to Matous Mrovec, ICAMS, Bochum University, Germany, for pointing out this bug.
 

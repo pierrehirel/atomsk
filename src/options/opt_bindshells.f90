@@ -10,7 +10,7 @@ MODULE bindshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 17 May 2024                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -291,7 +291,7 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
                   !Save position of core and shell in new arrays
                   newP(NP,:) = P(icore,:)
                   newS(NS,1:3) = Stemp(1:3)
-                  newS(NS,4) = P(icore,4)
+                  newS(NS,4) = P(ishell,4)
                   !Delete data from P (set all =0, arrays will be rewritten later)
                   P(icore,:) = 0.d0
                   P(ishell,:) = 0.d0
@@ -336,7 +336,7 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
   CALL ATOMSK_MSG(2154,(/''/),(/DBLE(NP),DBLE(NS)/))
   !
   IF( NP.NE.SIZE(P,1) ) THEN
-    !Among all particles in P, some were detetced to be shells
+    !Among all particles in P, some were detected to be shells
     !Resize old arrays
     IF( ALLOCATED(AUX) .AND. (ALLOCATED(AUXNAMES)) ) THEN
       DEALLOCATE(AUX)
@@ -368,7 +368,7 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
     DO i=1,SIZE(newS,1)
       IF( newS(i,4)>0.1d0 ) THEN
         j=j+1
-        S(j,:) = P(i,:)
+        S(j,:) = newS(i,:)
       ENDIF
     ENDDO
     DEALLOCATE(newS)
