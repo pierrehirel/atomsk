@@ -24,8 +24,10 @@ else
   do
     printf ">>> Multiplying vectors by $factor in $f ..."
     if [ -e $f ]; then
-      awk -v fac=$factor '{print $1 " " $2 " " $3 " " fac*$4 " " fac*$5 " " fac*$6}' $f >>/tmp/temp.dat
-      mv -f /tmp/temp.dat $f
+      # Generate random file name
+      of="$(mktemp ./XXXXXXXX.tmp)"
+      awk -v fac=$factor '{print $1 " " $2 " " $3 " " fac*$4 " " fac*$5 " " fac*$6}' $f >> ${of}
+      mv -f ${of} $f
       printf " Done.\n"
     else
       printf " File doesn't exist, skipping.\n"

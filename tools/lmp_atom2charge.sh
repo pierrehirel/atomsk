@@ -23,18 +23,21 @@ else
       #Check that it is a LAMMPS file
       islmp=$(grep "atom types" $f | wc -l)
       if [ $islmp = 1 ]; then
+        # Generate random file name
+        of="$(mktemp ./XXXXXXXX.tmp)"
         # If the keyword "Atoms" is not followed by "# charge", add it
         atomic=$(grep "Atoms" $f | grep "charge" | wc -l)
         if [ $atomic = 0 ]; then
           sed -i '/Atoms/ c\Atoms  # charge' $f
         fi
-        # Add a column of zero after column 2
-        awk '{if(NR>9 && NF>4 && $1>0 && $2>0)
+        nrAtom=$(awk '/^Atom/{print NR}' $f)
+        # Add a column of zero after keyword "Atom"
+        awk -v n="${nrAtom}" '{if(NR>n && NF>4 && $1>0 && $2>0)
                 {print $1 "\t" $2 "\t0.0\t" $(NF-2) "\t" $(NF-1) "\t" $NF}
               else
                 {print}
-             }' $f >/tmp/temp.lmp
-        mv -f /tmp/temp.lmp $f
+             }' $f > ${of}
+        mv -f ${of} $f
         printf " Done.\n"
       else
         printf " Not a LAMMPS data file, skipping.\n"

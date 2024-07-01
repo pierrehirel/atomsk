@@ -17,8 +17,10 @@ else
   do
     printf ">>> Removing lines with zero vectors in $f ..."
     if [ -e $f ]; then
-      awk '{if($4!=0.0 && $5!=0.0 && $6!=0.0) print $0 }' $f >>/tmp/temp.dat
-      mv -f /tmp/temp.dat $f
+      # Generate random file name
+      of="$(mktemp ./XXXXXXXX.tmp)"
+      awk '{if($4!=0.0 && $5!=0.0 && $6!=0.0) print $0 }' $f >> ${of}
+      mv -f ${of} $f
       printf " Done.\n"
     else
       printf " File doesn't exist, skipping.\n"
