@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 10 June 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,17 +45,21 @@ SUBROUTINE WRITE_QEPW(H,P,comment,AUXNAMES,AUX,outputfile)
 CHARACTER(LEN=*),INTENT(IN):: outputfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: pseudo_dir
-CHARACTER(LEN=4096):: msg, temp
+CHARACTER(LEN=4096):: filename, msg, temp
 CHARACTER(LEN=4096):: tmpfile
+CHARACTER(LEN=4096),DIMENSION(10):: ppfiles
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
+LOGICAL:: cubic
 LOGICAL:: fileexists !does file exist?
 LOGICAL:: isreduced  !are positions in reduced coordinates?
 LOGICAL:: pseudo_dir_exists !does the pseudo_dir exist?
-INTEGER:: i, j
+INTEGER:: i, j, k
 INTEGER:: fx, fy, fz       !position of forces (x,y,z) in AUX
 INTEGER:: fixx, fixy, fixz !position of flags for fixed atoms in AUX
+REAL(dp):: ecutwfc, ecutrho !minimum cutoff read from pseudopotential files
 REAL(dp):: smass  !mass of atoms
+REAL(dp):: tempreal
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
@@ -64,7 +68,9 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !Initialize variables
 pseudo_dir = ""
+ppfiles(:) = ""
 tmpfile = ".atomsk.tmp.out_qe_pw"
+cubic = .FALSE.
 pseudo_dir_exists = .FALSE.
 fx=0
 fy=0
@@ -72,9 +78,19 @@ fz=0
 fixx=0
 fixy=0
 fixz=0
+!Default values for ecutwfc and ecutrho
+!If PP files are found, values will be read from them
+ecutwfc = 25.d0
+ecutrho = 100.d0
 !
 WRITE(msg,*) 'entering WRITE_QEPW'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+!Determine if cell is cubic
+IF( DABS(H(1,1)-H(2,2))<1.d-12 .AND. DABS(H(1,1)-H(3,3))<1.d-12 .AND. &
+  & ORTHOVEC(H(1,:),H(2,:)) .AND. ORTHOVEC(H(2,:),H(3,:))             ) THEN
+  cubic = .TRUE.
+ENDIF
 !
 !Find number of species
 CALL FIND_NSP(P(:,4),aentries)
@@ -103,20 +119,6 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
   ENDDO
 ENDIF
 !
-!
-!
-100 CONTINUE
-IF(ofu.NE.6) THEN
-  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
-ENDIF
-!
-!Write control section
-WRITE(ofu,'(a8)') "&CONTROL"
-IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
-  WRITE(ofu,'(a)') "  title = '"//TRIM(comment(1))//"'"
-ELSE
-  WRITE(ofu,'(a)') "  title = ''"
-ENDIF
 !pseudo_dir: value of the $ESPRESSO_PSEUDO environment variable if set;
 !            '$HOME/espresso/pseudo/' otherwise
 CALL GET_ENVIRONMENT_VARIABLE('ESPRESSO_PSEUDO',pseudo_dir)
@@ -131,8 +133,8 @@ IF( pseudo_dir(j:j) .NE. "/" ) THEN
 ENDIF
 !Verify if the pseudo_dir actually exists
 temp = TRIM(ADJUSTL(pseudo_dir))//".atomsk.tmp"
-OPEN(UNIT=49,FILE=temp,FORM="FORMATTED",STATUS="UNKNOWN",ERR=110,IOSTAT=j)
-110 CONTINUE
+OPEN(UNIT=49,FILE=temp,FORM="FORMATTED",STATUS="UNKNOWN",ERR=60,IOSTAT=j)
+60 CONTINUE
 CLOSE(49,STATUS='DELETE')
 IF( j==0 ) THEN
   !Directory exists
@@ -141,6 +143,93 @@ ELSE
   !There was an error when trying to open a file in that directory
   !=> directory does not exist
   pseudo_dir_exists = .FALSE.
+ENDIF
+!
+DO i=1,SIZE(aentries,1)
+  fileexists = .FALSE.
+  CALL ATOMSPECIES(aentries(i,1),species)
+  !
+  IF( pseudo_dir_exists ) THEN
+    !Look for files starting with element name in pseudo_dir
+    !Save file name pattern into msg, something like "/home/user/espresso/Al*.*"
+    msg = TRIM(ADJUSTL(pseudo_dir))//TRIM(ADJUSTL(species))//".*"
+    !List all files matching this pattern, and save the list in temporary file tmpfile
+    !This will execute something like "ls /home/user/espresso/Al*.* >.atomsk.tmp.out_qe_pw > /dev/null 2>&1"
+    CALL SYSTEM(system_ls//" "//TRIM(msg)//" > "//tmpfile//" "//pathnull)
+    !Verify if tmpfile exists
+    INQUIRE(FILE=tmpfile,EXIST=fileexists)
+    msg = ""
+    temp = ""
+    !If it does, read the first file name from it, save it to filename
+    IF( fileexists ) THEN
+      OPEN(UNIT=50,FILE=tmpfile,FORM="FORMATTED",STATUS="UNKNOWN")
+      READ(50,'(a4096)',ERR=70,END=70) filename
+      70 CONTINUE
+      CLOSE(50,STATUS='DELETE')
+    ENDIF
+    !
+    IF( LEN_TRIM(filename)>0 ) THEN
+      !Verify that this file exists
+      INQUIRE(FILE=filename,EXIST=fileexists)
+      IF( fileexists ) THEN
+        !This pseudopotential file exists: save its name in ppfiles()
+        j=SCAN(filename,"/",BACK=.TRUE.)
+        ppfiles(i) = TRIM(ADJUSTL(filename(j+1:)))
+        !Read min. values of ecutwcf and ecutrho from PP file
+        OPEN(UNIT=51,FILE=filename,FORM="FORMATTED",STATUS="UNKNOWN")
+        j=0
+        DO WHILE(j<2)
+          READ(51,'(a)',END=90,ERR=90) msg
+          msg = TRIM(ADJUSTL(msg))
+          k = INDEX(msg,"minimum cutoff for wavefunctions")
+          IF( k>0 ) THEN
+            k = SCAN(msg,':',BACK=.TRUE.)
+            msg = ADJUSTL(msg(k+1:))
+            READ(msg,*,ERR=90,END=90) tempreal
+            IF( tempreal>ecutwfc ) THEN
+              ecutwfc = tempreal
+              ecutrho = 4.d0*ecutwfc
+            ENDIF
+            j=j+1
+          ENDIF
+          k = INDEX(msg,"minimum cutoff for charge density")
+          IF( k>0 ) THEN
+            k = SCAN(msg,':',BACK=.TRUE.)
+            msg = ADJUSTL(msg(k+1:))
+            READ(msg,*,ERR=90,END=90) tempreal
+            IF( tempreal>ecutrho ) THEN
+              ecutrho = tempreal
+            ENDIF
+            j=j+1
+          ENDIF
+          90 CONTINUE
+        ENDDO
+        CLOSE(51)
+      ENDIF
+    ELSE
+      fileexists = .FALSE.
+    ENDIF
+  ENDIF
+  !
+  !If no suitable file was found, write a dummy file name into the PW file
+  IF( .NOT.fileexists ) THEN
+    ppfiles(i) = TRIM(species)//".fixme.upf"
+  ENDIF
+ENDDO
+!
+!
+!
+100 CONTINUE
+IF(ofu.NE.6) THEN
+  OPEN(UNIT=ofu,FILE=outputfile,STATUS='UNKNOWN',ERR=500)
+ENDIF
+!
+!Write control section
+WRITE(ofu,'(a8)') "&CONTROL"
+IF( ALLOCATED(comment) .AND. SIZE(comment)>0 ) THEN
+  WRITE(ofu,'(a)') "  title = '"//TRIM(comment(1))//"'"
+ELSE
+  WRITE(ofu,'(a)') "  title = ''"
 ENDIF
 !
 WRITE(ofu,'(a)') "  pseudo_dir = '"//TRIM(ADJUSTL(pseudo_dir))//"'"
@@ -152,11 +241,24 @@ WRITE(ofu,'(a1)') "/"
 WRITE(ofu,*) ""
 WRITE(ofu,'(a7)') "&SYSTEM"
 WRITE(msg,*) SIZE(P,1)
-WRITE(ofu,'(a)') "  nat= "//TRIM(ADJUSTL(msg))
+WRITE(ofu,'(a)') "  nat = "//TRIM(ADJUSTL(msg))
 WRITE(msg,*) SIZE(aentries,1)
-WRITE(ofu,'(a)') "  ntyp= "//TRIM(ADJUSTL(msg))
-WRITE(ofu,'(a)') "  ibrav= 0"
-WRITE(ofu,'(a)') "  ecutwfc= 20.0"
+WRITE(ofu,'(a)') "  ntyp = "//TRIM(ADJUSTL(msg))
+IF( cubic ) THEN
+  WRITE(ofu,'(a)') "  ibrav = 1"
+  !celldm() must be written in units of Bohr radius (atomic units)
+  !Here we convert H(1,1) assuming it is in angströms
+  WRITE(temp,'(f15.6)') H(1,1) / (a_bohr*1.d10)
+  WRITE(ofu,'(a)') "  celldm(1) = "//TRIM(ADJUSTL(temp))
+ELSE
+  WRITE(ofu,'(a)') "  ibrav = 0"
+ENDIF
+!Values of ecutwfc and ecutrho were read from PP files if they were found (see above)
+!Otherwise default values are used
+WRITE(temp,'(i5)') CEILING(ecutwfc)
+WRITE(ofu,'(a)') "  ecutwfc = "//TRIM(ADJUSTL(temp))
+WRITE(temp,'(i5)') CEILING(ecutrho)
+WRITE(ofu,'(a)') "  ecutrho = "//TRIM(ADJUSTL(temp))
 WRITE(ofu,'(a1)') "/"
 !
 !Write electrons section
@@ -179,56 +281,20 @@ WRITE(ofu,'(a1)') "/"
 WRITE(ofu,*) ""
 WRITE(ofu,'(a14)') "ATOMIC_SPECIES"
 DO i=1,SIZE(aentries,1)
-  fileexists = .FALSE.
   CALL ATOMSPECIES(aentries(i,1),species)
-  !
-  IF( pseudo_dir_exists ) THEN
-    !Look for files starting with element name in pseudo_dir
-    !Save file name pattern into msg, something like "/home/user/espresso/Al*.*"
-    msg = TRIM(ADJUSTL(pseudo_dir))//TRIM(ADJUSTL(species))//".*"
-    !List all files matching this pattern, and save the list in temporary file tmpfile
-    !This will execute something like "ls /home/user/espresso/Al*.* >.atomsk.tmp.out_qe_pw > /dev/null 2>&1"
-    CALL SYSTEM(system_ls//" "//TRIM(msg)//" > "//tmpfile//" "//pathnull)
-    !Verify if tmpfile exists
-    INQUIRE(FILE=tmpfile,EXIST=fileexists)
-    msg = ""
-    temp = ""
-    !If it does, read the first file name from it, save it to temp
-    IF( fileexists ) THEN
-      OPEN(UNIT=50,FILE=tmpfile,FORM="FORMATTED",STATUS="UNKNOWN")
-      READ(50,'(a4096)',ERR=150,END=150) temp
-      150 CONTINUE
-      CLOSE(50,STATUS='DELETE')
-    ENDIF
-    !
-    IF( LEN_TRIM(temp)>0 ) THEN
-      !Verify that this file exists
-      INQUIRE(FILE=temp,EXIST=fileexists)
-      IF( fileexists ) THEN
-        j=SCAN(temp,"/",BACK=.TRUE.)
-        msg = TRIM(ADJUSTL(temp(j+1:)))
-      ENDIF
-    ELSE
-      fileexists = .FALSE.
-    ENDIF
-  ENDIF
-  !
-  !If no suitable file was found, write a dummy file name into the PW file
-  IF( .NOT.fileexists ) THEN
-    msg = TRIM(species)//".fixme.upf"
-  ENDIF
-  !
   CALL ATOMMASS(species,smass)
-  WRITE(ofu,'(a2,2X,f9.3,2X,a)') species, smass, TRIM(msg)
+  WRITE(ofu,'(a2,2X,f9.3,2X,a)') species, smass, TRIM(ppfiles(i))
 ENDDO
 !
-!Write cell parameters
-WRITE(ofu,*) ""
-WRITE(ofu,'(a24)') "CELL_PARAMETERS angstrom"
-WRITE(ofu,201) H(1,1), H(1,2), H(1,3)
-WRITE(ofu,201) H(2,1), H(2,2), H(2,3)
-WRITE(ofu,201) H(3,1), H(3,2), H(3,3)
-201 FORMAT(3(f16.8,2X))
+IF( .NOT.cubic ) THEN
+  !Write cell parameters
+  WRITE(ofu,*) ""
+  WRITE(ofu,'(a24)') "CELL_PARAMETERS angstrom"
+  WRITE(ofu,201) H(1,1), H(1,2), H(1,3)
+  WRITE(ofu,201) H(2,1), H(2,2), H(2,3)
+  WRITE(ofu,201) H(3,1), H(3,2), H(3,3)
+  201 FORMAT(3(f16.8,2X))
+ENDIF
 !
 !Write atom coordinates
 WRITE(ofu,*) ""

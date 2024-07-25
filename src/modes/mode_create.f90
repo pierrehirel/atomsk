@@ -11,7 +11,7 @@ MODULE mode_create
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2024                                     *
+!* Last modification: P. Hirel - 13 June 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1499,7 +1499,7 @@ IF( cubic ) THEN
     ENDDO
     !
   ELSE
-    comment(1) = TRIM(comment(1))//" oriented X=[100], Y=[010], Z=[001]"
+    comment(1) = TRIM(comment(1))
     oriented = .FALSE. !set to .FALSE. to avoid duplicating atoms later
   ENDIF  !end if oriented
     !

@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 25 July 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -814,7 +814,7 @@ DO ioptions=1,SIZE(options_array)
     propfile = TRIM(ADJUSTL(propfile))
     CALL READ_PROPERTIES(propfile,H,P,S,ORIENT,C_tensor,AUXNAMES,AUX,SELECT)
   !
-  CASE('-rebox')
+  CASE('-rebox','-shrink-wrap')
     CALL ATOMSK_MSG(2153,(/""/),(/0.d0/))
     CALL DETERMINE_H(H,P)
   !

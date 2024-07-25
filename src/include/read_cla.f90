@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 10 July 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -785,7 +785,7 @@ DO WHILE(i<SIZE(cla))
       i=i-1
     ENDIF
   !
-  ELSEIF(clarg=='-dislocation' .OR. clarg=='-disloc') THEN
+  ELSEIF(clarg=='-dislocation' .OR. clarg=='-disloc' .OR. clarg=='-dislo') THEN
     m=0
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
@@ -1103,7 +1103,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-rebox') THEN
+  ELSEIF(clarg=='-rebox' .OR. clarg=='-shrink-wrap') THEN
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !

@@ -55,6 +55,7 @@ IMPLICIT NONE
 CHARACTER:: c
 CHARACTER(LEN=4):: fstatus   !file status; 'read' or 'writ'
 CHARACTER(LEN=5):: extension, infileformat
+CHARACTER(LEN=8):: nline     !line number
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=1024):: test, test2
 CHARACTER(LEN=1024):: filename
@@ -203,10 +204,11 @@ IF(fileexists) THEN
     !
     IF(verbosity==4) THEN
       IF(i<50) THEN
-        msg = 'GUESS_FORMAT line:  '//TRIM(test)
+        WRITE(nline,'(i8)') i
+        msg = 'GUESS_FORMAT line '//TRIM(ADJUSTL(nline))//':  '//TRIM(test)
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ELSEIF(i==50) THEN
-        msg = 'GUESS_FORMAT line:  ... discontinued ...'
+        msg = 'GUESS_FORMAT         ... discontinued ...'
         CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       ENDIF
     ENDIF
@@ -609,8 +611,9 @@ IF(fileexists) THEN
         test2 = ADJUSTL(test)
         DO WHILE(LEN_TRIM(test2)>0)
           READ(test2,*,ERR=241,END=241) msg
+          PRINT*, TRIM(msg)
           j = LEN_TRIM(msg) + 1
-          test2 = ADJUSTL(test2(j:))
+          test2 = TRIM(ADJUSTL(test2(j:)))
           Ncol=Ncol+1
         ENDDO
         241 CONTINUE
