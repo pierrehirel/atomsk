@@ -15,7 +15,7 @@ MODULE out_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -242,9 +242,6 @@ GOTO 500
 IF(ofu.NE.6) THEN
   CLOSE(40)
 ENDIF
-msg = "POSCAR"
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 !

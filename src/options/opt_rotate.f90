@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 24 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -33,7 +33,7 @@ USE exprev
 USE crystallography
 USE elasticity
 USE messages
-USE files
+USE files_msg
 USE subroutines
 !
 !

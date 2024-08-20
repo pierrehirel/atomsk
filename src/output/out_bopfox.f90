@@ -13,7 +13,7 @@ MODULE out_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -178,23 +178,17 @@ IF( magx>0 .AND. magy>0 .AND. magz>0 ) THEN
     WRITE(ofu,'(3(f16.6,2X))') AUX(i,magx), AUX(i,magy), AUX(i,magz)
   ENDDO
 ENDIF
-!
-!
-msg = "BOPfox"
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
-GOTO 500
+GOTO 1000
 !
 !
 !
 400 CONTINUE
 CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
 nerr = nerr+1
-GOTO 500
 !
 !
 !
-500 CONTINUE
+1000 CONTINUE
 IF(ofu.NE.6) THEN
   CLOSE(ofu)
 ENDIF

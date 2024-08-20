@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 April 2024                                    *
+!* Last modification: P. Hirel - 24 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,7 @@ USE comv
 USE constants
 USE crystallography
 USE messages
-USE files
+USE files_msg
 USE resize
 USE subroutines
 USE dislocation_iso
@@ -84,7 +84,11 @@ INTEGER:: i, j, k, n, r, u
 INTEGER:: Ndisloc  !number of dislocations successfully inserted
 INTEGER:: sig1, sig2, sig3, sig4, sig5, sig6 !for indexing stresses
 REAL(dp):: bsign !sign of Burgers vector (+1.d0 or -1.d0)
-REAL(dp),DIMENSION(5):: pos !pos(1:3) = coordinates of dislocation center; pos(4) = radius of loop
+REAL(dp),DIMENSION(5):: pos !if straight: pos(1:1) = position in plane normal to dislocline
+                            !if segment: pos(1:2) = position in plane normal to dislocline;
+                            !            pos(3:4) = min/max along dislocline
+                            !if loop: pos(1:3) = coord. (x,y,z) of center of loop;
+                            !         pos(4)   = radius of loop
 REAL(dp):: Efactor  !prelogarithmic energy factor
 REAL(dp):: mu       !shear modulus (GPa)
 REAL(dp):: tempreal

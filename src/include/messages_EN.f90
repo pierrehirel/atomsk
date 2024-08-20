@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -899,7 +899,11 @@ CASE(999)
 ! 1000-1999: MESSAGES FOR INPUT
 CASE(1000)
   !strings(1) = file name
-  msg = ">>> Opening the input file: "//TRIM(ADJUSTL(strings(1)))
+  !strings(2) = file size
+  msg = ">>> Opening input file: "//TRIM(ADJUSTL(strings(1)))
+  IF( SIZE(strings)>1 .AND. LEN_TRIM(strings(2))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(2)))//"B)"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
   !reals(1) = number of atoms
@@ -2659,10 +2663,14 @@ CASE(3001)
       & TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3002)
-  !strings(1) = type of file, e.g. "XSF" or "CFG"
-  !strings(2) = name of file
-  msg = "..> Successfully wrote "//TRIM(strings(1))//" file: " &
-      & //TRIM(strings(2))
+  !strings(1) = name of file
+  !strings(2) = type of file, e.g. "XSF" or "CFG"
+  !strings(3) = size of file
+  msg = "..> Successfully wrote "//TRIM(strings(2))//" file: " &
+      & //TRIM(strings(1))
+  IF( SIZE(strings)>2 .AND. LEN_TRIM(strings(3))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(3)))//"B)"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3003)
   !reals(:) = list of atomic numbers

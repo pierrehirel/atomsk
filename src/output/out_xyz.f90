@@ -206,15 +206,6 @@ ENDIF
 IF(ofu.NE.6) THEN
   CLOSE(ofu)
 ENDIF
-IF(xyzformat=='exyz' .OR. xyzformat=='EXYZ') THEN
-  msg = "extended XYZ"
-ELSEIF(xyzformat=='sxyz' .OR. xyzformat=='SXYZ') THEN
-  msg = "special XYZ"
-ELSE
-  msg = "XYZ"
-ENDIF
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 !

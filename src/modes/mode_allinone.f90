@@ -21,7 +21,7 @@ MODULE aio
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2024                                     *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,7 +42,7 @@ USE atoms
 USE comv
 USE constants
 USE messages
-USE files
+USE files_msg
 USE subroutines
 USE options
 USE readin
@@ -381,12 +381,12 @@ CALL ATOMSK_MSG(4042,(/''/),(/DBLE(snap)/))
 IF(output_xyz .OR. output_exyz) THEN
   CLOSE(40)
   msg = "XYZ"
-  CALL ATOMSK_MSG(3002,(/msg,outfile_xyz/),(/0.d0/))
+  CALL ATOMSK_MSG(3002,(/outfile_xyz,msg/),(/0.d0/))
 ENDIF
 IF(output_xsf) THEN
   CLOSE(41)
   msg = "XSF"
-  CALL ATOMSK_MSG(3002,(/msg,outfile_xsf/),(/0.d0/))
+  CALL ATOMSK_MSG(3002,(/outfile_xsf,msg/),(/0.d0/))
 ENDIF
 !
 !

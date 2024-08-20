@@ -11,7 +11,7 @@ MODULE out_siesta_xv
 !* (C) Jan. 2012 - Eva Marie Kalivoda                                             *
 !*     Fraunhofer Institute für Werkstoffmechanik IWM                             *
 !*     Wöhlerstr. 11, 79108 Freiburg im Breisgau                                  *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -131,9 +131,6 @@ ENDDO
 IF(ofu.NE.6) THEN
   CLOSE(40)
 ENDIF
-msg = "XV"
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 !

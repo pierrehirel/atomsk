@@ -186,19 +186,12 @@ DO i=1,SIZE(P,1)
   !Write the line to the file
   WRITE(ofu,'(a)') TRIM(ADJUSTL(temp))
 END DO
-GOTO 300
+GOTO 1000
 !
 250 CONTINUE
 CALL ATOMSK_MSG(802,(/''/),(/0.d0/))
 nerr = nerr+1
 GOTO 1000
-!
-!
-!
-300 CONTINUE
-msg = "CFG"
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 !

@@ -30,7 +30,7 @@ MODULE cmpt_G
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 17 May 2024                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -257,6 +257,19 @@ theta_max = DEG2RAD(theta_max)
 !
 !
 100 CONTINUE
+IF( verbosity>=4 ) THEN
+  WRITE(msg,*) "Parameters for computation of correspondence G tensor:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "     cutoff = ", cutoff
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "      NNmin = ", NNmin
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "NeighFactor = ", NeighFactor
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) " theta_max  = ", theta_max
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+ENDIF
+!
 IF( ALLOCATED(P1) .AND. SIZE(P1,1)>0 ) THEN
   !A "reference" system was provided
   IF( SIZE(P1,1) < SIZE(P2,1) ) THEN
@@ -583,7 +596,7 @@ G(:,:,:) = 0.d0
 !First, loop on all atoms to compute the tensor G for each atom
 progress=0
 !$OMP PARALLEL DO DEFAULT(SHARED) &
-!$OMP& PRIVATE(msg,iat,i,j,k,m,n,ok,Nneighbors,nb_neigh,PosList1,PosList2,P_neigh,P_neigh_tmp,Tab_PQ) &
+!$OMP& PRIVATE(msg,iat,i,j,k,m,n,ok,Nneighbors,nb_neigh,cutoff,PosList1,PosList2,P_neigh,P_neigh_tmp,Tab_PQ) &
 !$OMP& PRIVATE(IdMat,Q_neigh,Q_plus,P_matrix,Q_matrix,Q_matrix_copy,Stemp,test_matrix,V_NN,newindex) &
 !$OMP& PRIVATE(Q_matrix_rank,work_array,LWORK,INFO,tempreal,alpha,alpha_tmp)
 DO iat=1,SIZE(P2,1)

@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 15 May 2024                                      *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -340,6 +340,17 @@ DEALLOCATE(comment)
 !Tensor G is known for all atoms => use it to compute the Nye tensor
 CALL ATOMSK_MSG(4063,(/""/),(/0.d0/))
 !
+IF( verbosity>=4 ) THEN
+  WRITE(msg,*) "     cutoff = ", cutoff
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "      NNmin = ", NNmin
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) "NeighFactor = ", NeighFactor
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) " theta_max  = ", theta_max
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+ENDIF
+!
 !Prepare array AUX to store Nye tensor
 IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 ALLOCATE( AUX(SIZE(P2,1),9) )
@@ -381,11 +392,12 @@ DO iat=1,SIZE(P2,1)
       !Make sure to keep at least NNmin neighbors: compare distances to that of neighbor #NNmin
       Nneighbors=0
       DO j=1,SIZE(PosList1,1)
-        IF( PosList1(j,4) <= NeighFactor*PosList1(NNmin,4) ) THEN
+        !IF( PosList1(j,4) <= NeighFactor*PosList1(NNmin,4) ) THEN
         !IF( PosList1(j,4) <= cutoff ) THEN
+        !IF( PosList1(j,5) > 0 ) THEN
           !This neighbor is about as close as the 3rd neighbor => keep it
           Nneighbors=Nneighbors+1
-        ENDIF
+        !ENDIF
       ENDDO
       !Save first neighbors positions into V_NN(:,:)
       !Save their index into Nlist(:)
@@ -395,13 +407,14 @@ DO iat=1,SIZE(P2,1)
       Nlist(:) = 0
       Nneighbors=0
       DO j=1,SIZE(PosList1,1)
-        IF( PosList1(j,4) <= NeighFactor*PosList1(NNmin,4) ) THEN
+        !IF( PosList1(j,4) <= NeighFactor*PosList1(NNmin,4) ) THEN
         !IF( PosList1(j,4) <= cutoff ) THEN
+        !IF( PosList1(j,5) > 0 ) THEN
           !This neighbor is closer than the NNmin-th neighbor => keep it
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList1(j,1:3)
           Nlist(Nneighbors) = NINT(PosList1(j,5))
-        ENDIF
+        !ENDIF
       ENDDO
     ENDIF
     !
@@ -456,22 +469,24 @@ DO iat=1,SIZE(P2,1)
       !Make sure to keep at least NNmin neighbors: compare distances to that of neighbor #NNmin
       Nneighbors=0
       DO j=1,SIZE(PosList2,1)
-        IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
+        !IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
         !IF( PosList2(j,4) <= cutoff ) THEN
+        !IF( PosList2(j,5) > 0 ) THEN
           !This neighbor is about as close as the NNmin-th neighbor => keep it
           Nneighbors=Nneighbors+1
-        ENDIF
+        !ENDIF
       ENDDO
       ALLOCATE(V_NN(Nneighbors,3))
       V_NN(:,:) = 0.d0
       Nneighbors=0
       DO j=1,SIZE(PosList2,1)
-        IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
+        !IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
         !IF( PosList2(j,4) <= cutoff ) THEN
+        !IF( PosList1(j,5) > 0 ) THEN
           !This neighbor is closer than the NNmin-th neighbor => keep it
           Nneighbors=Nneighbors+1
           V_NN(Nneighbors,:) = PosList2(j,1:3)
-        ENDIF
+        !ENDIF
       ENDDO
     ENDIF
     !
@@ -502,11 +517,11 @@ DO iat=1,SIZE(P2,1)
         !Make sure to keep at least NNmin neighbors: compare distances to that of neighbor #NNmin
         nb_neigh=0
         DO j=1,SIZE(PosList2,1)
-          IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
+          !IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
           !IF( PosList2(j,4) <= cutoff ) THEN
             !This neighbor is about as close as the NNmin-th neighbor => keep it
             nb_neigh=nb_neigh+1
-          ENDIF
+          !ENDIF
         ENDDO
         ALLOCATE(V_NN(nb_neigh,5))
         V_NN(:,:) = 0.d0
@@ -514,7 +529,7 @@ DO iat=1,SIZE(P2,1)
         Nlist(:) = 0
         nb_neigh = 0
         DO j=1,SIZE(PosList2,1)
-          IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
+          !IF( PosList2(j,4) <= NeighFactor*PosList2(NNmin,4) ) THEN
           !IF( PosList2(j,4) <= cutoff ) THEN
             !This neighbor is about as close as the NNmin-th neighbor => keep it
             nb_neigh=nb_neigh+1
@@ -522,7 +537,7 @@ DO iat=1,SIZE(P2,1)
             V_NN(nb_neigh,1:3) = PosList2(j,1:3)
             !Save index of neighbors in Nlist
             Nlist(nb_neigh) = NINT(PosList2(j,5))
-          ENDIF
+          !ENDIF
         ENDDO
         !
         !Compute  Delta_G(IM) = G_neighbor(IM) - G_0(IM)  (Eq.19)

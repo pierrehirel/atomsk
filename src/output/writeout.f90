@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,7 +59,8 @@ USE comv
 USE constants
 USE guess_form
 USE messages
-USE files
+USE files_msg
+USE strings
 USE subroutines
 !
 !Modules managing output files
@@ -108,10 +109,12 @@ CHARACTER(LEN=10):: time
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128):: username
 CHARACTER(LEN=*):: prefix
+CHARACTER(LEN=32):: cfname !custom format name (default=current outfileformat)
 CHARACTER(LEN=4096):: outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN),OPTIONAL:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,OPTIONAL:: comment
 LOGICAL:: fileexists
+LOGICAL:: format_unknown
 INTEGER:: i, j, k
 INTEGER:: q, qs, itypes  !position of charges, shell charges, atom types in AUX
 INTEGER,DIMENSION(8):: values
@@ -123,6 +126,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
 !
 !
 !
+outputfile=""
 username=""
 itypes = 0
 q = 0
@@ -490,9 +494,20 @@ ENDIF
 !
 !
 DO i=1,SIZE(outfileformats)
-  SELECT CASE(outfileformats(i))
   !
-  CASE('atsk','ATSK')
+  format_unknown=.FALSE.
+  !
+  !The name "cfname" will appear in a message on-screen,
+  !e.g. with a file in XYZ format:
+  ! "The XYZ file was written: abc.xyz"
+  !This "custom format name" can be defined for each file format below
+  !otherwise it defaults to the current outfileformat
+  cfname = STRUPCASE(outfileformats(i))
+  !
+  SELECT CASE(STRDNCASE(outfileformats(i)))
+  !
+  CASE('atsk')
+    cfname = "Atomsk"
     CALL NAME_OUTFILE(prefix,outputfile,'atsk ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -503,6 +518,7 @@ DO i=1,SIZE(outfileformats)
     ENDIF
   !
   CASE('abin')
+    cfname = "ABINIT"
     CALL NAME_OUTFILE(prefix,outputfile,'in   ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -512,7 +528,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('bop','BOP')
+  CASE('bop')
     CALL NAME_OUTFILE(prefix,outputfile,'bop  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -522,7 +538,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('bx','BX')
+  CASE('bx')
+    cfname = "BOPfox"
     CALL NAME_OUTFILE(prefix,outputfile,'bx   ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -532,7 +549,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('cfg','CFG')
+  CASE('cfg')
     CALL NAME_OUTFILE(prefix,outputfile,'cfg  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -542,7 +559,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('cel','CEL')
+  CASE('cel')
+    cfname = "Dr Probe CELL"
     CALL NAME_OUTFILE(prefix,outputfile,'cel  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -552,7 +570,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('cif','CIF')
+  CASE('cif')
     CALL NAME_OUTFILE(prefix,outputfile,'cif  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -562,7 +580,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('coo','COO')
+  CASE('coo')
+    cfname = "MBPP COORAT"
     outputfile = 'COORAT'
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -572,7 +591,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('csv','CSV')
+  CASE('csv')
     CALL NAME_OUTFILE(prefix,outputfile,'csv  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -583,6 +602,7 @@ DO i=1,SIZE(outfileformats)
     ENDIF
   !
   CASE('d12')
+    cfname = "CRYSTAL d12"
     CALL NAME_OUTFILE(prefix,outputfile,'d12  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -592,7 +612,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('dat','DAT')
+  CASE('dat')
+    cfname = "DATA"
     CALL NAME_OUTFILE(prefix,outputfile,'dat  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -602,12 +623,14 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('dd','DD')
+  CASE('dd')
+    cfname = "DDplot"
     !cannot write ddplot format here, only in mode "--ddplot"
     nwarn = nwarn+1
     CALL ATOMSK_MSG(3702,(/TRIM(outputfile)/),(/0.d0/))
   !
-  CASE('dlp','DLP')
+  CASE('dlp')
+    cfname = "DL_POLY"
     outputfile = 'CONFIG'
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -617,7 +640,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('fdf','FDF')
+  CASE('fdf')
+    cfname = "SIESTA FDF"
     CALL NAME_OUTFILE(prefix,outputfile,'fdf  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -627,7 +651,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('gin','GIN')
+  CASE('gin')
+    cfname = "GULP"
     CALL NAME_OUTFILE(prefix,outputfile,'gin  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -637,7 +662,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('imd','IMD')
+  CASE('imd')
     CALL NAME_OUTFILE(prefix,outputfile,'imd  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -647,7 +672,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('jems','JEMS')
+  CASE('jems')
     CALL NAME_OUTFILE(prefix,outputfile,'txt  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -657,7 +682,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('lmp','LMP')
+  CASE('lmp')
+    cfname = "LAMMPS data"
     CALL NAME_OUTFILE(prefix,outputfile,'lmp  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -667,7 +693,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('mol','MOL')
+  CASE('mol')
+    cfname = "MOLDY"
     CALL NAME_OUTFILE(prefix,outputfile,'mol  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -677,7 +704,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('pdb','PDB')
+  CASE('pdb')
     CALL NAME_OUTFILE(prefix,outputfile,'pdb  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -687,7 +714,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('pos','POS')
+  CASE('pos')
+    cfname = "VASP"
     outputfile = 'POSCAR'
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -697,7 +725,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('pw','PW')
+  CASE('pw')
+    cfname = "Quantum Espresso"
     CALL NAME_OUTFILE(prefix,outputfile,'pw   ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -707,7 +736,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('str','STR','stru','STRU')
+  CASE('str','stru')
+    cfname = "PDFFIT"
     CALL NAME_OUTFILE(prefix,outputfile,'str  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -717,7 +747,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('vesta','VESTA')
+  CASE('vesta')
     CALL NAME_OUTFILE(prefix,outputfile,'vesta')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -727,7 +757,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('xmd','XMD')
+  CASE('xmd')
     CALL NAME_OUTFILE(prefix,outputfile,'xmd  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -737,7 +767,7 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('xsf','XSF')
+  CASE('xsf')
     CALL NAME_OUTFILE(prefix,outputfile,'xsf  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -747,7 +777,8 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('xv','XV')
+  CASE('xv')
+    cfname = "SIESTA XV"
     CALL NAME_OUTFILE(prefix,outputfile,'XV   ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -757,7 +788,12 @@ DO i=1,SIZE(outfileformats)
       CALL ATOMSK_MSG(3001,(/TRIM(outputfile)/),(/0.d0/))
     ENDIF
   !
-  CASE('xyz','XYZ','exyz','EXYZ','sxyz','SXYZ')
+  CASE('xyz','exyz','sxyz')
+    IF( STRDNCASE(outfileformats(i))=="exyz" ) THEN
+      cfname = "Extended XYZ"
+    ELSEIF( STRDNCASE(outfileformats(i))=="sxyz" ) THEN
+      cfname = "Special XYZ"
+    ENDIF
     CALL NAME_OUTFILE(prefix,outputfile,'xyz  ')
     INQUIRE(FILE=outputfile,EXIST=fileexists)
     IF( (fileexists .AND. .NOT.ignore) .OR. .NOT.fileexists) THEN
@@ -772,13 +808,20 @@ DO i=1,SIZE(outfileformats)
   CASE('')
     !empty entry: just ignore it
     CONTINUE
+    format_unknown=.TRUE.
+    !
   CASE DEFAULT
     !all other cases: unknown format
     CALL ATOMSK_MSG(3710,(/TRIM(outfileformats(i))/),(/0.d0/))
+    format_unknown=.TRUE.
   !
   END SELECT
   !
   IF(nerr>0) GOTO 800
+  !
+  IF( .NOT.format_unknown ) THEN
+    CALL ATOMSK_MSG(3002,(/outputfile,cfname,FILE_SIZE(outputfile)/),(/0.d0/))
+  ENDIF
   !
 ENDDO
 !

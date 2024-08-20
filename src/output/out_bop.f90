@@ -11,7 +11,7 @@ MODULE out_bop
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 May 2021                                      *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -175,22 +175,17 @@ IF(NPinert>0) THEN
     ENDIF
   ENDDO
 ENDIF
-!
-msg = "BOP"
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
-GOTO 500
+GOTO 1000
 !
 !
 !
 400 CONTINUE
 CALL ATOMSK_MSG(802,(/''/),(/DBLE(i)/))
 nerr = nerr+1
-GOTO 500
 !
 !
 !
-500 CONTINUE
+1000 CONTINUE
 IF(ofu.NE.6) THEN
   CLOSE(ofu)
 ENDIF

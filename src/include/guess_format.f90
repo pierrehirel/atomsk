@@ -611,7 +611,6 @@ IF(fileexists) THEN
         test2 = ADJUSTL(test)
         DO WHILE(LEN_TRIM(test2)>0)
           READ(test2,*,ERR=241,END=241) msg
-          PRINT*, TRIM(msg)
           j = LEN_TRIM(msg) + 1
           test2 = TRIM(ADJUSTL(test2(j:)))
           Ncol=Ncol+1

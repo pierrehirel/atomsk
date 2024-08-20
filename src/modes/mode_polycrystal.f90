@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 March 2024                                    *
+!* Last modification: P. Hirel - 20 Aug. 2024                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1723,7 +1723,7 @@ IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 IF( outparam .AND. ofu.NE.6 ) THEN
   !Random parameters were written into a file => inform user
   temp = "parameter"
-  CALL ATOMSK_MSG(3002,(/temp,outparamfile/),(/0.d0/))
+  CALL ATOMSK_MSG(3002,(/outparamfile,temp/),(/0.d0/))
 ENDIF
 !
 IF( ofu.NE.6 ) THEN
@@ -1831,8 +1831,8 @@ IF( ofu.NE.6 ) THEN
       WRITE(41,*) Vmin+DBLE(j)*Vstep, Nnodes
     ENDDO
     CLOSE(41)
-    msg = "DAT"
-    CALL ATOMSK_MSG(3002,(/msg,distfile/),(/0.d0/))
+    msg = "DATA"
+    CALL ATOMSK_MSG(3002,(/distfile,msg/),(/0.d0/))
   ENDIF
 ENDIF
 GOTO 1000

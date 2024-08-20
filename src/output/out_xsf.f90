@@ -120,11 +120,8 @@ ENDDO
 !
 500 CONTINUE
 IF(ofu.NE.6) THEN
-  CLOSE(40)
+  CLOSE(ofu)
 ENDIF
-msg = "XSF"
-temp = outputfile
-CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 !
 !
 !

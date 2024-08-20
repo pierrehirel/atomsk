@@ -21,6 +21,7 @@ SGE=globalvar.f90         \
     $(L10N)               \
     messages.f90          \
     files.f90             \
+    files_msg.f90         \
     expreval.f90          \
     resize.f90            \
     spacegroups.f90       \

@@ -889,7 +889,11 @@ CASE(999)
 ! 1000-1999: MESSAGES FOR INPUT
 CASE(1000)
   !strings(1) = file name
+  !strings(2) = size of file
   msg = ">>> Oeffnen der Eingabedatei: "//TRIM(ADJUSTL(strings(1)))
+  IF( SIZE(strings)>1 .AND. LEN_TRIM(strings(2))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(2)))//"B)"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
   !reals(1) = number of atoms
@@ -2653,10 +2657,14 @@ CASE(3001)
       & TRIM(strings(1))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3002)
-  !strings(1) = type of file, e.g. "XSF" or "CFG"
-  !strings(2) = name of file
-  msg = "..> Datei "//TRIM(strings(1))//" erfolgreich geschrieben: " &
-      & //TRIM(strings(2))
+  !strings(1) = name of file
+  !strings(2) = type of file, e.g. "XSF" or "CFG"
+  !strings(3) = size of file
+  msg = "..> Datei "//TRIM(strings(2))//" erfolgreich geschrieben: " &
+      & //TRIM(strings(1))
+  IF( SIZE(strings)>1 .AND. LEN_TRIM(strings(3))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(3)))//"B)"
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3003)
   !reals(:) = list of atomic numbers

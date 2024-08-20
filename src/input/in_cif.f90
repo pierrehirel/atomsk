@@ -317,6 +317,8 @@ DO !Main reading loop
     !Check if it is a loop over atom positions or symmetry operations
     READ(30,'(a128)',ERR=200,END=200) temp
     temp = ADJUSTL(temp)
+    CALL ATOMSK_MSG(999,(/temp/),(/0.d0/))
+    !
     IF( temp(1:10)=="_atom_site" .AND. .NOT.atpos_done) THEN
       !It is a loop over atoms and we still need to read it:
       !continue reading the header,
@@ -579,7 +581,7 @@ DO !Main reading loop
         !
       ENDIF ! atomic positions found.
       !
-    ELSEIF( (temp(1:9)=="_symmetry" .OR. temp(1:12)=="_space_group") .AND. .NOT.symops_done) THEN
+    ELSEIF( (temp(1:9)=="_symmetry" .OR. temp(1:12)=="_space_group") .AND. .NOT.symops_done .AND.sgnumber<=0 ) THEN
       !This is a loop over symmetry data and we still need to read it.
       ! - continue reading the header
       ! - count number of columns (Ncol) until reaching the actual data
@@ -600,7 +602,7 @@ DO !Main reading loop
         temp = ADJUSTL(temp)
       ENDDO ! symmetry header reading
       !
-      IF (sy_pxyz.NE.0) THEN ! This section contains data that we want to read.
+      IF (sy_pxyz>0) THEN ! This section contains data that we want to read.
         !
         BACKSPACE(30) ! Go back one line !
         !
@@ -719,6 +721,7 @@ DO !Main reading loop
             ! Allocate the transformation array in the symmetry operation module!
             ALLOCATE(symops_trf(symops_nltrf,Nsym))
             symops_trf(:,:) = 0.d0
+            symops_done=.TRUE.
             REWIND(30) !Set file pointer back to start.
                        ! -> reads everything again, except that
                        !    this time symops_trf is already allocated.
@@ -813,6 +816,8 @@ DO !Main reading loop
             IF (k==0) THEN ! report interpretation error
               CALL ATOMSK_MSG(812,(/TRIM(temp)/),(/0.d0/))
               nerr = nerr+1
+            ELSE
+              symops_done=.TRUE.
             END IF
             !
           ENDDO
