@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 27 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -252,16 +252,16 @@ IF( fileexists ) THEN
   !File exists, convert size from bytes to
   tempreal = sizebytes
   IF( tempreal>1024d0**4 ) THEN
-    WRITE(temp,*) NINT(tempreal/1024d0**4)
+    WRITE(temp,'(f12.1)') tempreal/1024d0**4
     filesize = TRIM(ADJUSTL(temp))//" T"
   ELSEIF( tempreal>1024d0**3 ) THEN
-    WRITE(temp,*) NINT(tempreal/1024d0**3)
+    WRITE(temp,'(f12.1)') tempreal/1024d0**3
     filesize = TRIM(ADJUSTL(temp))//" G"
   ELSEIF( tempreal>1024d0**2 ) THEN
-    WRITE(temp,*) NINT(tempreal/1024d0**2)
+    WRITE(temp,'(f12.1)') tempreal/1024d0**2
     filesize = TRIM(ADJUSTL(temp))//" M"
   ELSEIF( tempreal>1024 ) THEN
-    WRITE(temp,*) NINT(tempreal/1024)
+    WRITE(temp,'(f12.1)') tempreal/1024
     filesize = TRIM(ADJUSTL(temp))//" k"
   ELSEIF( sizebytes>0 ) THEN
     WRITE(temp,*) sizebytes
