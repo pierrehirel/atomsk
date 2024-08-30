@@ -229,8 +229,8 @@ END SUBROUTINE NAME_OUTFILE
 ! FILE_SIZE
 ! This function determines the size of a file (in bytes)
 ! and returns a string in human-friendly format,
-! e.g. "40k" or "3G". If file does not exist, a blank
-! string is returned.
+! e.g. "40.2k" or "3.6G". If file does not exist,
+! a blank string is returned.
 ! Note that only the unit multiple (k, M, G, T) is written,
 ! as the symbol for "bytes" depends on the language
 ! (e.g. kilo-byte is "kB" in English, and "ko" in French)

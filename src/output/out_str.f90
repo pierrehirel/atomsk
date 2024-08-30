@@ -11,7 +11,7 @@ MODULE out_str
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 30 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -238,7 +238,7 @@ nerr = nerr+1
 !
 1000 CONTINUE
 IF(ofu.NE.6) THEN
-  CLOSE(40)
+  CLOSE(ofu)
 ENDIF
 !
 END SUBROUTINE WRITE_STR

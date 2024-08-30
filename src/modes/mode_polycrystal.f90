@@ -291,7 +291,7 @@ DO
       IF(ALLOCATED(Q)) DEALLOCATE(Q)
       CALL VOLUME_PARA(Huc,Vmin)  ! Volume of seed
       CALL VOLUME_PARA(H,Volume)  ! Volume of final box
-      P1 = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
+      P1 = SIZE(Puc,1) * Volume/Vmin  !estimate of number of atoms in final box
       !Check if number of atoms (P1) is ok
       CALL CHECKMEM(P1,i)
       IF( i>0 ) THEN

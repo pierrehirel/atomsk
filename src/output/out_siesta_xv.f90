@@ -11,7 +11,7 @@ MODULE out_siesta_xv
 !* (C) Jan. 2012 - Eva Marie Kalivoda                                             *
 !*     Fraunhofer Institute für Werkstoffmechanik IWM                             *
 !*     Wöhlerstr. 11, 79108 Freiburg im Breisgau                                  *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 30 Aug. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -129,7 +129,7 @@ ENDDO
 !
 500 CONTINUE
 IF(ofu.NE.6) THEN
-  CLOSE(40)
+  CLOSE(ofu)
 ENDIF
 !
 !
