@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 30 Aug. 2024                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -1085,20 +1085,20 @@ ENDIF
 !Add a few angströms for good measure
 templatebox(:) = templatebox(:) + (/6.d0,6.d0,6.d0/)
 !Compute how many particles the template will contain = (seed density)*(template volume)
-P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+P1 = 1.1d0 * seed_density * PRODUCT(templatebox(:))
 WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !If expected number of particles is too large, reduce template size
-IF( P1 > 2.147d9 ) THEN
+IF( P1 > 2.1d9 ) THEN
   templatebox(:) = 0.8d0*templatebox(:)
   IF( twodim>0 ) THEN
     templatebox(twodim) = VECLENGTH(H(twodim,:))
   ENDIF
 ENDIF
 !Re-compute number of particles
-P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+P1 = 1.1d0 * seed_density * PRODUCT(templatebox(:))
 !If expected number of particles still is too large, abort completely
-IF( P1 > 2.147d9 ) THEN
+IF( P1 > 2.1d9 ) THEN
   CALL ATOMSK_MSG(821,(/""/),(/P1/))
   nerr = nerr+1
   GOTO 1000
