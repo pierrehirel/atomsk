@@ -587,7 +587,7 @@ CASE('polycrystal')
   msg = 'outputfile: '//TRIM(outputfile)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
-  CALL POLYCRYS(file1,filefirst,options_array,file2,outfileformats)
+  CALL POLYCRYS(file1,filefirst,options_array,file2,outfileformats,.TRUE.,H,P)
 !
 !
 !
