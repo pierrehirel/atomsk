@@ -52,7 +52,7 @@ USE writeout
 CONTAINS
 !
 !
-SUBROUTINE POLYCRYS(ucfile,vfile,options_array,prefix,outfileformats)
+SUBROUTINE POLYCRYS(ucfile,vfile,options_array,prefix,outfileformats,wof,H,P)
 !
 !
 IMPLICIT NONE
@@ -69,6 +69,7 @@ CHARACTER(LEN=128):: lattice  !if grains are organized according to a lattice
 CHARACTER(LEN=4096):: line
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=4096):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
+LOGICAL,INTENT(IN):: wof !write output file?
 CHARACTER(LEN=4096):: distfile, idsizefile !name of file containing grain size distribution, grain sizes
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES    !names of auxiliary properties of atoms
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary properties of atoms (temporary)
@@ -1705,7 +1706,9 @@ CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
 IF(nerr>0) GOTO 1000
 !
 !Write final system to file(s)
-CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
+IF(wof) THEN
+  CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
+ENDIF
 IF(nerr>0) GOTO 1000
 !
 !
@@ -1726,7 +1729,7 @@ IF( outparam .AND. ofu.NE.6 ) THEN
   CALL ATOMSK_MSG(3002,(/outparamfile,temp/),(/0.d0/))
 ENDIF
 !
-IF( ofu.NE.6 ) THEN
+IF( wof .AND. ofu.NE.6 ) THEN
   !Write positions of nodes into a file
   ALLOCATE(comment(1))
   comment(1) = "# Positions of nodes"
@@ -1780,7 +1783,7 @@ DO i=1,SIZE(NPgrains)
   ENDIF
 ENDDO
 !
-IF( ofu.NE.6 ) THEN
+IF( wof .AND. ofu.NE.6 ) THEN
   !Write positions of center of mass of each grain into a file
   ALLOCATE(comment(1))
   comment(1) = "# Positions of grains centers of mass"
@@ -1863,7 +1866,6 @@ GOTO 1000
 1000 CONTINUE
 IF(ALLOCATED(Puc)) DEALLOCATE(Puc)
 IF(ALLOCATED(Suc)) DEALLOCATE(Suc)
-IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(S)) DEALLOCATE(S)
 IF(ALLOCATED(T)) DEALLOCATE(T)

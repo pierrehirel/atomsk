@@ -174,6 +174,12 @@ lib: message compute modes
 	@echo "    \o/ Atomsk was compiled as a shared library file, 'atomsk.so'."
 	@echo ""
 
+clib: message compute modes cbindings
+	$(FORTRAN) $(FFLAGS) -cpp -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	@echo ""
+	@echo "    \o/ Atomsk was compiled as a shared library file with cbindings, 'atomsk.so'."
+	@echo ""
+
 # Compile modes modules
 modes: aux compute FORCE
 	$(MAKE) $(MFLAGS) -C modes
@@ -201,6 +207,10 @@ options: FORCE
 # Compile output modules
 output: FORCE
 	$(MAKE) $(MFLAGS) -C output
+
+# Compile output modules
+cbindings: FORCE
+	$(MAKE) $(MFLAGS) -C cbindings
 
 # Compile common modules ("include") - NOTE: this MUST NOT be run in parallel (-j1)
 l10n: general
