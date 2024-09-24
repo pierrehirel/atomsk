@@ -169,13 +169,13 @@ atomsk: message modes compute general
 # Compile the program as a library
 # Note that the preprocessor must be called (-cpp)
 lib: message compute modes
-	$(FORTRAN) $(FFLAGS) -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -shared -o atomsk.so $(OBJ)$(SEP)*.o
 	@echo ""
 	@echo "    \o/ Atomsk was compiled as a shared library file, 'atomsk.so'."
 	@echo ""
 
 clib: message compute modes cbindings
-	$(FORTRAN) $(FFLAGS) -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -shared -o atomsk.so $(OBJ)$(SEP)*.o
 	@echo ""
 	@echo "    \o/ Atomsk was compiled as a shared library file with cbindings, 'atomsk.so'."
 	@echo ""
@@ -246,12 +246,11 @@ tar:
 	          ../doc/*/*.png  ../doc/index.html                             \
 	          ../etc/atomsk.conf                                            \
 	          ../examples/                                                  \
-	          ../man/atomsk                                                 \
+	          ../man/atomsk  ../src/Makefile                                \
 	          ../src/atomsk.f90 ../src/include/*.f90 ../src/input/*.f90     \
 	          ../src/options/*.f90 ../src/output/*.f90 ../src/modes/*.f90   \
-	          ../src/Makefile ../src/Makefile.* ../src/*/Makefile           \
-	          ../tools/*                                                    \
-	          ../README ../LICENSE ../CHANGELOG
+              ../src/compute/*.f90 ../src/Makefile.* ../src/*/Makefile      \
+	          ../tools/*  ../README ../LICENSE ../CHANGELOG
 	@echo ">>> The program was successfully archived in ../$(ARCNAME).tar.gz"
 
 
