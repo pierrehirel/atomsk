@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2023                                     *
+!* Last modification: P. Hirel - 30 Aug. 2024                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -168,6 +168,13 @@ CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !     it might also be larger. Keep that in mind if you modify this routine
 CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
 !
+IF(nerr>0 ) GOTO 1000
+IF( .NOT.ALLOCATED(Puc) .OR. SIZE(Puc,1)<1 ) THEN
+  CALL ATOMSK_MSG(804,(/''/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ENDIF
+!
 !Check if seed contains shells (in the sense of core-shell model) and/or auxiliary properties
 IF( ALLOCATED(Suc) .AND. SIZE(Suc,1)>0 ) THEN
   doshells = .TRUE.
@@ -285,7 +292,7 @@ DO
       IF(ALLOCATED(Q)) DEALLOCATE(Q)
       CALL VOLUME_PARA(Huc,Vmin)  ! Volume of seed
       CALL VOLUME_PARA(H,Volume)  ! Volume of final box
-      P1 = CEILING( SIZE(Puc,1) * Volume/Vmin )  !estimate of number of atoms in final box
+      P1 = SIZE(Puc,1) * Volume/Vmin  !estimate of number of atoms in final box
       !Check if number of atoms (P1) is ok
       CALL CHECKMEM(P1,i)
       IF( i>0 ) THEN
@@ -1079,20 +1086,20 @@ ENDIF
 !Add a few angströms for good measure
 templatebox(:) = templatebox(:) + (/6.d0,6.d0,6.d0/)
 !Compute how many particles the template will contain = (seed density)*(template volume)
-P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+P1 = 1.1d0 * seed_density * PRODUCT(templatebox(:))
 WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !If expected number of particles is too large, reduce template size
-IF( P1 > 2.147d9 ) THEN
+IF( P1 > 2.1d9 ) THEN
   templatebox(:) = 0.8d0*templatebox(:)
   IF( twodim>0 ) THEN
     templatebox(twodim) = VECLENGTH(H(twodim,:))
   ENDIF
 ENDIF
 !Re-compute number of particles
-P1 = CEILING( 1.1d0 * seed_density * PRODUCT(templatebox(:)) )
+P1 = 1.1d0 * seed_density * PRODUCT(templatebox(:))
 !If expected number of particles still is too large, abort completely
-IF( P1 > 2.147d9 ) THEN
+IF( P1 > 2.1d9 ) THEN
   CALL ATOMSK_MSG(821,(/""/),(/P1/))
   nerr = nerr+1
   GOTO 1000
@@ -1719,7 +1726,7 @@ IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 IF( outparam .AND. ofu.NE.6 ) THEN
   !Random parameters were written into a file => inform user
   temp = "parameter"
-  CALL ATOMSK_MSG(3002,(/temp,outparamfile/),(/0.d0/))
+  CALL ATOMSK_MSG(3002,(/outparamfile,temp/),(/0.d0/))
 ENDIF
 !
 IF( wof .AND. ofu.NE.6 ) THEN
@@ -1827,8 +1834,8 @@ IF( wof .AND. ofu.NE.6 ) THEN
       WRITE(41,*) Vmin+DBLE(j)*Vstep, Nnodes
     ENDDO
     CLOSE(41)
-    msg = "DAT"
-    CALL ATOMSK_MSG(3002,(/msg,distfile/),(/0.d0/))
+    msg = "DATA"
+    CALL ATOMSK_MSG(3002,(/distfile,msg/),(/0.d0/))
   ENDIF
 ENDIF
 GOTO 1000
