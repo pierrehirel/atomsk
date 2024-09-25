@@ -3,13 +3,67 @@ MODULE cbindings_runoptions
 !**********************************************************************************
 !*  RUN OPTIONS                                                                   *
 !**********************************************************************************
-!* This module defines the cbindings for the RUN_OPTIONS subroutine  .            *
+!* This module defines the cbindings for the OPTIONS_AFF subroutine.              *
+!* Additionally, the DEALLOCATE_OPTIONS routine deallocates memory used by c      *
+!* pointers.                                                                      *
+!*                                                                                *
+!* WHAT MUST BE PROVIDED:                                                         *
+!* NUMOPTIONS                                                                     *
+!*           a C_INT that defines the number of options to be applied to the      *
+!*           system.                                                              *
+!* c_options_array                                                                *
+!*           a vector of C_CHARs of length 128*NUMOPTIONS that contains the       *
+!*           options to be applied. Each set of 128 characters defines one option *
+!*           and any unneeded space should be set to ' '.                         *
+!* NUMATOMS  a C_INT that defines the number of atoms in the system.              *
+!* c_PIN     an array of contiguous C_DOUBLEs of size (NUMATOMS,4) that define    *
+!*           the coordinatess (X,Y,Z) and atomic numbers of the system.           *
+!* c_POUT    a C_PTR that will point to the updated coordinates and atomic        *
+!*           numbers of the system after the function is run.                     *
+!* NUMSHELLS a C_INT that defines the number of shells in the system.             *
+!* c_SIN     an array of contiguous C_DOUBLEs of size (NUMSHELLS,4) that define   *
+!*           the shells of the system.                                            *
+!* c_SOUT    a C_PTR that will point to the updated shells after the function is  *
+!*           run.                                                                 *
+!* NUMAUXNAMES                                                                    *
+!*           a C_INT that defines the number of auxiliary names defined.          *
+!* c_AUXNAMES                                                                     *
+!*           a vector of C_CHARs of length 128*NUMAUXNAMES that contains the      *
+!*           auxiliary variable names. Each set of 128 characters defines one     *
+!*           name and any unneeded space should be set to ' '.                    *
+!* c_AUXIN   an array of contiguous C_DOUBLEs of size (NUMATOMS,NUMAUXNAMES) that *
+!*           define the auxiliary variables of the system.                        *
+!* c_AUXOUT  a C_PTR that will point to the updated auxiliary variables after the *
+!*           function is run.                                                     *
+!* c_Huc     an array of contiguous C_DOUBLEs of size (3,3) that define the base  *
+!*           vectors of the unit cell (often this is not necessary and can be     *
+!*           zeros).                                                              *
+!* c_H       an array of contiguous C_DOUBLEs of size (3,3) that define the base  *
+!*           vectors of the supercell (often this is not necessary and can be     *
+!*           zeros).                                                              *
+!* c_ORIENT  an array of contiguous C_DOUBLEs of size (3,3) that define the       *
+!*           orientation of the unit cell (often this is not necessary and can be *
+!*           zeros).                                                              *
+!* c_SELECTIN                                                                     *
+!*           a vector of C_INTs of length NUMATOMS that define whether a          *
+!*           selection has been made. These should be either ones or zeros.       *
+!* c_SELECTOUT                                                                    *
+!*           a C_PTR that will point to the updated selection after the           *
+!*           function is run.                                                     *
+!* c_C_tensor                                                                     *
+!*           an array of contiguous C_DOUBLEs of size (9,9) that define the       *
+!*           stiffness tensor of the system.                                      *
+!*                                                                                *
+!* WHAT IS RETURNED BY THIS ROUTINE:                                              *
+!* modified C_PTRs c_POUT, c_SOUT, c_AUXOUT, c_SELECTOUT                          *
+!* modified arrays c_Huc, c_H, c_ORIENT, c_C_tensor                               *
+!*                                                                                *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Dec. 2015                                     *
+!* Last modification: J. Meziere - 25 Sep. 2024                                   *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *

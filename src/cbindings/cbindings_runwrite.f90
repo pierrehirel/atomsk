@@ -3,13 +3,46 @@ MODULE cbindings_runwrite
 !**********************************************************************************
 !*  RUN WRITE                                                                     *
 !**********************************************************************************
-!* This module defines the cbindings for the RUN_WRITE_AFF subroutine             *
+!* This module defines the cbindings for the RUN_WRITE_AFF subroutine.            *
+!*                                                                                *
+!* WHAT MUST BE PROVIDED:                                                         *
+!* NUMATOMS  a C_INT that defines the number of atoms in the system.              *
+!* c_P     an array of contiguous C_DOUBLEs of size (NUMATOMS,4) that define      *
+!*           the coordinatess (X,Y,Z) and atomic numbers of the system.           *
+!* NUMSHELLS a C_INT that defines the number of shells in the system.             *
+!* c_S     an array of contiguous C_DOUBLEs of size (NUMSHELLS,4) that define     *
+!*           the shells of the system.                                            *
+!* NUMAUXNAMES                                                                    *
+!*           a C_INT that defines the number of auxiliary names defined.          *
+!* c_AUXNAMES                                                                     *
+!*           a vector of C_CHARs of length 128*NUMAUXNAMES that contains the      *
+!*           auxiliary variable names. Each set of 128 characters defines one     *
+!*           name and any unneeded space should be set to ' '.                    *
+!* c_AUX   an array of contiguous C_DOUBLEs of size (NUMATOMS,NUMAUXNAMES) that   *
+!*           define the auxiliary variables of the system.                        *
+!* c_H       an array of contiguous C_DOUBLEs of size (3,3) that define the base  *
+!*           vectors of the supercell (often this is not necessary and can be     *
+!*           zeros).                                                              *
+!* c_prefix  a vector of C_CHARs of length PREFIXSIZE that defines the prefix of  *
+!*           the output filepath.                                                 *
+!* PREFIXSIZE                                                                     *
+!*           a C_INT that defines the length of c_prefix.                         *
+!* c_fileformats                                                                  *
+!*           a vector of C_CHARs of length NUMFORMATS*5 that contains the output  *
+!*           file formats. Each set of 5 C_CHARs defines an output format and any *
+!*           unneeded space should be set to ' '.                                 *
+!* NUMFORMATS                                                                     *
+!*           a C_INT that defines the number of output formats.                   *
+!*                                                                                *
+!* WHAT IS RETURNED BY THIS ROUTINE:                                              *
+!* nothing                                                                        *
+!*                                                                                *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Dec. 2015                                     *
+!* Last modification: J. Meziere - 25 Sep. 2024                                   *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
