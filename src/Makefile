@@ -26,12 +26,15 @@
 #    make -f Makefile.ifort atomsk
 
 export
-
 # Version of the program
 VER="master"
 
 # Name of the final binary
 BIN=atomsk
+# Name of final library (should be libatomsk.ext)
+ifndef ATOMSKLIB
+  ATOMSKLIB=libatomsk.so
+endif
 
 # Subdirectory where objects will be stored during compilation
 OBJ=OBJ
@@ -50,32 +53,45 @@ else
   MKDIR=mkdir -p
 endif
 
+mode=static
+
 # COMPILER AND OPTIONS
 # if compiler was not defined before, the following defaults are used
 ifndef FORTRAN
   # GNU Fortran as the default Fortran compiler
   # NOTE: use gfortran version 9 or greater, or any compiler compatible with Fortran 2008.
   FORTRAN=gfortran
-  
-  # Comment the following line to disable parallelization with OpenMP
-  OPENMP=-DOPENMP -fopenmp
-
-  # -O2 gives good optimization/performance
-  # -fno-backslash prevents backslash characters to be misunderstood
-  # -I is used to specify folders where the compiler should look for *.mod files
-  # -J is used to specify the folder where the compiler will store the *.mod files
-  FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ)
-  
-  # Add -fpic to compile Atomsk as a shared library
-  #FFLAGS+=-fPIC
-  
-  # Un-comment the following line to use 8-bits integers by default
-  # (number of atoms up to 9x10^18 instead of 2x10^9)
-  #FFLAGS+=-fdefault-integer-8
-  
-  # DEBUGGING FLAGS
-  #FFLAGS+=-fbacktrace -fbounds-check -g -Wall -Og
 endif
+  
+# Comment the following line to disable parallelization with OpenMP
+OPENMP=-DOPENMP -fopenmp
+
+# -O2 gives good optimization/performance
+# -fno-backslash prevents backslash characters to be misunderstood
+# -I is used to specify folders where the compiler should look for *.mod files
+# -J is used to specify the folder where the compiler will store the *.mod files
+  
+LDFLAGS+=-L.
+OPTIONS=
+
+# Add -fpic to compile Atomsk as a shared library
+ifeq ($(shared),yes)
+  OPTIONS+=-fPIC
+endif
+  
+# Un-comment the following line to use 8-bits integers by default
+# (number of atoms up to 9x10^18 instead of 2x10^9)
+ifeq ($(bigint),yes)
+  OPTIONS+=-fdefault-integer-8
+endif
+  
+# DEBUGGING FLAGS
+ifeq ($(debug),yes)
+  OPTIONS+=-fbacktrace -fbounds-check -g -Wall -Og
+endif
+
+modes compute aux caux input options output cbinding 110n general objdir : FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) $(OPTIONS)
+all atomsk lib clib : FFLAGS=-O2 $(OPENMP) -fno-backslash -I$(OBJ) $(OPTIONS)
 
 ifndef LAPACK
   # Path to the LAPACK library
@@ -158,7 +174,7 @@ all: atomsk
 # Compile the program
 # Note that the preprocessor must be called (-cpp)
 atomsk: message modes compute general
-	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 -I $(OBJ) $(LAPACK)
+	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 $(LDFLAGS) $(LAPACK)
 	@echo ""
 	@echo "    \o/ Compilation was successful!"
 	@echo ""
@@ -169,13 +185,15 @@ atomsk: message modes compute general
 # Compile the program as a library
 # Note that the preprocessor must be called (-cpp)
 lib: message compute modes
-	$(FORTRAN) $(FFLAGS) -cpp -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -shared -o $(ATOMSKLIB) $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) atomsk.f90 $(LDFLAGS) -latomsk $(LAPACK)
 	@echo ""
 	@echo "    \o/ Atomsk was compiled as a shared library file, 'atomsk.so'."
 	@echo ""
 
 clib: message compute modes cbindings
-	$(FORTRAN) $(FFLAGS) -cpp -shared -o atomsk.so $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -shared -o $(ATOMSKLIB) $(OBJ)$(SEP)*.o
+	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) atomsk.f90 $(LDFLAGS) -latomsk $(LAPACK)
 	@echo ""
 	@echo "    \o/ Atomsk was compiled as a shared library file with cbindings, 'atomsk.so'."
 	@echo ""
