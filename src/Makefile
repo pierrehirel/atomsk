@@ -90,7 +90,7 @@ ifeq ($(debug),yes)
   OPTIONS+=-fbacktrace -fbounds-check -g -Wall -Og
 endif
 
-modes compute aux caux input options output cbinding 110n general objdir : FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) $(OPTIONS)
+modes compute aux caux input options output cbindings 110n general objdir : FFLAGS=-O2 $(OPENMP) -fno-backslash -I..$(SEP)$(OBJ) -J..$(SEP)$(OBJ) $(OPTIONS)
 all atomsk lib clib : FFLAGS=-O2 $(OPENMP) -fno-backslash -I$(OBJ) $(OPTIONS)
 
 ifndef LAPACK
