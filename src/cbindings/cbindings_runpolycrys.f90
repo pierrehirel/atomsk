@@ -3,13 +3,43 @@ MODULE cbindings_runpolycrys
 !**********************************************************************************
 !*  RUN POLYCRYS                                                                  *
 !**********************************************************************************
-!* This module defines the cbindings for the RUN_OPTIONS subroutine  .            *
+!* This module defines the cbindings for the POLYCRYS subroutine.                 *
+!* Additionally, the DEALLOCATE_POLYCRYS routine deallocates memory used by c     *
+!* pointers.                                                                      *
+!*                                                                                *
+!* WHAT MUST BE PROVIDED:                                                         *
+!* c_ucfile  a vector of C_CHAR of length UCFILESIZE that defines the path to     *
+!*           the seed file.                                                       *
+!* UCFILESIZE                                                                     *
+!*           a C_INT that defines the length of the ucfile name.                  *
+!* c_vfile   a vector of C_CHAR of length VFILESIZE that defines the path to      *
+!*           the file containing the parameter of the polycrystal.                *
+!* VFILESIZE                                                                      *
+!*           a C_INT that defines the length of the vfile name.                   *
+!* NUMOPTIONS                                                                     *
+!*           a C_INT that defines the number of options to be applied to the      *
+!*           system.                                                              *
+!* c_options_array                                                                *
+!*           a vector of C_CHARs of length 128*NUMOPTIONS that contains the       *
+!*           options to be applied. Each set of 128 characters defines one option *
+!*           and any unneeded space should be set to ' '.                         *
+!* NUMATOMS  a C_INT that defines the number of atoms in the system.              *
+!* c_POUT    a C_PTR that will point to the updated coordinates and atomic        *
+!*           numbers of the system after the function is run.                     *
+!* c_H       an array of contiguous C_DOUBLEs of size (3,3) that define the base  *
+!*           vectors of the supercell (often this is not necessary and can be     *
+!*           zeros).                                                              *
+!*                                                                                *
+!* WHAT IS RETURNED BY THIS ROUTINE:                                              *
+!* modified C_PTR c_POUT                                                          *
+!* modified array c_H                                                             *
+!*                                                                                *
 !**********************************************************************************
 !* (C) Feb. 2010 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Dec. 2015                                     *
+!* Last modification: J. Meziere - 25 Sep. 2024                                   *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
