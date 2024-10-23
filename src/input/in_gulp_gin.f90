@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 21 Oct. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -246,7 +246,7 @@ DO
       !
     ENDIF
     !
-  ELSEIF( temp(1:10)=="spacegroup" ) THEN
+  ELSEIF( temp(1:10)=="spacegroup" .OR. temp(1:6)=="space " ) THEN
     !Read the space group
     READ(30,'(a128)',END=820,ERR=820) sgroup
     !Check if it is an integer or not
@@ -333,12 +333,15 @@ DO
   IF( test(1:1).NE.'#' .AND. LEN_TRIM(test)>0 .AND. LEN_TRIM(test)<6 ) THEN
     !In all cases if the first two characters do not correspond
     !to a recognizable species then we are done counting
-    species = test(1:2)
-    CALL ATOMNUMBER(species,snumber)
-    IF( snumber<=0.1d0 ) THEN
-      species = species(1:1)
-      CALL ATOMNUMBER(species,snumber)
+    READ(test,*,ERR=31,END=31) temp
+    temp = TRIM(ADJUSTL(temp))
+    j=SCAN(temp,'_')
+    IF( j>0 ) THEN
+      temp = temp(:j-1)
     ENDIF
+    IF( LEN_TRIM(temp)>2 ) GOTO 31
+    species = temp(1:2)
+    CALL ATOMNUMBER(species,snumber)
     IF( DABS(snumber) < 0.1d0 ) GOTO 31
     !
     !If cores and/or shells exist, count them separately

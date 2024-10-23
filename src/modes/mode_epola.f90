@@ -16,7 +16,7 @@ MODULE mode_epola
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Aug. 2024                                     *
+!* Last modification: P. Hirel - 19 Sept. 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -139,14 +139,15 @@ ENDDO
 300 CONTINUE
 !Output
  comment(1) = '# Electronic polarization computed with atomsk'
-fakeAUXNAMES(1) = "P_x"
-fakeAUXNAMES(2) = "P_y"
-fakeAUXNAMES(3) = "P_z"
+fakeAUXNAMES(1) = "Px"
+fakeAUXNAMES(2) = "Py"
+fakeAUXNAMES(3) = "Pz"
 fakeAUXNAMES(4) = "|P|"
 !
 !Output to CFG
 IF(.NOT.overw) CALL CHECKFILE(pcfg,'writ')
 CALL WRITE_CFG(H,P,comment,fakeAUXNAMES,ionpola,pcfg)
+CALL ATOMSK_MSG(3002,(/pcfg,"CFG",FILE_SIZE(outputfile)/),(/0.d0/))
 !
 !Output to XSF (rename aux.properties to trick XSF module)
 fakeAUXNAMES(1) = "fx"
@@ -155,6 +156,7 @@ fakeAUXNAMES(3) = "fz"
 fakeAUXNAMES(4) = ""
 IF(.NOT.overw) CALL CHECKFILE(pxsf,'writ')
 CALL WRITE_XSF(H,P,comment,fakeAUXNAMES,ionpola,pxsf)
+CALL ATOMSK_MSG(3002,(/pxsf,"XSF",FILE_SIZE(outputfile)/),(/0.d0/))
 !
 !
 CALL ATOMSK_MSG(4049,(/""/),(/0.d0/))

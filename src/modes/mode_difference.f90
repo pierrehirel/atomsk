@@ -23,7 +23,7 @@ MODULE mode_difference
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 June 2023                                     *
+!* Last modification: P. Hirel - 19 Sept. 2024                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -51,9 +51,8 @@ USE readin
 !Module for applying options
 USE options
 !Output modules
-USE out_cfg
+USE writeout
 USE out_xyz
-USE out_xsf
 !
 !
 CONTAINS
@@ -68,6 +67,7 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: outputfile, msg
 CHARACTER(LEN=128):: diffcfgfile
 CHARACTER(LEN=128):: histdatfile, stattxtfile
+CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to write
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, AUXNAMES1, AUXNAMES2 !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, comment2
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
@@ -308,8 +308,9 @@ IF(ALLOCATED(AUX2)) DEALLOCATE(AUX2)
 !Write output files
 !
 !CFG file containing atom positions of 1st system + displacements
-IF(.NOT.overw) CALL CHECKFILE(diffcfgfile,'writ')
-CALL WRITE_CFG(H1,P1,comment,AUXNAMES,AUX,diffcfgfile)
+ALLOCATE(outfileformats(1))
+outfileformats(1) = "cfg"
+CALL WRITE_AFF(diffcfgfile,outfileformats,H1,P1,S,comment,AUXNAMES,AUX)
 !
 !
 !
