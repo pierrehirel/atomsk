@@ -14,7 +14,7 @@ MODULE in_lmp_c
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 Feb. 2022                                     *
+!* Last modification: P. Hirel - 29 Nov. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -345,7 +345,11 @@ DO WHILE(.NOT.finished)
               GOTO 180
               170 CONTINUE
               !It failed, it was not a real number => ignore it, use atom type
-              READ(acol(typecol),*,END=840,ERR=840) testreal
+              IF( typecol>0 ) THEN
+                READ(acol(typecol),*,END=840,ERR=840) testreal
+              ELSE
+                testreal = 1.d0
+              ENDIF
             ENDIF
             !
           ELSEIF( typecol>0 ) THEN
@@ -386,22 +390,22 @@ DO WHILE(.NOT.finished)
             IF( fx>0 ) THEN
               sizeaux = sizeaux+1
               READ(acol(fx),*,END=840,ERR=840) a
-              AUX(id,sizeaux+1) = a
+              AUX(id,sizeaux) = a
             ENDIF
             IF( fy>0 ) THEN
               sizeaux = sizeaux+1
               READ(acol(fy),*,END=840,ERR=840) a
-              AUX(id,sizeaux+1) = a
+              AUX(id,sizeaux) = a
             ENDIF
             IF( fz>0 ) THEN
               sizeaux = sizeaux+1
               READ(acol(fz),*,END=840,ERR=840) a
-              AUX(id,sizeaux+1) = a
+              AUX(id,sizeaux) = a
             ENDIF
             IF( q>0 ) THEN
-              READ(acol(q),*,END=840,ERR=840) a
-              AUX(id,sizeaux+1) = a
               sizeaux = sizeaux+1
+              READ(acol(q),*,END=840,ERR=840) a
+              AUX(id,sizeaux) = a
             ENDIF
             DO j=1,Ncol
               IF( LEN_TRIM(namecol(j))>0 ) THEN
