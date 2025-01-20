@@ -15,7 +15,7 @@ MODULE in_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 Oct. 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -740,9 +740,9 @@ DO WHILE(i<NP .OR. NS2<NS)
         !Set names of auxiliary properties
         IF(occ>0 .AND. occ<=SIZE(AUXNAMES)) AUXNAMES(occ) = 'occupancy'
         IF(radius>0 .AND. radius<=SIZE(AUXNAMES)) AUXNAMES(radius) = 'bsradius'
-        IF(fixx>0 .AND. fixx<=SIZE(AUXNAMES)) AUXNAMES(fixx) = 'fixx'
-        IF(fixy>0 .AND. fixy<=SIZE(AUXNAMES)) AUXNAMES(fixy) = 'fixy'
-        IF(fixz>0 .AND. fixz<=SIZE(AUXNAMES)) AUXNAMES(fixz) = 'fixz'
+        IF(fixx>0 .AND. fixx<=SIZE(AUXNAMES)) AUXNAMES(fixx) = 'freeze_x'
+        IF(fixy>0 .AND. fixy<=SIZE(AUXNAMES)) AUXNAMES(fixy) = 'freeze_y'
+        IF(fixz>0 .AND. fixz<=SIZE(AUXNAMES)) AUXNAMES(fixz) = 'freeze_z'
         !
         IF( chargesC .OR. chargesS ) THEN
           !Charges of cores or shells were defined before (in section "species")

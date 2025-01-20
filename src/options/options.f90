@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 July 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -78,7 +78,7 @@ USE deform
 USE dislocation
 USE disturb
 USE duplicate
-USE fix
+USE freeze
 USE mirror
 USE orient
 USE orthocell
@@ -171,6 +171,10 @@ REAL(dp):: cutdistance
 CHARACTER(LEN=2):: def_dir       !direction of applied strain (X, Y or Z)
 REAL(dp):: def_strain, def_poisson  !applied strain and Poisson's ratio
 !
+!Variables relative to Option: denoise
+!INTEGER:: denoise_Niter  !max. number of iterations
+!REAL(dp):: denoise_dmax  !max. displacement under which denoise is stopped
+!
 !Variables relative to Option: dislocation
 CHARACTER(LEN=16):: dislocplane   !(x, y, z, or Miller vector)
 CHARACTER(LEN=4096):: dislocline    !(x, y, z, or Miller vector, or file name)
@@ -186,10 +190,11 @@ REAL(dp),DIMENSION(3):: dist_dmax  !maximum translation vector along each Cartes
 INTEGER, DIMENSION(3):: dupmatrix  !number of times the system must be
                                    !repeated in each direction of space
 !
-!Variables relative to Option: fix
-CHARACTER(LEN=5):: fix_dir, fixaxis
-CHARACTER(LEN=16):: fixdir   !x, y, z, or crystallographic direction
-REAL(dp):: fixdistance
+!Variables relative to Option: freeze
+CHARACTER(LEN=5):: freeze_coord    !coordinate(s) to freeze (x,y,z,xy,xz,yz,xyz)
+CHARACTER(LEN=5):: freeze_side     !'above' or 'below'
+CHARACTER(LEN=16):: freeze_normal  !direction normal to plane (x,y,z, or [hkl])
+REAL(dp):: freeze_dist             !distance to plane
 !
 !Variables relative to Option: mirror
 CHARACTER(LEN=16):: mirror_dir   !x, y, z, or crystallographic direction
@@ -272,8 +277,11 @@ REAL(dp):: vel_T  !target temperature for Maxwell-Boltzmann distribution
 j=0
 !
 !
-msg = 'ENTERING OPTIONS'
+WRITE(msg,*) "===================================================="
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "===   NOW APPLYING OPTIONS IN SEQUENTIAL ORDER   ==="
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
 !Initialize variables
 lat_a0(:) = 1.d0
 !If orientation of the system is unknown, default orientation is assumed to be [100] [010] [001]
@@ -343,10 +351,6 @@ ENDDO
 !     of atoms or change their order in the array P must also add, remove or
 !     re-order the shells in S and/or auxiliary properties in AUX accordingly.
 !
-WRITE(msg,*) "===================================================="
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-WRITE(msg,*) "===   NOW APPLYING OPTIONS IN SEQUENTIAL ORDER   ==="
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 DO ioptions=1,SIZE(options_array)
   !Initialisations
@@ -566,7 +570,23 @@ DO ioptions=1,SIZE(options_array)
     102 CONTINUE
     CALL DEFORM_XYZ(H,P,S,def_dir,def_strain,def_poisson,SELECT)
   !
-  CASE('-disloc', '-dislocation')
+!   CASE('-denoise')
+!     denoise_Niter = 0
+!     denoise_dmax = 0.d0
+!     !Read one value
+!     READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp
+!     !Detect if an integer or
+!     temp = TRIM(ADJUSTL(temp))
+!     IF( SCAN(temp,'.') > 0 ) THEN
+!       !It is a real value
+!       READ(temp,*,END=800,ERR=800) denoise_dmax
+!     ELSE
+!       !It is an integer value
+!       READ(temp,*,END=800,ERR=800) denoise_Niter
+!     ENDIF
+!     CALL DENOISE_XYZ(H,P,S,denoise_Niter,denoise_dmax,SELECT)
+  !
+  CASE("-dislocation","-dislo","-disloc")
     nu = 0.d0
     status=0
     !Read the first two keywords
@@ -751,31 +771,33 @@ DO ioptions=1,SIZE(options_array)
         & dupmatrix(1), dupmatrix(2), dupmatrix(3)
     CALL DUPLICATECELL(H,P,S,dupmatrix,SELECT,AUX)
   !
-  CASE('-fix', '-freeze')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis
-    strlength = LEN_TRIM(fixaxis) + 6
-    fix_dir = TRIM(ADJUSTL(options_array(ioptions)(strlength:)))
-    IF( fix_dir(1:5)=='above' .OR. fix_dir(1:5)=='below' ) THEN
-      READ(options_array(ioptions),*,END=800,ERR=800) optionname, fixaxis, fix_dir, treal(1), fixdir
-      !Check if numbers contain a keyword like "BOX" or "INF"
-      SELECT CASE(fixdir)
-      CASE('x','X')
+  CASE('-fix','-freeze')
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, freeze_coord
+    strlength = LEN_TRIM(optionname) + LEN_TRIM(freeze_coord)
+    IF( LEN_TRIM(options_array(ioptions)) > strlength+2 ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, freeze_coord, freeze_side
+    ENDIF
+    IF( freeze_side(1:5)=="above" .OR. freeze_side(1:5)=="below" ) THEN
+      READ(options_array(ioptions),*,END=800,ERR=800) optionname, freeze_coord, freeze_side, treal(1), freeze_normal
+      !Check if treal(1) contains a keyword like "BOX" or "INF"
+      SELECT CASE(StrDnCase(freeze_coord))
+      CASE('x')
         i=1
-      CASE('y','Y')
+      CASE('y')
         i=2
-      CASE('z','Z')
+      CASE('z')
         i=3
       END SELECT
-      CALL BOX2DBLE( H(:,i) , treal(1) , fixdistance , status )
+      CALL BOX2DBLE( H(:,i) , treal(1) , freeze_dist , status )
       IF(status>0) THEN
         temp = treal(1)
         GOTO 810
       ENDIF
     ELSE
-      fix_dir = ""
-      fixdir = ""
+      freeze_side = ""
+      freeze_normal = ""
     ENDIF
-    CALL FIX_XYZ(H,P,AUXNAMES,AUX,fixaxis,fix_dir,fixdistance,fixdir,ORIENT,SELECT)
+    CALL FREEZE_XYZ(H,P,AUXNAMES,AUX,freeze_coord,freeze_side,freeze_dist,freeze_normal,ORIENT,SELECT)
   !
   CASE('-frac','-fractional')
     CALL CART2FRAC_XYZ(H,P,S)

@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 Avril 2024                                    *
+!* Last modification: P. Hirel - 12 Dec. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -114,16 +114,18 @@ END FUNCTION VECLENGTH
 FUNCTION VEC_PLANE(N,d0,P) RESULT(position)
 !
 IMPLICIT NONE
-REAL(dp), DIMENSION(3),INTENT(IN):: N  !normal to the plane
+REAL(dp), DIMENSION(3),INTENT(IN):: N  !normal to the plane (may not be unit vector)
 REAL(dp), DIMENSION(3),INTENT(IN):: P  !position of the point
 REAL(dp),INTENT(IN):: d0  !distance between the plane and the origin
 REAL(dp):: position  !>0 if P is above plane, <0 if below, =0 if in plane
+REAL(dp),DIMENSION(3):: normal  !unit vector normal to the plane
 !
 IF( d0==0.d0 .OR. VECLENGTH(N)==0.d0 ) THEN
   !atom has to be in plane
   position = 0.d0
 ELSE
-  position = DOT_PRODUCT( N/VECLENGTH(N) , P - d0*N/VECLENGTH(N) )
+  normal(:) = N(:) / VECLENGTH(N)
+  position = DOT_PRODUCT( normal(:) , P - d0*normal(:) )
 ENDIF
 !
 END FUNCTION VEC_PLANE

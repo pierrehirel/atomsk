@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -313,7 +313,8 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-fix") THEN
   WRITE(*,*) "..> Fixiere einige Atome:"
-  WRITE(*,*) "          -fix <x|y|z> <above|below> <distance> <x|y|z>"
+  WRITE(*,*) "          -freeze <x|y|z|xy|xz|yz|xyz>"
+  WRITE(*,*) "          -freeze <x|y|z|xy|xz|yz|xyz> <above|below> <distance> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-fractional" .OR. helpsection=="-frac") THEN
@@ -568,7 +569,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32):: errmsg, warnmsg
 CHARACTER(LEN=256):: msg  !The message to be displayed
-CHARACTER(LEN=256):: temp, temp2, temp3, temp4
+CHARACTER(LEN=256):: temp, temp1, temp2, temp3, temp4
 CHARACTER(LEN=*),DIMENSION(:):: strings !Character strings that may be part of the message
 INTEGER:: i, j
 INTEGER,INTENT(IN):: imsg  !index of message to display
@@ -1273,11 +1274,12 @@ CASE(2063)
   IF( NINT(reals(1)) < 0 ) THEN
     WRITE(msg,*) NINT(ABS(reals(1)))
     msg = "..> "//TRIM(ADJUSTL(msg))//" Atome wurden entfernt."
-  ELSE
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( NINT(reals(1)) > 0 ) THEN
     WRITE(msg,*) NINT(reals(1))
     msg = "..> "//TRIM(ADJUSTL(msg))//" Atome wurden eingefuegt."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2064)
   !reals(1) = axis of elongation (1=X, 2=Y, 3=Z)
   !strings(1) = magnitude of elongation
@@ -1812,10 +1814,20 @@ CASE(2096)
   msg = "..> Die Loesungen wurden gefunden."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2097)
-  !strings(1) = axis along which coordinate is fixed: x,y,z,all
-  !strings(2) = "above" or "below"
-  !strings(3) = axis 
-  !reals(1) = fix distance in angstroms
+  !strings(1) = coordinate to freeze: x,y,z,xy,xz,yz,xyz,all
+  !strings(2) = "above" or "below" or "select" or nothing
+  !strings(3) = axis normal to plane (x,y,z)
+  !reals(1) = distance to plane in angstroms
+  SELECT CASE(StrDnCase(strings(1)))
+  CASE('x','y','z')
+    temp = "der "//TRIM(StrUpCase(strings(1)))//"-Koordinate"
+  CASE("xy","xz","yx","yz","zx","zy")
+    temp1 = strings(1)(1:1)
+    temp2 = strings(1)(2:2)
+    temp = "der "//TRIM(StrUpCase(temp1))//"- und "//TRIM(StrUpCase(temp2))//"-Koordinaten"
+  CASE DEFAULT
+    temp = "alle Koordinaten"
+  END SELECT
   IF( DABS(reals(1))<1.d12 ) THEN
     WRITE(msg,"(3f16.3)") reals(1)
   ELSEIF( reals(1)<-1.d12 ) THEN
@@ -1823,18 +1835,29 @@ CASE(2097)
   ELSEIF( reals(1)>1.d12 ) THEN
     WRITE(msg,"(a4)") "+INF"
   ENDIF
-  msg = ">>> Fixiere "//TRIM(strings(1))//" Atomkoordinaten "//&
-      & TRIM(strings(2))//" "//TRIM(ADJUSTL(msg))//"A along "//TRIM(strings(3))
+  IF( strings(2)=='above' .OR. strings(2)=='below' ) THEN
+    IF(strings(2)=="above") THEN
+      temp2 = "über"
+    ELSE
+      temp2 = "en-dessous de"
+    ENDIF
+    msg = ">>> Einfrieren "//TRIM(temp)//" von Atomen "//&
+        & TRIM(strings(2))//" "//TRIM(ADJUSTL(msg))//" Å entlang "//TRIM(strings(3))//"."
+  ELSEIF( strings(2)=='selec' ) THEN
+    msg = ">>> Einfrieren "//TRIM(temp)//" ausgewählter Atome."
+  ELSE
+    msg = ">>> Einfrieren "//TRIM(temp)//" aller Atome."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2098)
   !reals(1) = number of atoms that were fixed
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 Atom fixiert."
+    msg = "..> 1 Atom eingefroren."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(msg,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(msg))//" Atome fixiert."
+    msg = "..> "//TRIM(ADJUSTL(msg))//" Atome eingefroren."
   ELSE
-    msg = "..> Kein Atom fixiert."
+    msg = "..> Kein Atom eingefroren."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2099)
@@ -2301,6 +2324,12 @@ CASE(2155)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2156)
   msg = "..> Box was untilted."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2157)
+  msg = ">>> Rauschunterdrückung für atomare Positionen..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2158)
+  msg = "..> Atomare Positionen wurden entrauscht."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option

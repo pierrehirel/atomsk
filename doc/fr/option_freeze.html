@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr" >
+<head>
+    <title>Atomsk - Option freeze - Pierre Hirel</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+<h2>Option : freeze</h2>
+
+<h4>Syntaxe</h4>
+
+<p><code>-freeze &#60;x|y|z|xy|xz|yz|xyz&#62;</code></p>
+
+<p><code>-freeze &#60;x|y|z|xy|xz|yz|xyz&#62; &#60;above|below&#62; &#60;d&#62; &#60;x|y|z&#62;</code></p>
+
+
+<h4>Description</h4>
+
+<p>Cette option permet de figer des atomes suivant X, Y et/ou Z. Cela n'a aucune incidence sur les options de Atomsk, mais apparaîtra dans certains fichiers de sorties si leur format le permet.</p>
+
+<p>Les paramètres associés à cette option sont&nbsp;:</p>
+<ul>
+  <li><strong>axe</strong>&nbsp;: coordonnée(s) à figer, peut être 'x', 'y', 'z' (coordonnées cartésiennes), 'xy', 'xz', 'yz' (figeant deux coordonnées en même temps), ou 'xyz' ou 'all' (figeant les trois coordonnées).</li>
+  <li><strong>above|below</strong>&nbsp;: ce mot-clé décide si ce sont les atomes au-dessus (above) ou en-dessous (below) du plan qui seront figés.</li>
+  <li><strong>d</strong>&nbsp;: distance entre le plan et l'origine, en angstr&ouml;ms (&Aring;).</li>
+  <li><strong>normale</strong> : normale au plan définissant la sélection ; peut être 'x', 'y', 'z', ou une direction cristallographique (voir ci-dessous).</li>
+</ul>
+
+<p>La distance &#60;d&#62; est généralement donnée en &Aring;. Il est également possible de spécifier une distance relative aux dimensions de la boîte avec le mot-clé BOX et une opération (voir <a href="./box.html">cette page</a>).</p>
+
+<p>La direction &#60;normale&#62; au plan peut être 'x', 'y', 'z' (axes cartésiens), ou une direction cristallographique définie par ses indices de Miller [<em>hkl</em>], ou [<em>hkil</em>] pour les systèmes hexagonaux (voir <a href="./options.html">comment spécifier les indices de Miller</a>). Si l'orientation crystallograpĥique du système est définie (par exemple grâce à l'<a href="./option_properties.html">option <code>-properties</code></a>) alors les indices de Miller se réfèrent à cette orientation. Sinon il est supposé que l'orientation est X=[100], Y=[010], Z=[001].</p>
+
+<p>Notez que cette option ne rend pas ces atomes inertes pour Atomsk, elle ne fait que définir l'état (figé ou non) des atomes comme propriétés auxiliaires. Les options de Atomsk ne traitent pas les atomes figés différemment des autres atomes. Ce n'est que lors de l'écriture d'un fichier de sortie que ces atomes seront marqués différemment si le format le permet (voir la <a href="./formats.html">liste des formats</a>). Pour restreindre les options de Atomsk à certains atomes il est possible d'utiliser l'<a href="./option_select.html">option <code>-select</code></a>.</p>
+
+<p>Cette option peut être utilisée plusieurs fois pour figer les atomes dans différentes directions, ou pour figer des atomes différents (voir l'exemple 2 ci-dessous).</p>
+
+<p>Si certains atomes ont des coquilles (dans le cadre d'un modèle ionique c&oelig;ur-coquille), seules les positions des c&oelig;ur sont figées (mais pas les positions des coquilles).</p>
+
+<p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls les atomes sélectionnés seront fixés.</p>
+
+
+<h4>Défaut</h4>
+
+<p>Par défaut aucun atome n'est figé.</p>
+
+
+<h4>Exemples</h4>
+
+<ul>
+<li><code class="command">atomsk initial.xsf -freeze y final.gin</code>
+<p>Ceci lira le fichier <code>initial.xsf</code>, et figera la composante Y de tous les atomes. Le résultat sera écrit dans le fichier <code>final.gin</code>.</p></li>
+
+<li><code class="command">atomsk systeme.xsf -select out box 10 BOX-10 10 BOX-10 10 BOX-10 -freeze all lammps</code>
+<p>Ceci va lire le fichier <code>systeme.xsf</code>, <a href="./option_select.html">selectionner les atomes</a> qui sont situés à moins de 10 &Aring; d'une bordure de la boîte, et figera ces atomes (suivant les trois directions X, Y et Z). Le résultat final sera écrit dans le fichier <code>systeme.lmp</code>.</p></li>
+
+<li><code class="command">atomsk system.xsf -freeze x above 5 z gin</code>
+<p>Ceci lira <code>system.xsf</code>, et figera la composante X de tous les atomes situés au-dessus de 5 &Aring; suivant Z. Le résultat sera écrit dans <code>system.gin</code>.</p></li>
+
+<li><code class="command">atomsk initial.xsf -freeze xy below 2.4 z final.gin</code>
+<p>Ceci fixera les composantes X et Y des atomes situés en-dessous de 2.4 &Aring; suivant Z.</p></li>
+
+<li><code class="command">atomsk initial.xsf -freeze all below 0.2*BOX z -freeze all above 0.8*BOX z final.gin</code>
+<p>Ceci figera complètement les atomes situés en-dessous de 0.2 fois la hauteur de boîte suivant Z, ou au-dessus de 0.8 fois cette hauteur.</p></li>
+</ul>
+
+<p><a href="./index.html">Retour au menu principal</a></p>
+
+</body>
+
+</html>

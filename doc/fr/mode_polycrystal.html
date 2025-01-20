@@ -44,6 +44,8 @@
 
 <p>Les mots-clés <strong>random</strong>, <strong>lattice</strong> et <strong>node</strong> sont mutuellement exclusifs. Un seul de ces mots-clé peut être utilisé dans un fichier de paramètres.</p>
 
+<p>Le mot-clé <strong>clearance</strong> peut être utilisé pour contrôler l'épaisseur de la zone autour des joints de grains où les atomes sont supprimés. Tous les atomes situés à &plusmn;clearance du joint seront supprimés. La valeur par défaut est clearance = 0,1&nbsp;&Aring;.</strong>
+
 <p>Les grains sont construits en utilisant une méthode de tessellation de type Voronoï <strong>en 3-D</strong> : le &#60;germe&#62; est placé à la position d'un n&oelig;ud, et multiplié dans les trois directions de l'espace à l'intérieur de son polyèdre de Voronoï.</p>
 
 <p>Si une dimension de la boîte est plus petite que la dimension du &#60;germe&#62; fourni, alors une tessellation de Voronoï <strong>en 2-D</strong> sera automatiquement utilisée. La dimension de la boîte finale sera automatiquement égale à la dimension correspondante du &#60;germe&#62;. Si les grains doivent avoir une orientation aléatoire alors le réseau cristallin ne sera tourné qu'autour de cet axe, i.e. tous les grains auront la même orientation cristallographique suivant cet axe. Notez qu'il est ensuite possible d'utiliser l'<a href="./option_duplicate.html">option <code>-duplicate</code></a> pour générer une structure colonnaire.</p>

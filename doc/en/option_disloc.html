@@ -51,16 +51,16 @@
 
 <p>For a <strong>screw dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is aligned with <strong>&xi;</strong>. The total number of atoms as well as the cell vectors are unchanged. Each atom is displaced by a distance u<sub>3</sub> parallel to the dislocation line &xi;, and proportional to the norm of the Burgers vector <strong><em>b</em></strong>, according to the theory of elasticity:</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>3</sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</code></p>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; u<sub>3</sub> = (<em>b</em>/2&pi;) atan(<em>x</em><sub>2</sub>/<em>x</em><sub>1</sub>)</p>
 
 <p>where (x<sub>1</sub>,x<sub>2</sub>) is the position of the atom in the plane normal to the dislocation line &xi;.</p>
 
 <p>For an <strong>edge dislocation</strong>, the Burgers vector <strong><em>b</em></strong> is normal to <strong>&xi;</strong> (so that <strong><em>b</em>.<em>&xi;</em></strong>=0), and contained inside the plane normal to &#60;n&#62;. In this case, the displacements applied to atoms are contained in the plane normal to &xi;:</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-<code>u<sub>1</sub> = (<em>b</em>/2&pi;) [ atan(x<sub>2</sub>/x<sub>1</sub>) + x<sub>1</sub>x<sub>2</sub>/(2(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code> <br/>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+u<sub>1</sub> = (<em>b</em>/2&pi;) [ atan(<em>x</em><sub>2</sub>/<em>x</em><sub>1</sub>) + <em>x</em><sub>1</sub><em>x</em><sub>2</sub>/(2(1&minus;&nu;)(<em>x</em><sub>1</sub><sup>2</sup>+<em>x</em><sub>2</sub><sup>2</sup>)) ] <br/>
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>2</sub> = (-<em>b</em>/2&pi;) [ (1-2&nu;)ln(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>))/(4(1-&nu;)) + (x<sub>1</sub><sup>2</sup>-x<sub>2</sub><sup>2</sup>)/(4(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; u<sub>2</sub> = (&minus;<em>b</em>/2&pi;) [ (1&minus;2&nu;)ln(<em>x</em><sub>1</sub><sup>2</sup>+<em>x</em><sub>2</sub><sup>2</sup>)/(4(1&minus;&nu;)) + (<em>x</em><sub>1</sub><sup>2</sup>&minus;<em>x</em><sub>2</sub><sup>2</sup>)/(4(1&minus;&nu;)(<em>x</em><sub>1</sub><sup>2</sup>+<em>x</em><sub>2</sub><sup>2</sup>)) ]
 </p>
 
 <p>where &nu; is the Poisson ratio of the material, and must be provided. With this option, an edge dislocation can be constructed in three different ways, as illustrated in <strong>Fig. 2</strong>, associated with the following keywords:</p>
@@ -85,11 +85,11 @@
 
 <p>The use of <strong>anisotropic elasticity</strong> is automatically triggered when the elastic tensor is defined before calling the present option, e.g. through the <a href="./option_properties.html">option <code>-properties</code></a> (see specifications of this option for details on the rotation of the elastic tensor). The dislocation can have a character "screw", "edge", "edge_add", or "edge_rm", as described above. In addition, it is also possible to create a dislocation of <strong>mixed character</strong>. In this case, the three components of the Burgers vector must be given, b<sub>3</sub> being along the direction of &#60;&xi;&#62; ("screw" direction), and b<sub>2</sub> along &#60;n&#62; (normal to the glide plane). Then, the equations of anisotropic elasticity are solved to determine the coefficients <em>A<sub>k</sub>(n)</em>, <em>D(n)</em>, <em>P(n)</em> and <em>B<sub>ijk</sub>(n)</em>, and the anisotropic displacements are applied:</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>k</sub> = </code>&real;{<code> (-2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>A<sub>k</sub>(n) D(n)</em> ln(x<sub>1</sub>+<em>P(n)</em>x<sub>2</sub>) </code>}, k=1,3</code></p>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; u<sub>k</sub> = &real;{ (&minus;2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>A<sub>k</sub>(n) &middot; D(n)</em> ln(<em>x</em><sub>1</sub>+<em>P(n)</em>&middot;<em>x</em><sub>2</sub>) </code>}, k=1,3</p>
 
 <p>These coefficients are also used to compute the theoretical dislocation stresses:</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>&sigma;<sub>ij</sub> = </code>&real;{<code> (-2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>B<sub>ijk</sub>(n) A<sub>k</sub>(n) D(n)</em> / (x<sub>1</sub>+<em>P(n)</em>x<sub>2</sub>) </code>}</p>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &sigma;<sub>ij</sub> = &real;{ (&minus;2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>B<sub>ijk</sub>(n) &middot; A<sub>k</sub>(n) &middot; D(n)</em> / (<em>x</em><sub>1</sub>+<em>P(n)</em> &middot;<em>x</em><sub>2</sub>) }</p>
 
 <p>Since the elastic tensor is known, in this case it is the exact stresses that are computed. As for the isotropic case, the Voigt components are saved as auxiliary properties for each atom, and if several dislocations are constructed then their contributions to the stresses are added.</p>
 

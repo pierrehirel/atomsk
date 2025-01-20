@@ -44,6 +44,8 @@
 
 <p>The keywords <strong>random</strong>, <strong>lattice</strong>, and <strong>node</strong> are mutually exclusive. Only one of them must be used in a parameter file.</p>
 
+<p>The keyword <strong>clearance</strong> may be used to control the thickness of the area around grain boundaries where atoms are removed. All atoms within &plusmn;clearance of the boundary planes will be removed. The default is clearance = 0.1&nbsp;&Aring;.</strong>
+
 <p>By default the grains are constructed thanks to a <strong>3-D</strong> Voronoi tesselation of space: the &#60;seed&#62; is placed at the position of each node, and expanded into the Voronoi polyhedron. Periodic bounday conditions are used in the three dimensions of space.</p>
 
 <p>If one dimension of the box is shorter or equal to the provided &#60;seed&#62;, then a <strong>2-D</strong> Voronoi tesselation will be automatically used. The dimension of the final box along that direction will automatically be set to the dimension of the &#60;seed&#62;. If a random orientation of the grains is asked for, the lattice will only be rotated around the small axis, i.e. all grains will have the same crystallographic orientation along that axis. Note that afterwards, one can use the <a href="./option_duplicate.html">option <code>-duplicate</code></a> along that direction to generate a columnar structure.</p>

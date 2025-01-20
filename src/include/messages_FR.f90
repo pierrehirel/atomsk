@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -311,9 +311,10 @@ IF(helpsection=="options" .OR. helpsection=="-duplicate" .OR. helpsection=="-dup
   WRITE(*,*) "          -duplicate <Nx> <Ny> <Nz>"
 ENDIF
 !
-IF(helpsection=="options" .OR. helpsection=="-fix") THEN
-  WRITE(*,*) "..> Fixer des atomes:"
-  WRITE(*,*) "          -fix <x|y|z> <above|below> <distance> <x|y|z>"
+IF(helpsection=="options" .OR. helpsection=="-freeze") THEN
+  WRITE(*,*) "..> Geler des atomes:"
+  WRITE(*,*) "          -freeze <x|y|z|xy|xz|yz>"
+  WRITE(*,*) "          -freeze <x|y|z|xy|xz|yz> <above|below> <distance> <x|y|z>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-fractional" .OR. helpsection=="-frac") THEN
@@ -579,7 +580,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=32):: errmsg, warnmsg
 CHARACTER(LEN=256):: msg  !The message to be displayed
-CHARACTER(LEN=256):: temp, temp2, temp3, temp4
+CHARACTER(LEN=256):: temp, temp1, temp2, temp3, temp4
 CHARACTER(LEN=*),DIMENSION(:):: strings !Character strings that may be part of the message
 INTEGER:: i, j
 INTEGER,INTENT(IN):: imsg  !index of message to display
@@ -1257,7 +1258,7 @@ CASE(2061)
       WRITE(msg,"(a34)") "    en insérant un plan d'atomes,"
     ELSEIF( TRIM(strings(1))=="edge_rm" .OR. j<0 ) THEN
       WRITE(msg,"(a35)") "    en supprimant un plan d'atomes,"
-    ELSEIF(TRIM(strings(1))=="edge" .OR. TRIM(strings(1))=="screw" .OR. TRIM(strings(1))=="mixed" .OR. j==0) THEN
+    ELSEIF(TRIM(strings(1))=="edge" .OR. TRIM(strings(1))=="screw" .OR. TRIM(strings(1))=="mixed" ) THEN
       WRITE(msg,"(a43)") "    en conservant le nombre total d'atomes,"
     ENDIF
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -1293,11 +1294,12 @@ CASE(2063)
   IF( NINT(reals(1)) < 0 ) THEN
      WRITE(msg,*) NINT(ABS(reals(1)))
     msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été supprimés."
-  ELSE
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSEIF( NINT(reals(1)) > 0 ) THEN
     WRITE(msg,*) NINT(reals(1))
     msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été introduits."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2064)
   !reals(1) = axis of elongation (1=X, 2=Y, 3=Z)
   !strings(1) = magnitude of elongation
@@ -1896,10 +1898,20 @@ CASE(2096)
   msg = "..> Les solutions ont bien été trouvées."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2097)
-  !strings(1) = axis along which coordinate is fixed: x,y,z,all
-  !strings(2) = "above" or "below"
-  !strings(3) = axis 
-  !reals(1) = fix distance in angstroms
+  !strings(1) = coordinate to freeze: x,y,z,xy,xz,yz,xyz,all
+  !strings(2) = "above" or "below" or "select" or nothing
+  !strings(3) = axis normal to plane (x,y,z)
+  !reals(1) = distance to plane in angstroms
+  SELECT CASE(StrDnCase(strings(1)))
+  CASE('x','y','z')
+    temp = "de la coordonnée "//TRIM(StrUpCase(strings(1)))
+  CASE("xy","xz","yx","yz","zx","zy")
+    temp1 = strings(1)(1:1)
+    temp2 = strings(1)(2:2)
+    temp = "des coordonnées "//TRIM(StrUpCase(temp1))//" et "//TRIM(StrUpCase(temp2))
+  CASE DEFAULT
+    temp = "de toutes les coordonnées"
+  END SELECT
   IF( DABS(reals(1))<1.d12 ) THEN
     WRITE(msg,"(3f16.3)") reals(1)
   ELSEIF( reals(1)<-1.d12 ) THEN
@@ -1908,33 +1920,28 @@ CASE(2097)
     WRITE(msg,"(a4)") "+INF"
   ENDIF
   IF( strings(2)=='above' .OR. strings(2)=='below' ) THEN
-    IF(strings(1)=="all") THEN
-      temp = "des coordonnées"
-    ELSE
-      temp = "des coordonnées "//TRIM(strings(1))
-    ENDIF
     IF(strings(2)=="above") THEN
-      temp2 = "au dessus de"
+      temp2 = "au-dessus de"
     ELSE
-      temp2 = "en dessous de"
+      temp2 = "en-dessous de"
     ENDIF
-    msg = ">>> Fixation "//TRIM(ADJUSTL(temp))//" des atomes "// &
-        & TRIM(ADJUSTL(temp2))//" "//TRIM(ADJUSTL(msg))//"A suivant "//TRIM(strings(3))//"."
+    msg = ">>> Gel "//TRIM(temp)//" des atomes "//&
+        & TRIM(strings(2))//" "//TRIM(ADJUSTL(msg))//" Å suivant "//TRIM(strings(3))//"."
   ELSEIF( strings(2)=='selec' ) THEN
-    msg = ">>> Fixation "//TRIM(strings(1))//" des atomes sélectionnés."
+    msg = ">>> Gel "//TRIM(temp)//" des atomes sélectionnés."
   ELSE
-    msg = ">>> Fixation "//TRIM(strings(1))//" de tous les atomes."
+    msg = ">>> Gel "//TRIM(temp)//" de tous les atomes."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2098)
   !reals(1) = number of atoms that were fixed
   IF( NINT(reals(1))==1 ) THEN
-    msg = "..> 1 atome a été fixé."
+    msg = "..> 1 atome a été gelé."
   ELSEIF( NINT(reals(1))>1 ) THEN
     WRITE(msg,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été fixés."
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été gelés."
   ELSE
-    msg = "..> Aucun atome n'a été fixé."
+    msg = "..> Aucun atome n'a été gelé."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2099)
@@ -2385,6 +2392,12 @@ CASE(2155)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2156)
   msg = "..> L'inclinaison a été supprimée."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2157)
+  msg = ">>> Réduction du bruit des positions atomiques..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(2158)
+  msg = "..> Le bruit a été réduit."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2600)
   !strings(1) = first option
@@ -3779,7 +3792,7 @@ CASE(4830)
   msg = TRIM(ADJUSTL(errmsg))//" impossible de construire un environnement de référence, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4831)
-  msg = TRIM(ADJUSTL(errmsg))//" aucun noeud n'est défini dans le fichier de paramètres '"//TRIM(ADJUSTL(strings(1)))//"'."
+  msg = TRIM(ADJUSTL(errmsg))//" aucun nœud n'est défini dans le fichier de paramètres '"//TRIM(ADJUSTL(strings(1)))//"'."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4832)
   !reals(1) = index of first node

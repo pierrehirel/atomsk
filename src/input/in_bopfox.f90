@@ -13,7 +13,7 @@ MODULE in_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 16 July 2019                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -258,9 +258,9 @@ IF( domag .OR. dofix ) THEN
     j=3
   ENDIF
   IF( dofix ) THEN
-    AUXNAMES(j+1) = "fixx"
-    AUXNAMES(j+2) = "fixy"
-    AUXNAMES(j+3) = "fixz"
+    AUXNAMES(j+1) = "freeze_x"
+    AUXNAMES(j+2) = "freeze_y"
+    AUXNAMES(j+3) = "freeze_z"
     j=j+3
   ENDIF
 ENDIF

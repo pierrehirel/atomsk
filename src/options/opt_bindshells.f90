@@ -10,7 +10,7 @@ MODULE bindshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 May 2024                                      *
+!* Last modification: P. Hirel - 28 Oct. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -369,6 +369,7 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
       IF( newS(i,4)>0.1d0 ) THEN
         j=j+1
         S(j,:) = newS(i,:)
+        Nbound=Nbound+1
       ENDIF
     ENDDO
     DEALLOCATE(newS)

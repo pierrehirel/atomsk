@@ -19,7 +19,7 @@ MODULE in_vasp_poscar
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 April 2022                                    *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -200,9 +200,9 @@ ALLOCATE(P(NP,4))
 P(:,:) = 0.d0
 IF(seldyn) THEN
   ALLOCATE(AUXNAMES(3))
-  AUXNAMES(1) = "fixx"
-  AUXNAMES(2) = "fixy"
-  AUXNAMES(3) = "fixz"
+  AUXNAMES(1) = "freeze_x"
+  AUXNAMES(2) = "freeze_y"
+  AUXNAMES(3) = "freeze_z"
   ALLOCATE(AUX(NP,3))
   AUX(:,:) = 0.d0   !=by default atoms are not fixed
 ENDIF

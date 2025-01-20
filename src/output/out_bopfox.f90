@@ -13,7 +13,7 @@ MODULE out_bopfox
 !*     ICAMS                                                                      *
 !*     Ruhr-Universitaet Bochum, Germany                                          *
 !*     matous.mrovec@icams.rub.de                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -85,9 +85,9 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Check if some atoms are fixed
 IF(ALLOCATED(AUX)) THEN
   DO i=1,SIZE(AUXNAMES)
-    IF(AUXNAMES(i)=="fixx") fixx=i
-    IF(AUXNAMES(i)=="fixy") fixy=i
-    IF(AUXNAMES(i)=="fixz") fixz=i
+    IF(AUXNAMES(i)=="freeze_x") fixx=i
+    IF(AUXNAMES(i)=="freeze_y") fixy=i
+    IF(AUXNAMES(i)=="freeze_z") fixz=i
     IF(AUXNAMES(i)=="magx") magx=i
     IF(AUXNAMES(i)=="magy") magy=i
     IF(AUXNAMES(i)=="magz") magz=i

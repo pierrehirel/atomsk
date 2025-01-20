@@ -48,16 +48,16 @@
 
 <p>Pour une <strong>dislocation vis</strong>, le vecteur de Burgers <strong><em>b</em></strong> est aligné avec la direction <strong>&xi;</strong>. Le nombre total d'atomes ainsi que les vecteurs de boîte sont conservés. Chaque atome est déplacé d'une quantité u<sub>3</sub> parallèlement à la ligne de dislocation &xi;, et proportionnel à la norme du vecteur de Burgers <strong><em>b</em></strong>, suivant la théorie de l'élasticité :</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>3</sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</code></p>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; u<sub>3</sub> = (<em>b</em>/2&pi;) atan(x<sub>2</sub>/x<sub>1</sub>)</p>
 
 <p>où (x<sub>1</sub>,x<sub>2</sub>) est la position de l'atome dans le plan normal à &xi;.</p>
 
 <p>Pour une <strong>dislocation coin</strong>, le vecteur de Burgers <strong><em>b</em></strong> est normal à <strong>&xi;</strong> (de sorte que <strong><em>b</em>.<em>&xi;</em></strong>=0), et contenu dans le plan normal à &#60;n&#62;. Les déplacements des atomes sont alors contenu dans le plan normal à &xi; :</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-<code>u<sub>1</sub> = (<em>b</em>/2&pi;) [ atan(x<sub>2</sub>/x<sub>1</sub>) + x<sub>1</sub>x<sub>2</sub>/(2(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code> <br/>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+u<sub>1</sub> = (<em>b</em>/2&pi;) [ atan(<em>x</em><sub>2</sub>/<em>x</em><sub>1</sub>) + <em>x</em><sub>1</sub><em>x</em><sub>2</sub>/(2(1&minus;&nu;)(<em>x</em><sub>1</sub><sup>2</sup>+<em>x</em><sub>2</sub><sup>2</sup>)) ] <br/>
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>2</sub> = (-<em>b</em>/2&pi;) [ (1-2&nu;)ln(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>))/(4(1-&nu;)) + (x<sub>1</sub><sup>2</sup>-x<sub>2</sub><sup>2</sup>)/(4(1-&nu;)(x<sub>1</sub><sup>2</sup>+x<sub>2</sub><sup>2</sup>)) ]</code>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; u<sub>2</sub> = (&minus;<em>b</em>/2&pi;) [ (1&minus;2&nu;)ln(<em>x</em><sub>1</sub><sup>2</sup>+<em>x</em><sub>2</sub><sup>2</sup>)/(4(1&minus;&nu;)) + (<em>x</em><sub>1</sub><sup>2</sup>&minus;<em>x</em><sub>2</sub><sup>2</sup>)/(4(1&minus;&nu;)(<em>x</em><sub>1</sub><sup>2</sup>+<em>x</em><sub>2</sub><sup>2</sup>)) ]
 </p>
 
 <p>où &nu; est le coefficient de Poisson du matériau, et doit être fourni. Avec cette option, les dislocations coin peuvent être construites de trois manières différentes, comme illustré sur la <strong>Fig. 2</strong>:</p>
@@ -82,11 +82,11 @@
 <p>L'<strong>élasticité anisotrope</strong> est automatiquement utilisée lorsque le tenseur élastique est défini avant que la présente option ne soit appelée, par ex. avec l'<a href="./option_properties.html">option <code>-properties</code></a> (se référer à cette option pour ce qui concerne la rotation du tenseur élastique). La dislocation peut avoir un caractère vis ou coin ("screw", "edge", "edge_add", "edge_rm") comme décrit ci-dessus. De plus, il est également possible de créer une dislocation avec un <strong>caractère mixte</strong> avec le mot-clé "mixed". Dans ce cas, les trois composantes du vecteur de Burgers doivent être fournies, b<sub>3</sub> étant suivant la direction de la ligne &#60;&xi;&#62; (direction "vis"), et b<sub>2</sub> suivant &#60;n&#62; (normale au plan de glissement). Les équations de l'élasticité anisotrope sont alors résolues pour obtenir les valeurs des coefficients <em>A<sub>k</sub>(n)</em>, <em>D(n)</em>, <em>P(n)</em> et 
 <em>B<sub>ijk</sub>(n)</em>, et les déplacements anisotropes sont appliqués :</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>u<sub>k</sub> = </code>&real;{<code> (-2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>A<sub>k</sub>(n) D(n)</em> ln(x<sub>1</sub>+<em>P(n)</em>x<sub>2</sub>) </code>}, k=1,3</code></p>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; u<sub>k</sub> = &real;{ (&minus;2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>A<sub>k</sub>(n) &middot; D(n)</em> ln(<em>x</em><sub>1</sub>+<em>P(n)</em>&middot;<em>x</em><sub>2</sub>) </code>}, k=1,3</p>
 
-<p>Ces coefficients sont aussi utilisés pour calculer les contraintes théoriques associés à la dislocation :</p>
+<p>Ces coefficients sont aussi utilisés pour calculer les contraintes théoriques associés à la dislocation&nbsp;:</p>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <code>&sigma;<sub>ij</sub> = </code>&real;{<code> (-2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>B<sub>ijk</sub>(n) A<sub>k</sub>(n) D(n)</em> / (x<sub>1</sub>+<em>P(n)</em>x<sub>2</sub>) </code>}</p>
+<p class="math">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &sigma;<sub>ij</sub> = &real;{ (&minus;2&pi;<em>i</em>)<sup>-1</sup> <strong>&sum;</strong><sub>(n=1,3)</sub> <em>B<sub>ijk</sub>(n) &middot; A<sub>k</sub>(n) &middot; D(n)</em> / (<em>x</em><sub>1</sub>+<em>P(n)</em> &middot;<em>x</em><sub>2</sub>) }</p>
 
 <p>Dans ce cas puisque le tenseur élastique est entièrement connu, ce sont bien les contraintes exactes qui sont calculées. Comme dans le cas isotrope, les composantes de Voigt sont enregistrées comme propriétés auxiliaires, et si plusieurs dislocations sont construites alors leurs contributions sont cumulées.</p>
 

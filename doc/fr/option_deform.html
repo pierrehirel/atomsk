@@ -26,13 +26,13 @@
 
 <ul>
   <li><strong>composante</strong>&nbsp;: composante de la boîte qui sera déformée. 'X', 'Y', ou 'Z' applique une déformation uniaxiale suivant la direction donnée. Les autres composantes appliquent un cisaillement. 'xy' fait référence à la composante H(2,1), c'est-à-dire la composante X du second vecteur de boîte&nbsp;; 'yz' correspond à H(3,2), c'est-à-dire la composante Y du troisième vecteur de boîte, et ainsi de suite.</li>
-  <li><strong>&epsilon;</strong>&nbsp;: valeur de la déformation (le symbole &#37; peut être utilisé pour donner un pourcentage). Une valeur positive provoquera une tension, une valeur négative une compression.</li>
+  <li><strong>&epsilon;</strong>&nbsp;: valeur de la déformation (le symbole &#37; peut être utilisé pour donner un pourcentage). Pour une déformation uniaxiale, une valeur positive provoquera une tension, une valeur négative une compression.</li>
   <li><strong>&nu;</strong> (optionel)&nbsp;: coefficient de Poisson du matériau (possible seulement pour une déformation uniaxiale, c'est-à-dire si la composante était 'x', 'y', ou 'z').</li>
 </ul>
 
 <p>Si la composante est 'x', 'y' ou 'z', la transformation résultera en une <strong>déformation uniaxiale</strong>. Si une valeur du coefficient de Poisson est donnée, alors les autres directions seront déformées en conséquence, ce qui devrait résulter en une <strong>contrainte uniaxiale</strong>, c'est-à-dire que la contrainte sera non-nulle uniquement suivant la direction donnée.Pour appliquer la même déformation dans toutes les directions, alors entrez une valeur de -1 au coefficient de Poisson. Cela peut être utile, par exemple, pour déformer un système conformément à son coefficient d'expansion thermique &alpha;, auquel cas il faut utiliser &epsilon;=&alpha;<em>T</em>, où <em>T</em> est la température à atteindre. Pour appliquer une <strong>déformation anisotrope</strong>, il est possible d'utiliser cette option trois fois de suite suivant les trois axes cartésiens, en utilisant &nu;=0 et différentes valeurs de &epsilon; (voir l'exemple 3 ci-dessous).</p>
 
-<p>Si la composante est 'xy', 'xz', 'yz', 'yx', 'zx', ou 'zy', alors la transformation résultera en un <strong>cisaillement</strong> du système. Dans ce cas il n'est pas possible de spécifier un coefficient de Poisson. Si au lieu d'une valeur numérique, &#60;&epsilon;&#62; est remplacé par le mot-clé "untilt", alors la composante d'inclinaison correspondante deviendra nulle.</p>
+<p>Si la composante est 'xy', 'xz', 'yz', 'yx', 'zx', ou 'zy', alors la transformation résultera en un <strong>cisaillement simple</strong> du système. Dans ce cas il n'est pas possible de spécifier un coefficient de Poisson. Si au lieu d'une valeur numérique, &#60;&epsilon;&#62; est remplacé par le mot-clé "untilt", alors la composante d'inclinaison correspondante deviendra nulle.</p>
 
 <p>Si une sélection est définie (avec l'<a href="./option_select.html">option <code>-select</code></a>) alors seuls la déformation ne s'appliquera qu'aux atomes sélectionnés, et la boîte ne sera pas déformée.</p>
 

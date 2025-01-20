@@ -15,7 +15,7 @@ MODULE out_gulp_gin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 14 Jen. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -99,9 +99,9 @@ IF( ALLOCATED(AUX) .AND. SIZE(AUX,1).NE.0 ) THEN
     IF(AUXNAMES(i)=="vx") vx=i
     IF(AUXNAMES(i)=="vy") vy=i
     IF(AUXNAMES(i)=="vz") vz=i
-    IF(AUXNAMES(i)=="fixx") fixx=i
-    IF(AUXNAMES(i)=="fixy") fixy=i
-    IF(AUXNAMES(i)=="fixz") fixz=i
+    IF(AUXNAMES(i)=="freeze_x") fixx=i
+    IF(AUXNAMES(i)=="freeze_y") fixy=i
+    IF(AUXNAMES(i)=="freeze_z") fixz=i
     IF(AUXNAMES(i)=="q") q=i             !charges for cores
     IF(AUXNAMES(i)=="qs") qs=i           !charges for shells
     IF(AUXNAMES(i)=="occupancy") occ=i   !site occupancy

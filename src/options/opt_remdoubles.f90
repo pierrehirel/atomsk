@@ -10,7 +10,7 @@ MODULE remdoubles
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 16 Dec. 2024                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -85,7 +85,7 @@ IF( verbosity>=4 ) THEN
     WRITE(msg,*) "Neighbor list (only first 20 entries)"
     CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     DO i=1,MIN(SIZE(NeighList,1),20)
-      WRITE(msg,'(i5,a3,20i5)') i, " | ", (NeighList(i,j), j=1,20)
+      WRITE(msg,'(i5,a3,20i5)') i, " | ", (NeighList(i,j), j=1,MIN(20,SIZE(NeighList,2)))
       CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
     ENDDO
   ELSE

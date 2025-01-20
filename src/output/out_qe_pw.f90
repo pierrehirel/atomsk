@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 30 Aug. 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -109,11 +109,11 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
       fy=i
     ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fz") THEN
       fz=i
-    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fixx") THEN
+    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="freeze_x") THEN
       fixx=i
-    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fixy") THEN
+    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="freeze_y") THEN
       fixy=i
-    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="fixz") THEN
+    ELSEIF(TRIM(ADJUSTL(AUXNAMES(i)))=="freeze_z") THEN
       fixz=i
     ENDIF
   ENDDO

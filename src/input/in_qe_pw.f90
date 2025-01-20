@@ -12,7 +12,7 @@ MODULE in_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -289,9 +289,9 @@ IF( NP>0 ) THEN
       AUXNAMES(fz) = "fz"
     ENDIF
     IF( fixx>0 .AND. fixy>0 .AND. fixz>0 ) THEN
-      AUXNAMES(fixx) = "fixx"
-      AUXNAMES(fixy) = "fixy"
-      AUXNAMES(fixz) = "fixz"
+      AUXNAMES(fixx) = "freeze_x"
+      AUXNAMES(fixy) = "freeze_y"
+      AUXNAMES(fixz) = "freeze_z"
     ENDIF
   ENDIF
 ELSE

@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 July 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -785,6 +785,14 @@ DO WHILE(i<SIZE(cla))
       i=i-1
     ENDIF
   !
+  ELSEIF(clarg=='-denoise') THEN
+    ioptions = ioptions+1
+    options_array(ioptions) = TRIM(clarg)
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp
+      READ(temp,*,END=120,ERR=120) tempreal
+    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+  !
   ELSEIF(clarg=='-dislocation' .OR. clarg=='-disloc' .OR. clarg=='-dislo') THEN
     m=0
     ioptions = ioptions+1
@@ -991,25 +999,29 @@ DO WHILE(i<SIZE(cla))
       READ(temp,*,END=120,ERR=120) tempreal
     ENDDO
   !
-  ELSEIF(clarg=='-fix' .OR. clarg=='-freeze') THEN
+  ELSEIF(clarg=='-freeze' .OR. clarg=='-fix') THEN
+    IF(clarg=='-fix') THEN
+      CALL ATOMSK_MSG(2799,(/"-fix   ","-freeze"/),(/0.d0/))
+    ENDIF
     ioptions = ioptions+1
-    options_array(ioptions) = "-fix"
-    !read fixaxis: must be x, y, z, or all
+    options_array(ioptions) = "-freeze"
+    !read coordinate(s) to freeze: must be x, y, z, xy, xz, yz, xyz, or all
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
-    IF( temp(1:3)=="xyz" .OR. temp(1:3)=="XYZ" ) temp = "all"
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    IF( temp(1:1).NE.'x' .AND. temp(1:1).NE.'y' .AND. temp(1:1).NE.'z' .AND.  &
-      & temp(1:1).NE.'X' .AND. temp(1:1).NE.'Y' .AND. temp(1:1).NE.'Z' .AND.  &
-      & temp(1:3).NE.'all' ) GOTO 120
+    SELECT CASE(StrDnCase(temp))
+    CASE('x','y','z',"xy","xz","yx","yz","zx","zy","xyz","xzy","yxz","yzx","zxy","zyx","all")
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    CASE DEFAULT
+      GOTO 120
+    END SELECT
     !read 'above' or 'below'
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
     IF(temp(1:5)=='above' .OR. temp(1:5)=='below') THEN
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-      !read fix distance
+      !read distance to plane
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
       IF( SCAN(temp,"*")>0 ) temp = "'"//TRIM(ADJUSTL(temp))//"'"
@@ -1017,7 +1029,7 @@ DO WHILE(i<SIZE(cla))
       IF( SCAN(temp,'0123456789')==0 .AND. INDEX(temp,'INF')==0 .AND. &
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       !READ(temp,*,END=120,ERR=120) tempreal
-      !read fix direction (x, y or z)
+      !read direction normal to plane (x, y or z)
       i=i+1
       READ(cla(i),'(a)',END=400,ERR=400) temp
       temp = TRIM(ADJUSTL(temp))

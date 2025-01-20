@@ -11,7 +11,7 @@ MODULE out_bop
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -83,9 +83,9 @@ CALL INVMAT(H,G)
 !Check if some atoms are fixed
 IF(ALLOCATED(AUX)) THEN
   DO i=1,SIZE(AUXNAMES)
-    IF(AUXNAMES(i)=="fixx") fixx=i
-    IF(AUXNAMES(i)=="fixy") fixy=i
-    IF(AUXNAMES(i)=="fixz") fixz=i
+    IF(AUXNAMES(i)=="freeze_x") fixx=i
+    IF(AUXNAMES(i)=="freeze_y") fixy=i
+    IF(AUXNAMES(i)=="freeze_z") fixz=i
   ENDDO
 ENDIF
 !

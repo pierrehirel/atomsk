@@ -11,7 +11,7 @@ MODULE in_bop
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 14 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -64,9 +64,9 @@ len2 = 1.d0
 len3 = 1.d0
 H(:,:) = 0.d0
 ALLOCATE(AUXNAMES(3))
-AUXNAMES(1) = "fixx"
-AUXNAMES(2) = "fixy"
-AUXNAMES(3) = "fixz"
+AUXNAMES(1) = "freeze_x"
+AUXNAMES(2) = "freeze_y"
+AUXNAMES(3) = "freeze_z"
 !
 !
 100 CONTINUE
