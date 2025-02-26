@@ -11,7 +11,7 @@ MODULE swap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -116,18 +116,20 @@ CASE('X','x','Y','y','Z','z')
     H(id(2),id(1)) = Vtemp(id(2))
     H(id(2),id(2)) = Vtemp(id(1))
     !
-    !Swap coordinates of each atom
-    DO i=1,SIZE(P,1)
-      Vtemp(:) = P(i,:)
-      P(i,id(1)) = Vtemp(id(2))
-      P(i,id(2)) = Vtemp(id(1))
-      !Swap shell positions (if any)
-      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-        Vtemp(:) = S(i,:)
-        S(i,id(1)) = Vtemp(id(2))
-        S(i,id(2)) = Vtemp(id(1))
-      ENDIF
-    ENDDO
+    IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+      !Swap coordinates of each atom
+      DO i=1,SIZE(P,1)
+        Vtemp(:) = P(i,:)
+        P(i,id(1)) = Vtemp(id(2))
+        P(i,id(2)) = Vtemp(id(1))
+        !Swap shell positions (if any)
+        IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+          Vtemp(:) = S(i,:)
+          S(i,id(1)) = Vtemp(id(2))
+          S(i,id(2)) = Vtemp(id(1))
+        ENDIF
+      ENDDO
+    ENDIF
     Nswap=2
     !
   CASE DEFAULT
@@ -142,6 +144,11 @@ CASE DEFAULT
   IF( id(1)>0 .AND. id(2)>0 ) THEN
     !Two atoms must be swapped
     CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/1.d0/) )
+    !
+    IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+      !No atom in system: can not apply option
+      GOTO 1000
+    ENDIF
     !
     IF( swap_id(1) == swap_id(2) ) THEN
       !There is nothing to exchange => skip
@@ -203,6 +210,12 @@ CASE DEFAULT
     IF( swap_sp(1)>0.1d0 .AND. swap_sp(2)>0.1d0 ) THEN
       !Two atomic species must be swapped
       CALL ATOMSK_MSG( 2125, (/swap_id(1),swap_id(2)/),(/2.d0/) )
+      !
+      IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+        !No atom in system: can not apply option
+        GOTO 1000
+      ENDIF
+      !
       IF( swap_id(1) == swap_id(2) ) THEN
         !There is nothing to exchange => skip
         nwarn=nwarn+1

@@ -16,7 +16,7 @@ MODULE alignx
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -87,10 +87,12 @@ ENDIF
 !
 !
 200 CONTINUE
-!Convert to fractional coordinates
-CALL CART2FRAC(P,H)
-IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
-  CALL CART2FRAC(S,H)
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !Convert to fractional coordinates
+  CALL CART2FRAC(P,H)
+  IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
+    CALL CART2FRAC(S,H)
+  ENDIF
 ENDIF
 !
 !Convert the matrix H into conventional notation
@@ -104,10 +106,12 @@ gamma = ANGVEC(H(1,:),H(2,:))
 !Then convert this conventional notation into lower-triangular matrix H
 CALL CONVMAT(Hx,Hy,Hz,alpha,beta,gamma,H)
 !
-!Convert back to cartesian coordinates
-CALL FRAC2CART(P,H)
-IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
-  CALL FRAC2CART(S,H)
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !Convert back to cartesian coordinates
+  CALL FRAC2CART(P,H)
+  IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
+    CALL FRAC2CART(S,H)
+  ENDIF
 ENDIF
 !
 !

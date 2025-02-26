@@ -15,7 +15,7 @@ MODULE crack
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* CRACK_XYZ           main subroutine - introduces a crack                       *
@@ -182,6 +182,11 @@ IF(pos2<0.d0) pos2 = DABS(pos2)
 !
 !Print messages
 CALL ATOMSK_MSG(2108,(/crackmode,crackline//'  '/),(/pos1,pos2/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 !
 !If the stress intensity factor crackK is zero then skip the whole thing

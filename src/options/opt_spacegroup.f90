@@ -10,7 +10,7 @@ MODULE spacegroup
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 Oct. 2017                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -53,6 +53,11 @@ WRITE(msg,*) 'Entering SPACEGROUP_XYZ: '//TRIM(ADJUSTL(sgroup))
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 CALL ATOMSK_MSG(2131,(/TRIM(sgroup)/),(/0.d0/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 !
 !

@@ -11,7 +11,7 @@ MODULE deform
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 Sept. 2023                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,6 +61,7 @@ meps(:,:) = 0.d0
 !
 !
 CALL ATOMSK_MSG(2058,(/def_dir/),(/def_strain,def_poisson/))
+!
 IF(def_strain==0.d0) THEN
   nwarn=nwarn+1
   CALL ATOMSK_MSG(2724,(/''/),(/0.d0/))
@@ -123,10 +124,12 @@ END SELECT
 !
 !
 100 CONTINUE
-!Transform atom positions to fractional
-CALL CART2FRAC(P,H)
-IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
-  CALL CART2FRAC(S,H)
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !Transform atom positions to fractional
+  CALL CART2FRAC(P,H)
+  IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
+    CALL CART2FRAC(S,H)
+  ENDIF
 ENDIF
 !
 !
@@ -146,10 +149,12 @@ IF(verbosity==4) THEN
 ENDIF
 !
 !
-!Convert back to cartesian
-CALL FRAC2CART(P,H)
-IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
-  CALL FRAC2CART(S,H)
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !Convert back to cartesian
+  CALL FRAC2CART(P,H)
+  IF( ALLOCATED(S) .AND. SIZE(S,1).NE.0 ) THEN
+    CALL FRAC2CART(S,H)
+  ENDIF
 ENDIF
 !
 !

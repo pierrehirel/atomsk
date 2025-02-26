@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Aug. 2024                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -315,6 +315,11 @@ ENDIF
 !
 !Print messages
 CALL ATOMSK_MSG(2061,(/disloctype,dislocline/),(/b(1),b(2),b(3),DBLE(k),pos(1),pos(2),pos(3),pos(4)/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 !
 !

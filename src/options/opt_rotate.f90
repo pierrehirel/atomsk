@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Aug. 2024                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -100,20 +100,22 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 CALL ATOMSK_MSG(2081,(/rot_axis,rot_file/),(/rot_angle,DBLE(com)/))
 !
 !If rotation around center of mass, compute position of COM
-IF( com .NE. 0 ) THEN
-  totmass = 0.d0
-  Vcom(:) = 0.d0
-  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,species,smass) REDUCTION(+:Vcom,totmass)
-  DO i=1,SIZE(P,1)
-    IF( .NOT.(ALLOCATED(SELECT)) .OR. SELECT(i) ) THEN
-      CALL ATOMSPECIES(P(i,4),species)
-      CALL ATOMMASS(species,smass)
-      Vcom(:) = Vcom(:) + smass*P(i,1:3)
-      totmass = totmass + smass
-    ENDIF
-  ENDDO
-  !$OMP END PARALLEL DO
-  Vcom(:) = Vcom(:) / totmass
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  IF( com .NE. 0 ) THEN
+    totmass = 0.d0
+    Vcom(:) = 0.d0
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,species,smass) REDUCTION(+:Vcom,totmass)
+    DO i=1,SIZE(P,1)
+      IF( .NOT.(ALLOCATED(SELECT)) .OR. SELECT(i) ) THEN
+        CALL ATOMSPECIES(P(i,4),species)
+        CALL ATOMMASS(species,smass)
+        Vcom(:) = Vcom(:) + smass*P(i,1:3)
+        totmass = totmass + smass
+      ENDIF
+    ENDDO
+    !$OMP END PARALLEL DO
+    Vcom(:) = Vcom(:) / totmass
+  ENDIF
 ENDIF
 !
 IF( LEN_TRIM(rot_file)>0 ) THEN
@@ -314,51 +316,54 @@ ENDIF
 !
 !
 100 CONTINUE
-!Rotate the atomic positions
-!Rotate only atoms that are selected in SELECT
-!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,H1,H2,H3)
-DO i=1,SIZE(P,1)
-  IF( IS_SELECTED(SELECT,i) ) THEN
-    H1 = P(i,a1) - Vcom(a1)
-    H2 = P(i,a2) - Vcom(a2)
-    H3 = P(i,a3) - Vcom(a3)
-    P(i,a1) = Vcom(a1) + H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
-    P(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-    P(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
-    !
-    !Same with shells if they exist
-    IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
-      H1 = S(i,a1) - Vcom(a1)
-      H2 = S(i,a2) - Vcom(a2)
-      H3 = S(i,a3) - Vcom(a3)
-      S(i,a1) = Vcom(a1) + H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
-      S(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      S(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !Rotate the atomic positions
+  !Rotate only atoms that are selected in SELECT
+  !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,H1,H2,H3)
+  DO i=1,SIZE(P,1)
+    IF( IS_SELECTED(SELECT,i) ) THEN
+      H1 = P(i,a1) - Vcom(a1)
+      H2 = P(i,a2) - Vcom(a2)
+      H3 = P(i,a3) - Vcom(a3)
+      P(i,a1) = Vcom(a1) + H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+      P(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+      P(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      !
+      !Same with shells if they exist
+      IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
+        H1 = S(i,a1) - Vcom(a1)
+        H2 = S(i,a2) - Vcom(a2)
+        H3 = S(i,a3) - Vcom(a3)
+        S(i,a1) = Vcom(a1) + H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+        S(i,a2) = Vcom(a2) + H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+        S(i,a3) = Vcom(a3) + H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      ENDIF
+      !
+      !Same with forces if they exist
+      IF( forces ) THEN
+        H1 = AUX(i,Fxyz(a1))
+        H2 = AUX(i,Fxyz(a2))
+        H3 = AUX(i,Fxyz(a3))
+        AUX(i,Fxyz(a1)) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+        AUX(i,Fxyz(a2)) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+        AUX(i,Fxyz(a3)) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      ENDIF
+      !
+      !Same with velocities if they exist
+      IF( velocities ) THEN
+        H1 = AUX(i,Vxyz(a1))
+        H2 = AUX(i,Vxyz(a2))
+        H3 = AUX(i,Vxyz(a3))
+        AUX(i,Vxyz(a1)) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
+        AUX(i,Vxyz(a2)) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
+        AUX(i,Vxyz(a3)) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
+      ENDIF
+      !
     ENDIF
-    !
-    !Same with forces if they exist
-    IF( forces ) THEN
-      H1 = AUX(i,Fxyz(a1))
-      H2 = AUX(i,Fxyz(a2))
-      H3 = AUX(i,Fxyz(a3))
-      AUX(i,Fxyz(a1)) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
-      AUX(i,Fxyz(a2)) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      AUX(i,Fxyz(a3)) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
-    ENDIF
-    !
-    !Same with velocities if they exist
-    IF( velocities ) THEN
-      H1 = AUX(i,Vxyz(a1))
-      H2 = AUX(i,Vxyz(a2))
-      H3 = AUX(i,Vxyz(a3))
-      AUX(i,Vxyz(a1)) = H1*rot_matrix(a1,a1) + H2*rot_matrix(a1,a2) + H3*rot_matrix(a1,a3)
-      AUX(i,Vxyz(a2)) = H1*rot_matrix(a2,a1) + H2*rot_matrix(a2,a2) + H3*rot_matrix(a2,a3)
-      AUX(i,Vxyz(a3)) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
-    ENDIF
-    !
-  ENDIF
-ENDDO
-!$OMP END PARALLEL DO
+  ENDDO
+  !$OMP END PARALLEL DO
+ENDIF
+!
 !
 IF( .NOT.ALLOCATED(SELECT) .AND. com==0 ) THEN
   !Rotate the base vectors of the system (only if no selection is defined)
@@ -383,11 +388,13 @@ IF( .NOT.ALLOCATED(SELECT) .AND. com==0 ) THEN
   H(a3,a3) = H1*rot_matrix(a3,a1) + H2*rot_matrix(a3,a2) + H3*rot_matrix(a3,a3)
 ENDIF
 !
+!
 !If elastic tensor is set, rotate it
 IF( DABS(C_tensor(1,1))>1.d-6 ) THEN
   C_tensor = ROTELAST( C_tensor, rot_matrix )
   CALL ATOMSK_MSG(2099,(/""/),(/0.d0/))
 ENDIF
+!
 !
 !
 300 CONTINUE

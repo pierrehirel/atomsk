@@ -10,7 +10,7 @@ MODULE addshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 June 2014                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -58,6 +58,11 @@ snumber = 0.d0
 !
 msg = 'Entering CSHELLS_XYZ'
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 IF(species=='XX') THEN
   temp = 'all'

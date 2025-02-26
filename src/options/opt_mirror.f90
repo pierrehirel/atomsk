@@ -12,7 +12,7 @@ MODULE mirror
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -72,6 +72,11 @@ vz=0
 !
 !
 CALL ATOMSK_MSG(2120,(/mirror_dir/),(/mirror_d/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 !
 !Detect if velocities and/or forces are defined

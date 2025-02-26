@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -301,6 +301,11 @@ CALL ATOMSK_MSG(2077, (/ region_side//'    ',                 &
      &                 select_multiple//'    '            /), &
      & (/ region_1(1), region_1(2), region_1(3),              &
      &    region_2(1), region_2(2), region_2(3) /))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 SELECT CASE(select_multiple)
 CASE("add")
@@ -1837,21 +1842,30 @@ CASE('stl','STL')
     WRITE(msg,'(a14,6f6.2)') "BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
-    !Rescale the 3-D model to the dimensions of current simulation box
-    !conserving the proportions of the 3-D model
-    !tempreal is the rescaling factor
-    tempreal = MIN( VECLENGTH(H(:,1)) / (xmax-xmin) ,  &
-                  & VECLENGTH(H(:,2)) / (ymax-ymin) ,  &
-                  & VECLENGTH(H(:,3)) / (zmax-zmin)  )
-    triangles(:,4:12)  = triangles(:,4:12)  * tempreal
-!     triangles(:,7)  = triangles(:,7)  * tempreal
-!     triangles(:,10) = triangles(:,10) * tempreal
-!     triangles(:,5)  = triangles(:,5)  * tempreal
-!     triangles(:,8)  = triangles(:,8)  * tempreal
-!     triangles(:,11) = triangles(:,11) * tempreal
-!     triangles(:,6)  = triangles(:,6)  * tempreal
-!     triangles(:,9)  = triangles(:,9)  * tempreal
-!     triangles(:,12) = triangles(:,12) * tempreal
+    IF( SCAN(region_dir,"scale")>0 ) THEN
+      !Rescale the 3-D model to the dimensions of current simulation box
+      !conserving the proportions of the 3-D model
+      !tempreal is the rescaling factor
+      tempreal = MIN( VECLENGTH(H(:,1)) / (xmax-xmin) ,  &
+                    & VECLENGTH(H(:,2)) / (ymax-ymin) ,  &
+                    & VECLENGTH(H(:,3)) / (zmax-zmin)  )
+      triangles(:,4:12)  = triangles(:,4:12)  * tempreal
+    ELSEIF( SCAN(region_dir,"fill")>0 ) THEN
+      !Rescale the 3-D model to fill current simulation box
+      !(proportions of the 3-D model may not be preserved)
+      tempreal = VECLENGTH(H(:,1)) / (xmax-xmin)
+      triangles(:,4)  = triangles(:,4)  * tempreal
+      triangles(:,7)  = triangles(:,7)  * tempreal
+      triangles(:,10)  = triangles(:,10)  * tempreal
+      tempreal = VECLENGTH(H(:,2)) / (ymax-ymin)
+      triangles(:,5)  = triangles(:,5)  * tempreal
+      triangles(:,8)  = triangles(:,8)  * tempreal
+      triangles(:,11)  = triangles(:,11)  * tempreal
+      tempreal = VECLENGTH(H(:,3)) / (zmax-zmin)
+      triangles(:,6)  = triangles(:,6)  * tempreal
+      triangles(:,9)  = triangles(:,9)  * tempreal
+      triangles(:,12)  = triangles(:,12)  * tempreal
+    ENDIF
     !
     !Update bounding box of 3-D model
     xmin = MIN( MINVAL(triangles(:,4)) , MINVAL(triangles(:,7)) , MINVAL(triangles(:,10)) )
@@ -1863,7 +1877,7 @@ CASE('stl','STL')
     WRITE(msg,'(a22,6f6.2)') "UPDATED BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
-    IF( region_dir=="center" ) THEN
+    IF( SCAN(region_dir,"center")>0 ) THEN
       !Translate 3-D model so that it is at center of simulation box
       tempreal = xmin + (xmax-xmin)/2.d0 - MAXVAL(H(1,:))/2.d0
       triangles(:,4)  = triangles(:,4) - tempreal

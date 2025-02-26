@@ -13,7 +13,7 @@ MODULE freeze
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2025                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -85,6 +85,11 @@ IF( freeze_side.NE."above" .AND. freeze_side.NE."below" ) THEN
   ENDIF
 ENDIF
 CALL ATOMSK_MSG(2097,(/freeze_coord//"     ",freeze_side//"     ",freeze_normal/),(/freeze_dist/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 !
 !

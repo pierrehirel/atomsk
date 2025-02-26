@@ -10,7 +10,7 @@ MODULE duplicate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,6 +88,12 @@ ENDIF
 !
 !
 200 CONTINUE
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P)<=0 ) THEN
+  !No atom in system: can not apply option
+  newNP = 0
+  GOTO 400
+ENDIF
+!
 IF( .NOT.ALLOCATED(SELECT) ) THEN
   !All atoms must be duplicated
   tempreal = DBLE(SIZE(P,1))*DABS(DBLE(dupmatrix(1))*DBLE(dupmatrix(2))*DBLE(dupmatrix(3)))
@@ -235,6 +241,9 @@ IF( ALLOCATED(SELECT) ) THEN
   DEALLOCATE(SELECT)
 ENDIF
 !
+!
+!
+400 CONTINUE
 !Resize the cell dimensions
 H(1,:) = dupmatrix(1)*H(1,:)
 H(2,:) = dupmatrix(2)*H(2,:)

@@ -11,7 +11,7 @@ MODULE ORIENT
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -245,11 +245,13 @@ ENDIF
 !
 !
 200 CONTINUE
-!Perform the transformation:
-!First, convert to fractional coordinates
-CALL CART2FRAC(P,H)
-IF( ALLOCATED(S) ) THEN
-  CALL CART2FRAC(S,H)
+!Perform the transformation
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !First, convert to fractional coordinates
+  CALL CART2FRAC(P,H)
+  IF( ALLOCATED(S) ) THEN
+    CALL CART2FRAC(S,H)
+  ENDIF
 ENDIF
 !
 !Second, save the new base vectors
@@ -269,10 +271,12 @@ DO i=1,3
   H(i,3) = H1*Hend(3,1) + H2*Hend(3,2) + H3*Hend(3,3)
 ENDDO
 !
-!Third, convert back to cartesian coordinates
-CALL FRAC2CART(P,H)
-IF( ALLOCATED(S) ) THEN
-  CALL FRAC2CART(S,H)
+IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
+  !Third, convert back to cartesian coordinates
+  CALL FRAC2CART(P,H)
+  IF( ALLOCATED(S) ) THEN
+    CALL FRAC2CART(S,H)
+  ENDIF
 ENDIF
 !
 !

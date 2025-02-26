@@ -11,7 +11,7 @@ MODULE center
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 07 July 2021                                     *
+!* Last modification: P. Hirel - 26 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,6 +67,11 @@ box_center(:) = ( H(1,:) + H(2,:) + H(3,:) ) / 2.d0
 !
 100 CONTINUE
 CALL ATOMSK_MSG(2118,(/""/),(/DBLE(center_atom)/))
+!
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=0 ) THEN
+  !No atom in system: can not apply option
+  GOTO 1000
+ENDIF
 !
 IF( center_atom <= 0 ) THEN
   !place the center of mass at the center of the box
