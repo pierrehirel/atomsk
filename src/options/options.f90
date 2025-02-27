@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2025                                     *
+!* Last modification: P. Hirel - 25 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -230,7 +230,7 @@ REAL(dp):: rot_angle              !in degrees
 !
 !Variables relative to Option: select
 CHARACTER(LEN=16):: select_multiple !'union' or 'subtract' or 'intersect'
-CHARACTER(LEN=16):: region_dir   !x, y, z
+CHARACTER(LEN=32):: region_dir     !x, y, z
 CHARACTER(LEN=128):: region_side   !'in' or 'out' or 'all' or 'property'
 CHARACTER(LEN=4096):: region_geom  !geometry of the region: "box" or "sphere"
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
@@ -1194,7 +1194,8 @@ DO ioptions=1,SIZE(options_array)
         READ(options_array(ioptions),*,END=800,ERR=800) optionname, region_side, region_geom
       ENDIF
       region_geom = TRIM(ADJUSTL(region_geom))
-      IF( region_geom(1:6)=="center" ) THEN
+      IF( INDEX(region_geom,"center")>0 .OR. INDEX(region_geom,"scale")>0  &
+        & .OR. INDEX(region_geom,"fill")>0  ) THEN
         IF( LEN_TRIM(select_multiple)>0 ) THEN
           READ(options_array(ioptions),*,END=800,ERR=800) optionname, temp, region_side, region_dir, region_geom
         ELSE

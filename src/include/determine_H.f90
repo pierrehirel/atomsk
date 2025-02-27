@@ -13,7 +13,7 @@ MODULE deterH
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 March 2023                                    *
+!* Last modification: P. Hirel - 30 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,7 +54,7 @@ REAL(dp):: maxP, minP  !maximum and minimum coordinates along an axis
 REAL(dp),DIMENSION(3):: baseunit !unit length in each direction
 REAL(dp),DIMENSION(4):: Pfirst
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
-REAL(dp),DIMENSION(:,:),INTENT(IN):: P
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
 !
 !
 !Initialize variables
@@ -68,8 +68,8 @@ baseunit(:) = 0.d0
 msg = 'Entering DETERMINE_H...'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-IF( SIZE(P,1)<=1 ) THEN
-  !Only 1 atom in the system: impossible to guess box size
+IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<=1 ) THEN
+  !Zero or 1 atom in the system: impossible to guess box size
   !Arbitrarily use a box size of 4 angströms
   H(1,1) = 4.d0
   H(2,2) = 4.d0

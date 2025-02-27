@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2025                                     *
+!* Last modification: P. Hirel - 27 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1560,13 +1560,17 @@ DO WHILE(i<SIZE(cla))
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
       temp = TRIM(ADJUSTL(temp))
-      IF( temp(1:6)=="center" ) THEN
+      temp2 = ""
+      !Detect keywords "center", "scale" or "rescale", "fill", concatenate them into one string
+      DO WHILE( StrDnCase(temp(1:6))=="center" .OR. StrDnCase(temp(1:7))=="rescale" .OR.  &
+              & StrDnCase(temp(1:5))=="scale"  .OR. StrDnCase(temp(1:4))=="fill"          )
+        temp2 = TRIM(temp2)//TRIM(ADJUSTL(temp))
         i=i+1
         READ(cla(i),*,END=400,ERR=400) temp
-        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" center "//TRIM(temp)
-      ELSE
-        options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" "//TRIM(temp)
-      ENDIF
+        temp = TRIM(ADJUSTL(temp))
+      ENDDO
+      !Copy the keywords
+      options_array(ioptions) = TRIM(ADJUSTL(options_array(ioptions)))//" "//TRIM(temp2)//" "//TRIM(temp)
       !
     ELSEIF( temp=='random' .OR. temp=='rand' ) THEN
       !A number N of atoms of given species must be selected at random
@@ -1960,12 +1964,18 @@ IF( ALLOCATED(options_array) ) THEN
   ENDIF
 ENDIF
 !
-IF( ALLOCATED(options_array) ) THEN
-  WRITE(msg,*) "SIZE OF ARRAY options: ", SIZE(options_array)
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ELSE
-  msg = "ARRAY options NOT ALLOCATED"
-  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+IF( verbosity>=4 ) THEN
+  IF( ALLOCATED(options_array) ) THEN
+    WRITE(msg,*) "SIZE OF ARRAY options: ", SIZE(options_array)
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    DO i=1,SIZE(options_array)
+      WRITE(msg,*) TRIM(options_array(i))
+      CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+    ENDDO
+  ELSE
+    msg = "ARRAY options NOT ALLOCATED"
+    CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+  ENDIF
 ENDIF
 !
 !

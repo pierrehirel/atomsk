@@ -49,7 +49,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=3):: rand_sp      !species of atoms to select randomly
 CHARACTER(LEN=16):: select_multiple  !empty or 'add' or 'rm' or 'xor' or 'among'
-CHARACTER(LEN=16):: region_dir  !x, y, z, or crystallographic direction
+CHARACTER(LEN=32):: region_dir  !x, y, z, or crystallographic direction
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: temp
 CHARACTER(LEN=128):: region_side  !'all' or 'grid' or 'in' or 'out' or 'inv' or 'list' or 'modulo' or 'neigh' or 'stl'
@@ -1839,10 +1839,10 @@ CASE('stl','STL')
     ymax = MAX( MAXVAL(triangles(:,5)) , MAXVAL(triangles(:,8)) , MAXVAL(triangles(:,11)) )
     zmin = MIN( MINVAL(triangles(:,6)) , MINVAL(triangles(:,9)) , MINVAL(triangles(:,12)) )
     zmax = MAX( MAXVAL(triangles(:,6)) , MAXVAL(triangles(:,9)) , MAXVAL(triangles(:,12)) )
-    WRITE(msg,'(a14,6f6.2)') "BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
+    WRITE(msg,'(a14,6(f6.2,1X))') "BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
-    IF( SCAN(region_dir,"scale")>0 ) THEN
+    IF( INDEX(region_dir,"scale")>0 ) THEN
       !Rescale the 3-D model to the dimensions of current simulation box
       !conserving the proportions of the 3-D model
       !tempreal is the rescaling factor
@@ -1850,8 +1850,13 @@ CASE('stl','STL')
                     & VECLENGTH(H(:,2)) / (ymax-ymin) ,  &
                     & VECLENGTH(H(:,3)) / (zmax-zmin)  )
       triangles(:,4:12)  = triangles(:,4:12)  * tempreal
-    ELSEIF( SCAN(region_dir,"fill")>0 ) THEN
-      !Rescale the 3-D model to fill current simulation box
+      WRITE(msg,*) "RESCALE factor: ", tempreal
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !
+    ELSEIF( INDEX(region_dir,"fill")>0 ) THEN
+      WRITE(msg,*) "FILL"
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !Deform the 3-D model to fill current simulation box
       !(proportions of the 3-D model may not be preserved)
       tempreal = VECLENGTH(H(:,1)) / (xmax-xmin)
       triangles(:,4)  = triangles(:,4)  * tempreal
@@ -1874,10 +1879,12 @@ CASE('stl','STL')
     ymax = MAX( MAXVAL(triangles(:,5)) , MAXVAL(triangles(:,8)) , MAXVAL(triangles(:,11)) )
     zmin = MIN( MINVAL(triangles(:,6)) , MINVAL(triangles(:,9)) , MINVAL(triangles(:,12)) )
     zmax = MAX( MAXVAL(triangles(:,6)) , MAXVAL(triangles(:,9)) , MAXVAL(triangles(:,12)) )
-    WRITE(msg,'(a22,6f6.2)') "UPDATED BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
+    WRITE(msg,'(a22,6(f6.2,1X))') "UPDATED BOUNDING BOX: ", xmin, xmax, ymin, ymax, zmin, zmax
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
-    IF( SCAN(region_dir,"center")>0 ) THEN
+    IF( INDEX(region_dir,"center")>0 .OR. INDEX(region_dir,"fill")>0 ) THEN
+      WRITE(msg,*) "CENTER"
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !Translate 3-D model so that it is at center of simulation box
       tempreal = xmin + (xmax-xmin)/2.d0 - MAXVAL(H(1,:))/2.d0
       triangles(:,4)  = triangles(:,4) - tempreal
