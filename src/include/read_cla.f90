@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Feb. 2025                                     *
+!* Last modification: P. Hirel - 26 March 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -55,7 +55,7 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
 CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE,INTENT(IN):: cla  !command-line arguments
-INTEGER:: i, ioptions, j, m
+INTEGER:: i, ioptions, j, k, m
 INTEGER:: Nout !number of output formats
 REAL(dp):: smass, tempreal
 !
@@ -330,31 +330,48 @@ DO WHILE(i<SIZE(cla))
     !
   ELSEIF(clarg=='--merge' .OR. clarg=='-M' .OR. clarg=="--stack") THEN
     IF(ALLOCATED(mode_param)) GOTO 150
-    ALLOCATE(mode_param(100))
+    ALLOCATE(mode_param(100))  !assuming user won't merge more than 100 files...
     mode_param(:) = ''
     mode = 'merge'
     !Store all parameters and file names in mode_param(:)
     j=0
     i=i+1
-    READ(cla(i),*,ERR=130,END=130) temp
-    temp = TRIM(ADJUSTL(temp))
-    IF( temp=='x' .OR. temp=='y' .OR. temp=='z' .OR. &
-      & temp=='X' .OR. temp=='Y' .OR. temp=='Z'      ) THEN
-      j=j+1
-      mode_param(j) = temp
-      i=i+1
-      READ(cla(i),*,ERR=130,END=130) m
-      j=j+1
-      WRITE(mode_param(j),*) m
-      m=m+2
-    ELSE
-      READ(temp,*,ERR=130,END=130) m
-      j=j+1
-      WRITE(mode_param(j),*) m
-      m=m+1
-    ENDIF
+    m=0
+    DO WHILE(m<=0)
+      READ(cla(i),*,ERR=130,END=130) temp
+      IF( StrDnCase(temp)=="stack" ) THEN
+        j = j+1
+        mode_param(j) = TRIM(ADJUSTL(temp))  !"stack"
+        !Read direction of stacking
+        i=i+1
+        READ(cla(i),*,ERR=130,END=130) temp
+        IF( StrUpCase(temp)=='X' .OR. StrUpCase(temp)=='Y' .OR. StrUpCase(temp)=='Z' ) THEN
+          j = j+1
+          mode_param(j) = TRIM(ADJUSTL(temp))
+        ENDIF
+        i=i+1
+      ELSEIF( temp=="rescale" .OR. temp=="scale" .OR. temp=="match" ) THEN
+        j = j+1
+        mode_param(j) = TRIM(ADJUSTL(temp))  !"rescale"
+        !Read direction along which systems will be rescaled to match 1st system's size
+        i=i+1
+        READ(cla(i),*,ERR=130,END=130) temp
+        !IF( StrUpCase(temp)=='X' .OR. StrUpCase(temp)=='Y' .OR. StrUpCase(temp)=='Z' ) THEN
+          j = j+1
+          mode_param(j) = TRIM(ADJUSTL(temp))
+        !ENDIF
+        i=i+1
+      ELSE
+        !If none of the above, must be the number of file names to follow
+        READ(temp,*,ERR=130,END=130) m
+        IF(m<=0) GOTO 130
+        j=j+1
+        WRITE(mode_param(j),*) m
+        EXIT
+      ENDIF
+    ENDDO
     !Read the m file names that follow
-    DO WHILE(j<m)
+    DO k=1,m
       i=i+1
       READ(cla(i),'(a128)',ERR=130,END=130) temp
       j=j+1

@@ -15,7 +15,7 @@
 
 <h4>Syntax</h4>
 
-<p><code>atomsk --merge [x|y|z] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --merge [stack &#60;x|y|z&#62;] [scale &#60;x|y|z|xy|xz|yz|xyz&#62;] &#60;N&#62; &#60;file1&#62;...&#60;fileN&#62; &#60;outputfile&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
@@ -24,11 +24,11 @@
 
 <p>The integer &#60;N&#62; indicates how many systems must be merged. It is mandatory, and must be followed by the corresponding number of files names &#60;file1&#62; to &#60;fileN&#62;.</p>
 
-<p>The direction [x|y|z] is an optional parameter. By default, when it is omitted, all atoms are merged into the box of the first system of the list (i.e. in the system &#60;file1&#62;). In other words, the final supercell is the union of all input systems. The final supercell vectors are equal to the box vectors of the first system.</p>
+<p>The keyword "stack" is optional. It can be used to specify the Cartesian direction (x, y or z) along which the different systems are stacked. Along that given direction, the dimension of the final box is the sum of the dimensions of all stacked systems. If this keyword is omitted, then all atoms are merged into the same box as the first system of the list (i.e. in the system &#60;file1&#62;).</p>
 
-<p>When a direction is provided, it must be 'x', 'y' or 'z'. In this case, the systems are stacked on top of each other along the given direction. Along that given direction, the dimension of the final box is the sum of the dimensions of all stacked systems; in the other directions, the final box has the same size as the first system &#60;file1&#62;. Of course, this makes sense only if all systems have equal (or similar) dimensions normal to the given direction. Otherwise, the final result may not make much sense (e.g. when trying to stack rectangular and triclinic boxes of various shapes and sizes).</p>
+<p>The keyword "scale" is optional. If it is used, then all systems are deformed along the given direction(s) to match the dimensions of the first system. The directions can be: 'x', 'y', 'z' (systems are deformed only to match first system along the given direction), 'xy', 'xz', 'yz' (systems are deformed along both directions), or 'xyz' (systems are deformed to match all three dimensions of the first system).</p>
 
-<p>Beware that Atomsk does not "automagically" shift atomic positions, find the optimum interfaces or whatsoever. It is up to you to build, for instance, one system in one half of the supercell, the other system in the other half, and then use this mode to merge them. For quickly redefining the dimensions of the final system one can use the <a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
+<p>Beware that Atomsk does not "automagically" shift atomic positions, find optimal interfaces or whatsoever. It is up to you to build, for instance, one system in one half of the supercell, the other system in the other half, and then use this mode to merge them. For quickly redefining the dimensions of the final system one can use the <a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 
 <p>Auxiliary properties are conserved when merging systems, i.e. each atom keeps the auxiliary properties that are defined for it. If a property is defined in some files but not all of them, that property will be assigned a zero value for atoms for which it is not defined.</p>
 
@@ -41,11 +41,14 @@
 <li><code class="command">atomsk --merge 2 fccal_bottom.cfg bcciron_top.xsf interface.xyz xsf</code>
 <p>This will merge all atoms <code>fccal_bottom.cfg</code> and <code>bcciron_top.xsf</code> in the same box (the one defined in <code>fccal_bottom.cfg</code>), and output the result in <code>interface.xyz</code> and <code>interface.xsf</code>.</p></li>
 
-<li><code class="command">atomsk --merge z 3 one.cfg two.xsf three.cfg final.xsf</code>
+<li><code class="command">atomsk --merge stack z 3 one.cfg two.xsf three.cfg final.xsf</code>
 <p>This will stack the three systems <code>one.cfg</code>, <code>two.xsf</code> and <code>three.cfg</code> along the Cartesian Z direction, and output the result in <code>final.xsf</code>.</p></li>
 
-<li><code class="command">atomsk --merge x 4 file.cfg file.cfg file.cfg file.cfg final.xsf</code>
+<li><code class="command">atomsk --merge stack x 4 file.cfg file.cfg file.cfg file.cfg final.xsf</code>
 <p>This will stack the file <code>file.cfg</code> four times along X. This operation is equivalent to <a href="./option_duplicate.html">duplicating</a> the system four times along X (i.e. "-duplicate 4 1 1").</p></li>
+
+<li><code class="command">atomsk --merge stack Z scale XY 2 bottom.cfg top.cfg final.xsf</code>
+<p>This will stack the files <code>bottom.cfg</code> and <code>top.cfg</code> along Z, and deform <code>top.cfg</code> along X and Y so that it matches the size of <code>bottom.cfg</code>.</p></li>
 
 <li><p>You may also want to look at the scripts in the "examples" folder provided with the program. The folder "<code>Cu_Fe_interface</code>" contains a bash script that builds two slabs, one of fcc copper and one of bcc iron, and merges them to form an interface.</p></li>
 </ul>

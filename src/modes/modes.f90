@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 20 March 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -298,17 +298,24 @@ CASE('merge')
   !and merges them into one single file
   !
   !Read array mode_param(:)
-  i=1
-  READ(mode_param(i),*,ERR=7000,END=7000) temp
-  IF( temp=='x' .OR. temp=='y' .OR. temp=='z' .OR. &
-    & temp=='X' .OR. temp=='Y' .OR. temp=='Z'      ) THEN
-    READ(temp,*,ERR=7000,END=7000) axis
+  i=0
+  m=0
+  test = ""
+  DO WHILE( m==0 .AND. i<SIZE(mode_param) )
     i=i+1
-    READ(mode_param(i),*,ERR=7000,END=7000) m
-  ELSE
-    READ(temp,*,ERR=7000,END=7000) m
-  ENDIF
+    READ(mode_param(i),*,ERR=7000,END=7000) temp
+    IF( StrDnCase(temp)=="stack" ) THEN
+      i=i+1
+      READ(mode_param(i),*,ERR=7000,END=7000) axis
+    ELSEIF( StrDnCase(temp)=="scale" .OR. StrDnCase(temp)=="rescale" .OR. StrDnCase(temp)=="match" ) THEN
+      i=i+1
+      READ(mode_param(i),*,ERR=7000,END=7000) test
+    ELSE
+      READ(temp,*,ERR=7000,END=7000) m
+    ENDIF
+  ENDDO
   !
+  IF( m<=0 ) GOTO 7000
   IF(ALLOCATED(merge_files)) DEALLOCATE(merge_files)
   ALLOCATE(merge_files(m))
   !
@@ -331,8 +338,8 @@ CASE('merge')
   msg = 'outputfile: '//TRIM(outputfile)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
-  !Merge all files
-  CALL MERGE_XYZ(merge_files(:),axis,options_array,outputfile,outfileformats)
+  !Merge all files (axis=merge_stack; test=merge_match)
+  CALL MERGE_XYZ(merge_files(:),axis,test(1:3),options_array,outputfile,outfileformats)
 !
 !
 !

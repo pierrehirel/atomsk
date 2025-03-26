@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2025                                     *
+!* Last modification: P. Hirel - 20 March 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -188,7 +188,8 @@ IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="merge") THEN
   WRITE(*,*) "..> Mode fusion :"
-  WRITE(*,*) "          atomsk --merge [<x|y|z>] <Nfiles> <file1>...<fileN> <outputfile> [<formats>] [options]"
+  WRITE(*,*) "          atomsk --merge [stack <x|y|z>] [match <x|y|z|xy|xz|yz>] "//&
+           & "<Nfiles> <file1>...<fileN> <outputfile> [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="unwrap") THEN
   WRITE(*,*) "..> Mode déballage:"

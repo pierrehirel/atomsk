@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 27 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -516,6 +516,16 @@ DO
         ENDIF
         WRITE(temp,'(f12.6)') C11
         WRITE(*,*) "  C11 = "//TRIM(ADJUSTL(temp))//" GPa"
+        IF( DABS(C22)<1.d-12 ) THEN
+          C22 = C11
+          WRITE(temp,'(f12.6)') C22
+          WRITE(*,*) "  C22 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
+        IF( DABS(C33)<1.d-12 ) THEN
+          C33 = C22
+          WRITE(temp,'(f12.6)') C33
+          WRITE(*,*) "  C33 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
         !
       CASE("C22")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -528,6 +538,11 @@ DO
         ENDIF
         WRITE(temp,'(f12.6)') C22
         WRITE(*,*) "  C22 = "//TRIM(ADJUSTL(temp))//" GPa"
+        IF( DABS(C33)<1.d-12 ) THEN
+          C33 = C22
+          WRITE(temp,'(f12.6)') C33
+          WRITE(*,*) "  C33 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
         !
       CASE("C33")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -574,6 +589,16 @@ DO
         ENDIF
         WRITE(temp,'(f12.6)') C44
         WRITE(*,*) "  C44 = "//TRIM(ADJUSTL(temp))//" GPa"
+        IF( DABS(C55)<1.d-12 ) THEN
+          C55 = C44
+          WRITE(temp,'(f12.6)') C55
+          WRITE(*,*) "  C55 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
+        IF( DABS(C66)<1.d-12 ) THEN
+          C66 = C55
+          WRITE(temp,'(f12.6)') C66
+          WRITE(*,*) "  C66 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
         !
       CASE("C55")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -586,6 +611,11 @@ DO
         ENDIF
         WRITE(temp,'(f12.6)') C55
         WRITE(*,*) "  C55 = "//TRIM(ADJUSTL(temp))//" GPa"
+        IF( DABS(C66)<1.d-12 ) THEN
+          C66 = C55
+          WRITE(temp,'(f12.6)') C66
+          WRITE(*,*) "  C66 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
         !
       CASE("C66")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -604,13 +634,13 @@ DO
       CASE("Cij","Ctensor")
         !Convert elastic constants into a proper 9x9 elastic tensor
         CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
-        !Check tensor for stability criteria
-        CALL CTENSOR_STABILITY(C_tensor)
         !Print elastic tensor
         WRITE(*,*) "  Current elastic tensor Cij (GPa):"
         DO i=1,9
           WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
         ENDDO
+        !Check tensor for stability criteria
+        CALL CTENSOR_STABILITY(C_tensor)
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -929,6 +959,8 @@ DO
           DO i=1,9
             WRITE(*,'(9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
           ENDDO
+          !Check tensor for stability criteria
+          CALL CTENSOR_STABILITY(C_tensor)
           !
         ELSEIF( ANY( command == optnames(:) ) ) THEN
           !Apply the option

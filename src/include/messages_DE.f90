@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 14 Jan. 2025                                     *
+!* Last modification: P. Hirel - 20 March 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -140,7 +140,7 @@ IF(helpsection=="modes" .OR. helpsection=="normal") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="list") THEN
   WRITE(*,*) "..> Listen Modus:"
-  WRITE(*,*) "          atomsk -L <listfile> [<formats>] [options]"
+  WRITE(*,*) "          atomsk --list <listfile> [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="gather" .OR. helpsection=="all-in-one" .OR. helpsection=="ai1") THEN
   WRITE(*,*) "..> Gather Modus:"
@@ -188,7 +188,8 @@ IF(helpsection=="modes" .OR. helpsection=="ddplot") THEN
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="merge") THEN
   WRITE(*,*) "..> Zusammenfassen Modus:"
-  WRITE(*,*) "          atomsk -M [<x|y|z>] <Nfiles> <file1>...<fileN> <outputfile> [<formats>] [options]"
+  WRITE(*,*) "          atomsk --merge [stack <x|y|z>] [match <x|y|z|xy|xz|yz>] "//&
+           & "<Nfiles> <file1>...<fileN> <outputfile> [<formats>] [options]"
 ENDIF
 IF(helpsection=="modes" .OR. helpsection=="unwrap") THEN
   WRITE(*,*) "..> Entfalten Modus:"

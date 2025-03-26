@@ -11,11 +11,11 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Mode : merge</h2>
+<h2>Mode&nbsp;: merge</h2>
 
-<h4>Syntax</h4>
+<h4>Syntaxe</h4>
 
-<p><code>atomsk --merge [x|y|z] &#60;N&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
+<p><code>atomsk --merge [stack &#60;x|y|z&#62;] [scale &#60;x|y|z|xy|xz|yz|xyz&#62;] &#60;N&#62; &#60;fichier1&#62;...&#60;fichierN&#62; &#60;fichiersortie&#62; [&#60;formats&#62;] [options]</code></p>
 
 
 <h4>Description</h4>
@@ -24,9 +24,9 @@
 
 <p>L'entier &#60;N&#62; indique combien de systèmes seront joints. Il est obligatoire, et doit être suivi du bon nombre de fichiers d'entrée, de &#60;fichier1&#62; à &#60;fichierN&#62;.</p>
 
-<p>La direction [x|y|z] est un paramètre optionnel. S'il est absent, alors tous les systèmes sont ajoutés dans la boîte du premier système (c'est-à-dire le &#60;fichier1&#62;). Autrement dit, le système final est l'union de tous les systèmes. Les vecteurs de la boîte finale sont égaux aux vecteurs de boîte du premier système &#60;fichier1&#62;.</p>
+<p>Le mot-clé "stack" est optionnel. Il peut être utilisé pour indiquer la direction cartésienne (x, y ou z) suivant laquelle les systèmes seront empilés. Suivant cette direction, la boîte finale aura une taille égale à la somme des tailles de tous les systèmes empilés. Si ce mot-clé est omis, alors tous les atomes sont réunis dans la même boîte, celle du premier système de la liste (c'est-à-dire du &#60;fichier1&#62;).</p>
 
-<p>Lorsqu'une direction est donnée, elle doit valoir 'x', 'y' ou 'z'. Dans ce cas, les systèmes sont empilés dans la direction donnée. Dans cette direction, la dimension de la boîte finale est le somme des dimensions de toutes les boîtes ; dans les directions perpendiculaires, la boîte finale a les mêmes dimensions que le premier système &#60;fichier1&#62;. Bien sûr une telle construction n'a de sens que si tous les systèmes ont des dimensions égales (ou similaires). Sinon, le résultat final risque d'être incohérent (par exemple si vous essayez d'empiler des boîtes tricliniques et rectangulaires de géométries et tailles variées).</p>
+<p>Le mot-clé "scale" est aussi optionnel. S'il est utilisé, alors les systèmes sont déformés le long de la ou de direction(s) donnée(s), de façon à égaler les dimensions du premier système. La direction donnée peut être&nbsp;: 'x', 'y', 'z' (les systèmes sont déformés seulement dans une direction), 'xy', 'xz', 'yz' (les systèmes sont déformés suivant les deux directions données), ou 'xyz' (les systèmes sont déformés pour atteindre la même taille que le premier système dans les trois dimensions de l'espace).</p>
 
 <p>Attention : Atomsk n'ajuste pas les positions atomiques, et ne trouve pas "automagiquement" les interfaces optimales ni quoi que ce soit de ce genre. Il appartient à l'utilisateur de vérifier les orientations cristallographiques et les géométries de ses systèmes avant de les joindre. Pour rapidement redéfinir les vecteurs de boîte après avoir joint des systèmes il est possible d'utiliser l'<a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 
@@ -41,11 +41,14 @@
 <li><code class="command">atomsk --merge 2 aluminium_bas.cfg fer_haut.xsf interface.xyz xsf</code>
 <p>Ceci réunira les atomes des systèmes contenus dans <code>aluminium_bas.cfg</code> et <code>fer_haut.xsf</code> dans la même boîte (la boîte définie dans <code>aluminium_bas.cfg</code>), et écrira le résultat final dans <code>interface.xyz</code> et <code>interface.xsf</code>.</p></li>
 
-<li><code class="command">atomsk --merge z 3 un.cfg deux.xsf trois.cfg final.xsf</code>
+<li><code class="command">atomsk --merge stack z 3 un.cfg deux.xsf trois.cfg final.xsf</code>
 <p>Ceci empilera les systèmes <code>un.cfg</code>, <code>deux.xsf</code> et <code>trois.cfg</code> suivant l'axe Z, et écrira le résultat dans <code>final.xsf</code>.</p></li>
 
-<li><code class="command">atomsk --merge x 4 fichier.cfg fichier.cfg fichier.cfg fichier.cfg final.xsf</code>
+<li><code class="command">atomsk --merge stack x 4 fichier.cfg fichier.cfg fichier.cfg fichier.cfg final.xsf</code>
 <p>Ceci empilera le système <code>fichier.cfg</code> quatre fois suivant l'axe X. Cette opération est équivalent au fait de <a href="./option_duplicate.html">dupliquer</a> le système quatre fois suivant X (c'est-à-dire "-duplicate 4 1 1").</p></li>
+
+<li><code class="command">atomsk --merge stack Z scale XY 2 bottom.cfg top.cfg final.xsf</code>
+<p>Ceci va empiler les systèmes <code>bottom.cfg</code> et <code>top.cfg</code> suivant Z, et déformera <code>top.cfg</code> suivant X et Y pour qu'il ait la même taille que <code>bottom.cfg</code>.</p></li>
 
 <li><p>D'autres exemples se trouvent dans le dossier "examples" fourni avec le programme. Le dossier "<code>Cu_Fe_interface</code>" contient un script bash qui construit une interface entre deux systèmes : du cuivre cfc et du fer cubique centré.</p></li>
 </ul>

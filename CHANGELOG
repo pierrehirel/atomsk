@@ -6,6 +6,7 @@ Master
 ------
 - code from modules "functions" and "subroutine" was split up between various modules, including new ones. Routine EXPREVAL is now a recursive function. These changes break compatibility with previous versions.
 - in mode "--interpolate", auxiliary properties will now be interpolated between initial and final systems.
+- in mode "--merge" usage was changed to allow two keywords: "stack <x|y|z>" to indicate direction of stacking, and "scale" to rescale systems to match first system.
 - in mode "--polycrystal", optimized algorithm to use less memory, it should also be faster. Added new keyword "clearance" to control the width around GB plane where atoms are deleted.
 - in mode "--unwrap", a new auxiliary property "unwrapped_atom" is defined that is equal to 1 if an atom is unwrapped, and 0 otherwise.
 - in option "-rotate" it is now possible to provide a file containing a rotation matrix.

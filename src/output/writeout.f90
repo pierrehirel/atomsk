@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 27 Feb. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -165,6 +165,24 @@ ENDIF
 IF( prefix=="NULL" .AND. (.NOT.ALLOCATED(outfileformats) .OR. SIZE(outfileformats)<=1) ) THEN
   CALL ATOMSK_MSG(3007,(/TRIM("")/),(/0.d0/))
   GOTO 1000
+ENDIF
+!
+i=0
+j=0
+IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+  !Count actual number of shells
+  j = 0
+  DO i=1,SIZE(S,1)
+    IF( NINT(S(i,4))>0 ) THEN
+      j = j+1
+    ENDIF
+  ENDDO
+  CALL ATOMSK_MSG(3000,(/""/),(/DBLE(SIZE(P,1)),DBLE(j)/))
+ELSE
+  IF( ALLOCATED(P) ) THEN
+    i = SIZE(P,1)
+  ENDIF
+  CALL ATOMSK_MSG(3000,(/""/),(/DBLE(i),DBLE(j)/))
 ENDIF
 !
 !Check that array P is allocated, if not output error message
@@ -397,18 +415,6 @@ ENDIF
 !!Then, write output file(s)
 ! by calling the module corresponding to the output format
 ! Output to several formats is possible
-IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
-  !Count actual number of shells
-  j = 0
-  DO i=1,SIZE(S,1)
-    IF( NINT(S(i,4))>0 ) THEN
-      j = j+1
-    ENDIF
-  ENDDO
-  CALL ATOMSK_MSG(3000,(/""/),(/DBLE(SIZE(P,1)),DBLE(j)/))
-ELSE
-  CALL ATOMSK_MSG(3000,(/""/),(/DBLE(SIZE(P,1)),0.d0/))
-ENDIF
 !
 !If shells exist (ionic core-shell model), then we must make sure
 !that all the current output file formats support it. Otherwise, the output file

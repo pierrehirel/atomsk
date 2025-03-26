@@ -10,7 +10,7 @@ MODULE mode_merge
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 June 2023                                     *
+!* Last modification: P. Hirel - 26 March 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,11 +40,12 @@ USE options
 CONTAINS
 !
 !
-SUBROUTINE MERGE_XYZ(merge_files,merge_dir,options_array,outputfile,outfileformats)
+SUBROUTINE MERGE_XYZ(merge_files,merge_stack,merge_scale,options_array,outputfile,outfileformats)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=1),INTENT(IN):: merge_dir  !if systems must be concatenated another along X, Y or Z
+CHARACTER(LEN=1),INTENT(IN):: merge_stack  !if systems must be concatenated another along X, Y or Z
+CHARACTER(LEN=3),INTENT(IN):: merge_scale  !if systems must match dimension along X, Y, Z, XY, YZ, XZ, XYZ
 CHARACTER(LEN=*),DIMENSION(:),INTENT(IN):: merge_files
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats
 CHARACTER(LEN=4096):: msg
@@ -53,15 +54,19 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES, currAUXNAMES, tempAUXNAM
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment, currcomment, tempcomment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array
 LOGICAL:: auxexists  !does current auxiliary property already exist in AUX?
-LOGICAL:: cat  !must the files be concatenated?
+LOGICAL:: stack !must systems be stacked?
+LOGICAL:: match !must systems be rescaled to match size of 1st system?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: a1   !direction along which the files must be concatenated
+INTEGER:: a2, a3 !if system lengths must be rescaled to match along other directions
 INTEGER:: auxcol
 INTEGER:: i, j, k
 INTEGER:: NP       !number of atoms in current system
 INTEGER:: Nfiles  !number of files merged
 INTEGER:: oldsize
 INTEGER:: sysID !column in AUX for storing system ID
+REAL(dp):: def  !deformation factor to apply
+REAL(dp):: disp !displacement vector
 REAL(dp),DIMENSION(3,3):: H, Htemp      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT        !Crystallographic orientation of the system
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
@@ -73,6 +78,10 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX, currAUX, tempAUX  !auxiliary properti
 !
 !Initialize variables
 a1 = 0
+a2 = 0
+a3 = 0
+stack = .FALSE.
+match = .FALSE.
 Nfiles = 0
 sysID = 0
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
@@ -83,6 +92,7 @@ IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(R)) DEALLOCATE(R)
 IF(ALLOCATED(U)) DEALLOCATE(U)
 IF(ALLOCATED(comment)) DEALLOCATE(comment)
+def = 0.d0
 ORIENT(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
 !
@@ -103,25 +113,49 @@ IF( verbosity==4 ) THEN
   ENDDO
 ENDIF
 !
-IF(merge_dir=='x' .OR. merge_dir=='X') THEN
-  cat = .TRUE.
+SELECT CASE( StrUpCase(merge_stack) )
+CASE('X')
+  stack = .TRUE.
   a1 = 1
-ELSEIF(merge_dir=='y' .OR. merge_dir=='Y') THEN
-  cat = .TRUE.
+CASE('Y')
+  stack = .TRUE.
   a1 = 2
-ELSEIF(merge_dir=='z' .OR. merge_dir=='Z') THEN
-  cat = .TRUE.
+CASE('Z')
+  stack = .TRUE.
   a1 = 3
-ELSE
-  cat = .FALSE.
-ENDIF
+END SELECT
 !
-IF(cat) THEN
+IF(stack) THEN
   j=1
 ELSE
   j=-1
 ENDIF
-CALL ATOMSK_MSG(4030,(/merge_dir/),(/DBLE(j)/))
+!
+SELECT CASE( StrUpCase(merge_scale) )
+CASE('X')
+  a2 = 1
+CASE('Y')
+  a2 = 2
+CASE('Z')
+  a2 = 3
+CASE('XY','YX')
+  a2 = 1
+  a3 = 2
+CASE('XZ')
+  a2 = 1
+  a3 = 3
+CASE('YZ','ZY')
+  a2 = 1
+  a3 = 3
+CASE('XYZ')
+  a2 = 4
+END SELECT
+!
+IF( a2>0 .OR. a3>0 ) THEN
+  match = .TRUE.
+ENDIF
+!
+CALL ATOMSK_MSG(4030,(/merge_stack,merge_scale/),(/DBLE(j)/))
 !
 !
 !
@@ -206,8 +240,7 @@ DO i=1,SIZE(merge_files)
       nerr = nerr+1
       GOTO 1000
     ENDIF
-    !IF(ALLOCATED(R)) DEALLOCATE(R)
-    !ALLOCATE( R( SIZE(Q,1)+NP, SIZE(Q,2) ) )
+    !
     IF( ALLOCATED(S) ) THEN
       CALL RESIZE_DBLEARRAY2( U , SIZE(T,1)+SIZE(S,1) , SIZE(S,2) , k )
       IF( k.NE.0 ) THEN
@@ -215,12 +248,34 @@ DO i=1,SIZE(merge_files)
         nerr = nerr+1
         GOTO 1000
       ENDIF
-      !IF(ALLOCATED(U)) DEALLOCATE(U)
-      !ALLOCATE( U( SIZE(T,1)+SIZE(S,1), SIZE(S,2) ) )
     ENDIF
     !
-    IF(cat) THEN
-      !Concatenate the files
+    IF( match ) THEN
+      !Match the size of current system along a2, and a3 if relevant
+      WRITE(msg,*)  "MODE MERGE: matching system size along dimensions ", a2, a3
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      DO k=1,3 !loop on X, Y, Z
+        IF( a2==k .OR. a3==k .OR. a2>=4 ) THEN
+          !Compute deformation along this direction
+          def = ( H(k,k)-Htemp(k,k) ) / Htemp(k,k)
+          DO j=1,SIZE(P,1)  !loop on all atoms
+            !Compute displacement
+            disp = P(j,k) * def
+            !Apply displacement
+            P(j,k) = P(j,k) + disp
+            IF(ALLOCATED(S)) THEN
+              !Apply same displacement to shell
+              S(j,k) = S(j,k) + disp
+            ENDIF
+          ENDDO
+        ENDIF
+      ENDDO
+    ENDIF
+    !
+    IF(stack) THEN
+      !Stack current system on top of previous ones along direction a1
+      WRITE(msg,*)  "MODE MERGE: stacking systems along dimension ", a1
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !The coordinates of P and S must be shifted by H(a1,:)
       DO j=1,NP
         P(j,:) = P(j,:) + H(a1,:)
@@ -231,11 +286,9 @@ DO i=1,SIZE(merge_files)
         ENDDO
       ENDIF
       !
-      !The box must be extended along a1
+      !Final box must be extended along a1
       H(a1,:) = H(a1,:) + Htemp(a1,:)
       !
-      WRITE(msg,*)  "MODE MERGE: stacking systems along dimension ", a1
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       WRITE(msg,*)  "MODE MERGE: new system size ", H(a1,:)
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDIF
