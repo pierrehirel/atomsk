@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 March 2025                                    *
+!* Last modification: P. Hirel - 02 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2844,7 +2844,12 @@ CASE(3717)
   msg = TRIM(ADJUSTL(warnmsg))//" cell has a non-zero electric charge: Q_total = "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3718)
-  msg = TRIM(ADJUSTL(warnmsg))//" some atoms of different species have the same 'type'."
+  !strings(1) = atom species 1
+  !strings(2) = atom species 2
+  !reals(1) = LAMMPS atom "type"
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" "//TRIM(ADJUSTL(strings(1)))//" and "//TRIM(ADJUSTL(strings(2)))// &
+      & " atoms have the same 'type' ("//TRIM(ADJUSTL(temp))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            You may use the option '-remove-property type' to remove atom types,"
   CALL DISPLAY_MSG(1,msg,logfile)

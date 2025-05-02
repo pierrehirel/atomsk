@@ -137,6 +137,7 @@ IF( ALLOCATED(AUXNAMES) ) THEN
         !Count how many different atom types are in AUX
         !Ntypes = MAXVAL(AUX(:,typecol))
         CALL FIND_NSP(AUX(:,typecol),aentries)
+        Ntypes = SIZE(aentries,1)
         !Verify that atom types are all greater than zero
         IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
           !Count how many atoms have a zero "type"

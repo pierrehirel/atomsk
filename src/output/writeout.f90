@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Feb. 2025                                     *
+!* Last modification: P. Hirel - 02 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,6 +57,7 @@ MODULE writeout
 !Load modules
 USE comv
 USE constants
+USE atoms
 USE guess_form
 USE messages
 USE files_msg
@@ -120,6 +121,7 @@ INTEGER:: q, qs, itypes  !position of charges, shell charges, atom types in AUX
 INTEGER,DIMENSION(8):: values
 REAL(dp):: Q_total  !total electric charge of the cell
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries  !atom species and their number
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P          !positions of atoms (or ionic cores)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN),OPTIONAL:: S !positions of ionic shells
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties
@@ -366,48 +368,57 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     CALL ATOMSK_MSG(3717,(/""/),(/Q_total/))
   ENDIF
   !
-  !If output is activated for file formats that depend on atom "type",
-  !then check against atoms that have different species but same type
-  !(again, only for relatively small systems)
-  IF( SIZE(P,1)<30000 ) THEN
-    IF( itypes>0 .AND. itypes<=SIZE(AUX,2) ) THEN
-      fileexists = .FALSE.
-      !Check if user wants to write to a file format that doesn't support shells
-      DO i=1,SIZE(outfileformats)
-        IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
-          SELECT CASE( outfileformats(i) )
-          CASE('abinit','in','imd','IMD','fdf','FDF','siesta','lmp','LMP','lammps','LAMMPS','xmd','XMD')
-            !Those file formats require atom "type"
-            fileexists = .TRUE.
-          CASE DEFAULT
-            !Other file formats don't
-          END SELECT
-        ENDIF
-      ENDDO
-      IF(fileexists) THEN
-        WRITE(msg,*) 'Checking against shared atom types...'
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-        k = 0
-        DO i=1,SIZE(P,1)-1
-          DO j=SIZE(P,1),i+1,-1
-            IF( NINT(P(i,4)).NE.NINT(P(j,4)) .AND. NINT(AUX(i,itypes))==NINT(AUX(j,itypes)) ) THEN
-              k = k+1
-              EXIT
-            ENDIF
-          ENDDO
+  !Check if output is activated for file formats that depend on atom "type"
+  fileexists = .FALSE.
+  DO i=1,SIZE(outfileformats)
+    IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
+      SELECT CASE( outfileformats(i) )
+      CASE('abinit','in','imd','IMD','fdf','FDF','siesta','lmp','LMP','lammps','LAMMPS','xmd','XMD')
+        !Those file formats will use atom "type" if defined
+        fileexists = .TRUE.
+      CASE DEFAULT
+        !Other file formats don't
+      END SELECT
+    ENDIF
+  ENDDO
+  !If so, then check against atoms that have different species but same type
+  IF( itypes>0 .AND. itypes<=SIZE(AUX,2) .AND. fileexists ) THEN
+    IF(fileexists) THEN
+      WRITE(msg,*) 'Checking against shared atom types...'
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !Find number of atoms for each species
+      CALL FIND_NSP(P(:,4),aentries)
+      aentries(:,2) = 0.d0
+      !For each species, replace number of atoms in "aentries" by atom "type"
+      DO j=1,SIZE(aentries,1)
+        DO i=1,SIZE(P,1)
+          IF( NINT(P(i,4))==NINT(aentries(j,1)) ) THEN
+            aentries(j,2) = AUX(i,itypes)
+            EXIT
+          ENDIF
         ENDDO
-        !
-        IF( k>0 ) THEN
-          !The same "type" was given to atoms of different species
-          !Display a warning
-          nwarn = nwarn+1
-          CALL ATOMSK_MSG(3718,(/""/),(/0.d0/))
-        ENDIF
-      ENDIF
+      ENDDO
+      !Parse aentries to check if two different species have the same "type"
+      DO i=1,SIZE(aentries,1)
+        DO j=i+1,SIZE(aentries,1)
+          IF( NINT(aentries(i,2))==NINT(aentries(j,2)) ) THEN
+            !Atoms of species #i and #j have different species but same type: save their species and exit loop
+            newformat=""
+            zone=""
+            CALL ATOMSPECIES(aentries(i,1),newformat(1:2))
+            CALL ATOMSPECIES(aentries(j,1),zone(1:2))
+            nwarn=nwarn+1
+            CALL ATOMSK_MSG(3718,(/newformat,zone/),(/aentries(i,2)/))
+            EXIT
+          ENDIF
+        ENDDO
+      ENDDO
+      !
     ENDIF
   ENDIF
   !
 ENDIF
+IF(ALLOCATED(aentries)) DEALLOCATE(aentries)
 !
 !
 !

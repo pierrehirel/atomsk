@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 20 March 2025                                    *
+!* Last modification: P. Hirel - 02 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -2861,7 +2861,12 @@ CASE(3717)
   msg = TRIM(ADJUSTL(warnmsg))//" Zelle hat eine von Null verschiedene elektrische Ladung: Q_total = "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(3718)
-  msg = TRIM(ADJUSTL(warnmsg))//" einige Atome verschiedener Arten haben den gleichen 'type'."
+  !strings(1) = atom species 1
+  !strings(2) = atom species 2
+  !reals(1) = LAMMPS atom "type"
+  WRITE(temp,*) NINT(reals(1))
+  msg = TRIM(ADJUSTL(warnmsg))//" "//TRIM(ADJUSTL(strings(1)))//" und "//TRIM(ADJUSTL(strings(2)))// &
+      & " Atomen haben den gleichen 'type' ("//TRIM(ADJUSTL(temp))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Sie können die Option '-remove-property type' verwenden, um Atomtypen zu entfernen,"
   CALL DISPLAY_MSG(1,msg,logfile)
