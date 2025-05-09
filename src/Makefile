@@ -120,7 +120,7 @@ ifndef MPATH
   MPATH=$(INSTPATH)/share/man/man1
 endif
 ifndef CONFPATH
-  CONFPATH=/etc
+  CONFPATH=$(INSTPATH)/etc
 endif
 
 # Name for the tar.gz archive (do NOT add extension like .tar.gz)
@@ -288,6 +288,7 @@ install:
 	@gzip -c ../man/atomsk >$(MPATH)/atomsk.1.gz
 	@echo "  ..> To read the manual, type 'man atomsk'."
 	@chmod +x ../tools/*.sh
+	@mkdir -p $(BINPATH)
 	@cp -f ../tools/*.sh $(BINPATH)
 	@mkdir -p $(CONFPATH)
 	@cp -rf ../etc/atomsk.conf $(CONFPATH)
