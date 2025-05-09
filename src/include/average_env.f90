@@ -28,7 +28,7 @@ MODULE avgenv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 July 2023                                     *
+!* Last modification: P. Hirel - 09 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -67,6 +67,7 @@ INTEGER:: iat, i, j, k, n
 INTEGER:: Nneighbors
 INTEGER:: NNmin=3     !minimum number of neighbours to keep
 INTEGER:: Nsites, NneighMax
+INTEGER:: progress      !To show calculation progress
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: siteindex !for each atom in P, index of its type of site in Pref
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !neighbour list
@@ -108,6 +109,13 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !!!!!$OMP& !PRIVATE(i,iat,j,k,n,alpha,tempreal,PosList,newindex,Nneighbors) &
 !!!!!$OMP& !REDUCTION(+:Tref(:,:,5))
 DO iat=1,SIZE(P,1)
+  !
+  progress = progress+1
+  !
+  IF( SIZE(P,1) > 100000 ) THEN
+    !If there are many atoms, display a fancy progress bar
+    CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(P,1))/))
+  ENDIF
   !
   !Using neighbor list, save Cartesian neighbours positions in PosList
   CALL NEIGHBOR_POS(H,P,P(iat,1:3),NeighList(iat,:),ALLOCATED(NeighList),radius,PosList)

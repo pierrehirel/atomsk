@@ -9,7 +9,7 @@ MODULE display_messages
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 09 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -158,7 +158,7 @@ WRITE(pc,'(i3)') NINT(tempreal)
 !
 IF( StrDnCase(progressbar).NE."none" ) THEN
   !
-  IF( NINT(r1) >= NINT(r2) .OR. NINT(tempreal)>=100.d0 .OR. DABS(r1-r2)<1 ) THEN
+  IF( NINT(r1) >= NINT(r2) .OR. NINT(tempreal)>=99.999d0 .OR. DABS(r1-r2)<1 ) THEN
     !Just erase the whole line (carriage return)
     WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//msg
     WRITE(*,'(a)',ADVANCE="NO") CHAR(13)

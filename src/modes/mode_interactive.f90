@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Feb. 2025                                     *
+!* Last modification: P. Hirel - 31 March 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -88,7 +88,7 @@ REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(3,3):: rot_matrix  !rotation matrix
-REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
+REAL(dp),DIMENSION(9,9):: C_tensor, S_tensor   !elastic and compliance tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, N atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Ptemp !atomic positions
@@ -112,9 +112,19 @@ IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
 IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 maxtries=5
+C11 = 0.d0
+C22 = 0.d0
+C33 = 0.d0
+C12 = 0.d0
+C13 = 0.d0
+C23 = 0.d0
+C44 = 0.d0
+C55 = 0.d0
+C66 = 0.d0
 H(:,:) = 0.d0
 Huc(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
+ S_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
 optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
             &    "alignx          ", "bind-shells     ", "bs              ", "center          ", &
@@ -317,6 +327,17 @@ DO
             WRITE(*,*) "Cij not set"
           ENDIF
           !
+        ELSEIF( temp=="Sij" ) THEN
+          IF( ANY(S_tensor(:,:).NE.0.d0) ) THEN
+            !Print elastic tensor
+            WRITE(*,*) "  Current compliance tensor Sij (GPa):"
+            DO i=1,9
+              WRITE(*,'(2X,9(f12.6,2X))') (S_tensor(i,j) , j=1,9)
+            ENDDO
+          ELSE
+            WRITE(*,*) "Sij not set"
+          ENDIF
+          !
         ELSE
           !Default: print box vectors and atom positions
           IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
@@ -359,8 +380,19 @@ DO
         nerr=0
         nwarn=0
         WrittenToFile = .FALSE.
+        C11 = 0.d0
+        C22 = 0.d0
+        C33 = 0.d0
+        C12 = 0.d0
+        C13 = 0.d0
+        C23 = 0.d0
+        C44 = 0.d0
+        C55 = 0.d0
+        C66 = 0.d0
         H(:,:) = 0.d0
         ORIENT(:,:) = 0.d0
+        C_tensor(:,:) = 0.d0
+        S_tensor(:,:) = 0.d0
         IF(ALLOCATED(comment)) DEALLOCATE(comment)
         IF(ALLOCATED(P)) DEALLOCATE(P)
         IF(ALLOCATED(S)) DEALLOCATE(S)
@@ -565,6 +597,16 @@ DO
         ENDIF
         WRITE(temp,'(f12.6)') C12
         WRITE(*,*) "  C12 = "//TRIM(ADJUSTL(temp))//" GPa"
+        IF( DABS(C13)<1.d-12 ) THEN
+          C13 = C12
+          WRITE(temp,'(f12.6)') C13
+          WRITE(*,*) "  C13 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
+        IF( DABS(C23)<1.d-12 ) THEN
+          C23 = C12
+          WRITE(temp,'(f12.6)') C23
+          WRITE(*,*) "  C23 = "//TRIM(ADJUSTL(temp))//" GPa"
+        ENDIF
         !
       CASE("C13","C31")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -632,15 +674,66 @@ DO
         WRITE(*,*) "  C66 = "//TRIM(ADJUSTL(temp))//" GPa"
         !
       CASE("Cij","Ctensor")
-        !Convert elastic constants into a proper 9x9 elastic tensor
-        CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
-        !Print elastic tensor
-        WRITE(*,*) "  Current elastic tensor Cij (GPa):"
-        DO i=1,9
-          WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
-        ENDDO
-        !Check tensor for stability criteria
-        CALL CTENSOR_STABILITY(C_tensor)
+        IF( .NOT. ANY( (/C11,C22,C33,C12,C13,C23,C44,C55,C66/)>0.d0 ) ) THEN
+          WRITE(*,*) "  Must set C11, C22, C33, C12, C13, C23, C44, C55, C66, before constructing Cij tensor."
+        ELSE
+          !Convert elastic constants into a proper 9x9 elastic tensor
+          CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
+          !Print elastic tensor
+          WRITE(*,*) "  Current elastic tensor Cij (GPa):"
+          DO i=1,9
+            WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+          ENDDO
+          !Check tensor for stability criteria
+          CALL CTENSOR_STABILITY(C_tensor)
+          !Invert elastic tensor to get compliance tensor
+          CALL INVMAT(C_tensor(1:6,1:6),S_tensor(1:6,1:6),i)
+          !If i is non-zero then the inversion failed
+          IF(i==0) THEN
+            S_tensor(7:9,1:3) = S_tensor(4:6,1:3)
+            S_tensor(7:9,4:6) = S_tensor(4:6,4:6)
+            S_tensor(1:9,7:9) = S_tensor(1:9,4:6)
+          ELSE
+            CALL ATOMSK_MSG(2815,(/"C_tensor"/),(/0.d0/))
+          ENDIF
+        ENDIF
+        !
+      CASE("Sij","Stensor","compliance")
+          IF( .NOT.ANY(S_tensor(:,:).NE.0.d0) ) THEN
+            IF( .NOT. ANY( (/C11,C22,C33,C12,C13,C23,C44,C55,C66/)>0.d0 ) ) THEN
+              WRITE(*,*) "  Must set C11, C22, C33, C12, C13, C23, C44, C55, C66, before constructing Cij tensor."
+            ELSE
+              !Convert elastic constants into a proper 9x9 elastic tensor
+              CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
+              !Print elastic tensor
+              WRITE(*,*) "  Current elastic tensor Cij (GPa):"
+              DO i=1,9
+                WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+              ENDDO
+              !Check tensor for stability criteria
+              CALL CTENSOR_STABILITY(C_tensor)
+              !Invert elastic tensor to get compliance tensor
+              CALL INVMAT(C_tensor(1:6,1:6),S_tensor(1:6,1:6),i)
+              !If i is non-zero then the inversion failed
+              IF(i==0) THEN
+                S_tensor(7:9,1:3) = S_tensor(4:6,1:3)
+                S_tensor(7:9,4:6) = S_tensor(4:6,4:6)
+                S_tensor(1:9,7:9) = S_tensor(1:9,4:6)
+              ELSE
+                CALL ATOMSK_MSG(2815,(/"C_tensor"/),(/0.d0/))
+              ENDIF
+            ENDIF
+          ENDIF
+          !
+          IF( .NOT.ANY(S_tensor(:,:).NE.0.d0) ) THEN
+            WRITE(*,*) "  S_tensor not set"
+          ELSE
+            !Print compliance tensor
+            WRITE(*,*) "  Current compliance tensor Sij (GPa):"
+            DO i=1,9
+              WRITE(*,'(2X,9(f12.6,2X))') (S_tensor(i,j) , j=1,9)
+            ENDDO
+          ENDIF
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

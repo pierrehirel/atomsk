@@ -21,7 +21,7 @@ MODULE mode_nye
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 May 2024                                      *
+!* Last modification: P. Hirel - 28 Feb. 2025                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions systems 1 and 2, construct neighbor lists       *
@@ -358,6 +358,11 @@ AUX(:,:) = 0.d0
 !
 !New Loop on the atoms
 progress=0
+!$OMP PARALLEL DO DEFAULT(SHARED) &
+!$OMP& PRIVATE(msg,iat,i,j,k,m,n,ok,Nneighbors,nb_neigh,cutoff,PosList1,PosList2,P_neigh,P_neigh_tmp,Tab_PQ) &
+!$OMP& PRIVATE(IdMat,Q_neigh,Q_plus,P_matrix,Q_matrix,Q_matrix_copy,Stemp,test_matrix,V_NN,newindex) &
+!$OMP& PRIVATE(Q_matrix_rank,work_array,LWORK,INFO,tempreal,alpha,alpha_tmp) &
+!$OMP& PRIVATE(Nlist,alpha_tensor,A_tensor,eps,Delta_G,Delta_G_matrix,Delta_G_tmp)
 DO iat=1,SIZE(P2,1)
   !
   progress = progress+1
@@ -778,6 +783,7 @@ DO iat=1,SIZE(P2,1)
   390 CONTINUE
   !
 ENDDO ! End loop on all atoms iat
+!$OMP END PARALLEL DO
 !
 !
 !

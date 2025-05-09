@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 Nov. 2024                                     *
+!* Last modification: P. Hirel - 09 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -143,6 +143,7 @@ REAL(dp),DIMENSION(:,:),INTENT(IN):: A  !array of all atom positions
 !
 LOGICAL:: frac 
 INTEGER:: i, j, k, m, n
+INTEGER:: progress      !To show calculation progress
 INTEGER,PARAMETER:: NNincrement=2  !whenever list is full, increase its size by that much
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: tempList    !list of neighbours (temporary)
 REAL(dp):: distance   !distance between two atoms
@@ -218,6 +219,14 @@ ENDIF
 !$OMP PARALLEL DO DEFAULT(SHARED) &
 !$OMP& PRIVATE(i,j,k,V,Vi,Vj,dx,shift,distance)
 DO i=1,SIZE(A,1)-1
+  !
+  progress = progress+1
+  !
+  IF( SIZE(A,1) > 10000 ) THEN
+    !If there are many atoms, display a fancy progress bar
+    CALL ATOMSK_MSG(10,(/""/),(/DBLE(progress),DBLE(SIZE(A,1))/))
+  ENDIF
+  !
   !Convert position of atom #i into fractional coordinates
   IF( frac ) THEN
     Vi(:) = Afrac(i,1:3)
