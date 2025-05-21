@@ -12,7 +12,7 @@ MODULE out_qe_pw
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Jan. 2025                                     *
+!* Last modification: P. Hirel - 20 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -202,8 +202,8 @@ DO i=1,SIZE(aentries,1)
             ENDIF
             j=j+1
           ENDIF
-          90 CONTINUE
         ENDDO
+        90 CONTINUE
         CLOSE(51)
       ENDIF
     ELSE

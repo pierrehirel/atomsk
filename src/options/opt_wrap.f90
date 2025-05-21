@@ -12,7 +12,7 @@ MODULE wrap
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 21 May 2025                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -45,6 +45,7 @@ IMPLICIT NONE
 CHARACTER(LEN=128):: msg
 LOGICAL:: doshells !treat shells?
 LOGICAL:: isreduced
+LOGICAL:: waswrapped !was an atom wrapped?
 LOGICAL,DIMENSION(:),ALLOCATABLE,INTENT(IN):: SELECT  !mask for atom list
 INTEGER:: i, j
 INTEGER:: nloop   !number of iterations
@@ -86,10 +87,11 @@ ENDIF
 !
 !Second, wrap all coordinates greater than 1
 DO i=1,SIZE(P,1) !loop on all atoms
+  waswrapped = .FALSE.
   IF( IS_SELECTED(SELECT,i) ) THEN
     DO j=1,3  !loop on xyz
       nloop=0
-      IF(P(i,j)>=1.d0 .OR. P(i,j)<0.d0) NPwrap = NPwrap+1
+      IF(P(i,j)>=1.d0 .OR. P(i,j)<0.d0) waswrapped = .TRUE.
       DO WHILE( P(i,j)>=1.d0 .AND. nloop<1000)
         P(i,j) = P(i,j)-1.d0
         IF(doshells) THEN
@@ -107,6 +109,7 @@ DO i=1,SIZE(P,1) !loop on all atoms
       ENDDO
     ENDDO
   ENDIF
+  IF(waswrapped) NPwrap = NPwrap+1
 ENDDO
 !
 !If coordinates were not originally reduced,
