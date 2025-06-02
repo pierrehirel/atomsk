@@ -15,7 +15,7 @@ MODULE out_lammps_data
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 02 June 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -135,9 +135,9 @@ IF( ALLOCATED(AUXNAMES) ) THEN
       typecol = i
       IF( Ntypes==0 ) THEN
         !Count how many different atom types are in AUX
-        !Ntypes = MAXVAL(AUX(:,typecol))
+        Ntypes = MAXVAL(AUX(:,typecol))
         CALL FIND_NSP(AUX(:,typecol),aentries)
-        Ntypes = SIZE(aentries,1)
+        !Ntypes = SIZE(aentries,1)
         !Verify that atom types are all greater than zero
         IF( ANY(AUX(:,typecol)<0.9d0) ) THEN
           !Count how many atoms have a zero "type"
@@ -450,43 +450,61 @@ IF( Nshells>0 .AND. ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
     !and were saved in array "typemass"
     !=> write that information
     DO i=1,Ntypes-Nshelltypes
-      CALL ATOMSPECIES(typemass(i,1),species)
-      WRITE(temp,'(f16.8)') typemass(i,2)*(1.d0-Smassratio)
-      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
-      msg(40:) = "# "//species//" core"
+      IF( NINT(typemass(i,1))>0 .AND. NINT(typemass(i,2))>0 ) THEN
+        CALL ATOMSPECIES(typemass(i,1),species)
+        WRITE(temp,'(f16.8)') typemass(i,2)*(1.d0-Smassratio)
+        WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+        msg(40:) = "# "//species//" core"
+      ELSE
+        WRITE(msg,*) i, "  0"
+        msg(40:) = "# undefined"
+      ENDIF
       WRITE(ofu,*) TRIM(msg)
     ENDDO
     DO i=Ntypes-Nshelltypes+1,Ntypes
-      CALL ATOMSPECIES(typemass(i,1),species)
-      WRITE(temp,'(f16.8)') typemass(i,2)*Smassratio
-      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
-      msg(40:) = "# "//species//" shell"
+      IF( NINT(typemass(i,1))>0 .AND. NINT(typemass(i,2))>0 ) THEN
+        CALL ATOMSPECIES(typemass(i,1),species)
+        WRITE(temp,'(f16.8)') typemass(i,2)*Smassratio
+        WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+        msg(40:) = "# "//species//" shell"
+      ELSE
+        WRITE(msg,*) i, "  0"
+        msg(40:) = "# undefined shell"
+      ENDIF
       WRITE(ofu,*) TRIM(msg)
     ENDDO
   ELSE
     !Atom types are undefined
     !=> set them by order of appearence in array "aentries"
     DO i=1,SIZE(aentries,1)
-      !Determine the mass of this type of atom
-      CALL ATOMSPECIES(aentries(i,1),species)
-      CALL ATOMMASS(species,smass)
-      WRITE(temp,'(f16.8)') smass*(1.d0-Smassratio)
-      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
-      msg(40:) = "# "//species//" core"
+      IF( NINT(aentries(i,1))>0 .AND. NINT(aentries(i,2))>0 ) THEN
+        !Determine the mass of this type of atom
+        CALL ATOMSPECIES(aentries(i,1),species)
+        CALL ATOMMASS(species,smass)
+        WRITE(temp,'(f16.8)') smass*(1.d0-Smassratio)
+        WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+        msg(40:) = "# "//species//" core"
+      ELSE
+        WRITE(msg,*) i, "  0"
+        msg(40:) = "# undefined"
+      ENDIF
       WRITE(ofu,*) TRIM(msg)
     ENDDO
     !Same with shells
     j = SIZE(aentries,1)
     DO i=1,SIZE(aentriesS,1)
-      IF( aentriesS(i,1)>0.1d0 ) THEN
+      IF( NINT(aentriesS(i,1))>0 .AND. NINT(aentriesS(i,2))>0 ) THEN
         j=j+1
         CALL ATOMSPECIES(aentriesS(i,1),species)
         CALL ATOMMASS(species,smass)
         WRITE(temp,'(f16.8)') smass*Smassratio
         WRITE(msg,*) j, "  ", TRIM(ADJUSTL(temp))
         msg(40:) = "# "//species//" shell"
-        WRITE(ofu,*) TRIM(msg)
+      ELSE
+        WRITE(msg,*) i, "  0"
+        msg(40:) = "# undefined"
       ENDIF
+      WRITE(ofu,*) TRIM(msg)
     ENDDO
     !
   ENDIF
@@ -498,23 +516,33 @@ ELSE
     !and were saved in array "typemass"
     !=> write that
     DO i=1,SIZE(typemass,1)
-      CALL ATOMSPECIES(typemass(i,1),species)
-      WRITE(temp,'(f16.8)') typemass(i,2)
-      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
-      msg(40:) = "# "//species
+      IF( NINT(typemass(i,1))>0 .AND. NINT(typemass(i,2))>0 ) THEN
+        CALL ATOMSPECIES(typemass(i,1),species)
+        WRITE(temp,'(f16.8)') typemass(i,2)
+        WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+        msg(40:) = "# "//species
+      ELSE
+        WRITE(msg,*) i, "  0"
+        msg(40:) = "# undefined"
+      ENDIF
       WRITE(ofu,*) TRIM(msg)
     ENDDO
   ELSE
     !Atom types are undefined
     !=> set them by order of appearence in array "aentries"
     DO i=1,SIZE(aentries,1)
-      !Determine the mass of this type of atom
-      CALL ATOMSPECIES(aentries(i,1),species)
-      CALL ATOMMASS(species,smass)
-      WRITE(temp,'(f16.8)') smass
-      !Write atom type and mass to file
-      WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
-      msg(40:) = "# "//species
+      IF( NINT(aentries(i,1))>0 .AND. NINT(aentries(i,2))>0 ) THEN
+        !Determine the mass of this type of atom
+        CALL ATOMSPECIES(aentries(i,1),species)
+        CALL ATOMMASS(species,smass)
+        WRITE(temp,'(f16.8)') smass
+        !Write atom type and mass
+        WRITE(msg,*) i, "  ", TRIM(ADJUSTL(temp))
+        msg(40:) = "# "//species
+      ELSE
+        WRITE(msg,*) i, "  0"
+        msg(40:) = "# undefined"
+      ENDIF
       WRITE(ofu,*) TRIM(msg)
     ENDDO
   ENDIF
