@@ -10,7 +10,7 @@ MODULE bindshells
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 11 June 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -28,6 +28,7 @@ MODULE bindshells
 !
 USE comv
 USE constants
+USE atoms
 USE messages
 USE neighbors
 USE files
@@ -41,6 +42,7 @@ SUBROUTINE BSHELLS_XYZ(H,P,S,AUXNAMES,AUX,SELECT)
 !
 !
 IMPLICIT NONE
+CHARACTER(LEN=2):: species
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of auxiliary prop.
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary prop. (temporary)
@@ -296,7 +298,7 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
                   !Save position of core and shell in new arrays
                   newP(NP,:) = P(icore,:)
                   newS(NS,1:3) = Stemp(1:3)
-                  newS(NS,4) = P(ishell,4)
+                  newS(NS,4) = newP(NP,4)
                   !Delete data from P (set all =0, arrays will be rewritten later)
                   P(icore,:) = 0.d0
                   P(ishell,:) = 0.d0
@@ -374,7 +376,6 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
       IF( newS(i,4)>0.1d0 ) THEN
         j=j+1
         S(j,:) = newS(i,:)
-        Nbound=Nbound+1
       ENDIF
     ENDDO
     DEALLOCATE(newS)
@@ -386,6 +387,7 @@ ENDIF
 !
 200 CONTINUE
 IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+  !Check that core-shell distances are small
   DO i=1,SIZE(P,1)
     !
     IF( VECLENGTH(S(i,1:3)-P(i,1:3)) > maxCSdistance ) THEN

@@ -1365,6 +1365,13 @@ DO ioptions=1,SIZE(options_array)
         CALL ATOMSPECIES(P(i,4),species)
         WRITE(36,'(a2,2X,3(f16.8,1X))') species, P(i,1:3)
       ENDDO
+      IF( ALLOCATED(S) ) THEN
+        DO i=1, SIZE(S,1)
+          CALL ATOMSPECIES(S(i,4),species)
+          species = TRIM(ADJUSTL(species))//"_s"
+          WRITE(36,'(a2,2X,3(f16.8,1X))') species, S(i,1:3)
+        ENDDO
+      ENDIF
       WRITE(36,'(a4)') 'alat'
       WRITE(36,'(a3)') '1.0'
       WRITE(36,'(a9)') 'supercell'
