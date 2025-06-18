@@ -10,7 +10,7 @@ MODULE mode_average
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 16 June 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -46,7 +46,7 @@ IMPLICIT NONE
 !Input
 CHARACTER(LEN=*),INTENT(IN):: listfile  !file containing the names of files to analyze
 !
-CHARACTER(LEN=128):: msg, temp
+CHARACTER(LEN=128):: msg
 CHARACTER(LEN=4096):: inputfile       !name of a file to analyze
 CHARACTER(LEN=*):: outputfile      !name of the final output file
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
@@ -98,17 +98,17 @@ first = .TRUE.
 DO
   !
   !Read the name of the file
-  READ(50,'(a128)',END=300,ERR=300) inputfile
+  READ(50,'(a)',END=300,ERR=300) inputfile
   inputfile = ADJUSTL(inputfile)
   !
-  IF( temp(1:1).NE.'#' ) THEN
+  IF( inputfile(1:1).NE.'#' ) THEN
     !Check if file actually exists
     INQUIRE(FILE=inputfile,EXIST=fileexists)
     !
     IF(fileexists) THEN
       !Read atom positions
       CALL READ_AFF(inputfile,Htemp,Ptemp,Stemp,commenttemp,AUXNAMEStemp,AUXtemp)
-      IF(nerr>0 .OR. .NOT.ALLOCATED(P)) GOTO 1000
+      IF(nerr>0 .OR. .NOT.ALLOCATED(Ptemp)) GOTO 1000
       !
       !Convert atom positions to reduced coordinates
       CALL CART2FRAC(Ptemp,Htemp)
@@ -218,8 +218,7 @@ DO
       !
     ENDIF
     !
-  ENDIF !end if temp.NE."#"
-        
+  ENDIF !end if inputfile(1:1).NE."#"
   !
 ENDDO  !loop on m files
 !
@@ -267,8 +266,8 @@ IF(nerr>0) GOTO 1000
 !
 !
 500 CONTINUE
-WRITE(temp,*) Nfiles
- comment(1) = "# Positions averaged over "//TRIM(ADJUSTL(temp))//" files"
+WRITE(msg,*) Nfiles
+ comment(1) = "# Positions averaged over "//TRIM(ADJUSTL(msg))//" files"
 !Output final system to file(s)
 CALL WRITE_AFF(outputfile,outfileformats,H,P,S,comment,AUXNAMES,AUX)
 !
