@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 02 May 2025                                      *
+!* Last modification: P. Hirel - 16 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -878,6 +878,14 @@ CASE(821)
   WRITE(temp,*) NATOMS_MAX
   msg = "          Anzahl der Atome, die Atomsk verarbeiten kann: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(822)
+  !strings(1) = name of the array that is unallocated
+  temp = ""
+  IF( LEN_TRIM(strings(1)) > 0 ) THEN
+    temp = "'"//TRIM(ADJUSTL(strings(1)))//"'"
+  ENDIF
+  msg = TRIM(ADJUSTL(errmsg))//" Array "//TRIM(ADJUSTL(temp))//" ist nicht zugeordnet."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -1077,14 +1085,7 @@ CASE(1814)
     msg = TRIM(ADJUSTL(errmsg))//" Datei im Format "//TRIM(ADJUSTL(strings(1)))//  &
         & " könnten nur im Modus "//TRIM(ADJUSTL(strings(2)))//" gelesen werden."
     CALL DISPLAY_MSG(1,msg,logfile)
-    msg = "    Verwendung:"
-    CALL DISPLAY_MSG(1,msg,logfile)
-    IF( LEN_TRIM(strings(3))>0 ) THEN
-      msg = TRIM(ADJUSTL(strings(3)))
-    ELSE
-      msg = "<inputfile>"
-    ENDIF
-    msg = "      atomsk --one-in-all "//TRIM(ADJUSTL(msg))//" <format> [<options>]"
+    msg = "    Bitte lesen Sie die Dokumentation."
     CALL DISPLAY_MSG(1,msg,logfile)
   ELSE
     msg = TRIM(ADJUSTL(errmsg))//" Datei im Format "//TRIM(ADJUSTL(strings(1)))//" könnten nicht gelesen werden."
@@ -1344,8 +1345,11 @@ CASE(2071)
   msg = ">>> Drehen des Systems, um die Kristallorientierung zu ändern..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2072)
-  msg = "..> System erfolgreich gedreht. Neuausrichtung:"// &
+  msg = "..> System erfolgreich gedreht."
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//" Neuausrichtung:"// &
       & TRIM(ADJUSTL(strings(1)))//" "//TRIM(ADJUSTL(strings(2)))//" "//TRIM(ADJUSTL(strings(3)))
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2073)
   !strings(1) = file containing properties
@@ -2525,9 +2529,14 @@ CASE(2761)
   msg = TRIM(ADJUSTL(warnmsg))//" Auswahl kann nicht geändert werden, da zuvor keine Auswahl definiert wurde."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2762)
-  !strings(1) = elastic tensor stability criterion
-  msg = TRIM(ADJUSTL(warnmsg))//" das Kriterium der elastischen Tensorstabilität ist nicht erfüllt: "//TRIM(ADJUSTL(strings(1)))
-  CALL DISPLAY_MSG(1,msg,logfile)
+  !strings(:) = stability criteria that are not satisfied
+  DO i=1,SIZE(strings)
+    IF( LEN_TRIM(strings(i))>0 ) THEN
+      msg = TRIM(ADJUSTL(warnmsg))//" das Kriterium der elastischen Tensorstabilität ist nicht erfüllt: " &
+          & //TRIM(ADJUSTL(strings(i)))
+      CALL DISPLAY_MSG(1,msg,logfile)
+    ENDIF
+  ENDDO
 CASE(2763)
   msg = TRIM(ADJUSTL(warnmsg))//" Modulo ist gleich 1 und wählt alle Atome aus."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -3348,6 +3357,8 @@ CASE(4079)
 CASE(4080)
   msg = "..> Sortieren von Atomen des zweiten Systems..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4081)
+  msg = "..> Erstellen einer Schablonenkörnung..."
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"
   WRITE(*,'(a39)',ADVANCE='NO') " Gittertyp (sc,bcc,fcc,dia,rs,per): "

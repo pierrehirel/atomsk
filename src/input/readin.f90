@@ -36,7 +36,7 @@ MODULE readin
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 Aug. 2024                                     *
+!* Last modification: P. Hirel - 16 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -224,13 +224,13 @@ CASE('xyz')
 !
 ! File formats that were recognized but cannot be read by this module
 CASE('pwo')
-  !These files can only be read with the mode "--one-in-all"
+  !These files can only be read with the mode "--unfold"
   nerr = nerr+1
-  CALL ATOMSK_MSG(1814,(/character(4096)::"PWscf output","one-in-all",TRIM(inputfile)/),(/0.d0/))
+  CALL ATOMSK_MSG(1814,(/character(4096)::"PWscf output","unfold",TRIM(inputfile)/),(/0.d0/))
 CASE('vout')
   nerr = nerr+1
-  !These files can only be read with the mode "--one-in-all"
-  CALL ATOMSK_MSG(1814,(/character(4096)::"VASP OUTCAR ","one-in-all","OUTCAR"/),(/0.d0/))
+  !These files can only be read with the mode "--unfold"
+  CALL ATOMSK_MSG(1814,(/character(4096)::"VASP OUTCAR ","unfold","OUTCAR"/),(/0.d0/))
 !
 !
 CASE DEFAULT

@@ -25,6 +25,9 @@ Converts LAMMPS data files (*.lmp) for "atom_style charge".
 lmp_charge2atom.sh
 Converts LAMMPS data files (*.lmp) for "atom_style atomic".
 
+lmp_nebfinal.sh
+Converts LAMMPS data files (*.lmp) into final image for NEB calculation.
+
 lmp_ortho2tri.sh
 Converts LAMMPS data files (*.lmp) into triclinic boxes.
 

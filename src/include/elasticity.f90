@@ -9,7 +9,7 @@ MODULE elasticity
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 01 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -26,7 +26,8 @@ MODULE elasticity
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
 !* ELAST2TENSOR        converts from Voigt notation to full elastic tensor        *
-!* CHECK_CTENSOR       checks if an elastic tensor is symmetric                   *
+!* CTENSOR_SYMMETRIC   checks if an elastic tensor is symmetric                   *
+!* CTENSOR_STABILITY   checks if elastic tensor complies with stability criteria  *
 !* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
 !* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
 !* ROTELAST            rotates a 9x9 matrix                                       *
@@ -84,12 +85,11 @@ END SUBROUTINE ELAST2TENSOR
 !
 !
 !********************************************************
-!  CHECK_CTENSOR
+!  CTENSOR_SYMMETRIC
 !  This subroutine checks if an elastic tensor is
 !  symmetric.
 !********************************************************
-!
-SUBROUTINE CHECK_CTENSOR(C_tensor,status)
+SUBROUTINE CTENSOR_SYMMETRIC(C_tensor,status)
 !
 IMPLICIT NONE
 INTEGER:: i, j
@@ -106,7 +106,59 @@ DO i=2,9
   ENDDO
 ENDDO
 !
-END SUBROUTINE CHECK_CTENSOR
+END SUBROUTINE CTENSOR_SYMMETRIC
+!
+!
+!
+!
+!********************************************************
+!  CTENSOR_STABILITY
+!  This subroutine checks if an elastic tensor complies
+!  with stability criteria, i.e.:
+!    C11>C12, Cii>0,
+!    Cij² > Cii*Cjj
+!********************************************************
+SUBROUTINE CTENSOR_STABILITY(C_tensor,criteria)
+!
+CHARACTER(LEN=32):: temp
+INTEGER:: i, j, n
+CHARACTER(LEN=32),DIMENSION(9):: criteria  !criteria that are not satisfied
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
+!
+criteria(:) = ""
+n=0
+!
+!First check that all components are positive
+DO i=1,6
+  IF( C_tensor(i,i)<=0.d0 ) THEN
+    n=n+1
+    WRITE(temp,'(2i1)') i, i
+    criteria(n) = "C"//TRIM(ADJUSTL(temp))//" > 0"
+  ENDIF
+ENDDO
+!Then check that C11>C12
+IF( C_tensor(1,1) < DABS(C_tensor(1,2)) ) THEN
+  n=n+1
+  criteria(n) = "C11 > |C12|"
+ENDIF
+!Finally check that Cij < Cii*Cjj
+DO i=1,5
+  DO j=i+1,6
+    IF( C_tensor(i,j)**2 > C_tensor(i,i)*C_tensor(j,j) ) THEN
+      n=n+1
+      IF( n<SIZE(criteria) ) THEN
+        WRITE(temp,'(2i1)') i, i
+        criteria(n) = "C"//TRIM(ADJUSTL(temp))
+        WRITE(temp,'(2i1)') j, j
+        criteria(n) = TRIM(ADJUSTL(criteria(n)))//" * C"//TRIM(ADJUSTL(temp))
+        WRITE(temp,'(2i1)') i, j
+        criteria(n) = "(C"//TRIM(ADJUSTL(temp))//")² < "//TRIM(ADJUSTL(criteria(n)))
+      ENDIF
+    ENDIF
+  ENDDO
+ENDDO
+!
+END SUBROUTINE CTENSOR_STABILITY
 !
 !
 !********************************************************

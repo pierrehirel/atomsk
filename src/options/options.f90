@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 Feb. 2025                                     *
+!* Last modification: P. Hirel - 27 June 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,6 +57,7 @@ USE comv
 USE constants
 USE strings
 USE crystallography
+USE elasticity
 USE exprev
 USE messages
 USE files
@@ -1497,7 +1498,7 @@ DO ioptions=1,SIZE(options_array)
       GOTO 1000
     ENDIF
     !Check if tensor is symmetric, i.e. Cij = Cji
-    CALL CHECK_CTENSOR(C_tensor,i)
+    CALL CTENSOR_SYMMETRIC(C_tensor,i)
     IF(i.NE.0) THEN
       nwarn=nwarn+1
       CALL ATOMSK_MSG(2740,(/""/),(/0.d0/))

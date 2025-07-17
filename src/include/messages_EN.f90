@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 May 2025                                      *
+!* Last modification: P. Hirel - 16 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -887,6 +887,14 @@ CASE(821)
   WRITE(temp,*) NATOMS_MAX
   msg = "          Maximum number of atoms that Atomsk can handle: "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(822)
+  !strings(1) = name of the array that is unallocated
+  temp = ""
+  IF( LEN_TRIM(strings(1)) > 0 ) THEN
+    temp = "'"//TRIM(ADJUSTL(strings(1)))//"'"
+  ENDIF
+  msg = TRIM(ADJUSTL(errmsg))//" array "//TRIM(ADJUSTL(temp))//" is not allocated."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -1080,20 +1088,13 @@ CASE(1813)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(1814)
   !strings(1) = name of file format
-  !strings(2) = name of mode to use to read this file format
+  !strings(2) = name of mode to use to read this file format (empty=file can't be read)
   !strings(3) = name of input file
   IF( LEN_TRIM(strings(2))>0 ) THEN
     msg = TRIM(ADJUSTL(errmsg))//" files in "//TRIM(ADJUSTL(strings(1)))//  &
         & " format can only be read with the mode '--"//TRIM(ADJUSTL(strings(2)))//"'."
     CALL DISPLAY_MSG(1,msg,logfile)
-    msg = "    Usage:"
-    CALL DISPLAY_MSG(1,msg,logfile)
-    IF( LEN_TRIM(strings(3))>0 ) THEN
-      msg = TRIM(ADJUSTL(strings(3)))
-    ELSE
-      msg = "<inputfile>"
-    ENDIF
-    msg = "      atomsk --one-in-all "//TRIM(ADJUSTL(msg))//" <format> [<options>]"
+    msg = "    Please read the documentation."
     CALL DISPLAY_MSG(1,msg,logfile)
   ELSE
     msg = TRIM(ADJUSTL(errmsg))//" files in "//TRIM(ADJUSTL(strings(1)))//" format cannot be read."
@@ -1351,8 +1352,13 @@ CASE(2071)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2072)
   !strings(1:3) = Miller indices for new orientation
-  msg = "..> System was successfully rotated, new orientation: "// &
+  msg = "..> System was successfully rotated"
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//", new orientation: "// &
       & TRIM(ADJUSTL(strings(1)))//" "//TRIM(ADJUSTL(strings(2)))//" "//TRIM(ADJUSTL(strings(3)))
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2073)
   !strings(1) = file containing properties
@@ -2524,9 +2530,14 @@ CASE(2761)
   msg = TRIM(ADJUSTL(warnmsg))//" cannot modify selection because no selection was previously defined."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2762)
-  !strings(1) = elastic tensor stability criterion
-  msg = TRIM(ADJUSTL(warnmsg))//" elastic tensor does not comply to stability criterion: "//TRIM(ADJUSTL(strings(1)))
-  CALL DISPLAY_MSG(1,msg,logfile)
+  !strings(:) = stability criteria that are not satisfied
+  DO i=1,SIZE(strings)
+    IF( LEN_TRIM(strings(i))>0 ) THEN
+      msg = TRIM(ADJUSTL(warnmsg))//" elastic tensor does not comply to stability criterion: " &
+          & //TRIM(ADJUSTL(strings(i)))
+      CALL DISPLAY_MSG(1,msg,logfile)
+    ENDIF
+  ENDDO
 CASE(2763)
   msg = TRIM(ADJUSTL(warnmsg))//" modulo is equal to 1, selecting all atoms."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -3320,6 +3331,9 @@ CASE(4079)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4080)
   msg = "..> Sorting atoms of the second system..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4081)
+  msg = "..> Constructing template grain..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"

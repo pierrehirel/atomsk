@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 May 2025                                      *
+!* Last modification: P. Hirel - 16 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -888,6 +888,14 @@ CASE(821)
   WRITE(temp,*) NATOMS_MAX
   msg = "            Nombre maximal d'atomes que Atomsk peut traiter : "//TRIM(ADJUSTL(temp))
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(822)
+  !strings(1) = name of the array that is unallocated
+  temp = ""
+  IF( LEN_TRIM(strings(1)) > 0 ) THEN
+    temp = "'"//TRIM(ADJUSTL(strings(1)))//"'"
+  ENDIF
+  msg = TRIM(ADJUSTL(errmsg))//" le tableau "//TRIM(ADJUSTL(temp))//" n'est pas alloué."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 ! 900- 999: DEBUG MESSAGES
 CASE(999)
@@ -1088,14 +1096,7 @@ CASE(1814)
     msg = TRIM(ADJUSTL(errmsg))//" les fichiers au format "//TRIM(ADJUSTL(strings(1)))//  &
         & " ne peuvent être lus que dans le mode "//TRIM(ADJUSTL(strings(2)))//"."
     CALL DISPLAY_MSG(1,msg,logfile)
-    msg = "    Utilisation :"
-    CALL DISPLAY_MSG(1,msg,logfile)
-    IF( LEN_TRIM(strings(3))>0 ) THEN
-      msg = TRIM(ADJUSTL(strings(3)))
-    ELSE
-      msg = "<inputfile>"
-    ENDIF
-    msg = "      atomsk --one-in-all "//TRIM(ADJUSTL(msg))//" <format> [<options>]"
+    msg = "    Veuillez lire la documentation."
     CALL DISPLAY_MSG(1,msg,logfile)
   ELSE
     msg = TRIM(ADJUSTL(errmsg))//" les fichiers au format "//TRIM(ADJUSTL(strings(1)))//" ne peuvent pas être lus."
@@ -1364,8 +1365,13 @@ CASE(2071)
   msg = ">>> Rotation du système pour changer l'orientation cristallographique..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2072)
-  msg = "..> Le système a bien été tourné, nouvelle orientation : "// &
+  msg = "..> Le système a bien été tourné"
+  IF( LEN_TRIM(strings(1))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//", nouvelle orientation : "// &
       & TRIM(ADJUSTL(strings(1)))//" "//TRIM(ADJUSTL(strings(2)))//" "//TRIM(ADJUSTL(strings(3)))
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2073)
   !strings(1) = file containing properties
@@ -2590,9 +2596,14 @@ CASE(2761)
   msg = TRIM(ADJUSTL(warnmsg))//" impossible de modifier la sélection, car aucune sélection n'a été définie précédemment."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2762)
-  !strings(1) = elastic tensor stability criterion
-  msg = TRIM(ADJUSTL(warnmsg))//" le tenseur élastique ne respecte pas ce critère de stabilité : "//TRIM(ADJUSTL(strings(1)))
-  CALL DISPLAY_MSG(1,msg,logfile)
+  !strings(:) = stability criteria that are not satisfied
+  DO i=1,SIZE(strings)
+    IF( LEN_TRIM(strings(i))>0 ) THEN
+      msg = TRIM(ADJUSTL(warnmsg))//" le tenseur élastique ne respecte pas ce critère de stabilité : " &
+          & //TRIM(ADJUSTL(strings(i)))
+      CALL DISPLAY_MSG(1,msg,logfile)
+    ENDIF
+  ENDDO
 CASE(2763)
   msg = TRIM(ADJUSTL(warnmsg))//" le modulo est égal à 1, sélection de tous les atomes."
   CALL DISPLAY_MSG(1,msg,logfile)
@@ -3385,6 +3396,8 @@ CASE(4079)
 CASE(4080)
   msg = "..> Tri des atomes du second système..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4081)
+  msg = "..> Construction du grain modèle..."
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "
