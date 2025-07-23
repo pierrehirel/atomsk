@@ -16,7 +16,7 @@ MODULE readconf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 23 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -150,6 +150,12 @@ DO
       !change error text colour
       IF( colourtext ) THEN
         colourerr = TRIM(temp(13:))
+      ENDIF
+    !
+    CASE("colour_prompt","color_prompt")
+      !change colour of prompt in interactive mode
+      IF( colourtext ) THEN
+        colourprompt = TRIM(temp(13:))
       ENDIF
     !
     CASE("progressbar")

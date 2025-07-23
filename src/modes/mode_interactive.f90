@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 March 2025                                    *
+!* Last modification: P. Hirel - 23 July 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,6 +29,7 @@ MODULE mode_interactive
 USE comv
 USE constants
 USE crystallography
+USE elasticity
 USE messages
 USE files
 USE random
@@ -54,7 +55,10 @@ CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
 CHARACTER(LEN=32),DIMENSION(3):: create_Miller  !Miller indices for mode "create"
-CHARACTER(LEN=128):: cwd, msg, test, temp
+CHARACTER(LEN=32),DIMENSION(9):: criteria  !stability criteria not satisfied by Cij tensor
+CHARACTER(LEN=128):: cwd, msg
+CHARACTER(LEN=128):: prompt
+CHARACTER(LEN=128):: test, temp
 CHARACTER(LEN=128):: question, solution
 CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
@@ -100,6 +104,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
 !In interactive mode verbosity cannot be 0 or 2
 !If it is the case, reset it to 1
 IF(verbosity==0 .OR. verbosity==2) verbosity=1
+!
 !
 !Initialize variables
 WrittenToFile = .FALSE.
@@ -180,9 +185,14 @@ DO
     cwd = TRIM(ADJUSTL(cwd(k+1:)))
   ENDIF
   !
-  !The Atomsk prompt!
-  WRITE(temp,*) TRIM(ADJUSTL(username))//"@atomsk:"//TRIM(ADJUSTL(cwd))//"> "
-  WRITE(*,'(a)',ADVANCE='NO') TRIM(temp)//" "
+  !Define the Atomsk prompt (contains the path to current directory)
+  WRITE(prompt,*) TRIM(ADJUSTL(username))//"@atomsk:"//TRIM(ADJUSTL(cwd))//"> "
+  !Set colour for the prompt
+  prompt = COLOUR_MSG(prompt,colourprompt)
+  prompt = TRIM(prompt)//ACHAR(27)//"[0m"
+  !Display the Atomsk prompt!
+  !k = LEN_TRIM(prompt)
+  WRITE(*,'(a)',ADVANCE='NO') TRIM(prompt)//" "
   !
   !Read the instruction given by the user
   READ(*,'(a4096)',ERR=500,END=500) instruction
@@ -685,7 +695,10 @@ DO
             WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
           ENDDO
           !Check tensor for stability criteria
-          CALL CTENSOR_STABILITY(C_tensor)
+          CALL CTENSOR_STABILITY(C_tensor,criteria)
+          IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+            CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+          ENDIF
           !Invert elastic tensor to get compliance tensor
           CALL INVMAT(C_tensor(1:6,1:6),S_tensor(1:6,1:6),i)
           !If i is non-zero then the inversion failed
@@ -711,7 +724,10 @@ DO
                 WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
               ENDDO
               !Check tensor for stability criteria
-              CALL CTENSOR_STABILITY(C_tensor)
+              CALL CTENSOR_STABILITY(C_tensor,criteria)
+              IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+                CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+              ENDIF
               !Invert elastic tensor to get compliance tensor
               CALL INVMAT(C_tensor(1:6,1:6),S_tensor(1:6,1:6),i)
               !If i is non-zero then the inversion failed
@@ -1053,7 +1069,10 @@ DO
             WRITE(*,'(9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
           ENDDO
           !Check tensor for stability criteria
-          CALL CTENSOR_STABILITY(C_tensor)
+          CALL CTENSOR_STABILITY(C_tensor,criteria)
+          IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+            CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+          ENDIF
           !
         ELSEIF( ANY( command == optnames(:) ) ) THEN
           !Apply the option

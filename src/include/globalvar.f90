@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'master-2025-06-18 (Beta)'
+CHARACTER(LEN=24),PARAMETER:: version = 'master-2025-07-23 (Beta)'
 !
 !**********************************
 !*  DATA TYPES / PRECISION
@@ -67,6 +67,7 @@ INTEGER:: verbosity          !level of verbosity of the program
 !**********************************
 CHARACTER(LEN=32):: colourdef="none"               !default colour for all messages
 CHARACTER(LEN=32):: colourerr="red bold blink"     !default colour for ERROR
+CHARACTER(LEN=32):: colourprompt="bold green"      !default colour for prompt in interactive mode
 CHARACTER(LEN=32):: colourwarn="yellow bold blink" !default colour for WARNING
 CHARACTER(LEN=32):: progressbar="linear"           !default style for progress bar
 !
