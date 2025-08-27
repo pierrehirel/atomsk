@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'master-2025-07-23 (Beta)'
+CHARACTER(LEN=24),PARAMETER:: version = 'master-2025-08-27 (Beta)'
 !
 !**********************************
 !*  DATA TYPES / PRECISION

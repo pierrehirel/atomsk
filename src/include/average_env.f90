@@ -28,7 +28,7 @@ MODULE avgenv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 May 2025                                      *
+!* Last modification: P. Hirel - 27 Aug. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -63,7 +63,7 @@ IMPLICIT NONE
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 INTEGER:: NeighIndex  !index of a neighbour
-INTEGER:: iat, i, j, k, n
+INTEGER:: iat, i, j, k, m, n
 INTEGER:: Nneighbors
 INTEGER:: NNmin=3     !minimum number of neighbours to keep
 INTEGER:: Nsites, NneighMax
@@ -71,10 +71,13 @@ INTEGER:: progress      !To show calculation progress
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: siteindex !for each atom in P, index of its type of site in Pref
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !neighbour list
-REAL(dp):: alpha        !angle between two vectors
+REAL(dp):: alpha, theta  !angle between two vectors
 REAL(dp),INTENT(IN):: NeighFactor !%of tolerance in the radius for neighbor search
 REAL(dp):: radius=8.d0  !R for neighbor search: 8 A should be enough to find some neighbors in any system
 REAL(dp):: tempreal
+REAL(dp),DIMENSION(9),PARAMETER:: known_angle= &
+       & (/30.d0,45.d0,60.d0,90.d0,109.28d0,109.47122d0,120.d0,150.d0,180.d0/)
+REAL(dp),DIMENSION(3):: vector                !just a vector
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H        !cell vectors
 REAL(dp),DIMENSION(:,:),INTENT(IN):: P        !atom positions
 REAL(dp),DIMENSION(20,21,6):: Tref            !references for atoms environments (temporary)
@@ -102,6 +105,7 @@ IF( .NOT.ALLOCATED(NeighList) .OR. SIZE(NeighList,1).NE.SIZE(P,1) ) THEN
 ENDIF
 !
 !
+100 CONTINUE
 !Loop on atoms in the system
 msg = "  Parsing atoms ..."
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -258,8 +262,43 @@ ELSE
 ENDIF
 !
 !
+200 CONTINUE
+IF( ALLOCATED(Pref) ) THEN
+  !
+  !Now Pref contains the averaged relative positions of neighbors for each type of atom site
+  !For each central atom, compute angles between neighbors, and if they are close to
+  !some known/expected angles, correct them
+  !
+  DO i=1,SIZE(Pref,1)
+    !Loop on all neighbors
+    DO j=2,NINT(Pref(i,1,6))-1
+      !Loop on all other neighbors
+      DO k=j,NINT(Pref(i,1,6))
+        n=0
+        !Compute angle between neighbors #j and #k
+        alpha = ANGVEC( Pref(i,j,1:3)-Pref(i,1,1:3) , Pref(i,k,1:3)-Pref(i,1,1:3) )
+        !Check if angle alpha is close to a known value
+        DO m=1,SIZE(known_angle)
+          IF( DABS(RAD2DEG(alpha)-known_angle(m)) < 0.1d0 ) THEN
+            n=m
+            EXIT
+          ENDIF
+        ENDDO
+        IF( n>0 ) THEN
+          !Correct position of neighbor #k
+          vector(:) = Pref(i,j,1:3)-Pref(i,1,1:3)
+          tempreal = VECLENGTH( Pref(i,k,1:3)-Pref(i,1,1:3) )
+
+          Pref(i,k,1:3) = Pref(i,1,1:3) + vector(1:3)
+        ENDIF
+      ENDDO !k
+    ENDDO !j
+  ENDDO !i
+  !
+ENDIF !end if allocated(Pref)
+!
+!
 1000 CONTINUE
-!Now Pref contains the averaged relative positions of neighbors for each type of atom site
 !Write some debugging information
 ! IF( verbosity==4 ) THEN
 !   IF( ALLOCATED(Pref) .AND. SIZE(Pref,1)>0 ) THEN
