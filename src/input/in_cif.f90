@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 29 Aug. 2025                                     *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -716,7 +716,7 @@ DO !Main reading loop
           WRITE(msg,*) 'Counted symmetry operations, Nsym = ', Nsym
           CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
           !
-          IF(NSym>0) THEN
+          IF(Nsym>0) THEN
             ! There are symmetry operations to load.
             ! Allocate the transformation array in the symmetry operation module!
             ALLOCATE(symops_trf(symops_nltrf,Nsym))
@@ -867,16 +867,13 @@ IF ( Nsym>0 .AND. ALLOCATED(symops_trf) ) THEN
   DEALLOCATE(symops_trf)
   !
 ELSE
-  !No symmetry operation was defined, but a group symmetry was
-  !Apply symmetry operations of that symmetry group
-  IF( sgnumber > 1 .AND. sgnumber <= 230 .AND. ALLOCATED(symop_list) .AND. SIZE(symop_list)>0 ) THEN
+  !No symmetry operation was defined
+  IF( sgnumber > 1 .AND. sgnumber <= 230 ) THEN
+    !A space group was defined: apply symmetry operations of that group
     CALL ATOMSK_MSG(1004,(/""/),(/0.d0/))
-    ALLOCATE(symops_trf(sgnumber,SIZE(symop_list)))
-    !Initialize symmetry operations
-    CALL SYMOPS_INIT()
     !Apply symmetry operations
     WRITE(msg,'(i3)') sgnumber
-    CALL SG_APPLY_SYMOPS(msg,H,P,S,AUXNAMES,AUX)  
+    CALL SG_APPLY_SYMOPS(msg,H,P,S,AUXNAMES,AUX)
   ENDIF
   !
 ENDIF
