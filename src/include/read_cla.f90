@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 March 2025                                    *
+!* Last modification: P. Hirel - 28 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -379,7 +379,7 @@ DO WHILE(i<SIZE(cla))
     ENDDO
     !Read name of the output file
     i=i+1
-    READ(cla(i),*,ERR=130,END=130) pfiles(1)
+    READ(cla(i),'(a128)',ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
   ELSEIF(clarg=='--normal' .OR. clarg=="convert") THEN
@@ -699,7 +699,7 @@ DO WHILE(i<SIZE(cla))
       j = SCAN(options_array(ioptions),'/')
     ENDDO
   !
-  ELSEIF(clarg=="-cell" .OR. clarg=="-box") THEN
+  ELSEIF(clarg=="-cell" .OR. clarg=="-box" .OR. clarg=="-change_cell" .OR. clarg=="-change_box") THEN
     ioptions = ioptions+1
     options_array(ioptions) = "-cell"
     !Read operation to perform (add, rm, set)
@@ -719,8 +719,8 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(temp))
     SELECT CASE(temp)
-    CASE( "H1","H2","H3",'x','X','y','Y','z','Z',"xy","XY","xz","XZ","yx","YX","yz","YZ", &
-        & "zx","ZX","zy","ZY","xyz","XYZ","all","ALL")
+    CASE( "H1","H2","H3",'x','X','y','Y','z','Z',"xx","XX","yy","YY","zz","ZZ", &
+        & "xy","XY","xz","XZ","yx","YX","yz","YZ","zx","ZX","zy","ZY","xyz","XYZ","all","ALL")
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     CASE DEFAULT
       GOTO 120
