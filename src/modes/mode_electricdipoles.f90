@@ -21,7 +21,7 @@ MODULE edm
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Aug. 2024                                     *
+!* Last modification: P. Hirel - 01 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -232,7 +232,7 @@ DO i=1,SIZE(P,1)
   totpola(:) = totpola(:) + AUX(i,qcol)*P(i,1:3)
   IF(qscol>0 .AND. NINT(S(i,4)).NE.0) totpola(:) = totpola(:) + AUX(i,qscol)*S(i,1:3)
 ENDDO
-CALL VOLUME_PARA(H,Volume)
+Volume = VOLUME_PARA(H)
 totpola(:) = totpola(:)/Volume
 !
 !Write it to a file

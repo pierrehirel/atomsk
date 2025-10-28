@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 July 2025                                     *
+!* Last modification: P. Hirel - 08 Sept. 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -582,6 +582,7 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=32):: errmsg, warnmsg
 CHARACTER(LEN=256):: msg  !The message to be displayed
 CHARACTER(LEN=256):: temp, temp1, temp2, temp3, temp4
+CHARACTER(LEN=256),DIMENSION(4):: footer
 CHARACTER(LEN=*),DIMENSION(:):: strings !Character strings that may be part of the message
 INTEGER:: i, j
 INTEGER,INTENT(IN):: imsg  !index of message to display
@@ -601,6 +602,7 @@ CASE(1)
   !nerr and nwarn are global variables
   !reals(1) = total time
   !reals(2) = CPU time
+  footer(:) = ""
   msg = "\o/ Le programme s'est terminé avec succès !"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(temp,"(f30.3)") reals(1)
@@ -609,26 +611,22 @@ CASE(1)
            & " s.; temps CPU : "//TRIM(ADJUSTL(temp2))//" s."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   IF( nwarn>0 .OR. nerr>0 ) THEN
-    !In case of warning or error, display a big box
-    msg = " ___________________________________________________"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    !In case of warning or error, display them
     IF( nwarn>0 ) THEN
       WRITE(temp,*) nwarn
       temp = ADJUSTL(temp)
-      msg = "|  /!\ ALERTES : "//TRIM(temp)
-      msg = msg(1:52)//"|"
-      CALL DISPLAY_MSG(verbosity,msg,logfile)
+      footer(2)(4:) = "/!\ ALERTES : "//TRIM(temp)
     ENDIF
     IF( nerr>0 ) THEN
       WRITE(temp,*) nerr
       temp = ADJUSTL(temp)
-      msg = COLOUR_MSG("X!X ERREURS : ",colourerr)
-      msg = "|  "//TRIM(ADJUSTL(msg))//"   "//TRIM(temp)
-      msg = TRIM(msg)//"                               |"
-      CALL DISPLAY_MSG(verbosity,msg,logfile)
+      footer(3)(4:) = COLOUR_MSG("X!X ERREURS : ",colourerr)
+      footer(3) = TRIM(footer(3))//"   "//TRIM(temp)
     ENDIF
-    msg = "|___________________________________________________|"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    CALL DRAW_BOX(footer,headerwidth,headerstyle)
+    DO i=1,SIZE(footer)
+      CALL DISPLAY_MSG(verbosity,footer(i),logfile)
+    ENDDO
   ENDIF
   !
 CASE(2)
@@ -1227,21 +1225,21 @@ CASE(2061)
       SELECT CASE(strings(2))
       CASE("x","X")
         IF( reals(1)>0.1d0 ) THEN
-          j=-1
-        ELSEIF( reals(1)<0.1d0 ) THEN
           j=1
+        ELSEIF( reals(1)<0.1d0 ) THEN
+          j=-1
         ENDIF
       CASE("y","Y")
         IF( reals(2)>0.1d0 ) THEN
-          j=-1
-        ELSEIF( reals(2)<0.1d0 ) THEN
           j=1
+        ELSEIF( reals(2)<0.1d0 ) THEN
+          j=-1
         ENDIF
       CASE("z","Z")
         IF( reals(3)>0.1d0 ) THEN
-          j=-1
-        ELSEIF( reals(3)<0.1d0 ) THEN
           j=1
+        ELSEIF( reals(3)<0.1d0 ) THEN
+          j=-1
         ENDIF
       END SELECT
     ENDIF

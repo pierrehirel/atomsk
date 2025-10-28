@@ -11,7 +11,7 @@ MODULE orthocell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 June 2023                                     *
+!* Last modification: P. Hirel - 01 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -358,7 +358,7 @@ IF( aligned(1) .AND. aligned(2) .AND. aligned(3) ) THEN
   !
 ELSE
   !Estimate density of old cell
-  CALL VOLUME_PARA(H,vlen)
+  vlen = VOLUME_PARA(H)
   !Estimate new number of particles = (density of old cell) * (volume of new cell)
   vlen = ( DBLE(SIZE(P,1)) / vlen ) * DABS(uv(1,1)*uv(2,2)*uv(3,3))
   WRITE(msg,*) "Estimated new number of atoms : ", vlen

@@ -13,7 +13,7 @@ MODULE in_mbpp_coorat
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 March 2014                                    *
+!* Last modification: P. Hirel - 01 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -199,7 +199,7 @@ IF(fileexists) THEN
         H(:,:) = a0*H(:,:)
       ELSE
         !Compute current volume of H
-        CALL VOLUME_PARA(H,VH)
+        VH = VOLUME_PARA(H)
         !scale cell vectors
         H(:,:) = ( (Vcell/VH)**(1.d0/3.d0) ) * H(:,:)
       ENDIF

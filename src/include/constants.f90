@@ -9,7 +9,7 @@ MODULE constants
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Nov. 2022                                     *
+!* Last modification: P. Hirel - 03 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,9 +42,9 @@ REAL(dp),DIMENSION(3,3),PARAMETER:: Id_Matrix = &
 !
 !General
 REAL(dp),PARAMETER:: kB       = 1.3806504d-23            !Boltzmann's constant (J/K)
-REAL(dp),PARAMETER:: h_planck = 6.6260693d-34            !Plank's constant (kg.m²/s)
+REAL(dp),PARAMETER:: h_planck = 6.62607015d-34           !Plank's constant (kg.m²/s)
 REAL(dp),PARAMETER:: h_bar    = h_planck/(2.d0*pi)       !Reduced Plank's constant (kg.m²/s)
-REAL(dp),PARAMETER:: Navo     = 6.02214179d23            !Avogadro constant (/mol)
+REAL(dp),PARAMETER:: Navo     = 6.022140857d23           !Avogadro constant (/mol)
 REAL(dp),PARAMETER:: Temp_0K  = -273.15d0                !Absolute zero of temperature (°C)
 !
 !Electromagnetism

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 16 July 2025                                     *
+!* Last modification: P. Hirel - 08 Sept. 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1207,21 +1207,21 @@ CASE(2061)
       SELECT CASE(strings(2))
       CASE("x","X")
         IF( reals(1)>0.1d0 ) THEN
-          j=-1
-        ELSEIF( reals(1)<0.1d0 ) THEN
           j=1
+        ELSEIF( reals(1)<0.1d0 ) THEN
+          j=-1
         ENDIF
       CASE("y","Y")
         IF( reals(2)>0.1d0 ) THEN
-          j=-1
-        ELSEIF( reals(2)<0.1d0 ) THEN
           j=1
+        ELSEIF( reals(2)<0.1d0 ) THEN
+          j=-1
         ENDIF
       CASE("z","Z")
         IF( reals(3)>0.1d0 ) THEN
-          j=-1
-        ELSEIF( reals(3)<0.1d0 ) THEN
           j=1
+        ELSEIF( reals(3)<0.1d0 ) THEN
+          j=-1
         ENDIF
       END SELECT
     ENDIF

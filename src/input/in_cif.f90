@@ -15,7 +15,7 @@ MODULE in_cif
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 29 Aug. 2025                                     *
+!* Last modification: P. Hirel - 24 Sept. 2025                                    *
 !**********************************************************************************
 !* Note on how Biso and Usio parameters are handled (by J. Barthel)               *
 !*     The data is stored in Biso form, thus Uiso input is translated here to     *
@@ -48,6 +48,7 @@ USE comv
 USE constants
 USE messages
 USE files
+USE strings
 USE subroutines
 USE symops
 !
@@ -306,7 +307,7 @@ DO !Main reading loop
       ENDDO
       temp2 = ADJUSTL(temp2)
       !Remove blank spaces if any
-      CALL STR_RMSPACE(temp2)
+      CALL STR_CLEAN(temp2," ")
       !Transform H-M symbol into a space group number
       CALL SG_NAMGETNUM(temp2,sgnumber)
     ENDIF
@@ -743,35 +744,8 @@ DO !Main reading loop
             ! Read line
             READ(30,'(a128)',ERR=800,END=800) temp
             temp = ADJUSTL(temp)
-            !Remove quotes
-            j = SCAN(temp,"'")   !position of (eventual) first quote sign
-            DO WHILE (j>0)
-              temp(j:j) = " "
-              temp = ADJUSTL(temp)
-              j = SCAN(temp,"'")  !position of the second quote sign
-              !Remove spaces inside the quotes
-              k = SCAN(temp(1:j)," ")
-              DO WHILE(k>0)
-                temp = temp(1:k-1)//TRIM(temp(k+1:))
-                j = SCAN(temp,"'")
-                k = SCAN(temp(1:j)," ")
-              ENDDO
-              j = SCAN(temp,"'")
-            ENDDO
-            j = SCAN(temp,'"')   !position of (eventual) first quote sign
-            DO WHILE (j>0)
-              temp(j:j) = " "
-              temp = ADJUSTL(temp)
-              j = SCAN(temp,'"')  !position of the second quote sign
-              !Remove spaces inside the quotes
-              k = SCAN(temp(1:j)," ")
-              DO WHILE(k>0)
-                temp = temp(1:k-1)//TRIM(temp(k+1:))
-                j = SCAN(temp,'"')
-                k = SCAN(temp(1:j)," ")
-              ENDDO
-              j = SCAN(temp,'"')
-            ENDDO
+            !Remove quotes and spaces
+            CALL STR_CLEAN(temp,"'"//'"')
             !Replace divisions by actual numerical values
             j = SCAN(temp,"/")
             DO WHILE (j>0)

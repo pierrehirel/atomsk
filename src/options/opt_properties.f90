@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 27 June 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -49,6 +49,7 @@ IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: propfile
 CHARACTER(LEN=2):: species
 CHARACTER(LEN=16):: miller  !Miller indices
+CHARACTER(LEN=32),DIMENSION(9):: criteria  !stability criteria not satisfied by Cij tensor
 CHARACTER(LEN=4096):: msg, msg2
 CHARACTER(LEN=4096):: temp, temp2
 CHARACTER(LEN=4096),DIMENSION(3):: func_uxyz, func_ui   !functions for displacements
@@ -80,6 +81,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P  !atom positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: S  !shell positions (if any)
 !
 !Initialize variables
+criteria(:) = ""
 areortho(:) = .TRUE.
  chargeshell = .FALSE.
 auxcol=0
@@ -247,7 +249,10 @@ DO
       ENDIF
       CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
       !Check tensor for stability criteria
-      CALL CTENSOR_STABILITY(C_tensor)
+      CALL CTENSOR_STABILITY(C_tensor,criteria)
+      IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+        CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+      ENDIF
       !Print the anisotropy ratio (A) and anisotropy factor (H)
       aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
       aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
@@ -310,7 +315,10 @@ DO
       ENDIF
       CALL ATOMSK_MSG(2074,(/TRIM(ADJUSTL(msg))/),(/0.d0/))
       !Check tensor for stability criteria
-      CALL CTENSOR_STABILITY(C_tensor)
+      CALL CTENSOR_STABILITY(C_tensor,criteria)
+      IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+        CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+      ENDIF
       !Print the anisotropy ratio (A) and anisotropy factor (H)
       aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
       aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
@@ -908,41 +916,6 @@ GOTO 1000
 !
 !
 END SUBROUTINE READ_PROPERTIES
-!
-!
-!
-SUBROUTINE CTENSOR_STABILITY(C_tensor)
-!
-CHARACTER(LEN=32):: temp, msg
-INTEGER:: i, j
-REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
-!
-IF( C_tensor(1,1) < DABS(C_tensor(1,2)) ) THEN
-  msg = "C11 > |C12|"
-  CALL ATOMSK_MSG(2762,(/msg/),(/0.d0/))
-ENDIF
-DO i=1,6
-  IF( C_tensor(i,i)<=0.d0 ) THEN
-    WRITE(temp,'(2i1)') i, i
-    msg = "C"//TRIM(ADJUSTL(temp))//" > 0"
-    CALL ATOMSK_MSG(2762,(/msg/),(/0.d0/))
-  ENDIF
-  DO j=i,6
-    IF( j>i ) THEN
-      IF( C_tensor(i,j)**2 > C_tensor(i,i)*C_tensor(j,j) ) THEN
-        WRITE(temp,'(2i1)') i, i
-        msg = "C"//TRIM(ADJUSTL(temp))
-        WRITE(temp,'(2i1)') j, j
-        msg = TRIM(ADJUSTL(msg))//" * C"//TRIM(ADJUSTL(temp))
-        WRITE(temp,'(2i1)') i, j
-        msg = "(C"//TRIM(ADJUSTL(temp))//")² < "//TRIM(ADJUSTL(msg))
-        CALL ATOMSK_MSG(2762,(/msg/),(/0.d0/))
-      ENDIF
-    ENDIF
-  ENDDO
-ENDDO
-!
-END SUBROUTINE CTENSOR_STABILITY
 !
 !
 !

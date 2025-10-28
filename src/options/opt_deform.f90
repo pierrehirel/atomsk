@@ -11,7 +11,7 @@ MODULE deform
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 09 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -103,7 +103,7 @@ END SELECT
 !Isotropic case:
 !calculate the deformation matrix
 SELECT CASE(StrDnCase(def_dir))
-CASE('x','y','z')
+CASE('x',"xx",'y',"yy",'z',"zz")
   meps(a1,a1) = 1.d0+def_strain
   meps(a2,a2) = 1.d0-def_poisson*def_strain
   meps(a3,a3) = 1.d0-def_poisson*def_strain

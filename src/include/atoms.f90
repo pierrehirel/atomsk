@@ -9,7 +9,7 @@ MODULE atoms
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 17 Jan. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -35,10 +35,167 @@ MODULE atoms
 USE comv
 USE strings
 !
-INTEGER,PARAMETER,PUBLIC :: ATOMMAXZ = 118  !maximum value of atomic number
+PUBLIC:: Element
+INTEGER,PARAMETER,PUBLIC:: ATOMMAXZ = 118  !maximum value of atomic number
+TYPE:: Element
+  CHARACTER(LEN=32):: name   !element name ("hydrogen", "helium", etc.)
+  !CHARACTER(LEN=32):: eltype !element type ("alkali metal", "noble gaz", etc.)
+  CHARACTER(LEN=2):: sp      !chemical species ("H", "He", etc.)
+  INTEGER:: atnumber         !atomic number
+  REAL(dp):: atmass          !atomic mass
+END TYPE Element
+!
 !
 !
 CONTAINS
+!
+!
+!
+SUBROUTINE INIT_ELEMENTS()
+!< Factory for creating element types
+TYPE(Element),DIMENSION(ATOMMAXZ):: Atom
+!
+! n=1
+Atom(1) = Element(name="hydrogen", sp="H", atmass=1.00794d0, atnumber=1)
+!       Atom = Element(name="deuterium", sp="D", atmass=2.014101778d0, atnumber=1)
+!       Atom = Element(name="tritium", sp="T", atmass=3.0160492675d0, atnumber=1)
+Atom(2) = Element(name="helium", sp="He", atmass=4.002602d0, atnumber=2)
+!
+! n=2
+Atom(3) = Element(name="lithium", sp="Li", atmass=6.941d0, atnumber=3)
+Atom(4) = Element(name="beryllium", sp="Be", atmass=9.012182d0, atnumber=4)
+Atom(5) = Element(name="boron", sp="B", atmass=10.811d0, atnumber=5)
+Atom(6) = Element(name="carbon", sp="C", atmass=12.0107d0, atnumber=6)
+Atom(7) = Element(name="nitrogen", sp="N", atmass=14.0067d0, atnumber=7)
+Atom(8) = Element(name="oxygen", sp="O", atmass=15.9994d0, atnumber=8)
+Atom(9) = Element(name="fluorine", sp="F", atmass=18.9984032d0, atnumber=9)
+Atom(10) = Element(name="neon", sp="Ne", atmass=20.1797d0, atnumber=10)
+!
+! n=3
+Atom(11) = Element(name="sodium", sp="Na", atmass=22.98977d0, atnumber=11)
+Atom(12) = Element(name="magnesium", sp="Mg", atmass=24.305d0, atnumber=12)
+Atom(13) = Element(name="aluminum", sp="Al", atmass=26.981538d0, atnumber=13)
+Atom(14) = Element(name="silicon", sp="Si", atmass=28.0855d0, atnumber=14)
+Atom(15) = Element(name="phosphorus", sp="P", atmass=30.973761d0, atnumber=15)
+Atom(16) = Element(name="sulfur", sp="S", atmass=32.065d0, atnumber=16)
+Atom(17) = Element(name="chlorine", sp="Cl", atmass=35.453d0, atnumber=17)
+Atom(18) = Element(name="argon", sp="Ar", atmass=39.948d0, atnumber=18)
+!
+! n=4
+Atom(19) = Element(name="potassium", sp="K", atmass=39.0983d0, atnumber=19)
+Atom(20) = Element(name="calcium", sp="Ca", atmass=40.078d0, atnumber=20)
+Atom(21) = Element(name="scandium", sp="Sc", atmass=44.95591d0, atnumber=21)
+Atom(22) = Element(name="titanium", sp="Ti", atmass=47.867d0, atnumber=22)
+Atom(23) = Element(name="vanadium", sp="V", atmass=50.9415d0, atnumber=23)
+Atom(24) = Element(name="chromium", sp="Cr", atmass=51.9961d0, atnumber=24)
+Atom(25) = Element(name="manganese", sp="Mn", atmass=54.938049d0, atnumber=25)
+Atom(26) = Element(name="iron", sp="Fe", atmass=55.845d0, atnumber=26)
+Atom(27) = Element(name="cobalt", sp="Co", atmass=58.9332d0, atnumber=27)
+Atom(28) = Element(name="nickel", sp="Ni", atmass=58.6934d0, atnumber=28)
+Atom(29) = Element(name="copper", sp="Cu", atmass=63.546d0, atnumber=29)
+Atom(30) = Element(name="zinc", sp="Zn", atmass=65.409d0, atnumber=30)
+Atom(31) = Element(name="gallium", sp="Ga", atmass=69.723d0, atnumber=31)
+Atom(32) = Element(name="germanium", sp="Ge", atmass=72.64d0, atnumber=32)
+Atom(33) = Element(name="arsenic", sp="As", atmass=74.9216d0, atnumber=33)
+Atom(34) = Element(name="selenium", sp="Se", atmass=78.96d0, atnumber=34)
+Atom(35) = Element(name="bromine", sp="Br", atmass=79.904d0, atnumber=35)
+Atom(36) = Element(name="krypton", sp="Kr", atmass=83.798d0, atnumber=36)
+!
+! n=5
+Atom(37) = Element(name="rubidium", sp="Rb", atmass=85.4678d0, atnumber=37)
+Atom(38) = Element(name="strontium", sp="Sr", atmass=87.62d0, atnumber=38)
+Atom(39) = Element(name="yttrium", sp="Y", atmass=88.90585d0, atnumber=39)
+Atom(40) = Element(name="zirconium", sp="Zr", atmass=91.224d0, atnumber=40)
+Atom(41) = Element(name="niobium", sp="Nb", atmass=92.90638d0, atnumber=41)
+Atom(42) = Element(name="molybdenum", sp="Mo", atmass=95.94d0, atnumber=42)
+Atom(43) = Element(name="technetium", sp="Tc", atmass=98d0, atnumber=43)
+Atom(44) = Element(name="ruthenium", sp="Ru", atmass=101.07d0, atnumber=44)
+Atom(45) = Element(name="rhodium", sp="Rh", atmass=102.9055d0, atnumber=45)
+Atom(46) = Element(name="palladium", sp="Pd", atmass=106.42d0, atnumber=46)
+Atom(47) = Element(name="silver", sp="Ag", atmass=107.8682d0, atnumber=47)
+Atom(48) = Element(name="cadmium", sp="Cd", atmass=112.411d0, atnumber=48)
+Atom(49) = Element(name="indium", sp="In", atmass=114.818d0, atnumber=49)
+Atom(50) = Element(name="tin", sp="Sn", atmass=118.71d0, atnumber=50)
+Atom(51) = Element(name="antimony", sp="Sb", atmass=121.76d0, atnumber=51)
+Atom(52) = Element(name="tellurium", sp="Te", atmass=127.6d0, atnumber=52)
+Atom(53) = Element(name="iodine", sp="I", atmass=126.90447d0, atnumber=53)
+Atom(54) = Element(name="xenon", sp="Xe", atmass=131.293d0, atnumber=54)
+!
+! n=6
+Atom(55) = Element(name="cesium", sp="Cs", atmass=132.90545d0, atnumber=55)
+Atom(56) = Element(name="barium", sp="Ba", atmass=137.327d0, atnumber=56)
+! Lanthanides
+Atom(57) = Element(name="lanthanum", sp="La", atmass=138.9055d0, atnumber=57)
+Atom(58) = Element(name="cerium", sp="Ce", atmass=140.116d0, atnumber=58)
+Atom(59) = Element(name="praseodymium", sp="Pr", atmass=140.90765d0, atnumber=59)
+Atom(60) = Element(name="neodymium", sp="Nd", atmass=144.24d0, atnumber=60)
+Atom(61) = Element(name="promethium", sp="Pm", atmass=145.d0, atnumber=61)
+Atom(62) = Element(name="samarium", sp="Sm", atmass=150.36d0, atnumber=62)
+Atom(63) = Element(name="europium", sp="Eu", atmass=151.964d0, atnumber=63)
+Atom(64) = Element(name="gadolinium", sp="Gd", atmass=157.25d0, atnumber=64)
+Atom(65) = Element(name="terbium", sp="Tb", atmass=158.92534d0, atnumber=65)
+Atom(66) = Element(name="dysprosium", sp="Dy", atmass=162.5d0, atnumber=66)
+Atom(67) = Element(name="holmium", sp="Ho", atmass=164.93032d0, atnumber=67)
+Atom(68) = Element(name="erbium", sp="Er", atmass=167.259d0, atnumber=68)
+Atom(69) = Element(name="thulium", sp="Tm", atmass=168.93421d0, atnumber=69)
+Atom(70) = Element(name="ytterbium", sp="Yb", atmass=173.04d0, atnumber=70)
+Atom(71) = Element(name="lutetium", sp="Lu", atmass=174.967d0, atnumber=71)
+! End of lanthanides
+Atom(72) = Element(name="hafnium", sp="Hf", atmass=178.49d0, atnumber=72)
+Atom(73) = Element(name="tantalum", sp="Ta", atmass=180.9479d0, atnumber=73)
+Atom(74) = Element(name="tungsten", sp="W", atmass=183.84d0, atnumber=74)
+Atom(75) = Element(name="rhenium", sp="Re", atmass=186.207d0, atnumber=75)
+Atom(76) = Element(name="osmium", sp="Os", atmass=190.23d0, atnumber=76)
+Atom(77) = Element(name="iridium", sp="Ir", atmass=192.217d0, atnumber=77)
+Atom(78) = Element(name="platinum", sp="Pt", atmass=195.078d0, atnumber=78)
+Atom(79) = Element(name="gold", sp="Au", atmass=196.96655d0, atnumber=79)
+Atom(80) = Element(name="mercury", sp="Hg", atmass=200.59d0, atnumber=80)
+Atom(81) = Element(name="thallium", sp="Tl", atmass=204.3833d0, atnumber=81)
+Atom(82) = Element(name="lead", sp="Pb", atmass=207.2d0, atnumber=82)
+Atom(83) = Element(name="bismuth", sp="Bi", atmass=208.98038d0, atnumber=83)
+Atom(84) = Element(name="polonium", sp="Po", atmass=209.d0, atnumber=84)
+Atom(85) = Element(name="astatine", sp="At", atmass=210.d0, atnumber=85)
+Atom(86) = Element(name="radon", sp="Rn", atmass=222.d0, atnumber=86)
+!
+!n=7
+Atom(87) = Element(name="francium", sp="Fr", atmass=223.d0, atnumber=87)
+Atom(88) = Element(name="radium", sp="Ra", atmass=226.d0, atnumber=88)
+! Actinides
+Atom(89) = Element(name="actinium", sp="Ac", atmass=227.d0, atnumber=89)
+Atom(90) = Element(name="thorium", sp="Th", atmass=232.0381d0, atnumber=90)
+Atom(91) = Element(name="protactinium", sp="Pa", atmass=231.03588d0, atnumber=91)
+Atom(92) = Element(name="uranium", sp="U", atmass=238.02891d0, atnumber=92)
+Atom(93) = Element(name="neptunium", sp="Np", atmass=237.d0, atnumber=93)
+Atom(94) = Element(name="plutonium", sp="Pu", atmass=244.d0, atnumber=94)
+Atom(95) = Element(name="americium", sp="Am", atmass=243.d0, atnumber=95)
+Atom(96) = Element(name="curium", sp="Cm", atmass=247.d0, atnumber=96)
+Atom(97) = Element(name="berkelium", sp="Bk", atmass=247.d0, atnumber=97)
+Atom(98) = Element(name="californium", sp="Cf", atmass=251.d0, atnumber=98)
+Atom(99) = Element(name="einsteinium", sp="Es", atmass=252.d0, atnumber=99)
+Atom(100) = Element(name="fermium", sp="Fm", atmass=257.d0, atnumber=100)
+Atom(101) = Element(name="mendelevium", sp="Md", atmass=258.d0, atnumber=101)
+Atom(102) = Element(name="nobelium", sp="No", atmass=259.d0, atnumber=102)
+Atom(103) = Element(name="lawrencium", sp="Lr", atmass=262.d0, atnumber=103)
+! End of actinides
+Atom(104) = Element(name="rutherfordium", sp="Rf", atmass=261.d0, atnumber=104)
+Atom(105) = Element(name="dubnium", sp="Db", atmass=262.d0, atnumber=105)
+Atom(106) = Element(name="seaborgium", sp="Sg", atmass=266.d0, atnumber=106)
+Atom(107) = Element(name="bohrium", sp="Bh", atmass=264.d0, atnumber=107)
+Atom(108) = Element(name="hassium", sp="Hs", atmass=277.d0, atnumber=108)
+Atom(109) = Element(name="meitnerium", sp="Mt", atmass=268.d0, atnumber=109)
+Atom(110) = Element(name="darmstadtium", sp="Ds", atmass=281.d0, atnumber=110)
+Atom(111) = Element(name="roentgenium", sp="Rg", atmass=272.d0, atnumber=111)
+Atom(112) = Element(name="copernicium", sp="Cn", atmass=285.d0, atnumber=112)
+Atom(113) = Element(name="nihonium", sp="Nh", atmass=286.d0, atnumber=113)
+Atom(114) = Element(name="flerovium", sp="Fl", atmass=289.d0, atnumber=114)
+Atom(115) = Element(name="moscovium", sp="Mc", atmass=289.d0, atnumber=115)
+Atom(116) = Element(name="livermorium", sp="Lv", atmass=293.d0, atnumber=116)
+Atom(117) = Element(name="tennessine", sp="Ts", atmass=294.d0, atnumber=117)
+Atom(118) = Element(name="oganesson", sp="Og", atmass=294.d0, atnumber=118)
+!
+END SUBROUTINE INIT_ELEMENTS
+!
+!
 !
 !********************************************************
 !  ATOMNUMBER

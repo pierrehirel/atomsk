@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 03 Sept. 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -108,6 +108,8 @@ fileexists = .FALSE.
 outfileformat=''
 username = ''
 pfiles(:) = ''
+headerwidth=53
+headerstyle="box"
 strlength=0
 nwarn = 0
 nerr = 0
@@ -411,7 +413,7 @@ options_array(:) = ''
 !
 !Print a nice message
 IF( verbosity>0 ) THEN
-  CALL DISPLAY_HEADER()
+  CALL DISPLAY_HEADER(headerwidth,headerstyle)
 ENDIF
 !Print message of the day
 CALL DATE_MSG()

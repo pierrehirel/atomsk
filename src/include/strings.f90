@@ -9,7 +9,7 @@ MODULE strings
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 24 Sept. 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -25,12 +25,13 @@ MODULE strings
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of functions in this file:                                                *
+!* STRLEN              determines the length of a string (incl.special char)      *
 !* REAL2TSTR           transforms a real into a string                            *
 !* STRUPCASE           converts all letters to upper case in a string             *
 !* STRDNCASE           converts all letters to lower case in a string             *
 !* CHARLONG2SHRT       convert a long file name to a shorter one                  *
 !* STR_REAL            determines if a string contains a number                   *
-!* STR_RMSPACE         removes all blank spaces in a string                       *
+!* STR_CLEAN           removes given characters and blank spaces in a string      *
 !* STR_CHAR2SPACE      replaces a character by blank space in a string            *
 !* STR2BOOL            transforms a string into a boolean value                   *
 !* BOX2DBLE            transforms a string into a real number                     *
@@ -41,6 +42,27 @@ USE comv
 !
 !
 CONTAINS
+!
+!
+!********************************************************
+!  STRLEN
+!  This function computes the length of a string
+!  that may contain special characters.
+!********************************************************
+FUNCTION STRLEN(string) RESULT(l)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*):: string
+INTEGER:: i, l
+!
+l=LEN_TRIM(string)
+DO i=1,LEN(string)
+  IF( string(i:i)==ACHAR(27) ) THEN
+    l=l+7
+  ENDIF
+ENDDO
+!
+END FUNCTION STRLEN
 !
 !
 !********************************************************
@@ -137,55 +159,81 @@ END FUNCTION StrDnCase
 FUNCTION CHARLONG2SHRT(longname) RESULT (shortname)
 !
 IMPLICIT NONE
-CHARACTER(*):: longname
+CHARACTER(*),INTENT(IN):: longname
 CHARACTER(LEN=64):: shortname
-CHARACTER(LEN=64):: part1, part2
+CHARACTER(LEN=64):: filename, folder1, folder2, folder3
+CHARACTER(LEN=4096):: path
 CHARACTER(LEN=LEN(longname)):: temp
 INTEGER:: i, j
 !
+path = ""
+filename = ""
+folder1 = ""
+folder2 = ""
+folder3 = ""
+!
 IF( LEN_TRIM(longname)>64 ) THEN
+  !Save the first folder from path
+  i = SCAN(longname,pathsep)
+  IF( i==1 ) THEN
+    !This is just the initial / in Linux/Unix path, look for second ocurrence
+    i = SCAN(longname(2:),pathsep)+1
+  ENDIF
+  IF( i>0 ) THEN
+    folder1 = longname(1:i)
+  ENDIF
   !Look for the last path separator
   i = SCAN(longname,pathsep,BACK=.TRUE.)
   IF(i>0) THEN
-    !Save file name in part2
-    part2 = longname(i:)
-    !Look for the separator before that
-    temp = longname(1:i-1)
-    i = SCAN(temp,pathsep,BACK=.TRUE.)
-    IF( i>0 .AND. i>=32 ) THEN
+    !Save file name in filename
+    IF( LEN_TRIM(longname)-i > 30 ) THEN
+      !File name is very very long: cut it to keep only first and last 10 characters
+      j = LEN_TRIM(longname)
+      filename = longname(i:i+10)//"..."//longname(j-14:j)
+    ELSE
+      filename = longname(i:)
+    ENDIF
+    !Save path
+    path = longname(1:i-1)
+    !Save the last two folder names from path
+    i = SCAN(path,pathsep,BACK=.TRUE.)
+    IF( i>0 ) THEN
+      !Save last folder name
+      folder3 = path(i:)
       !Look for the separator before that
       temp = longname(1:i-1)
       j = SCAN(temp,pathsep,BACK=.TRUE.)
-      IF( j>0 .AND. j>=32 ) THEN
-        !part2 will contain the two last folder names + file name
-        part2 = longname(j:)
-      ELSE
-        !part2 will contain the last folder name + file name
-        part2 = longname(i:)
+      IF( j>0 ) THEN
+        !Save one before last
+        folder2 = temp(j:)
       ENDIF
     ENDIF
-    !part1: look for a path separator before the 32-nd character
-    part1 = longname(1:32)
-    i = SCAN(part1,pathsep,BACK=.TRUE.)
-    IF(i>0) THEN
-      !Cut the first part at this separator
-      part1 = longname(1:i)
-    ELSE
-      !No separator => part1 will contain the first 28 characters
-      part1 = longname(1:28)
-    ENDIF
-  ELSE
-    !no path separator at all, it must be a veeeery long file name...
-    !=> part1 will contain the first 28 characters
-    !   part2 will contain the last 28 characters
-    part1 = longname(1:28)
-    i=LEN_TRIM(longname)-28
-    part2 = longname(i:)
   ENDIF
   !
-  shortname = TRIM(ADJUSTL(part1))//"..."//TRIM(ADJUSTL(part2))
+  path = ADJUSTL(path)
+  filename = ADJUSTL(filename)
+  folder1 = ADJUSTL(folder1)
+  folder2 = ADJUSTL(folder2)
+  folder3 = ADJUSTL(folder3)
+  !
+  !Make everything fit into the final 64-characters string
+  i = LEN_TRIM(folder1)+LEN_TRIM(folder2)+LEN_TRIM(folder3)
+  j = LEN_TRIM(filename)
+  IF( i+j < 60 ) THEN
+    shortname = TRIM(folder1)//"..."//TRIM(folder2)//TRIM(folder3)//TRIM(filename)
+  ELSEIF( LEN_TRIM(folder1)+LEN_TRIM(folder3)+j < 60 ) THEN
+    shortname = TRIM(folder1)//"..."//TRIM(folder3)//TRIM(filename)
+  ELSEIF( LEN_TRIM(folder3)+j < 60 ) THEN
+    shortname = "..."//TRIM(folder3)//TRIM(filename)
+  ELSEIF( LEN_TRIM(folder1)+j < 60 ) THEN
+    shortname = TRIM(folder1)//"..."//TRIM(filename)
+  ELSE
+    shortname = "..."//TRIM(filename)
+  ENDIF
+  !
   !
 ELSE
+  !"longname" is already shorter than 64 characters, no need to shorten it
   shortname = ADJUSTL(longname)
 ENDIF
 !
@@ -215,25 +263,28 @@ END FUNCTION STR_REAL
 !
 !
 !********************************************************
-! STR_RMSPACE
-! This subroutine removes all blank spaces in a string,
-!
+! STR_CLEAN
+! This subroutine removes the given characters in a
+! string, and also removes blank spaces.
 !********************************************************
-SUBROUTINE STR_RMSPACE(string)
+SUBROUTINE STR_CLEAN(string,chars)
 !
 IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: chars
 CHARACTER(LEN=*),INTENT(INOUT):: string
-INTEGER:: i
+INTEGER:: i, j
 !
 IF( LEN_TRIM(string) > 1 ) THEN
   DO i=1,LEN_TRIM(string)
-    IF( string(i:i)==" " ) THEN
-      string(i:) = string(i+1:)
-    ENDIF
+    DO j=1,LEN_TRIM(chars)
+      IF( string(i:i)==chars(j:j) .OR. string(i:i)==' ' ) THEN
+        string(i:) = string(i+1:)
+      ENDIF
+    ENDDO
   ENDDO
 ENDIF
 !
-END SUBROUTINE STR_RMSPACE
+END SUBROUTINE STR_CLEAN
 !
 !
 !
@@ -242,17 +293,17 @@ END SUBROUTINE STR_RMSPACE
 ! This subroutine parses a string, replacing some
 ! characters with a space character.
 !********************************************************
-SUBROUTINE STR_CHAR2SPACE(string,characters)
+SUBROUTINE STR_CHAR2SPACE(string,chars)
 !
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(INOUT):: string
-CHARACTER(LEN=*),INTENT(IN):: characters
+CHARACTER(LEN=*),INTENT(IN):: chars
 INTEGER:: i, j
 !
 IF( LEN_TRIM(string) > 0 ) THEN
   DO i=1,LEN_TRIM(string)
-    DO j=1,LEN_TRIM(characters)
-      IF( string(i:i)==characters(j:j) ) THEN
+    DO j=1,LEN_TRIM(chars)
+      IF( string(i:i)==chars(j:j) ) THEN
         string(i:i) = " "
       ENDIF
     ENDDO

@@ -20,7 +20,7 @@ MODULE cmpt_rdf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 01 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -264,7 +264,7 @@ ENDIF
 !At this point, rdf_sys(:,:) contains the sum of all neighbours for this system
 !It has to be normalized to the atom density
 !Compute total volume of current system
-CALL VOLUME_PARA(H,Vsystem)
+Vsystem = VOLUME_PARA(H)
 !Normalize each partial RDF for current system
 DO i=1,SIZE(pairs,1)
   !Pair of atoms (sp1,sp2): compute average density of second species

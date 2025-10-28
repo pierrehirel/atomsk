@@ -16,7 +16,7 @@ MODULE readconf
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 July 2025                                     *
+!* Last modification: P. Hirel - 03 Sept. 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -162,6 +162,18 @@ DO
       !change style of progress bar: linear, dots, rotate, inflate, bounce
       i = SCAN(temp," ")
       READ(temp(i+1:),*,END=800,ERR=800) progressbar
+    !
+    CASE("headerwidth")
+      !width of header
+      i = SCAN(temp," ")
+      READ(temp(i+1:),*,END=800,ERR=800) headerwidth
+      !Check that it is within reasonable limits
+      IF( headerwidth<48 .OR. headerwidth>256 ) headerwidth=60
+    !
+    CASE("headerstyle")
+      !change style of header: box (default), corners, dots, slash
+      i = SCAN(temp," ")
+      READ(temp(i+1:),*,END=800,ERR=800) headerstyle
     !
     !
     !Special keywords that will be treated by modes/options are ignored here

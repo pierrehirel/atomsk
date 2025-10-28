@@ -9,7 +9,7 @@ MODULE display_messages
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 May 2025                                      *
+!* Last modification: P. Hirel - 03 Sept. 2025                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -97,35 +97,106 @@ CALL DISPLAY_MSG(verbosity,msg,logfile)
 END SUBROUTINE DISPLAY_COPYRIGHT
 !
 !
+!
 !********************************************************
 ! DISPLAY_HEADER
 ! This subroutine displays the "welcome message"
-! of atomsk
+! of Atomsk
 !********************************************************
-SUBROUTINE DISPLAY_HEADER()
+SUBROUTINE DISPLAY_HEADER(w,style)
 !
 IMPLICIT NONE
-CHARACTER(LEN=128):: msg
+INTEGER,INTENT(IN):: w  !width of the header
+CHARACTER(LEN=*),INTENT(IN):: style !style of header: 'box', 'none'
+CHARACTER(LEN=256),DIMENSION(7):: header !all lines of the header
+INTEGER:: i
 !
-!Print a nice message
-msg = " ___________________________________________________"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|              ___________                          |"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|     o---o    "//COLOUR_MSG("A T O M S K","bold")
-msg = TRIM(msg)//"                          |"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|    o---o|    Version "//TRIM(ADJUSTL(version))
-msg(53:53) = "|"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|    |   |o    (C) 2010 Pierre Hirel                |"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|    o---o     https://atomsk.univ-lille.fr         |"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
-msg = "|___________________________________________________|"
-CALL DISPLAY_MSG(verbosity,msg,logfile)
+header(:) = ""
+!
+!Set up content of header
+header(2)(16:26) = "___________"
+header(3)(7:11)  = "o---o"
+header(3)(16:) = "A T O M S K"
+header(4)(6:11) = "o---o|"
+header(4)(16:) = "Version "//TRIM(ADJUSTL(version))
+header(5)(6:) = "|   |o    (C) 2010 Pierre Hirel"
+header(6)(6:) = "o---o     https://atomsk.univ-lille.fr"
+!
+CALL DRAW_BOX(header,w,style)
+!
+!Display full header
+DO i=1,SIZE(header)
+  CALL DISPLAY_MSG(verbosity,header(i),logfile)
+ENDDO
 !
 END SUBROUTINE DISPLAY_HEADER
+!
+!
+!
+!********************************************************
+! DRAW_BOX
+! Draws a box around a message
+!********************************************************
+SUBROUTINE DRAW_BOX(messg,w,style)
+!
+CHARACTER(LEN=*),DIMENSION(:):: messg !all lines of the message
+CHARACTER(LEN=*),INTENT(IN):: style !style of header: 'box', 'none'
+INTEGER:: i, j, l, m, p, w
+!
+l = SIZE(messg)  !index of last line
+!
+!Set up box according to style
+IF( style=="none" ) THEN
+  !No decoration at all
+  CONTINUE
+ELSEIF( style=="corners" ) THEN
+  !Only corners of the box
+  messg(1)(2:2) = "_"
+  messg(1)(w-1:w-1) = "_"
+  messg(2)(1:1) = "|"
+  messg(2)(w:w) = "|"
+  messg(l)(1:2) = "|_"
+  messg(l)(w-1:w) = "_|"
+ELSEIF( style=="dots" ) THEN
+  !Box with dots
+  DO i=2,w-1
+    messg(1)(i:i) = '.'
+    messg(l)(i:i) = '.'
+  ENDDO
+  DO i=2,l-1
+    p = STRLEN(messg(i))
+    m = LEN_TRIM(messg(i))
+    messg(i)(1:1) = ":"
+    messg(i)(p+w-m:p+w-m) = ":"
+  ENDDO
+  messg(l)(1:1) = ":"
+  messg(l)(w:w) = ":"
+ELSEIF( style=="slash" ) THEN
+  !Box with slash characters
+  DO i=1,w
+    messg(1)(i:i) = '/'
+    messg(l)(i:i) = '/'
+  ENDDO
+  messg(2:l)(1:2) = "//"
+  messg(2:l)(w-1:w) = "//"
+ELSE
+  !Default style (with surrounding box)
+  DO i=2,w-1
+    messg(1)(i:i) = '_'
+    messg(l)(i:i) = '_'
+  ENDDO
+  DO i=2,l-1
+    p = STRLEN(messg(i))
+    m = LEN_TRIM(messg(i))
+    messg(i)(1:1) = "|"
+    messg(i)(p+w-m:p+w-m) = "|"
+  ENDDO
+  messg(l)(1:1) = "|"
+  messg(l)(w:w) = "|"
+ENDIF
+
+END SUBROUTINE DRAW_BOX
+!
 !
 !
 !********************************************************
@@ -368,6 +439,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
 ENDIF
 !
 END SUBROUTINE DISPLAY_PROGBAR
+!
 !
 !
 !********************************************************

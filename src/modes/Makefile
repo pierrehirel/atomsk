@@ -20,6 +20,7 @@ SMO=mode_difference.f90     \
     mode_epola.f90          \
     mode_electricdipoles.f90\
     mode_rdf.f90            \
+    polyx_readparam.f90     \
     mode_polycrystal.f90    \
     mode_interpolate.f90    \
     mode_nye.f90            \

@@ -21,7 +21,7 @@ MODULE avgenv
 !* - central atom position is Pref(1,1,1:3), atomic number Pref(1,1,4)            *
 !* - number of atoms matching this type of site is in Pref(1,1,5)                 *
 !* - number of neighbours for this type of site is Nneigh=Pref(1,1,6)             *
-!* - rel.positions of neighbours in Pref(1,2:Nneigh,1:4)                          *
+!* - rel.positions of neighbours in Pref(1,n,1:4), with n=2 up to Nneigh          *
 !* Similarly, data for the second type of site is in Pref(2,:,:), and so on.      *
 !**********************************************************************************
 !* (C) February 2023 - Pierre Hirel                                               *
@@ -70,7 +70,7 @@ INTEGER:: Nsites, NneighMax
 INTEGER:: progress      !To show calculation progress
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: siteindex !for each atom in P, index of its type of site in Pref
-INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !neighbour list
+INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !neighbour list can be provided as input, or computed below
 REAL(dp):: alpha, theta  !angle between two vectors
 REAL(dp),INTENT(IN):: NeighFactor !%of tolerance in the radius for neighbor search
 REAL(dp):: radius=8.d0  !R for neighbor search: 8 A should be enough to find some neighbors in any system

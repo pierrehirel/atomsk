@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 May 2025                                      *
+!* Last modification: P. Hirel - 01 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -179,7 +179,7 @@ ENDIF
 NNeigh(:) = 0
 !Assume a continuous atom density to estimate initial size of NeighList
 !NOTE: if an atom has a greater number of neighbors the size of NeighList will be changed later
-CALL VOLUME_PARA(H,Vsystem)
+Vsystem = VOLUME_PARA(H)
 rho = DBLE(SIZE(A,1))/Vsystem
 n = MAX( 100 , CEILING(rho*1.5d0*pi*(R**3)) )
 WRITE(msg,*) "N. neighbors/atom estimated from density = ", n
@@ -413,7 +413,7 @@ NNeigh(:) = 0
 LinkedList(:) = 0
 IF(ALLOCATED(NeighList)) DEALLOCATE(NeighList)
 !Assume a continuous atom density to estimate initial size of NeighList
-CALL VOLUME_PARA(H,Vsystem)
+Vsystem = VOLUME_PARA(H)
 n = MAX( 100 , NINT((DBLE(SIZE(A,1))/Vsystem)*1.5d0*pi*(R**3))+100 )
 ALLOCATE(NeighList(SIZE(A,1),n) , STAT=i)
 IF( i>0 ) THEN

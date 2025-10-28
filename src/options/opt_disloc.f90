@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 01 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1229,7 +1229,7 @@ ELSEIF( disloctype=="loop" ) THEN
       !The dislocation loop will separate atomic planes
       !=> new atoms must be inserted inside the loop
       !Get total system volume
-      CALL VOLUME_PARA(H,V1)
+      V1 = VOLUME_PARA(H)
       !Compute average system density
       tempreal = DBLE( SIZE(P,1)/V1 )
       !Compute area of disloc. loop
@@ -1295,7 +1295,7 @@ ELSEIF( disloctype=="loop" ) THEN
       ENDDO
       DEALLOCATE(Q)
       !
-    ELSE !i.e. if b(a3)>0
+    ELSE !i.e. if b(a3)<0
       !The dislocation will bring atomic planes closer
       !=> atoms inside the loop must be deleted to avoid overlap
       ALLOCATE(Q(SIZE(P,1),4))
@@ -1304,7 +1304,7 @@ ELSEIF( disloctype=="loop" ) THEN
       !Delete atoms inside dislocation loop
       !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,r) REDUCTION(+:n)
       DO i=1,SIZE(P,1)
-        !Increment r if atom is inside the loop
+        !If r==0 atom is outside the loop (keep it), otherwise atom is inside the loop (delete it)
         r = 0
         IF( P(i,a3)<pos(a3)-b(a3)/2.d0 .AND. P(i,a3)>pos(a3)+b(a3)/2.d0 ) THEN
           IF( pos(4)<0.d0 ) THEN
@@ -1333,7 +1333,9 @@ ELSEIF( disloctype=="loop" ) THEN
       !Save final atom positions inside P(:,:)
       DEALLOCATE(P)
       ALLOCATE(P(n,4))
-      ALLOCATE(newAUX(n,4))
+      IF( doaux ) THEN
+        ALLOCATE(newAUX(n,SIZE(AUX,2)))
+      ENDIF
       n = 0
       DO i=1,SIZE(Q,1)
         IF( Q(i,4)>0.1d0 ) THEN

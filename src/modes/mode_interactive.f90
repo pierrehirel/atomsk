@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 23 July 2025                                     *
+!* Last modification: P. Hirel - 27 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -64,7 +64,23 @@ CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=4096):: instruction, command   !instruction given by the user
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats
-CHARACTER(LEN=16),DIMENSION(54):: optnames !names of options
+CHARACTER(LEN=16),DIMENSION(58),PARAMETER:: optnames = & !names of options
+  & (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
+  &    "alignx          ", "bind-shells     ", "bs              ", "box             ", &
+  &    "cell            ", "change_cell     ", "change_box      ", "center          ", &
+  &    "crack           ", "cut             ", "deform          ", "def             ", &
+  &    "dislocation     ", "disloc          ", "disturb         ", "duplicate       ", &
+  &    "dup             ", "fix             ", "freeze          ", "fractional      ", &
+  &    "frac            ", "mirror          ", "orient          ", "orthogonal-cell ", &
+  &    "orthocell       ", "properties      ", "prop            ", "rebox           ", &
+  &    "reduce-cell     ", "remove-atom     ", "rmatom          ", "remove-doubles  ", &
+  &    "rmd             ", "remove-property ", "rmprop          ", "remove-shells   ", &
+  &    "roll            ", "rmshells        ", "rotate          ", "rot             ", &
+  &    "roundoff        ", "round-off       ", "select          ", "shear           ", &
+  &    "shift           ", "sort            ", "substitute      ", "sub             ", &
+  &    "swap            ", "torsion         ", "unit            ", "unskew          ", &
+  &    "velocity        ", "wrap            "  &
+  &/)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
@@ -75,6 +91,8 @@ CHARACTER(LEN=4096),DIMENSION(5):: pfiles !pfiles(1)=file1
                                           !pfiles(3)=filefirst
                                           !pfiles(4)=filesecond
                                           !pfiles(5)=listfile
+CHARACTER(LEN=32),DIMENSION(:),ALLOCATABLE:: var_names   !names of user-defined variables
+CHARACTER(LEN=32),DIMENSION(:),ALLOCATABLE:: array_names !names of user-defined arrays
 INTEGER:: a1, a2, a3
 INTEGER:: i, j, k, status
 INTEGER:: try, maxtries
@@ -97,7 +115,9 @@ REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, N atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Ptemp !atomic positions
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: S        !shell positions (is any)
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX  !auxiliary properties of atoms/shells
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX      !auxiliary properties of atoms/shells
+REAL(dp),DIMENSION(:),ALLOCATABLE:: variables  !variables that user can define and work with
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: arrays !arrays that user can define and work with
 !
 !
 !Initialize global variables
@@ -116,6 +136,10 @@ IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 IF(ALLOCATED(options_array)) DEALLOCATE(options_array) !no option in this mode
 IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
+IF(ALLOCATED(variables)) DEALLOCATE(variables)
+IF(ALLOCATED(var_names)) DEALLOCATE(var_names)
+IF(ALLOCATED(arrays)) DEALLOCATE(arrays)
+IF(ALLOCATED(array_names)) DEALLOCATE(array_names)
 maxtries=5
 C11 = 0.d0
 C22 = 0.d0
@@ -131,21 +155,6 @@ Huc(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
  S_tensor(:,:) = 0.d0
 ORIENT(:,:) = 0.d0
-optnames(:) = (/ "add-atoms       ", "addatoms        ", "add-shells      ", "addshells       ", &
-            &    "alignx          ", "bind-shells     ", "bs              ", "center          ", &
-            &    "crack           ", "cut             ", "deform          ", "def             ", &
-            &    "dislocation     ", "disloc          ", "disturb         ", "duplicate       ", &
-            &    "dup             ", "fix             ", "freeze          ", "fractional      ", &
-            &    "frac            ", "mirror          ", "orient          ", "orthogonal-cell ", &
-            &    "orthocell       ", "properties      ", "prop            ", "rebox           ", &
-            &    "reduce-cell     ", "remove-atom     ", "rmatom          ", "remove-doubles  ", &
-            &    "rmd             ", "remove-property ", "rmprop          ", "remove-shells   ", &
-            &    "roll            ", "rmshells        ", "rotate          ", "rot             ", &
-            &    "roundoff        ", "round-off       ", "select          ", "shear           ", &
-            &    "shift           ", "sort            ", "substitute      ", "sub             ", &
-            &    "swap            ", "torsion         ", "unit            ", "unskew          ", &
-            &    "velocity        ", "wrap            "  &
-            &/)
 !
 !Get user name: this is environment-dependent
 username=""
@@ -750,6 +759,24 @@ DO
               WRITE(*,'(2X,9(f12.6,2X))') (S_tensor(i,j) , j=1,9)
             ENDDO
           ENDIF
+        !
+      CASE("variable","var")
+        !User wants to define a new variable
+        IF( .NOT.ALLOCATED(variables) ) THEN
+          k=1
+          IF(ALLOCATED(var_names)) DEALLOCATE(var_names)
+          ALLOCATE(variables(1))
+          variables(1) = 0.d0
+          ALLOCATE(var_names(1))
+          var_names(1) = " "
+        ELSE
+          k=SIZE(variables)+1
+          CALL RESIZE_CHAR1(var_names,k)
+          CALL RESIZE_DBLEARRAY1(variables,k)
+        ENDIF
+        i = SCAN(instruction," ")
+        READ(instruction(i+1:),*,END=400,ERR=400) var_names(k), variables(k)
+
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

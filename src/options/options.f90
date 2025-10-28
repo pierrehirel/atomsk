@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 June 2025                                     *
+!* Last modification: P. Hirel - 09 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -465,7 +465,7 @@ DO ioptions=1,SIZE(options_array)
   CASE('-bind-shells','-bs')
     CALL BSHELLS_XYZ(H,P,S,AUXNAMES,AUX,SELECT)
   !
-  CASE('-cell')
+  CASE('-cell','-box','change_cell','change_box')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, cellop, celllength, celldir
     CALL CELL_XYZ(H,cellop,celllength,celldir)
   !

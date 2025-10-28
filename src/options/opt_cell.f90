@@ -13,7 +13,7 @@ MODULE cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 July 2023                                     *
+!* Last modification: P. Hirel - 09 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -99,6 +99,15 @@ CASE("xyz","XYZ","all","ALL")
   Hmodified(1) = 1
   Hmodified(2) = 1
   Hmodified(3) = 1
+CASE("xx","XX")
+  a1 = 1
+  a2 = 1
+CASE("yy","YY")
+  a1 = 2
+  a2 = 2
+CASE("zz","ZZ")
+  a1 = 3
+  a2 = 4
 CASE("xy","XY")
   a1 = 2
   a2 = 1
@@ -194,7 +203,7 @@ IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
       ENDIF
     ENDDO
     !
-  CASE("xy","XY","yx","YX","xz","XZ","zx","ZX","yz","YZ","zy","ZY")
+  CASE("xx","XX","yy","YY","zz","ZZ","xy","XY","yx","YX","xz","XZ","zx","ZX","yz","YZ","zy","ZY")
     !Change box tilt
     IF( cellop=="set" ) THEN
       !Set this component to specified value

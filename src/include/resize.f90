@@ -9,7 +9,7 @@ MODULE resize
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 21 June 2023                                     *
+!* Last modification: P. Hirel - 27 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -25,8 +25,11 @@ MODULE resize
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !* List of subroutines in this module:                                            *
+!* RESIZE_DBLEARRAY1   resize a real 2-D array, keeping its content               *
 !* RESIZE_DBLEARRAY2   resize a real 2-D array, keeping its content               *
+!* RESIZE_DBLEARRAY3   resize a real 3-D array, keeping its content               *
 !* RESIZE_INTARRAY2    resize an integer 2-D array, keeping its content           *
+!* RESIZE_CHAR1        resize a character 1-D array, keeping its content          *
 !* RESIZE_LOGICAL1     resize a boolean 1-D array, keeping its content            *
 !**********************************************************************************
 !
@@ -38,6 +41,78 @@ IMPLICIT NONE
 !
 !
 CONTAINS
+!
+!
+!
+!********************************************************
+! RESIZE_DBLEARRAY1
+! This routine changes the size of the provided Array.
+! Initial data is preserved in the new array.
+! If the new size is larger, unknown data is set to zero.
+! If the new size is smaller, some data is lost.
+!********************************************************
+SUBROUTINE RESIZE_DBLEARRAY1(Array,L1,status)
+!
+IMPLICIT NONE
+INTEGER:: i, j
+INTEGER,OPTIONAL:: status  !Success=0; failure=1
+INTEGER,INTENT(IN):: L1    !new size of Array
+REAL(dp),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: Array !the array to resize
+REAL(dp),DIMENSION(:),ALLOCATABLE:: temp_array !temporary copy of Array
+!
+IF(PRESENT(status)) status = 0
+!
+IF( .NOT.ALLOCATED(Array) ) THEN
+  !Allocate Array with required size and fill it with zeros
+  ALLOCATE(Array(L1),STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    IF(PRESENT(status)) status = 1
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(L1)/))
+    RETURN
+  ENDIF
+  Array(:) = 0.d0
+  !
+ELSE
+  !Array is already allocated => resize it (only if new sizes are different from previous ones)
+  IF( L1>0 .AND. L1.NE.SIZE(Array,1) ) THEN
+    !
+    ALLOCATE( temp_array(L1) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Array,1)+L1)/))
+      RETURN
+    ENDIF
+    !
+    temp_array(:) = 0.d0
+    DO i=1,MIN(L1,SIZE(Array,1))
+      temp_array(i) = Array(i)
+    ENDDO
+    !
+    DEALLOCATE(Array)
+    ALLOCATE( Array(L1) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Array,1)+L1)/))
+      RETURN
+    ENDIF
+    Array(:) = temp_array(:)
+    !
+    DEALLOCATE(temp_array)
+    !
+  ELSE
+    !i.e. if L1<=0 or L2<=0 => problem
+    IF(PRESENT(status)) status = 1
+  ENDIF
+  !
+ENDIF
+!
+END SUBROUTINE RESIZE_DBLEARRAY1
 !
 !
 !
@@ -116,6 +191,82 @@ END SUBROUTINE RESIZE_DBLEARRAY2
 !
 !
 !********************************************************
+! RESIZE_DBLEARRAY3
+! This routine changes the size of the provided Array.
+! Initial data is preserved in the new array.
+! If the new size is larger, unknown data is set to zero.
+! If the new size is smaller, some data is lost.
+!********************************************************
+SUBROUTINE RESIZE_DBLEARRAY3(Array,L1,L2,L3,status)
+!
+IMPLICIT NONE
+INTEGER:: i, j, k
+INTEGER,OPTIONAL:: status  !Success=0; failure=1
+INTEGER,INTENT(IN):: L1, L2,L3  !new sizes of Array
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT):: Array !the array to resize
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: temp_array !temporary copy of Array
+!
+IF(PRESENT(status)) status = 0
+!
+IF( .NOT.ALLOCATED(Array) ) THEN
+  !Allocate Array with required size and fill it with zeros
+  ALLOCATE(Array(L1,L2,L3),STAT=i)
+  IF( i>0 ) THEN
+    ! Allocation failed (not enough memory)
+    IF(PRESENT(status)) status = 1
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(L1)/))
+    RETURN
+  ENDIF
+  Array(:,:,:) = 0.d0
+  !
+ELSE
+  !Array is already allocated => resize it (only if new sizes are different from previous ones)
+  IF( L1>0 .AND. L2>0 .AND. L3>0 .AND. (L1.NE.SIZE(Array,1) .OR. L2.NE.SIZE(Array,2) .OR. L3.NE.SIZE(Array,3)) ) THEN
+    !
+    ALLOCATE( temp_array(L1,L2,L3) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Array,1)+L1)/))
+      RETURN
+    ENDIF
+    !
+    temp_array(:,:,:) = 0.d0
+    DO i=1,MIN(L1,SIZE(Array,1))
+      DO j=1,MIN(L2,SIZE(Array,2))
+        DO k=1,MIN(L3,SIZE(Array,3))
+          temp_array(i,j,k) = Array(i,j,k)
+        ENDDO
+      ENDDO
+    ENDDO
+    !
+    DEALLOCATE(Array)
+    ALLOCATE( Array(L1,L2,L3) , STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Array,1)+L1)/))
+      RETURN
+    ENDIF
+    Array(:,:,:) = temp_array(:,:,:)
+    !
+    DEALLOCATE(temp_array)
+    !
+  ELSE
+    !i.e. if L1<=0 or L2<=0 or L3<=0 => problem
+    IF(PRESENT(status)) status = 1
+  ENDIF
+  !
+ENDIF
+!
+END SUBROUTINE RESIZE_DBLEARRAY3
+!
+!
+!
+!********************************************************
 ! RESIZE_INTARRAY2
 ! This routine changes the size of the provided Array.
 ! Initial data is preserved in the new array.
@@ -186,6 +337,71 @@ ELSE
 ENDIF
 !
 END SUBROUTINE RESIZE_INTARRAY2
+!
+!
+!
+!********************************************************
+! RESIZE_CHAR1
+! This routine changes the size of the provided character Array.
+! Initial data is preserved in the new array.
+! If the new size is larger, unknown data is set to .FALSE.
+! If the new size is smaller, some data is lost.
+!********************************************************
+SUBROUTINE RESIZE_CHAR1(Array,L1,status)
+!
+IMPLICIT NONE
+INTEGER:: i
+INTEGER,OPTIONAL:: status  !Success=0; failure=1
+INTEGER,INTENT(IN):: L1    !new size of Array
+CHARACTER(LEN=*),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: Array !the array to resize
+CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: temp_array !temporary copy of Array
+!
+IF(PRESENT(status)) status = 0
+!
+IF( .NOT.ALLOCATED(Array) ) THEN
+  !Allocate Array with required size and fill it with empty spaces
+  ALLOCATE(Array(L1))
+  Array(:) = ""
+  !
+ELSE
+  !Array is already allocated => resize it
+  IF( L1>0 .AND. L1.NE.SIZE(Array) ) THEN
+    !
+    ALLOCATE( temp_array(L1),STAT=i )
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
+    !
+    temp_array(:) = ""
+    DO i=1,MIN(L1,SIZE(Array))
+      temp_array(i) = Array(i)
+    ENDDO
+    !
+    DEALLOCATE(Array)
+    ALLOCATE( Array(L1) ,STAT=i)
+    IF( i>0 ) THEN
+      ! Allocation failed (not enough memory)
+      IF(PRESENT(status)) status = 1
+      nerr = nerr+1
+      CALL ATOMSK_MSG(819,(/''/),(/0.d0/))
+      RETURN
+    ENDIF
+    Array(:) = temp_array(:)
+    !
+    DEALLOCATE(temp_array)
+    !
+  ELSE
+    !i.e. if L1<=0 or L2<=0 => problem
+    IF(PRESENT(status)) status = 1
+  ENDIF
+  !
+ENDIF
+!
+END SUBROUTINE RESIZE_CHAR1
 !
 !
 !

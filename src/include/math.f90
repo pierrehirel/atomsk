@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 12 Dec. 2024                                     *
+!* Last modification: P. Hirel - 27 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -42,11 +42,16 @@ MODULE math
 !* ROTMAT_VECTORS      provides the matrix for rotation between 2 vectors         *
 !* EPS_LEVI_CIVITA     calculates the Levi-Civita symbol, given i,j,k             *
 !* MATTRACE            computes the trace of a NxN matrix                         *
-!* MATDET              computes the determinant of a 3x3 matrix                   *
+!* MATDET              computes the determinant of a MxN matrix                   *
+!* IS_IN_POLYHEDRON    determines if a point is inside a polyhedron               *
+!* LINE_INTERSECTION   determines the shortest segment between 2 3D lines         *
+!* CIRUMCIRCLE         given 3 points, det. center, radius, normal of circumcircle*
+!* CIRCUMSPHERE        given 4 points, det. center & radius of circumsphere       *
 !* List of subroutines in this file:                                              *
 !* INVMAT              inverts a NxN matrix                                       *
 !* CONVMAT             converts conventional vectors into a matrix                *
 !* MATCONV             converts matrix into conventional vectors                  *
+!* VOLUME_TETRA        computes the volume of a tetrahedron                       *
 !* VOLUME_PARA         computes the volume of a parallelepiped                    *
 !* DERIVATIVE          calculate the derivative of a function                     *
 !* EULER2MAT           converts Euler angles into a rotation matrix               *
@@ -300,20 +305,50 @@ END FUNCTION CROSS_PRODUCT
 !********************************************************
 !  SCALAR_TRIPLE_PRODUCT
 !  This function computes the scalar triple product
-!  of three vectors: ez (ex ^ ey).
+!  of three vectors: (ex ^ ey).ez.
 !********************************************************
-
 FUNCTION SCALAR_TRIPLE_PRODUCT(ex,ey,ez) RESULT(stp)
-
+!
 IMPLICIT NONE
 REAL(dp),DIMENSION(3),INTENT(IN):: ex, ey, ez
 REAL(dp):: stp
-
+!
 stp = ez(1) *( ex(2)*ey(3) - ex(3)*ey(2) ) &
     + ez(2) *( ex(3)*ey(1) - ex(1)*ey(3) ) &
     + ez(3) *( ex(1)*ey(2) - ex(2)*ey(1) )
-
+!
 END FUNCTION SCALAR_TRIPLE_PRODUCT
+!
+!
+!********************************************************
+!  VOLUME_PARA
+!  This subroutine computes the volume of a parallelepiped
+!  defined by three vectors stored in a 3x3 matrix.
+!********************************************************
+FUNCTION VOLUME_PARA(H) RESULT(Volume)
+!
+IMPLICIT NONE
+REAL(dp):: Volume
+REAL(dp), DIMENSION(3,3),INTENT(IN):: H
+!
+Volume = DABS( SCALAR_TRIPLE_PRODUCT(H(1,:),H(2,:),H(3,:)) )
+!
+END FUNCTION VOLUME_PARA
+!
+!
+!********************************************************
+!  VOLUME_TETRA
+!  This subroutine computes the volume of a tetrahedron
+!  defined by 4 points.
+!********************************************************
+FUNCTION VOLUME_TETRA(a,b,c,d) RESULT(Volume)
+!
+REAL(dp),DIMENSION(3),INTENT(IN):: a, b, c, d
+REAL(dp):: Volume
+!
+Volume = DABS( DOT_PRODUCT(a - d, CROSS_PRODUCT(b - d, c - d)) ) / 6.0d0
+!
+END FUNCTION VOLUME_TETRA
 !
 !
 !********************************************************
@@ -370,7 +405,6 @@ END FUNCTION ROTMAT_AXIS
 !  corresponding to a rotation from a vector a
 !  to a vector b.
 !********************************************************
-!
 FUNCTION ROTMAT_VECTORS(a,b) RESULT(rot_matrix)
 !
 IMPLICIT NONE
@@ -444,7 +478,6 @@ END FUNCTION EPS_LEVI_CIVITA
 !********************************************************
 FUNCTION MATTRACE(A) RESULT(Tr)
 !
-!
 REAL(dp),DIMENSION(:,:),INTENT(IN):: A(:,:)
 REAL(dp):: Tr
 !
@@ -458,22 +491,354 @@ END FUNCTION MATTRACE
 !
 !********************************************************
 ! MATDET
-! This function computes the determinant of a 3x3 matrix.
+! This function computes the determinant of a MxN matrix
+! by summing the products over all diagonals.
 !********************************************************
 FUNCTION MATDET(A) RESULT(DET)
 !
+INTEGER:: i, j, k, l, s
+REAL(dp),DIMENSION(:,:),INTENT(IN):: A(:,:)
+REAL(dp):: det, diag
 !
-REAL(dp),DIMENSION(3,3),INTENT(IN):: A(:,:)
-REAL(dp):: DET
+k=1
+l=1
 !
-DET =   A(1,1)*A(2,2)*A(3,3) &
-    & + A(1,2)*A(2,3)*A(3,1) &
-    & + A(1,3)*A(2,1)*A(3,2) &
-    & - A(3,1)*A(2,2)*A(1,3) &
-    & - A(3,2)*A(2,3)*A(1,1) &
-    & - A(3,3)*A(2,1)*A(1,2)
+DET=0.d0
+!Sum of all diagonals (s=+1 for \ diagonals, -1 for / diagonals)
+DO s=1,-1,-2
+  DO k=1,SIZE(A,1)
+    i=k-1
+    j=0
+    !Multiply all diagonal elements
+    diag = 0.d0
+    DO l=1,SIZE(A,2)
+      i=i+s
+      j=j+s
+      IF(i<1) i=i+SIZE(A,1)
+      IF(i>SIZE(A,1)) i=i-SIZE(A,1)
+      IF(j<1) j=j+SIZE(A,2)
+      IF(j>SIZE(A,2)) j=j-SIZE(A,2)
+      diag = diag * A(i,j)
+    ENDDO
+    !Add diagonal to determinant
+    DET = DET + DBLE(s)*diag
+  ENDDO
+ENDDO
 !
 END FUNCTION MATDET
+!
+!
+!********************************************************
+! IS_IN_TRIANGLES
+! This function determines if a point is inside a
+! set of triangles (supposedly, defining a polyhedron).
+! Note: this function is inspired by the algorithm
+! described in this Web site:
+! http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
+!********************************************************
+FUNCTION IS_IN_TRIANGLES(A,triangles) RESULT(IsInside)
+!
+INTEGER:: i, j, k
+REAL(dp):: xmin, xmax, ymin, ymax, zmin, zmax !bounding box
+REAL(dp):: ta, tf, tt, tu, tv !used to detect ray-triangle intersections
+REAL(dp):: txmin, txmax, tymin, tymax, tzmax  !min/max X,Y,Z coordinates of a triangle
+REAL(dp),DIMENSION(3):: e1, e2, th, ts, tq !vectors used to detect ray-triangle intersections
+REAL(dp),DIMENSION(3),PARAMETER:: ray=(/0.d0,0.d0,1.d0/)
+REAL(dp),DIMENSION(:),INTENT(IN):: A  !position of point
+REAL(dp),DIMENSION(:,:),INTENT(IN):: triangles !triangles bounding polyhedron
+LOGICAL:: isInside !.TRUE. if point is inside polyhedron, .FALSE. otherwise
+!
+!Determine bounding box of 3-D shape
+xmin = MIN( MINVAL(triangles(:,4)) , MINVAL(triangles(:,7)) , MINVAL(triangles(:,10)) )
+xmax = MAX( MAXVAL(triangles(:,4)) , MAXVAL(triangles(:,7)) , MAXVAL(triangles(:,10)) )
+ymin = MIN( MINVAL(triangles(:,5)) , MINVAL(triangles(:,8)) , MINVAL(triangles(:,11)) )
+ymax = MAX( MAXVAL(triangles(:,5)) , MAXVAL(triangles(:,8)) , MAXVAL(triangles(:,11)) )
+zmin = MIN( MINVAL(triangles(:,6)) , MINVAL(triangles(:,9)) , MINVAL(triangles(:,12)) )
+zmax = MAX( MAXVAL(triangles(:,6)) , MAXVAL(triangles(:,9)) , MAXVAL(triangles(:,12)) )
+!
+!Point is assumed to be outside the 3-D shape
+IsInside = .FALSE.
+!
+IF( A(1)>=xmin .AND. A(1)<=xmax .AND. &
+  & A(2)>=ymin .AND. A(2)<=ymax .AND. &
+  & A(3)>=zmin .AND. A(3)<=zmax       ) THEN
+  !
+  !Atom is inside the bounding box
+  !
+  !Loop on Z coordinates to check how many vertices are crossed
+  !
+  !Loop on all triangles
+  DO k=1,SIZE(triangles,1)
+    !Initialize
+    ta = 0.d0
+    th = (/0.d0,0.d0,0.d0/)
+    !
+    txmin = MIN( triangles(k,4) , triangles(k,7) , triangles(k,10) ) - 1.d-1
+    txmax = MAX( triangles(k,4) , triangles(k,7) , triangles(k,10) ) + 1.d-1
+    tymin = MIN( triangles(k,5) , triangles(k,8) , triangles(k,11) ) - 1.d-1
+    tymax = MAX( triangles(k,5) , triangles(k,8) , triangles(k,11) ) + 1.d-1
+    tzmax = MAX( triangles(k,6) , triangles(k,9) , triangles(k,12) ) + 1.d-1
+    IF( A(1)>txmin .AND. A(1)<txmax .AND.               &
+      & A(2)>tymin .AND. A(2)<tymax .AND. A(3)<tzmax  ) THEN
+      !Current triangle appears to be above (or close to) current atom
+      !Determine if ray (0,0,1) passing through atom #i intersects the triangle #k
+      e1(:) = triangles(k,7:9) - triangles(k,4:6)
+      e2(:) = triangles(k,10:12) - triangles(k,4:6)
+      !
+      th = CROSS_PRODUCT(ray,e2)
+      ta = DOT_PRODUCT(e1,th)
+      !
+      IF( DABS(ta) > 1.d-5 ) THEN
+        tf = 1.d0/ta
+        !Compute relative position of atom with respect to first triangle corner
+        !Add arbitrary vector (slightly inclined) to fix issues when atom is exactly under corner
+        ts(:) = A(1:3) - triangles(k,4:6) + (/1.12d-3,-1.13d-3,0d0/)
+        tu = tf * DOT_PRODUCT(ts,th)
+        !
+        IF( tu >= 0.d0 .AND. tu <= 1.d0 ) THEN
+          !Ray seems to intersect triangle
+          tq = CROSS_PRODUCT(ts,e1)
+          tv = tf * DOT_PRODUCT(ray,tq)
+          !
+          IF( tv > 0.d0 .AND. tu+tv <= 1.d0 ) THEN
+            !There is a line or ray intersection
+            ! at this stage we can compute t to find out where
+            ! the intersection point is on the line
+            tt = tf * DOT_PRODUCT(e2,tq)
+            !
+            IF( tt > 1.d-3 ) THEN
+              !The ray intersects this triangle: invert status of point
+              IsInside = .NOT.IsInside
+            ENDIF
+          ENDIF  !end if tv
+        ENDIF  !end if tu
+      ENDIF !end if DABS(ta)
+      !
+    ENDIF !end if P inside (txmin,txmax) etc.
+    !
+  ENDDO !end loop on k
+  !
+ENDIF
+!
+END FUNCTION IS_IN_TRIANGLES
+!
+!
+!********************************************************
+! LINE_INTERSECTION
+! P1, P2, P3 and P4, each contain a sets of
+! coordinates (x,y,z), such that P1P2 define a line,
+! and P3P4 contain another line.
+! This routine finds the shortest line between the two
+! lines, defined by points R1 and R2.
+! If the distance R1R2 is (almost) zero, it is the
+! intersection point. If R1R2 is extremely large,
+! then this routine failed. Otherwise, R1R2 is the
+! shortest line segment between the two lines.
+! Adapted from algorithm by Paul Bourke:
+! https://paulbourke.net/geometry/pointlineplane/
+!********************************************************
+SUBROUTINE LINE_INTERSECTION(P1,P2,P3,P4,R1,R2)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3),INTENT(IN):: P1, P2, P3, P4
+REAL(dp),DIMENSION(3),INTENT(OUT):: R1, R2
+REAL(dp),PARAMETER:: eps = 1.d-3
+REAL(dp),DIMENSION(3):: P13, P21, P43
+REAL(dp):: d1343, d4321, d1321, d4343, d2121
+REAL(dp):: denom, numer, mua, mub
+!
+!Assign arbitrary large values to R1 and R2
+R1(:) = -1.d12
+R2(:) = 1.d12
+!
+P13(:) = P1(:) - P3(:)
+P21(:) = P2(:) - P1(:)
+P43(:) = P4(:) - P3(:)
+IF( DABS(P43(1)) < eps .AND. DABS(P43(2)) < eps .AND. DABS(P43(3)) < eps ) THEN
+  RETURN
+ENDIF
+IF( DABS(P21(1)) < eps .AND. DABS(P21(2)) < eps .AND. DABS(P21(3)) < eps ) THEN
+  RETURN
+ENDIF
+!
+d1343 = P13(1)*P43(1) + P13(2)*P43(2) + P13(3)*P43(3)
+d4321 = P43(1)*P21(1) + P43(2)*P21(2) + P43(3)*P21(3)
+d1321 = P13(1)*P21(1) + P13(2)*P21(2) + P13(3)*P21(3)
+d4343 = P43(1)*P43(1) + P43(2)*P43(2) + P43(3)*P43(3)
+d2121 = P21(1)*P21(1) + P21(2)*P21(2) + P21(3)*P21(3)
+!
+denom = d2121*d4343 - d4321*d4321
+IF( DABS(denom) < eps ) THEN
+  RETURN
+ENDIF
+!
+numer = d1343*d4321 - d1321*d4343
+!
+mua = numer/denom
+mub = (d1343 + d4321*mua) / d4343
+!
+R1(:) = P1(:) + mua*P21(:)
+R2(:) = P3(:) + mub*P43(:)
+!
+END SUBROUTINE LINE_INTERSECTION
+!
+!
+!********************************************************
+! CIRCUMCIRCLE
+! Given a set of 3 points, assumed to belong to the
+! same circle, this routine determines the position of
+! the center of the circle and its radius.
+!********************************************************
+SUBROUTINE CIRCUMCIRCLE(P,center,radius,normal,status)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3,3),INTENT(IN):: P     !positions (x,y,z) of 3 points that belong to circle
+REAL(dp),DIMENSION(3),INTENT(OUT):: center !position of center of circle
+REAL(dp),DIMENSION(3),INTENT(OUT):: normal !vector normal to circle
+REAL(dp),INTENT(OUT):: radius              !radius of circle
+INTEGER:: i, j
+INTEGER,INTENT(OUT):: status
+REAL(dp),DIMENSION(3):: a, b, c, u
+!
+status=0  !so far so good
+radius = 0.d0
+center(:) = 0.d0
+normal(:) = 0.d0
+!
+!Check that the points are different
+DO i=1,SIZE(P,1)-1
+  DO j=i+1,SIZE(P,1)
+    IF( VECLENGTH( P(i,:)-P(j,:) )<1.d-3 ) THEN
+      !Those two points are at the same position
+      status=1
+      RETURN
+    ENDIF
+  ENDDO
+ENDDO
+!
+!Compute vectors a, b, c
+a(:) = P(1,:) - P(3,:)
+b(:) = P(2,:) - P(3,:)
+c(:) = CROSS_PRODUCT(a,b)
+!
+!Check that the 3 points are not aligned
+IF( VECLENGTH(c) < 1.d-12 ) THEN
+  !Vectors are (almost) colinear
+  status=2
+  RETURN
+ENDIF
+!
+!Compute radius
+radius = VECLENGTH(a)*VECLENGTH(b)*VECLENGTH(a-b)/(2.d0*VECLENGTH(c))
+!
+!Compute center of circle
+u(:) = b(:)*(VECLENGTH(a)**2) - a(:)*(VECLENGTH(b)**2)
+center(:) = CROSS_PRODUCT(u,c)/(2.d0*(VECLENGTH(c)**2)) + P(3,:)
+!
+!Compute normal to circle
+normal(:) = c(:)/VECLENGTH(c)
+!
+!Clean up vectors (i.e. if a component is close to zero, set it to zero)
+!DO i=1,3
+!  IF(DABS(center(i))<1.d-12) center(i) = 0.d0
+!  IF(DABS(normal(i))<1.d-12) normal(i) = 0.d0
+!ENDDO
+!
+IF(status>0) PRINT*, "ERROR ", status, " CIRCUMCIRCLE: R=", radius, "center: ", center(:)
+!
+END SUBROUTINE CIRCUMCIRCLE
+!
+!
+!********************************************************
+! CIRCUMSPHERE
+! Given a set of 4 points, assumed to belong to the
+! surface of the same sphere, this routine determines
+! the position of the center of the sphere and its radius.
+! https://math.stackexchange.com/questions/1666927/how-to-adapt-system-of-circles-method-to-3d-for-finding-a-sphere-given-4-point
+!********************************************************
+SUBROUTINE CIRCUMSPHERE(P,center,radius,status)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(4,3),INTENT(IN):: P     !positions (x,y,z) of 4 points that belong to sphere surface
+REAL(dp),DIMENSION(3),INTENT(OUT):: center !position of center of sphere
+REAL(dp),INTENT(OUT):: radius              !radius of sphere
+INTEGER,INTENT(OUT):: status
+!
+INTEGER:: i, j
+REAL(dp):: h, r1, r2
+REAL(dp),DIMENSION(3):: c1, c2, n1, n2, l1, l2
+!
+status=0  !so far so good
+radius = 0.d0
+center(:) = 0.d0
+!PRINT*, "BEGIN CIRCUMSPHERE"
+!
+!Check that the 4 points are different, and not in the same plane
+DO i=1,SIZE(P,1)-1
+  DO j=i+1,SIZE(P,1)
+    h = VECLENGTH( P(i,1:3)-P(j,1:3) )
+    IF( h<1.d-3 ) THEN
+      !Those two points are at the same position
+      status=1
+      RETURN
+    ENDIF
+  ENDDO
+ENDDO
+!
+r1 = VOLUME_PARA((/P(1,:),P(2,:),P(3,:)/))
+r2 = VOLUME_PARA((/P(1,:),P(2,:),P(4,:)/))
+IF( r1<0.1d0 .AND. r2<0.1d0 ) THEN
+  !All points are in the same plane
+  status=2
+ENDIF
+!
+!Get the center of one circle
+CALL CIRCUMCIRCLE(P(1:3,:),c1,r1,n1,i)
+!PRINT*, "    Circle 1:", c1, r1, n1
+!Get center of a second circle
+CALL CIRCUMCIRCLE(P(2:4,:),c2,r2,n2,i)
+!PRINT*, "    Circle 2:", c2, r2, n2
+!Get intersection between lines normal to the circles
+CALL LINE_INTERSECTION(c1,c1+n1,c2,c2+n2,l1,l2)
+!PRINT*, "    Intersect 1:", l1
+!PRINT*, "    Intersect 2:", l2
+!If everything went well, l1 and l2 should coincide
+IF( VECLENGTH(l2-l1)>0.1d0 ) THEN
+  !Use middle point as sphere center
+  status=3
+ENDIF
+!Use middle point as sphere center
+center = l1 + (l2-l1)/2.d0
+!
+!Sphere radius = distance between any of 4 points and center
+radius = VECLENGTH( P(1,:) - center(:) )
+!Check that distance is about the same for all 4 points
+DO i=1,4
+  r1 = VECLENGTH( P(i,:) - center(:) )
+  IF( DABS(radius-r1) > 1.0d0 ) THEN
+    !Not the same distance
+    !PRINT*, "radius(", i, ") = ", r1
+    status=4
+  ENDIF
+ENDDO
+!Re-calculate radius as average distance between center and the 4 points
+radius=0.d0
+DO i=1,4
+  radius = radius + VECLENGTH( P(i,:) - center(:) )
+ENDDO
+radius = radius/4.d0
+!
+!Clean up vectors (i.e. if a component is close to zero, set it to zero)
+!DO i=1,3
+!  IF(DABS(center(i))<1.d-12) center(i) = 0.d0
+!ENDDO
+!
+!IF(status>0) PRINT*, "ERROR ", status, " CIRCUMSPHERE: R=", radius, "center: ", center(:)
+!PRINT*, "END CIRCUMSPHERE"
+!
+!
+!
+END SUBROUTINE CIRCUMSPHERE
 !
 !
 !********************************************************
@@ -595,29 +960,6 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H
 !
 !
 END SUBROUTINE MATCONV
-!
-!
-!********************************************************
-!  VOLUME_PARA
-!  This subroutine computes the volume of a parallelepiped
-!  defined by three vectors stored in a 3x3 matrix.
-!********************************************************
-!
-SUBROUTINE VOLUME_PARA(Pvec,Volume)
-!
-IMPLICIT NONE
-REAL(dp):: a, b, c, alpha, beta, gamma
-REAL(dp):: Volume
-REAL(dp), DIMENSION(3,3),INTENT(IN):: Pvec
-!
-CALL MATCONV(Pvec, a, b, c, alpha, beta, gamma)
-!
-Volume = a*b*c*                                            &
-       & (1.d0 + 2.d0*DCOS(alpha)*DCOS(beta)*DCOS(gamma)   &
-       &  -DCOS(alpha)**2 -DCOS(beta)**2 -DCOS(gamma)**2  )
-!
-!
-END SUBROUTINE VOLUME_PARA
 !
 !
 !********************************************************
