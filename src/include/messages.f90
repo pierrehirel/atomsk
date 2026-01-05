@@ -37,7 +37,7 @@ MODULE messages
 !
 USE comv
 USE strings
-USE display_messages
+USE messages_misc
 !Localization modules
 USE messages_en  !English (default)
 USE messages_fr  !French/francais

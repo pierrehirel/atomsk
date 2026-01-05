@@ -15,20 +15,20 @@
 
 <h4>Syntax</h4>
 
-<p><code>-cell &#60;add|rm|set&#62; &#60;d&#62; &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62;</code></p>
+<p><code>-cell &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62; &#60;add|rm|set&#62; &#60;d&#62;</code></p>
 
 
 <h4>Description</h4>
 
 <p>This option allows to modify the cell vectors.</p>
 
-<p>It is possible to add, remove, or set a given length &#60;d&#62; to the provided component(s) of the cell.</p>
-
 <p>Keywords H1, H2, H3 refer to the three box vectors. Adding a distance &#60;d&#62; to a cell vector means that it will keep the same direction, but its norm will be longer by &#60;d&#62;. The same logic applies for removing (rm) or setting (set) the distance.</p>
 
 <p>Keywords x, y, z, refer to the Cartesian components of cell vectors. Adding a distance &#60;d&#62; to the x component, means that the cell vector with the largest component along X will be rescaled so that the "bounding box" (difference between maximum and minimum coordinates along X) will be longer by &#60;d&#62;. Cell vectors will keep their respective directions and relative angles. Note that if cell vectors are inclined with respect to Cartesian axes, then their length is not modified by &#60;d&#62; but by another amount. The component "xyz" means that the same distance &#60;d&#62; will be added (or removed) to all Cartesian components. The components xy, xz, yx, yz, zx, zy are non-diagonal elements of the cell vectors matrix.</p>
 
 <p>Note that if cell vectors are aligned with Cartesian axis, such that H1//x, H2//y, and H3//z, then using "H1" is equivalent to using "x", because H1 only has a non-zero component along x. The same is true for H2 and y, and for H3 and z.</p>
+
+<p>It is possible to add, remove, or set a given length &#60;d&#62; to the provided component(s) of the cell.</p>
 
 <p>The distance &#60;d&#62; must be given in angströms (&Aring;), and should be positive to avoid confusion. Using "add" with a negative value of &#60;d&#62; will actually reduce the length of a box vector. Similarly, using "rm" with a negative value of &#60;d&#62; will increase the vector length.</p>
 
@@ -46,16 +46,16 @@
 <h4>Examples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -cell add 10 H2 final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell H2 add 10 final.cfg</code>
 <p>With this command, Atomsk will read the file <code>initial.cfg</code>, and then add 10&nbsp;&Aring; to the second cell vector (H2). In other words, the second cell vector will keep the same direction, but will be 10&nbsp;&Aring; longer. Atom positions will remain the same, so this will add "void" along that direction. The result will be output in <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -cell add 20 y final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell y add 20 final.cfg</code>
 <p>This will read the file <code>initial.cfg</code> and add 20&nbsp;&Aring; to the cell length along the Cartesian Y axis. In practice this is equivalent to adding void along the Y direction. The result will be output in <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -cell set 87.4 H1 final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell H1 set 87.4 final.cfg</code>
 <p>This will change the length of the first box vector to 87.4&nbsp;&Aring;.</p></li>
 
-<li><code class="command">atomsk initial.cfg -cell rm 0.5 H3 final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell H3 rm 0.5 final.cfg</code>
 <p>This will reduce the length of the third box vector by 0.5&nbsp;&Aring;.</p></li>
 </ul>
 

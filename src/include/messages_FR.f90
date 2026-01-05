@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Sept. 2025                                    *
+!* Last modification: P. Hirel - 19 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,7 +40,7 @@ USE strings
 USE date_time
 USE random
 USE subroutines
-USE display_messages
+USE messages_misc
 USE messages_en
 !
 IMPLICIT NONE
@@ -268,7 +268,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-cell") THEN
   WRITE(*,*) "..> Modifier les vecteurs de boîte :"
-  WRITE(*,*) "          -cell <add|rm|set> <longueur>  <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>"
+  WRITE(*,*) "          -cell <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz> <add|rm|set> <longueur>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
@@ -3230,13 +3230,16 @@ CASE(4054)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4055)
   !reals(1) = index of the grain
-  WRITE(msg,*) NINT(reals(1))
-  msg = ">>> Construction du grain #"//TRIM(ADJUSTL(msg))//"..."
+  !reals(2) = number of facets of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Construction du grain #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" faces)..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4056)
   !reals(1) = number of atoms in the grain
-  WRITE(msg,*) NINT(reals(1))
-  msg = "..> Nombre d'atomes dans ce grain: "//TRIM(ADJUSTL(msg))//"."
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Terminé, "//TRIM(ADJUSTL(temp1))//" atomes, volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4057)
   !strings(1) = name of input file

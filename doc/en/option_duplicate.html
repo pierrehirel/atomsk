@@ -30,7 +30,7 @@
   <li><strong>Nz</strong>: number of times the system is repeated along the third box vector <code>Hz</code>.</li>
 </ul>
 
-<p>If all values are equal to 1 then the system remains the same (since it is multiplied one time along all directions). Any value equal to 0 is automatically replaced by 1, as a zero dimension would wipe out the whole system. If a negative value is provided, then the system is mirrored along that axis, and then expanded in the direction of negative coordinates.</p>
+<p>These values are meant as multiplication factors, so a value of 1 means that the systems keeps the same dimension along the given direction. If all values are unity (Nx=1, Ny=1 and Nz=1), then the system remains the same. Any value equal to 0 is automatically replaced by 1, as a zero dimension would wipe out the whole system. If a negative value is provided, then the system is mirrored along that axis, and then expanded in the direction of negative coordinates.</p>
 
 <p>The replicas of the original system are appened to the original system. To change the order of atoms one can use the <a href="./option_sort.html">option <code>-sort</code></a>.</p>
 

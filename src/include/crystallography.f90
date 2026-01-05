@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 05 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,7 @@ MODULE crystallography
 !* HKIL2UVW            converts Miller-Bravais [hkil] into Miller [uvw]           *
 !* UVW2HKIL            converts Miller [uvw] into Miller-Bravais [hkil]           *
 !* MILLER2VEC          translates Miller indices into Cartesian vector            *
+!* MILLER2ROTMAT       find rot.matrix to go from a set of Miller ind. to another *
 !* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
 !**********************************************************************************
 !
@@ -62,7 +63,6 @@ CONTAINS
 !  containing the Miller indices, e.g. "1-10" will be
 !  converted into (1.d0  -1.d0  0.d0).
 !********************************************************
-!
 SUBROUTINE INDEX_MILLER(planestring,planeindices,ifail)
 !
 IMPLICIT NONE
@@ -152,7 +152,6 @@ END SUBROUTINE INDEX_MILLER
 !  containing only the 3 relevant Miller indices hkl,
 !  e.g. "1-10" will be converted into (1.d0  -1.d0  0.d0).
 !********************************************************
-!
 SUBROUTINE INDEX_MILLER_HCP(planestring,planeindices,ifail)
 !
 IMPLICIT NONE
@@ -257,7 +256,6 @@ END SUBROUTINE INDEX_MILLER_HCP
 !  NOTE: index i is passed to this routine but not used,
 !  therefore its value can be set to anything.
 !********************************************************
-!
 SUBROUTINE HKIL2UVW(h,k,i,l,u,v,w)
 !
 REAL(dp):: a, b, c
@@ -292,7 +290,6 @@ u = u / c
 v = v / c
 w = w / c
 !
-!
 END SUBROUTINE HKIL2UVW
 !
 !
@@ -303,7 +300,6 @@ END SUBROUTINE HKIL2UVW
 !  This routine returns the minimum integer indices,
 !  i.e. it attempts to divide u,v,w by their common divisor.
 !********************************************************
-!
 SUBROUTINE UVW2HKIL(u,v,w,h,k,i,l)
 !
 REAL(dp):: a, b, c
@@ -332,7 +328,6 @@ END SUBROUTINE UVW2HKIL
 !  accounting for crystal orientation. The final Cartesian
 !  vector is normalized, i.e. it is a unit vector.
 !********************************************************
-!
 SUBROUTINE MILLER2VEC(H,dir,ORIENT,vector,ifail)
 !
 IMPLICIT NONE
@@ -436,6 +431,63 @@ END SUBROUTINE MILLER2VEC
 !
 !
 !********************************************************
+!  MILLER2ROTMAT
+!  Determine the rotation matrix to go from a crystal
+!  orientation given by a set of Miller indices, to
+!  another orientation given by another set.
+!  Note that the Miller vectors provided as input are not
+!  necessarily unit vectors, and are normalized below.
+!********************************************************
+SUBROUTINE MILLER2ROTMAT(H1,H2,rotmat,status)
+!
+IMPLICIT NONE
+LOGICAL,DIMENSION(3):: orthovec  !are vectors orthogonal?
+INTEGER:: i
+INTEGER,INTENT(OUT):: status
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H1, H2  !Initial and final orientations
+REAL(dp),DIMENSION(3,3):: Hstart, Hend  !Initial and final orientations (normalized)
+REAL(dp),DIMENSION(3,3),INTENT(OUT):: rotmat  !rotation matrix
+!
+status = 0
+rotmat(:,:) = 0.d0
+!
+!Normalize the vectors in each matrix
+DO i=1,3
+  IF( VECLENGTH(H1(i,:)) .NE. 0.d0 ) THEN
+    Hstart(i,:) = H1(i,:)/VECLENGTH(H1(i,:))
+  ELSE
+    !we have a problem
+    status = 1
+    RETURN
+  ENDIF
+  !
+  IF( VECLENGTH(H2(i,:)) .NE. 0.d0 ) THEN
+    Hend(i,:) = H2(i,:)/VECLENGTH(H2(i,:))
+  ELSE
+    !we have a problem
+    status = 2
+    RETURN
+  ENDIF
+ENDDO
+!
+!Check that vectors of end matrix form the same angles as vectors in initial matrix
+orthovec(:) = .FALSE.
+IF( DABS( ANGVEC(Hstart(1,:),Hstart(2,:))-ANGVEC(Hend(1,:),Hend(2,:)) ) < 1.d-6 ) orthovec(1)=.TRUE.
+IF( DABS( ANGVEC(Hstart(2,:),Hstart(3,:))-ANGVEC(Hend(2,:),Hend(3,:)) ) < 1.d-6 ) orthovec(2)=.TRUE.
+IF( DABS( ANGVEC(Hstart(3,:),Hstart(1,:))-ANGVEC(Hend(3,:),Hend(1,:)) ) < 1.d-6 ) orthovec(3)=.TRUE.
+IF( ANY(.NOT.orthovec) ) THEN
+  status = 3
+  RETURN
+ENDIF
+!
+!Compute rotation matrix to go from Hstart to Hend
+rotmat(:,:) = MATMUL( TRANSPOSE(Hstart) , Hend )
+!
+!
+END SUBROUTINE MILLER2ROTMAT
+!
+!
+!********************************************************
 !  COMPFORMULA
 !  This subroutine extracts the compound formula from the
 !  given atomic site list P taking the auxiliary list AUX
@@ -447,7 +499,6 @@ END SUBROUTINE MILLER2VEC
 !*     RWTH Aachen (GERMANY)
 !*     ju.barthel@fz-juelich.de
 !********************************************************
-!
 SUBROUTINE COMPFORMULA(P,AUXNAMES,AUX,formula,mass)
 !
 USE atoms

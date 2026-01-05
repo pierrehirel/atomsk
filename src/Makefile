@@ -99,6 +99,12 @@ ifndef LAPACK
   LAPACK=-llapack
 endif
 
+ifndef FFT
+  # Path to the FFT library
+  # If it is installed system-wide just use "-lfftw3"
+  FFT=-lfftw3
+endif
+
 # DEFINITION OF PATHS:
 # (for UNIX/Linux systems only)
 # (do NOT insert a / at the end of the paths)
@@ -174,7 +180,7 @@ all: atomsk
 # Compile the program
 # Note that the preprocessor must be called (-cpp)
 atomsk: message modes compute general
-	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 $(LDFLAGS) $(LAPACK)
+	$(FORTRAN) $(FFLAGS) -cpp -o $(BIN) $(OBJ)$(SEP)*.o atomsk.f90 $(LDFLAGS) $(LAPACK) $(FFT)
 	@echo ""
 	@echo "    \o/ Compilation was successful!"
 	@echo ""

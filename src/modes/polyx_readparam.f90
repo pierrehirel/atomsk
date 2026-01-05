@@ -11,7 +11,7 @@ MODULE polyx_readparam
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Oct. 2025                                     *
+!* Last modification: P. Hirel - 05 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -59,6 +59,7 @@ INTEGER:: status        !=0 if successful, >0 otherwise
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER,INTENT(INOUT):: Nnodes      !number of nodes
 REAL(dp):: distance    !distance between two points
+REAL(dp):: grad1, grad2!gradient values
 REAL(dp):: P1, P2, P3  !temporary position
 REAL(dp):: Volume, Vmin !min. volume occupied by a grain
 REAL(dp),INTENT(INOUT):: clearance   !clear atoms that close to the GB
@@ -100,7 +101,7 @@ DO
   !
   !Ignore empty lines and lines starting with #
   IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
-    IF( line(1:3)=="box" ) THEN
+    IF( StrDnCase(line(1:3))=="box" ) THEN
       !Read size of the final box
       READ(line(4:),*,END=830,ERR=830) P1, P2, P3
       !Set final box vectors
@@ -166,7 +167,7 @@ DO
         GOTO 1000
       ENDIF
       !
-    ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
+    ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:5))=="grain" ) THEN
       !Check that the box was defined
       IF( .NOT.Hset ) THEN
         GOTO 820
@@ -174,7 +175,7 @@ DO
       Nnodes = Nnodes+1
       outparam(1) = .TRUE.
       !
-    ELSEIF( line(1:7)=="lattice" ) THEN
+    ELSEIF( StrDnCase(line(1:7))=="lattice" ) THEN
       !Check that the box was defined
       IF( .NOT.Hset ) THEN
         GOTO 820
@@ -183,23 +184,23 @@ DO
       lattice = TRIM(ADJUSTL(line(8:)))
       !Set the number of nodes according to the lattice type
       !Beware of pseudo-2D systems
-      IF( lattice=="sc" ) THEN
+      IF( StrDnCase(lattice)=="sc" ) THEN
         Nnodes = 1
-      ELSEIF( lattice=="bcc" ) THEN
+      ELSEIF( StrDnCase(lattice)=="bcc" ) THEN
         Nnodes = 2
-      ELSEIF( lattice=="fcc" ) THEN
+      ELSEIF( StrDnCase(lattice)=="fcc" ) THEN
         IF(twodim>0) THEN
           Nnodes = 3
         ELSE
           Nnodes = 4
         ENDIF
-      ELSEIF( lattice=="diamond" .OR. lattice=="dia"  ) THEN
+      ELSEIF( StrDnCase(lattice)=="diamond" .OR. StrDnCase(lattice)=="dia"  ) THEN
         IF(twodim>0) THEN
           Nnodes = 6
         ELSE
           Nnodes = 8
         ENDIF
-      ELSEIF( lattice=="hcp" ) THEN
+      ELSEIF( StrDnCase(lattice)=="hcp" ) THEN
         IF(twodim>0) THEN
           Nnodes = 2
         ELSE
@@ -211,7 +212,7 @@ DO
         GOTO 1000
       ENDIF
       !
-    ELSEIF( line(1:6)=="random" ) THEN
+    ELSEIF( StrDnCase(line(1:6))=="random" ) THEN
       !Check that the box was defined
       IF( .NOT.Hset ) THEN
         GOTO 820
@@ -222,12 +223,18 @@ DO
       WRITE(msg,*) " Read random ", Nnodes
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !
-    ELSEIF( line(1:9)=="clearance" .OR. line(1:5)=="clear" ) THEN
+    ELSEIF( StrDnCase(line(1:9))=="clearance" .OR. StrDnCase(line(1:5))=="clear" ) THEN
       !User wants to change default clearance around GB plane
       READ(line,*,END=800,ERR=800) temp, P1
       !Make sure clearance is a positive number (or zero)
       clearance = DABS(P1)
       WRITE(msg,*) " Read clearance ", clearance
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      !
+    ELSEIF( StrDnCase(line(1:8))=="gradient" ) THEN
+      !User wants to create a gradient along a direction between P1 and P2
+      READ(line(9:),*,END=800,ERR=800) or1
+      WRITE(msg,*) " Read gradient ", or1
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !
 !     ELSEIF( line(1:7)=="protect" ) THEN
@@ -278,11 +285,11 @@ DO
   !Ignore empty lines and lines starting with #
   IF( line(1:1).NE."#" .AND. LEN_TRIM(line)>0 ) THEN
     !
-    IF( line(1:3)=="box" ) THEN
+    IF( StrDnCase(line(1:3))=="box" ) THEN
       !This part was already dealt with before
       !
       !
-    ELSEIF( line(1:7)=="lattice" ) THEN
+    ELSEIF( StrDnCase(line(1:7))=="lattice" ) THEN
       !Nodes will be placed according to a pattern
       !Patterns are defined by "lattice", can be fcc, bcc, etc.
       !The crystallographic orientation of the grains will be random
@@ -293,10 +300,10 @@ DO
       ENDIF
       !
       lattice = TRIM(ADJUSTL(line(8:)))
-      IF( lattice=="sc" ) THEN
+      IF( StrDnCase(lattice)=="sc" ) THEN
         Nnodes = 1
         vnodes(1,:) = 0.d0
-      ELSEIF( lattice=="bcc" ) THEN
+      ELSEIF( StrDnCase(lattice)=="bcc" ) THEN
         Nnodes = 2
         vnodes(1,:) = 0.d0          !(0,0,0)
         vnodes(2,1) = 0.5d0*H(1,1)  !(1/2,1/2,1/2)
@@ -305,7 +312,7 @@ DO
         IF(twodim>0) THEN
           vnodes(2,twodim) = 0.d0
         ENDIF
-      ELSEIF( lattice=="fcc" ) THEN
+      ELSEIF( StrDnCase(lattice)=="fcc" ) THEN
         IF(twodim>0) THEN
           !System is 2-D => define only 3 nodes
           Nnodes = 3
@@ -338,7 +345,7 @@ DO
           vnodes(4,2) = 0.5d0*H(2,2)  !(0,1/2,1/2)
           vnodes(4,3) = 0.5d0*H(3,3)
         ENDIF
-      ELSEIF( lattice=="diamond" .OR. lattice=="dia" ) THEN
+      ELSEIF( StrDnCase(lattice)=="diamond" .OR. StrDnCase(lattice)=="dia" ) THEN
         IF(twodim>0) THEN
           !System is 2-D => define only 6 nodes
           Nnodes = 6
@@ -392,7 +399,7 @@ DO
           vnodes(8,2) = 0.75d0*H(2,2)
           vnodes(8,3) = 0.75d0*H(3,3)
         ENDIF
-      ELSEIF( lattice=="hcp" ) THEN
+      ELSEIF( StrDnCase(lattice)=="hcp" ) THEN
         IF(twodim>0) THEN
           !System is 2-D => define only 2 nodes
           Nnodes = 2
@@ -476,7 +483,7 @@ DO
       GOTO 250
       !
       !
-    ELSEIF( line(1:5)=="node " .OR. line(1:5)=="grain" ) THEN
+    ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:5))=="grain" ) THEN
       !Check that the box was defined
       IF( .NOT.Hset ) THEN
         GOTO 820
@@ -550,17 +557,19 @@ DO
           !     condition that all grain orientations are specified as "random".
           !     If specific angles or Miller indices are given explicitely by the user
           !     for some grains, then the distribution will not be completely random.
+          P1 = randarray(3*(Nnodes-1)+1)
+          P2 = randarray(3*(Nnodes-1)+2)
+          P3 = randarray(3*(Nnodes-1)+3)
           !Compute vector V
-          P1 = randarray(3*(Nnodes-1)+3)
-          vector(1) = DSQRT(P1)*DCOS(randarray(3*(Nnodes-1)+1))
-          vector(2) = DSQRT(P1)*DSIN(randarray(3*(Nnodes-1)+1))
-          vector(3) = DSQRT(1.d0-P1)
+          vector(1) = DSQRT(P3)*DCOS(P1)
+          vector(2) = DSQRT(P3)*DSIN(P1)
+          vector(3) = DSQRT(1.d0-P3)
           !Compute matrix R
           rotmat(:,:) = 0.d0
-          rotmat(1,1) = DCOS(randarray(3*(Nnodes-1)+2))
-          rotmat(1,2) = DSIN(randarray(3*(Nnodes-1)+2))
-          rotmat(2,1) = -1.d0*DSIN(randarray(3*(Nnodes-1)+2))
-          rotmat(2,2) = DCOS(randarray(3*(Nnodes-1)+2))
+          rotmat(1,1) = DCOS(P2)
+          rotmat(1,2) = DSIN(P2)
+          rotmat(2,1) = -1.d0*DSIN(P2)
+          rotmat(2,2) = DCOS(P2)
           rotmat(3,3) = 1.d0
           !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
           vorient(Nnodes,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
@@ -571,6 +580,7 @@ DO
         READ(line,*,END=830,ERR=830) or1, or2, or3
         miller=.TRUE.
         IF( SCAN(or1,"[")>0 .OR. SCAN(or2,"[")>0 .OR. SCAN(or3,"[")>0 .OR.          &
+          & SCAN(or1,"]")>0 .OR. SCAN(or2,"]")>0 .OR. SCAN(or3,"]")>0 .OR.          &
           & SCAN(or1,"_")>0 .OR. SCAN(or2,"_")>0 .OR. SCAN(or3,"_")>0 ) THEN
           !No ambiguity: it should be Miller indices (given in brackets and/or with underscores)
           miller=.TRUE.
@@ -598,12 +608,13 @@ DO
         IF( miller ) THEN
           !Read and interpret the Miller indices,
           !save the rotation matrix in vorient(Nnodes,:,:)
-          CALL INDEX_MILLER(or1,vorient(Nnodes,1,:),j)
+          CALL INDEX_MILLER(or1,rotmat(1,:),j)
           IF(j>0) GOTO 800
-          CALL INDEX_MILLER(or2,vorient(Nnodes,2,:),j)
+          CALL INDEX_MILLER(or2,rotmat(2,:),j)
           IF(j>0) GOTO 800
-          CALL INDEX_MILLER(or3,vorient(Nnodes,3,:),j)
+          CALL INDEX_MILLER(or3,rotmat(3,:),j)
           IF(j>0) GOTO 800
+          CALL MILLER2ROTMAT(Id_Matrix,rotmat,vorient(Nnodes,1:3,1:3),j)
         ELSE
           !Read and interpret the angles,
           !save the rotation matrix in vorient(Nnodes,:,:)
@@ -633,11 +644,16 @@ DO
           ENDDO
           !Construct rotation matrix
           CALL EULER2MAT_ZYX(vector(1),vector(2),vector(3),vorient(Nnodes,:,:))
+          IF( .NOT.IS_ROTMAT(vorient(Nnodes,:,:)) ) THEN
+            WRITE(msg,*) Nnodes
+            WRITE(msg,*) "Node # "//TRIM(ADJUSTL(msg))//": matrix constructed from angles"
+            CALL ATOMSK_MSG(2823,(/msg/),(/0.d0/))
+          ENDIF
         ENDIF
       ENDIF
       !
       !
-    ELSEIF( line(1:6)=="random" ) THEN
+    ELSEIF( StrDnCase(line(1:6))=="random" ) THEN
       !Position and orientations of grains are random
       !Generated random parameters will be written into a file later
       outparam(4) = .TRUE.
@@ -742,6 +758,41 @@ DO
           WRITE(43,'(a3,3(f16.3,2X))') "1  ", vector(1), vector(2), vector(3)
         ENDDO
         CLOSE(43)
+      ENDIF
+      !
+    ELSEIF( StrDnCase(line(1:8))=="gradient" ) THEN
+      !User wants to create a gradient along a direction between P1 and P2
+      IF( ALLOCATED(vnodes) .AND. SIZE(vnodes,1)>1 ) THEN
+        READ(line(9:),*,END=800,ERR=800) or1
+        IF( StrDnCase(or1)=="linear" ) THEN
+          !Read direction of linear gradient and min/max values
+          READ(line(9:),*,END=800,ERR=800) or1, or2, P1, grad1, P2, grad2
+          IF( StrDnCase(or2)=='x' ) THEN
+            j=1
+          ELSEIF( StrDnCase(or2)=='y' ) THEN
+            j=2
+          ELSEIF( StrDnCase(or2)=='y' ) THEN
+            j=3
+          ENDIF
+          !Compute gradient and normalize it
+          !distance = (grad2-grad1)/(P2-P1)
+          !Modify node positions (keep positions outside of gradient zone)
+          DO i=1,SIZE(vnodes,1)
+            IF( vnodes(i,j)>=P1 .AND. vnodes(i,j)<=P2 ) THEN
+              vnodes(i,j) = vnodes(i,j)*(grad2-grad1)/(P2-P1)
+            ENDIF
+          ENDDO
+        ELSEIF( StrDnCase(or1)=="radial" ) THEN
+          !Modify node positions (keep positions outside of gradient zone)
+          vector(:) = 0.5d0*(H(1,:)+H(2,:)+H(3,:))
+          DO i=1,SIZE(vnodes,1)
+            distance = VECLENGTH( vnodes(i,1:3) - vector(1:3) )
+            vnodes(i,1:3) = (vnodes(i,1:3) - vector(:)) + distance*vnodes(i,1:3)
+          ENDDO
+        ENDIF
+        !
+      ELSE  !i.e. if vnodes unallocated or has only 1 node
+
       ENDIF
       !
       GOTO 250

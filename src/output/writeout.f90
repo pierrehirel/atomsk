@@ -38,7 +38,7 @@ MODULE writeout
 !*     Unité Matériaux Et Transformations (UMET),                                 *
 !*     Université de Lille 1, Bâtiment C6, F-59655 Villeneuve D'Ascq (FRANCE)     *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 May 2025                                      *
+!* Last modification: P. Hirel - 16 Dec. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -436,8 +436,8 @@ IF( ALLOCATED(S) .AND. SIZE(S,1)==SIZE(P,1) ) THEN
   !Check if user wants to write to a file format that doesn't support shells
   DO i=1,SIZE(outfileformats)
     IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
-      SELECT CASE( outfileformats(i) )
-      CASE('atsk','ATSK','csv','CSV','d12','dlp','DLP','gin','GIN','lmp','LMP')
+      SELECT CASE( StrDnCase(outfileformats(i)) )
+      CASE("atsk","csv","d12","dlp","gin","lmp")
         !Those file formats do support shells
       CASE DEFAULT
         !Other file formats don't
@@ -472,8 +472,8 @@ IF( ALLOCATED(AUXNAMES) .AND. SIZE(AUXNAMES)>0 ) THEN
     !Check if user wants to write to a file format that doesn't support partial occupancies
     DO i=1,SIZE(outfileformats)
       IF( LEN_TRIM(outfileformats(i)) > 0 ) THEN
-        SELECT CASE( outfileformats(i) )
-        CASE('atsk','ATSK','cel','CEL','cfg','CFG','cif','CIF','csv','CSV','d12','gin','GIN','jems','pdb','str','vesta')
+        SELECT CASE( StrDnCase(outfileformats(i)) )
+        CASE("atsk","cel","cfg","cif","csv","d12","gin","jems","pdb","str","vesta")
           !Those file formats do support partial occupancies
         CASE DEFAULT
           !Other file formats don't
@@ -521,7 +521,7 @@ DO i=1,SIZE(outfileformats)
   !otherwise it defaults to the current outfileformat
   cfname = STRUPCASE(outfileformats(i))
   !
-  SELECT CASE(STRDNCASE(outfileformats(i)))
+  SELECT CASE(StrDnCase(outfileformats(i)))
   !
   CASE('atsk')
     cfname = "Atomsk"

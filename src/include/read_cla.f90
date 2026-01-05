@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 28 Oct. 2025                                     *
+!* Last modification: P. Hirel - 15 Dec. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -104,36 +104,34 @@ DO WHILE(i<SIZE(cla))
   temp = ''
   tempreal = 0.d0
   !
-  clarg = TRIM(ADJUSTL( cla(i) ))
+  clarg = TRIM(ADJUSTL(cla(i)))
   IF(LEN_TRIM(clarg)==0) EXIT
   !
   !
   !Deal with modes
-  IF(clarg=='--gather' .OR. clarg=='--all-in-one' .OR. clarg=='-AI1') THEN
-    mode = 'gather'
+  SELECT CASE(StrDnCase(clarg))
+  CASE("--gather","--all-in-one","--ai1")
+    mode = "gather"
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1)
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(2)
     IF(i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--average') THEN
-    mode = 'average'
+  CASE("--average","--avg")
+    mode = "average"
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(5)
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF( clarg=='--local-symmetry' .OR. clarg=='--localsymmetry' .OR. &
-        & clarg=='--central-symmetry' .OR. clarg=='--centralsymmetry' .OR. &
-        & clarg=='--centro-symmetry' .OR.clarg=='--centrosymmetry' .OR. &
-        & clarg=='--symmetry' .OR. clarg=="--sym" .OR. clarg=="--cs" .OR. &
-        &  clarg=="--CS" .OR. clarg=="--ls" .OR. clarg=="--LS" ) THEN
-    mode = 'cs'
+  CASE( "--local-symmetry","--localsymmetry","--central-symmetry","--centralsymmetry", &
+      & "--centro-symmetry","--centrosymmetry","--symmetry","--sym","--cs","--ls" )
+    mode = "cs"
     i=i+1
     READ(cla(i),'(a4096)',END=130,ERR=130) pfiles(3) !File containing atom positions
     IF(LEN_TRIM(pfiles(3))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=="--copy-properties" .OR. clarg=="--cpprop") THEN
+  CASE("--copy-properties","--cpprop")
     mode = "cpprop"
     i=i+1
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(3)
@@ -141,11 +139,11 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--create' .OR. clarg=='-C') THEN
+  CASE("--create")
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(20))
     mode_param(:) = ''
-    mode='create'
+    mode="create"
     !Get the type of structure
     i=i+1
     m=1
@@ -228,7 +226,7 @@ DO WHILE(i<SIZE(cla))
     ENDIF
     IF(LEN_TRIM(mode_param(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--density') THEN
+  CASE("--density")
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(4))
     mode_param(:) = " "
@@ -263,7 +261,7 @@ DO WHILE(i<SIZE(cla))
     WRITE(mode_param(4),*) tempreal
     IF( i>SIZE(cla) ) GOTO 130
     !
-  ELSEIF(clarg=='--difference' .OR. clarg=='--diff' .OR. clarg=='-D') THEN
+  CASE("--difference","--diff")
     mode = 'diff'
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1)
@@ -271,15 +269,15 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(2)
     IF(LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--ddplot') THEN
-    mode = 'ddplot'
+  CASE("--ddplot")
+    mode = "ddplot"
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(3)
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(4)
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--edm') THEN
+  CASE("--edm","--electric-dipole-moments")
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(20))
     mode_param(:) = ''
@@ -295,13 +293,13 @@ DO WHILE(i<SIZE(cla))
     WRITE(mode_param(1),*) tempreal
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--electronic-polarization' .OR. clarg=='-PE') THEN
+  CASE("--electronic-polarization","--pe")
     mode = 'PE'
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1) !File containing atom positions
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--interpolate') THEN
+  CASE("--interpolate")
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(1))
     mode = 'interpolate'
@@ -314,25 +312,25 @@ DO WHILE(i<SIZE(cla))
     WRITE(mode_param(1),*) m
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. m<=0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--list' .OR. clarg=='-L') THEN
+  CASE("--list","--l")
     mode = 'list'
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(5)
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--match-id' .OR. clarg=='--matchid' ) THEN
-    mode = 'match-id'
+  CASE("--match-id","--matchid")
+    mode = "match-id"
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(3)
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(4)
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--merge' .OR. clarg=='-M' .OR. clarg=="--stack") THEN
+  CASE("--merge","--m","--stack")
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(100))  !assuming user won't merge more than 100 files...
     mode_param(:) = ''
-    mode = 'merge'
+    mode = "merge"
     !Store all parameters and file names in mode_param(:)
     j=0
     i=i+1
@@ -350,7 +348,8 @@ DO WHILE(i<SIZE(cla))
           mode_param(j) = TRIM(ADJUSTL(temp))
         ENDIF
         i=i+1
-      ELSEIF( temp=="rescale" .OR. temp=="scale" .OR. temp=="match" ) THEN
+      ELSEIF( StrDnCase(temp)=="rescale" .OR. StrDnCase(temp)=="scale" .OR. &
+            & StrDnCase(temp)=="match" ) THEN
         j = j+1
         mode_param(j) = TRIM(ADJUSTL(temp))  !"rescale"
         !Read direction along which systems will be rescaled to match 1st system's size
@@ -361,6 +360,10 @@ DO WHILE(i<SIZE(cla))
           mode_param(j) = TRIM(ADJUSTL(temp))
         !ENDIF
         i=i+1
+      ELSEIF( StrDnCase(temp)=="x" .OR. StrDnCase(temp)=="y" .OR. StrDnCase(temp)=="z" ) THEN
+        !User directly gave direction without keyword: assume it is the stacking direction
+        j = j+1
+        mode_param(j) = "stack "//TRIM(ADJUSTL(temp))
       ELSE
         !If none of the above, must be the number of file names to follow
         READ(temp,*,ERR=130,END=130) m
@@ -382,35 +385,35 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--normal' .OR. clarg=="convert") THEN
+  CASE("--normal","convert")
     !nothing special to do, this is normal mode
     !
-  ELSEIF(clarg=='--nye') THEN
-    mode = 'nye'
+  CASE("--nye")
+    mode = "nye"
     i=i+1
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(3)
     i=i+1
     READ(cla(i),'(a)',END=130,ERR=130) pfiles(4)
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--unfold' .OR. clarg=='--one-in-all' .OR. clarg=='-1IA') THEN
-    mode = 'unfold'
+  CASE("--unfold","--one-in-all","-1ia")
+    mode = "unfold"
     i=i+1
     READ(cla(i),'(a128)',ERR=130,END=130) pfiles(1)
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--polycrystal') THEN
-    mode = 'polycrystal'
+  CASE("--polycrystal","--polyx")
+    mode = "polycrystal"
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(1) !File containing atom positions
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(3) !File containing parameters for Voronoi construction
     IF(LEN_TRIM(pfiles(1))==0 .OR. i>SIZE(cla)) GOTO 130
     !
-  ELSEIF(clarg=='--rdf') THEN
+  CASE("--rdf","--radial-distribution-function")
     IF(ALLOCATED(mode_param)) GOTO 150
     ALLOCATE(mode_param(2))
-    mode = 'rdf'
+    mode = "rdf"
     i=i+1
     READ(cla(i),'(a4096)',END=130,ERR=130) pfiles(5) !File list
     IF(LEN_TRIM(pfiles(5))==0 .OR. i>SIZE(cla)) GOTO 130
@@ -420,7 +423,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=130,ERR=130) mode_param(2)  !dR
     IF( i>SIZE(cla) ) GOTO 130
     !
-  ELSEIF(clarg=='--unwrap') THEN
+  CASE("--unwrap")
     IF(ALLOCATED(mode_param)) GOTO 150
     mode = 'unwrap'
     i=i+1
@@ -428,102 +431,13 @@ DO WHILE(i<SIZE(cla))
     i=i+1
     READ(cla(i),'(a128)',END=130,ERR=130) pfiles(4) !"Configuration" to unwrap
     IF(LEN_TRIM(pfiles(3))==0 .OR. LEN_TRIM(pfiles(4))==0 .OR. i>SIZE(cla)) GOTO 130
-    !
-  ELSEIF(clarg(1:2)=='--') THEN
-    !if it starts with "--" we assume it is a wrong mode entered by the user
-    nerr=nerr+1
-    CALL ATOMSK_MSG(4813,(/TRIM(clarg)/),(/0.d0/))
-    GOTO 1000
   !
   !
-  !Deal with output formats
-  !First, check if argument is one of the formats in flist(:) (see "globalvar.f90")
-  ELSEIF( ANY(flist(:,1)==StrDnCase(clarg)) ) THEN
-    Nout = Nout+1
-    tempout(Nout) = StrDnCase(clarg)
-  !Second, accept some keywords and save them as format
-  ELSEIF( StrDnCase(clarg)=='atomsk' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'atsk'
-  ELSEIF( StrDnCase(clarg)=='abinit' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'abin'
-  ELSEIF( StrDnCase(clarg)=="bopfox" ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'bx'
-  ELSEIF( StrDnCase(clarg)=='atomeye' .OR. StrDnCase(clarg)=='qstem' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'cfg'
-  ELSEIF( StrDnCase(clarg)=='drprobe' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'cel'
-  ELSEIF( StrDnCase(clarg)=='dlpoly' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'dlp'
-  ELSEIF( StrDnCase(clarg)=='config' ) THEN
-    IF(LEN_TRIM(pfiles(1)).NE.0) THEN
-      IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'CONFIG'
-      Nout = Nout+1
-      tempout(Nout) = 'dlp'
-    ELSE
-      pfiles(1) = 'CONFIG'
-    ENDIF
-  ELSEIF( StrDnCase(clarg)=='mbpp' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'coo'
-  ELSEIF( StrDnCase(clarg)=='coorat' ) THEN
-    !if a file name was defined before, 
-    IF(LEN_TRIM(pfiles(1)).NE.0) THEN
-      IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'COORAT'
-      Nout = Nout+1
-      tempout(Nout) = 'coo'
-    ELSE
-      pfiles(1) = 'COORAT'
-    ENDIF
-  ELSEIF( StrDnCase(clarg)=='crystal' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'd12'
-  ELSEIF( StrDnCase(clarg)=='ddplot' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'dd'
-  ELSEIF( StrDnCase(clarg)=='siesta' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'fdf'
-  ELSEIF( StrDnCase(clarg)=='gulp' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'gin'
-  ELSEIF( StrDnCase(clarg)=='lammps' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'lmp'
-  ELSEIF( StrDnCase(clarg)=='moldy' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'mol'
-  ELSEIF( StrDnCase(clarg)=='vasp' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'pos'
-  ELSEIF( StrDnCase(clarg)=='poscar' ) THEN
-    IF(LEN_TRIM(pfiles(1)).NE.0) THEN
-      IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'POSCAR'
-      Nout = Nout+1
-      tempout(Nout) = 'pos'
-    ELSE
-      IF(LEN_TRIM(pfiles(2))==0) pfiles(1) = 'POSCAR'
-    ENDIF
-  ELSEIF( StrDnCase(clarg)=='pwscf' .OR. StrDnCase(clarg)=='qe' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'pw'
-  ELSEIF( StrDnCase(clarg)=='xcrysden' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'xsf'
-  ELSEIF( StrDnCase(clarg)=='stru' ) THEN
-    Nout = Nout+1
-    tempout(Nout) = 'stru'
-  ! -- please add new formats in alphabetical order --
   !
   !
   !Deal with options
   !For each option we store the option parameters in the string array "options_array"
-  ELSEIF(clarg=='-add-atom' .OR. clarg=='-add-atoms' .OR. clarg=='-addatom' .OR. clarg=='-addatoms') THEN
+  CASE("-add-atom","-add-atoms","-addatom","-addatoms")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read the species of atom to add
@@ -537,19 +451,16 @@ DO WHILE(i<SIZE(cla))
     !Read keyword: must be "at", "near" or "random"
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    IF( .NOT.( temp(1:2)=="at" .OR. temp(1:2)=="AT" .OR. temp(1:1)=="@" .OR.  &
-      &        temp(1:4)=="near" .OR. temp(1:4)=="NEAR" .OR.                  &
-      &        temp(1:6)=="random" .OR. temp(1:6)=="RANDOM" .OR.              &
-      &        temp(1:8)=="relative" .OR. temp(1:3)=="rel"                    &
-      &      ) ) THEN
+    temp = TRIM(ADJUSTL(StrDnCase(temp)))
+    IF( .NOT.( temp(1:2)=="at" .OR. temp(1:1)=="@" .OR. temp(1:4)=="near" .OR. &
+      &        temp(1:6)=="random" .OR. temp(1:3)=="rel"  ) ) THEN
       GOTO 400
     ENDIF
     temp2 = temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !Read parameters
-    SELECT CASE(temp2)
-    CASE("at","AT","@")
+    SELECT CASE(StrDnCase(temp2))
+    CASE("at","@")
       !Read coordinate x of atom to add
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
@@ -600,7 +511,7 @@ DO WHILE(i<SIZE(cla))
         & INDEX(temp,'box')==0 .AND. INDEX(temp,'BOX')==0) GOTO 120
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !
-    CASE("near","NEAR")
+    CASE("near")
       !Read index of atom near which the new atom must be added
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
@@ -616,7 +527,7 @@ DO WHILE(i<SIZE(cla))
       !
     END SELECT
   !
-  ELSEIF( clarg=='-add-shells' .OR. clarg=='-addshells' ) THEN
+  CASE("-add-shells","-addshells")
     ioptions = ioptions+1
     options_array(ioptions) = '-add-shells'
     !read atom species for which the shells must be created
@@ -629,15 +540,15 @@ DO WHILE(i<SIZE(cla))
       GOTO 120
     ENDIF
   !
-  ELSEIF(clarg=='-alignx') THEN
+  CASE("-alignx")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
-  ELSEIF(clarg=='-bind-shells' .OR. clarg=='-bs') THEN
+  CASE("-bind-shells","-bs")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
-  ELSEIF(clarg=='-crack') THEN
+  CASE("-crack")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read crack mode (I, II or III)
@@ -699,13 +610,24 @@ DO WHILE(i<SIZE(cla))
       j = SCAN(options_array(ioptions),'/')
     ENDDO
   !
-  ELSEIF(clarg=="-cell" .OR. clarg=="-box" .OR. clarg=="-change_cell" .OR. clarg=="-change_box") THEN
+  CASE("-cell","-box","-change-cell","-change_cell","-change-box","-change_box")
     ioptions = ioptions+1
     options_array(ioptions) = "-cell"
+    !Read direction
+    i=i+1
+    READ(cla(i),*,END=400,ERR=400) temp
+    temp = TRIM(ADJUSTL(StrDnCase(temp)))
+    SELECT CASE(temp)
+    CASE( "h1","h2","h3",'x','y','z',"xx","yy","zz", &
+        & "xy","xz","yx","yz","zx","zy","xyz","all"  )
+      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+    CASE DEFAULT
+      GOTO 120
+    END SELECT
     !Read operation to perform (add, rm, set)
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
+    temp = TRIM(ADJUSTL(StrDnCase(temp)))
     IF( temp.NE."add" .AND. temp.NE."rm" .AND. temp.NE."set" ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     !Read value (real number)
@@ -714,35 +636,24 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     IF( SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    !Read direction
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
-    SELECT CASE(temp)
-    CASE( "H1","H2","H3",'x','X','y','Y','z','Z',"xx","XX","yy","YY","zz","ZZ", &
-        & "xy","XY","xz","XZ","yx","YX","yz","YZ","zx","ZX","zy","ZY","xyz","XYZ","all","ALL")
-      options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    CASE DEFAULT
-      GOTO 120
-    END SELECT
   !
-  ELSEIF(clarg=='-center') THEN
+  CASE("-center")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     i=i+1
     READ(cla(i),*,END=400,ERR=400) temp
-    IF(temp=="com") WRITE(temp,'(a1)') "0"
+    IF(StrDnCase(temp)=="com") WRITE(temp,'(a1)') "0"
     READ(temp,*,END=120,ERR=120) j
     IF(j<0) WRITE(temp,'(a1)') "0"
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-cut') THEN
+  CASE("-cut")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read 'above' or 'below'
     i=i+1
     READ(cla(i),'(a)',END=400,ERR=400) temp
-    temp = TRIM(ADJUSTL(temp))
+    temp = TRIM(ADJUSTL(StrDnCase(temp)))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF( temp(1:5).NE.'above' .AND. temp(1:5).NE.'below' ) GOTO 120
     !read cut distance
@@ -758,7 +669,7 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-deform' .OR. clarg=='-def') THEN
+  CASE("-deform","-def")
     j=0
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
@@ -802,7 +713,7 @@ DO WHILE(i<SIZE(cla))
       i=i-1
     ENDIF
   !
-  ELSEIF(clarg=='-denoise') THEN
+  CASE("-denoise")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     i=i+1
@@ -810,7 +721,7 @@ DO WHILE(i<SIZE(cla))
       READ(temp,*,END=120,ERR=120) tempreal
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-dislocation' .OR. clarg=='-disloc' .OR. clarg=='-dislo') THEN
+  CASE("-dislocation","-disloc","-dislo")
     m=0
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
@@ -969,7 +880,7 @@ DO WHILE(i<SIZE(cla))
       j = SCAN(options_array(ioptions),'/')
     ENDDO
   !
-  ELSEIF(clarg=='-disturb') THEN
+  CASE("-disturb")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the maximum displacement along X
@@ -1006,9 +917,9 @@ DO WHILE(i<SIZE(cla))
     !Go one step back
     i=i-1
   !
-  ELSEIF(clarg=='-duplicate' .OR. clarg=='-dup' .OR. clarg=='-replicate' ) THEN
+  CASE("-duplicate","-dup","-replicate")
     ioptions = ioptions+1
-    options_array(ioptions) = '-duplicate'
+    options_array(ioptions) = "-duplicate"
     DO m=1,3
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
@@ -1016,8 +927,8 @@ DO WHILE(i<SIZE(cla))
       READ(temp,*,END=120,ERR=120) tempreal
     ENDDO
   !
-  ELSEIF(clarg=='-freeze' .OR. clarg=='-fix') THEN
-    IF(clarg=='-fix') THEN
+  CASE("-freeze","-fix")
+    IF(clarg=="-fix") THEN
       CALL ATOMSK_MSG(2799,(/"-fix   ","-freeze"/),(/0.d0/))
     ENDIF
     ioptions = ioptions+1
@@ -1058,11 +969,11 @@ DO WHILE(i<SIZE(cla))
       i=i-1
     ENDIF
   !
-  ELSEIF(clarg=='-frac' .OR. clarg=='-fractional' .OR. clarg=='-reduce' .OR. clarg=='-reduced') THEN
+  CASE("-frac","-fractional","-reduce","-reduced")
     ioptions = ioptions+1
     options_array(ioptions) = '-fractional'
   !
-  ELSEIF(clarg=='-mirror') THEN
+  CASE("-mirror")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read distance between mirror plane and origin
@@ -1078,7 +989,7 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-orient') THEN
+  CASE("-orient")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the 1st vector of ancient base
@@ -1118,13 +1029,12 @@ DO WHILE(i<SIZE(cla))
     IF( temp(1:1)=='-' .OR. SCAN(temp,'0123456789')==0 ) GOTO 120
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-orthogonal-cell' .OR. clarg=='-orthorhombic-cell' .OR. &
-        & clarg=='-orthogonal-box' .OR. clarg=='-orthorhombic-box'  .OR. &
-        & clarg=='-orthocell' .OR. clarg=='-orthobox' ) THEN
+  CASE("-orthogonal-cell","-orthorhombic-cell","-orthogonal-box","-orthorhombic-box", &
+      & "-orthocell","-orthobox")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
-  ELSEIF(clarg=='-prop'.OR.clarg=='-properties'.OR.clarg=="property") THEN
+  CASE("-prop","-properties","property")
     ioptions = ioptions+1
     options_array(ioptions) = "-prop"
     !read the name of property file
@@ -1132,11 +1042,11 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),'(a128)',END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-rebox' .OR. clarg=='-shrink-wrap') THEN
+  CASE("-rebox","-shrink-wrap","-shrinkwrap")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
-  ELSEIF(clarg=='-reduce-cell' .OR. clarg=='-reducecell' .OR. clarg=='-reduce-box' .OR. clarg=='-reducebox') THEN
+  CASE("-reduce-cell","-reducecell","-reduce-box","-reducebox")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read direction along which the cell must be reduced (optional)
@@ -1151,9 +1061,7 @@ DO WHILE(i<SIZE(cla))
       ENDIF
     ENDIF
   !
-  ELSEIF(clarg=='-remove-atom'  .OR. clarg=='-rmatom'  .OR. &
-        &clarg=='-remove-atoms' .OR. clarg=='-rmatoms' .OR. &
-        &clarg=='-delete-atoms' .OR. clarg=='-delete_atoms'      ) THEN
+  CASE("-remove-atom","-rmatom","-remove-atoms","-rmatoms","-delete-atoms","-delete_atoms")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the atom species or index that will be removed
@@ -1161,7 +1069,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-remove-doubles' .OR. clarg=='-remove-double' .OR. clarg=='-rmd') THEN
+  CASE("-remove-doubles","-remove-double","-rmd")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read the max. distance
@@ -1170,7 +1078,7 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     READ(temp,*,END=120,ERR=120) tempreal
   !
-  ELSEIF(clarg=='-remove-property' .OR. clarg=='-rmprop') THEN
+  CASE("-remove-property","-rmprop")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the name of the property to be removed
@@ -1178,8 +1086,7 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF( clarg=='-remove-shells' .OR. clarg=='-remove-shell' .OR. &
-        & clarg=='-rmshell' .OR. clarg=='-rmshells' ) THEN
+  CASE("-remove-shells","-remove-shell","-rmshell","-rmshells")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the atom species on which shells will be removed
@@ -1191,7 +1098,7 @@ DO WHILE(i<SIZE(cla))
       GOTO 120
     ENDIF
   !
-  ELSEIF(clarg=='-roll' .OR. clarg=="-bend") THEN
+  CASE("-roll","-bend")
     ioptions = ioptions+1
     options_array(ioptions) = "-roll"
     !read the direction (x, y or z)
@@ -1225,7 +1132,7 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '// &
                             & TRIM(temp)//' '//TRIM(temp2)//' '//TRIM(temp3)
   !
-  ELSEIF(clarg=='-rotate' .OR. clarg=='-rot') THEN
+  CASE("-rotate","-rot")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Check if first
@@ -1291,7 +1198,7 @@ DO WHILE(i<SIZE(cla))
                               TRIM(temp2)//' '//TRIM(temp3)//' '//TRIM(temp4)
     ENDIF
   !
-  ELSEIF( clarg=='-roundoff' .OR. clarg=='-round-off' ) THEN
+  CASE("-roundoff","-round-off")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read property that will be rounded off
@@ -1304,23 +1211,20 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-select') THEN
+  CASE("-select")
     select_mul = ""
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read first keyword
     i=i+1
-    temp = ADJUSTL(cla(i))
+    temp = ADJUSTL(StrDnCase(cla(i)))
     !
-    IF( temp=="add" .OR. temp=="ADD" .OR. temp=="union" .OR. temp=="UNION" .OR.          &
-      & temp=="rm" .OR. temp=="RM" .OR. temp=="remove" .OR. temp=="REMOVE" .OR.          &
-      & temp=="subtract" .OR. temp=="SUBTRACT" .OR. temp=="intersect" .OR.               &
-      & temp=="INTERSECT" .OR. temp=="xor" .OR. temp=="XOR" .OR.                         &
-      & temp=="among" .OR. temp=="AMONG"                                        ) THEN
+    IF( temp=="add" .OR. temp=="union" .OR. temp=="rm" .OR. temp=="remove" .OR.     &
+      & temp=="subtract" .OR. temp=="intersect" .OR. temp=="xor" .OR. temp=="among" ) THEN
       select_mul = TRIM(ADJUSTL(temp))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       i=i+1
-      temp = ADJUSTL(cla(i))
+      temp = ADJUSTL(StrDnCase(cla(i)))
     ENDIF
     !
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
@@ -1345,7 +1249,7 @@ DO WHILE(i<SIZE(cla))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
       !IF( temp.NE.'box' .AND. temp.NE.'sphere' .AND. temp.NE.'cylinder' .AND. &
       !  & temp.NE.'prism' .AND. temp.NE.'torus' ) GOTO 120
-      region_geom = temp(1:16)
+      region_geom = StrDnCase(temp(1:16))
       !Next parameters depend on the geometry
       IF(region_geom=='cell') THEN
         !No other parameters
@@ -1666,7 +1570,7 @@ DO WHILE(i<SIZE(cla))
       j = SCAN(options_array(ioptions),'/')
     ENDDO
   !
-  ELSEIF(clarg=='-separate' .OR. clarg=='-sep') THEN
+  CASE("-separate","-sep")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read the max. distance
@@ -1693,7 +1597,7 @@ DO WHILE(i<SIZE(cla))
 !       i=i-1
 !     ENDIF
   !
-  ELSEIF(clarg=='-shift') THEN
+  CASE("-shift","-move","-translate","-translation")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read part to shift ('above' or 'below', or a number)
@@ -1742,7 +1646,7 @@ DO WHILE(i<SIZE(cla))
       j = SCAN(options_array(ioptions),'/')
     ENDDO
   !
-  ELSEIF(clarg=='-sort') THEN
+  CASE("-sort")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read which property must be sorted
@@ -1765,8 +1669,7 @@ DO WHILE(i<SIZE(cla))
       END SELECT
     ENDIF
   !
-  ELSEIF(clarg=='-spacegroup' .OR. clarg=='-space-group' .OR. clarg=='-sgroup' &
-        &.OR. clarg=='-sg') THEN
+  CASE("-spacegroup","-space-group","-sgroup","-sg")
     ioptions = ioptions+1
     options_array(ioptions) = '-spacegroup'
     !Read space group number or name
@@ -1777,7 +1680,7 @@ DO WHILE(i<SIZE(cla))
     temp(1:1) = StrUpCase(temp(1:1))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-stress') THEN
+  CASE("-stress")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read stress component
@@ -1785,9 +1688,8 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     temp = ADJUSTL(temp)
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
-    SELECT CASE(temp)
-    CASE('x','X','xx','XX','y','Y','yy','YY','z','Z','zz','ZZ', &
-        & 'xy','XY','yx','YX','zx','ZX','xz','XZ','zy','ZY','yz','YZ','p','P')
+    SELECT CASE(StrDnCase(temp))
+    CASE('x','xx','y','yy','z','zz','xy','yx','zx','xz','zy','yz','p')
       !Read value of stress
       i=i+1
       READ(cla(i),*,END=400,ERR=400) temp
@@ -1795,7 +1697,7 @@ DO WHILE(i<SIZE(cla))
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     END SELECT
   !
-  ELSEIF(clarg=='-substitute' .OR. clarg=='-sub') THEN
+  CASE("-substitute","-sub")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     i=i+1
@@ -1807,7 +1709,7 @@ DO WHILE(i<SIZE(cla))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     IF(LEN_TRIM(temp)>3) GOTO 120
   !
-  ELSEIF(clarg=='-swap') THEN
+  CASE("-swap")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read first value to swap
@@ -1821,7 +1723,7 @@ DO WHILE(i<SIZE(cla))
     temp = TRIM(ADJUSTL(temp))
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-torsion') THEN
+  CASE("-torsion")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !read the axis of torsion (x, y or z) and the angle of rotation
@@ -1859,7 +1761,7 @@ DO WHILE(i<SIZE(cla))
       READ(temp2,*,END=120,ERR=120) tempreal
     ENDIF
   !
-  ELSEIF(clarg=='-unit' .OR. clarg=='-units' .OR. clarg=='-u') THEN
+  CASE("-unit","-units","-u")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     i=i+1
@@ -1871,11 +1773,11 @@ DO WHILE(i<SIZE(cla))
     temp = cla(i)
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-unskew') THEN
+  CASE("-unskew")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
-  ELSEIF(clarg=='-velocity') THEN
+  CASE("-velocity")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
     !Read target temperature for Maxwell-Boltzmann distribution
@@ -1884,39 +1786,126 @@ DO WHILE(i<SIZE(cla))
     READ(temp,'(a)',END=120,ERR=120) tempreal
     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
-  ELSEIF(clarg=='-wrap') THEN
+  CASE("-wrap")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
   !
   ! -- add other options in alphabetical order --
   !
-  ELSEIF(clarg(1:2)=='--') THEN
-    !if it starts with "--" we assume it is a wrong mode entered by the user
-    nerr=nerr+1
-    CALL ATOMSK_MSG(4813,(/TRIM(clarg)/),(/0.d0/))
-    GOTO 1000
-  !
-  ELSEIF(clarg=='-') THEN
-    !output to stdout
-    ofu=6
-    verbosity=0  !disable all other messages
-  !
-  ELSEIF(clarg(1:1)=='-') THEN
-    !if it starts with "-" we assume it is a wrong option entered by the user
-    nerr=nerr+1
-    CALL ATOMSK_MSG(2805,(/TRIM(clarg)/),(/0.d0/))
-    GOTO 1000
-  !
-  !If it is none of the above, we assume it is some file name
-  ELSE !IF( LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 ) THEN
-    IF(pfiles(1)=='') THEN
-      WRITE(pfiles(1),*) TRIM(clarg)
-    ELSEIF(pfiles(2)=='') THEN
-      WRITE(pfiles(2),*) TRIM(clarg)
-    ELSE
-      !More than two file names => display warning
-      nwarn=nwarn+1
-      CALL ATOMSK_MSG(704,(/TRIM(clarg)/),(/0.d0/))
+  CASE DEFAULT
+    !Deal with output formats
+    !First, check if argument is one of the formats in flist(:) (see "globalvar.f90")
+    IF( ANY(flist(:,1)==clarg) ) THEN
+      Nout = Nout+1
+      tempout(Nout) = StrDnCase(clarg)
+    !Second, accept some keywords and save them as format
+    ELSEIF(clarg=="atomsk") THEN
+      Nout = Nout+1
+      tempout(Nout) = 'atsk'
+    ELSEIF( clarg=='abinit' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'abin'
+    ELSEIF( clarg=="bopfox" ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'bx'
+    ELSEIF( clarg=='atomeye' .OR. clarg=='qstem' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'cfg'
+    ELSEIF( clarg=='drprobe' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'cel'
+    ELSEIF( clarg=='dlpoly' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'dlp'
+    ELSEIF( clarg=='config' ) THEN
+      IF(LEN_TRIM(pfiles(1)).NE.0) THEN
+        IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'CONFIG'
+        Nout = Nout+1
+        tempout(Nout) = 'dlp'
+      ELSE
+        pfiles(1) = 'CONFIG'
+      ENDIF
+    ELSEIF( clarg=='mbpp' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'coo'
+    ELSEIF( clarg=='coorat' ) THEN
+      !if a file name was defined before,
+      IF(LEN_TRIM(pfiles(1)).NE.0) THEN
+        IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'COORAT'
+        Nout = Nout+1
+        tempout(Nout) = 'coo'
+      ELSE
+        pfiles(1) = 'COORAT'
+      ENDIF
+    ELSEIF( clarg=='crystal' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'd12'
+    ELSEIF( clarg=='ddplot' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'dd'
+    ELSEIF( clarg=='siesta' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'fdf'
+    ELSEIF( clarg=='gulp' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'gin'
+    ELSEIF( clarg=='lammps' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'lmp'
+    ELSEIF( clarg=='moldy' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'mol'
+    ELSEIF( clarg=='vasp' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'pos'
+    ELSEIF( clarg=='poscar' ) THEN
+      IF(LEN_TRIM(pfiles(1)).NE.0) THEN
+        IF(LEN_TRIM(pfiles(2))==0) pfiles(2) = 'POSCAR'
+        Nout = Nout+1
+        tempout(Nout) = 'pos'
+      ELSE
+        IF(LEN_TRIM(pfiles(2))==0) pfiles(1) = 'POSCAR'
+      ENDIF
+    ELSEIF( clarg=='pwscf' .OR. clarg=='qe' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'pw'
+    ELSEIF( clarg=='xcrysden' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'xsf'
+    ELSEIF( clarg=='stru' ) THEN
+      Nout = Nout+1
+      tempout(Nout) = 'stru'
+    ! -- please add new formats in alphabetical order --
+    !
+    ELSEIF(clarg(1:2)=='--') THEN
+      !if it starts with "--" we assume it is a wrong mode entered by the user
+      nerr=nerr+1
+      CALL ATOMSK_MSG(4813,(/TRIM(clarg)/),(/0.d0/))
+      GOTO 1000
+    !
+    ELSEIF(clarg=='-') THEN
+      !output to stdout
+      ofu=6
+      verbosity=0  !disable all other messages
+    !
+    ELSEIF(clarg(1:1)=='-') THEN
+      !if it starts with "-" we assume it is a wrong option entered by the user
+      nerr=nerr+1
+      CALL ATOMSK_MSG(2805,(/TRIM(clarg)/),(/0.d0/))
+      GOTO 1000
+    !
+    !If it is none of the above, we assume it is some file name
+    ELSE !IF( LEN_TRIM(pfiles(1))==0 .OR. LEN_TRIM(pfiles(2))==0 ) THEN
+      IF(pfiles(1)=='') THEN
+        WRITE(pfiles(1),*) TRIM(clarg)
+      ELSEIF(pfiles(2)=='') THEN
+        WRITE(pfiles(2),*) TRIM(clarg)
+      ELSE
+        !More than two file names => display warning
+        nwarn=nwarn+1
+        CALL ATOMSK_MSG(704,(/TRIM(clarg)/),(/0.d0/))
+      ENDIF
+    !
     ENDIF
   !
   !
@@ -1925,7 +1914,7 @@ DO WHILE(i<SIZE(cla))
 !     nwarn = nwarn+1
 !     CALL ATOMSK_MSG(703,(/TRIM(clarg)/),(/0.d0/))
   !
-  ENDIF
+  END SELECT  !clarg
   !
   GOTO 110
   !

@@ -30,7 +30,7 @@ MODULE cmpt_G
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 May 2024                                      *
+!* Last modification: P. Hirel - 15 Dec. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -90,7 +90,7 @@ INTEGER,DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: NeighList1, NeighList2  !list
 REAL(dp):: alpha, alpha_tmp !angles between two vectors
 REAL(dp):: theta_max  !if angle between vectors in Pneigh and Qneigh exceed this value, exclude them
 REAL(dp):: NeighFactor !%of tolerance in the cutoff for neighbor search
-REAL(dp),PARAMETER:: radius=6.d0 !R for neighbour search (6A should be enough to find neighbours in any structure)
+REAL(dp),PARAMETER:: radius=8.d0 !R for neighbour search (6A should be enough to find neighbours in any structure)
 REAL(dp):: cutoff      !cutoff for neighbor search
 REAL(dp):: d1n, d2n, angle, tempreal
 REAL(dp),DIMENSION(3,3):: test_matrix

@@ -1,15 +1,15 @@
-MODULE display_messages
+MODULE messages_misc
 !
 !**********************************************************************************
-!*  DISPLAY_MESSAGES                                                              *
+!*  MESSAGES_MISC                                                                 *
 !**********************************************************************************
-!* This module contains routines to display messages for the Atomsk program.      *
+!* This module contains routines to display fancy messages.                       *
 !**********************************************************************************
 !* (C) June 2011 - Pierre Hirel                                                   *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Sept. 2025                                    *
+!* Last modification: P. Hirel - 05 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -356,6 +356,10 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
         msg = "  O  OOOO        ["//TRIM(ADJUSTL(pc))//"%]"
       ENDIF
       !
+    CASE("number","percent","percentage")
+      !No fancy progress bar, just display percentage
+      msg = "["//TRIM(ADJUSTL(pc))//"%]"
+      !
     CASE("pacman")
       !Display Pacman
       j = NINT(tempreal/2.d0)
@@ -498,4 +502,4 @@ END FUNCTION COLOUR_MSG
 !
 !
 !
-END MODULE display_messages
+END MODULE messages_misc

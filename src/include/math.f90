@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2025                                     *
+!* Last modification: P. Hirel - 31 Oct. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -357,7 +357,6 @@ END FUNCTION VOLUME_TETRA
 !  corresponding to a rotation of a given angle
 !  around the given axis.
 !********************************************************
-!
 FUNCTION ROTMAT_AXIS(axis,angle) RESULT(rot_matrix)
 !
 IMPLICIT NONE
@@ -652,11 +651,11 @@ R1(:) = -1.d12
 R2(:) = 1.d12
 !
 P13(:) = P1(:) - P3(:)
-P21(:) = P2(:) - P1(:)
 P43(:) = P4(:) - P3(:)
 IF( DABS(P43(1)) < eps .AND. DABS(P43(2)) < eps .AND. DABS(P43(3)) < eps ) THEN
   RETURN
 ENDIF
+P21(:) = P2(:) - P1(:)
 IF( DABS(P21(1)) < eps .AND. DABS(P21(2)) < eps .AND. DABS(P21(3)) < eps ) THEN
   RETURN
 ENDIF
@@ -697,7 +696,7 @@ REAL(dp),DIMENSION(3),INTENT(OUT):: center !position of center of circle
 REAL(dp),DIMENSION(3),INTENT(OUT):: normal !vector normal to circle
 REAL(dp),INTENT(OUT):: radius              !radius of circle
 INTEGER:: i, j
-INTEGER,INTENT(OUT):: status
+INTEGER,INTENT(OUT):: status  !0=success; 1=two points are identical; 2=points are aligned
 REAL(dp),DIMENSION(3):: a, b, c, u
 !
 status=0  !so far so good
@@ -722,7 +721,7 @@ b(:) = P(2,:) - P(3,:)
 c(:) = CROSS_PRODUCT(a,b)
 !
 !Check that the 3 points are not aligned
-IF( VECLENGTH(c) < 1.d-12 ) THEN
+IF( VECLENGTH(c) < 1.d-3 ) THEN
   !Vectors are (almost) colinear
   status=2
   RETURN
@@ -738,14 +737,6 @@ center(:) = CROSS_PRODUCT(u,c)/(2.d0*(VECLENGTH(c)**2)) + P(3,:)
 !Compute normal to circle
 normal(:) = c(:)/VECLENGTH(c)
 !
-!Clean up vectors (i.e. if a component is close to zero, set it to zero)
-!DO i=1,3
-!  IF(DABS(center(i))<1.d-12) center(i) = 0.d0
-!  IF(DABS(normal(i))<1.d-12) normal(i) = 0.d0
-!ENDDO
-!
-IF(status>0) PRINT*, "ERROR ", status, " CIRCUMCIRCLE: R=", radius, "center: ", center(:)
-!
 END SUBROUTINE CIRCUMCIRCLE
 !
 !
@@ -754,7 +745,6 @@ END SUBROUTINE CIRCUMCIRCLE
 ! Given a set of 4 points, assumed to belong to the
 ! surface of the same sphere, this routine determines
 ! the position of the center of the sphere and its radius.
-! https://math.stackexchange.com/questions/1666927/how-to-adapt-system-of-circles-method-to-3d-for-finding-a-sphere-given-4-point
 !********************************************************
 SUBROUTINE CIRCUMSPHERE(P,center,radius,status)
 !
@@ -762,50 +752,122 @@ IMPLICIT NONE
 REAL(dp),DIMENSION(4,3),INTENT(IN):: P     !positions (x,y,z) of 4 points that belong to sphere surface
 REAL(dp),DIMENSION(3),INTENT(OUT):: center !position of center of sphere
 REAL(dp),INTENT(OUT):: radius              !radius of sphere
-INTEGER,INTENT(OUT):: status
+INTEGER,INTENT(OUT):: status !0=success; 1=two points are identical;
+                             !2=3 points are aligned;
+                             !3=all points in same plane;
+                             !4=failed to construct a circumcircle;
+                             !4=normals to circle do not coincide;
+                             !5=all final points are not equidistant to center
 !
-INTEGER:: i, j
+INTEGER:: i, j, k
 REAL(dp):: h, r1, r2
-REAL(dp),DIMENSION(3):: c1, c2, n1, n2, l1, l2
+REAL(dp),DIMENSION(3):: c1, c2, n1, n2 !centers and normals to circles
+REAL(dp),DIMENSION(3):: l1, l2         !points of shortest segment between 2 lines
+REAL(dp),DIMENSION(3,3):: Cpoints      !points belonging to a circle
 !
 status=0  !so far so good
 radius = 0.d0
 center(:) = 0.d0
-!PRINT*, "BEGIN CIRCUMSPHERE"
+c1(:) = 0.d0
+c2(:) = 0.d0
+n1(:) = 0.d0
+n2(:) = 0.d0
+l1(:) = 0.d0
+l2(:) = 0.d0
 !
-!Check that the 4 points are different, and not in the same plane
+!Check that the 4 points are different
 DO i=1,SIZE(P,1)-1
   DO j=i+1,SIZE(P,1)
-    h = VECLENGTH( P(i,1:3)-P(j,1:3) )
+    h = VECLENGTH( P(j,1:3)-P(i,1:3) )
     IF( h<1.d-3 ) THEN
-      !Those two points are at the same position
+      !Two points are (almost) at the same position
       status=1
       RETURN
     ENDIF
   ENDDO
 ENDDO
 !
-r1 = VOLUME_PARA((/P(1,:),P(2,:),P(3,:)/))
-r2 = VOLUME_PARA((/P(1,:),P(2,:),P(4,:)/))
+!Check that 3 points are not aligned
+DO i=1,SIZE(P,1)-2
+  DO j=i+1,SIZE(P,1)-1
+    DO k=j+1,SIZE(P,1)
+      c1(:) = P(j,1:3) - P(i,1:3)
+      c2(:) = P(k,1:3) - P(i,1:3)
+      !Compute angle between vectors c1 and c2
+      h = ANGVEC(c1,c2)
+      IF( DABS(DSIN(h))<1.d-1 ) THEN
+        !The three points i,j,k are (almost) aligned
+        status=2
+        RETURN
+      ENDIF
+    ENDDO !k
+  ENDDO !j
+ENDDO !i
+!
+!Check that the 4 points are not in the same plane
+c1(:) = P(1,:) - P(2,:)
+c2(:) = P(1,:) - P(3,:)
+n1(:) = P(1,:) - P(4,:)
+n2(:) = P(2,:) - P(1,:)
+l1(:) = P(2,:) - P(3,:)
+l2(:) = P(2,:) - P(4,:)
+r1 = VOLUME_PARA((/c1,c2,n1/))
+r2 = VOLUME_PARA((/n2,l1,l2/))
 IF( r1<0.1d0 .AND. r2<0.1d0 ) THEN
-  !All points are in the same plane
-  status=2
+  !All points are (almost) in the same plane
+  status=3
+  RETURN
 ENDIF
 !
 !Get the center of one circle
-CALL CIRCUMCIRCLE(P(1:3,:),c1,r1,n1,i)
-!PRINT*, "    Circle 1:", c1, r1, n1
+Cpoints(:,:) = P(1:3,:)
+CALL CIRCUMCIRCLE(Cpoints,c1,r1,n1,i)
+IF(i>0) THEN
+  !Failed: try with another set of 3 points
+  Cpoints(1,:) = P(1,:)
+  Cpoints(2,:) = P(2,:)
+  Cpoints(3,:) = P(4,:)
+  CALL CIRCUMCIRCLE(Cpoints,c1,r1,n1,i)
+  IF(i>0) THEN
+    !Failed again: try with another set of 3 points
+    Cpoints(1,:) = P(1,:)
+    Cpoints(2,:) = P(3,:)
+    Cpoints(3,:) = P(4,:)
+    CALL CIRCUMCIRCLE(Cpoints,c1,r1,n1,i)
+    IF(i>0) THEN
+      status=3
+      RETURN
+    ENDIF
+  ENDIF
+ENDIF
 !Get center of a second circle
-CALL CIRCUMCIRCLE(P(2:4,:),c2,r2,n2,i)
-!PRINT*, "    Circle 2:", c2, r2, n2
+Cpoints(:,:) = P(2:4,:)
+CALL CIRCUMCIRCLE(Cpoints,c2,r2,n2,i)
+IF( i>0 .OR. VECLENGTH(c2-c1)<1.d-3 .OR. VECLENGTH(CROSS_PRODUCT(n1,n2))<0.1d0 ) THEN
+  !Failed: try with another set of 3 points
+  Cpoints(1,:) = P(2,:)
+  Cpoints(2,:) = P(3,:)
+  Cpoints(3,:) = P(1,:)
+  CALL CIRCUMCIRCLE(Cpoints,c2,r2,n2,i)
+  IF( i>0 .OR. VECLENGTH(c2-c1)<1.d-3 .OR. VECLENGTH(CROSS_PRODUCT(n1,n2))<0.1d0 ) THEN
+    !Failed again: try with another set of 3 points
+    Cpoints(1,:) = P(2,:)
+    Cpoints(2,:) = P(4,:)
+    Cpoints(3,:) = P(1,:)
+    CALL CIRCUMCIRCLE(Cpoints,c2,r2,n2,i)
+    IF( i>0 .OR. VECLENGTH(c2-c1)<1.d-3 .OR. VECLENGTH(CROSS_PRODUCT(n1,n2))<0.1d0 ) THEN
+      status=4
+      RETURN
+    ENDIF
+  ENDIF
+ENDIF
 !Get intersection between lines normal to the circles
 CALL LINE_INTERSECTION(c1,c1+n1,c2,c2+n2,l1,l2)
-!PRINT*, "    Intersect 1:", l1
-!PRINT*, "    Intersect 2:", l2
 !If everything went well, l1 and l2 should coincide
 IF( VECLENGTH(l2-l1)>0.1d0 ) THEN
-  !Use middle point as sphere center
-  status=3
+  !Points do not coincide
+  status=5
+  RETURN
 ENDIF
 !Use middle point as sphere center
 center = l1 + (l2-l1)/2.d0
@@ -817,8 +879,8 @@ DO i=1,4
   r1 = VECLENGTH( P(i,:) - center(:) )
   IF( DABS(radius-r1) > 1.0d0 ) THEN
     !Not the same distance
-    !PRINT*, "radius(", i, ") = ", r1
-    status=4
+    status=6
+    RETURN
   ENDIF
 ENDDO
 !Re-calculate radius as average distance between center and the 4 points
@@ -827,16 +889,6 @@ DO i=1,4
   radius = radius + VECLENGTH( P(i,:) - center(:) )
 ENDDO
 radius = radius/4.d0
-!
-!Clean up vectors (i.e. if a component is close to zero, set it to zero)
-!DO i=1,3
-!  IF(DABS(center(i))<1.d-12) center(i) = 0.d0
-!ENDDO
-!
-!IF(status>0) PRINT*, "ERROR ", status, " CIRCUMSPHERE: R=", radius, "center: ", center(:)
-!PRINT*, "END CIRCUMSPHERE"
-!
-!
 !
 END SUBROUTINE CIRCUMSPHERE
 !
@@ -912,7 +964,6 @@ END SUBROUTINE INVMAT
 !   H =  |  H(2,1)  H(2,2)    0     |
 !        |  H(3,1)  H(3,2)  H(3,3)  |
 !********************************************************
-!
 SUBROUTINE CONVMAT(a,b,c,alpha,beta,gamma,H)
 !
 IMPLICIT NONE
@@ -935,7 +986,6 @@ H(3,3) = c*(DSIN(beta)*                                         &
        &          )/(DSIN(beta)*DSIN(gamma))                    &
        &   )
 !
-!
 END SUBROUTINE CONVMAT
 !
 !
@@ -944,7 +994,6 @@ END SUBROUTINE CONVMAT
 !  This subroutine converts a matrix into conventional
 !  vectors defined by a b c alpha beta gamma.
 !********************************************************
-!
 SUBROUTINE MATCONV(H,a,b,c,alpha,beta,gamma)
 !
 IMPLICIT NONE
@@ -958,7 +1007,6 @@ REAL(dp),DIMENSION(3,3),INTENT(IN):: H
   beta = ANGVEC( H(3,:),H(1,:) )
  gamma = ANGVEC( H(1,:),H(2,:) )
 !
-!
 END SUBROUTINE MATCONV
 !
 !
@@ -967,7 +1015,6 @@ END SUBROUTINE MATCONV
 !  This subroutine calculates the centered derivative
 !  of an array.
 !********************************************************
-!
 SUBROUTINE DERIVATIVE(func,dfunc)
 !
 IMPLICIT NONE
@@ -996,7 +1043,6 @@ END SUBROUTINE DERIVATIVE
 !  i.e. first rotation around X Cartesian axis,
 !  then Y, and finally Z.
 !********************************************************
-!
 SUBROUTINE EULER2MAT_ZYX(a,b,c,rotmat)
 !
 IMPLICIT NONE
@@ -1032,7 +1078,6 @@ END SUBROUTINE EULER2MAT_ZYX
 !  i.e. first rotation around X Cartesian axis,
 !  then Y, and finally Z.
 !********************************************************
-!
 SUBROUTINE MAT2EULER_ZYX(rotmat,a,b,c)
 !
 IMPLICIT NONE
@@ -1053,7 +1098,6 @@ END SUBROUTINE MAT2EULER_ZYX
 !  If M.Mt yields the identity matrix then M is a
 !  rotation matrix, otherwise it is not.
 !********************************************************
-!
 FUNCTION IS_ROTMAT(matrix) RESULT(isrotmat)
 !
 IMPLICIT NONE

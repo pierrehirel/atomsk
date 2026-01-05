@@ -15,20 +15,20 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-cell &#60;add|rm|set&#62; &#60;d&#62; &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62;</code></p>
+<p><code>-cell &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62; &#60;add|rm|set&#62; &#60;d&#62;</code></p>
 
 
 <h4>Description</h4>
 
 <p>Cette option permet de modifier les vecteurs de boîte.</p>
 
-<p>Il est possible d'ajouter ("add"), d'enlever ("rm"), ou de donner ("set") une longueur &#60;d&#62; à la composante donnée d'un vecteur de boîte.</p>
-
 <p>Les mots-clés H1, H2, H3, font référence aux vecteurs de boîte. Ajouter une distance &#60;d&#62; à un vecteur signifie qu'il conservera la même direction, mais sa norme sera plus longue d'une quantité &#60;d&#62;. La même logique s'applique lorsqu'une distance est réduite (rm) ou définie (set).</p>
 
 <p>Les mots-clés x, y, z, font référence aux composantes cartésiennes des vecteurs de boîte. Ajouter une distance &#60;d&#62; à la composante x, signifie que le vecteur avec la plus grande composante suivant X sera redimensionné de sorte que les "bornes de boîte" (la différence entre les coordonnées maximum et minimum suivant X) soit plus longue de &#60;d&#62;. Les vecteurs de boîte conservent leurs directions respectives et leurs angles relatifs. Notez que si les vecteurs de boîte sont inclinés par rapport aux axes cartésiens, alors leur longueur n'est pas modifiée de &#60;d&#62; mais d'une autre quantité. La composante "xyz" signifie que la même distance &#60;d&#62; sera ajoutée (ou enlevée) à toutes les composantes cartésiennes. Les composantes xy, xz, yx, yz, zx, zy, sont les éléments non-diagonaux de la matrice des vecteurs de boîte.</p>
 
 <p>Notez que si les vecteurs de boîte sont alignés avec les axes cartésiens, tels que H1//x, H2//y, et H3//z, alors utiliser le mot-clé "H1" est strictement équivalent à "x", puisque le vecteur H1 a une composante non nulle uniquement suivant X. La même chose est vraie pour H2 et y, et pour H3 et z.</p>
+
+<p>Il est possible d'ajouter ("add"), d'enlever ("rm"), ou d'attribuer ("set") une longueur &#60;d&#62; à la composante donnée d'un vecteur de boîte.</p>
 
 <p>La distance &#60;d&#62; doit être donnée en (&Aring;), et il est recommandé qu'elle soit positive pour éviter toute confusion. Utiliser "add" avec une valeur négative de &#60;d&#62; va en réalité raccourcir le vecteur de boîte. De la même façon, utiliser "rm" avec une valeur négative de &#60;d&#62; va en fait allonger le vecteur de boîte.</p>
 
@@ -46,16 +46,16 @@
 <h4>Exemples</h4>
 
 <ul>
-<li><code class="command">atomsk initial.cfg -cell add 10 H2 final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell H2 add 10 final.cfg</code>
 <p>Avec cette commande, Atomsk va lire le fichier <code>initial.cfg</code>, puis ajouter 10&nbsp;&Aring; au second vecteur de boîte (H2). Autrement dit, le second vecteur de boîte va garder sa direction, mais il sera allongé de 10&nbsp;&Aring;. Les positions des atomes resteront identiques, donc cette option va ajouter du vide le long de cette direction. Le résultat sera enregistré dans le fichier <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -cell add 20 y final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell y add 20 final.cfg</code>
 <p>Ceci va lire le fichier <code>initial.cfg</code>, puis ajouter 20&nbsp;&Aring; aux dimensions de la boîte suivant l'axe cartésien Y. Dans la pratique cela ajoutera du vide suivant la direction Y. Le résultat sera enregistré dans <code>final.cfg</code>.</p></li>
 
-<li><code class="command">atomsk initial.cfg -cell set 87.4 H1 final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell H1 set 87.4 final.cfg</code>
 <p>Ceci va changer la longueur du premier vecteur de boîte à 87.4&nbsp;&Aring;.</p></li>
 
-<li><code class="command">atomsk initial.cfg -cell rm 0.5 H3 final.cfg</code>
+<li><code class="command">atomsk initial.cfg -cell H3 rm 0.5 final.cfg</code>
 <p>Ceci va réduire la longueur du troisième vecteur de boîte (H3) de 0.5&nbsp;&Aring;.</p></li>
 </ul>
 

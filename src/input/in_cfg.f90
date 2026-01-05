@@ -11,7 +11,7 @@ MODULE in_cfg
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 April 2024                                    *
+!* Last modification: P. Hirel - 27 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -32,6 +32,7 @@ USE comv
 USE constants
 USE messages
 USE files
+USE strings
 USE subroutines
 !
 IMPLICIT NONE
@@ -49,11 +50,12 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: AUXNAMES !names of aux
 CHARACTER(LEN=4096):: temp
 LOGICAL:: Hset, novelocity
 INTEGER:: auxiliary  !number of auxiliary properties
-INTEGER:: i, Hread
+INTEGER:: cfgformat
+INTEGER:: i, n, Hread
 INTEGER:: Ncomment  !number of comment lines
 INTEGER:: NP, NPcount, strlength, strlength2
 REAL(dp):: a0, snumber
-REAL(dp):: testreal, cfgformat
+REAL(dp):: testreal
 REAL(dp):: P1, P2, P3
 REAL(dp), DIMENSION(3,3),INTENT(OUT):: H   !Base vectors of the supercell
 REAL(dp), DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P   !atom positions
@@ -71,8 +73,8 @@ Hread=0
 NPcount=0
 testreal = 0.d0
 H(:,:) = 0.d0
- cfgformat = 0.05d0 ! negative = standard CFG
-                    ! positive = extended CFG (assumed to be default)
+ cfgformat = 5 ! negative = standard CFG
+               ! positive = extended CFG (assumed to be default)
 !
 !
 !
@@ -83,27 +85,29 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 OPEN(UNIT=30,FILE=inputfile,FORM='FORMATTED',STATUS='OLD')
 REWIND(30)
 !
-!Read the preamble of the file
-DO WHILE(.NOT.Hset .OR. NP==0)
+!Read the preamble of the file: number of particles and cell vectors
+DO n=1,200
   READ(30,'(a)',ERR=400,END=160) temp
   temp = ADJUSTL(temp)
   IF(temp(1:1).NE.'#') THEN
-    !Check if it is a new species
-    IF(temp(1:21)=='Number of particles =' .OR. temp(1:20)=='Number of particles=') THEN
-        READ(temp(22:128),*,ERR=420,END=420) snumber
-        IF( snumber > NATOMS_MAX ) THEN
-          nerr = nerr+1
-          CALL ATOMSK_MSG(821,(/""/),(/snumber/))
-          GOTO 1000
-        ENDIF
-        NP = NINT(snumber)
-        ALLOCATE(P(NP,4) , STAT=i)
-        IF( i>0 ) THEN
-          ! Allocation failed (not enough memory)
-          nerr = nerr+1
-          CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
-          GOTO 1000
-        ENDIF
+    !Read
+    IF( StrDnCase(temp(1:19)) == "number of particles" ) THEN
+      i = SCAN(temp,'=')
+      IF(i==0) i = SCAN(temp,' ')
+      READ(temp(i+1:),*,ERR=420,END=420) snumber
+      IF( snumber > NATOMS_MAX ) THEN
+        nerr = nerr+1
+        CALL ATOMSK_MSG(821,(/""/),(/snumber/))
+        GOTO 1000
+      ENDIF
+      NP = NINT(snumber)
+      ALLOCATE(P(NP,4) , STAT=i)
+      IF( i>0 ) THEN
+        ! Allocation failed (not enough memory)
+        nerr = nerr+1
+        CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP)/))
+        GOTO 1000
+      ENDIF
     ELSEIF(temp(1:2)=='A=' .OR. temp(1:3)=='A =') THEN
         READ(temp(4:128),*,ERR=400,END=400) testreal
         a0 = testreal
@@ -145,7 +149,7 @@ DO WHILE(.NOT.Hset .OR. NP==0)
         Hread=Hread+1
     ENDIF
     !
-    IF(Hread==9) Hset=.TRUE.
+    IF(Hread>=9) Hset=.TRUE.
   !
   ELSE  !i.e. if the line starts with #
     Ncomment=Ncomment+1
@@ -154,6 +158,8 @@ DO WHILE(.NOT.Hset .OR. NP==0)
   150 CONTINUE
   msg = 'CFG header: '//TRIM(temp)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  IF( Hset .AND. NP>0 ) EXIT
   !
 ENDDO
 !
@@ -175,12 +181,11 @@ DO i=1,500  !Limit the search to the first 500 lines
   CALL ATOMNUMBER(species,snumber)
   IF(snumber.NE.0.d0) THEN
     !If conversion works then decrease the counter
-    cfgformat = cfgformat-0.1d0
+    cfgformat = cfgformat-1
   ENDIF
   !
   171 CONTINUE
-  !If the line did not have the format (mass species x y z)
-  !then do nothing
+  !If the line did not have the format (mass species x y z), then do nothing
 ENDDO
 !
 !
@@ -191,7 +196,7 @@ IF(Ncomment>0) THEN
   comment(:)=''
 ENDIF
 !
-IF(cfgformat<0.d0) THEN
+IF(cfgformat<0) THEN
   msg = 'standard'
 ELSE
   msg = 'extended'
@@ -199,7 +204,7 @@ ENDIF
 WRITE(msg,*) TRIM(msg)//' CFG: cfgformat = ', cfgformat
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
-IF(cfgformat==0.d0) THEN
+IF(cfgformat==0) THEN
   nerr=nerr+1
   CALL ATOMSK_MSG(1804,(/''/),(/0.d0/))
   GOTO 1000
@@ -245,18 +250,23 @@ DO WHILE(snumber==0.d0)
       ENDIF
     ELSEIF( temp(1:9)=='auxiliary' ) THEN
       IF(.NOT. ALLOCATED(AUX) ) THEN
-        !If auxiliary array was not allocated before we are in trouble
-        nwarn = nwarn+1
-        CALL ATOMSK_MSG(1700,(/TRIM(temp)/),(/0.d0/))
-      ELSE
-        !Read the name of the auxiliary property
-        strlength = SCAN(temp,'[')
-        strlength2 = SCAN(temp,']')
-        READ(temp(strlength+1:strlength2-1),*) auxiliary
-        strlength = SCAN(temp,'=')
-        READ(temp(strlength+1:),'(a128)') AUXNAMES(auxiliary+1)
-        AUXNAMES(auxiliary+1) = TRIM(ADJUSTL(AUXNAMES(auxiliary+1)))
+        IF(auxiliary>0) THEN
+          ALLOCATE( AUXNAMES(auxiliary) )
+          AUXNAMES(:) = ''
+        ELSE
+          !If auxiliary array was not allocated before we are in trouble
+          nwarn = nwarn+1
+          CALL ATOMSK_MSG(1700,(/TRIM(temp)/),(/0.d0/))
+          GOTO 201
+        ENDIF
       ENDIF
+      !Read the name of the auxiliary property
+      strlength = SCAN(temp,'[')
+      strlength2 = SCAN(temp,']')
+      READ(temp(strlength+1:strlength2-1),*) auxiliary
+      strlength = SCAN(temp,'=')
+      READ(temp(strlength+1:),'(a128)') AUXNAMES(auxiliary+1)
+      AUXNAMES(auxiliary+1) = TRIM(ADJUSTL(AUXNAMES(auxiliary+1)))
     !
     ELSEIF( temp(1:9)=="Transform" .OR. temp(1:3)=="eta" ) THEN
       !ignore that
@@ -272,16 +282,15 @@ DO WHILE(snumber==0.d0)
       !programs write the CFG format in a non-standard way, writing
       !the atomic number or a dummy number instead of the atomic mass.
       !So here we use only the atomic species
-      IF(cfgformat<0.d0) THEN
+      IF(cfgformat<0) THEN
         READ(temp,*,ERR=400,END=400) testreal, species
         CALL ATOMNUMBER(species,snumber)
       ELSE
         READ(30,*,ERR=400,END=400) species
         CALL ATOMNUMBER(species,snumber)
       ENDIF
-      !If species was not recognized
-      201 CONTINUE
     ENDIF
+    201 CONTINUE
     !
   ENDIF
 ENDDO
@@ -290,7 +299,7 @@ ENDDO
 msg = 'Reading atomic positions'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 NPcount = 0
-IF(cfgformat<0.d0) THEN
+IF(cfgformat<0) THEN
   !Standard CFG format
   !Go back one line
   BACKSPACE(30)

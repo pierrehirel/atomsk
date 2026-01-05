@@ -9,11 +9,13 @@ Master
 - in mode "--merge", usage was changed to allow two keywords: "stack <x|y|z>" to indicate direction of stacking, and "scale" to rescale systems to match first system. Fixed a bug that prevented writing the output file in a sub-directory; thanks to Ethan Edmunds, University of Sheffield, UK, for pointing out this bug.
 - in mode "--polycrystal", complete overhaul of the algorithm, which is now entirely based on Delaunay triangulation. It should be more robust, use less memory, and be faster. Added new keyword "clearance" to control the width around GB plane where atoms are deleted. Code was split in different sub-modules to facilitate maintainance (include/voronoi.f90, modes/polyx_readparam.f90).
 - in mode "--unwrap", a new auxiliary property "unwrapped_atom" is defined that is equal to 1 if an atom is unwrapped, and 0 otherwise.
+- in option "-cell", changed order or parameters to be consistent with other options (e.g. "-deform").
 - in option "-rotate" it is now possible to provide a file containing a rotation matrix.
 - in option "-select", when selecting a 3-D shape from an STL file, rescaling is not automatic any more. It can be activated with keyword "scale" or "rescale" which preserves the aspect ratio of the 3-D model, or with keyword "fill" that deforms the 3-D model to fill the simulation cell.
 - in option "-wrap", fixed bug where number of atoms that were wrapped was not counted correctly.
 - new function "IS_SELECTED" returns true if array SELECT is unallocated or if an atom is selected (false otherwise). This function is now used in most modes and options.
 - enhanced writing of Quantum Espresso input files (*.pw), taking system information into account (e.g. if cell is cubic, ecutwfc and ecutrho read from UPF files, etc.). Note that the file produced is still just a draft and must be edited by user.
+- option "-cell" now accepts lengths in BOX units.
 - option "-fix" renamed to "-freeze", now allows freezing multiple directions at once (xy, xz, yz, or xyz).
 - header and footer can now be customized with keywords "headerstyle" and "headerwidth" in configuration file "atomsk.conf".
 - fixed a bug that prevented reading some GULP results files (*.grs).

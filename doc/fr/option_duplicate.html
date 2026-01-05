@@ -30,7 +30,7 @@
   <li><strong>Nz</strong> : nombre de répétitions du système suivant le troisième vecteur de boîte <code>Hz</code>.</li>
 </ul>
 
-<p>Si toutes les valeurs sont égales à 1 alors le système reste identique (puisqu'il est multiplié par un dans toutes les directions). Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système. Si une valeur négative est fournie, alors le système est inversé selon cet axe, puis il est dupliqué en direction des coordonnées négatives.</p>
+<p>Ces valeurs doivent être interprétées comme des facteurs de multiplication, de sorte qu'une valeur égale à 1 signifie que le système conserve la même taille suivant la direction donnée. Si toutes les valeurs sont égales à 1 (Nx=1, Ny=1 et Nz=1), alors le système reste identique. Toute valeur égale à zéro est automatiquement remplacée par 1, puisqu'une valeur de zéro suivant n'importe quelle dimension revient à ne plus avoir de système. Si une valeur négative est fournie, alors le système est inversé selon cet axe, puis il est dupliqué en direction des coordonnées négatives.</p>
 
 <p>Dans le fichier de sortie, les répliques du système original sont ajoutées à la suite des positions originelles. Pour modifier l'ordre dans lequel les atomes apparaissent il est possible d'employer l'<a href="./option_sort.html">option <code>-sort</code></a>.</p>
 

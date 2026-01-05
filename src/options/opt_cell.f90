@@ -13,7 +13,7 @@ MODULE cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2025                                     *
+!* Last modification: P. Hirel - 10 Dec. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,7 +40,7 @@ USE subroutines
 CONTAINS
 !
 !
-SUBROUTINE CELL_XYZ(H,cellop,celllength,celldir)
+SUBROUTINE CELL_XYZ(H,celldir,cellop,celllength)
 !
 !
 IMPLICIT NONE
@@ -78,54 +78,54 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 CALL ATOMSK_MSG(2151,(/cellop,celldir/),(/celllength/))
 !
 !Set direction(s) to modify
-SELECT CASE(celldir)
-CASE("H1",'x','X')
+SELECT CASE(StrDnCase(celldir))
+CASE("h1",'x')
   checkzero=.TRUE.
   Hmodified(1) = 1
   Hmodified(2) = 0
   Hmodified(3) = 0
-CASE("H2",'y','Y')
+CASE("h2",'y')
   checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 1
   Hmodified(3) = 0
-CASE("H3",'z','Z')
+CASE("h3",'z')
   checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 0
   Hmodified(3) = 1
-CASE("xyz","XYZ","all","ALL")
+CASE("xyz","all")
   checkzero=.TRUE.
   Hmodified(1) = 1
   Hmodified(2) = 1
   Hmodified(3) = 1
-CASE("xx","XX")
+CASE("xx")
   a1 = 1
   a2 = 1
-CASE("yy","YY")
+CASE("xy")
+  a1 = 2
+  a2 = 1
+CASE("xz")
+  a1 = 3
+  a2 = 1
+CASE("yx")
+  a1 = 1
+  a2 = 2
+CASE("yy")
   a1 = 2
   a2 = 2
-CASE("zz","ZZ")
+CASE("yz")
+  a1 = 3
+  a2 = 2
+CASE("zx")
+  a1 = 1
+  a2 = 3
+CASE("zy")
+  a1 = 2
+  a2 = 3
+CASE("zz")
   a1 = 3
   a2 = 4
-CASE("xy","XY")
-  a1 = 2
-  a2 = 1
-CASE("xz","XZ")
-  a1 = 3
-  a2 = 1
-CASE("yx","YX")
-  a1 = 1
-  a2 = 2
-CASE("yz","YZ")
-  a1 = 3
-  a2 = 2
-CASE("zx","ZX")
-  a1 = 1
-  a2 = 3
-CASE("zy","ZY")
-  a1 = 2
-  a2 = 3
 CASE DEFAULT
   Hmodified(:) = 0
 END SELECT
@@ -151,8 +151,8 @@ ENDIF
 200 CONTINUE
 !Modify the box
 IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
-  SELECT CASE(celldir)
-  CASE("H1","H2","H3")
+  SELECT CASE(StrDnCase(celldir))
+  CASE("h1","h2","h3")
     !Modify vector length along given directions
     DO i=1,3
       IF( Hmodified(i)==1 ) THEN
@@ -169,7 +169,7 @@ IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
       ENDIF
     ENDDO
     !
-  CASE('x','X','y','Y','z','Z',"xyz","XYZ","all","ALL")
+  CASE('x','y','z',"xyz","all")
     !Expand the "bounding box" along Cartesian axes
     !Modify vector length along given directions
     DO i=1,3  !loop on X, Y, Z
@@ -203,7 +203,7 @@ IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
       ENDIF
     ENDDO
     !
-  CASE("xx","XX","yy","YY","zz","ZZ","xy","XY","yx","YX","xz","XZ","zx","ZX","yz","YZ","zy","ZY")
+  CASE("xx","xy","xz","yx","yy","yz","zx","zy","zz")
     !Change box tilt
     IF( cellop=="set" ) THEN
       !Set this component to specified value

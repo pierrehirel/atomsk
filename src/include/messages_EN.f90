@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 Sept. 2025                                    *
+!* Last modification: P. Hirel - 19 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,7 +40,7 @@ USE strings
 USE date_time
 USE random
 USE subroutines
-USE display_messages
+USE messages_misc
 !
 IMPLICIT NONE
 !
@@ -267,7 +267,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-cell") THEN
   WRITE(*,*) "..> Modify the cell vectors:"
-  WRITE(*,*) "          -cell <add|rm|set> <length>  <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>"
+  WRITE(*,*) "          -cell <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz> <add|rm|set> <length>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
@@ -2695,8 +2695,7 @@ CASE(3002)
   !strings(1) = name of file
   !strings(2) = type of file, e.g. "XSF" or "CFG"
   !strings(3) = size of file
-  msg = "..> Successfully wrote "//TRIM(strings(2))//" file: " &
-      & //TRIM(strings(1))
+  msg = "..> Successfully wrote "//TRIM(strings(2))//" file: "//TRIM(strings(1))
   IF( SIZE(strings)>2 .AND. LEN_TRIM(strings(3))>0 ) THEN
     msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(3)))//"B)"
   ENDIF
@@ -3147,7 +3146,7 @@ CASE(4051)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(temp,'(f16.3)') reals(1)
   WRITE(temp2,'(f16.3)') reals(2)
-  msg = "    up to "//TRIM(ADJUSTL(temp))//" A, using a skin width of "//TRIM(ADJUSTL(temp2))//" A."
+  msg = "    up to "//TRIM(ADJUSTL(temp))//" Å, using a skin width of "//TRIM(ADJUSTL(temp2))//" Å."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4052)
   msg = "..> Computing RDFs..."
@@ -3168,13 +3167,17 @@ CASE(4054)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4055)
   !reals(1) = index of the grain
-  WRITE(msg,*) NINT(reals(1))
-  msg = ">>> Generating grain #"//TRIM(ADJUSTL(msg))//"..."
+  !reals(2) = number of facets of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Generating grain #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" facets)..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4056)
   !reals(1) = number of atoms in the grain
-  WRITE(msg,*) NINT(reals(1))
-  msg = "..> Number of atoms in this grain: "//TRIM(ADJUSTL(msg))//"."
+  !reals(2) = volume of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Done, "//TRIM(ADJUSTL(temp1))//" atoms, volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4057)
   !strings(1) = name of input file

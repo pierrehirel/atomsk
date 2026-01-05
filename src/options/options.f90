@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2025                                     *
+!* Last modification: P. Hirel - 15 Dec. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -301,17 +301,19 @@ ENDIF
 !If there is no option then exit this module
 IF(.NOT.ALLOCATED(options_array)) GOTO 1000
 IF( verbosity==4 ) THEN
-  WRITE(msg,*) 'options_array size: ', SIZE(options_array)
+  WRITE(temp,*) SIZE(options_array)
+  WRITE(msg,*) "Number of options: "//TRIM(ADJUSTL(temp))
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   IF( SIZE(options_array)>0 ) THEN
     DO i=1,SIZE(options_array)
-      WRITE(msg,*) 'options_array(', i, ') : ', TRIM(ADJUSTL(options_array(i)))
+      WRITE(temp,*) i
+      WRITE(msg,*) "options_array("//TRIM(ADJUSTL(temp))//") : "//TRIM(ADJUSTL(options_array(i)))
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     ENDDO
   ENDIF
 ENDIF
 IF(SIZE(options_array)<=0) THEN
-  WRITE(msg,*) 'options_array has zero size, skipping'
+  WRITE(msg,*) "options_array has zero size, skipping"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   GOTO 1000
 ENDIF
@@ -320,7 +322,7 @@ IF( .NOT.ALLOCATED(P) .OR. SIZE(P)<=0 ) THEN
   !The user wants to apply an option, but no system exists in memory
   !=> error
   nerr=nerr+1
-  WRITE(msg,*) 'ERROR array P is unallocated or has zero size'
+  WRITE(msg,*) "ERROR array P is unallocated or has zero size"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   CALL ATOMSK_MSG(2814,(/''/),(/0.d0/))
   GOTO 1000
@@ -386,7 +388,7 @@ DO ioptions=1,SIZE(options_array)
   IF(ALLOCATED(AUXdummy)) DEALLOCATE(AUXdummy)
   C_tensor_dummy(:,:) = 0.d0
   !
-  SELECT CASE(optionname)
+  SELECT CASE(StrDnCase(optionname))
   !
   CASE('')
     !empty entry => just ignore it
@@ -466,8 +468,20 @@ DO ioptions=1,SIZE(options_array)
     CALL BSHELLS_XYZ(H,P,S,AUXNAMES,AUX,SELECT)
   !
   CASE('-cell','-box','change_cell','change_box')
-    READ(options_array(ioptions),*,END=800,ERR=800) optionname, cellop, celllength, celldir
-    CALL CELL_XYZ(H,cellop,celllength,celldir)
+    READ(options_array(ioptions),*,END=800,ERR=800) optionname, celldir, cellop, treal(1)
+    SELECT CASE(StrDnCase(celldir))
+    CASE('x',"xx","xy","xz")
+      CALL BOX2DBLE( H(:,1) , treal(1) , celllength , status )
+    CASE('y','yy',"yx","yz")
+      CALL BOX2DBLE( H(:,2) , treal(1) , celllength , status )
+    CASE('z',"zz","zx","zy")
+      CALL BOX2DBLE( H(:,3) , treal(1) , celllength , status )
+    END SELECT
+    IF(status>0) THEN
+      temp = treal(1)
+      GOTO 810
+    ENDIF
+    CALL CELL_XYZ(H,celldir,cellop,celllength)
   !
   CASE('-center')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, center_atom

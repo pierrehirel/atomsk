@@ -16,7 +16,7 @@ SGE=globalvar.f90         \
     crystallography.f90   \
     elasticity.f90        \
     sort.f90              \
-    display_messages.f90  \
+    messages_misc.f90     \
     messages_EN.f90       \
     $(L10N)               \
     messages.f90          \

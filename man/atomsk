@@ -94,8 +94,8 @@ Aligns the first supercell vector with the X axis, and the second supercell vect
 .B -bind-shells, -bs
 Re-associates shells (in the sense of a shell model) with their core.
 .TP
-.B -cell <add|rm|set> <d> <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>
-Sets or changes 
+.B -cell <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz> <add|rm|set> <d>
+Sets or changes a component of a cell vector.
 .TP
 .B -center <index>
 Shift the whole system so the atom with the given index is at the center of the box. If index<=0 then the center of mass of the system is centered.

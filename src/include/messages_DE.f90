@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 08 Sept. 2025                                    *
+!* Last modification: P. Hirel - 19 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -40,7 +40,7 @@ USE date_time
 USE strings
 USE random
 USE subroutines
-USE display_messages
+USE messages_misc
 USE messages_en
 !
 IMPLICIT NONE
@@ -268,7 +268,7 @@ ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-cell") THEN
   WRITE(*,*) "..> Zellvektoren ändern:"
-  WRITE(*,*) "          -cell <add|rm|set> <length>  <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz>"
+  WRITE(*,*) "          -cell <H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz> <add|rm|set> <length>"
 ENDIF
 !
 IF(helpsection=="options" .OR. helpsection=="-center") THEN
@@ -3188,13 +3188,18 @@ CASE(4054)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4055)
   !reals(1) = index of the grain
-  WRITE(msg,*) NINT(reals(1))
-  msg = ">>> Erstelle Korn #"//TRIM(ADJUSTL(msg))//"..."
+  !reals(2) = number of facets of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Erstelle Korn #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" Facetten)..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4056)
   !reals(1) = number of atoms in the grain
-  WRITE(msg,*) NINT(reals(1))
-  msg = "..> Anzahl der Atome in diesem Korn: "//TRIM(ADJUSTL(msg))//"."
+  !reals(1) = number of atoms in the grain
+  !reals(2) = volume of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Erledigt, "//TRIM(ADJUSTL(temp1))//" Atome, Volumen = "//TRIM(ADJUSTL(temp2))//" Å^3."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4057)
   !strings(1) = name of input file

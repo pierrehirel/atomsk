@@ -23,7 +23,7 @@ MODULE mode_difference
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Sept. 2024                                    *
+!* Last modification: P. Hirel - 18 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -118,6 +118,7 @@ CALL ATOMSK_MSG(4038,(/''/),(/0.d0/))
 100 CONTINUE
 !Read atomic positions from filefirst and store them into P1(:,:)
 CALL READ_AFF(filefirst,H1,P1,S,comment2,AUXNAMES1,AUX1)
+IF(nerr>0) GOTO 1000
 !Remove shells
 IF(ALLOCATED(S)) DEALLOCATE(S)
 !Apply options to system 1
@@ -125,6 +126,7 @@ CALL OPTIONS_AFF(options_array,Huc,H1,P1,S,AUXNAMES1,AUX1,ORIENT,SELECT,C_tensor
 !
 !Read atomic positions from filesecond and store them into P2(:,:)
 CALL READ_AFF(filesecond,H2,P2,S,comment2,AUXNAMES2,AUX2)
+IF(nerr>0) GOTO 1000
 !Remove shells
 IF(ALLOCATED(S)) DEALLOCATE(S)
 !Apply options to system 2

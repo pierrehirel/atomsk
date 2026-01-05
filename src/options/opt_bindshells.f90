@@ -334,7 +334,7 @@ ELSEIF( .NOT.ALLOCATED(S) ) THEN
         !Particle #j is not a shell and will be dealt with in another loop
         NP=NP+1
         newP(NP,:) = P(i,:)
-        newAUX(NP,:) = AUX(i,:)
+        IF(doaux) newAUX(NP,:) = AUX(i,:)
       ENDIF
       !
     ENDIF
@@ -387,6 +387,8 @@ ENDIF
 !
 200 CONTINUE
 IF( ALLOCATED(S) .AND. SIZE(S,1)>0 ) THEN
+  msg = 'Shells were found, checking distances to core...'
+  CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
   !Check that core-shell distances are small
   DO i=1,SIZE(P,1)
     !

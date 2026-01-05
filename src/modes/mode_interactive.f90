@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Oct. 2025                                     *
+!* Last modification: P. Hirel - 05 Nov. 2025                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1054,6 +1054,19 @@ DO
         ENDIF
         !
         CALL ATOMSK_MSG(4302,(/solution/),(/DBLE(try)/DBLE(maxtries)/))
+        !
+      CASE("progress-bar")
+        !This command is just to test the display of a progress bar
+        j=SCAN(instruction," ")
+        msg = TRIM(ADJUSTL(instruction(j+1:)))
+        IF( LEN_TRIM(msg)>0 ) THEN
+          READ(msg,*,ERR=400,END=400) progressbar
+        ELSE
+          DO i=1,100
+            CALL DISPLAY_PROGBAR(DBLE(i),100.d0)
+            CALL SYSTEM("sleep 0.1") !wait 0.1 second
+          ENDDO
+        ENDIF
         !
         !
       CASE DEFAULT
