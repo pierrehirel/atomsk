@@ -11,7 +11,7 @@ MODULE voronoi
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2026                                     *
+!* Last modification: P. Hirel - 13 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -110,19 +110,35 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Define maximum radius dmax for neighbor search
 !If twodim>0 then it is a 2-D polycrystal
 IF( twodim>0 ) THEN
-  dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
+  IF(twodim==1) THEN
+    P1 = MIN(H(2,2),H(3,3))
+  ELSEIF(twodim==2) THEN
+    P1 = MIN(H(1,1),H(3,3))
+  ELSEIF(twodim==3) THEN
+    P1 = MIN(H(1,1),H(2,2))
+  ENDIF
+  IF( Nnodes>=600 ) THEN
+    dmax = 0.5d0*P1
+  ELSEIF( Nnodes>=200 ) THEN
+    dmax = 0.8d0*P1
+  ELSE
+    dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
+  ENDIF
 ELSE
   !3-D polycrystal
-  IF( Nnodes>=100 ) THEN
-    dmax = 0.25d0*MIN(H(1,1),H(2,2),H(3,3)) + 1.d0
+  P1 = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) )
+  IF( Nnodes>=1000 ) THEN
+    dmax = 0.25d0*P1
+  ELSEIF( Nnodes>=600 ) THEN
+    dmax = 0.35d0*P1
   ELSEIF( Nnodes>=250 ) THEN
-    dmax = 0.35d0*MIN(H(1,1),H(2,2),H(3,3)) + 1.d0
-  ELSEIF( Nnodes>=90 ) THEN
-    dmax = 0.5d0*MIN(H(1,1),H(2,2),H(3,3)) + 1.d0
+    dmax = 0.5d0*P1
+  ELSEIF( Nnodes>=100 ) THEN
+    dmax = 0.8d0*P1
   ELSEIF( Nnodes>50 ) THEN
-    dmax = 0.7d0*MIN(H(1,1),H(2,2),H(3,3)) + 1.d0
+    dmax = P1 + 1.d0
   ELSEIF( Nnodes>20 ) THEN
-    dmax = 0.8d0*MIN(H(1,1),H(2,2),H(3,3)) + 1.d0
+    dmax = P1 + 10.d0
   ELSE
     dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
   ENDIF

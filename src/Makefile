@@ -102,7 +102,7 @@ endif
 ifndef FFT
   # Path to the FFT library
   # If it is installed system-wide just use "-lfftw3"
-  FFT=-lfftw3
+  #FFT=-lfftw3
 endif
 
 # DEFINITION OF PATHS:

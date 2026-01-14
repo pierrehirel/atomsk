@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2026                                     *
+!* Last modification: P. Hirel - 13 Jan. 2026                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -340,6 +340,8 @@ IF( use_template ) THEN
         ENDDO
       ENDDO
     ENDDO
+    !If maxdvertices is small, we can afford to enlarge it
+    IF( maxdvertices<20.d0 ) maxdvertices=20.d0
     WRITE(msg,'(a,f12.3)') "Max distance between two vertices:", maxdvertices
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
@@ -359,7 +361,11 @@ IF( use_template ) THEN
   WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !If expected number of particles is too large, reduce template size
+  i=0
   IF( P1 > 2.1d9 ) THEN
+    WRITE(msg,'(a25,f18.0)') "NP is too large, downsizing a bit..."
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    i=1
     Ht(:,:) = 0.8d0*Ht(:,:)
     IF( twodim>0 ) THEN
       Ht(twodim,twodim) = VECLENGTH(H(twodim,:))
@@ -372,6 +378,10 @@ IF( use_template ) THEN
     CALL ATOMSK_MSG(821,(/""/),(/P1/))
     nerr = nerr+1
     GOTO 1000
+  ENDIF
+  IF(i>0) THEN
+    WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
   !By default the template grain is a bit larger than max.cell size * sqrt(3)
@@ -461,7 +471,7 @@ IF( use_template ) THEN
           IF( P1>-1.d0 .AND. P1<=Ht(1,1) .AND.   &
             & P2>-1.d0 .AND. P2<=Ht(2,2) .AND.   &
             & P3>-1.d0 .AND. P3<=Ht(3,3) .AND.   &
-            & ( twodim>0 .OR. distance<0.72d0*MAXVAL(Ht(:,:)) )  ) THEN
+            & ( twodim>0 .OR. distance<0.75d0*MAXVAL(Ht(:,:)) )  ) THEN
             !Yes it is: save atom position and species into newP
             NP = NP+1
             IF( NP > SIZE(newP,1) ) THEN
@@ -550,12 +560,12 @@ ENDIF !end if(use_template)
 !
 500 CONTINUE
 !Estimate final number of particles NP = (density of unit cell) * (volume of final cell)
-NP = CEILING( seed_density * DABS(H(1,1)*H(2,2)*H(3,3)) )
+NP = CEILING( seed_density * VOLUME_PARA(H) )
 WRITE(msg,*) "Estimated number of atoms in polycrystal: NP = ", NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 !Allow for +10% or +1000 atoms to allocate arrays.
 !Actual size of arrays will be adjusted later
-NP = MIN( NINT(1.2d0*NP) , NP+2000 )
+NP = MIN( NINT(1.1d0*NP) , NP+1000 )
 WRITE(msg,*) "             Allocating arrays with size: NP = ", NP
 CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
 ALLOCATE(Q(NP,4))
@@ -670,25 +680,23 @@ DO inode=1,Nnodes
         Pt(i,1:3) = Pt(i,1:3) + shift(1:3)
         !Compute vector between atom #i and current node
         vector(:) = Pt(i,1:3) - vnodes(inode,1:3)
-        !Check if atom is inside the grain #inode
-        j = 1
-        DO WHILE( Ptmask(i) .AND. j <= Nvertices(inode) )
+        !Check if atom is inside the grain #inode, loop on all vertices
+        DO j=1,Nvertices(inode)
           !Compute vector between vertex #j and current node #inode
           !By definition this vector is normal to the grain boundary
           vnormal(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
           IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d0*clearance ) THEN
-            !Atom is above plane of cut, hence out of polyhedron => exit loop on j
+            !Atom is above plane of cut, hence out of polyhedron
+            !Mark it for termination and exit loop on j (effectively close )
             Ptmask(i) = .FALSE.
             EXIT
           ENDIF
-          j=j+1
         ENDDO
       ENDIF
-      !
     ENDDO
     !$OMP END PARALLEL DO
     !
-    !Now Ptmask(:) is .TRUE. for atoms that belong to grain #inode, .FALSE. otherwise
+    !Now Ptmask(:) is .TRUE. for template atoms that belong to grain #inode, .FALSE. otherwise
     !Copy all .TRUE. atoms into array Q
     DO i=1,SIZE(Pt,1)
       IF( Ptmask(i) ) THEN
@@ -697,26 +705,30 @@ DO inode=1,Nnodes
         !Increment total number of particles in the system
         NP = NP+1
         IF( NP>SIZE(Q,1) ) THEN
-          !Array Q was too small: resize it
-          CALL RESIZE_DBLEARRAY2( Q , NP+1000 , 4 , n )
+          !Total number of atoms exceeds size of array Q
+          !This should not happen, yet here we are: resize Q and all related arrays
+          m = MIN( SIZE(Q,1)+NPgrains(inode) , CEILING(1.1*SIZE(Q,1)) )
+          CALL RESIZE_DBLEARRAY2( Q , m , 4 , n )
           IF( n>0 ) THEN
             ! Allocation failed (not enough memory)
             nerr = nerr+1
-            CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP+1000)/))
+            CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
             GOTO 1000
           ENDIF
-          IF(doshells) CALL RESIZE_DBLEARRAY2( T , NP+1000 , 4 , n )
+          !Resize array for shells with same size
+          IF(doshells) CALL RESIZE_DBLEARRAY2( T , SIZE(Q,1) , 4 , n )
           IF( n>0 ) THEN
             ! Allocation failed (not enough memory)
             nerr = nerr+1
-            CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP+1000)/))
+            CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Q,1))/))
             GOTO 1000
           ENDIF
-          CALL RESIZE_DBLEARRAY2( newAUX , NP+1000 , SIZE(AUXNAMES) , n )
+          !Resize array for aux. prop. with same size
+          CALL RESIZE_DBLEARRAY2( newAUX , SIZE(Q,1) , SIZE(AUXNAMES) , n )
           IF( n>0 ) THEN
             ! Allocation failed (not enough memory)
             nerr = nerr+1
-            CALL ATOMSK_MSG(819,(/''/),(/DBLE(NP+1000)/))
+            CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Q,1))/))
             GOTO 1000
           ENDIF
         ENDIF
