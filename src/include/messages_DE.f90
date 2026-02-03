@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 19 Nov. 2025                                     *
+!* Last modification: P. Hirel - 26 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3207,22 +3207,29 @@ CASE(4057)
       & TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4058)
-  !reals(1) = number of grains
-  !reals(2) = 0 if 3-D, 1,2,3 if thin along x, y, z
+  !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
+  !reals(2:4) = box dimensions
+  !reals(5) = number of grains
   msg = "..> Datei erfolgreich eingelesen."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(temp,'(g12.3)') reals(2)
+  WRITE(temp2,'(g12.3)') reals(3)
+  WRITE(temp3,'(g12.3)') reals(4)
+  msg = "..> Größe der Simulationsbox: "//TRIM(ADJUSTL(temp))//" x "// &
+      & TRIM(ADJUSTL(temp2))//" x "//TRIM(ADJUSTL(temp3))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(msg,*) NINT(reals(1))
   msg = "..> Anzahl der zu erstellenden Koerner: "// &
       & TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  IF( NINT(reals(2))==0 ) THEN
+  IF( NINT(reals(1))==0 ) THEN
     msg = "..> Verwende eine 3-D Voronoi Parkettierung."
   ELSE
-    IF( NINT(reals(2))==1 ) THEN
+    IF( NINT(reals(1))==1 ) THEN
       msg = "x"
-    ELSEIF( NINT(reals(2))==2 ) THEN
+    ELSEIF( NINT(reals(1))==2 ) THEN
       msg = "y"
-    ELSEIF( NINT(reals(2))==3 ) THEN
+    ELSEIF( NINT(reals(1))==3 ) THEN
       msg = "z"
     ENDIF
     msg = "..> Benutze eine 2-D Voronoi Parkettierung"// &

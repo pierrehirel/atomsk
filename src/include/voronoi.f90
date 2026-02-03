@@ -11,7 +11,7 @@ MODULE voronoi
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 Jan. 2026                                     *
+!* Last modification: P. Hirel - 27 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -126,7 +126,8 @@ IF( twodim>0 ) THEN
   ENDIF
 ELSE
   !3-D polycrystal
-  P1 = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) )
+  !P1 = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) )
+  P1 = MIN(H(1,1),H(2,2),H(3,3))
   IF( Nnodes>=1000 ) THEN
     dmax = 0.25d0*P1
   ELSEIF( Nnodes>=600 ) THEN
@@ -134,13 +135,11 @@ ELSE
   ELSEIF( Nnodes>=250 ) THEN
     dmax = 0.5d0*P1
   ELSEIF( Nnodes>=100 ) THEN
-    dmax = 0.8d0*P1
-  ELSEIF( Nnodes>50 ) THEN
-    dmax = P1 + 1.d0
+    dmax = 0.7d0*P1
   ELSEIF( Nnodes>20 ) THEN
-    dmax = P1 + 10.d0
+    dmax = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) ) + 1.d0
   ELSE
-    dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
+    dmax = MAX(H(1,1),H(2,2),H(3,3)) + 1.d0
   ENDIF
 ENDIF
 !

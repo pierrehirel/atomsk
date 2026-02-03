@@ -11,7 +11,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 13 Jan. 2026                                     *
+!* Last modification: P. Hirel - 26 Jan. 2026                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -223,7 +223,7 @@ IF(Nnodes<1) THEN
   GOTO 1000
 ENDIF
 !
-CALL ATOMSK_MSG(4058,(/''/),(/DBLE(Nnodes),DBLE(twodim)/))
+CALL ATOMSK_MSG(4058,(/''/),(/DBLE(twodim),H(1,1),H(2,2),H(3,3),DBLE(Nnodes)/))
 !
 !
 !For 2-D polycrystal, check that user rotated grains only around shortest axis
@@ -348,7 +348,7 @@ IF( use_template ) THEN
     !Save box into Ht(:,:), add a few angströms for good measure
     Ht(:,:) = 0.d0
     DO i=1,3
-      Ht(i,i) = MIN( maxdvertices+10.d0 , 1.1d0*maxdvertices )
+      Ht(i,i) = MIN( maxdvertices+20.d0 , 1.15d0*maxdvertices )
     ENDDO
   ENDIF
   IF( twodim>0 ) THEN

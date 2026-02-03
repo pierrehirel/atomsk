@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Nov. 2025                                     *
+!* Last modification: P. Hirel - 26 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3246,21 +3246,28 @@ CASE(4057)
   msg = ">>> Lecture des paramètres pour la construction de Voronoï depuis: "//TRIM(ADJUSTL(strings(1)))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4058)
-  !reals(1) = number of grains
-  !reals(2) = 0 if 3-D, 1,2,3 if thin along x, y, z
+  !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
+  !reals(2:4) = box dimensions
+  !reals(5) = number of grains
   msg = "..> Le fichier a bien été lu."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(msg,*) NINT(reals(1))
+  WRITE(temp,'(g12.3)') reals(2)
+  WRITE(temp2,'(g12.3)') reals(3)
+  WRITE(temp3,'(g12.3)') reals(4)
+  msg = "..> Dimensions : "//TRIM(ADJUSTL(temp))// &
+      & " x "//TRIM(ADJUSTL(temp2))//" x "//TRIM(ADJUSTL(temp3))
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  WRITE(msg,*) NINT(reals(5))
   msg = "..> Nombre de grains à construire : "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  IF( NINT(reals(2))==0 ) THEN
+  IF( NINT(reals(1))==0 ) THEN
     msg = "..> Tesselation de Voronoi en 3-D."
   ELSE
-    IF( NINT(reals(2))==1 ) THEN
+    IF( NINT(reals(1))==1 ) THEN
       msg = "x"
-    ELSEIF( NINT(reals(2))==2 ) THEN
+    ELSEIF( NINT(reals(1))==2 ) THEN
       msg = "y"
-    ELSEIF( NINT(reals(2))==3 ) THEN
+    ELSEIF( NINT(reals(1))==3 ) THEN
       msg = "z"
     ENDIF
     msg = "..> Tesselation de Voronoi en 2-D, axe de rotation : "//TRIM(ADJUSTL(msg))

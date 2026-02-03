@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 31 Oct. 2025                                     *
+!* Last modification: P. Hirel - 26 Jan. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -223,6 +223,7 @@ INTEGER:: i, j
 REAL(dp),DIMENSION(3),INTENT(IN):: u1, u2
 REAL(dp),DIMENSION(3,3):: m
 !
+m(:,:) = 0.d0
 DO i=1,3
   DO j=1,3
     m(i,j) = u1(i)*u2(j)

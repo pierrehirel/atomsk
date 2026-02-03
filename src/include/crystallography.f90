@@ -449,9 +449,11 @@ REAL(dp),DIMENSION(3,3):: Hstart, Hend  !Initial and final orientations (normali
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: rotmat  !rotation matrix
 !
 status = 0
-rotmat(:,:) = 0.d0
+rotmat(:,:) = Id_Matrix(:,:)
+Hstart(:,:) = Id_Matrix(:,:)
+Hend(:,:) = Id_Matrix(:,:)
 !
-!Normalize the vectors in each matrix
+!Normalize the vectors in matrix H1 and H2, save them in Hstart and Hend
 DO i=1,3
   IF( VECLENGTH(H1(i,:)) .NE. 0.d0 ) THEN
     Hstart(i,:) = H1(i,:)/VECLENGTH(H1(i,:))
