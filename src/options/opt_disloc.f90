@@ -23,7 +23,7 @@ MODULE dislocation
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 Oct. 2025                                     *
+!* Last modification: P. Hirel - 24 Feb. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1224,7 +1224,7 @@ ELSEIF( disloctype=="loop" ) THEN
   !
   !If Burgers vector has a component normal to the loop plane (=prismatic dislocation loop),
   !duplicate or remove atoms that belong to the loop
-  IF( DABS(b(a3))>1.d-2 ) THEN
+  IF( DABS(b(a3))>0.1d0 ) THEN
     IF( b(a3)>0.d0 ) THEN
       !The dislocation loop will separate atomic planes
       !=> new atoms must be inserted inside the loop
@@ -1259,8 +1259,8 @@ ELSEIF( disloctype=="loop" ) THEN
         IF( P(i,a3)<pos(a3)+b(a3)/2.d0 .AND. P(i,a3)>pos(a3)-b(a3)/2.d0 ) THEN
           IF( pos(4)<0.d0 ) THEN
             !"Negative" loop radius: square loop
-            IF( P(i,a1)>pos(a1)-pos(4) .AND. P(i,a1)<pos(a1)+pos(4) .AND. &
-              & P(i,a2)>pos(a2)-pos(4) .AND. P(i,a2)<pos(a2)+pos(4)       ) THEN
+            IF( P(i,a1)>pos(a1)+pos(4) .AND. P(i,a1)<pos(a1)-pos(4) .AND. &
+              & P(i,a2)>pos(a2)+pos(4) .AND. P(i,a2)<pos(a2)-pos(4)       ) THEN
               r=r+1
             ENDIF
           ELSE
@@ -1281,6 +1281,7 @@ ELSEIF( disloctype=="loop" ) THEN
         ENDIF
       ENDDO
       !Save final atom positions inside P(:,:)
+      k = n-u
       DEALLOCATE(P)
       ALLOCATE(P(n,4))
       IF(doaux) THEN
@@ -1294,6 +1295,8 @@ ELSEIF( disloctype=="loop" ) THEN
         ENDIF
       ENDDO
       DEALLOCATE(Q)
+      !
+      CALL ATOMSK_MSG(2063,(/''/),(/DBLE(k)/))
       !
     ELSE !i.e. if b(a3)<0
       !The dislocation will bring atomic planes closer
@@ -1309,8 +1312,8 @@ ELSEIF( disloctype=="loop" ) THEN
         IF( P(i,a3)<pos(a3)-b(a3)/2.d0 .AND. P(i,a3)>pos(a3)+b(a3)/2.d0 ) THEN
           IF( pos(4)<0.d0 ) THEN
             !"Negative" loop radius: square loop
-            IF( P(i,a1)>pos(a1)-pos(4) .AND. P(i,a1)<pos(a1)+pos(4) .AND. &
-              & P(i,a2)>pos(a2)-pos(4) .AND. P(i,a2)<pos(a2)+pos(4)       ) THEN
+            IF( P(i,a1)>pos(a1)+pos(4) .AND. P(i,a1)<pos(a1)-pos(4) .AND. &
+              & P(i,a2)>pos(a2)+pos(4) .AND. P(i,a2)<pos(a2)-pos(4)       ) THEN
               r=r+1
             ENDIF
           ELSE
@@ -1330,6 +1333,7 @@ ELSEIF( disloctype=="loop" ) THEN
         ENDIF
       ENDDO
       !$OMP END PARALLEL DO
+      k = n-SIZE(P,1)
       !Save final atom positions inside P(:,:)
       DEALLOCATE(P)
       ALLOCATE(P(n,4))
@@ -1355,6 +1359,8 @@ ELSEIF( disloctype=="loop" ) THEN
         AUX(:,:) = newAUX(:,:)
         DEALLOCATE(newAUX)
       ENDIF
+      !
+      CALL ATOMSK_MSG(2063,(/''/),(/DBLE(k)/))
       !
     ENDIF
   ENDIF
