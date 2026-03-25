@@ -265,19 +265,19 @@ DO inode=1,Nnodes
   ENDIF
   !
   !Verify that all vertices are part of the Voronoi polyhedron
-  DO j=1,Nvertex  !Loop on all vertices
-    vector(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
-    DO k=1,Nvertex
-      IF( k.NE.j ) THEN
-        vnormal(:) = vvertex(inode,k,1:3) - vnodes(inode,1:3)
-        IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > 0.1d0 ) THEN
-          !vertex #j is outside of polyhedron
-          PRINT*, "out of polyhedron"
-
-        ENDIF
-      ENDIF
-    ENDDO
-  ENDDO
+!   DO j=1,Nvertex  !Loop on all vertices
+!     vector(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
+!     DO k=1,Nvertex
+!       IF( k.NE.j ) THEN
+!         vnormal(:) = vvertex(inode,k,1:3) - vnodes(inode,1:3)
+!         IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > 0.1d0 ) THEN
+!           !vertex #j is outside of polyhedron
+!           PRINT*, "out of polyhedron"
+!
+!         ENDIF
+!       ENDIF
+!     ENDDO
+!   ENDDO
   !
   !Save final number of vertices
   Nvertices(inode) = Nvertex
