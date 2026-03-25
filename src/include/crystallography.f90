@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Jan. 2026                                     *
+!* Last modification: P. Hirel - 03 March 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -297,24 +297,17 @@ END SUBROUTINE HKIL2UVW
 !  UVW2HKIL
 !  This subroutine converts Miller notation [uvw]
 !  into Miller-Bravais notation [hkil].
-!  This routine returns the minimum integer indices,
-!  i.e. it attempts to divide u,v,w by their common divisor.
 !********************************************************
 SUBROUTINE UVW2HKIL(u,v,w,h,k,i,l)
 !
-REAL(dp):: a, b, c
 REAL(dp),INTENT(IN):: u, v, w
 REAL(dp),INTENT(OUT):: h, k, i, l
-!
-a = 1.d0
-b = 1.d0
-c = 1.d0
 !
 !Convert
 h = (2.d0*u-v)/3.d0
 k = (2.d0*v-u)/3.d0
 i = -1.d0*(h+k)
-l = l
+l = w
 !
 !
 END SUBROUTINE UVW2HKIL
@@ -449,41 +442,45 @@ REAL(dp),DIMENSION(3,3):: Hstart, Hend  !Initial and final orientations (normali
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: rotmat  !rotation matrix
 !
 status = 0
+!Initialize to identity matrix
 rotmat(:,:) = Id_Matrix(:,:)
 Hstart(:,:) = Id_Matrix(:,:)
 Hend(:,:) = Id_Matrix(:,:)
 !
-!Normalize the vectors in matrix H1 and H2, save them in Hstart and Hend
-DO i=1,3
-  IF( VECLENGTH(H1(i,:)) .NE. 0.d0 ) THEN
-    Hstart(i,:) = H1(i,:)/VECLENGTH(H1(i,:))
-  ELSE
-    !we have a problem
-    status = 1
+!Check if orientations H1 and H2 are different (otherwise rotmat = identity matrix)
+IF( MATDIFF(H1,H2)>1.d-3 ) THEN
+  !Normalize the vectors in matrix H1 and H2, save them in Hstart and Hend
+  DO i=1,3
+    IF( VECLENGTH(H1(i,:)) .NE. 0.d0 ) THEN
+      Hstart(i,:) = H1(i,:)/VECLENGTH(H1(i,:))
+    ELSE
+      !we have a problem
+      status = 1
+      RETURN
+    ENDIF
+    !
+    IF( VECLENGTH(H2(i,:)) .NE. 0.d0 ) THEN
+      Hend(i,:) = H2(i,:)/VECLENGTH(H2(i,:))
+    ELSE
+      !we have a problem
+      status = 2
+      RETURN
+    ENDIF
+  ENDDO
+  !
+  !Check that vectors of end matrix form the same angles as vectors in initial matrix
+  orthovec(:) = .FALSE.
+  IF( DABS( ANGVEC(Hstart(1,:),Hstart(2,:))-ANGVEC(Hend(1,:),Hend(2,:)) ) < 1.d-6 ) orthovec(1)=.TRUE.
+  IF( DABS( ANGVEC(Hstart(2,:),Hstart(3,:))-ANGVEC(Hend(2,:),Hend(3,:)) ) < 1.d-6 ) orthovec(2)=.TRUE.
+  IF( DABS( ANGVEC(Hstart(3,:),Hstart(1,:))-ANGVEC(Hend(3,:),Hend(1,:)) ) < 1.d-6 ) orthovec(3)=.TRUE.
+  IF( ANY(.NOT.orthovec) ) THEN
+    status = 3
     RETURN
   ENDIF
   !
-  IF( VECLENGTH(H2(i,:)) .NE. 0.d0 ) THEN
-    Hend(i,:) = H2(i,:)/VECLENGTH(H2(i,:))
-  ELSE
-    !we have a problem
-    status = 2
-    RETURN
-  ENDIF
-ENDDO
-!
-!Check that vectors of end matrix form the same angles as vectors in initial matrix
-orthovec(:) = .FALSE.
-IF( DABS( ANGVEC(Hstart(1,:),Hstart(2,:))-ANGVEC(Hend(1,:),Hend(2,:)) ) < 1.d-6 ) orthovec(1)=.TRUE.
-IF( DABS( ANGVEC(Hstart(2,:),Hstart(3,:))-ANGVEC(Hend(2,:),Hend(3,:)) ) < 1.d-6 ) orthovec(2)=.TRUE.
-IF( DABS( ANGVEC(Hstart(3,:),Hstart(1,:))-ANGVEC(Hend(3,:),Hend(1,:)) ) < 1.d-6 ) orthovec(3)=.TRUE.
-IF( ANY(.NOT.orthovec) ) THEN
-  status = 3
-  RETURN
+  !Compute rotation matrix to go from Hstart to Hend
+  rotmat(:,:) = MATMUL( TRANSPOSE(Hstart) , Hend )
 ENDIF
-!
-!Compute rotation matrix to go from Hstart to Hend
-rotmat(:,:) = MATMUL( TRANSPOSE(Hstart) , Hend )
 !
 !
 END SUBROUTINE MILLER2ROTMAT

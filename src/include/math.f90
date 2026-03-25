@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Jan. 2026                                     *
+!* Last modification: P. Hirel - 02 March 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -37,17 +37,22 @@ MODULE math
 !* RAD2DEG             converts angles from radians to degrees                    *
 !* ORTHOVEC            checks if two vectors are normal to each other             *
 !* CROSS_PRODUCT       calculates the cross product of two vectors                *
-!* SCALAR_TRIPLE_PRODUCT computes scalar triple product ez (ex ^ ey).             *
-!* ROTMAT_AXIS         provides the matrix for rotation of angle around axis      *
-!* ROTMAT_VECTORS      provides the matrix for rotation between 2 vectors         *
+!* SCALAR_TRIPLE_PRODUCT computes scalar triple product (ex ^ ey).ez              *
+!* VECMATMUL           multiplies vector with matrix                              *
+!* AXIS2ROTMAT         provides the matrix for rotation of angle around axis      *
+!* VEC2ROTMAT          provides the matrix for rotation between 2 vectors         *
 !* EPS_LEVI_CIVITA     calculates the Levi-Civita symbol, given i,j,k             *
 !* MATTRACE            computes the trace of a NxN matrix                         *
 !* MATDET              computes the determinant of a MxN matrix                   *
-!* IS_IN_POLYHEDRON    determines if a point is inside a polyhedron               *
+!* MATDIFF             computes the difference between two matrices               *
+!* IS_IN_TRIANGLES     determines if a point is inside a set of triangles         *
+!* GEOMETRIC_CENTER    given N points, determine their center                     *
 !* LINE_INTERSECTION   determines the shortest segment between 2 3D lines         *
 !* CIRUMCIRCLE         given 3 points, det. center, radius, normal of circumcircle*
 !* CIRCUMSPHERE        given 4 points, det. center & radius of circumsphere       *
+!* BOUNDINGSPHERE      given N points, determine sphere that contains all         *
 !* List of subroutines in this file:                                              *
+!* ROTATE_POS          applies rotation matrix to a set of positions              *
 !* INVMAT              inverts a NxN matrix                                       *
 !* CONVMAT             converts conventional vectors into a matrix                *
 !* MATCONV             converts matrix into conventional vectors                  *
@@ -353,12 +358,35 @@ END FUNCTION VOLUME_TETRA
 !
 !
 !********************************************************
-!  ROTMAT_AXIS
+!  VECMATMUL
+!  This function multiplies a N vector with a NxM matrix.
+!********************************************************
+FUNCTION VECMATMUL(V1,matrix) RESULT(V2)
+!
+IMPLICIT NONE
+INTEGER:: i, j
+REAL(dp),DIMENSION(:,:),INTENT(IN):: matrix
+REAL(dp),DIMENSION(:),INTENT(IN):: V1
+REAL(dp),DIMENSION(SIZE(V1)):: vector, V2
+!
+V2(:) = 0.d0
+!
+DO i=1,MIN(SIZE(V1),SIZE(matrix,1))
+  DO j=1,MIN(SIZE(V1),SIZE(matrix,2))
+    V2(i) = V2(i) + V1(j)*matrix(i,j)
+  ENDDO
+ENDDO
+!
+END FUNCTION VECMATMUL
+!
+!
+!********************************************************
+!  AXIS2ROTMAT
 !  This function provides the rotation matrix
 !  corresponding to a rotation of a given angle
 !  around the given axis.
 !********************************************************
-FUNCTION ROTMAT_AXIS(axis,angle) RESULT(rot_matrix)
+FUNCTION AXIS2ROTMAT(axis,angle) RESULT(rot_matrix)
 !
 IMPLICIT NONE
 REAL(dp),INTENT(IN):: angle  !angle of rotation (degrees)
@@ -396,16 +424,16 @@ rot_matrix(3,2) = (1.d0-c)*axis_u(2)*axis_u(3) + s*axis_u(1)
 rot_matrix(3,3) = (1.d0-c)*axis_u(3)**2 + c
 !
 !
-END FUNCTION ROTMAT_AXIS
+END FUNCTION AXIS2ROTMAT
 !
 !
 !********************************************************
-!  ROTMAT_VECTORS
+!  VEC2ROTMAT
 !  This function provides the rotation matrix
 !  corresponding to a rotation from a vector a
 !  to a vector b.
 !********************************************************
-FUNCTION ROTMAT_VECTORS(a,b) RESULT(rot_matrix)
+FUNCTION VEC2ROTMAT(a,b) RESULT(rot_matrix)
 !
 IMPLICIT NONE
 INTEGER:: i
@@ -447,7 +475,7 @@ IF( DABS(c+1.d0) > 1.d-12 ) THEN
 ENDIF
 !
 !
-END FUNCTION ROTMAT_VECTORS
+END FUNCTION VEC2ROTMAT
 !
 !
 !********************************************************
@@ -526,6 +554,42 @@ DO s=1,-1,-2
 ENDDO
 !
 END FUNCTION MATDET
+!
+!
+!********************************************************
+! MATDIFF
+! This function computes the difference between two
+! matrices A and B, defined as the sum of differences
+! between matching elements:
+!     diff = SUM (i,j) |bij - aij|
+! If matrices have different sizes then a negative
+! value is returned.
+!********************************************************
+FUNCTION MATDIFF(A,B) RESULT(diff)
+!
+INTEGER:: i, j
+REAL(dp),DIMENSION(:,:),INTENT(IN):: A, B
+REAL(dp):: diff
+!
+k=1
+l=1
+!
+diff = 0.d0
+
+IF( SIZE(A,1)==SIZE(B,1) .AND. SIZE(A,2)==SIZE(B,2) ) THEN
+  !Sum of all diagonals (s=+1 for \ diagonals, -1 for / diagonals)
+  DO i=1,SIZE(A,1)
+    DO j=1,SIZE(A,2)
+      diff = diff + DABS( B(i,j)-A(i,j) )
+    ENDDO
+  ENDDO
+  !
+ELSE
+  !i.e. if matrices A and B have different sizes
+  diff = -1.d0
+ENDIF
+!
+END FUNCTION MATDIFF
 !
 !
 !********************************************************
@@ -621,6 +685,76 @@ IF( A(1)>=xmin .AND. A(1)<=xmax .AND. &
 ENDIF
 !
 END FUNCTION IS_IN_TRIANGLES
+!
+!
+!********************************************************
+! GEOMETRIC_CENTER
+! Given a set of points of given weights, this function
+! computes their geometric center. If P has 3 columns then
+! all points are assumed to have the same weight.
+! If P has 4 columns, the 4th column is assumed to
+! contain the weights of the points.
+! NOTE: this function is for the "geometric" center.
+!     If you want the center of mass of a group of atoms,
+!     then use the function CENTER_OF_MASS in "atoms.f90".
+!********************************************************
+FUNCTION GEOMETRIC_CENTER(P) RESULT(Vcom)
+!
+IMPLICIT NONE
+INTEGER:: i
+REAL(dp):: totmass
+REAL(dp),DIMENSION(:,:),INTENT(IN):: P !position of N points
+REAL(dp),DIMENSION(3):: Vcom !position of (weighted) center of mass
+!
+totmass = 0.d0
+Vcom(:) = 0.d0
+!
+IF( SIZE(P,1)>0 ) THEN
+  IF( SIZE(P,2)>=4 ) THEN
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:Vcom,totmass)
+    DO i=1,SIZE(P,1)
+      Vcom(:) = Vcom(:) + P(i,4)*P(i,1:3)
+      totmass = totmass + P(i,4)
+    ENDDO
+    !$OMP END PARALLEL DO
+    IF(DABS(totmass)<=1.d-6) totmass=DBLE(SIZE(P,1))
+    Vcom(:) = Vcom(:) / totmass
+  ELSE
+    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i) REDUCTION(+:Vcom)
+    DO i=1,SIZE(P,1)
+      Vcom(:) = Vcom(:) + P(i,1:3)
+    ENDDO
+    !$OMP END PARALLEL DO
+    Vcom(:) = Vcom(:) / DBLE(MAX(1,SIZE(P,1)))
+  ENDIF
+ENDIF
+!
+END FUNCTION GEOMETRIC_CENTER
+!
+!
+!********************************************************
+!  ROTATE_POS
+!  This function applies a rotation matrix
+!  to a set of positions P.
+!********************************************************
+SUBROUTINE ROTATE_POS(P,rotmat)
+!
+IMPLICIT NONE
+INTEGER:: i
+REAL(dp):: P1, P2, P3
+REAL(dp),DIMENSION(:,:),INTENT(INOUT):: P
+REAL(dp),DIMENSION(3,3),INTENT(IN):: rotmat
+!
+DO i=1,SIZE(P,1)
+  P1 = P(i,1)
+  P2 = P(i,2)
+  P3 = P(i,3)
+  P(i,1) = P1*rotmat(1,1) + P2*rotmat(1,2) + P3*rotmat(1,3)
+  P(i,2) = P1*rotmat(2,1) + P2*rotmat(2,2) + P3*rotmat(2,3)
+  P(i,3) = P1*rotmat(3,1) + P2*rotmat(3,2) + P3*rotmat(3,3)
+ENDDO
+!
+END SUBROUTINE ROTATE_POS
 !
 !
 !********************************************************
@@ -892,6 +1026,42 @@ ENDDO
 radius = radius/4.d0
 !
 END SUBROUTINE CIRCUMSPHERE
+!
+!
+!********************************************************
+! BOUNDINGSPHERE
+! Given a set of N points, this routine estimates the
+! the position of the center and radius of the sphere
+! that contains all points.
+! NOTE: this only gives an approximate estimation
+!      and may not be fully accurate.
+!********************************************************
+SUBROUTINE BOUNDINGSPHERE(P,center,radius,status)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(:,:),INTENT(IN):: P     !positions of N points
+REAL(dp),DIMENSION(3),INTENT(OUT):: center !position of center of bounding sphere
+REAL(dp),INTENT(OUT):: radius              !radius of bounding sphere
+INTEGER,INTENT(OUT):: status  !status of circumsphere (0=success)
+!
+INTEGER:: i
+REAL(dp):: distance
+!
+status = 0
+radius = 0.d0
+!
+!Find geometric center of all points
+center(:) = GEOMETRIC_CENTER(P(:,1:3))
+!
+!Find the point that is the most remote from center
+DO i=1,SIZE(P,1)
+  distance = VECLENGTH( P(i,1:3) - center(:) )
+  IF( distance>radius ) THEN
+    radius = distance
+  ENDIF
+ENDDO
+!
+END SUBROUTINE BOUNDINGSPHERE
 !
 !
 !********************************************************

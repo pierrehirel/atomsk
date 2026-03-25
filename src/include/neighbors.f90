@@ -9,7 +9,7 @@ MODULE neighbors
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 Oct. 2025                                     *
+!* Last modification: P. Hirel - 24 Feb. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -941,10 +941,10 @@ DO i=1,3
   d_border(i) = MAX(0.1d0,10.d0/H(i,i))
 ENDDO
 IF(ALLOCATED(currA)) DEALLOCATE(currA)
- ALLOCATE( currA( SIZE(A(1,:)) ) )
+ ALLOCATE( currA( SIZE(A,2) ) )
  currA(:) = 0.d0
 IF(ALLOCATED(V_100)) DEALLOCATE(V_100)
- ALLOCATE( V_100( 100,SIZE(A(1,:)) ) )
+ ALLOCATE( V_100( 100,4 ) )
  V_100(:,:) = 0.d0
 IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
 IF(ALLOCATED(Nlist)) DEALLOCATE(Nlist)
@@ -987,7 +987,7 @@ IF(NNN>100.d0) THEN
 ELSE
   !If NNN is positive then it corresponds to the number of neighbours
   !the program has to find
-  ALLOCATE( V_NN( NNN,SIZE(A,2) ) )
+  ALLOCATE( V_NN( NNN,4 ) )
   V_NN(:,:) = 0.d0
   ALLOCATE(Nlist(NNN))
   Nlist(:) = 0
@@ -1066,7 +1066,8 @@ ELSE
             IF( distance>1.d-12 .AND. distance<tempreal .AND. diff_from_prev_NN ) THEN
               tempreal = distance
               !Copy contents of currA to V_100 (coordinates)
-              V_100(i,:) = currA(:)
+              V_100(i,1:3) = currA(1:3)
+              V_100(i,4) = distance
               !Save index of atom into Nlist
               Nlist(i) = j
             ENDIF

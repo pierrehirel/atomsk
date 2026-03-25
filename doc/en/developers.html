@@ -27,14 +27,37 @@
 <p>Besides the main module <code>atomsk.f90</code>, the source files are "organized" in subdirectories:</p>
 
 <ul>
-  <li><strong>include</strong> contain base modules, on which most other modules depend. These base modules define global variables (<code>comv.f90</code>), general subroutines (<code>subroutines.f90</code>), functions (<code>functions.f90</code>), messages (<code>messages.f90</code>) etc. that are used by several other modules.</li>
-  <li><strong>input</strong> contains the modules that have the role of reading data from one input file and load it into the memory. The main module performing this task is <code>readin.f90</code>, which first calls the module <code>guess_format.f90</code> to guess the format of the input file, and then calls the appropriate module to read the input file (these modules have a name that start with <code>in_</code>).</li>
-  <li><strong>options</strong> contain modules that apply some transformations to the system. The main module performing this task is <code>options.f90</code>, which then calls the necessary options modules (which names usually start with <code>opt_</code>).</li>
-  <li><strong>output</strong> contains modules that have the role of writing the data contained in the memory into one or several files. The main module performing this task is <code>writeout.f90</code>, which calls the necessary output modules, each of which writes the data into one specific file format (these modules have a name that start with <code>out_</code>).</li>
-  <li><strong>modes</strong> contain modules that decide how files are treated. Each mode can use any of the aforementionned modules.</li>
+  <li><strong>include</strong> contains base modules with a broad scope and purpose:
+    <ul>
+      <li><code>globalvar.f90</code>: definition of global variables</li>
+      <li><code>constants.f90</code>: mathematical and physical constants</li>
+      <li><code>math.f90</code>: mathematical operations</li>
+      <li><code>atoms.f90</code>: definitions of atoms</li>
+      <li><code>crystallography.f90</code>: manipulate Miller indices</li>
+      <li><code>elasticity.f90</code>: operations with stiffness tensor, etc.</li>
+      <li><code>neighbors.f90</code>: routines for neighbor search</li>
+      <li><code>random.f90</code>: random number generators</li>
+      <li><code>files.f90</code>: routines for handling files</li>
+      <li><code>messages.f90</code>: routines for displaying messages</li>
+      <li>and many others.</li>
+    </ul>
+  These base modules are used by many others, for input/output, options, and modes.</li>
+  <li><strong>input</strong> contains the modules that read an input file from the disk, and load the data into the memory. The main module performing this task is <code>readin.f90</code>, which first calls the module <code>guess_format.f90</code> to guess the format of the input file, and then calls the appropriate module to read the input file (these modules have a name that start with <code>in_</code>).</li>
+  <li><strong>options</strong> contain modules that apply transformations to the system. The main module performing this task is <code>options.f90</code>, which then calls the necessary options modules (which names usually start with <code>opt_</code>).</li>
+  <li><strong>output</strong> contains modules that write data contained in the memory into one or several files on the disk. The main module performing this task is <code>writeout.f90</code>, which calls the necessary output modules, each of which writes the data into one specific file format (these modules have a name that start with <code>out_</code>).</li>
+  <li><strong>modes</strong> contain modules that decide how files are treated, and/or perform a specific calculation. Each mode can use any of the aforementionned modules.</li>
 </ul>
 
-<p>In order to keep things simple, some rules should be respected within each type of module. Input modules, option modules, and output modules, should <em>not</em> depend on one another, so be careful when introducing a <strong>USE</strong> statement in any module. For instance do not introduce a dependence to an input module (like "<code>USE in_xyz</code>") in an option module. In output modules, the arrays <strong>P</strong> and <strong>H</strong> must not be modified and should be <code>INTENT(IN)</code>. "Modes" modules can use any of the input, options and/or output. In the end the dependence tree should look like the following:</p>
+<p>In order to keep the source code organized, the following dependency rules must be respected:</p>
+
+<ul>
+  <li>Modules in <strong>include</strong> constitute the base code, and must not depend on modules in other directories (i.e. on input, output, options, nor modes).</li>
+  <li>Modules in <strong>input</strong>, <strong>options</strong>, and <strong>output</strong>, should be <em>independent from one another</em>. For instance, do not introduce a dependence to an input module (like "<code>USE in_xyz</code>") in an option module. They must also not depend on a <strong>mode</strong>.</li>
+  <li>In <strong>output</strong> modules, the arrays <strong>P</strong> and <strong>H</strong> must not be modified and should be <code>INTENT(IN)</code>.</li>
+  <li>Modules in <strong>modes</strong> can use any of the other modules (include, input, options and/or output).</li>
+</ul>
+
+<p>In the end the dependence tree should look like the following:</p>
 
 <object type="image/svg+xml" data="../img/deptree.svg" class="figure" style="scale: 200px;">
    <img src="../img/deptree.png" alt="Dependence tree" title="" />
@@ -119,7 +142,7 @@
 
 <p>A "mode" is a routine that decides what is done with the atom positions. For instance the default mode (so-called "<a href="./mode_normal.html">normal mode</a>") reads a file and converts it to one or many other formats. The "<a href="./mode_difference.html">mode difference</a>" computes the difference between two files. Many different things can be imagined, and the appropriate way to do them within Atomsk is through a mode. If you add a new mode, it is advised that you take advantage of routines that are already implemented in Atomsk to read/write files, and apply transformations.</p>
 
-<p>A mode should start by mentionning which modules of Atomsk you wish to use. Using common variables defined in the file <code>/include/comv.f90</code> is mandatory (<code>USE comv</code>). If your module uses mathematical or physical constants, load the module <code>/include/constants.f90</code> (<code>USE constants</code>). The same holds for functions (<code>USE functions</code>, see <code>/include/functions.f90</code>) and/or subroutines (<code>USE subroutines</code>, see <code>/include/subroutines.f90</code>) already implemented in Atomsk.</p>
+<p>A mode should start by mentionning which modules of Atomsk you wish to use. Using common variables defined in the file <code>/include/globalvar.f90</code> is mandatory (<code>USE comv</code>). If your module uses mathematical or physical constants, load the module <code>/include/constants.f90</code> (<code>USE constants</code>). The same holds for functions (<code>USE functions</code>, see <code>/include/functions.f90</code>) and/or subroutines (<code>USE subroutines</code>, see <code>/include/subroutines.f90</code>) already implemented in Atomsk.</p>
 
 <p>If you wish to read a file containing atomic positions, insert the statement <code>USE readin</code>. Then you can use the subroutine READ_AFF as follows to read a file:</p>
 

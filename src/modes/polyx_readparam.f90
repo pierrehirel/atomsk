@@ -783,11 +783,15 @@ DO
             ENDIF
           ENDDO
         ELSEIF( StrDnCase(or1)=="radial" ) THEN
+          !Read sigma value for Gaussian dstribution
+          READ(line(9:),*,END=800,ERR=800) or1, P2
           !Modify node positions (keep positions outside of gradient zone)
+          P1 = 1.d0 / DSQRT(2.d0*pi*P2**2)
           vector(:) = 0.5d0*(H(1,:)+H(2,:)+H(3,:))
+          IF(twodim>0) vector(twodim) = 0.5d0*H(twodim,twodim)
           DO i=1,SIZE(vnodes,1)
             distance = VECLENGTH( vnodes(i,1:3) - vector(1:3) )
-            vnodes(i,1:3) = (vnodes(i,1:3) - vector(:)) + distance*vnodes(i,1:3)
+            vnodes(i,1:3) = vnodes(i,1:3) * DEXP( -distance**2 / (2.d0*P2**2) )
           ENDDO
         ENDIF
         !

@@ -9,7 +9,7 @@ MODULE atoms
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 Jan. 2025                                     *
+!* Last modification: P. Hirel - 16 Feb. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,6 +29,7 @@ MODULE atoms
 !* ATOMMASS            gives the mass of an atom provided its symbol              *
 !* ATOMSPECIES         gives an atom symbol provided its atomic number            *
 !* ATOMMASSSPECIES     gives an atom symbol provided its mass                     *
+!* CENTER_OF_MASS      determines the center of mass of a group of atoms          *
 !**********************************************************************************
 !
 !
@@ -1327,6 +1328,38 @@ CASE DEFAULT
 END SELECT
 !
 END SUBROUTINE ATOMMASSSPECIES
+!
+!
+!********************************************************
+! CENTER_OF_MASS
+! Given a set of atoms, computes their center of mass.
+!********************************************************
+FUNCTION CENTER_OF_MASS(P) RESULT(Vcom)
+!
+IMPLICIT NONE
+CHARACTER(LEN=2):: species
+INTEGER:: i
+REAL(dp):: smass, totmass !mass/weight of a point
+REAL(dp),DIMENSION(:,:),INTENT(IN):: P !position of N points
+REAL(dp),DIMENSION(3):: Vcom !position of (weighted) center of mass
+!
+smass = 1.d0 !by default all weights=1
+totmass = 0.d0
+Vcom(:) = 0.d0
+!
+!$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,species,smass) REDUCTION(+:Vcom,totmass)
+DO i=1,SIZE(P,1)
+  IF( SIZE(P,2)>=4 ) THEN
+    CALL ATOMSPECIES(P(i,4),species)
+    CALL ATOMMASS(species,smass)
+  ENDIF
+  Vcom(:) = Vcom(:) + smass*P(i,1:3)
+  totmass = totmass + smass
+ENDDO
+!$OMP END PARALLEL DO
+Vcom(:) = Vcom(:) / totmass
+!
+END FUNCTION CENTER_OF_MASS
 !
 !
 !

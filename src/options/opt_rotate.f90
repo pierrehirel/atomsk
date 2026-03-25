@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 02 March 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -266,7 +266,7 @@ ELSE
     Vrot(:) = Vrot(:)/VECLENGTH(Vrot(:))
     !
     !Construct rotation matrix
-    rot_matrix = ROTMAT_AXIS(Vrot,rot_angle)
+    rot_matrix = AXIS2ROTMAT(Vrot,rot_angle)
   ENDIF
   !
 ENDIF !end if LEN_TRIM(rot_file)

@@ -10,7 +10,7 @@ MODULE messages_FR
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Jan. 2026                                     *
+!* Last modification: P. Hirel - 24 Feb. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -907,10 +907,17 @@ CASE(999)
 ! 1000-1999: MESSAGES FOR INPUT
 CASE(1000)
   !strings(1) = file name
-  !strings(2) = size of file
+  !strings(2) = size of file without unit, possibly with multiple (e.g. "2 M")
   msg = ">>> Ouverture du fichier : "//TRIM(ADJUSTL(strings(1)))
   IF( SIZE(strings)>1 .AND. LEN_TRIM(strings(2))>0 ) THEN
-    msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(2)))//"o)"
+    j = LEN_TRIM(strings(2))
+    species(1:1) = strings(2)(j:j)
+    SELECT CASE(species(1:1))
+    CASE('0','1','2','3','4','5','6','7','8','9')
+      msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(2)))//" o)"
+    CASE DEFAULT
+      msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(2)))//"o)"
+    END SELECT
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(1001)
@@ -2099,20 +2106,41 @@ CASE(2116)
     WRITE(temp,*) NINT(reals(1))
     msg = ">>> Ajout d'un atome de "//TRIM(ADJUSTL(strings(1)))//" près de l'atome #"//TRIM(ADJUSTL(temp))
   CASE("random","RANDOM","rand","RAND")
-    WRITE(temp,*) NINT(reals(1))
-    msg = ">>> Ajout de "//TRIM(ADJUSTL(temp))//" atomes de "//TRIM(ADJUSTL(strings(1)))//" à des positions aléatoires..."
+    IF( NINT(reals(1))==1 ) THEN
+      msg = ">>> Ajout d'un atome de "//TRIM(ADJUSTL(strings(1)))&
+          & //" à une position aléatoire..."
+    ELSE
+      WRITE(temp,*) NINT(reals(1))
+      msg = ">>> Ajout de "//TRIM(ADJUSTL(temp))//" atomes de "//TRIM(ADJUSTL(strings(1)))&
+          & //" à des positions aléatoires..."
+    ENDIF
   END SELECT
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2117)
   !reals(1) = number of atoms added
   !reals(2) = number of atoms in the system
+  !reals(3) = number of atoms in tetrahedral sites
+  !reals(4) = number of atoms in octahedral sites
+  IF( NINT(reals(3))>0 .OR. NINT(reals(4))>0 ) THEN
+    IF( NINT(reals(3))<=0 ) THEN
+      temp = " en sites octaédriques"
+    ELSEIF( NINT(reals(4))<=0 ) THEN
+      temp = " en sites tétraédriques"
+    ELSE
+      temp = '('
+      WRITE(temp3,*) NINT(reals(3))
+      WRITE(temp4,*) NINT(reals(4))
+      temp = '('//TRIM(ADJUSTL(temp3))//" en sites tétraédriques + "//TRIM(ADJUSTL(temp4))// &
+           & " en sites octaédriques)"
+    ENDIF
+  ENDIF
   IF(NINT(reals(1))==0) THEN
     msg = "..> Aucun atome n'a été ajouté"
   ELSEIF(NINT(reals(1))==1) THEN
-    msg = "..> 1 atome a été ajouté"
+    msg = "..> 1 atome a été ajouté "//TRIM(ADJUSTL(temp))
   ELSE
     WRITE(msg,*) NINT(reals(1))
-    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été ajoutés"
+    msg = "..> "//TRIM(ADJUSTL(msg))//" atomes ont été ajoutés "//TRIM(ADJUSTL(temp))
   ENDIF
   WRITE(temp,*) NINT(reals(2))
   msg = TRIM(ADJUSTL(msg))//", "//TRIM(ADJUSTL(temp))//" atomes dans le système."
@@ -2761,8 +2789,15 @@ CASE(3002)
   !strings(3) = size of file
   msg = "..> Le fichier "//TRIM(strings(2))//" a bien été écrit : " &
       & //TRIM(strings(1))
-  IF( SIZE(strings)>2 .AND. LEN_TRIM(strings(3))>0 ) THEN
-    msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(3)))//"o)"
+  IF( SIZE(strings)>=3 .AND. LEN_TRIM(strings(3))>0 ) THEN
+    j = LEN_TRIM(strings(3))
+    species(1:1) = strings(3)(j:j)
+    SELECT CASE(species(1:1))
+    CASE('0','1','2','3','4','5','6','7','8','9')
+      msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(3)))//" o)"
+    CASE DEFAULT
+      msg = TRIM(ADJUSTL(msg))//" ("//TRIM(ADJUSTL(strings(3)))//"o)"
+    END SELECT
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(3003)
@@ -3251,9 +3286,9 @@ CASE(4058)
   !reals(5) = number of grains
   msg = "..> Le fichier a bien été lu."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
-  WRITE(temp,'(g12.3)') reals(2)
-  WRITE(temp2,'(g12.3)') reals(3)
-  WRITE(temp3,'(g12.3)') reals(4)
+  WRITE(temp,'(f12.3)') reals(2)
+  WRITE(temp2,'(f12.3)') reals(3)
+  WRITE(temp3,'(f12.3)') reals(4)
   msg = "..> Dimensions : "//TRIM(ADJUSTL(temp))// &
       & " x "//TRIM(ADJUSTL(temp2))//" x "//TRIM(ADJUSTL(temp3))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3405,7 +3440,9 @@ CASE(4080)
   msg = "..> Tri des atomes du second système..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4081)
-  msg = "..> Construction du grain modèle..."
+  !reals(1) = number of atoms in template grain
+  WRITE(temp,*) NINT(reals(1))
+  msg = "..> Construction du grain modèle ("//TRIM(ADJUSTL(temp))//" atoms)..."
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "

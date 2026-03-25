@@ -29,7 +29,7 @@
 <p>The modules are "organized" in the following way (see also the Makefile for a list of modules corresponding to each bullet point below):</p>
 
 <ul>
-  <li><strong>general modules</strong> contain global variables (comv.f90), general subroutines (subroutines.f90), functions (functions.f90), etc. that are used by several other modules.</li>
+  <li><strong>general modules</strong> contain global variables (globalvar.f90), general subroutines (subroutines.f90), functions (functions.f90), etc. that are used by several other modules.</li>
   <li><strong>input modules</strong> have the role of loading data from one input file into the memory (in the array P). The main module performing this task is "readin.f90", which first calls the module "guess_format.f90" to guess the format of the input file, and then calls the appropriate module to read the input file (these modules have a name that start with <code>in_</code>).</li>
   <li><strong>option modules</strong> apply transformations to the system (by applying some operations to the array P). The main module performing this task is "options.f90", which then calls the necessary options modules (which names usually start with <code>opt_</code>).</li>
   <li><strong>output modules</strong> have the role of writing the content of the array P into one or several files. The main module performing this task is "writeout.f90", which calls the necessary output modules, each of which writes the data into one specific format (these modules have a name that start with <code>out_</code>).</li>

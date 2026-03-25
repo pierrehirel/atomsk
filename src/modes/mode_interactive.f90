@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Nov. 2025                                     *
+!* Last modification: P. Hirel - 04 March 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -96,6 +96,7 @@ CHARACTER(LEN=32),DIMENSION(:),ALLOCATABLE:: array_names !names of user-defined 
 INTEGER:: a1, a2, a3
 INTEGER:: i, j, k, status
 INTEGER:: try, maxtries
+REAL(dp):: Mh, Mk, Mi, Ml, Mu, Mv, Mw !Miller indices
 INTEGER,DIMENSION(2):: NT_mn
 INTEGER,DIMENSION(8):: timeval !values for DATE_AND_TIME function
 LOGICAL:: cubic !is the lattice cubic?
@@ -106,6 +107,7 @@ REAL(dp):: smass, snumber  !atomic mass, atomic number
 REAL(dp):: C11, C22, C33, C12, C13, C23, C44, C55, C66  !elastic constants
 REAL(dp):: x, y, z  !coordinates of an atom
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
+REAL(dp),DIMENSION(3):: vector
 REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
@@ -559,6 +561,63 @@ DO
         P(k,3) = z
         CALL ATOMNUMBER(species,P(k,4))
         WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
+        !
+      CASE("hkil2uvw")
+        command = TRIM(ADJUSTL(instruction(9:)))
+        CALL INDEX_MILLER_HCP(command,vector,status)
+        IF(status==2) THEN
+          CALL ATOMSK_MSG(815,(/TRIM(ADJUSTL(command))/),(/0.d0/))
+        ELSEIF(status>0) THEN
+          CALL ATOMSK_MSG(817,(/TRIM(ADJUSTL(command))/),(/0.d0/))
+        ELSE
+          CALL HKIL2UVW(vector(1),vector(2),0.d0,vector(3),Mu,Mv,Mw)
+          WRITE(msg,*) NINT(vector(1))
+          WRITE(test,*) NINT(vector(2))
+          WRITE(temp,*) NINT(-1.d0*(vector(1)+vector(2)))
+          WRITE(question,*) NINT(vector(3))
+          WRITE(msg,*) TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(test))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          WRITE(test,*) NINT(Mu)
+          WRITE(temp,*) NINT(Mv)
+          WRITE(question,*) NINT(Mw)
+          WRITE(test,*) TRIM(ADJUSTL(test))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          WRITE(*,*) "      ["//TRIM(ADJUSTL(msg))//"] = ["//TRIM(ADJUSTL(test))//"]"
+        ENDIF
+        !
+      CASE("uvw2hkil")
+        command = TRIM(ADJUSTL(instruction(9:)))
+        CALL INDEX_MILLER(command,vector,status)
+        IF(status>0) THEN
+          CALL ATOMSK_MSG(817,(/TRIM(ADJUSTL(command))/),(/0.d0/))
+        ELSE
+          CALL UVW2HKIL(vector(1),vector(2),vector(3),Mh,Mk,Mi,Ml)
+          !Determine multiplication factor
+          z = MAX(DABS(Mh),DABS(Mk),DABS(Mi),DABS(Ml))
+          IF( DABS(Mh)>0.1d0 .AND. DABS(Mh)<z ) z=DABS(Mh)
+          IF( DABS(Mk)>0.1d0 .AND. DABS(Mk)<z ) z=DABS(Mk)
+          IF( DABS(Mi)>0.1d0 .AND. DABS(Mi)<z ) z=DABS(Mi)
+          IF( DABS(Ml)>0.1d0 .AND. DABS(Ml)<z ) z=DABS(Ml)
+          IF( z>0.1d0 ) THEN
+            z = 1.d0/z
+          ELSE
+            z = 1.d0
+          ENDIF
+          WRITE(test,*) NINT(z*Mh)
+          WRITE(msg,*) NINT(z*Mk)
+          WRITE(temp,*) NINT(z*Mi)
+          WRITE(question,*) NINT(z*Ml)
+          WRITE(test,*) TRIM(ADJUSTL(test))//TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          WRITE(msg,*) NINT(vector(1))
+          WRITE(temp,*) NINT(vector(2))
+          WRITE(question,*) NINT(vector(3))
+          WRITE(msg,*) TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          IF( DABS(z)-1.d0>0.1d0) THEN
+            WRITE(temp,*) NINT(z)
+            WRITE(temp,*) "1/"//TRIM(ADJUSTL(temp))
+          ELSE
+            temp = ""
+          ENDIF
+          WRITE(*,*) "      ["//TRIM(ADJUSTL(msg))//"] = "//TRIM(ADJUSTL(temp))//" ["//TRIM(ADJUSTL(test))//"]"
+        ENDIF
         !
       CASE("C11")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -1133,7 +1192,7 @@ DO
           x = EXPREVAL(instruction,i,status)
           IF( status==0 ) THEN
             !No error: display result
-            IF( IS_INTEGER(x,1.d-64) ) THEN
+            IF( IS_INTEGER(x,1.d-16) ) THEN
               !It is an integer, or close to it: display an integer
               WRITE(msg,*) NINT(x)
             ELSE

@@ -11,7 +11,7 @@ MODULE voronoi
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 Jan. 2026                                     *
+!* Last modification: P. Hirel - 20 March 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -74,7 +74,7 @@ INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 REAL(dp):: distance, dmax, radius
 REAL(dp):: P1, P2, P3  !temporary position
 REAL(dp):: maxdnodes   !maximum distance between 2 nodes
-REAL(dp),DIMENSION(3):: vector, center
+REAL(dp),DIMENSION(3):: center, vector, vnormal
 REAL(dp),DIMENSION(3,2):: nodebox   !Bounding box (xmin,xmax,ymin,ymax,zmin,zmax) surrounding a node
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: tempnodes !cartesian coordinate of neighboring nodes
 !
@@ -139,7 +139,7 @@ ELSE
   ELSEIF( Nnodes>20 ) THEN
     dmax = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) ) + 1.d0
   ELSE
-    dmax = MAX(H(1,1),H(2,2),H(3,3)) + 1.d0
+    dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
   ENDIF
 ENDIF
 !
@@ -264,6 +264,21 @@ DO inode=1,Nnodes
     WRITE(*,*) "WARNING Delaunay triangulation terminated with status ", status
   ENDIF
   !
+  !Verify that all vertices are part of the Voronoi polyhedron
+  DO j=1,Nvertex  !Loop on all vertices
+    vector(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
+    DO k=1,Nvertex
+      IF( k.NE.j ) THEN
+        vnormal(:) = vvertex(inode,k,1:3) - vnodes(inode,1:3)
+        IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > 0.1d0 ) THEN
+          !vertex #j is outside of polyhedron
+          PRINT*, "out of polyhedron"
+
+        ENDIF
+      ENDIF
+    ENDDO
+  ENDDO
+  !
   !Save final number of vertices
   Nvertices(inode) = Nvertex
   IF( Nvertices(inode)<=0 ) THEN
@@ -280,7 +295,7 @@ DO inode=1,Nnodes
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     WRITE(msg,*) inode
     ofunit=40+inode
-    OPEN(UNIT=ofunit,FILE="atomsk_grain"//TRIM(ADJUSTL(msg))//"_vertices.xyz")
+    OPEN(UNIT=ofunit,FILE="atomsk_node"//TRIM(ADJUSTL(msg))//"_vertices.xyz")
     WRITE(ofunit,*) Nvertices(inode)+1
     WRITE(ofunit,*) "# Position of node # "//TRIM(ADJUSTL(msg))//" and its vertices"
     WRITE(ofunit,'(i4,6f12.3)') 2, vnodes(inode,:)
@@ -291,7 +306,7 @@ DO inode=1,Nnodes
         WRITE(ofunit,'(i4,3f12.3)') 1, vvertex(inode,i,1:3)
       ENDIF
     ENDDO
-    WRITE(msg,*) "Final grain volume:", Volumes(inode)
+    WRITE(msg,*) "Final Voronoi volume:", Volumes(inode)
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     CLOSE(ofunit)
   ENDIF
@@ -336,9 +351,9 @@ SUBROUTINE TRIANGULATE_2D(node,neighnodes,neighvert,Nvertex,Area,status)
 !
 IMPLICIT NONE
 REAL(dp),DIMENSION(3),INTENT(IN):: node         !Position of central node
-REAL(dp),DIMENSION(:,:),INTENT(IN):: neighnodes !Position of neighboring nodes
+REAL(dp),DIMENSION(:,:),INTENT(IN):: neighnodes !Positions of neighboring nodes
 REAL(dp),INTENT(OUT):: Area                     !Final area of Voronoi region
-REAL(dp),DIMENSION(:,:),INTENT(OUT):: neighvert !Final position of vertices
+REAL(dp),DIMENSION(:,:),INTENT(OUT):: neighvert !Final positions of vertices
 INTEGER,INTENT(INOUT):: Nvertex !Initial number of neighboring nodes/final number of vertices
 !
 INTEGER:: i, j, m, n
@@ -370,7 +385,7 @@ IF( Nvertex>3 ) THEN
           !Check if there are other nodes inside this circumcircle
           n=0
           DO m=1,SIZE(neighnodes,1)
-            !IF( neighnodes(m,4)<1.d-3 ) EXIT
+            IF( neighnodes(m,4)<1.d-3 ) EXIT
             !IF( m.NE.i .AND. m.NE.j ) THEN
               !Compute distance between node #m and center
               distance = VECLENGTH( neighnodes(m,1:3)-center(:) )
@@ -397,7 +412,7 @@ IF( Nvertex>3 ) THEN
   !Count remaining vertices and save their positions into neighvert(:,:)
   Nvertex = 0
   DO i=1,SIZE(neighnodes,1)
-    IF( neighnodes(i,4)<1.d-3 ) EXIT
+    !IF( neighnodes(i,4)<1.d-3 ) EXIT
     IF( keepvertex(i) ) THEN
       Nvertex = Nvertex+1
       neighvert(Nvertex,1:3) = node(:) + ( neighnodes(i,1:3)-node(:) )/2.d0
@@ -435,9 +450,9 @@ END SUBROUTINE TRIANGULATE_2D
 !********************************************************
 SUBROUTINE TRIANGULATE_3D(node,neighnodes,neighvert,Nvertex,Volume,status)
 REAL(dp),DIMENSION(3),INTENT(IN):: node         !Position of central node
-REAL(dp),DIMENSION(:,:),INTENT(IN):: neighnodes !Position of neighboring nodes
+REAL(dp),DIMENSION(:,:),INTENT(IN):: neighnodes !Positions of neighboring nodes
 REAL(dp),INTENT(OUT):: Volume                   !Final volume of Voronoi region
-REAL(dp),DIMENSION(:,:),INTENT(OUT):: neighvert !Final position of vertices
+REAL(dp),DIMENSION(:,:),INTENT(OUT):: neighvert !Final positions of vertices
 INTEGER,INTENT(INOUT):: Nvertex !Initial number of neighboring nodes/final number of vertices
 !
 INTEGER:: i, j, k, m, n
@@ -458,9 +473,9 @@ IF( Nvertex>4 ) THEN
   DO i=1,SIZE(neighnodes,1)-2
     IF( neighnodes(i,4)>1.d-3 ) THEN
       DO j=i+1,SIZE(neighnodes,1)-1
-        IF( neighnodes(j,4)<1.d-3 ) EXIT
+        !IF( neighnodes(j,4)<1.d-3 ) EXIT
         DO k=j+1,SIZE(neighnodes,1)
-          IF( neighnodes(k,4)<1.d-3 ) EXIT
+          !IF( neighnodes(k,4)<1.d-3 ) EXIT
           IF( .NOT.keepvertex(i) .OR. .NOT.keepvertex(j) .OR. .NOT.keepvertex(k) ) THEN
             !For this set of points (node #inode + neighbors #i, #j and #k), find their circumsphere
             P(1,:) = node(1:3)
@@ -468,7 +483,7 @@ IF( Nvertex>4 ) THEN
             P(3,:) = neighnodes(j,1:3)
             P(4,:) = neighnodes(k,1:3)
             CALL CIRCUMSPHERE(P,center,radius,stattmp)
-            IF( stattmp==0 .AND. VECLENGTH(center)<1.d4 ) THEN
+            IF( stattmp==0 .AND. VECLENGTH(center)<1.d4 .AND. radius<1.d3 ) THEN
               !Found circumsphere with center(:) and radius
               !Check if there are other nodes inside this circumsphere
               n=0
@@ -502,7 +517,7 @@ IF( Nvertex>4 ) THEN
   !Count remaining vertices and save their positions into neighvert(:,:)
   Nvertex = 0
   DO i=1,SIZE(neighnodes,1)
-    IF( neighnodes(i,4)<1.d-3 ) EXIT
+    !IF( neighnodes(i,4)<1.d-3 ) EXIT
     IF( keepvertex(i) ) THEN
       Nvertex = Nvertex+1
       neighvert(Nvertex,1:3) = node(:) + ( neighnodes(i,1:3)-node(:) )/2.d0

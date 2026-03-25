@@ -10,7 +10,7 @@ MODULE addatom
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 June 2022                                     *
+!* Last modification: P. Hirel - 05 March 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -36,6 +36,7 @@ USE subroutines
 USE neighbors
 USE sorting
 USE resize
+USE voronoi
 !
 !
 CONTAINS
@@ -55,10 +56,13 @@ LOGICAL:: hasShells  !does this type of atom have shells?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: addedatoms !number of atoms added
 INTEGER:: atomindex
-INTEGER:: NP !number of particles
-INTEGER:: i, j, k, m, n
+INTEGER:: Nneighbors !number of neighbors
+INTEGER:: NP         !number of particles
+INTEGER:: i, j, k, m, n, o
+INTEGER:: Ntetra, Nocta  !number of atoms added in tetragonal/octahedral sites
 INTEGER:: qcol, typecol  !index of column in AUX containing atom charge and "type"
 INTEGER:: newtype        !if atoms have a "type", and new atoms don't, they will ba assigned a new "type"
+INTEGER:: status
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex  !list of index after sorting
 INTEGER,DIMENSION(:),ALLOCATABLE:: Nlist  !list of indices of neighbors
 INTEGER,DIMENSION(:,:),ALLOCATABLE:: NeighList !list of index of neighbors
@@ -70,7 +74,7 @@ REAL(dp),DIMENSION(4),INTENT(IN):: addatom_prop  !properties of atom(s) to add
                                                  !if addatom_type=="relative", index of atom and x,y,z
                                                  !if addatom_type=="near", index of atom
                                                  !if addatom-type=="random", number of atoms to add
-REAL(dp),DIMENSION(3):: V !a vector
+REAL(dp),DIMENSION(3):: V, vector !vectors
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !array for storing random numbers
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !vectors of supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: P, S  !positions of atoms, shells
@@ -78,13 +82,15 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newP, newS          !positions of atoms, s
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(INOUT):: AUX   !auxiliary properties
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX              !auxiliary properties (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: V_NN                !positions of neighbors
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList             !positions of neighbors
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList, PosList2   !positions of neighbors
 !
 species = ''
 exceeds100 = .FALSE.
 hasShells = .FALSE.
 i = 0
 addedatoms = 0
+Ntetra = 0
+Nocta = 0
 newtype = 0
 snumber = 0.d0
 x = 0.d0
@@ -272,7 +278,7 @@ CASE("near","NEAR")
   !
   !
 CASE("random","RANDOM","rand","RAND")
-  WRITE(msg,'(a3,i9)') 'RANDOM ', NINT(addatom_prop(1))
+  WRITE(msg,'(a7,i9)') 'RANDOM ', NINT(addatom_prop(1))
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Insert k atoms at random positions (but not too close to existing atom)
   k = NINT(addatom_prop(1))
@@ -295,54 +301,61 @@ CASE("random","RANDOM","rand","RAND")
   CALL GEN_NRANDNUMBERS(3*k,randarray)
   !
   !randarray(:) now contains 3*k random numbers between 0 and 1
-  !multiply them by the box dimensions to have cartesian coordinates
+  !Multiply them by the box dimensions to have cartesian coordinates
+  !Save them in array newP
+  m = SIZE(P,1)
   DO n=1,k
-   randarray(n)      = H(1,1) * randarray(n)
-   randarray(k+n)   = H(2,2) * randarray(k+n)
-   randarray(2*k+n) = H(3,3) * randarray(2*k+n)
+    newP(m+n,1) = H(1,1) * randarray(n)
+    newP(m+n,2) = H(2,2) * randarray(k+n)
+    newP(m+n,3) = H(3,3) * randarray(2*k+n)
   ENDDO
   !
   !Construct neighbor list of new system with all atoms
-  CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
-  CALL NEIGHBOR_LIST(H,newP(:,:),6.d0,NeighList)
+  !CALL ATOMSK_MSG(11,(/""/),(/0.d0/))
+  !CALL NEIGHBOR_LIST(H,newP(:,:),6.d0,NeighList)
   !
   !For each random position, search for the 4 nearest neighbors
   !and replace the position by the center of the 4 neighbors positions
-  m = SIZE(P,1)
-  DO n=1,k
-    !Gather the random coordinates of the atom to insert
-    x = randarray(n)
-    y = randarray(k+n)
-    z = randarray(2*k+n)
+  DO n=1,k  !Loop on all k inserted atoms
+    !Get random coordinates of the inserted atom
+    x = newP(m+n,1)
+    y = newP(m+n,2)
+    z = newP(m+n,3)
+    V(:) = (/x,y,z/)
+    WRITE(msg,'(a13,i3,a1,8X,3f12.3)') 'Random atom #', n, ":", V(1:3)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
     !
     !x,y,z are random and may be too close to an existing atom
-    !To avoid that, replace x,y,z by the closest suitable tetrahedral site
+    !To avoid that, replace x,y,z by the closest suitable site
     !Search for the nearest neighbors of the position (x,y,z)
     !Note: in order to avoid introducing two new atoms in the same site,
     !     perform the neighbor search in the system newP containing atoms previously introduced
-    !CALL FIND_NNN(H,newP(1:m,:),(/x,y,z/),4,V_NN,Nlist,exceeds100)
+    !Find all neighbors of atom #m+n in a moderate radius (6 angströms)
+    !CALL NEIGHBOR_POS(H,newP,V,NeighList(m+n,:),.TRUE.,6.d0,PosList)
+    CALL FIND_NNN(H,newP,V,14,PosList,Nlist,exceeds100)
     !
-    !Generate list of positions of neighbors of atom #n
-    CALL NEIGHBOR_POS(H,newP,(/x,y,z/),NeighList(SIZE(P,1)+n,:),.TRUE.,6.d0,PosList)
-    !
-    IF( ALLOCATED(PosList) .AND. SIZE(PosList,1) >= 4 .AND. SIZE(PosList,2)>=4 ) THEN
-      !Atom #m+n has more than 4 neighbors => try to adjust its position
-      !Sort neighbors by increasing distance
-      CALL BUBBLESORT(PosList,4,'up  ',newindex)
-      !Determine the equidistance of the 4 nearest atoms
-      x = SUM( PosList(1:4,1) ) / 4.d0
-      y = SUM( PosList(1:4,2) ) / 4.d0
-      z = SUM( PosList(1:4,3) ) / 4.d0
+    IF( ALLOCATED(PosList) ) THEN
+      IF( SIZE(PosList,1) >= 4 .AND. SIZE(PosList,2)>=4 ) THEN
+        !Added atom #n has more than 4 neighbors => try to adjust its position
+        !Sort list by increasing distances
+        CALL BUBBLESORT(PosList,4,'up  ',newindex)
+        Nneighbors = SIZE(PosList,1)
+        !Move new atom to nearest tetrahedral site
+        V(1) = SUM( PosList(1:4,1) ) / 4.d0
+        V(2) = SUM( PosList(1:4,2) ) / 4.d0
+        V(3) = SUM( PosList(1:4,3) ) / 4.d0
+        Ntetra = Ntetra+1
+      ENDIF
     ENDIF
     !Save final position to newP
-    m=m+1
-    newP(m,1) = x
-    newP(m,2) = y
-    newP(m,3) = z
-    newP(m,4) = snumber
+    newP(m+n,1) = V(1)
+    newP(m+n,2) = V(2)
+    newP(m+n,3) = V(3)
+    newP(m+n,4) = snumber
     addedatoms = addedatoms+1
     !
     IF(ALLOCATED(PosList)) DEALLOCATE(PosList)
+    IF(ALLOCATED(PosList2)) DEALLOCATE(PosList2)
     IF(ALLOCATED(V_NN)) DEALLOCATE(V_NN)
     !
     !Determine if this type of atoms has shells
@@ -461,7 +474,7 @@ IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
 !
 300 CONTINUE
-CALL ATOMSK_MSG(2117,(/''/),(/DBLE(addedatoms),DBLE(SIZE(P,1))/))
+CALL ATOMSK_MSG(2117,(/''/),(/DBLE(addedatoms),DBLE(SIZE(P,1)),DBLE(Ntetra),DBLE(Nocta)/))
 GOTO 1000
 !
 !
