@@ -437,8 +437,10 @@ DO
         !
       CASE("help","aide","hilfe","wtf","WTF")
         helpsection = TRIM(ADJUSTL(instruction(6:)))
-        IF( helpsection=="options" .OR. helpsection=="modes" ) THEN
+        IF( helpsection=="options" ) THEN
           CALL DISPLAY_HELP(helpsection)
+        ELSEIF( helpsection(1:4)=="crys" ) THEN
+          CALL ATOMSK_MSG(4023,(/"crys"/),(/0.d0/))
         ELSE
           CALL ATOMSK_MSG(4023,(/''/),(/0.d0/))
         ENDIF
@@ -561,6 +563,12 @@ DO
         P(k,3) = z
         CALL ATOMNUMBER(species,P(k,4))
         WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
+
+      !
+      !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!         COMMANDS FOR ELASTICITY / CRYSTALLOGRAPHY
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !
       CASE("hkil2uvw")
         command = TRIM(ADJUSTL(instruction(9:)))
@@ -1120,12 +1128,11 @@ DO
         msg = TRIM(ADJUSTL(instruction(j+1:)))
         IF( LEN_TRIM(msg)>0 ) THEN
           READ(msg,*,ERR=400,END=400) progressbar
-        ELSE
-          DO i=1,100
-            CALL DISPLAY_PROGBAR(DBLE(i),100.d0)
-            CALL SYSTEM("sleep 0.1") !wait 0.1 second
-          ENDDO
         ENDIF
+        DO i=1,100
+          CALL DISPLAY_PROGBAR(DBLE(i),100.d0)
+          CALL SYSTEM("sleep 0.1") !wait 0.1 second
+        ENDDO
         !
         !
       CASE DEFAULT

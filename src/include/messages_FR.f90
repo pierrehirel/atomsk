@@ -3029,49 +3029,62 @@ CASE(4022)
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
-  msg = "Atomsk s'exécute en ce moment en MODE INTERACTIF."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "Seules les commandes suivantes sont disponibles :"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help                       Affiche cette aide"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "cd                         Changer de dossier"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls
-  msg(28:) = "Affiche la liste des fichiers du dossier courant"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "pwd                        Affiche le dossier courant"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "print                      Affiche les vecteurs de boîte et positions des atomes"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory                     Résumé du contenu de la mémoire"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "create                     Créer un système atomique"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <fichier>             Lit le <fichier> et charge son contenu en mémoire"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <fichier>            Ecrit le système courant dans le <fichier>"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "box <H11> <H22> <H33>      Définit les dimensions d'une boîte orthogonale"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "atom <sp> <x> <y> <z>      Ajoute un nouvel atome de l'espèce donnée aux coordonnées données"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "C11 <value>                Définit la valeur d'une constante élastique (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "Cij                        Construit le tenseur élastique à partir des valeurs données précédemment"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear                      Efface la mémoire (détruit le système atomique)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit                       Quitte Atomsk"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "OPTIONS : les options de Atomsk peuvent être utilisées,"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "         entrez 'help options' pour afficher les options disponibles."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "         En mode interactif les options doivent être appelées sans le signe moins (-)."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "MODES : les modes ne peuvent pas être utilisés dans cet interpréteur."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( strings(1)=="crys" .OR. strings(1)=="elast" ) THEN
+    msg = "C11 <value>                Définit la valeur d'une constante élastique (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Cij                        Construit le tenseur élastique à partir des valeurs données précédemment"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "rotate <X|Y|Z> <angle>     Tourner le tenseur élastique autour de l'axe donné"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Sij                        Construit le tenseur des compliances à partir des valeurs précédentes"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "hkil2uvw [hkil]            Convertit une direction à 4 indices [hkil] en direction à 3 indices [uvw]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "uvw2hkil [uvw]             Convertit une direction à 3 indices [uvw] en direction à 4 indices [hkil]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "Atomsk s'exécute en ce moment en MODE INTERACTIF."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Seules les commandes suivantes sont disponibles :"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "help                       Affiche cette aide"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "cd                         Changer de dossier"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = system_ls
+    msg(28:) = "Affiche la liste des fichiers du dossier courant"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "pwd                        Affiche le dossier courant"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "print                      Affiche les vecteurs de boîte et positions des atomes"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "memory                     Résumé du contenu de la mémoire"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "create                     Créer un système atomique"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "read <fichier>             Lit le <fichier> et charge son contenu en mémoire"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "write <fichier>            Ecrit le système courant dans le <fichier>"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "box <H11> <H22> <H33>      Définit les dimensions d'une boîte orthogonale"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "atom <sp> <x> <y> <z>      Ajoute un nouvel atome de l'espèce donnée aux coordonnées données"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "clear                      Efface la mémoire (détruit le système atomique)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "crys                       Affiche les commandes spécifiques à l'élasticité et la crystallographie"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "quit                       Quitte Atomsk"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "OPTIONS : les options de Atomsk peuvent être utilisées,"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "         entrez 'help options' pour afficher les options disponibles."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "         En mode interactif les options doivent être appelées sans le signe moins (-)."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "MODES : les modes ne peuvent pas être utilisés dans cet interpréteur."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
 CASE(4024)
   msg = "<?> Vers quel format souhaitez-vous le convertir ?"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

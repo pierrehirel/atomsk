@@ -2981,49 +2981,62 @@ CASE(4022)
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
-  msg = "Verfuegbare Kommandos:"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help                       Zeigt diese Hilfe"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "cd                         Ändern das aktuelle Arbeitsverzeichnis"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls
-  msg(28:) = "Zeigt Dateien im aktuellen Verzeichnis"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "pwd                        Zeigt das aktuelle Arbeitsverzeichnis an"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "print                      Zeigt die aktuelle Boxvektoren und Atompositionen"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory                     Zeigt Speicheruebersicht"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "create                     Erstellt ein atomares System"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <file>                Datei <file> in den Speicher einlesen"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <file>               Schreibt aktuelles System in die Datei <file>"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "box <H11> <H22> <H33>      Definiert die Abmessungen der orthogonalen Box"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "atom <sp> <x> <y> <z>      Fügen dem System ein neues Atom mit bestimmten Arten und Koordinaten hinzu"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "C11 <value>                Einstellt der elastischen Konstante (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "Cij                        Erstellt einen Steifheitstensor basierend auf vorherigen Werten"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear                      Loescht den Speicher (zerstoert atomares System)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit                       Beendet atomsk"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "OPTIONS: Atomsk Anweisungen fuer den Command-Line Interpreter,"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "        gebe 'help options' ein um verfuegbare Anweisungen"// &
-      & " aufzulisten."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "        Im interaktiven Modus muessen Anweisungen mit einem"// &
-      & " (-) Symbol beginnen."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "MODI: Modi koennen nicht benutzen werden in den Command-Line Interpreter."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( strings(1)=="crys" .OR. strings(1)=="elast" ) THEN
+    msg = "C11 <value>                Einstellt der elastischen Konstante (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Cij                        Erstellt einen Steifheitstensor basierend auf vorherigen Werten"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "rotate <X|Y|Z> <angle>     Drehe den Elastizitätstensor um die gegebene Achse"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Sij                        Konstruiere einen Compliance-Tensor basierend auf den vorherigen Werten"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "hkil2uvw [hkil]            Konvertiere die 4-Index-Richtung [hkil] in die 3-Index-Richtung [uvw]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "uvw2hkil [uvw]             Konvertiere die 3-Index-Richtung [uvw] in die 4-Index-Richtung [hkil]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "Verfuegbare Kommandos:"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "help                       Zeigt diese Hilfe"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "cd                         Ändern das aktuelle Arbeitsverzeichnis"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = system_ls
+    msg(28:) = "Zeigt Dateien im aktuellen Verzeichnis"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "pwd                        Zeigt das aktuelle Arbeitsverzeichnis an"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "print                      Zeigt die aktuelle Boxvektoren und Atompositionen"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "memory                     Zeigt Speicheruebersicht"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "create                     Erstellt ein atomares System"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "read <file>                Datei <file> in den Speicher einlesen"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "write <file>               Schreibt aktuelles System in die Datei <file>"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "box <H11> <H22> <H33>      Definiert die Abmessungen der orthogonalen Box"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "atom <sp> <x> <y> <z>      Fügen dem System ein neues Atom mit bestimmten Arten und Koordinaten hinzu"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "clear                      Loescht den Speicher (zerstoert atomares System)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "crys                       Anzeigebefehle im Zusammenhang mit Elastizität und Kristallographie"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "quit                       Beendet atomsk"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "OPTIONS: Atomsk Anweisungen fuer den Command-Line Interpreter,"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        gebe 'help options' ein um verfuegbare Anweisungen"// &
+        & " aufzulisten."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        Im interaktiven Modus muessen Anweisungen mit einem"// &
+        & " (-) Symbol beginnen."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "MODI: Modi koennen nicht benutzen werden in den Command-Line Interpreter."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
 CASE(4024)
   msg = "<?> In welches Format soll konvertiert werden?"
   CALL DISPLAY_MSG(verbosity,msg,logfile)

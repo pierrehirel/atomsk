@@ -2964,49 +2964,62 @@ CASE(4022)
   msg = ""
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
-  msg = "Atomsk is currently running in INTERACTIVE MODE."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "Only the following commands are available:"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "help                       Display this help"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "cd                         Change working directory"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = system_ls
-  msg(28:) = "List files in current directory"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "pwd                        Print current working directory"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "print                      Print current box vectors and atom positions"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "memory                     Summary of what is in memory"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "create                     Create an atomic system"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "read <file>                Read the <file> and load its content in memory"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "write <file>               Write current system into <file>"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "box <H11> <H22> <H33>      Define dimensions of orthogonal box"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "atom <sp> <x> <y> <z>      Add a new atom in the system with given species and coordinates"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "C11 <value>                Set value of elastic constant (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "Cij                        Construct elastic tensor based on previous values, and print it"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "clear                      Clear memory (destroy atomic system)"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "quit                       Exit Atomsk"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "OPTIONS: the options of Atomsk can be used in this command-line interpreter,"
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "        enter 'help options' to display the available options."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "        In interactive mode options must be called without the leading minus sign (-)."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-  msg = "MODES: modes cannot be used in this command-line interpreter."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( strings(1)=="crys" .OR. strings(1)=="elast" ) THEN
+    msg = "C11 <value>                Set value of elastic constant (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Cij                        Construct elastic tensor based on previous values, and print it"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "rotate <X|Y|Z> <angle>     Rotate elastic tensor around the given axis"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Sij                        Construct compliance tensor based on previous values, and print it"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "hkil2uvw [hkil]            Convert 4-index [hkil] direction into 3-index [uvw]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "uvw2hkil [uvw]             Convert 3-index [uvw] direction into 4-index [hkil]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "Atomsk is currently running in INTERACTIVE MODE."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Only the following commands are available:"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "help                       Display this help"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "cd                         Change working directory"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = system_ls
+    msg(28:) = "List files in current directory"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "pwd                        Print current working directory"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "print                      Print current box vectors and atom positions"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "memory                     Summary of what is in memory"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "create                     Create an atomic system"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "read <file>                Read the <file> and load its content in memory"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "write <file>               Write current system into <file>"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "box <H11> <H22> <H33>      Define dimensions of orthogonal box"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "atom <sp> <x> <y> <z>      Add a new atom in the system with given species and coordinates"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "clear                      Clear memory (destroy atomic system)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "crys                       Display commands related to elasticity and crystallography"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "quit                       Exit Atomsk"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "OPTIONS: the options of Atomsk can be used in this command-line interpreter,"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        enter 'help options' to display the available options."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "        In interactive mode options must be called without the leading minus sign (-)."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "MODES: modes cannot be used in this command-line interpreter."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
 CASE(4024)
   msg = "<?> To which format do you want to convert it?"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
