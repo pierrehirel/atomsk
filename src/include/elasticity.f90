@@ -9,7 +9,7 @@ MODULE elasticity
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 01 July 2025                                     *
+!* Last modification: P. Hirel - 22 May 2026                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,11 @@ MODULE elasticity
 !* ELASTINDEX          reduces indices (i,j) into index m for 9x9 matrices        *
 !* ELAST2INDEX         convert index m into indices (i,j) for 9x9 matrices        *
 !* ROTELAST            rotates a 9x9 matrix                                       *
+!* Cij2Sij             inverts elastic tensor to get compliance tensor            *
+!* Cij_ISOTROPY        determines (an)isotropy of elastic tensor                  *
+!* Cij_ANISO_A         computes anisotopic ratio A                                *
+!* Cij_ANISO_H         computes anisotopy factor H                                *
+!* ELAST2MODULI        from elast.tensor, compute Young, shear modulus & Poisson  *
 !**********************************************************************************
 !
 !
@@ -286,6 +291,156 @@ newELTENS = MATMUL( TRANSPOSE(Q) , MATMUL(ELTENS,Q) )
 RETURN
 !
 END FUNCTION ROTELAST
+!
+!
+!********************************************************
+!  Cij2Sij
+!  Given an elastic tensor Cij, invert it to get the
+!  compliance tensor Sij.
+!********************************************************
+SUBROUTINE Cij2Sij(C_tensor,S_tensor)
+!
+IMPLICIT NONE
+INTEGER:: status
+REAL(dp),DIMENSION(6,6),INTENT(IN)::  C_tensor  !elastic tensor
+REAL(dp),DIMENSION(6,6),INTENT(OUT):: S_tensor  !compliance tensor
+!
+S_tensor(:,:) = 0.d0
+CALL INVMAT(C_tensor,S_tensor,status)
+IF(status>0) THEN
+  PRINT*, "could not invert Cij"
+  RETURN
+ENDIF
+!
+END SUBROUTINE Cij2Sij
+!
+!
+!********************************************************
+!  Cij_ISOTROPY
+!  This function determines if an elastic tensor is
+!  isotropic (0), orthotropic (1), or anisotropic (2).
+!********************************************************
+FUNCTION Cij_ISOTROPY(C_tensor) RESULT(isotropy)
+!
+IMPLICIT NONE
+INTEGER:: isotropy  !0=isotropic; 1=orthotropic; 2=anisotropic
+REAL(dp),PARAMETER:: th=1.d-6
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
+!
+isotropy = 2  !initially, assume anisotropic material
+!
+IF( .NOT.ANY(DABS(C_tensor(1:3,4:6))>th) .AND. &
+  & DABS(C_tensor(4,5))<th .OR. DABS(C_tensor(4,6))<th .OR. DABS(C_tensor(5,6))<th ) THEN
+  !Material is orthotropic
+  isotropy = 1
+  !
+  IF( DIFFABS(C_tensor(1,1),C_tensor(2,2))<th .AND. &
+    & DIFFABS(C_tensor(1,1),C_tensor(3,3))<th .AND. &
+    & DIFFABS(C_tensor(1,2),C_tensor(1,3))<th .AND. &
+    & DIFFABS(C_tensor(1,2),C_tensor(2,3))<th .AND. &
+    & DIFFABS(C_tensor(4,4),C_tensor(5,5))<th .AND. &
+    & DIFFABS(C_tensor(4,4),C_tensor(6,6))<th       ) THEN
+    !Material is isotropic
+    isotropy = 0
+  ENDIF
+  !
+ENDIF
+!
+END FUNCTION Cij_ISOTROPY
+!
+!
+!********************************************************
+!  Cij_ANISO_A
+!  This function computes the anisotropic ratio:
+!  A = 2*C44 / (C11-C12)
+!********************************************************
+FUNCTION Cij_ANISO_A(C_tensor) RESULT(A)
+!
+IMPLICIT NONE
+REAL(dp):: A  !anisotropic ratio
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
+!
+A = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
+!
+END FUNCTION Cij_ANISO_A
+!
+!
+!********************************************************
+!  Cij_ANISO_H
+!  This function computes the anisotropy factor H:
+!  H = 2*C44 + C12 - C11
+!********************************************************
+FUNCTION Cij_ANISO_H(C_tensor) RESULT(H)
+!
+IMPLICIT NONE
+REAL(dp):: H  !anisotropy factor
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
+!
+H = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
+!
+END FUNCTION Cij_ANISO_H
+!
+!
+!********************************************************
+!  ELAST2MODULI
+!  This routine computes Young's modulus E, shear
+!  modulus G, Poisson's ratio nu, anisotropic factor A.
+!********************************************************
+SUBROUTINE ELAST2MODULI(C_tensor,E,G,nu)
+!
+IMPLICIT NONE
+LOGICAL:: isotropic  !is elastic tensor isotropic?
+INTEGER:: i
+REAL(dp),DIMENSION(9,9),INTENT(IN):: C_tensor  !elastic tensor
+REAL(dp),DIMENSION(6,6):: S_tensor  !compliance tensor (6x6 tensor for inversion)
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: E, G, nu !elastic moduli
+!
+IF(ALLOCATED(E)) DEALLOCATE(E)
+IF(ALLOCATED(G)) DEALLOCATE(G)
+IF(ALLOCATED(nu)) DEALLOCATE(nu)
+!
+!Invert elastic tensor to get compliance tensor
+CALL Cij2Sij(C_tensor(1:6,1:6),S_tensor)
+!
+IF( Cij_ISOTROPY(C_tensor)==0 ) THEN
+  !isotropic case
+  !Compute Young's modulus E
+  ALLOCATE(E(1,1))
+  E(1,1) = 1.d0/S_tensor(1,1)
+  !Compute shear modulus G
+  ALLOCATE(G(1,1))
+  G(1,1) = 1.d0/(2.d0*S_tensor(4,4))
+  !Compute Poisson ratio nu
+  ALLOCATE(nu(3,3))
+  nu(1,1) = -1.d0*E(1,1)*S_tensor(2,1)
+  !
+ELSE IF( Cij_ISOTROPY(C_tensor)==1 ) THEN
+  !orthotropic case
+  !Compute Young's moduli E1, E2, E3
+  ALLOCATE(E(3,3))
+  E(:,:) = 0.d0
+  E(1,1) = 1.d0/S_tensor(1,1)
+  E(2,2) = 1.d0/S_tensor(2,2)
+  E(3,3) = 1.d0/S_tensor(3,3)
+  !Compute shear moduli G1, E2, E3
+  ALLOCATE(G(3,3))
+  G(:,:) = 0.d0
+  G(2,3) = 1.d0/(2.d0*S_tensor(4,4))
+  G(1,3) = 1.d0/(2.d0*S_tensor(5,5))
+  G(1,2) = 1.d0/(2.d0*S_tensor(6,6))
+  !Compute Poisson ratios nu1, nu2, nu3
+  ALLOCATE(nu(3,3))
+  nu(:,:) = 0.d0
+  nu(1,2) = -1.d0*E(1,1)*S_tensor(2,1)
+  nu(1,3) = -1.d0*E(1,1)*S_tensor(3,1)
+  nu(2,1) = -1.d0*E(2,2)*S_tensor(1,2)
+  nu(2,3) = -1.d0*E(2,2)*S_tensor(3,2)
+  nu(3,1) = -1.d0*E(3,3)*S_tensor(1,3)
+  nu(3,2) = -1.d0*E(3,3)*S_tensor(2,3)
+ENDIF
+!
+!
+END SUBROUTINE ELAST2MODULI
 !
 !
 !

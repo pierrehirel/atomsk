@@ -3030,17 +3030,29 @@ CASE(4022)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
   IF( strings(1)=="crys" .OR. strings(1)=="elast" ) THEN
-    msg = "C11 <value>                Définit la valeur d'une constante élastique (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    msg = "a0 <value>                 Définit le paramètre de maille a0 (angströms) (aussi b0, c0)"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "Cij                        Construit le tenseur élastique à partir des valeurs données précédemment"
+    msg = "alpha <angle°>             Définit l'angle de maille alpha (°) (aussi beta, gamma)"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "rotate <X|Y|Z> <angle>     Tourner le tenseur élastique autour de l'axe donné"
+    msg = "cell                       Affiche les vecteurs de boîte courants"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "Sij                        Construit le tenseur des compliances à partir des valeurs précédentes"
+    msg = "volume                     Affiche le volume de boîte courant"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "hkil2uvw [hkil]            Convertit une direction à 4 indices [hkil] en direction à 3 indices [uvw]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "uvw2hkil [uvw]             Convertit une direction à 3 indices [uvw] en direction à 4 indices [hkil]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "C11 <value>                Définit la valeur d'une constante élastique (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Cij                        Construit le tenseur élastique à partir des valeurs données précédemment"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "rotate <X|Y|Z> <angle>     Tourner le système/le tenseur élastique autour de l'axe donné"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Sij                        Construit le tenseur des compliances à partir des valeurs précédentes"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "aniso                      Calcule les facteurs d'anisotropie à partir des Cij"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "moduli                     Calcule les modules d'Young et de cisaillement, coeff. Poisson, à partir des Cij"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     msg = "Atomsk s'exécute en ce moment en MODE INTERACTIF."
@@ -3048,6 +3060,8 @@ CASE(4023)
     msg = "Seules les commandes suivantes sont disponibles :"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "help                       Affiche cette aide"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "help crys                  Affiche les commandes spécifiques à l'élasticité et la cristallographie"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "cd                         Changer de dossier"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3071,8 +3085,6 @@ CASE(4023)
     msg = "atom <sp> <x> <y> <z>      Ajoute un nouvel atome de l'espèce donnée aux coordonnées données"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "clear                      Efface la mémoire (détruit le système atomique)"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "crys                       Affiche les commandes spécifiques à l'élasticité et la crystallographie"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "quit                       Quitte Atomsk"
     CALL DISPLAY_MSG(verbosity,msg,logfile)

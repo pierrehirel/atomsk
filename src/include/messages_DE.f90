@@ -2982,22 +2982,38 @@ CASE(4022)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
   IF( strings(1)=="crys" .OR. strings(1)=="elast" ) THEN
-    msg = "C11 <value>                Einstellt der elastischen Konstante (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    msg = "a0 <value>                 Definiere die Gitterkonstanten a0 (Angström) (sowie b0, c0)"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "Cij                        Erstellt einen Steifheitstensor basierend auf vorherigen Werten"
+    msg = "alpha <angle°>             Definiere den Zellwinkel alpha (°) (auch beta, gamma)"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "rotate <X|Y|Z> <angle>     Drehe den Elastizitätstensor um die gegebene Achse"
+    msg = "cell                       Aktuelle Zellvektoren anzeigen"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "Sij                        Konstruiere einen Compliance-Tensor basierend auf den vorherigen Werten"
+    msg = "volume                     Aktuelles Zellvolumen anzeigen"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "hkil2uvw [hkil]            Konvertiere die 4-Index-Richtung [hkil] in die 3-Index-Richtung [uvw]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "uvw2hkil [uvw]             Konvertiere die 3-Index-Richtung [uvw] in die 4-Index-Richtung [hkil]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "C11 <value>                Einstellt der elastischen Konstante (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Cij                        Erstellt Systeme/Steifheitstensor basierend auf vorherigen Werten"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "rotate <X|Y|Z> <angle>     Drehe den Elastizitätstensor um die gegebene Achse"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Sij                        Konstruiere einen Compliance-Tensor basierend auf den vorherigen Werten"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "aniso                      Anisotropiefaktoren aus dem Strom Cij berechnen"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "moduli                     Berechnen Sie den Elastizitätsmodul, den Schubmodul und die"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "                           Querkontraktionszahl aus dem aktuellen Cij."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     msg = "Verfuegbare Kommandos:"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "help                       Zeigt diese Hilfe"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "help crys                  Anzeigebefehle im Zusammenhang mit Elastizität und Kristallographie"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "cd                         Ändern das aktuelle Arbeitsverzeichnis"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3021,8 +3037,6 @@ CASE(4023)
     msg = "atom <sp> <x> <y> <z>      Fügen dem System ein neues Atom mit bestimmten Arten und Koordinaten hinzu"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "clear                      Loescht den Speicher (zerstoert atomares System)"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "crys                       Anzeigebefehle im Zusammenhang mit Elastizität und Kristallographie"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "quit                       Beendet atomsk"
     CALL DISPLAY_MSG(verbosity,msg,logfile)

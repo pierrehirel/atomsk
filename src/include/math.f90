@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 March 2026                                    *
+!* Last modification: P. Hirel - 22 May 2026                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -27,6 +27,7 @@ MODULE math
 !**********************************************************************************
 !* List of functions in this file:                                                *
 !* IS_INTEGER          determines if a real number is an integer                  *
+!* DIFFABS             computes difference between abs.values of 2 numbers        *
 !* VECLENGTH           calculates the length of a vector                          *
 !* VEC_PLANE           determines if a point is above or below a plane            *
 !* VEC_ANGLE           computes angle between 2 vectors                           *
@@ -92,6 +93,22 @@ IF( DABS( DBLE(NINT(number)) - number ) < th ) THEN
 ENDIF
 !
 END FUNCTION IS_INTEGER
+!
+!
+!********************************************************
+!  DIFFABS
+!  Computes the absolute difference between 2 numbers,
+!  diff = | |x| - |y| |
+!********************************************************
+FUNCTION DIFFABS(x,y) RESULT(diff)
+!
+IMPLICIT NONE
+REAL(dp),INTENT(IN):: x, y
+REAL(dp):: diff
+!
+diff = DABS( DABS(x) - DABS(y) )
+!
+END FUNCTION DIFFABS
 !
 !
 !********************************************************

@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 04 March 2026                                    *
+!* Last modification: P. Hirel - 18 May 2026                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -54,6 +54,7 @@ CHARACTER(LEN=10):: time
 CHARACTER(LEN=10):: create_struc  !lattice type (mode create)
 CHARACTER(LEN=12):: mode     !mode in which the program runs
 CHARACTER(LEN=16):: helpsection
+CHARACTER(LEN=16),DIMENSION(3):: xyzchar  !strings containing x, y, z coordinates
 CHARACTER(LEN=32),DIMENSION(3):: create_Miller  !Miller indices for mode "create"
 CHARACTER(LEN=32),DIMENSION(9):: criteria  !stability criteria not satisfied by Cij tensor
 CHARACTER(LEN=128):: cwd, msg
@@ -96,23 +97,28 @@ CHARACTER(LEN=32),DIMENSION(:),ALLOCATABLE:: array_names !names of user-defined 
 INTEGER:: a1, a2, a3
 INTEGER:: i, j, k, status
 INTEGER:: try, maxtries
-REAL(dp):: Mh, Mk, Mi, Ml, Mu, Mv, Mw !Miller indices
 INTEGER,DIMENSION(2):: NT_mn
 INTEGER,DIMENSION(8):: timeval !values for DATE_AND_TIME function
 LOGICAL:: cubic !is the lattice cubic?
 LOGICAL:: exists !does file or directory exist?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
+REAL(dp):: a0, b0, c0         !lattice constants
+REAL(dp):: alpha, beta, gamma !lattice angles
+REAL(dp):: cell_volume
 REAL(dp):: smass, snumber  !atomic mass, atomic number
 REAL(dp):: C11, C22, C33, C12, C13, C23, C44, C55, C66  !elastic constants
+REAL(dp):: Mh, Mk, Mi, Ml, Mu, Mv, Mw !Miller indices
 REAL(dp):: x, y, z  !coordinates of an atom
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3):: vector
-REAL(dp),DIMENSION(3,3):: Huc !Base vectors of the unit cell
-REAL(dp),DIMENSION(3,3):: H   !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of the unit cell
+REAL(dp),DIMENSION(3,3):: H      !Base vectors of the supercell
+REAL(dp),DIMENSION(3,3):: Hstar  !Reciprocal vectors of H
 REAL(dp),DIMENSION(3,3):: ORIENT  !crystal orientation
 REAL(dp),DIMENSION(3,3):: rot_matrix  !rotation matrix
 REAL(dp),DIMENSION(9,9):: C_tensor, S_tensor   !elastic and compliance tensor
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Eyoung, Gshear, poisson_ratio  !material elastic moduli
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray  !random numbers
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: aentries !array containing atomic number, N atoms
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Ptemp !atomic positions
@@ -143,6 +149,13 @@ IF(ALLOCATED(var_names)) DEALLOCATE(var_names)
 IF(ALLOCATED(arrays)) DEALLOCATE(arrays)
 IF(ALLOCATED(array_names)) DEALLOCATE(array_names)
 maxtries=5
+a0 = 0.d0
+b0 = 0.d0
+c0 = 0.d0
+alpha = DEG2RAD(90.d0)
+beta = DEG2RAD(90.d0)
+gamma = DEG2RAD(90.d0)
+H(:,:) = 0.d0
 C11 = 0.d0
 C22 = 0.d0
 C33 = 0.d0
@@ -152,7 +165,6 @@ C23 = 0.d0
 C44 = 0.d0
 C55 = 0.d0
 C66 = 0.d0
-H(:,:) = 0.d0
 Huc(:,:) = 0.d0
  C_tensor(:,:) = 0.d0
  S_tensor(:,:) = 0.d0
@@ -361,10 +373,12 @@ DO
           !
         ELSE
           !Default: print box vectors and atom positions
+          IF( ANY(DABS(H(:,:))>1.d-12) ) THEN
+            WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
+            WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
+            WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+          ENDIF
           IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
-            DO i=1,3
-              WRITE(*,'(a4,i1,a3,3f12.6)') "   H", i, " = ", H(i,1), H(i,2), H(i,3)
-            ENDDO
             WRITE(temp,*) SIZE(P,1)
             WRITE(*,*) "  "//TRIM(ADJUSTL(temp))//" atoms"
             DO i=1,MIN(20,SIZE(P,1))
@@ -374,6 +388,13 @@ DO
             IF( SIZE(P,1)>20 ) THEN
               WRITE(*,*) "  (...discontinued...)"
             ENDIF
+          ENDIF
+          IF( ANY(C_tensor(:,:)>1.d-12) ) THEN
+            !Print elastic tensor (if defined)
+            WRITE(*,*) "  Current elastic tensor Cij (GPa):"
+            DO i=1,9
+              WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+            ENDDO
           ENDIF
         ENDIF
         !
@@ -388,6 +409,10 @@ DO
         !Print user name
         WRITE(*,*) "  "//TRIM(ADJUSTL(username))
         !
+      CASE("whoareyou")
+        !Print Atomsk's name
+        WRITE(*,*) "   Atomsk"
+        !
       CASE("clear")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
           !User may have forgotten to write file => Display a warning
@@ -401,6 +426,13 @@ DO
         nerr=0
         nwarn=0
         WrittenToFile = .FALSE.
+        a0 = 0.d0
+        b0 = 0.d0
+        c0 = 0.d0
+        alpha = DEG2RAD(90.d0)
+        beta = DEG2RAD(90.d0)
+        gamma = DEG2RAD(90.d0)
+        H(:,:) = 0.d0
         C11 = 0.d0
         C22 = 0.d0
         C33 = 0.d0
@@ -410,7 +442,6 @@ DO
         C44 = 0.d0
         C55 = 0.d0
         C66 = 0.d0
-        H(:,:) = 0.d0
         ORIENT(:,:) = 0.d0
         C_tensor(:,:) = 0.d0
         S_tensor(:,:) = 0.d0
@@ -498,7 +529,7 @@ DO
         ENDIF
         !
       !Commands to read and write files
-      CASE("read")
+      CASE("read","load")
         !Verify that there is no previous system in memory
         answer = langyes
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
@@ -518,57 +549,332 @@ DO
         CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
         WrittenToFile = .TRUE.
         !
-      CASE("box","H","cell")
-        !User wants to define an orthogonal box
-        i = SCAN(instruction," ")
-        IF( LEN_TRIM(instruction(i+1:))>0 ) THEN
-          READ(instruction(i+1:),*,END=400,ERR=400) x, y, z
-        ELSE
-          WRITE(*,'(a14)',ADVANCE="NO") "     H(1,1) = "
-          READ(*,*,END=400,ERR=400) x
-          WRITE(*,'(a14)',ADVANCE="NO") "     H(2,2) = "
-          READ(*,*,END=400,ERR=400) y
-          WRITE(*,'(a14)',ADVANCE="NO") "     H(3,3) = "
-          READ(*,*,END=400,ERR=400) z
-        ENDIF
-        H(:,:) = 0.d0
-        H(1,1) = x
-        H(2,2) = y
-        H(3,3) = z
-        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
-        WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
-        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
-        !
       CASE("atom")
-        !User adds an atom
-        READ(instruction(5:),*,END=400,ERR=400) species, x, y, z
-        IF( .NOT. ALLOCATED(P) ) THEN
-          ALLOCATE(P(1,4))
-          k=1
-        ELSE
-          IF(ALLOCATED(Ptemp)) DEALLOCATE(Ptemp)
-          k=SIZE(P,1)
-          ALLOCATE(Ptemp(k,4))
-          Ptemp(:,:) = P(:,:)
-          DEALLOCATE(P)
-          ALLOCATE(P(k+1,4))
-          DO i=1,k
-            P(i,:) = Ptemp(i,:)
-          ENDDO
-          DEALLOCATE(Ptemp)
-          k=k+1
-        ENDIF
-        P(k,1) = x
-        P(k,2) = y
-        P(k,3) = z
-        CALL ATOMNUMBER(species,P(k,4))
-        WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
+        !User adds an atom: read atom chemical symbol
+        command = TRIM(ADJUSTL(instruction(5:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) species
+          !Read coordinates as strings: they may contain slash character (/) so we have to be careful
+          j = SCAN(command," ")
+          command = TRIM(ADJUSTL(command(j+1:)))
+          j = SCAN(command," ")
+          xyzchar(1) = command(1:j)
+          command = TRIM(ADJUSTL(command(j+1:)))
+          j = SCAN(command," ")
+          xyzchar(2) = command(1:j)
+          command = TRIM(ADJUSTL(command(j+1:)))
+          j = SCAN(command," ")
+          xyzchar(3) = command(1:j)
+          !
+          IF( .NOT. ALLOCATED(P) ) THEN
+            !First atom defined: allocate new array P
+            ALLOCATE(P(1,4))
+            k=1
+          ELSE
+            !Atoms already exist: extend array P to add new atom
+            k = SIZE(P,1) + 1
+            CALL RESIZE_DBLEARRAY2(P,k,SIZE(P,2),status)
+          ENDIF
+          !Check if fractions are present in strings xyzchar(:)
+          IF( SCAN(xyzchar(1),"/")>0 .OR. SCAN(xyzchar(2),"/")>0 .OR. SCAN(xyzchar(3),"/")>0 ) THEN
+            !Fractions are present: parse them
+            DO i=1,3
+              j=SCAN(xyzchar(i),"/")
+              IF( j>1 ) THEN
+                READ(xyzchar(i)(1:j-1),*,END=400,ERR=400) y
+                READ(xyzchar(i)(j+1:),*,END=400,ERR=400) z
+                P(k,i) = y/z
+              ELSE
+                READ(xyzchar(i),*,END=400,ERR=400) P(k,i)
+              ENDIF
+            ENDDO
+            !Check if cell vectors are defined
+            IF( ANY(DABS(H(:,:))>1.d-12) ) THEN
+              !Cell vectors are defined: coordinates are interpreted as reduced, convert them
+              x = P(k,1)
+              y = P(k,2)
+              z = P(k,3)
+              P(k,1:3) = x*H(1,:) + y*H(2,:) + z*H(3,:)
+            ENDIF
+          ELSE
+            !No fraction: interpret as Cartesian coordinates
+            DO i=1,3
+              READ(xyzchar(i),*,END=400,ERR=400) P(k,i)
+            ENDDO
+          ENDIF
+          CALL ATOMNUMBER(species,P(k,4))
+          WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
+        ENDIF !end if LEN_TRIM(command)
 
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!         COMMANDS FOR ELASTICITY / CRYSTALLOGRAPHY
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !
+      CASE("a0")
+        command = TRIM(ADJUSTL(instruction(3:)))
+        k = SCAN(command,'=')
+        IF( k>0 ) THEN
+          command = TRIM(ADJUSTL(command(k+1:)))
+        ENDIF
+        IF( LEN_TRIM(command)>0 ) THEN
+          !Read value of a0
+          READ(command,*,END=400,ERR=400) a0
+          IF( b0<1.d-12 ) THEN
+            b0 = a0
+          ENDIF
+          IF( c0<1.d-12 ) THEN
+            c0 = a0
+          ENDIF
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Update H
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ENDIF
+          !Display all values
+          WRITE(temp,'(f12.6)') a0
+          WRITE(*,*) "  a0 = "//TRIM(ADJUSTL(temp))//" Å"
+          WRITE(temp,'(f12.6)') b0
+          WRITE(*,*) "  b0 = "//TRIM(ADJUSTL(temp))//" Å"
+          WRITE(temp,'(f12.6)') c0
+          WRITE(*,*) "  c0 = "//TRIM(ADJUSTL(temp))//" Å"
+          IF( DCOS(alpha)>1.d-12 .OR. DCOS(beta)>1.d-12 .OR. DCOS(gamma)>1.d-12 ) THEN
+            !All angles are not 90° => Also display the angles
+            WRITE(temp,'(f12.6)') RAD2DEG(alpha)
+            WRITE(*,*) "  alpha = "//TRIM(ADJUSTL(temp))//" °"
+            WRITE(temp,'(f12.6)') RAD2DEG(beta)
+            WRITE(*,*) "  beta = "//TRIM(ADJUSTL(temp))//" °"
+            WRITE(temp,'(f12.6)') RAD2DEG(gamma)
+            WRITE(*,*) "  gamma = "//TRIM(ADJUSTL(temp))//" °"
+          ENDIF
+        ELSE
+          !Simply display a0
+          WRITE(temp,'(f12.6)') a0
+          WRITE(*,*) "  a0 = "//TRIM(ADJUSTL(temp))//" Å"
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !
+      CASE("b0")
+        command = TRIM(ADJUSTL(instruction(3:)))
+        k = SCAN(command,'=')
+        IF( k>0 ) THEN
+          command = TRIM(ADJUSTL(command(k+1:)))
+        ENDIF
+        IF( LEN_TRIM(command)>0 ) THEN
+          !Read value of b0
+          READ(command,*,END=400,ERR=400) b0
+          IF( a0<1.d-12 ) THEN
+            a0 = b0
+          ENDIF
+          IF( c0<1.d-12 ) THEN
+            c0 = b0
+          ENDIF
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Update H
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ENDIF
+          !Display all values
+          WRITE(temp,'(f12.6)') a0
+          WRITE(*,*) "  a0 = "//TRIM(ADJUSTL(temp))//" Å"
+          WRITE(temp,'(f12.6)') b0
+          WRITE(*,*) "  b0 = "//TRIM(ADJUSTL(temp))//" Å"
+          WRITE(temp,'(f12.6)') c0
+          WRITE(*,*) "  c0 = "//TRIM(ADJUSTL(temp))//" Å"
+          IF( DCOS(alpha)>1.d-12 .OR. DCOS(beta)>1.d-12 .OR. DCOS(gamma)>1.d-12 ) THEN
+            !All angles are not 90° => Also display the angles
+            WRITE(temp,'(f12.6)') RAD2DEG(alpha)
+            WRITE(*,*) "  alpha = "//TRIM(ADJUSTL(temp))//" °"
+            WRITE(temp,'(f12.6)') RAD2DEG(beta)
+            WRITE(*,*) "  beta = "//TRIM(ADJUSTL(temp))//" °"
+            WRITE(temp,'(f12.6)') RAD2DEG(gamma)
+            WRITE(*,*) "  gamma = "//TRIM(ADJUSTL(temp))//" °"
+          ENDIF
+        ELSE
+          !Simply display b0
+          WRITE(temp,'(f12.6)') b0
+          WRITE(*,*) "  b0 = "//TRIM(ADJUSTL(temp))//" Å"
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !
+      CASE("c0")
+        command = TRIM(ADJUSTL(instruction(3:)))
+        k = SCAN(command,'=')
+        IF( k>0 ) THEN
+          command = TRIM(ADJUSTL(command(k+1:)))
+        ENDIF
+        IF( LEN_TRIM(command)>0 ) THEN
+          !Read value of c0
+          READ(command,*,END=400,ERR=400) c0
+          IF( a0<1.d-12 ) THEN
+            a0 = c0
+          ENDIF
+          IF( b0<1.d-12 ) THEN
+            b0 = a0
+          ENDIF
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Update H
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ENDIF
+          !Display all values
+          WRITE(temp,'(f12.6)') a0
+          WRITE(*,*) "  a0 = "//TRIM(ADJUSTL(temp))//" Å"
+          WRITE(temp,'(f12.6)') b0
+          WRITE(*,*) "  b0 = "//TRIM(ADJUSTL(temp))//" Å"
+          WRITE(temp,'(f12.6)') c0
+          WRITE(*,*) "  c0 = "//TRIM(ADJUSTL(temp))//" Å"
+          IF( DCOS(alpha)>1.d-12 .OR. DCOS(beta)>1.d-12 .OR. DCOS(gamma)>1.d-12 ) THEN
+            !All angles are not 90° => Also display the angles
+            WRITE(temp,'(f12.6)') RAD2DEG(alpha)
+            WRITE(*,*) "  alpha = "//TRIM(ADJUSTL(temp))//" °"
+            WRITE(temp,'(f12.6)') RAD2DEG(beta)
+            WRITE(*,*) "  beta = "//TRIM(ADJUSTL(temp))//" °"
+            WRITE(temp,'(f12.6)') RAD2DEG(gamma)
+            WRITE(*,*) "  gamma = "//TRIM(ADJUSTL(temp))//" °"
+          ENDIF
+        ELSE
+          !Simply display c0
+          WRITE(temp,'(f12.6)') c0
+          WRITE(*,*) "  c0 = "//TRIM(ADJUSTL(temp))//" Å"
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !
+      CASE("alpha")
+        command = TRIM(ADJUSTL(instruction(6:)))
+        k = SCAN(command,'=')
+        IF( k>0 ) THEN
+          command = TRIM(ADJUSTL(command(k+1:)))
+        ENDIF
+        IF( LEN_TRIM(command)>0 ) THEN
+          !Read angle in degrees
+          READ(command,*,END=400,ERR=400) alpha
+          WRITE(temp,'(f12.6)') alpha
+          WRITE(*,*) "  alpha = "//TRIM(ADJUSTL(temp))//" °"
+          !Convert to radians
+          alpha = DEG2RAD(alpha)
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Update H
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ENDIF
+        ELSE
+          !Simply display alpha
+          WRITE(temp,'(f12.6)') RAD2DEG(alpha)
+          WRITE(*,*) "  alpha = "//TRIM(ADJUSTL(temp))//" °"
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !
+      CASE("beta")
+        command = TRIM(ADJUSTL(instruction(5:)))
+        k = SCAN(command,'=')
+        IF( k>0 ) THEN
+          command = TRIM(ADJUSTL(command(k+1:)))
+        ENDIF
+        IF( LEN_TRIM(command)>0 ) THEN
+          !Read angle in degrees
+          READ(command,*,END=400,ERR=400) beta
+          WRITE(temp,'(f12.6)') beta
+          WRITE(*,*) "   beta = "//TRIM(ADJUSTL(temp))//" °"
+          !Convert to radians
+          beta = DEG2RAD(beta)
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Update H
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ENDIF
+        ELSE
+          !Simply display beta
+          WRITE(temp,'(f12.6)') RAD2DEG(beta)
+          WRITE(*,*) "   beta = "//TRIM(ADJUSTL(temp))//" °"
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !
+      CASE("gamma")
+        command = TRIM(ADJUSTL(instruction(6:)))
+        k = SCAN(command,'=')
+        IF( k>0 ) THEN
+          command = TRIM(ADJUSTL(command(k+1:)))
+        ENDIF
+        IF( LEN_TRIM(command)>0 ) THEN
+          !Read angle in degrees
+          READ(command,*,END=400,ERR=400) gamma
+          WRITE(temp,'(f12.6)') gamma
+          WRITE(*,*) "  gamma = "//TRIM(ADJUSTL(temp))//" °"
+          !Convert to radians
+          gamma = DEG2RAD(gamma)
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Update H
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ENDIF
+        ELSE
+          !Simply display gamma
+          WRITE(temp,'(f12.6)') RAD2DEG(gamma)
+          WRITE(*,*) "  gamma = "//TRIM(ADJUSTL(temp))//" °"
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !
+      CASE("H","box","cell")
+        IF( .NOT.ANY(H(:,:)>1.d-12) ) THEN
+          !H is not set
+          IF( a0>0.d0 .AND. b0>0.d0 .AND. c0>0.d0 ) THEN
+            !Construct box vectors from lattice parameters
+            CALL CONVMAT(a0,b0,c0,alpha,beta,gamma,H)
+          ELSE
+            !H is not set, user wants to define an orthogonal box
+            i = SCAN(instruction," ")
+            IF( LEN_TRIM(instruction(i+1:))>0 ) THEN
+              READ(instruction(i+1:),*,END=400,ERR=400) x, y, z
+            ELSE
+              WRITE(*,'(a14)',ADVANCE="NO") "     H(1,1) = "
+              READ(*,*,END=400,ERR=400) x
+              WRITE(*,'(a14)',ADVANCE="NO") "     H(2,2) = "
+              READ(*,*,END=400,ERR=400) y
+              WRITE(*,'(a14)',ADVANCE="NO") "     H(3,3) = "
+              READ(*,*,END=400,ERR=400) z
+            ENDIF
+            H(:,:) = 0.d0
+            H(1,1) = x
+            H(2,2) = y
+            H(3,3) = z
+            a0 = VECLENGTH(H(1,:))
+            b0 = VECLENGTH(H(2,:))
+            c0 = VECLENGTH(H(3,:))
+          ENDIF
+        ELSE
+          !H is set: update values of lattice parameters
+          CALL MATCONV(H,a0,b0,c0,alpha,beta,gamma)
+        ENDIF
+        !update cell volume
+        cell_volume = VOLUME_PARA(H)
+        !Display cell vectors matrix
+        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
+        WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
+        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+        !
+      CASE("volume")
+        IF( .NOT.ANY(H(:,:)>1.d-12) ) THEN
+          !H is not set
+          WRITE(*,*) " Cell vectors must be defined first"
+        ELSE
+          cell_volume = VOLUME_PARA(H)
+          WRITE(temp,'(f12.6)') cell_volume
+          WRITE(*,*) "  Current cell volume = "//TRIM(ADJUSTL(temp))//" Å^3"
+        ENDIF
+        !
+      CASE("reciprocal")
+        IF( .NOT.ANY(H(:,:)>1.d-12) ) THEN
+          !H is not set
+          WRITE(*,*) " Cell vectors must be defined first"
+        ELSE
+          Hstar = RECIPROCAL(H)
+          !Display cell vectors matrix
+          WRITE(*,'(a14,3f9.3,a2)') "       a* = ( ", Hstar(1,1), Hstar(1,2), Hstar(1,3), " )"
+          WRITE(*,'(a14,3f9.3,a2)') "       b* = ( ", Hstar(2,1), Hstar(2,2), Hstar(2,3), " )"
+          WRITE(*,'(a14,3f9.3,a2)') "       c* = ( ", Hstar(3,1), Hstar(3,2), Hstar(3,3), " )"
+        ENDIF
         !
       CASE("hkil2uvw")
         command = TRIM(ADJUSTL(instruction(9:)))
@@ -587,7 +893,11 @@ DO
           WRITE(test,*) NINT(Mu)
           WRITE(temp,*) NINT(Mv)
           WRITE(question,*) NINT(Mw)
-          WRITE(test,*) TRIM(ADJUSTL(test))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          IF( ABS(NINT(Mu))>=10 .OR. ABS(NINT(Mv))>=10 .OR. ABS(NINT(Mw))>=10 ) THEN
+            WRITE(test,*) TRIM(ADJUSTL(test))//" "//TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(question))
+          ELSE
+            WRITE(test,*) TRIM(ADJUSTL(test))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          ENDIF
           WRITE(*,*) "      ["//TRIM(ADJUSTL(msg))//"] = ["//TRIM(ADJUSTL(test))//"]"
         ENDIF
         !
@@ -613,7 +923,13 @@ DO
           WRITE(msg,*) NINT(z*Mk)
           WRITE(temp,*) NINT(z*Mi)
           WRITE(question,*) NINT(z*Ml)
-          WRITE(test,*) TRIM(ADJUSTL(test))//TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          IF( ABS(NINT(z*Mh))>=10 .OR. ABS(NINT(z*Mk))>=10 .OR. ABS(NINT(z*Mi))>=10 .OR. ABS(NINT(z*Ml))>=10 ) THEN
+            WRITE(test,*) TRIM(ADJUSTL(test))//" "//TRIM(ADJUSTL(msg))//" "// &
+                        & TRIM(ADJUSTL(temp))//" "//TRIM(ADJUSTL(question))
+          ELSE
+            WRITE(test,*) TRIM(ADJUSTL(test))//TRIM(ADJUSTL(msg))// &
+                        & TRIM(ADJUSTL(temp))//TRIM(ADJUSTL(question))
+          ENDIF
           WRITE(msg,*) NINT(vector(1))
           WRITE(temp,*) NINT(vector(2))
           WRITE(question,*) NINT(vector(3))
@@ -826,6 +1142,52 @@ DO
               WRITE(*,'(2X,9(f12.6,2X))') (S_tensor(i,j) , j=1,9)
             ENDDO
           ENDIF
+        !
+      CASE("iso","isotropy","aniso","anisotropy")
+        IF( .NOT.ANY(DABS(C_tensor(:,:))>1.d-12) ) THEN
+          WRITE(*,*) "  C_tensor not set"
+        ELSE
+          !Check tensor for stability criteria
+          CALL CTENSOR_STABILITY(C_tensor,criteria)
+          IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+            CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+          ENDIF
+          WRITE(*,*) "  Anisotropy ratio  A = 2*C44 / (C11-C12) = ", Cij_ANISO_A(C_tensor)
+          WRITE(*,*) "  Anisotropy factor H = 2*C44 + C12 - C11 = ", Cij_ANISO_H(C_tensor)
+        ENDIF
+        !
+      CASE("modulus","moduli","young")
+        IF( .NOT.ANY(DABS(C_tensor(:,:))>1.d-12) ) THEN
+          WRITE(*,*) "  C_tensor not set"
+        ELSE
+          !Check tensor for stability criteria
+          CALL CTENSOR_STABILITY(C_tensor,criteria)
+          IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+            CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+          ENDIF
+          CALL ELAST2MODULI(C_tensor,Eyoung,Gshear,poisson_ratio)
+          IF( ALLOCATED(Eyoung) .AND. SIZE(Eyoung,1)>0 ) THEN
+            IF( SIZE(Eyoung,1)==3 ) THEN
+              !anisotropic material
+              WRITE(*,*) "  Young Modulus   E11 = ", Eyoung(1,1), " GPa"
+              WRITE(*,*) "                  E22 = ", Eyoung(2,2), " GPa"
+              WRITE(*,*) "                  E33 = ", Eyoung(3,3), " GPa"
+              WRITE(*,*) "  Shear Modulus   G12 = ", Gshear(1,2), " GPa"
+              WRITE(*,*) "                  G13 = ", Gshear(1,3), " GPa"
+              WRITE(*,*) "                  G23 = ", Gshear(2,3), " GPa"
+              WRITE(*,*) "  Poisson ratio  nu12 = ", poisson_ratio(1,2), " GPa"
+              WRITE(*,*) "                 nu13 = ", poisson_ratio(1,3), " GPa"
+              WRITE(*,*) "                 nu23 = ", poisson_ratio(2,3), " GPa"
+            ELSE
+              !isotropic material
+              WRITE(*,*) "  Young Modulus   E = ", Eyoung(1,1), " GPa"
+              WRITE(*,*) "  Shear Modulus   G = ", Gshear(1,1), " GPa"
+              WRITE(*,*) "  Poisson ratio  nu = ", poisson_ratio(1,1)
+            ENDIF
+          ELSE
+            WRITE(*,*) "  Could not compute elastic moduli"
+          ENDIF
+        ENDIF
         !
       CASE("variable","var")
         !User wants to define a new variable
@@ -1136,48 +1498,64 @@ DO
         !
         !
       CASE DEFAULT
-        IF( command=="rotate" .AND. .NOT.ALLOCATED(P) .AND. ANY(C_tensor(:,:).NE.0.d0) ) THEN
-          !User asks for rotation, no atomic system is defined, elastic tensor is defined
-          !Read axis of rotation and angle of rotation
-          READ(instruction(7:),*,ERR=400,END=400) answer, smass
-          IF(answer=='x' .OR. answer=='X') THEN
-            a1 = 1
-            a2 = 2
-            a3 = 3
-          ELSEIF(answer=='y' .OR. answer=='Y') THEN
-            a1 = 2
-            a2 = 3
-            a3 = 1
-          ELSEIF(answer=='z' .OR. answer=='Z') THEN
-            a1 = 3
-            a2 = 1
-            a3 = 2
-          ELSE
-            !Directions will be simply a1=X, a2=Y, a3=Z
-            a1 = 1
-            a2 = 2
-            a3 = 3
-          ENDIF
-          !convert the angle into radians
-          smass = DEG2RAD(smass)
-          !set the rotation matrix
-          rot_matrix(:,:) = 0.d0
-          rot_matrix(a1,a1) = 1.d0
-          rot_matrix(a2,a2) = DCOS(smass)
-          rot_matrix(a2,a3) = -DSIN(smass)
-          rot_matrix(a3,a2) = DSIN(smass)
-          rot_matrix(a3,a3) = DCOS(smass)
-          !Rotate elastic tensor
-          C_tensor = ROTELAST( C_tensor, rot_matrix )
-          !Print elastic tensor
-          WRITE(*,*) "Current elastic tensor Cij (GPa):"
-          DO i=1,9
-            WRITE(*,'(9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
-          ENDDO
-          !Check tensor for stability criteria
-          CALL CTENSOR_STABILITY(C_tensor,criteria)
-          IF( ANY(LEN_TRIM(criteria)>0) ) THEN
-            CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+        IF( command=="rotate" .AND. .NOT.ALLOCATED(P) ) THEN
+          !User asks for rotation, but no atomic system is defined
+          !Check if cell vectors or elastic tensor are defined
+          IF( ANY(C_tensor(:,:).NE.0.d0) .OR. ANY(H(:,:).NE.0.d0) ) THEN
+            !Read axis of rotation and angle of rotation
+            READ(instruction(7:),*,ERR=400,END=400) answer, smass
+            IF(answer=='x' .OR. answer=='X') THEN
+              a1 = 1
+              a2 = 2
+              a3 = 3
+            ELSEIF(answer=='y' .OR. answer=='Y') THEN
+              a1 = 2
+              a2 = 3
+              a3 = 1
+            ELSEIF(answer=='z' .OR. answer=='Z') THEN
+              a1 = 3
+              a2 = 1
+              a3 = 2
+            ELSE
+              !Directions will be simply a1=X, a2=Y, a3=Z
+              a1 = 1
+              a2 = 2
+              a3 = 3
+            ENDIF
+            !convert the angle into radians
+            smass = DEG2RAD(smass)
+            !set the rotation matrix
+            rot_matrix(:,:) = 0.d0
+            rot_matrix(a1,a1) = 1.d0
+            rot_matrix(a2,a2) = DCOS(smass)
+            rot_matrix(a2,a3) = -DSIN(smass)
+            rot_matrix(a3,a2) = DSIN(smass)
+            rot_matrix(a3,a3) = DCOS(smass)
+            !
+            IF( ANY(H(:,:).NE.0.d0) ) THEN
+              !cell vectors are defined: rotate them
+              CALL ROTATE_POS(H,rot_matrix)
+              WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
+              WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
+              WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+            ENDIF
+            !
+            IF( ANY(C_tensor(:,:).NE.0.d0) ) THEN
+              !elastic tensor is defined: rotate it
+              !Rotate elastic tensor
+              C_tensor = ROTELAST( C_tensor, rot_matrix )
+              !Print elastic tensor
+              WRITE(*,*) "Current elastic tensor Cij (GPa):"
+              DO i=1,9
+                WRITE(*,'(9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
+              ENDDO
+              !Check tensor for stability criteria
+              CALL CTENSOR_STABILITY(C_tensor,criteria)
+              IF( ANY(LEN_TRIM(criteria)>0) ) THEN
+                CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
+              ENDIF
+            ENDIF
+            !
           ENDIF
           !
         ELSEIF( ANY( command == optnames(:) ) ) THEN

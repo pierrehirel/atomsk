@@ -2965,17 +2965,29 @@ CASE(4022)
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4023)
   IF( strings(1)=="crys" .OR. strings(1)=="elast" ) THEN
-    msg = "C11 <value>                Set value of elastic constant (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    msg = "a0 <value>                 Define lattice constants a0 (angströms) (also b0, c0)"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "Cij                        Construct elastic tensor based on previous values, and print it"
+    msg = "alpha <angle°>             Define cell angle alpha (°) (also beta, gamma)"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "rotate <X|Y|Z> <angle>     Rotate elastic tensor around the given axis"
+    msg = "cell                       Display current cell vectors"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "Sij                        Construct compliance tensor based on previous values, and print it"
+    msg = "volume                     Display current cell volume"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "hkil2uvw [hkil]            Convert 4-index [hkil] direction into 3-index [uvw]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "uvw2hkil [uvw]             Convert 3-index [uvw] direction into 4-index [hkil]"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "C11 <value>                Set value of elastic constant (C11,C22,C33,C12,C13,C23,C44,C55,C66)"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Cij                        Construct elastic tensor based on previous values, and print it"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "rotate <X|Y|Z> <angle>     Rotate system/elastic tensor around the given axis"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "Sij                        Construct compliance tensor based on previous values, and print it"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "aniso                      Compute anisotropy factors from current Cij"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "moduli                     Compute Young and shear modulus, Poisson ratio, from current Cij"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ELSE
     msg = "Atomsk is currently running in INTERACTIVE MODE."
@@ -2983,6 +2995,8 @@ CASE(4023)
     msg = "Only the following commands are available:"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "help                       Display this help"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "help crys                  Display commands related to elasticity and crystallography"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "cd                         Change working directory"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3006,8 +3020,6 @@ CASE(4023)
     msg = "atom <sp> <x> <y> <z>      Add a new atom in the system with given species and coordinates"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "clear                      Clear memory (destroy atomic system)"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "crys                       Display commands related to elasticity and crystallography"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "quit                       Exit Atomsk"
     CALL DISPLAY_MSG(verbosity,msg,logfile)

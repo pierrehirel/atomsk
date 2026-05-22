@@ -254,8 +254,8 @@ DO
         CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
       ENDIF
       !Print the anisotropy ratio (A) and anisotropy factor (H)
-      aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
-      aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
+      aniA = Cij_ANISO_A(C_tensor)
+      aniH = Cij_ANISO_H(C_tensor)
       CALL ATOMSK_MSG(2100,(/""/),(/aniA,aniH/))
     !
     ELSEIF(temp(1:10)=='compliance') THEN
@@ -320,8 +320,8 @@ DO
         CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
       ENDIF
       !Print the anisotropy ratio (A) and anisotropy factor (H)
-      aniA = 2.d0*C_tensor(4,4)/(C_tensor(1,1)-C_tensor(1,2))
-      aniH = 2.d0*C_tensor(4,4) + C_tensor(1,2) - C_tensor(1,1)
+      aniA = Cij_ANISO_A(C_tensor)
+      aniH = Cij_ANISO_H(C_tensor)
       CALL ATOMSK_MSG(2100,(/""/),(/aniA,aniH/))
     !
     ! -- add other system-wide properties here --

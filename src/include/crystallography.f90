@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 March 2026                                    *
+!* Last modification: P. Hirel - 19 May 2026                                      *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -33,6 +33,7 @@ MODULE crystallography
 !* MILLER2VEC          translates Miller indices into Cartesian vector            *
 !* MILLER2ROTMAT       find rot.matrix to go from a set of Miller ind. to another *
 !* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
+!* RECIPROCAL          convert lattice vectors into reciprocal vectors            *
 !**********************************************************************************
 !
 !
@@ -586,6 +587,29 @@ formula = msg
 IF (ALLOCATED(aentries)) DEALLOCATE(aentries)
 !
 END SUBROUTINE COMPFORMULA
+!
+!
+!********************************************************
+!  RECIPROCAL
+!  This subroutine converts real lattce vectors (a,b,c)
+!  into their reciprocal counterparts (a*,b*,c*).
+!********************************************************
+FUNCTION RECIPROCAL(H) RESULT(Hstar)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H
+REAL(dp),DIMENSION(3,3):: Hstar
+REAL(dp):: volume
+!
+Hstar(:,:) = 0.d0
+!
+volume = VOLUME_PARA(H)
+!
+Hstar(1,:) = (2.d0*pi/volume) * CROSS_PRODUCT(H(2,:),H(3,:))
+Hstar(2,:) = (2.d0*pi/volume) * CROSS_PRODUCT(H(3,:),H(1,:))
+Hstar(3,:) = (2.d0*pi/volume) * CROSS_PRODUCT(H(1,:),H(2,:))
+
+END FUNCTION RECIPROCAL
 !
 !
 !
