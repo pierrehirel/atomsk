@@ -10,7 +10,7 @@ MODULE crystallography
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 May 2026                                      *
+!* Last modification: P. Hirel - 30 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -34,6 +34,7 @@ MODULE crystallography
 !* MILLER2ROTMAT       find rot.matrix to go from a set of Miller ind. to another *
 !* COMPFORMULA         extracts a compound formula from atom site lists P and AUX *
 !* RECIPROCAL          convert lattice vectors into reciprocal vectors            *
+!* METRIC_TENSOR       given vector set, computes the metric tensor               *
 !**********************************************************************************
 !
 !
@@ -610,6 +611,73 @@ Hstar(2,:) = (2.d0*pi/volume) * CROSS_PRODUCT(H(3,:),H(1,:))
 Hstar(3,:) = (2.d0*pi/volume) * CROSS_PRODUCT(H(1,:),H(2,:))
 
 END FUNCTION RECIPROCAL
+!
+!
+!********************************************************
+!  IS_HEXAGONAL
+!  Checks if the cell given is hexagonal.
+!********************************************************
+LOGICAL FUNCTION IS_HEXAGONAL(H)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H
+!
+IS_HEXAGONAL = .TRUE.
+!
+!Check angles between vectors
+IF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) < 1.d-3 ) THEN
+  !Angle between vectors 1 and 2 is 120°
+  !=> angles between vectors (1,3) and (2,3) should be 90°
+  IF( DABS(90.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) > 1.d-3 .OR. &
+    & DABS(90.d0-RAD2DEG(ANGVEC(H(2,:),H(3,:)))) > 1.d-3 ) THEN
+    !At least one angle is not 90° => not hexagonal
+    IS_HEXAGONAL = .FALSE.
+  ENDIF
+  !
+ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) < 1.d-3 ) THEN
+  !Angle between vectors 1 and 3 is 120°
+  !=> angles between vectors (1,2) and (2,3) should be 90°
+  IF( DABS(90.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) > 1.d-3 .OR. &
+    & DABS(90.d0-RAD2DEG(ANGVEC(H(2,:),H(3,:)))) > 1.d-3 ) THEN
+    !At least one angle is not 90° => not hexagonal
+    IS_HEXAGONAL = .FALSE.
+  ENDIF
+  !
+ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(2,:),H(3,:)))) < 1.d-3 ) THEN
+  !Angle between vectors 2 and 3 is 120°
+  !=> angles between vectors (1,2) and (1,3) should be 90°
+  IF( DABS(90.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) > 1.d-3 .OR. &
+    & DABS(90.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) > 1.d-3 ) THEN
+    !At least one angle is not 90° => not hexagonal
+    IS_HEXAGONAL = .FALSE.
+  ENDIF
+  !
+ENDIF
+!
+END FUNCTION IS_HEXAGONAL
+!
+!
+!********************************************************
+!  METRIC_TENSOR
+!  Given cell vectors H(:,:), computes the metric tensor G.
+!********************************************************
+FUNCTION METRIC_TENSOR(H) RESULT(G)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3,3),INTENT(IN):: H
+REAL(dp),DIMENSION(3,3):: G
+!
+G(1,1) = DOT_PRODUCT(H(1,:),H(1,:))
+G(1,2) = DOT_PRODUCT(H(1,:),H(2,:))
+G(1,3) = DOT_PRODUCT(H(1,:),H(3,:))
+ G(2,1) = DOT_PRODUCT(H(2,:),H(1,:))
+ G(2,2) = DOT_PRODUCT(H(2,:),H(2,:))
+ G(2,3) = DOT_PRODUCT(H(2,:),H(3,:))
+G(3,1) = DOT_PRODUCT(H(3,:),H(1,:))
+G(3,2) = DOT_PRODUCT(H(3,:),H(2,:))
+G(3,3) = DOT_PRODUCT(H(3,:),H(3,:))
+
+END FUNCTION METRIC_TENSOR
 !
 !
 !

@@ -409,7 +409,7 @@ IF( Cij_ISOTROPY(C_tensor)==0 ) THEN
   E(1,1) = 1.d0/S_tensor(1,1)
   !Compute shear modulus G
   ALLOCATE(G(1,1))
-  G(1,1) = 1.d0/(2.d0*S_tensor(4,4))
+  G(1,1) = 1.d0/(S_tensor(4,4))
   !Compute Poisson ratio nu
   ALLOCATE(nu(3,3))
   nu(1,1) = -1.d0*E(1,1)*S_tensor(2,1)
@@ -425,9 +425,9 @@ ELSE IF( Cij_ISOTROPY(C_tensor)==1 ) THEN
   !Compute shear moduli G1, E2, E3
   ALLOCATE(G(3,3))
   G(:,:) = 0.d0
-  G(2,3) = 1.d0/(2.d0*S_tensor(4,4))
-  G(1,3) = 1.d0/(2.d0*S_tensor(5,5))
-  G(1,2) = 1.d0/(2.d0*S_tensor(6,6))
+  G(2,3) = 1.d0/(S_tensor(4,4))
+  G(1,3) = 1.d0/(S_tensor(5,5))
+  G(1,2) = 1.d0/(S_tensor(6,6))
   !Compute Poisson ratios nu1, nu2, nu3
   ALLOCATE(nu(3,3))
   nu(:,:) = 0.d0

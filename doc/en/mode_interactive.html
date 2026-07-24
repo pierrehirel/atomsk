@@ -24,7 +24,7 @@
 
 <p>Running the program without any argument will enter interactive mode, which offers a command-line interpreter. When the program is started by double-clicking the executable, or a link from the system's menu, then it runs in interactive mode.</p>
 
-<p>In this mode the user can enter commands, and they are executed in real-time. The available commands are:</p>
+<p>In this mode the user can enter commands, and they are executed in real-time. Here is the list of general-purpose commands:</p>
 
 <ul>
   <li class="clist"><strong>help</strong> Display a summary of commands</li>
@@ -41,6 +41,41 @@
 </ul>
 
 <p>The command <strong>create</strong> can be called with the same arguments as the <a href="./mode_create.html">mode <code>--create</code></a>. If no argument is provided then the user will be prompted.</p>
+
+<p>Some commands related to crystallography are also available:</p>
+
+<ul>
+  <li class="clist"><strong>a0 &#60;value&#62;</strong> Define lattice constant a<sub>0</sub>. If other lattice constants (b<sub>0</sub>,c<sub>0</sub>) are undefined, they are automatically assigned the same value. Updates the cell vectors H(:,:)</li>
+  <li class="clist"><strong>b0 &#60;value&#62;</strong> Define lattice constant b<sub>0</sub>. If other lattice constants (a<sub>0</sub>,c<sub>0</sub>) are undefined, they are automatically assigned the same value. Updates the cell vectors H(:,:)</li>
+  <li class="clist"><strong>c0 &#60;value&#62;</strong> Define lattice constant c<sub>0</sub>. If other lattice constants (a<sub>0</sub>,b<sub>0</sub>) are undefined, they are automatically assigned the same value. Updates the cell vectors H(:,:)</li>
+  <li class="clist"><strong>alpha &#60;value&#62;</strong> Define angle &alpha; (in degrees) between the second and third cell vectors, H(2,:) and H(3,:). Updates the cell vectors H(:,:)</li>
+  <li class="clist"><strong>beta &#60;value&#62;</strong> Define angle &beta; (in degrees) between the first and third cell vectors, H(1,:) and H(3,:). Updates the cell vectors H(:,:)</li>
+  <li class="clist"><strong>gamma &#60;value&#62;</strong> Define angle &gamma; (in degrees) between the first and second cell vectors, H(1,:) and H(2,:). Updates the cell vectors H(:,:)</li>
+  <li class="clist"><strong>cell</strong> Display current cell vectors H(:,:)</li>
+  <li class="clist"><strong>volume</strong> Compute and display the volume of current cell H(:,:)</li>
+  <li class="clist"><strong>reciprocal</strong> Compute and displays reciprocal vectors of current cell H(:,:)</li>
+  <li class="clist"><strong>hkil2uvw [<em>hkil</em>]</strong> Convert Miller-Bravais indices [<em>hkil</em>] into Miller indices [<em>uvw</em>]</li>
+  <li class="clist"><strong>uvw2hkil [<em>uvw</em>]</strong> Convert Miller indices [<em>uvw</em>] into Miller-Bravais indices [<em>hkil</em>]</li>
+  <li class="clist"><strong>cubic</strong> Activate or deactivate cubic symmetry for following commands</li>
+  <li class="clist"><strong>hexagonal</strong> Activate or deactivate hexagonal symmetry for following commands</li>
+  <li class="clist"><strong>anglehkl [<em>hkl</em>] [<em>h'k'l'</em>]</strong> Compute the angle between two crystallographic directions. If no cell is defined: if the 'hexagonal' switch is ON, then hexagonal symmetry is assumed; otherwise cubic symmetry is assumed. If a cell H(:,:) is defined (e.g. with the previous commands a0, b0, alpha, etc.), then this cell is used.</li>
+  <li class="clist"><strong>normalhkl <em>hkl</em></strong> Find the direction normal to the crystallographic plane (<em>hkl</em>). If no cell is defined: if the 'hexagonal' switch is ON, hexagonal symmetry is assumed; otherwise cubic symmetry is assumed, i.e. the normal to (hkl) plane is simply the [hkl] direction. If a cell H(:,:) is defined (e.g. with the previous commands a0, b0, alpha, etc.), then this cell is used to find the normal. Note that planar indices <em>hkl</em> must not be surrounded by parentheses, as they would interfere with bash interpreter.</li>
+  <li class="clist"><strong>C11 &#60;value&#62;</strong> Define elastic constant C<sub>11</sub>. If elastic constants C<sub>22</sub> and C<sub>33</sub> are undefined, they are automatically assigned the same value. Note that this command does not update the stiffness tensor C<sub>ij</sub> (see below).</li>
+  <li class="clist"><strong>C22 &#60;value&#62;</strong> Idem for C<sub>22</sub></li>
+  <li class="clist"><strong>C33 &#60;value&#62;</strong> Idem for C<sub>33</sub></li>
+  <li class="clist"><strong>C12 &#60;value&#62;</strong> Define elastic constant C<sub>12</sub>. If elastic constants C<sub>13</sub> and C<sub>23</sub> are undefined, they are automatically assigned the same value. Note that this command does not update the stiffness tensor C<sub>ij</sub> (see below).</li>
+  <li class="clist"><strong>C13 &#60;value&#62;</strong> Idem for C<sub>13</sub></li>
+  <li class="clist"><strong>C23 &#60;value&#62;</strong> Idem for C<sub>23</sub></li>
+  <li class="clist"><strong>C44 &#60;value&#62;</strong> Define elastic constant C<sub>44</sub>. If elastic constants C<sub>55</sub> and C<sub>66</sub> are undefined, they are automatically assigned the same value. Note that this command does not update the stiffness tensor C<sub>ij</sub> (see below).</li>
+  <li class="clist"><strong>C55 &#60;value&#62;</strong> Idem for C<sub>55</sub></li>
+  <li class="clist"><strong>C66 &#60;value&#62;</strong> Idem for C<sub>66</sub></li>
+  <li class="clist"><strong>Cij</strong> Construct the full stiffness tensor C<sub>ij</sub> using values defined previously</li>
+  <li class="clist"><strong>moduli</strong> From C<sub>ij</sub> defined before, compute and display Young's modulus E, shear modulus G, and Poisson ratio &nu;</li>
+  <li class="clist"><strong>aniso</strong> From C<sub>ij</sub> defined before, compute and display anisotropy ratio A&nbsp;=&nbsp;2C<sub>44</sub>/(C<sub>11</sub>&minus;C<sub>12</sub>), and anisotropy factor H&nbsp;=&nbsp;2C<sub>44</sub>&nbsp;+&nbsp;C<sub>12</sub>&nbsp;&minus;&nbsp;C<sub>11</sub></li>
+  <li class="clist"><strong>Sij</strong> From C<sub>ij</sub> defined before, compute and display compliance tensor S<sub>ij</sub></li>
+  <li class="clist"><strong>atom &#60;element&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62;</strong> Add an atom of the given &#60;element&#62; at the given position (<em>x</em>,<em>y</em>,<em>z</em>). If coordinates contain fractions (e.g., "1/2" or "2/3"), they are treated as reduced coordinates; otherwise Cartesian coordinates are assumed.</li>
+  <li class="clist"><strong>rotate &#60;X|Y|Z&#62; &#60;angle&#62;</strong> Rotate cell vectors H(:,:) and/or stiffness tensor C<sub>ij</sub> and/or atom positions (whichever are defined) around the given Cartesian axis (X, Y or Z) by the given angle</li>
+</ul>
 
 <p>The <a href="./options.html">options</a> of Atomsk are also available. They must be called <em>without</em> the leading dash sign (-), and with all their parameters.</p>
 

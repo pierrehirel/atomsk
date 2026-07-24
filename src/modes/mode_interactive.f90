@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 18 May 2026                                      *
+!* Last modification: P. Hirel - 22 July 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -32,11 +32,13 @@ USE crystallography
 USE elasticity
 USE messages
 USE files
+USE math
 USE random
 USE subroutines
 USE guess_form
 USE read_cla
 USE modes
+USE OMP_LIB
 !
 CONTAINS
 !
@@ -61,6 +63,7 @@ CHARACTER(LEN=128):: cwd, msg
 CHARACTER(LEN=128):: prompt
 CHARACTER(LEN=128):: test, temp
 CHARACTER(LEN=128):: question, solution
+CHARACTER(LEN=128):: string1, string2
 CHARACTER(LEN=128):: username
 CHARACTER(LEN=4096):: inputfile, outputfile, prefix
 CHARACTER(LEN=4096):: instruction, command   !instruction given by the user
@@ -99,7 +102,8 @@ INTEGER:: i, j, k, status
 INTEGER:: try, maxtries
 INTEGER,DIMENSION(2):: NT_mn
 INTEGER,DIMENSION(8):: timeval !values for DATE_AND_TIME function
-LOGICAL:: cubic !is the lattice cubic?
+LOGICAL:: cubic      !is the lattice cubic?
+LOGICAL:: hexagonal  !is the lattice hexagonal?
 LOGICAL:: exists !does file or directory exist?
 LOGICAL:: WrittenToFile  !was the system written to a file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
@@ -112,6 +116,7 @@ REAL(dp):: Mh, Mk, Mi, Ml, Mu, Mv, Mw !Miller indices
 REAL(dp):: x, y, z  !coordinates of an atom
 REAL(dp),DIMENSION(3):: create_a0    !the lattice constants (mode create)
 REAL(dp),DIMENSION(3):: vector
+REAL(dp),DIMENSION(3):: v1, v2
 REAL(dp),DIMENSION(3,3):: Huc    !Base vectors of the unit cell
 REAL(dp),DIMENSION(3,3):: H      !Base vectors of the supercell
 REAL(dp),DIMENSION(3,3):: Hstar  !Reciprocal vectors of H
@@ -135,6 +140,8 @@ IF(verbosity==0 .OR. verbosity==2) verbosity=1
 !
 !
 !Initialize variables
+cubic = .FALSE.
+hexagonal = .FALSE.
 WrittenToFile = .FALSE.
 IF(ALLOCATED(comment)) DEALLOCATE(comment)
 IF(ALLOCATED(P)) DEALLOCATE(P)
@@ -298,6 +305,21 @@ DO
         ENDIF
         WRITE(*,'(a13,i1)') " verbosity = ", verbosity
       !
+      CASE("nthreads")
+#if defined(OPENMP)
+        j = SCAN(instruction," ")
+        temp = TRIM(instruction(j:))
+        IF( LEN_TRIM(temp)>0 ) THEN
+          READ(temp,*,ERR=400,END=400) i
+          IF( i<=0 ) i=1
+          CALL OMP_SET_NUM_THREADS(i)
+        ENDIF
+        WRITE(temp,*) OMP_GET_MAX_THREADS()
+        WRITE(*,*) "      nthreads = "//TRIM(ADJUSTL(temp))
+#else
+        WRITE(*,*) "      X!X ERROR: this version of Atomsk does not support OpenMP."
+#endif
+      !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !!!         SPECIAL COMMANDS
@@ -353,9 +375,7 @@ DO
           IF( ANY(C_tensor(:,:).NE.0.d0) ) THEN
             !Print elastic tensor
             WRITE(*,*) "  Current elastic tensor Cij (GPa):"
-            DO i=1,9
-              WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
-            ENDDO
+            CALL DISPLAY_MATRIX("Cij (GPa)",C_tensor)
           ELSE
             WRITE(*,*) "Cij not set"
           ENDIF
@@ -364,9 +384,7 @@ DO
           IF( ANY(S_tensor(:,:).NE.0.d0) ) THEN
             !Print elastic tensor
             WRITE(*,*) "  Current compliance tensor Sij (GPa):"
-            DO i=1,9
-              WRITE(*,'(2X,9(f12.6,2X))') (S_tensor(i,j) , j=1,9)
-            ENDDO
+            CALL DISPLAY_MATRIX("Sij (GPa^-1)",S_tensor)
           ELSE
             WRITE(*,*) "Sij not set"
           ENDIF
@@ -374,9 +392,7 @@ DO
         ELSE
           !Default: print box vectors and atom positions
           IF( ANY(DABS(H(:,:))>1.d-12) ) THEN
-            WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
-            WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
-            WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+            CALL DISPLAY_MATRIX("cell",H)
           ENDIF
           IF( ALLOCATED(P) .AND. SIZE(P,1)>0 ) THEN
             WRITE(temp,*) SIZE(P,1)
@@ -407,11 +423,11 @@ DO
         !
       CASE("whoami")
         !Print user name
-        WRITE(*,*) "  "//TRIM(ADJUSTL(username))
+        WRITE(*,*) "      "//TRIM(ADJUSTL(username))
         !
       CASE("whoareyou")
         !Print Atomsk's name
-        WRITE(*,*) "   Atomsk"
+        WRITE(*,*) "      I am Atomsk"
         !
       CASE("clear")
         IF( ALLOCATED(P) .AND. .NOT.WrittenToFile ) THEN
@@ -425,6 +441,8 @@ DO
         !Wipe out everything from memory
         nerr=0
         nwarn=0
+        cubic = .FALSE.
+        hexagonal = .FALSE.
         WrittenToFile = .FALSE.
         a0 = 0.d0
         b0 = 0.d0
@@ -433,6 +451,7 @@ DO
         beta = DEG2RAD(90.d0)
         gamma = DEG2RAD(90.d0)
         H(:,:) = 0.d0
+        Hstar(:,:) = 0.d0
         C11 = 0.d0
         C22 = 0.d0
         C33 = 0.d0
@@ -442,9 +461,12 @@ DO
         C44 = 0.d0
         C55 = 0.d0
         C66 = 0.d0
-        ORIENT(:,:) = 0.d0
         C_tensor(:,:) = 0.d0
         S_tensor(:,:) = 0.d0
+        IF(ALLOCATED(Eyoung)) DEALLOCATE(Eyoung)
+        IF(ALLOCATED(Gshear)) DEALLOCATE(Gshear)
+        IF(ALLOCATED(poisson_ratio)) DEALLOCATE(poisson_ratio)
+        ORIENT(:,:) = 0.d0
         IF(ALLOCATED(comment)) DEALLOCATE(comment)
         IF(ALLOCATED(P)) DEALLOCATE(P)
         IF(ALLOCATED(S)) DEALLOCATE(S)
@@ -481,9 +503,7 @@ DO
         i=0
         IF( ANY(H(:,:)>1.d-12) ) THEN
           i=i+1
-          WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
-          WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
-          WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+          CALL DISPLAY_MATRIX("cell",H)
         ENDIF
         IF( ALLOCATED(P) ) THEN
           i=i+1
@@ -548,68 +568,11 @@ DO
         prefix = TRIM(ADJUSTL(instruction(7:)))
         CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
         WrittenToFile = .TRUE.
-        !
-      CASE("atom")
-        !User adds an atom: read atom chemical symbol
-        command = TRIM(ADJUSTL(instruction(5:)))
-        IF( LEN_TRIM(command)>0 ) THEN
-          READ(command,*,END=400,ERR=400) species
-          !Read coordinates as strings: they may contain slash character (/) so we have to be careful
-          j = SCAN(command," ")
-          command = TRIM(ADJUSTL(command(j+1:)))
-          j = SCAN(command," ")
-          xyzchar(1) = command(1:j)
-          command = TRIM(ADJUSTL(command(j+1:)))
-          j = SCAN(command," ")
-          xyzchar(2) = command(1:j)
-          command = TRIM(ADJUSTL(command(j+1:)))
-          j = SCAN(command," ")
-          xyzchar(3) = command(1:j)
-          !
-          IF( .NOT. ALLOCATED(P) ) THEN
-            !First atom defined: allocate new array P
-            ALLOCATE(P(1,4))
-            k=1
-          ELSE
-            !Atoms already exist: extend array P to add new atom
-            k = SIZE(P,1) + 1
-            CALL RESIZE_DBLEARRAY2(P,k,SIZE(P,2),status)
-          ENDIF
-          !Check if fractions are present in strings xyzchar(:)
-          IF( SCAN(xyzchar(1),"/")>0 .OR. SCAN(xyzchar(2),"/")>0 .OR. SCAN(xyzchar(3),"/")>0 ) THEN
-            !Fractions are present: parse them
-            DO i=1,3
-              j=SCAN(xyzchar(i),"/")
-              IF( j>1 ) THEN
-                READ(xyzchar(i)(1:j-1),*,END=400,ERR=400) y
-                READ(xyzchar(i)(j+1:),*,END=400,ERR=400) z
-                P(k,i) = y/z
-              ELSE
-                READ(xyzchar(i),*,END=400,ERR=400) P(k,i)
-              ENDIF
-            ENDDO
-            !Check if cell vectors are defined
-            IF( ANY(DABS(H(:,:))>1.d-12) ) THEN
-              !Cell vectors are defined: coordinates are interpreted as reduced, convert them
-              x = P(k,1)
-              y = P(k,2)
-              z = P(k,3)
-              P(k,1:3) = x*H(1,:) + y*H(2,:) + z*H(3,:)
-            ENDIF
-          ELSE
-            !No fraction: interpret as Cartesian coordinates
-            DO i=1,3
-              READ(xyzchar(i),*,END=400,ERR=400) P(k,i)
-            ENDDO
-          ENDIF
-          CALL ATOMNUMBER(species,P(k,4))
-          WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
-        ENDIF !end if LEN_TRIM(command)
 
       !
       !
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      !!!         COMMANDS FOR ELASTICITY / CRYSTALLOGRAPHY
+      !!!         COMMANDS FOR MANIPULATING BOX/ATOMS
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !
       CASE("a0")
@@ -850,9 +813,7 @@ DO
         !update cell volume
         cell_volume = VOLUME_PARA(H)
         !Display cell vectors matrix
-        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
-        WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
-        WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+        CALL DISPLAY_MATRIX("cell",H)
         !
       CASE("volume")
         IF( .NOT.ANY(H(:,:)>1.d-12) ) THEN
@@ -871,9 +832,90 @@ DO
         ELSE
           Hstar = RECIPROCAL(H)
           !Display cell vectors matrix
-          WRITE(*,'(a14,3f9.3,a2)') "       a* = ( ", Hstar(1,1), Hstar(1,2), Hstar(1,3), " )"
-          WRITE(*,'(a14,3f9.3,a2)') "       b* = ( ", Hstar(2,1), Hstar(2,2), Hstar(2,3), " )"
-          WRITE(*,'(a14,3f9.3,a2)') "       c* = ( ", Hstar(3,1), Hstar(3,2), Hstar(3,3), " )"
+        CALL DISPLAY_MATRIX("H*",Hstar)
+        ENDIF
+        !
+      CASE("atom")
+        !User adds an atom: read atom chemical symbol
+        command = TRIM(ADJUSTL(instruction(5:)))
+        IF( LEN_TRIM(command)>0 ) THEN
+          READ(command,*,END=400,ERR=400) species
+          !Read coordinates as strings: they may contain slash character (/) so we have to be careful
+          j = SCAN(command," ")
+          command = TRIM(ADJUSTL(command(j+1:)))
+          j = SCAN(command," ")
+          xyzchar(1) = command(1:j)
+          command = TRIM(ADJUSTL(command(j+1:)))
+          j = SCAN(command," ")
+          xyzchar(2) = command(1:j)
+          command = TRIM(ADJUSTL(command(j+1:)))
+          j = SCAN(command," ")
+          xyzchar(3) = command(1:j)
+          !
+          IF( .NOT. ALLOCATED(P) ) THEN
+            !First atom defined: allocate new array P
+            ALLOCATE(P(1,4))
+            k=1
+          ELSE
+            !Atoms already exist: extend array P to add new atom
+            k = SIZE(P,1) + 1
+            CALL RESIZE_DBLEARRAY2(P,k,SIZE(P,2),status)
+          ENDIF
+          !Check if fractions are present in strings xyzchar(:)
+          IF( SCAN(xyzchar(1),"/")>0 .OR. SCAN(xyzchar(2),"/")>0 .OR. SCAN(xyzchar(3),"/")>0 ) THEN
+            !Fractions are present: parse them
+            DO i=1,3
+              j=SCAN(xyzchar(i),"/")
+              IF( j>1 ) THEN
+                READ(xyzchar(i)(1:j-1),*,END=400,ERR=400) y
+                READ(xyzchar(i)(j+1:),*,END=400,ERR=400) z
+                P(k,i) = y/z
+              ELSE
+                READ(xyzchar(i),*,END=400,ERR=400) P(k,i)
+              ENDIF
+            ENDDO
+            !Check if cell vectors are defined
+            IF( ANY(DABS(H(:,:))>1.d-12) ) THEN
+              !Cell vectors are defined: coordinates are interpreted as reduced, convert them
+              x = P(k,1)
+              y = P(k,2)
+              z = P(k,3)
+              P(k,1:3) = x*H(1,:) + y*H(2,:) + z*H(3,:)
+            ENDIF
+          ELSE
+            !No fraction: interpret as Cartesian coordinates
+            DO i=1,3
+              READ(xyzchar(i),*,END=400,ERR=400) P(k,i)
+            ENDDO
+          ENDIF
+          CALL ATOMNUMBER(species,P(k,4))
+          WRITE(*,'(2X,i3,2X,3(f12.6,2X))') NINT(P(k,4)), P(k,1), P(k,2), P(k,3)
+        ENDIF !end if LEN_TRIM(command)
+
+      !
+      !
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      !!!         COMMANDS FOR ELASTICITY / CRYSTALLOGRAPHY
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !
+      CASE("cubic")
+        !switch "cubic" ON or OFF
+        cubic = .NOT.cubic
+        IF(cubic) THEN
+          hexagonal = .FALSE.
+          WRITE(*,*) "      cubic symmetry ON"
+        ELSE
+          WRITE(*,*) "      cubic symmetry OFF"
+        ENDIF
+        !
+      CASE("hexagonal")
+        !switch "hexagonal" ON or OFF
+        hexagonal = .NOT.hexagonal
+        IF(hexagonal) THEN
+          cubic = .FALSE.
+          WRITE(*,*) "      hexagonal symmetry ON"
+        ELSE
+          WRITE(*,*) "      hexagonal symmetry OFF"
         ENDIF
         !
       CASE("hkil2uvw")
@@ -942,6 +984,219 @@ DO
           ENDIF
           WRITE(*,*) "      ["//TRIM(ADJUSTL(msg))//"] = "//TRIM(ADJUSTL(temp))//" ["//TRIM(ADJUSTL(test))//"]"
         ENDIF
+        !
+      CASE("anglehkl")
+        !Compute the angle between 2 crystal directions
+        !Read Miller indices, convert them into proper vectors
+        command = TRIM(ADJUSTL(instruction(9:)))
+        READ(command,*,ERR=400,END=400) string1, string2
+        !Read first set of Miller indices, save it to v1(:)
+        CALL INDEX_MILLER_HCP(string1,v1,status)
+        IF(status==2) THEN
+          CALL ATOMSK_MSG(815,(/TRIM(ADJUSTL(string1))/),(/0.d0/))
+          GOTO 400
+        ELSEIF(status==0) THEN
+          !Successfully read 4-index Miller-Bravais [hkil]: convert to [hkl]
+          vector(:) = v1(:)
+          CALL HKIL2UVW(vector(1),vector(2),-1.d0*(vector(1)+vector(2)),vector(3),v1(1),v1(2),v1(3))
+          hexagonal = .TRUE.
+        ELSE
+          !Reading 4-index [hkil] failed: try to read [hkl]
+          CALL INDEX_MILLER(string1,v1,status)
+          IF(status>0) THEN
+            CALL ATOMSK_MSG(817,(/TRIM(ADJUSTL(string1))/),(/0.d0/))
+            GOTO 400
+          ENDIF
+        ENDIF
+        !Read second set of Miller indices, save it to v2(:)
+        CALL INDEX_MILLER_HCP(string2,v2,status)
+        IF(status==2) THEN
+          CALL ATOMSK_MSG(815,(/TRIM(ADJUSTL(string2))/),(/0.d0/))
+          GOTO 400
+        ELSEIF(status==0) THEN
+          !Successfully read 4-index Miller-Bravais [hkil]: convert to [hkl]
+          vector(:) = v2(:)
+          CALL HKIL2UVW(vector(1),vector(2),-1.d0*(vector(1)+vector(2)),vector(3),v2(1),v2(2),v2(3))
+          hexagonal = .TRUE.
+        ELSE
+          !Reading 4-index [hkil] failed: try to read [hkl]
+          CALL INDEX_MILLER(string2,v2,status)
+          IF(status>0) THEN
+            CALL ATOMSK_MSG(817,(/TRIM(ADJUSTL(string2))/),(/0.d0/))
+            GOTO 400
+          ENDIF
+        ENDIF
+        !Check if cell vectors are defined
+        IF( VECLENGTH(H(1,:))>1.d-6 .AND. VECLENGTH(H(2,:))>1.d-6 .AND. VECLENGTH(H(3,:))>1.d-6 ) THEN
+          !A cell was defined: check that it is indeed hexagonal
+          IF( IS_HEXAGONAL(H) ) THEN
+            !Cell H(:,:) is hexagonal: define a0 and c0
+            IF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) < 1.d-3 ) THEN
+              a0 = VECLENGTH(H(1,:))
+              c0 = VECLENGTH(H(3,:))
+            ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) < 1.d-3 ) THEN
+              a0 = VECLENGTH(H(1,:))
+              c0 = VECLENGTH(H(2,:))
+            ELSE
+              a0 = VECLENGTH(H(2,:))
+              c0 = VECLENGTH(H(1,:))
+            ENDIF
+          ELSE
+            WRITE(*,*) "      X!X ERROR: current cell is not hexagonal."
+            GOTO 400
+          ENDIF
+          !Multiply Miller indices by current cell vectors
+          vector(:) = v1(:)
+          v1(:) = vector(1)*H(1,:) + vector(2)*H(2,:) + vector(3)*H(3,:)
+          vector(:) = v2(:)
+          v2(:) = vector(1)*H(1,:) + vector(2)*H(2,:) + vector(3)*H(3,:)
+        ELSE
+          !No cell was defined, by default cubic symmetry is assumed if user entered [hkl]
+          IF( hexagonal ) THEN
+            !No cell is defined, but user entered at least one [hkil] vector
+            !Construct hexagonal lattice to express v1 and v2
+            WRITE(*,'(a11)',ADVANCE="NO") "      a0 = "
+            READ(*,*,END=400,ERR=400) a0
+            WRITE(*,'(a11)',ADVANCE="NO") "      c0 = "
+            READ(*,*,END=400,ERR=400) c0
+            CALL CONVMAT(a0,a0,c0,pi/2.d0,pi/2.d0,DEG2RAD(120.d0),H)
+            !Multiply Miller indices by current cell vectors
+            vector(:) = v1(:)
+            v1(:) = vector(1)*H(1,:) + vector(2)*H(2,:) + vector(3)*H(3,:)
+            vector(:) = v2(:)
+            v2(:) = vector(1)*H(1,:) + vector(2)*H(2,:) + vector(3)*H(3,:)
+          ENDIF
+        ENDIF
+        !Compute angle between the 2 directions, convert to degrees
+        z = RAD2DEG(ANGVEC(v1,v2))
+        !Display result on screen
+        WRITE(temp,'(f9.3)') z
+        WRITE(*,*) "      angle = "//TRIM(ADJUSTL(temp))//" °"
+        !
+      CASE("normalhkl")
+        !Find normal to a (hkl) plane
+        !Read Miller indices, convert them into proper vectors
+        command = TRIM(ADJUSTL(instruction(10:)))
+        READ(command,*,ERR=400,END=400) string1
+        !Remove parentheses () if any
+        j = SCAN(string1,'(')
+        IF(j>0) string1(j:j) = ''
+        j = SCAN(string1,')')
+        IF(j>0) string1(j:j) = ''
+        !Remove square brackets [] if any
+        j = SCAN(string1,'[')
+        IF(j>0) string1(j:j) = ''
+        j = SCAN(string1,']')
+        IF(j>0) string1(j:j) = ''
+        string1 = TRIM(ADJUSTL(string1))
+        !Read first set of Miller indices, save it to v1(:)
+        CALL INDEX_MILLER_HCP(string1,v1,status)
+        IF(status==0) THEN
+          !Successfully read 4-index Miller-Bravais [hkil]
+          IF( VECLENGTH(H(1,:))>1.d-6 .AND. VECLENGTH(H(2,:))>1.d-6 .AND. VECLENGTH(H(3,:))>1.d-6 ) THEN
+            !A cell was defined: check that it is indeed hexagonal
+            IF( IS_HEXAGONAL(H) ) THEN
+              !Cell H(:,:) is hexagonal: define a0 and c0
+              IF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) < 1.d-3 ) THEN
+                a0 = VECLENGTH(H(1,:))
+                c0 = VECLENGTH(H(3,:))
+              ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) < 1.d-3 ) THEN
+                a0 = VECLENGTH(H(1,:))
+                c0 = VECLENGTH(H(2,:))
+              ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(2,:),H(3,:)))) < 1.d-3 ) THEN
+                a0 = VECLENGTH(H(2,:))
+                c0 = VECLENGTH(H(1,:))
+              ENDIF
+            ELSE
+              WRITE(*,*) "      X!X ERROR: current cell is not hexagonal."
+              GOTO 400
+            ENDIF
+          ELSE
+            !User entered 4-index Miller vector, but hexagonal lattice constants (a0,c0) are not defined
+            WRITE(*,'(a11)',ADVANCE="NO") "      a0 = "
+            READ(*,*,END=400,ERR=400) a0
+            WRITE(*,'(a11)',ADVANCE="NO") "      c0 = "
+            READ(*,*,END=400,ERR=400) c0
+            CALL CONVMAT(a0,a0,c0,pi/2.d0,pi/2.d0,DEG2RAD(120.d0),H)
+          ENDIF
+          !Convert [hkil] into [hkl]
+          vector(:) = v1(:)
+          CALL HKIL2UVW(vector(1),vector(2),-1.d0*(vector(1)+vector(2)),vector(3),v1(1),v1(2),v1(3))
+          hexagonal = .TRUE.
+        ELSE
+          !Reading 4-index [hkil] failed: try to read [hkl]
+          CALL INDEX_MILLER(string1,v1,status)
+          IF(status>0) THEN
+            CALL ATOMSK_MSG(817,(/TRIM(ADJUSTL(command))/),(/0.d0/))
+          ENDIF
+        ENDIF
+        !v1(:) contains Miller indices of the plane
+        !By default cubic symmetry is assumed: normal to (hkl) is simply [hkl]
+        v2(:) = v1(:)
+        k = 0
+        !Check if cell vectors are defined
+        IF( VECLENGTH(H(1,:))>1.d-6 .AND. VECLENGTH(H(2,:))>1.d-6 .AND. VECLENGTH(H(3,:))>1.d-6 ) THEN
+          !A cell was defined: check that it is indeed hexagonal
+          IF( IS_HEXAGONAL(H) ) THEN
+            !Cell H(:,:) is hexagonal: define a0 and c0
+            IF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) < 1.d-3 ) THEN
+              a0 = VECLENGTH(H(1,:))
+              c0 = VECLENGTH(H(3,:))
+            ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) < 1.d-3 ) THEN
+              a0 = VECLENGTH(H(1,:))
+              c0 = VECLENGTH(H(2,:))
+            ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(2,:),H(3,:)))) < 1.d-3 ) THEN
+              a0 = VECLENGTH(H(2,:))
+              c0 = VECLENGTH(H(1,:))
+            ENDIF
+            !Compute direction in reciprocal space
+            x = 3.d0*a0*a0/(2.d0*c0*c0)
+            v2(1) = 2.d0*v1(1) + v1(2)
+            v2(2) = 2.d0*v1(2) + v1(1)
+            v2(3) = x*v1(3)
+            IF(.NOT.IS_INTEGER(x,1.d-6)) k=1
+          ELSE
+            WRITE(*,*) "      X!X ERROR: current cell is not hexagonal."
+            GOTO 400
+          ENDIF
+          !
+        ELSE
+          IF( hexagonal ) THEN
+            !No cell is defined, but user entered at least one [hkil] vector
+            !Compute direction in reciprocal space
+            x = 3.d0*a0*a0/(2.d0*c0*c0)
+            v2(1) = 2.d0*v1(1) + v1(2)
+            v2(2) = 2.d0*v1(2) + v1(1)
+            v2(3) = x*v1(3)
+            IF(.NOT.IS_INTEGER(x,1.d-6)) k=1
+          ENDIF
+        ENDIF
+        !Determine common divisor
+        z = 1.d0
+        IF( IS_INTEGER(v2(1),1.d-6) .AND. IS_INTEGER(v2(2),1.d-6) .AND. IS_INTEGER(v2(3),1.d-6) ) THEN
+          z = GCD( NINT(v2(1)) , GCD( NINT(v2(2)) , NINT(v2(3)) ) )
+          IF( z>0.1d0 ) THEN
+            z = 1.d0/z
+          ELSE
+            z = 1.d0
+          ENDIF
+        ENDIF
+        WRITE(test,*) NINT(z*v2(1))
+        WRITE(msg,*) NINT(z*v2(2))
+        IF( IS_INTEGER(z*v2(3),1.d-6) ) THEN
+          WRITE(question,*) NINT(z*v2(3))
+        ELSE
+          WRITE(question,'(f12.6)') z*v2(3)
+        ENDIF
+        !Display result on screen
+        temp = ""
+        IF( ANY(DABS(v2)>=9.99d0) .OR. k.NE.0 ) THEN
+          temp = TRIM(ADJUSTL(test))//" "//TRIM(ADJUSTL(msg))//" "//TRIM(ADJUSTL(question))
+        ELSE
+          temp = TRIM(ADJUSTL(test))//TRIM(ADJUSTL(msg))//TRIM(ADJUSTL(question))
+        ENDIF
+        WRITE(*,*) "      normal to ("//TRIM(ADJUSTL(string1))//") = ["//TRIM(ADJUSTL(temp))//"]"
+
         !
       CASE("C11")
         command = TRIM(ADJUSTL(instruction(4:)))
@@ -1082,10 +1337,7 @@ DO
           !Convert elastic constants into a proper 9x9 elastic tensor
           CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
           !Print elastic tensor
-          WRITE(*,*) "  Current elastic tensor Cij (GPa):"
-          DO i=1,9
-            WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
-          ENDDO
+          CALL DISPLAY_MATRIX("Cij (GPa)",C_tensor)
           !Check tensor for stability criteria
           CALL CTENSOR_STABILITY(C_tensor,criteria)
           IF( ANY(LEN_TRIM(criteria)>0) ) THEN
@@ -1110,11 +1362,6 @@ DO
             ELSE
               !Convert elastic constants into a proper 9x9 elastic tensor
               CALL ELAST2TENSOR( (/C11,C22,C33,C23,C13,C12,C44,C55,C66/) , C_tensor)
-              !Print elastic tensor
-              WRITE(*,*) "  Current elastic tensor Cij (GPa):"
-              DO i=1,9
-                WRITE(*,'(2X,9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
-              ENDDO
               !Check tensor for stability criteria
               CALL CTENSOR_STABILITY(C_tensor,criteria)
               IF( ANY(LEN_TRIM(criteria)>0) ) THEN
@@ -1138,9 +1385,7 @@ DO
           ELSE
             !Print compliance tensor
             WRITE(*,*) "  Current compliance tensor Sij (GPa):"
-            DO i=1,9
-              WRITE(*,'(2X,9(f12.6,2X))') (S_tensor(i,j) , j=1,9)
-            ENDDO
+          CALL DISPLAY_MATRIX("Sij (GPa^-1)",S_tensor)
           ENDIF
         !
       CASE("iso","isotropy","aniso","anisotropy")
@@ -1156,7 +1401,7 @@ DO
           WRITE(*,*) "  Anisotropy factor H = 2*C44 + C12 - C11 = ", Cij_ANISO_H(C_tensor)
         ENDIF
         !
-      CASE("modulus","moduli","young")
+      CASE("modulus","moduli","young","shear","poisson","Poisson")
         IF( .NOT.ANY(DABS(C_tensor(:,:))>1.d-12) ) THEN
           WRITE(*,*) "  C_tensor not set"
         ELSE
@@ -1169,20 +1414,26 @@ DO
           IF( ALLOCATED(Eyoung) .AND. SIZE(Eyoung,1)>0 ) THEN
             IF( SIZE(Eyoung,1)==3 ) THEN
               !anisotropic material
-              WRITE(*,*) "  Young Modulus   E11 = ", Eyoung(1,1), " GPa"
-              WRITE(*,*) "                  E22 = ", Eyoung(2,2), " GPa"
-              WRITE(*,*) "                  E33 = ", Eyoung(3,3), " GPa"
-              WRITE(*,*) "  Shear Modulus   G12 = ", Gshear(1,2), " GPa"
-              WRITE(*,*) "                  G13 = ", Gshear(1,3), " GPa"
-              WRITE(*,*) "                  G23 = ", Gshear(2,3), " GPa"
-              WRITE(*,*) "  Poisson ratio  nu12 = ", poisson_ratio(1,2), " GPa"
-              WRITE(*,*) "                 nu13 = ", poisson_ratio(1,3), " GPa"
-              WRITE(*,*) "                 nu23 = ", poisson_ratio(2,3), " GPa"
+              x = (Eyoung(1,1)+Eyoung(2,2)+Eyoung(3,3)) / 3.d0
+              y = (poisson_ratio(1,1)+poisson_ratio(2,2)+poisson_ratio(3,3)) / 3.d0
+              z = x/(3.d0-6.d0*y)
+              WRITE(*,*) "  Bulk Modulus    B = ", z, " GPa"
+              WRITE(*,*) "  Shear Modulus   G_12 = ", Gshear(1,2), " GPa"
+              WRITE(*,*) "                  G_13 = ", Gshear(1,3), " GPa"
+              WRITE(*,*) "                  G_23 = ", Gshear(2,3), " GPa"
+              WRITE(*,*) "  Young Modulus   E_11 = ", Eyoung(1,1), " GPa"
+              WRITE(*,*) "                  E_22 = ", Eyoung(2,2), " GPa"
+              WRITE(*,*) "                  E_33 = ", Eyoung(3,3), " GPa"
+              WRITE(*,*) "  Poisson ratio   ν_12 = ", poisson_ratio(1,2), " GPa"
+              WRITE(*,*) "                  ν_13 = ", poisson_ratio(1,3), " GPa"
+              WRITE(*,*) "                  ν_23 = ", poisson_ratio(2,3), " GPa"
             ELSE
               !isotropic material
-              WRITE(*,*) "  Young Modulus   E = ", Eyoung(1,1), " GPa"
+              z = Eyoung(1,1)/(3.d0-6.d0*poisson_ratio(1,1))
+              WRITE(*,*) "  Bulk Modulus    B = ", z, " GPa"
               WRITE(*,*) "  Shear Modulus   G = ", Gshear(1,1), " GPa"
-              WRITE(*,*) "  Poisson ratio  nu = ", poisson_ratio(1,1)
+              WRITE(*,*) "  Young Modulus   E = ", Eyoung(1,1), " GPa"
+              WRITE(*,*) "  Poisson ratio   ν = ", poisson_ratio(1,1)
             ENDIF
           ELSE
             WRITE(*,*) "  Could not compute elastic moduli"
@@ -1320,6 +1571,7 @@ DO
           SELECT CASE(create_struc)
           CASE('sc','SC','fcc','FCC','bcc','BCC','diamond','dia','zincblende','zb','ZB','perovskite','per','rocksalt','rs','RS')
             cubic = .TRUE.
+            hexagonal = .FALSE.
           CASE DEFAULT
             cubic = .FALSE.
           END SELECT
@@ -1484,7 +1736,7 @@ DO
         !
         CALL ATOMSK_MSG(4302,(/solution/),(/DBLE(try)/DBLE(maxtries)/))
         !
-      CASE("progress-bar")
+      CASE("progress-bar","progbar")
         !This command is just to test the display of a progress bar
         j=SCAN(instruction," ")
         msg = TRIM(ADJUSTL(instruction(j+1:)))
@@ -1535,9 +1787,7 @@ DO
             IF( ANY(H(:,:).NE.0.d0) ) THEN
               !cell vectors are defined: rotate them
               CALL ROTATE_POS(H,rot_matrix)
-              WRITE(*,'(a14,3f9.3,a2)') "            | ", H(1,1), H(1,2), H(1,3), " |"
-              WRITE(*,'(a14,3f9.3,a2)') "     cell = | ", H(2,1), H(2,2), H(2,3), " |"
-              WRITE(*,'(a14,3f9.3,a2)') "            | ", H(3,1), H(3,2), H(3,3), " |"
+              CALL DISPLAY_MATRIX("cell",H)
             ENDIF
             !
             IF( ANY(C_tensor(:,:).NE.0.d0) ) THEN
@@ -1545,15 +1795,12 @@ DO
               !Rotate elastic tensor
               C_tensor = ROTELAST( C_tensor, rot_matrix )
               !Print elastic tensor
-              WRITE(*,*) "Current elastic tensor Cij (GPa):"
-              DO i=1,9
-                WRITE(*,'(9(f12.6,2X))') (C_tensor(i,j) , j=1,9)
-              ENDDO
               !Check tensor for stability criteria
               CALL CTENSOR_STABILITY(C_tensor,criteria)
               IF( ANY(LEN_TRIM(criteria)>0) ) THEN
                 CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
               ENDIF
+              CALL DISPLAY_MATRIX("Cij (GPa)",C_tensor)
             ENDIF
             !
           ENDIF
@@ -1631,6 +1878,47 @@ IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 !
 !
 END SUBROUTINE INTERACT
+!
+!
+SUBROUTINE DISPLAY_MATRIX(name,M)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: name
+CHARACTER(LEN=9):: shortx
+CHARACTER(LEN=10):: longx
+CHARACTER(LEN=256):: msg
+REAL(dp),DIMENSION(:,:),INTENT(IN):: M
+INTEGER:: i, j, iname, lname
+!
+iname = SIZE(M,2)/2 + 1
+lname = LEN_TRIM(ADJUSTL(name))
+!
+DO i=1,SIZE(M,1)
+  msg = ""
+  IF(SIZE(M,2)>3) THEN
+    DO j=1,SIZE(M,2)
+      IF( DABS(M(i,j))<1.d-8 .OR. DABS(M(i,j))>1.d-2 ) THEN
+        WRITE(shortx,'(f9.3)') M(i,j)
+      ELSE
+        WRITE(shortx,'(e9.3)') M(i,j)
+      ENDIF
+      msg = TRIM(msg)//"  "//ADJUSTR(shortx)
+    ENDDO
+  ELSE
+    DO j=1,SIZE(M,2)
+      WRITE(longx,'(f10.6)') M(i,j)
+      msg = TRIM(msg)//"  "//ADJUSTR(longx)
+    ENDDO
+  ENDIF
+  msg(lname+8:) = "|"//TRIM(msg)//" |"
+  msg(:lname+7) = ""
+  IF(i==iname) THEN
+    msg(5:lname+7) = TRIM(ADJUSTL(name))//" ="
+  ENDIF
+  WRITE(*,*) TRIM(msg)
+ENDDO
+!
+END SUBROUTINE DISPLAY_MATRIX
 !
 !
 END MODULE mode_interactive

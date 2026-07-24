@@ -11,7 +11,7 @@ MODULE voronoi
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 25 March 2026                                    *
+!* Last modification: P. Hirel - 22 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,9 +62,8 @@ REAL(dp),DIMENSION(:),ALLOCATABLE,INTENT(OUT):: Volumes
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(OUT):: Nvertices !number of vertices for each node
 REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT):: vvertex !for each node, position of neighboring vertices
 !
-LOGICAL:: sameplane  !are all nodes nearly in the same plane?
 CHARACTER(LEN=4096):: msg
-INTEGER:: i, j, k
+INTEGER:: i, j, k, n
 INTEGER:: inode, jnode
 INTEGER:: thvertex, maxvertex   !theoretical/actual max. number of vertices
 INTEGER:: Nnodes, Nneighbors, Nvertex
@@ -94,6 +93,38 @@ ENDIF
 !
 Nnodes = SIZE(vnodes,1)
 !
+!If there is only one node, then its neighbors are its 26 periodic replicas
+IF( Nnodes==1 ) THEN
+  !There is only one node and it has 26 vertices
+  ALLOCATE(Nvertices(1))
+  Nvertices(:) = 26
+  !There is only one grain, so its volume is = total volume of the box
+  ALLOCATE(Volumes(1))
+  Volumes(:) = VOLUME_PARA(H(:,:))
+  !Fill vvertex with the positions of periodic replicas
+  ALLOCATE( vvertex(1,26,4) )
+  vvertex(:,:,:) = 0.d0
+  n = 0
+  DO i=-1,1
+    DO j=-1,1
+      DO k=-1,1
+        IF( i.NE.0 .OR. j.NE.0 .OR. k.NE.0 ) THEN
+          !Position of the periodic image of node #jnode
+          n = n+1
+          vector(1) = vnodes(1,1) + DBLE(k)*H(1,1)
+          vector(2) = vnodes(1,2) + DBLE(j)*H(2,2)
+          vector(3) = vnodes(1,3) + DBLE(i)*H(3,3)
+          vvertex(1,n,1) = vnodes(1,1) + (vector(1)-vnodes(1,1))/2.d0
+          vvertex(1,n,2) = vnodes(1,2) + (vector(2)-vnodes(1,2))/2.d0
+          vvertex(1,n,3) = vnodes(1,3) + (vector(3)-vnodes(1,3))/2.d0
+        ENDIF
+      ENDDO
+    ENDDO
+  ENDDO
+  !Finished, exit VORONEIGH
+  GOTO 1000
+ENDIF
+!
 !The maximum number of faces of any polyhedron should be 11 in 2-D,
 !and 59 in 3-D, for proof see e.g.:
 !   http://www.ericharshbarger.org/voronoi.html
@@ -108,6 +139,7 @@ WRITE(msg,*) "Theoretical max. vertices = ", thvertex
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Define maximum radius dmax for neighbor search
+dmax = VECLENGTH( H(1,:) + H(2,:) + H(3,:) ) + 1.d0
 !If twodim>0 then it is a 2-D polycrystal
 IF( twodim>0 ) THEN
   IF(twodim==1) THEN
@@ -125,25 +157,23 @@ IF( twodim>0 ) THEN
     dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
   ENDIF
 ELSE
-  !3-D polycrystal
-  !P1 = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) )
-  P1 = MIN(H(1,1),H(2,2),H(3,3))
-  IF( Nnodes>=1000 ) THEN
-    dmax = 0.25d0*P1
-  ELSEIF( Nnodes>=600 ) THEN
-    dmax = 0.35d0*P1
-  ELSEIF( Nnodes>=250 ) THEN
-    dmax = 0.5d0*P1
+  !3-D polycrystal: define radius = second shortest dimension
+  P1 = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) )
+  !If there are many many grains, reduce search radius to speed up neighbor search
+  IF( Nnodes>=200 ) THEN
+    dmax = 0.55d0*P1
   ELSEIF( Nnodes>=100 ) THEN
-    dmax = 0.7d0*P1
+    dmax = 0.75d0*P1
   ELSEIF( Nnodes>=60 ) THEN
     dmax = 0.9d0*P1
   ELSEIF( Nnodes>20 ) THEN
-    dmax = MIN( MAX(H(1,1),H(2,2)) , MAX(H(1,1),H(3,3)) , MAX(H(2,2),H(3,3)) ) + 1.d0
+    dmax = P1 + 10.d0
   ELSE
     dmax = VECLENGTH(H(1,:)+H(2,:)+H(3,:)) + 1.d0
   ENDIF
 ENDIF
+WRITE(msg,*) "        dmax = ", dmax
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Neighbors will be searched in adjacent cells (+/-1)
 expandmatrix(:) = 1
@@ -196,7 +226,7 @@ DO inode=1,Nnodes
   ENDIF
   !
   !First, search for all nodes that are within a box centered on node #inode
-  !Loop on all other nodes
+  !Loop on all nodes
   WRITE(msg,'(a,i6)') "Searching for nodes inside bounding box..."
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   DO jnode=1,Nnodes
@@ -391,7 +421,7 @@ IF( Nvertex>3 ) THEN
             !IF( m.NE.i .AND. m.NE.j ) THEN
               !Compute distance between node #m and center
               distance = VECLENGTH( neighnodes(m,1:3)-center(:) )
-              IF( distance < radius-0.1d0 ) THEN
+              IF( distance < radius-1.d-12 ) THEN
                 !Node #m is inside circumcircle: increment n and exit
                 n=n+1
                 EXIT
@@ -485,7 +515,7 @@ IF( Nvertex>4 ) THEN
             P(3,:) = neighnodes(j,1:3)
             P(4,:) = neighnodes(k,1:3)
             CALL CIRCUMSPHERE(P,center,radius,stattmp)
-            IF( stattmp==0 .AND. VECLENGTH(center)<1.d4 .AND. radius<1.d3 ) THEN
+            IF( stattmp==0 ) THEN
               !Found circumsphere with center(:) and radius
               !Check if there are other nodes inside this circumsphere
               n=0
@@ -494,7 +524,7 @@ IF( Nvertex>4 ) THEN
                 !IF( m.NE.i .AND. m.NE.j .AND. m.NE.k ) THEN
                   !Compute distance between node #m and center
                   distance = VECLENGTH( neighnodes(m,1:3)-center )
-                  IF( distance < radius-1.d-3 ) THEN
+                  IF( distance < radius-1.d-6 ) THEN
                     !Node #m is inside circumsphere: increment n
                     n=n+1
                     EXIT

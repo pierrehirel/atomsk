@@ -29,6 +29,7 @@ MODULE files
 !* FREEUNIT            returns an unused I/O UNIT number                          *
 !* SET_OUTPUT          sets one or all output to TRUE or FALSE                    *
 !* NAME_OUTFILE        names an output file based on the name of an input file    *
+!* FILE_SIZE           returns the size of a file (in bytes or a multiple)        *
 !**********************************************************************************
 !
 !
@@ -223,6 +224,33 @@ ELSE
 ENDIF
 !
 END SUBROUTINE NAME_OUTFILE
+!
+!
+!********************************************************
+! TRIM_EXT
+! Returns the name of a file without its extension.
+! Also removes the path before the file name.
+! E.g. if input is "/path/to/some/file.ext", then
+! this function will return "file".
+!********************************************************
+FUNCTION TRIM_EXT(infile) RESULT(outfile)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: infile
+CHARACTER(LEN=LEN(infile)):: outfile
+INTEGER:: i, j
+!
+i = SCAN(infile,pathsep,BACK=.TRUE.)
+j = SCAN(infile,'.',BACK=.TRUE.)
+IF(j>i) THEN
+  outfile = infile(i+1:j-1)
+ELSEIF(i>0) THEN
+  outfile = TRIM(ADJUSTL(infile(i+1:)))
+ELSE
+  outfile = TRIM(ADJUSTL(infile))
+ENDIF
+!
+END FUNCTION TRIM_EXT
 !
 !
 !********************************************************

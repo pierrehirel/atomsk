@@ -27,7 +27,7 @@ MODULE comv
 !* along with this program.  If not, see <http://www.gnu.org/licenses/>.          *
 !**********************************************************************************
 !
-CHARACTER(LEN=24),PARAMETER:: version = 'master-2026-05-22 (Beta)'
+CHARACTER(LEN=24),PARAMETER:: version = 'master-2026-07-24 (Beta)'
 !
 !**********************************
 !*  DATA TYPES / PRECISION
@@ -39,8 +39,8 @@ INTEGER(il),PARAMETER:: NATOMS_MAX = HUGE(INT(0,il)) !maximum number of atoms th
 !**********************************
 !*  ENVIRONMENT-DEPENDENT VARIABLES
 !**********************************
-CHARACTER(LEN=3):: lang !language in which the program will run (should be 2 letters)
-CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" and "no", e.g. "y", "n"
+CHARACTER(LEN=3):: lang="en" !language in which the program will run (should be 2 letters)
+CHARACTER(LEN=1):: langyes='y', langBigYes='Y', langno='n' !one-letter shortcuts for "yes" and "no"
 #if defined(WINDOWS)
   CHARACTER(LEN=1),PARAMETER:: pathsep='\'     !path separator for Windows
   CHARACTER(LEN=3),PARAMETER:: system_ls="dir" !command to list current directory
@@ -57,18 +57,19 @@ CHARACTER(LEN=1):: langyes, langBigYes, langno !one-letter shortcuts for "yes" a
 !*  PROGRAM BEHAVIOR
 !**********************************
 CHARACTER(LEN=16):: neighsearch !algorithm for neighbor search (default: auto)
-CHARACTER(LEN=128):: logfile !name of logfile for the program
-LOGICAL:: overw, ignore      !automatically overwrite/ignore existing files?
-INTEGER:: nwarn, nerr        !number of warnings/errors encountered during run
-INTEGER:: verbosity          !level of verbosity of the program
+CHARACTER(LEN=128):: logfile="atomsk.log" !name of logfile for the program
+LOGICAL:: overw=.FALSE., ignore=.FALSE.   !automatically overwrite/ignore existing files?
+INTEGER:: nwarn=0, nerr=0       !number of warnings/errors encountered during run
+INTEGER:: verbosity=1           !level of verbosity of the program
 !
 !**********************************
 !*  DISPLAY STYLES
 !**********************************
-INTEGER:: headerwidth                              !total width of header
-CHARACTER(LEN=16):: headerstyle                    !style of header: "box", "none"...
+INTEGER:: headerwidth=53                           !total width of header
+CHARACTER(LEN=16):: headerstyle="box"              !style of header: "box", "none"...
 CHARACTER(LEN=32):: colourdef="none"               !default colour for all messages
-CHARACTER(LEN=32):: colourerr="red bold blink"     !default colour for ERROR
+CHARACTER(LEN=32):: colourprogbar="none"           !default colour for progress bar
+CHARACTER(LEN=32):: colourerr="light red bold blink" !default colour for ERROR
 CHARACTER(LEN=32):: colourprompt="bold blue"       !default colour for prompt in interactive mode
 CHARACTER(LEN=32):: colourwarn="yellow bold blink" !default colour for WARNING
 CHARACTER(LEN=32):: progressbar="linear"           !default style for progress bar

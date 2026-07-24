@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 Feb. 2026                                     *
+!* Last modification: P. Hirel - 24 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3222,31 +3222,10 @@ CASE(4053)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4054)
-  msg = ">>> Constructing a polycrystal using Voronoi method."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4055)
-  !reals(1) = index of the grain
-  !reals(2) = number of facets of grain
-  WRITE(temp1,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = ">>> Generating grain #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" facets)..."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4056)
-  !reals(1) = number of atoms in the grain
-  !reals(2) = volume of grain
-  WRITE(temp1,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = "..> Done, "//TRIM(ADJUSTL(temp1))//" atoms, volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4057)
-  !strings(1) = name of input file
-  msg = ">>> Reading parameters for Voronoi construction from: "//TRIM(ADJUSTL(strings(1)))
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4058)
   !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
   !reals(2:4) = box dimensions
   !reals(5) = number of grains
-  msg = "..> File was successfully read."
+  msg = ">>> Constructing a polycrystal using Voronoi method."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(temp,'(f12.3)') reals(2)
   WRITE(temp2,'(f12.3)') reals(3)
@@ -3270,6 +3249,32 @@ CASE(4058)
     msg = "..> Using a 2-D Voronoi tesselation, rotation axis: "//TRIM(ADJUSTL(msg))
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4055)
+  !reals(1) = index of the grain
+  !reals(2) = number of facets of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Generating grain #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" facets)..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4056)
+  !reals(1) = number of atoms in the grain
+  !reals(2) = volume of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Done, "//TRIM(ADJUSTL(temp1))//" atoms, volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4057)
+  !strings(1) = name of input file
+  !reals(1) = 0 if file was not read, non-zero otherwise
+  IF( NINT(reals(1))==0 ) THEN
+    msg = ">>> Reading parameters for Voronoi construction from: "//TRIM(ADJUSTL(strings(1)))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "..> File was successfully read."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+CASE(4058)
+  !
 CASE(4059)
   msg = ">>> Constructing a chain of interpolated configurations."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3926,6 +3931,8 @@ CALL DATE_AND_TIME(DATE, TIME, ZONE, VALUES)
 !VALUES(7): The seconds of the minute
 !VALUES(8): The milliseconds of the second
 !
+!Generate random numbers (used by some messages below)
+CALL GEN_NRANDNUMBERS(10,randarray)
 !
 !If it's late at night or in the week end
 IF( values(5)>=20 .OR. values(5)<=6 ) THEN
@@ -3990,6 +3997,17 @@ ELSEIF(values(2)==5 .AND. values(3)==4) THEN
   msg = "             /]==;\"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
+!June: pride month
+ELSEIF(values(2)==6 ) THEN
+  IF( colourtext ) THEN
+    msg = "########"
+    msg = TRIM(COLOUR_MSG(msg,"red"))//TRIM(COLOUR_MSG(msg,"yellow"))//        &
+        & TRIM(COLOUR_MSG(msg,"lightyellow"))//TRIM(COLOUR_MSG(msg,"green"))// &
+        & TRIM(COLOUR_MSG(msg,"blue"))//TRIM(COLOUR_MSG(msg,"magenta"))//      &
+        & ACHAR(27)//"[0m"
+    CALL DISPLAY_MSG(verbosity,"  "//msg,logfile)
+  ENDIF
+!
 !July 14
 ELSEIF(values(2)==7 .AND. values(3)==14) THEN
   msg = "*** Today is France National Day!"
@@ -3997,7 +4015,6 @@ ELSEIF(values(2)==7 .AND. values(3)==14) THEN
 !
 !August 8: international cat day
 ELSEIF(values(2)==8 .AND. values(3)==8) THEN
-  CALL GEN_NRANDNUMBERS(1,randarray)
   IF( randarray(1)<0.25d0 ) THEN
     msg = "             /'---'\"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -4052,7 +4069,6 @@ ELSEIF(values(2)==8 .AND. values(3)==8) THEN
 !
 !October 31: Halloween
 ELSEIF(values(2)==10 .AND. values(3)==31) THEN
-  CALL GEN_NRANDNUMBERS(1,randarray)
   IF( randarray(1)<0.25d0 ) THEN
     msg = "                ,"
     CALL DISPLAY_MSG(verbosity,msg,logfile)

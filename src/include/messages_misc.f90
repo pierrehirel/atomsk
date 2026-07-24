@@ -9,7 +9,7 @@ MODULE messages_misc
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Nov. 2025                                     *
+!* Last modification: P. Hirel - 24 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -41,10 +41,11 @@ CONTAINS
 SUBROUTINE DISPLAY_MSG(verb,msg,logfile,advin)
 !
 IMPLICIT NONE
-CHARACTER(LEN=2),OPTIONAL:: advin  !if present and set to 'NO', WRITE will not advance to next line
+CHARACTER(LEN=2),OPTIONAL:: advin   !if present and set to 'NO', WRITE will not advance to next line
 CHARACTER(LEN=2):: adv  !if present and set to 'NO', WRITE will not advance to next line
-CHARACTER(LEN=128):: logfile       !The log file to write messages into
-CHARACTER(LEN=128):: msg, msg2     !The message itself
+CHARACTER(LEN=128):: logfile        !The log file to write messages into
+CHARACTER(LEN=*),INTENT(IN):: msg   !The message itself
+CHARACTER(LEN=LEN_TRIM(msg)):: msg2  !The message itself
 INTEGER:: l      !length of message string
 INTEGER:: verb   !Level of verbosity:
                  !0=silent, no message is ever displayed nor written in log file
@@ -59,7 +60,7 @@ INTEGER:: verb   !Level of verbosity:
 adv = ""
 IF( PRESENT(advin) ) adv=advin
 !
-msg2 = TRIM(ADJUSTL(msg))
+msg2 = TRIM(msg)
 !
 !Write message in log file if verbosity>=2 or if debug message
 IF( (verb>=2.AND.msg2(1:5).NE.'debug') .OR. verb==4 ) THEN
@@ -140,16 +141,17 @@ END SUBROUTINE DISPLAY_HEADER
 SUBROUTINE DRAW_BOX(messg,w,style)
 !
 CHARACTER(LEN=*),DIMENSION(:):: messg !all lines of the message
-CHARACTER(LEN=*),INTENT(IN):: style !style of header: 'box', 'none'
+CHARACTER(LEN=*),INTENT(IN):: style !style of header: 'box' (default), 'corners', 'dots', 'slash', 'none'
 INTEGER:: i, j, l, m, p, w
 !
 l = SIZE(messg)  !index of last line
 !
 !Set up box according to style
-IF( style=="none" ) THEN
+SELECT CASE(StrDnCase(style))
+CASE("none")
   !No decoration at all
   CONTINUE
-ELSEIF( style=="corners" ) THEN
+CASE("corners")
   !Only corners of the box
   messg(1)(2:2) = "_"
   messg(1)(w-1:w-1) = "_"
@@ -157,7 +159,7 @@ ELSEIF( style=="corners" ) THEN
   messg(2)(w:w) = "|"
   messg(l)(1:2) = "|_"
   messg(l)(w-1:w) = "_|"
-ELSEIF( style=="dots" ) THEN
+CASE("dots")
   !Box with dots
   DO i=2,w-1
     messg(1)(i:i) = '.'
@@ -171,7 +173,7 @@ ELSEIF( style=="dots" ) THEN
   ENDDO
   messg(l)(1:1) = ":"
   messg(l)(w:w) = ":"
-ELSEIF( style=="slash" ) THEN
+CASE("slash")
   !Box with slash characters
   DO i=1,w
     messg(1)(i:i) = '/'
@@ -179,7 +181,7 @@ ELSEIF( style=="slash" ) THEN
   ENDDO
   messg(2:l)(1:2) = "//"
   messg(2:l)(w-1:w) = "//"
-ELSE
+CASE DEFAULT
   !Default style (with surrounding box)
   DO i=2,w-1
     messg(1)(i:i) = '_'
@@ -193,7 +195,7 @@ ELSE
   ENDDO
   messg(l)(1:1) = "|"
   messg(l)(w:w) = "|"
-ENDIF
+END SELECT
 
 END SUBROUTINE DRAW_BOX
 !
@@ -204,8 +206,9 @@ END SUBROUTINE DRAW_BOX
 ! This subroutine displays a fancy progress bar.
 ! Available styles are:
 !    barrier  bounce   clock    dots     face
-!    inflate  jump     linear   newton   pacman
-!    rotate   snail    tunnel   wave     wheel
+!    inflate  jump     linear   message  newton
+!    pacman   rotate   snail    tunnel   wave
+!    wheel
 ! Default style is "linear", it can be customized
 ! in config. file "atomsk.conf" with the keyword:
 !    progressbar <style>
@@ -215,7 +218,7 @@ SUBROUTINE DISPLAY_PROGBAR(r1,r2)
 IMPLICIT NONE
 CHARACTER(LEN=96):: bar, pc
 CHARACTER(LEN=96):: msg, temp
-INTEGER,PARAMETER:: bl=52  !total length of progress bar
+INTEGER,PARAMETER:: bl=42  !total length of progress bar
 INTEGER:: i, j
 REAL(dp),INTENT(IN):: r1,r2
 REAL(dp):: tempreal
@@ -251,10 +254,10 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       !
     CASE("bounce")
       !Display a bar bouncing from left to right
-      j = 2*MIN( MOD(NINT(tempreal),50)+1 , 50-MOD(NINT(tempreal),50)-1 ) + 1
+      j = 2*MIN( MOD(NINT(tempreal),bl-2)+1 , bl-MOD(NINT(tempreal),bl-2)-3 ) + 1
       bar(j:j+2) = "-=-"
       bar(1:1) = "["
-      bar(52:53) = "] "
+      bar(bl+1:bl+2) = "] "
       msg = TRIM(ADJUSTL(bar))//" "//TRIM(ADJUSTL(pc))//"%"
       !
     CASE("clock")
@@ -276,7 +279,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       !
     CASE("dots")
       !Display dots
-      DO j=1,NINT(tempreal/2.d0)
+      DO j=1,NINT(tempreal*bl/100.d0)
         bar = TRIM(ADJUSTL(bar))//"."
       ENDDO
       msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
@@ -320,12 +323,31 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       !
     CASE("linear")
       !Display a linear progress bar (default)
-      DO j=1,NINT(tempreal/2.d0)
+      DO j=1,NINT(tempreal*bl/100.d0)-2
         bar = TRIM(ADJUSTL(bar))//"="
       ENDDO
       bar = "["//TRIM(ADJUSTL(bar))//">"
-      bar(52:52) = "]"
+      bar(bl:bl) = "]"
       msg = TRIM(ADJUSTL(bar))//" "//TRIM(ADJUSTL(pc))//"%"
+      !
+    CASE("message")
+      !Display percentage and a message
+      msg = "["//TRIM(ADJUSTL(pc))//"%]"
+      IF( NINT(tempreal)<10 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" Getting started...  "
+      ELSEIF( NINT(tempreal)<25 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" Warming up...       "
+      ELSEIF( NINT(tempreal)<50 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" Keeping up the pace!"
+      ELSEIF( NINT(tempreal)<70 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" Looking good!       "
+      ELSEIF( NINT(tempreal)<80 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" I'm not even tired! "
+      ELSEIF( NINT(tempreal)<90 ) THEN
+        msg = TRIM(ADJUSTL(msg))//" I can do it!        "
+      ELSE
+        msg = TRIM(ADJUSTL(msg))//" Almost done!        "
+      ENDIF
       !
     CASE("newton")
       !Imitate a Newton pendulum
@@ -362,7 +384,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       !
     CASE("pacman")
       !Display Pacman
-      j = NINT(tempreal/2.d0)
+      j = NINT(tempreal*bl/100.d0)-2
       bar = " *   *   *   *   *   *   *   *   *   *   *   *   *  "
       bar(1:j) = ""
       IF( bar(j+2:j+2)=="*" ) THEN
@@ -370,7 +392,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       ELSE
         bar(j:j+2) = ' (<'
       ENDIF
-      msg = bar(1:52)//"  ["//TRIM(ADJUSTL(pc))//"%]"
+      msg = bar(1:bl)//"  ["//TRIM(ADJUSTL(pc))//"%]"
       !
     CASE("rotate")
       !Imitate rotation
@@ -387,7 +409,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       !
     CASE("snail")
       !Display a snail
-      j = NINT(tempreal/2.d0)
+      j = NINT(tempreal*bl/100.d0)-2
       bar(j:j+4) = ' _@" '
       msg = TRIM(bar)//"  ["//TRIM(ADJUSTL(pc))//"%]"
       !
@@ -410,7 +432,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       !Imitate a wave
       j = MOD(NINT(tempreal),19)+1
       temp = "..::!!!::...::!!!::...::!!!::...::!!!::...::!!!::...::!!!::...::!!!::."
-      bar = temp(j+1:j+50)
+      bar = temp(j+1:j+bl-2)
       msg = TRIM(ADJUSTL(bar))//"  ["//TRIM(ADJUSTL(pc))//"%]"
       !
     CASE("wheel")
@@ -425,7 +447,7 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
       ELSE
         msg = "(—)"
       ENDIF
-      j = NINT(tempreal/2.d0)
+      j = NINT(tempreal*bl/100.d0)-2
       bar(1:j) = ""
       bar(j+1:) = TRIM(msg)
       msg = TRIM(bar)//"  ["//TRIM(ADJUSTL(pc))//"%]"
@@ -436,7 +458,8 @@ IF( StrDnCase(progressbar).NE."none" ) THEN
     END SELECT
     !
     !Display the progress bar
-    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//"     "//TRIM(msg)
+    WRITE(*,'(a)',ADVANCE="NO") "                                                    "
+    WRITE(*,'(a)',ADVANCE="NO") CHAR(13)//"     "//TRIM(COLOUR_MSG(msg,colourprogbar))
     !
   ENDIF
   !
@@ -460,7 +483,7 @@ CHARACTER(LEN=LEN_TRIM(intxt)+16):: outtxt
 CHARACTER(LEN=*):: colour
 CHARACTER(LEN=16):: code
 !
-outtxt = intxt
+outtxt = TRIM(intxt)
 code="[0"
 !
 !Apply colour only if global variable "colourtext" is true
@@ -468,22 +491,40 @@ IF( colourtext ) THEN
   !First, set colour / only first colour in the string "colour" is used
   IF( INDEX(colour,"black")>0 ) THEN
     code="[095"
-  ELSEIF( INDEX(colour,"red")>0 ) THEN
-    code="[031"
-  ELSEIF( INDEX(colour,"green")>0 ) THEN
-    code="[032"
-  ELSEIF( INDEX(colour,"yellow")>0 ) THEN
-    code="[033"
-  ELSEIF( INDEX(colour,"blue")>0 ) THEN
-    code="[034"
-  ELSEIF( INDEX(colour,"magenta")>0 ) THEN
-    code="[035"
-  ELSEIF( INDEX(colour,"cyan")>0 ) THEN
-    code="[036"
   ELSEIF( INDEX(colour,"grey")>0 .OR. INDEX(colour,"gray")>0 ) THEN
     code="[090"
   ELSEIF( INDEX(colour,"white")>0 ) THEN
     code="[097"
+    !
+  ELSEIF( INDEX(colour,"light")>0 ) THEN
+    IF( INDEX(colour,"red")>0 ) THEN
+      code="[091"
+    ELSEIF( INDEX(colour,"green")>0 ) THEN
+      code="[092"
+    ELSEIF( INDEX(colour,"yellow")>0 ) THEN
+      code="[093"
+    ELSEIF( INDEX(colour,"blue")>0 ) THEN
+      code="[094"
+    ELSEIF( INDEX(colour,"magenta")>0 .OR. INDEX(colour,"purple")>0 .OR. INDEX(colour,"violet")>0 ) THEN
+      code="[095"
+    ELSEIF( INDEX(colour,"cyan")>0 ) THEN
+      code="[096"
+    ENDIF
+    !
+  ELSE
+    IF( INDEX(colour,"red")>0 ) THEN
+      code="[031"
+    ELSEIF( INDEX(colour,"green")>0 ) THEN
+      code="[032"
+    ELSEIF( INDEX(colour,"yellow")>0 ) THEN
+      code="[033"
+    ELSEIF( INDEX(colour,"blue")>0 ) THEN
+      code="[034"
+    ELSEIF( INDEX(colour,"magenta")>0 ) THEN
+      code="[035"
+    ELSEIF( INDEX(colour,"cyan")>0 ) THEN
+      code="[036"
+    ENDIF
   ENDIF
   !
   !Add typesetting, several typesettings are possible
@@ -494,7 +535,7 @@ IF( colourtext ) THEN
   !
   IF( LEN_TRIM(code)>2 ) THEN
     code=TRIM(code)//"m"
-    outtxt = ACHAR(27)//TRIM(ADJUSTL(code))//intxt//ACHAR(27)//"[0m"
+    outtxt = ACHAR(27)//TRIM(ADJUSTL(code))//TRIM(intxt)//ACHAR(27)//"[0m"
   ENDIF
 ENDIF
 !

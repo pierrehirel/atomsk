@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 20 March 2025                                    *
+!* Last modification: P. Hirel - 08 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -74,6 +74,7 @@ USE edm
 USE mode_epola
 USE mode_interpolate
 USE mode_nye
+USE polyx_readparam
 USE mode_polycrystal
 USE mode_rdf
 !
@@ -102,7 +103,7 @@ CHARACTER(LEN=128):: property !name of the property whose density will be calcul
 CHARACTER(LEN=4096):: file1, file2  !should be inputfile, ouputfile (or vice-versa)
 CHARACTER(LEN=4096):: listfile      !used by modes 'filelist' and 'rdf'
 CHARACTER(LEN=4096):: filefirst, filesecond !used by modes 'ddplot', 'merge', 'matchid'
-CHARACTER(LEN=4096):: inputfile, outputfile
+CHARACTER(LEN=4096):: prefix, inputfile, outputfile
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: commentfirst, commentsecond !used by modes 'ddplot' and 'merge'
 CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: merge_files  !files for merge mode
@@ -110,11 +111,13 @@ CHARACTER(LEN=2),DIMENSION(20):: create_species
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+INTEGER,DIMENSION(:),ALLOCATABLE:: NPs, idseed !for seeds (in polycrystals)
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, ioptions, j, k, m
 INTEGER:: Nimages   !number of images (mode --interpolate)
-INTEGER:: strlength
+INTEGER:: status, strlength
 INTEGER,DIMENSION(2):: NT_mn
+REAL(dp):: clearance   !clear atoms that close to the GB (mode polycrystal)
 REAL(dp):: NNN, rdf_maxR, rdf_dr, smass
 REAL(dp):: u, v, w
 REAL(dp),DIMENSION(3):: create_a0
@@ -124,6 +127,9 @@ REAL(dp),DIMENSION(3,3):: ORIENT  !crystallographic orientation of the system (m
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, Pfirst, Psecond, S
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX !auxiliary properties of atoms
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: vnodes    !cartesian coordinate of each node
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: vorient !rotation matrix for each node
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: Hs, Ps, Ss, AUXs !for seeds (in polycrystals)
 !
 !
 !Initialize variables
@@ -567,34 +573,117 @@ CASE('unwrap')
 !!!!  MODE POLYCRYSTAL
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 CASE('polycrystal')
-  msg = 'POLYCRYSTAL mode: file1,file2: '//TRIM(file1)//', '//TRIM(file2)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  msg = 'POLYCRYSTAL mode: parameters: '//TRIM(filefirst)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  !
   !Polycrystal mode:
-  !in this mode the program reads one file containing atom positions,
-  !one file containing parameters for the Voronoi construction,
+  !in this mode the program reads one file containing parameters,
   !and generates a polycrystal
+  !file1 = file name for seed (optional)
+  !file2 = output file name
+  !filefirst = file name for polycrystal parameters (mandatory)
+  msg = "POLYCRYSTAL mode: file1 (seed): "//TRIM(file1)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  msg = "POLYCRYSTAL mode: file2 (output file): "//TRIM(file2)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  msg = "POLYCRYSTAL mode: parameters: "//TRIM(filefirst)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  IF(ALLOCATED(NPs)) DEALLOCATE(NPs)
+  IF(ALLOCATED(idseed)) DEALLOCATE(idseed)
+  IF(ALLOCATED(Hs)) DEALLOCATE(Hs)
+  IF(ALLOCATED(Ps)) DEALLOCATE(Ps)
+  IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
+  IF(ALLOCATED(AUXs)) DEALLOCATE(AUXs)
   !
-  outputfile = TRIM(ADJUSTL(file2))
-  !If we have an output file name, activate its extension
-  IF(LEN_TRIM(outputfile).NE.0) THEN
-    CALL GUESS_FORMAT(outputfile,outfileformat,'writ')
-    IF(outfileformat.NE.'xxx') CALL SET_OUTPUT(outfileformats,outfileformat,.TRUE.)
+  !Generate name of output file
+  IF( LEN_TRIM(file2)>0 ) THEN
+    !Just use the name that the user provided
+    outputfile = TRIM(ADJUSTL(file2))
+  ELSEIF( LEN_TRIM(filefirst)>0 ) THEN
+    !User did not provide name: generate one from parameter file (filefirst)
+    outputfile = TRIM_EXT(filefirst)//"_polycrystal.cfg"
+  ELSEIF( LEN_TRIM(file1)>0 ) THEN
+    !User did not provide name: generate one from seed file (file1)
+    outputfile = TRIM_EXT(file1)//"_polycrystal.cfg"
   ELSE
-    j=SCAN(inputfile,pathsep,BACK=.TRUE.)
-    strlength = SCAN(file1,'.',BACK=.TRUE.)
-    IF(strlength>j) THEN
-      outputfile = file1(1:strlength-1)
-    ELSE
-      outputfile = file1
-    ENDIF
+    outputfile = "polycrystal.cfg"
   ENDIF
+  !If we have an output file name, activate its extension
+  CALL GUESS_FORMAT(outputfile,outfileformat,'writ')
+  IF(outfileformat.NE.'xxx') CALL SET_OUTPUT(outfileformats,outfileformat,.TRUE.)
   msg = 'outputfile: '//TRIM(outputfile)
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  prefix = TRIM_EXT(outputfile)
   !
-  CALL POLYCRYS(file1,filefirst,options_array,file2,outfileformats,.TRUE.,H,P)
+  !Read file containing atom positions of seed (in this case there is only 1 seed)
+  IF( LEN_TRIM(file1)>0 ) THEN
+    !Seed file name was provided as command-line argument: read data file
+    CALL READ_AFF(file1,H,P,S,comment,AUXNAMES,AUX)
+    IF(nerr>0 ) GOTO 1000
+    IF( .NOT.ALLOCATED(P) .OR. SIZE(P,1)<1 ) THEN
+      CALL ATOMSK_MSG(804,(/''/),(/0.d0/))
+      nerr=nerr+1
+      GOTO 1000
+    ENDIF
+    IF(ALLOCATED(comment)) DEALLOCATE(comment)
+    !Save seed index and number of atoms in appropriate arrays
+    IF(ALLOCATED(NPs)) DEALLOCATE(NPs)
+    ALLOCATE(NPs(1))
+    NPs(1) = SIZE(P,1)
+    !
+    !Copy data to 3-dimensional arrays Ps, Ss, AUXs
+    ALLOCATE(Hs(1,3,3))
+    Hs(1,:,:) = H(:,:)
+    H(:,:) = 0.d0
+    ALLOCATE(Ps(1,SIZE(P,1),4))
+    Ps(1,:,:) = P(:,:)
+    DEALLOCATE(P)
+    IF( ALLOCATED(S) ) THEN
+      ALLOCATE(Ss(1,SIZE(Ps,2),4))
+      Ss(1,:,:) = S(:,:)
+      DEALLOCATE(S)
+    ENDIF
+    IF( ALLOCATED(AUX) ) THEN
+      ALLOCATE(AUXs(1,SIZE(AUX,1),SIZE(AUX,2)))
+      AUXs(1,:,:) = AUX(:,:)
+      DEALLOCATE(AUX)
+    ENDIF
+  ENDIF
+  !
+  !Read parameter file
+  CALL ATOMSK_MSG(4057,(/filefirst/),(/0.d0/))
+  CALL POLYX_READ_PARAM(filefirst,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,vnodes,vorient,H,clearance,status)
+  CALL ATOMSK_MSG(4057,(/filefirst/),(/1.d0/))
+  !
+  !Verify that idseed matches number of nodes
+  IF( .NOT.ALLOCATED(idseed) ) THEN
+    ALLOCATE(idseed(SIZE(vnodes,1)))
+    idseed(:) = 1
+  ENDIF
+  !
+  !Construct polycrystal, final results will be in H,P,S,AUX
+  CALL POLYCRYS(prefix,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,vnodes,vorient,H,P,S,AUX)
+  !
+  !Apply options to the final system
+  CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
+  IF(nerr>0) GOTO 1000
+  !
+  !Generate comment for output file(s)
+  IF(ALLOCATED(comment)) DEALLOCATE(comment)
+  ALLOCATE(comment(1))
+  WRITE(temp,*) SIZE(vnodes,1)
+  comment(1) = "# Voronoi polycrystal with "//TRIM(ADJUSTL(temp))//" grains"
+  !
+  !Write final system to file(s)
+  IF(ofu.NE.6) THEN
+    CALL WRITE_AFF(outputfile,outfileformats,H,P,S,comment,AUXNAMES,AUX)
+  ENDIF
+  !Free memory
+  IF(ALLOCATED(Ps)) DEALLOCATE(Ps)
+  IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
+  IF(ALLOCATED(P)) DEALLOCATE(P)
+  IF(ALLOCATED(S)) DEALLOCATE(S)
+  IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
+  IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+  IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
+  IF(nerr>0) GOTO 1000
 !
 !
 !

@@ -10,7 +10,7 @@ MODULE messages_DE
 !*     Gemeinschaftslabor fuer Elektronenmikroskopie                              *
 !*     RWTH Aachen (GERMANY)                                                      *
 !*     ju.barthel@fz-juelich.de                                                   *
-!* Last modification: P. Hirel - 24 Feb. 2026                                     *
+!* Last modification: P. Hirel - 24 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -3244,32 +3244,11 @@ CASE(4053)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4054)
-  msg = ">>> Konstruiere Polykristall mit der Voronoi Methode."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4055)
-  !reals(1) = index of the grain
-  !reals(2) = number of facets of grain
-  WRITE(temp1,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = ">>> Erstelle Korn #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" Facetten)..."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4056)
-  !reals(1) = number of atoms in the grain
-  !reals(1) = number of atoms in the grain
-  !reals(2) = volume of grain
-  WRITE(temp1,*) NINT(reals(1))
-  WRITE(temp2,*) NINT(reals(2))
-  msg = "..> Erledigt, "//TRIM(ADJUSTL(temp1))//" Atome, Volumen = "//TRIM(ADJUSTL(temp2))//" Å^3."
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4057)
-  !strings(1) = name of input file
-  msg = ">>> Lese Parameter fuer Voronoi-Konstruktion von: "// &
-      & TRIM(ADJUSTL(strings(1)))
-  CALL DISPLAY_MSG(verbosity,msg,logfile)
-CASE(4058)
   !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
   !reals(2:4) = box dimensions
   !reals(5) = number of grains
+  msg = ">>> Konstruiere Polykristall mit der Voronoi Methode."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "..> Datei erfolgreich eingelesen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(temp,'(f12.3)') reals(2)
@@ -3296,6 +3275,33 @@ CASE(4058)
         & ", Rotationsachse: "//TRIM(ADJUSTL(msg))
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4055)
+  !reals(1) = index of the grain
+  !reals(2) = number of facets of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = ">>> Erstelle Korn #"//TRIM(ADJUSTL(temp1))//" ("//TRIM(ADJUSTL(temp2))//" Facetten)..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4056)
+  !reals(1) = number of atoms in the grain
+  !reals(1) = number of atoms in the grain
+  !reals(2) = volume of grain
+  WRITE(temp1,*) NINT(reals(1))
+  WRITE(temp2,*) NINT(reals(2))
+  msg = "..> Erledigt, "//TRIM(ADJUSTL(temp1))//" Atome, Volumen = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4057)
+  !strings(1) = name of input file
+  !reals(1) = 0 if file was not read, non-zero otherwise
+  IF( NINT(reals(1))==0 ) THEN
+    msg = ">>> Lese Parameter fuer Voronoi-Konstruktion von: "//TRIM(ADJUSTL(strings(1)))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ELSE
+    msg = "..> Die Datei wurde erfolgreich gelesen."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+CASE(4058)
+  !
 CASE(4059)
   msg = ">>> Konstruiere eine Kette interpolierter Konfigurationen."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -4030,6 +4036,17 @@ ELSEIF(values(2)==5 .AND. values(3)==4) THEN
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "             /]==;\"
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+!
+!June: pride month
+ELSEIF(values(2)==6 ) THEN
+  IF( colourtext ) THEN
+    msg = "########"
+    msg = TRIM(COLOUR_MSG(msg,"red"))//TRIM(COLOUR_MSG(msg,"yellow"))//        &
+        & TRIM(COLOUR_MSG(msg,"lightyellow"))//TRIM(COLOUR_MSG(msg,"green"))// &
+        & TRIM(COLOUR_MSG(msg,"blue"))//TRIM(COLOUR_MSG(msg,"magenta"))//      &
+        & ACHAR(27)//"[0m"
+    CALL DISPLAY_MSG(verbosity,"  "//msg,logfile)
+  ENDIF
 !
 !July 14
 ELSEIF(values(2)==7 .AND. values(3)==14) THEN

@@ -3,15 +3,20 @@ MODULE mode_polycrystal
 !**********************************************************************************
 !*  MODE_POLYCRYSTAL                                                              *
 !**********************************************************************************
-!* This module constructs a polycrystal using a Voronoi tessellation, given       *
-!* a unit cell defined by vectors H and atom positions P, and given the           *
-!* position of the node and lattice orientation for each grain.                   *
+!* This module constructs a polycrystal using a Voronoi tessellation.             *
+!* Input: - one or several "seeds" (=unit cells, or more complex atomic systems)  *
+!*          defined in Hs,Ps,Ss,AUXs.                                             *
+!*        - number of atoms for each seed, NPs(:)                                 *
+!*        - seed index for each node, idseed(:)                                   *
+!*        - nodes positions in vnodes(:,:)                                        *
+!*        - grain orientations (rotation matrices) in vorient(:,:,:)              *
+!* Output:- final polycrystal defined in H, P, S,AUX                              *
 !**********************************************************************************
 !* (C) May 2013 - Pierre Hirel                                                    *
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Feb. 2026                                     *
+!* Last modification: P. Hirel - 15 July 2026                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -42,34 +47,37 @@ USE math
 USE messages
 USE files
 USE subroutines
-USE readin
 USE options
 USE center
 USE orient
 USE writeout
-USE polyx_readparam
 USE voronoi
 !
 CONTAINS
 !
 !
-SUBROUTINE POLYCRYS(ucfile,vfile,options_array,prefix,outfileformats,wof,H,P)
+SUBROUTINE POLYCRYS(prefix,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,vnodes,vorient,H,P,S,AUX)
 !
 !
 IMPLICIT NONE
 !Input parameters
-CHARACTER(LEN=*),INTENT(IN):: ucfile  !name of file containing seed (usually a unit cell, but can be anything)
-CHARACTER(LEN=*),INTENT(IN):: vfile   !name of file containing parameters for Voronoi construction
-CHARACTER(LEN=*),INTENT(IN):: prefix  !name or prefix for output file (polycrystal)
-CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
-LOGICAL,INTENT(IN):: wof !write output file?
+INTEGER,DIMENSION(:),ALLOCATABLE:: NPs         !Number of atoms for each seed
+INTEGER,DIMENSION(:),ALLOCATABLE:: idseed      !Seed index for each node
+REAL(dp),DIMENSION(:,:,:):: Hs                 !Base vectors of seed
+REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(IN):: Ps, Ss  !positions of atoms, shells in seed
+REAL(dp),DIMENSION(:,:,:),INTENT(IN):: AUXs    !auxiliary properties of atoms in seeds
+REAL(dp),DIMENSION(:,:),ALLOCATABLE:: vnodes   !cartesian coordinate of each node
+REAL(dp),DIMENSION(:,:,:):: vorient            !rotation matrix for each node
+!Output parameters
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of aux.prop. of atoms
+REAL(dp),DIMENSION(3,3):: H                            !Base vectors of final polycrystal
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P, S !positions of atoms, shells in final polycrystal
+REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX  !aux.prop. of atoms in final polycrystal
 !
 CHARACTER(LEN=2):: species
-CHARACTER(LEN=4096):: msg, temp
-CHARACTER(LEN=4096):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
+CHARACTER(LEN=4096):: msg, prefix, temp
 CHARACTER(LEN=4096):: distfile, idsizefile !name of file containing grain size distribution, grain sizes
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES    !names of auxiliary properties of atoms
+CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: newAUXNAMES !names of auxiliary properties of atoms (temporary)
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment
 LOGICAL:: doshells, doaux !are there shells, auxiliary properties in initial seed?
@@ -77,9 +85,6 @@ LOGICAL:: Hset            !are the box vectors H(:,:) defined?
 LOGICAL:: exceeds100      !does the number of neighbours exceed 100?
 LOGICAL:: isinpolyhedron  !is atom inside the polyhedron?
 LOGICAL:: protectuc       !protect unit cell integrity?
-LOGICAL:: use_template    !use a template or no?
-LOGICAL,DIMENSION(4):: outparam  !Are keywords (1) "node", (2) "lattice", (3) "random" used?
-                                 !(4) Must parameters be saved in a text file?
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT
 LOGICAL,DIMENSION(:),ALLOCATABLE:: Ptmask  !mask for template
 INTEGER,DIMENSION(:),ALLOCATABLE:: newindex !list of sorted indexes
@@ -90,11 +95,12 @@ INTEGER:: istart
 INTEGER:: linenumber    !line number when reading a file
 INTEGER:: m, n, o
 INTEGER:: maxvertex   !max. number of vertices to look for (defined for 3-D or 2-D)
-INTEGER:: NPexpect   !expected total number of atoms in the final system
-INTEGER:: NP         !total number of atoms in the final system
+INTEGER:: NPexpect    !expected total number of atoms in the final system
+INTEGER:: NPnew
+INTEGER:: NP          !total number of atoms in the final system
 INTEGER:: qi   !used to count atoms in a grain
 INTEGER:: inode, jnode
-INTEGER:: Nnodes      !number of nodes
+INTEGER:: Nnodes  !number of nodes
 INTEGER:: status
 INTEGER,DIMENSION(3):: expandmatrix
 INTEGER,DIMENSION(3):: Nsurv  !number of atoms that survived a loop
@@ -112,27 +118,20 @@ REAL(dp),DIMENSION(3):: GrainCenter !position of center of grain (differs from n
 REAL(dp),DIMENSION(3):: shift       !shift vector
 REAL(dp),DIMENSION(3):: vector      !vector between an atom and a node
 REAL(dp),DIMENSION(3):: vnormal     !vector normal to grain boundary
-REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the unit cell (seed)
+REAL(dp),DIMENSION(3,3):: Huc       !Base vectors of the oriented unit cell or template
 REAL(dp),DIMENSION(3,3):: Ht        !Base vectors of the oriented unit cell or template
-REAL(dp),DIMENSION(3,3):: H         !Base vectors of the final supercell
 REAL(dp),DIMENSION(3,3):: ORIENT    !crystalographic orientation
 REAL(dp),DIMENSION(3,3):: rotmat    !rotation matrix
 REAL(dp),DIMENSION(4,3):: verp      !positions (x,y,z) of some vertices
 REAL(dp),DIMENSION(9,9):: C_tensor  !elastic tensor
 REAL(dp),DIMENSION(:),ALLOCATABLE:: cell_volumes !volume of each Voronoi cell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Puc, Suc  !positions of atoms, shells in unit cell (seed)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Pt, St    !positions of atoms, shells in template supercell
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: P, S      !positions of atoms, shells in final supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: Q, T      !positions of atoms, shells in a grain
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXuc     !auxiliary properties of atoms in the unit cell (seed)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX_Q     !auxiliary properties of atoms in a grain
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUX       !auxiliary properties of atoms in the final supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: newAUX    !auxiliary properties of atoms (temporary)
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: shiftgrain !translation vectors for each grain
-REAL(dp),DIMENSION(:,:),ALLOCATABLE:: vnodes    !cartesian coordinate of each node
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: PosList   !positions of nearest neighbours
 REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: vvertex !for each node, position of neighboring vertices
-REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: vorient !rotation matrix for each node
 !
 !
 !Initialize variables
@@ -141,12 +140,9 @@ i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
 temp = temp(1:i-1)
 distfile = TRIM(ADJUSTL(temp))//"_size-dist.txt"
 idsizefile = TRIM(ADJUSTL(temp))//"_id-size.txt"
-outparamfile = TRIM(ADJUSTL(temp))//"_param.txt"
-outparam(:) = .FALSE.
 protectuc = .FALSE.
-use_template = .TRUE. !By default use a template, unless its size would be too large (see below)
 m=0
-Nnodes = 0
+Nnodes=SIZE(vnodes,1)  !number of nodes
 twodim = 0    !assume system will be 3-D
 expandmatrix(:) = 0
 clearance = 0.1d0  !atoms this close to the GB plane will be deleted
@@ -155,80 +151,105 @@ IF(ALLOCATED(NPgrains)) DEALLOCATE(NPgrains)
  C_tensor(:,:) = 0.d0
 IF(ALLOCATED(P)) DEALLOCATE(P)
 IF(ALLOCATED(shiftgrain)) DEALLOCATE(shiftgrain)
-IF(ALLOCATED(vnodes)) DEALLOCATE(vnodes)
-IF(ALLOCATED(vorient)) DEALLOCATE(vorient)
+IF(ALLOCATED(Nvertices)) DEALLOCATE(Nvertices)
 !
 !
-CALL ATOMSK_MSG(4054,(/''/),(/0.d0/))
 !
 !
 100 CONTINUE
-!Read initial seed from file
-!NOTE: usually when constructing a polycrystal the seed is a unit cell,
-!     e.g. a unit cell of fcc or bcc crystal. Here, no such assumption is made,
-!     and the seed can be anything: a unit cell, a supercell, a large system containing
-!     defects, dislocations or whatsoever. Also, the seed may be smaller or larger
-!     than the final polycrystal, i.e. Huc(:,:) may be smaller than H(:,:), but
-!     it might also be larger. Keep that in mind if you modify this routine
-CALL READ_AFF(ucfile,Huc,Puc,Suc,comment,AUXNAMES,AUXuc)
+!Check if polycrystal is 2-D
+twodim = 0
+DO i=1,3
+  IF( H(i,i) < 1.1d0*MAXVAL(Hs(:,i,i)) ) THEN
+    twodim = i
+    EXIT
+  ENDIF
+ENDDO
 !
-IF(nerr>0 ) GOTO 1000
-IF( .NOT.ALLOCATED(Puc) .OR. SIZE(Puc,1)<1 ) THEN
-  CALL ATOMSK_MSG(804,(/''/),(/0.d0/))
+!
+CALL ATOMSK_MSG(4054,(/''/),(/DBLE(twodim),H(1,1),H(2,2),H(3,3),DBLE(Nnodes)/))
+!
+!Check that the user provided enough information
+IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
+  !User did not provide box, or a box with negative or zero size
   nerr=nerr+1
+  CALL ATOMSK_MSG(4820,(/""/),(/0.d0/))
   GOTO 1000
 ENDIF
-!
-!Check if seed contains shells (in the sense of core-shell model) and/or auxiliary properties
-IF( ALLOCATED(Suc) .AND. SIZE(Suc,1)>0 ) THEN
-  doshells = .TRUE.
-ELSE
-  doshells = .FALSE.
-ENDIF
-IF( ALLOCATED(AUXuc) .AND. SIZE(AUXuc,1)>0 ) THEN
-  doaux = .TRUE.
-  grainID = SIZE(AUXNAMES)+1
-  ALLOCATE( newAUXNAMES(grainID) )
-  DO i=1,SIZE(AUXNAMES)
-    newAUXNAMES(i) = AUXNAMES(i)
-  ENDDO
-  DEALLOCATE(AUXNAMES)
-  ALLOCATE( AUXNAMES(grainID) )
-  AUXNAMES(:) = newAUXNAMES(:)
-  DEALLOCATE(newAUXNAMES)
-ELSE
-  doaux = .FALSE.
-  grainID = 1
-  ALLOCATE(AUXNAMES(1))
-ENDIF
-AUXNAMES(grainID) = "grainID"
-!
-!Compute seed density
-P1 = VOLUME_PARA(Huc)
-seed_density = SIZE(Puc,1) / P1
-!
-IF( ALLOCATED(comment) ) DEALLOCATE(comment)
-!
-!
-!
-200 CONTINUE
-!Read parameter file (modes/polyx_readparam.f90)
-CALL ATOMSK_MSG(4057,(/vfile/),(/0.d0/))
-CALL POLYX_READ_PARAM(vfile,Huc,Puc,H,Nnodes,vnodes,vorient,twodim,clearance,outparam,status)
-!If return status is not zero there was an error => exit
-IF( status>0 ) THEN
-  GOTO 1000
-ENDIF
-!
 !Check that number of nodes is not zero
 IF(Nnodes<1) THEN
-  CALL ATOMSK_MSG(4831,(/vfile/),(/0.d0/))
+  CALL ATOMSK_MSG(4831,(/""/),(/0.d0/))
   nerr=nerr+1
   GOTO 1000
 ENDIF
-!
-CALL ATOMSK_MSG(4058,(/''/),(/DBLE(twodim),H(1,1),H(2,2),H(3,3),DBLE(Nnodes)/))
-!
+!Check that user provided at least one seed
+IF( .NOT.ALLOCATED(Ps) ) THEN
+  !No seed provided => can't do anything
+  PRINT*, "X!X ERROR: no seed provided"
+  nerr = nerr+1
+  GOTO 1000
+ENDIF
+!Check idseed(:): size must be Nnodes, and values must be < number of seeds
+IF( .NOT.ALLOCATED(idseed) ) THEN
+  !No seed id defined: assume all nodes use the first seed
+  ALLOCATE(idseed(Nnodes))
+  idseed(:) = 1
+ELSEIF( SIZE(idseed).NE.Nnodes ) THEN
+  !Seeds are defined but do not match number of nodes
+  ALLOCATE(Nvertices(Nnodes))
+  Nvertices(:) = 1
+  DO i=1,MIN(Nnodes,SIZE(Nvertices))
+    Nvertices(i) = idseed(i)
+  ENDDO
+  DEALLOCATE(idseed)
+  ALLOCATE(idseed(SIZE(Nvertices)))
+  idseed(:) = Nvertices(:)
+  DEALLOCATE(Nvertices)
+ELSE
+  !Seeds are defined, check that seed IDs are within range
+  DO i=1,SIZE(idseed)
+    IF( idseed(i)>SIZE(Ps,1) ) THEN
+      idseed(i) = SIZE(Ps,1)
+    ENDIF
+  ENDDO
+ENDIF
+!Check NPs(:): size must be = number of seeds, and values must be < max.Natoms for a seed
+IF( .NOT.ALLOCATED(NPs) ) THEN
+  !Number of atoms for each seed not defined: try to count them
+  !For each seed, parse atom coordinates from the end, first that is >0 is assumed
+  !to be last atom in the list (all zeros at the end are dismissed)
+  ALLOCATE(NPs(SIZE(Ps,1)))
+  NPs(:) = SIZE(Ps,2)
+  DO i=1,SIZE(Ps,1)
+    DO j=SIZE(Ps,2),1,-1
+      IF( VECLENGTH(Ps(i,j,1:3)) > 1.d-12 ) THEN
+        n = j
+        EXIT
+      ENDIF
+    ENDDO
+    NPs(i) = n
+  ENDDO
+ELSEIF( SIZE(NPs).NE.SIZE(Ps,1) ) THEN
+  !Natoms are defined but do not match number of seeds
+  ALLOCATE(Nvertices(SIZE(Ps,1)))
+  Nvertices(:) = SIZE(Ps,2)
+  DO i=1,MIN(SIZE(NPs),SIZE(Nvertices))
+    Nvertices(i) = NPs(i)
+  ENDDO
+  DEALLOCATE(NPs)
+  ALLOCATE(NPs(SIZE(Nvertices)))
+  NPs(:) = Nvertices(:)
+  DEALLOCATE(Nvertices)
+ELSE
+  !Natoms are defined, check that they are within range
+  DO i=1,SIZE(NPs)
+    IF( NPs(i)<=0 ) THEN
+      NPs(i) = 1
+    ELSEIF( NPs(i)>SIZE(Ps,2) ) THEN
+      NPs(i) = SIZE(Ps,2)
+    ENDIF
+  ENDDO
+ENDIF
 !
 !For 2-D polycrystal, check that user rotated grains only around shortest axis
 IF( twodim>0 ) THEN
@@ -246,29 +267,29 @@ IF( twodim>0 ) THEN
   ENDIF
 ENDIF
 !
-IF( twodim > 0 ) THEN
-  !System is pseudo 2-D => place all nodes on the same plane
-  !in the middle of the cell along the short direction
-  vnodes(:,twodim) = 0.5d0*H(twodim,twodim)
-ENDIF
-!
-IF( outparam(4) .AND. ofu.NE.6 ) THEN
-  !Write positions and orientations in a parameter file
-  OPEN(41,FILE=outparamfile,STATUS="UNKNOWN")
-  WRITE(41,'(a62)') "# Random positions and rotations of grains generated by Atomsk"
-  WRITE(41,'(a66)') "# This parameter file can be used to generate the same polycrystal"
-  WRITE(41,'(a4,3f16.6)') "box ", H(1,1), H(2,2), H(3,3)
-  DO i=1,SIZE(vorient,1)
-    !Compute corresponding rotation vectors and write them into parameter file
-    CALL MAT2EULER_ZYX(vorient(i,:,:),P1,P2,P3)
-    WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
-  ENDDO
-  CLOSE(41)
-ENDIF
-!
 IF(verbosity==4) THEN
   !Debug messages
-  WRITE(msg,*) "Number of nodes:", Nnodes
+  msg = "(((   Seed index for each node   )))"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,SIZE(idseed,1)
+    WRITE(msg,'(6X,i4,a6,i4)') i, "  ->  ", idseed(i)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDDO
+  msg = "(((  Atomic positions for seeds  )))"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,SIZE(Ps,1)
+    WRITE(msg,'(6X,a6,i4,a3,i9,a7)') "SEED #", i, "  (", NPs(i), " atoms)"
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    DO j=1,3
+      WRITE(msg,'(10X,3f9.3)') Hs(i,j,1), Hs(i,j,2), Hs(i,j,3)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
+    DO j=1,NPs(i)
+      WRITE(msg,'(6X,i4,6X,3f9.3)') NINT(Ps(i,j,4)), Ps(i,j,1), Ps(i,j,2), Ps(i,j,3)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
+  ENDDO
+  WRITE(msg,*) "(((  Number of nodes:", Nnodes
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   msg = "Positions of nodes:"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -287,23 +308,6 @@ IF(verbosity==4) THEN
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDDO
 ENDIF
-!
-!Check that the user provided enough information
-IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
-  !User did not provide box, or a box with negative or zero size
-  nerr=nerr+1
-  CALL ATOMSK_MSG(4820,(/""/),(/0.d0/))
-  GOTO 1000
-ENDIF
-!
-!Estimate final number of particles NP = (density of unit cell) * (volume of final cell)
-NP = CEILING( seed_density * VOLUME_PARA(H) )
-NPexpect = NP
-WRITE(msg,*) "Estimated number of atoms in this box: NP = ", NP
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-!Allow for +10% or +1000 atoms to allocate arrays.
-!Actual size of arrays will be adjusted later
-NP = MIN( NINT(1.1d0*NP) , NP+1000 )
 !
 !
 !
@@ -364,9 +368,9 @@ DO inode=1,Nnodes
     !Shift node and all vertices so they are inside [0,xmax], [0,ymax], [0,zmax]
     !NOTE: this shift vector will be used later to place atoms back into position
     IF( Nnodes<6 ) THEN
-      P2 = 1.5d0*P1 + 10.d0
+      P2 = 1.55d0*P1 + 20.d0
     ELSE
-      P2 = 1.1d0*P1 + 6.d0
+      P2 = 1.25d0*P1 + 12.d0
     ENDIF
     IF( twodim>0 ) THEN
       P2 = 1.5d0*P2 + 20.d0
@@ -382,6 +386,7 @@ DO inode=1,Nnodes
     ENDDO
   ENDIF
 ENDDO
+!
 IF(verbosity>=4) THEN
   !Debug messages
   WRITE(msg,*) "List of neighboring vertices after rotation and shift:"
@@ -411,182 +416,83 @@ ENDIF
 !
 !
 !
-400 CONTINUE
-!Estimate the size of template
-Ht(:,:) = 0.d0
-DO i=1,3
-  distance = 0.d0
-  DO inode=1,Nnodes
-    n = Nvertices(inode)
-    P1 = MAXVAL( vvertex(inode,1:n,i) )
-    IF( P1>distance ) THEN
-      distance = P1
-    ENDIF
-  ENDDO
-  IF( Nnodes<6 ) THEN
-    Ht(i,i) = 1.3d0*distance + 10.d0
-  ELSE
-    Ht(i,i) = 1.1d0*distance + 6.d0
+500 CONTINUE
+!Estimate final number of particles NP = (density of unit cell) * (volume of final cell)
+!NOTE: final polycrystal is expected to count fewer atoms than a perfect crystal of same size,
+!     however here we allocate for more atoms to avoid having to re-allocate arrays during the loop.
+!     Actual final array sizes will be optimized later (see label 600)
+!Compute seed density (=max. density for any given seed)
+seed_density = 0.d0
+DO i=1,SIZE(Hs,1)
+  P1 = VOLUME_PARA(Hs(i,:,:))
+  P2 = NPs(i) / P1
+  IF( P2>seed_density ) THEN
+    seed_density = P2
   ENDIF
 ENDDO
-IF( twodim>0 ) THEN
-  !System is pseudo-2D: template won't be duplicated along the short dimension
-  !We can afford to make it larger along other directions
-  Ht(:,:) = 1.5d0*Ht(:,:) + 20.d0
-  Ht(twodim,twodim) = VECLENGTH(H(twodim,:))
+WRITE(msg,*) " Seed density (max.) = ", seed_density
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+NP = CEILING( seed_density * VOLUME_PARA(H) )
+NPexpect = NP
+WRITE(msg,*) " Estimated max. number of atoms in this box: NP = ", NP
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!Allow for +10% or +1000 atoms to allocate arrays
+NP = MIN( NINT(1.1d0*NP) , NP+1000 )
+!Allocate arrays for final polycrystal
+WRITE(msg,*) "                Allocating arrays with size: NP = ", NP
+CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
+!Array for atom positions
+ALLOCATE(Q(NP,4) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nnodes)/))
+  GOTO 1000
 ENDIF
-!Estimate how many particles the template will contain = (seed density)*(template volume)
-P1 = 1.05d0 * seed_density * Ht(1,1)*Ht(2,2)*Ht(3,3)
-IF(verbosity>=4) THEN
-  WRITE(msg,'(a,3f12.3)') "Template box size:", Ht(1,1), Ht(2,2), Ht(3,3)
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,'(a25,f18.0)') "Expected NP for template:", P1
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-ENDIF
-!
-!If number of nodes is small, or template size is small (<20,000 atoms),
-!or if template size is very very large (i.e. several millions of atoms
-!*and* much larger than expected NP in final polycrystal),
-!then don't use a template
-IF( Nnodes<5 .AND. P1>2.d6 .AND. P1>1.4d0*NP ) THEN
-  use_template = .FALSE.
-  WRITE(msg,*) "Template will NOT be constructed"
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-ELSEIF( P1<2.d4 ) THEN
-  use_template = .TRUE.
-  WRITE(msg,*) "Template WILL be constructed"
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-ENDIF
-!
-!Compute duplication factors along X, Y, Z
-!If the system is 2-D, do not expand along the shortest axis
-!NOTE: these duplication factors will be used to duplicate seed to fill grains
-expandmatrix(:) = 0
-WRITE(msg,*) "Determining expansion factors:"
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-DO i=1,3  !Loop on X, Y, Z
-  IF( i.NE.twodim ) THEN
-    !Round up to nearest greater integer
-    expandmatrix(i) = MAX(1 , CEILING( Ht(i,i)/Huc(i,i) ) )
-  ENDIF
-ENDDO
-WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-!
-!
-420 CONTINUE
-!If size (memory) is reasonable, construct template grain
-!This template grain will be cut later to construct each grain
-IF( use_template ) THEN
-  ! Allocate array Pt for template grain (full duplicated crystal, not oriented or truncated)
-  m = SIZE(Puc,1)*(expandmatrix(1)+1)*(expandmatrix(2)+1)*(expandmatrix(3)+1)
-  !
-  !Construct template supercell Pt(:,:)
-  CALL ATOMSK_MSG(4081,(/''/),(/DBLE(m)/))
-  WRITE(msg,*) "ALLOCATE  Pt, SIZE = ", m
-  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  !
-  ALLOCATE( Pt(m,4) , STAT=i )
+Q(:,:) = 0.d0
+!Array for shells (if any)
+IF(doshells) THEN
+  ALLOCATE(T(NP,4) , STAT=i)
   IF( i>0 ) THEN
     ! Allocation failed (not enough memory)
-    ! Fall back to no-template method
-    use_template = .FALSE.
-    GOTO 500
+    nerr = nerr+1
+    CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nnodes)/))
+    GOTO 1000
   ENDIF
-  Pt(:,:) = 0.d0
-  IF( doshells ) THEN
-    ALLOCATE( St( SIZE(Pt,1) , 4 ) , STAT=i )
-    IF( i>0 ) THEN
-      ! Allocation failed (not enough memory)
-      ! Fall back to no-template method
-      IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
-      use_template = .FALSE.
-      GOTO 500
-    ENDIF
-    St(:,:) = 0.d0
-  ENDIF
-  IF( doaux ) THEN
-    ALLOCATE( AUX_Q( SIZE(Pt,1) , SIZE(AUXuc,2)+1 ) , STAT=i )
-  ELSE
-    ALLOCATE( AUX_Q( SIZE(Pt,1) , 1 ) , STAT=i )
-  ENDIF
-  IF( i>0 ) THEN
-    ! Allocation of AUX_Q failed (not enough memory)
-    ! Fall back to no-template method
-    IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
-    IF(ALLOCATED(St)) DEALLOCATE(St)
-    use_template = .FALSE.
-    GOTO 500
-  ENDIF
-  AUX_Q(:,:) = 0.d0
-  !
-  ! Fill array Pt(:,:)
-  qi=0
-  DO o = 0 , expandmatrix(3)
-    DO n = 0 , expandmatrix(2)
-      DO m = 0 , expandmatrix(1)
-        DO i=1,SIZE(Puc,1)
-          !Compute (cartesian) position of the replica of this atom
-          qi = qi+1
-          Pt(qi,1) = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
-          Pt(qi,2) = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
-          Pt(qi,3) = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
-          Pt(qi,4) = Puc(i,4)
-          IF(doshells) THEN
-            !Compute (cartesian) position of the replica of this shell
-            St(qi,1) = Suc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
-            St(qi,2) = Suc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
-            St(qi,3) = Suc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
-            St(qi,4) = Suc(i,4)
-          ENDIF
-          IF(doaux) THEN
-            !Copy auxiliary properties of that atom
-            AUX_Q(qi,:) = AUXuc(i,:)
-          ENDIF
-        ENDDO
-      ENDDO
-    ENDDO
-  ENDDO
-  !
-  !Save template cell vectors (make sure it's not zero)
-  Ht(1,:) = Huc(1,:) * MAX(1 , expandmatrix(1) )
-  Ht(2,:) = Huc(2,:) * MAX(1 , expandmatrix(2) )
-  Ht(3,:) = Huc(3,:) * MAX(1 , expandmatrix(3) )
-  !
-  IF( verbosity==4 ) THEN
-    OPEN(UNIT=40,FILE="atomsk_template.xyz",STATUS="UNKNOWN")
-    qi=0
-    DO i=1,SIZE(Pt,1)
-      IF(NINT(Pt(i,4)).NE.0) qi=qi+1
-    ENDDO
-    WRITE(40,'(i9)') qi
-    WRITE(40,*) "# Template used by Atomsk to construct polycrystal"
-    DO i=1,qi
-      WRITE(40,'(i4,2X,3(f12.6))') NINT(Pt(i,4)), Pt(i,1), Pt(i,2), Pt(i,3)
-    ENDDO
-    CLOSE(40)
-  ENDIF
-  !
-  !Allocate array for mask: will be .TRUE. for atoms inside polyhedron/grain, .FALSE. otherwise
-  IF(ALLOCATED(Ptmask)) DEALLOCATE(Ptmask)
-  ALLOCATE( Ptmask(SIZE(Pt,1)) )
-  !
-  !
-ENDIF !end if(use_template)
-!
-!
-!
-500 CONTINUE
-!Allocate arrays for final polycrystal
-WRITE(msg,*) "             Allocating arrays with size: NP = ", NP
-CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
-ALLOCATE(Q(NP,4))
-Q(:,:) = 0.d0
-IF(doshells) THEN
-  ALLOCATE(T(NP,4))
   T(:,:) = 0.d0
 ENDIF
-ALLOCATE(newAUX(NP,SIZE(AUXNAMES)))
+!Array for auxiliary properties (there is always at least one, grainID)
+grainID = 0
+IF( ALLOCATED(AUXNAMES) ) THEN
+  DO i=1,SIZE(AUXNAMES)
+    IF( AUXNAMES(i)=="grainID" ) THEN
+      grainID = i
+      EXIT
+    ENDIF
+  ENDDO
+  IF( grainID==0 ) THEN
+    n = SIZE(AUXNAMES)
+    ALLOCATE(newAUXNAMES(n+1))
+    newAUXNAMES(1:n) = AUXNAMES(1:n)
+    DEALLOCATE(AUXNAMES)
+    n = SIZE(newAUXNAMES)
+    ALLOCATE(AUXNAMES(n))
+    AUXNAMES(:) = newAUXNAMES(:)
+    DEALLOCATE(newAUXNAMES)
+    grainID = n
+  ENDIF
+ELSE
+  ALLOCATE(AUXNAMES(1))
+  grainID = 1
+ENDIF
+AUXNAMES(grainID) = "grainID"
+ALLOCATE(newAUX(NP,SIZE(AUXNAMES)) , STAT=i)
+IF( i>0 ) THEN
+  ! Allocation failed (not enough memory)
+  nerr = nerr+1
+  CALL ATOMSK_MSG(819,(/''/),(/DBLE(Nnodes)/))
+  GOTO 1000
+ENDIF
 newAUX(:,:) = 0.d0
 !
 !Allocate array containing number of atoms in each grain
@@ -607,182 +513,139 @@ rotmat(:,:) = Id_Matrix(:,:)
 DO inode=1,Nnodes
   !This is grain # inode
   CALL ATOMSK_MSG(4055,(/''/),(/DBLE(inode),DBLE(Nvertices(inode))/))
-  WRITE(msg,*) "  _  _  _  _  _  _  _"
+  WRITE(msg,*) "  _  _  _  _  _  _  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-  WRITE(msg,'(a,i4)') " |                     GRAIN #", inode
+  WRITE(msg,'(a,i4)') " |             GRAIN #", inode
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,'(a,i4,a3,i9,a7)') " |        USING SEED #", idseed(inode), "  (", NPs(idseed(inode)), " atoms)"
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !
-  !Get center of grain = average positions of node + vertices
+  !Get number of neighboring vertices
   n = Nvertices(inode)
   !
-  IF( use_template ) THEN
-    !For each atom of the template Pt, find out if it is located inside the grain
-    !If not, set mask Ptmask(i) to .FALSE.
-    Ptmask(:) = .TRUE.
-    !$OMP PARALLEL DO DEFAULT(SHARED) PRIVATE(i,j,vnormal,vector)
-    DO i=1,SIZE(Pt,1)
-      IF( Ptmask(i) ) THEN
-        !Shift oriented supercell so that its center of mass is at the position of the node
-        !Pt(i,1:3) = Pt(i,1:3) + shift(1:3)
-        !Compute vector between atom #i and current node
-        vector(:) = Pt(i,1:3) - vnodes(inode,1:3)
-        !Check if atom #i is inside the grain #inode, loop on all vertices
-        DO j=1,Nvertices(inode)
-          !Compute vector between vertex #j and current node #inode
-          !By definition this vector is normal to the grain boundary
-          vnormal(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
-          IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d0*clearance ) THEN
-            !Atom #i is above plane of cut, hence out of polyhedron
-            !Mark it for termination and exit loop on j (effectively close )
-            Ptmask(i) = .FALSE.
-            EXIT
-          ENDIF
-        ENDDO
-      ENDIF
-    ENDDO
-    !$OMP END PARALLEL DO
-    !
-    !Now Ptmask(:) is .TRUE. for template atoms that belong in grain #inode, .FALSE. otherwise
-    !Copy all .TRUE. atoms into array Q
-    !Apply rotation matrix and shift them into their final position
-    DO i=1,SIZE(Pt,1)
-      IF( Ptmask(i) ) THEN
-        !Increment number of atoms belonging to grain #inode
-        NPgrains(inode) = NPgrains(inode)+1
-        !Increment total number of particles in the system
-        NP = NP+1
-        IF( NP>SIZE(Q,1) ) THEN
-          !Total number of atoms exceeds size of array Q
-          !This should not happen, yet here we are: resize Q and all related arrays
-          m = MIN( SIZE(Q,1)+NPgrains(inode) , CEILING(1.1*SIZE(Q,1)) )
-          CALL RESIZE_DBLEARRAY2( Q , m , 4 , n )
-          IF( n>0 ) THEN
-            ! Allocation failed (not enough memory)
-            nerr = nerr+1
-            CALL ATOMSK_MSG(819,(/''/),(/DBLE(m)/))
-            GOTO 1000
-          ENDIF
-          !Resize array for shells with same size
-          IF(doshells) CALL RESIZE_DBLEARRAY2( T , SIZE(Q,1) , 4 , n )
-          IF( n>0 ) THEN
-            ! Allocation failed (not enough memory)
-            nerr = nerr+1
-            CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Q,1))/))
-            GOTO 1000
-          ENDIF
-          !Resize array for aux. prop. with same size
-          CALL RESIZE_DBLEARRAY2( newAUX , SIZE(Q,1) , SIZE(AUXNAMES) , n )
-          IF( n>0 ) THEN
-            ! Allocation failed (not enough memory)
-            nerr = nerr+1
-            CALL ATOMSK_MSG(819,(/''/),(/DBLE(SIZE(Q,1))/))
-            GOTO 1000
-          ENDIF
-        ENDIF
-        !Shift atom position and apply rotation
-        P1 = Pt(i,1) - shiftgrain(inode,1)
-        P2 = Pt(i,2) - shiftgrain(inode,2)
-        P3 = Pt(i,3) - shiftgrain(inode,3)
-        Q(NP,1) = P1*vorient(inode,1,1) + P2*vorient(inode,1,2) + P3*vorient(inode,1,3)
-        Q(NP,2) = P1*vorient(inode,2,1) + P2*vorient(inode,2,2) + P3*vorient(inode,2,3)
-        Q(NP,3) = P1*vorient(inode,3,1) + P2*vorient(inode,3,2) + P3*vorient(inode,3,3)
-        Q(NP,4) = Pt(i,4)
-        IF(doshells) THEN
-          P1 = St(i,1) - shiftgrain(inode,1)
-          P2 = St(i,2) - shiftgrain(inode,2)
-          P3 = St(i,3) - shiftgrain(inode,3)
-          T(NP,1) = P1*vorient(inode,1,1) + P2*vorient(inode,1,2) + P3*vorient(inode,1,3)
-          T(NP,2) = P1*vorient(inode,2,1) + P2*vorient(inode,2,2) + P3*vorient(inode,2,3)
-          T(NP,3) = P1*vorient(inode,3,1) + P2*vorient(inode,3,2) + P3*vorient(inode,3,3)
-          T(NP,4) = St(i,4)
-        ENDIF
-        IF(doaux) THEN
-          DO j=1,SIZE(AUXNAMES)-1
-            newAUX(NP,j) = AUX_Q(i,j)
-          ENDDO
-        ENDIF
-        newAUX(NP,grainID) = DBLE(inode)
-      ENDIF
-    ENDDO
-    !
-    IF( verbosity>=4 ) THEN
-      WRITE(temp,'(f12.1)') 100.d0*DBLE(NPgrains(inode)) / DBLE(SIZE(Pt,1))
-      WRITE(msg,*) " | INFO: template contains ", SIZE(Pt,1), " atoms, only ", NPgrains(inode), &
-                & " (", TRIM(ADJUSTL(temp)), "%) were used in this grain"
-      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !Huc will be that seed's periodic vectors
+  Huc(:,:) = Hs(idseed(inode),:,:)
+  !
+  !Compute current seed density
+  seed_density = NPs(idseed(inode)) / VOLUME_PARA(Huc(:,:))
+  !
+  !Estimate duplication factors
+  Ht(:,:) = Huc(:,:)
+  DO i=1,3
+    distance = 0.d0
+    n = Nvertices(inode)
+    P1 = MAX( 0.d0 , MAXVAL(vvertex(inode,1:n,i)) ) - MIN( 0.d0 , MINVAL(vvertex(inode,1:n,i)) )
+    IF( P1>distance ) THEN
+      distance = MAX(P1,20.d0)
     ENDIF
-    !
-    !
-  ELSE !i.e. if there is no template
-    !Seed will be duplicated inside the grain
-    istart = NP+1
-    !
-    !Duplicate seed to fill the grain
-    DO o=0,expandmatrix(3)
-      DO n=0,expandmatrix(2)
-        DO m=0,expandmatrix(1)
-          !Loop on all atoms in seed/unit cell
-          DO i=1,SIZE(Puc,1)
-            !Compute (cartesian) position of the replica of this atom
-            P1 = Puc(i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
-            P2 = Puc(i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
-            P3 = Puc(i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
-            vector(:) = (/P1,P2,P3/) - vnodes(inode,1:3)
-            !Check if atom is inside the grain #inode
-            j = 1
-            isinpolyhedron = .TRUE.
-            DO WHILE( isinpolyhedron .AND. j <= Nvertices(inode) )
-              vnormal(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
-              IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d0*clearance ) THEN
-                !Atom is above this plane of cut, hence outside of polyhedron
-                isinpolyhedron = .FALSE.
-                EXIT
-              ENDIF
-              j=j+1
-            ENDDO
-            IF(isinpolyhedron) THEN
-              !Atom #i survived all cuts => save its position and species into Q
-              NPgrains(inode) = NPgrains(inode)+1
-              NP = NP+1
-              IF( NP > SIZE(Q,1) ) THEN
-                !Increase array size by 10%
-                PRINT*, "RESIZE Q"
-                CALL RESIZE_DBLEARRAY2(Q,CEILING(1.1d0*NP),4,status)
-                IF(doshells) THEN
-                  CALL RESIZE_DBLEARRAY2(T,SIZE(Q,1),4,status)
-                ENDIF
-                IF(doaux) THEN
-                  CALL RESIZE_DBLEARRAY2(newAUX,SIZE(Q,1),SIZE(AUXNAMES),status)
-                ENDIF
-              ENDIF
-              !Shift atom position and apply rotation
-              P1 = P1 - shiftgrain(inode,1)
-              P2 = P2 - shiftgrain(inode,2)
-              P3 = P3 - shiftgrain(inode,3)
-              Q(NP,1) = P1*vorient(inode,1,1) + P2*vorient(inode,1,2) + P3*vorient(inode,1,3)
-              Q(NP,2) = P1*vorient(inode,2,1) + P2*vorient(inode,2,2) + P3*vorient(inode,2,3)
-              Q(NP,3) = P1*vorient(inode,3,1) + P2*vorient(inode,3,2) + P3*vorient(inode,3,3)
-              Q(NP,4) = Puc(i,4)
+    IF( Nnodes<6 ) THEN
+      Ht(i,i) = 1.55d0*distance + 20.d0
+    ELSE
+      Ht(i,i) = 1.25d0*distance + 12.d0
+    ENDIF
+  ENDDO
+  IF( twodim>0 ) THEN
+    !System is pseudo-2D: template won't be duplicated along the short dimension
+    !We can afford to make it larger along other directions
+    Ht(:,:) = 1.5d0*Ht(:,:) + 20.d0
+    Ht(twodim,twodim) = VECLENGTH(H(twodim,:))
+  ENDIF
+  !Estimate how many particles the template will contain = (seed density)*(template volume)
+  P1 = 1.05d0 * seed_density * Ht(1,1)*Ht(2,2)*Ht(3,3)
+  !
+  !Compute duplication factors along X, Y, Z
+  !If the system is 2-D, do not expand along the shortest axis
+  !NOTE: these duplication factors will be used to duplicate seed to fill grains
+  expandmatrix(:) = 0
+  WRITE(msg,*) "Determining expansion factors:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,3  !Loop on X, Y, Z
+    IF( i.NE.twodim ) THEN
+      !Round up to nearest greater integer
+      expandmatrix(i) = MAX(1 , CEILING( Ht(i,i)/Huc(i,i) ) )
+    ENDIF
+  ENDDO
+  IF(twodim>0) THEN
+    expandmatrix(twodim) = 0
+  ENDIF
+  WRITE(msg,*) "Initial expansion factors:", expandmatrix(:)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  !
+  !Seed will be duplicated inside the grain
+  istart = NP+1
+  !
+  !Duplicate seed to fill the grain
+  !Loop on all atoms in seed/unit cell
+  !$OMP PARALLEL DO DEFAULT(SHARED) &
+  !$OMP& PRIVATE(i,j,m,n,o,P1,P2,P3,isinpolyhedron,vector,vnormal)
+  DO o=0,expandmatrix(3)
+    DO n=0,expandmatrix(2)
+      DO m=0,expandmatrix(1)
+        DO i=1,NPs(idseed(inode))
+          !Compute (cartesian) position of the replica of this atom
+          P1 = Ps(idseed(inode),i,1) + DBLE(m)*Huc(1,1) + DBLE(n)*Huc(2,1) + DBLE(o)*Huc(3,1)
+          P2 = Ps(idseed(inode),i,2) + DBLE(m)*Huc(1,2) + DBLE(n)*Huc(2,2) + DBLE(o)*Huc(3,2)
+          P3 = Ps(idseed(inode),i,3) + DBLE(m)*Huc(1,3) + DBLE(n)*Huc(2,3) + DBLE(o)*Huc(3,3)
+          vector(:) = (/P1,P2,P3/) - vnodes(inode,1:3)
+          !Check if atom is inside the grain #inode
+          j = 1
+          isinpolyhedron = .TRUE.
+          DO WHILE( isinpolyhedron .AND. j <= Nvertices(inode) )
+            vnormal(:) = vvertex(inode,j,1:3) - vnodes(inode,1:3)
+            IF( VEC_PLANE(vnormal,VECLENGTH(vnormal),vector) > -1.d0*clearance ) THEN
+              !Atom is above this plane of cut, hence outside of polyhedron
+              isinpolyhedron = .FALSE.
+              EXIT
+            ENDIF
+            j=j+1
+          ENDDO
+          IF(isinpolyhedron) THEN
+            !$OMP CRITICAL
+            !Atom #i survived all cuts => save its position and species into Q
+            NPgrains(inode) = NPgrains(inode)+1
+            NP = NP+1
+            IF( NP > SIZE(Q,1) ) THEN
+              !Increase array size by 10%
+              PRINT*, "     --->   RESIZE Q   <---"
+              NPnew = CEILING(1.1d0*SIZE(Q,1))
+              CALL RESIZE_DBLEARRAY2(Q,NPnew,4,status)
               IF(doshells) THEN
-                P1 = Suc(i,1) - shiftgrain(inode,1)
-                P2 = Suc(i,2) - shiftgrain(inode,2)
-                P3 = Suc(i,3) - shiftgrain(inode,3)
+                CALL RESIZE_DBLEARRAY2(T,NPnew,4,status)
+              ENDIF
+              IF(doaux) THEN
+                CALL RESIZE_DBLEARRAY2(newAUX,NPnew,SIZE(newAUX,2),status)
+              ENDIF
+            ENDIF
+            !Shift atom position and apply rotation
+            P1 = P1 - shiftgrain(inode,1)
+            P2 = P2 - shiftgrain(inode,2)
+            P3 = P3 - shiftgrain(inode,3)
+            Q(NP,1) = P1*vorient(inode,1,1) + P2*vorient(inode,1,2) + P3*vorient(inode,1,3)
+            Q(NP,2) = P1*vorient(inode,2,1) + P2*vorient(inode,2,2) + P3*vorient(inode,2,3)
+            Q(NP,3) = P1*vorient(inode,3,1) + P2*vorient(inode,3,2) + P3*vorient(inode,3,3)
+            Q(NP,4) = Ps(idseed(inode),i,4)
+            IF(doshells) THEN
+              T(NP,4) = Ss(idseed(inode),i,4)
+              IF( T(NP,4)>0.1d0 ) THEN
+                P1 = Ss(idseed(inode),i,1) - shiftgrain(inode,1)
+                P2 = Ss(idseed(inode),i,2) - shiftgrain(inode,2)
+                P3 = Ss(idseed(inode),i,3) - shiftgrain(inode,3)
                 T(NP,1) = P1*vorient(inode,1,1) + P2*vorient(inode,1,2) + P3*vorient(inode,1,3)
                 T(NP,2) = P1*vorient(inode,2,1) + P2*vorient(inode,2,2) + P3*vorient(inode,2,3)
                 T(NP,3) = P1*vorient(inode,3,1) + P2*vorient(inode,3,2) + P3*vorient(inode,3,3)
-                T(NP,4) = Suc(i,4)
               ENDIF
-              IF(doaux) THEN
-                newAUX(NP,:) = AUXuc(i,:)
-              ENDIF
-              newAUX(NP,grainID) = DBLE(inode)
             ENDIF
-          ENDDO !loop on i
-        ENDDO !loop on m
-      ENDDO !loop on n
-    ENDDO !loop on o
-    !
-  ENDIF !end if(use_template)
+            IF(doaux) THEN
+              newAUX(NP,:) = AUXs(idseed(inode),i,:)
+            ENDIF
+            newAUX(NP,grainID) = DBLE(inode)
+            !$OMP END CRITICAL
+          ENDIF
+        ENDDO !loop on i
+      ENDDO !loop on m
+    ENDDO !loop on n
+  ENDDO !loop on o
+  !$OMP END PARALLEL DO
   !
   IF(nerr>0) GOTO 1000
   !
@@ -817,7 +680,7 @@ DO inode=1,Nnodes
 !     WRITE(36,'(3f16.6)') H(3,:)
     CLOSE(36)
     !
-    WRITE(msg,*) " |_  _  _  _  _  END OF GRAIN #", inode
+    WRITE(msg,*) " |_  _  _  _  _  END OF GRAIN #", inode, "  _ _ _ _ _ _ _ _ _ _|"
     CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ENDIF
   !
@@ -828,8 +691,6 @@ ENDDO  !end loop on inode
 600 CONTINUE
 WRITE(msg,*) "Loop on grains finished, size of Q = ", SIZE(Q,1)
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
-IF(ALLOCATED(Puc)) DEALLOCATE(Puc)
-IF(ALLOCATED(Suc)) DEALLOCATE(Suc)
 IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
 IF(ALLOCATED(St)) DEALLOCATE(St)
 IF(ALLOCATED(Ptmask)) DEALLOCATE(Ptmask)
@@ -885,59 +746,13 @@ AUX(1:NP,:) = newAUX(1:NP,:)
 IF(ALLOCATED(newAUX)) DEALLOCATE(newAUX)
 !
 !
-!Generate comment for output file(s)
-ALLOCATE(comment(1))
-WRITE(temp,*) Nnodes
- comment(1) = "# Voronoi polycrystal with "//TRIM(ADJUSTL(temp))//" grains"
-!
-!Apply options to the final system
-CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
-IF(nerr>0) GOTO 1000
-!
-!Write final system to file(s)
-IF(wof) THEN
-  CALL WRITE_AFF(prefix,outfileformats,H,P,S,comment,AUXNAMES,AUX)
-ENDIF
-IF(nerr>0) GOTO 1000
-!
-!
 !
 700 CONTINUE
 !From now on, some arrays are not needed anymore => deallocate them
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(S)) DEALLOCATE(S)
 IF(ALLOCATED(T)) DEALLOCATE(T)
-IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
-IF(ALLOCATED(comment)) DEALLOCATE(comment)
-IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
 !
-IF( outparam(4) .AND. ofu.NE.6 ) THEN
-  !Random parameters were written into a file => inform user
-  temp = "parameter"
-  CALL ATOMSK_MSG(3002,(/outparamfile,temp/),(/0.d0/))
-ENDIF
-!
-IF( wof .AND. ofu.NE.6 ) THEN
-  !Write positions of nodes into a file
-  ALLOCATE(comment(1))
-  comment(1) = "# Positions of nodes"
-  ALLOCATE(outfileformats(1))
-  outfileformats(1) = "xsf"
-  ALLOCATE(Q(SIZE(vnodes,1),4))
-  DO i=1,SIZE(vnodes,1)
-    Q(i,1:3) = vnodes(i,1:3)
-    Q(i,4) = 1.d0  !nodes are given the atomic number of hydrogen
-  ENDDO
-  CALL NAME_OUTFILE(prefix,temp,"     ")
-  i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
-  temp = temp(1:i-1)
-  outparamfile = TRIM(ADJUSTL(temp))//"_nodes.xsf"
-  CALL WRITE_AFF(outparamfile,outfileformats,H,Q,S,comment,AUXNAMES,AUX)
-  IF(ALLOCATED(Q)) DEALLOCATE(Q)
-  IF(ALLOCATED(comment)) DEALLOCATE(comment)
-  IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
-ENDIF
 !
 !Find the max. volume occupied by a grain
 Vmin = MINVAL(cell_volumes)
@@ -962,7 +777,7 @@ DO i=1,SIZE(NPgrains)
   Q(i,4) = 1.d0  !positions of com are given the atomic number of hydrogen
 ENDDO
 !
-IF( wof .AND. ofu.NE.6 ) THEN
+IF( ofu.NE.6 ) THEN
   !Write positions of center of mass of each grain into a file
   ALLOCATE(comment(1))
   comment(1) = "# Positions of grains centers of mass"
@@ -971,8 +786,8 @@ IF( wof .AND. ofu.NE.6 ) THEN
   CALL NAME_OUTFILE(prefix,temp,"     ")
   i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
   temp = temp(1:i-1)
-  outparamfile = TRIM(ADJUSTL(temp))//"_grains-com.xsf"
-  CALL WRITE_AFF(outparamfile,outfileformats,H,Q,S,comment,AUXNAMES,AUX)
+  msg = TRIM(ADJUSTL(temp))//"_grains-com.xsf"
+  CALL WRITE_AFF(msg,outfileformats,H,Q,S,comment,newAUXNAMES,newAUX)
   IF(ALLOCATED(Q)) DEALLOCATE(Q)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)
   IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
@@ -1040,21 +855,17 @@ GOTO 1000
 !
 830 CONTINUE
 nerr=nerr+1
-CALL ATOMSK_MSG(1801,(/TRIM(vfile)/),(/DBLE(linenumber)/))
+CALL ATOMSK_MSG(1801,(/TRIM(" ")/),(/DBLE(linenumber)/))
 GOTO 1000
 !
 !
 !
 1000 CONTINUE
-IF(ALLOCATED(Puc)) DEALLOCATE(Puc)
-IF(ALLOCATED(Suc)) DEALLOCATE(Suc)
 IF(ALLOCATED(Q)) DEALLOCATE(Q)
 IF(ALLOCATED(S)) DEALLOCATE(S)
 IF(ALLOCATED(T)) DEALLOCATE(T)
 IF(ALLOCATED(Nvertices)) DEALLOCATE(Nvertices)
 IF(ALLOCATED(NPgrains)) DEALLOCATE(NPgrains)
-IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
-IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 !
 !
 !

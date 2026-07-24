@@ -25,7 +25,7 @@ PROGRAM atomsk
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 03 Sept. 2025                                    *
+!* Last modification: P. Hirel - 24 June 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -108,35 +108,16 @@ fileexists = .FALSE.
 outfileformat=''
 username = ''
 pfiles(:) = ''
-headerwidth=53
-headerstyle="box"
 strlength=0
-nwarn = 0
-nerr = 0
 Nmodes = 0
 Nthreads = 0
 ioptions = 0
 j=0
 !
 !Set default parameters of the program
-lang = 'en'
-langBigYes = "Y"
-langyes = "y"
-langno = "n"
-logfile='atomsk.log'
 neighsearch = "auto"
 helpsection = 'general'
 mode='normal'  !By default run in normal mode, unless no parameter is given in command-line
-overw=.FALSE.  !By default, don't overwrite files
-ignore=.FALSE. !By default, don't ignore files already converted
-!Define the default level of verbosity:
-!    0=silent; no message is ever displayed nor written in log file
-!    1=all messages are written on the screen only.
-!    2=all messages are written in log file only.
-!    3=messages are written in log+screen.
-!    4=debug, additional messages are written in log file.
-!This default value should be set to 4 only for programming/debugging purposes
-verbosity = 1
 !
 !
 !Environment is set at compilation time (use flag -cpp).
@@ -235,10 +216,11 @@ ELSE
     !
     !Catch special keywords: 'version', 'help', 'license'
     !they print something and then exit the program
-    IF(clarg=='--version' .OR. clarg=='-version' .OR. clarg=='-V') THEN
+    SELECT CASE(StrDnCase(clarg))
+    CASE("--version","-version")
       CALL DISPLAY_COPYRIGHT()
       GOTO 1100
-    ELSEIF(clarg=='--help' .OR. clarg=='help') THEN
+    CASE("--help","help")
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=110,ERR=110) helpsection
@@ -248,32 +230,32 @@ ELSE
       110 CONTINUE
       CALL DISPLAY_HELP(helpsection)
       GOTO 1100
-    ELSEIF(clarg=='--license' .OR. clarg=='--licence') THEN
+    CASE("--license","--licence")
       CALL DISPLAY_LICENSE()
       GOTO 1100
     !
     !Catch keywords setting the behavior of the program
-    ELSEIF(clarg=='-ignore' .OR. clarg=='-ig') THEN
+    CASE("-ignore","-ig")
       ignore = .TRUE.
-    ELSEIF(clarg=='-overwrite' .OR. clarg=='-ow') THEN
+    CASE("-overwrite","-ow")
       overw = .TRUE.
-    ELSEIF(clarg=='-verbose' .OR. clarg=='--verbose') THEN
+    CASE("-verbose","--verbose")
       verbosity = 4
-    ELSEIF(clarg=='-verbosity' .OR. clarg=='-v') THEN
+    CASE("-verbosity","-v")
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) verbosity
-    ELSEIF(clarg=='-v0') THEN
+    CASE("-v0")
       verbosity = 0
-    ELSEIF(clarg=='-v1') THEN
+    CASE("-v1")
       verbosity = 1
-    ELSEIF(clarg=='-v2' .OR. clarg=='-vv') THEN
+    CASE("-v2","-vv")
       verbosity = 2
-    ELSEIF(clarg=='-v3' .OR. clarg=='-vvv') THEN
+    CASE("-v3","-vvv")
       verbosity = 3
-    ELSEIF(clarg=='-v4' .OR. clarg(1:5)=='-vvvv' .OR. clarg=='-debug') THEN
+    CASE("-v4","-vvvv","-debug")
       verbosity = 4
-    ELSEIF(clarg=='-log') THEN
+    CASE("-log")
       i=i+1
       CALL GETARG(i,clarg)
       logfile = TRIM(ADJUSTL(clarg))
@@ -282,18 +264,17 @@ ELSE
         !Set verbosity level to 3 = write info on screen + in log file
         verbosity = 3
       ENDIF
-    ELSEIF(clarg=='-lang' .OR. clarg=='-language') THEN
+    CASE("-lang","-language")
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) lang
-      verbosity = 4
-    ELSEIF(clarg=='-Nthreads' .OR. clarg=='-nthreads') THEN
+    CASE("-nthreads")
       i=i+1
       CALL GETARG(i,clarg)
       READ(clarg,*,END=120,ERR=120) Nthreads
       IF(Nthreads<0) Nthreads=0
       !
-    ELSE
+    CASE DEFAULT
       !Store command-line argument(s) in cla(:)
       j=j+1 !index in cla(:)
       cla(j) = clarg
@@ -365,6 +346,9 @@ ELSE
           GOTO 1000
         ENDIF
       !
+      ELSEIF( clarg(1:5)=="-vvvv" ) THEN
+        verbosity = 4
+      !
       !If it is just "-", output to stdout and set verbosity to 0
       ELSEIF(clarg=='-') THEN
         ofu=6
@@ -386,7 +370,7 @@ ELSE
       !
       ENDIF
       !
-    ENDIF
+    END SELECT
     !
     120 CONTINUE
   ENDDO
