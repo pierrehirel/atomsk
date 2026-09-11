@@ -24,7 +24,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 Feb. 2024                                     *
+!* Last modification: P. Hirel - 10 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -53,8 +53,9 @@ SUBROUTINE GUESS_FORMAT(inputfile,infileformat,fstatus)
 !
 IMPLICIT NONE
 CHARACTER:: c
-CHARACTER(LEN=4):: fstatus   !file status; 'read' or 'writ'
-CHARACTER(LEN=5):: extension, infileformat
+CHARACTER(LEN=4),INTENT(IN):: fstatus   !file status; 'read' or 'writ'
+CHARACTER(LEN=5):: extension
+CHARACTER(LEN=5),INTENT(OUT):: infileformat !format of given file
 CHARACTER(LEN=8):: nline     !line number
 CHARACTER(LEN=128):: msg
 CHARACTER(LEN=1024):: test, test2
@@ -187,9 +188,8 @@ IF(fileexists) THEN
     formatted = formatted .AND. ( IACHAR(c)<=127 )
   ENDDO
   IF( .NOT.formatted ) THEN
-    !File is in binary format: not supported for now
-    infileformat = "xxx"
-    GOTO 1000
+    !File is in binary format: do not parse for keywords
+    GOTO 300
   ENDIF
   !
   !Go back to beginning of file

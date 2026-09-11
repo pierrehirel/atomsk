@@ -309,10 +309,14 @@ CASE('merge')
   test = ""
   DO WHILE( m==0 .AND. i<SIZE(mode_param) )
     i=i+1
-    READ(mode_param(i),*,ERR=7000,END=7000) temp
-    IF( StrDnCase(temp)=="stack" ) THEN
-      i=i+1
-      READ(mode_param(i),*,ERR=7000,END=7000) axis
+    !READ(mode_param(i),*,ERR=7000,END=7000) temp
+    temp = TRIM(ADJUSTL(mode_param(i)))
+    IF( StrDnCase(temp(1:5))=="stack" ) THEN
+      temp = TRIM(ADJUSTL(temp(6:)))
+      axis = StrDnCase(temp)
+    ELSEIF( StrDnCase(temp)=="x" .OR. StrDnCase(temp)=="y" .OR. StrDnCase(temp)=="z" ) THEN
+      !User directly gave direction without keyword: assume it is the stacking direction
+      axis = StrDnCase(temp)
     ELSEIF( StrDnCase(temp)=="scale" .OR. StrDnCase(temp)=="rescale" .OR. StrDnCase(temp)=="match" ) THEN
       i=i+1
       READ(mode_param(i),*,ERR=7000,END=7000) test

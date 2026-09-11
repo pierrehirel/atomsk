@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 Dec. 2025                                     *
+!* Last modification: P. Hirel - 10 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -337,6 +337,7 @@ DO WHILE(i<SIZE(cla))
     m=0
     DO WHILE(m<=0)
       READ(cla(i),*,ERR=130,END=130) temp
+      temp = TRIM(ADJUSTL(temp))
       IF( StrDnCase(temp)=="stack" ) THEN
         j = j+1
         mode_param(j) = TRIM(ADJUSTL(temp))  !"stack"
@@ -364,6 +365,7 @@ DO WHILE(i<SIZE(cla))
         !User directly gave direction without keyword: assume it is the stacking direction
         j = j+1
         mode_param(j) = "stack "//TRIM(ADJUSTL(temp))
+        i=i+1
       ELSE
         !If none of the above, must be the number of file names to follow
         READ(temp,*,ERR=130,END=130) m

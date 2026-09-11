@@ -11,7 +11,7 @@
 
 <p><a href="./index.html">Retour au menu principal</a></p>
 
-<h2>Mode : interactif</h2>
+<h2>Mode&nbsp;: interpréteur en ligne de commandes</h2>
 
 <h4>Syntaxe</h4>
 
@@ -41,6 +41,40 @@
 </ul>
 
 <p>La commande <strong>create</strong> peut être appelée avec les mêmes arguments que le <a href="./mode_create.html">mode <code>--create</code></a>. Si aucun argument n'est fourni alors ils seront demandés de façon interactive.</p>
+
+<p>Des commandes liées à la cristallographie sont aussi disponibles&nbsp;:</p>
+
+<ul>
+  <li class="clist"><strong>a0 &#60;valeur&#62;</strong> Définit le paramètre de maille a<sub>0</sub>. Si les autres paramètres de maille (b<sub>0</sub>,c<sub>0</sub>) sont indéfinis, alors ils prennent automatiquement la même valeur. Cette commande met immédiatement à jour les vecteurs de boîte H(:,:)</li>
+  <li class="clist"><strong>b0 &#60;valeur&#62;</strong> Définit le paramètre de maille b<sub>0</sub>. Si les autres paramètres de maille (a<sub>0</sub>,c<sub>0</sub>) sont indéfinis, alors ils prennent automatiquement la même valeur. Cette commande met immédiatement à jour les vecteurs de boîte H(:,:)</li>
+  <li class="clist"><strong>c0 &#60;valeur&#62;</strong> Définit le paramètre de maille c<sub>0</sub>. Si les autres paramètres de maille (a<sub>0</sub>,b<sub>0</sub>) sont indéfinis, alors ils prennent automatiquement la même valeur. Cette commande met immédiatement à jour les vecteurs de boîte H(:,:)</li>
+  <li class="clist"><strong>alpha &#60;valeur&#62;</strong> Définit l'angle &alpha; (en degrés) entre le deuxième et le troisième vecteurs de boîte, H(2,:) et H(3,:). Met immédiatement à jour les vecteurs de boîte H(:,:)</li>
+  <li class="clist"><strong>beta &#60;valeur&#62;</strong> Définit l'angle &beta; (en degrés) entre le premier et le troisième vecteurs de boîte, H(1,:) et H(3,:). Met immédiatement à jour les vecteurs de boîte H(:,:)</li>
+  <li class="clist"><strong>gamma &#60;valeur&#62;</strong> Définit l'angle &gamma; (en degrés) entre le premier et le deuxième vecteurs de boîte, H(1,:) et H(2,:). Met immédiatement à jour les vecteurs de boîte H(:,:)</li>
+  <li class="clist"><strong>cell</strong> Affiche les vecteurs de boîte courants H(:,:)</li>
+  <li class="clist"><strong>volume</strong> Calcule et affiche le volume de la boîte courante</li>
+  <li class="clist"><strong>reciprocal</strong> Calcule et affiche les vecteurs du réseau réciproque de la boîte courante H(:,:)</li>
+  <li class="clist"><strong>anglehkl [<em>hkl</em>] [<em>h'k'l'</em>]</strong> Calcule l'angle entre deux directions cristallographiques. Si aucune boîte n'est définie, alors la symétrie cubique est utilisée. Si une boîte H(:,:) est définie (par ex. avec les commandes précédentes a0, b0, alpha, etc.), alors les vecteurs de Miller sont convertis en vecteurs cartésiens appropriés avant de calculer l'angle entre eux.</li>
+  <li class="clist"><strong>anglehkl [<em>hkil</em>] [<em>h'k'i'l'</em>]</strong> Calcule l'angle entre deux directions cristallographiques, en utilisant la notation de Miller-Bravais à 4 indices. Une maille hexagonale <em>doit</em> avoir été définie avant d'utiliser cette commande, et les indices doivent satisfaire <em>i</em>&nbsp;=&nbsp;&minus;(<em>h</em>+<em>k</em>).</li>
+  <li class="clist"><strong>normalhkl <em>hkl</em></strong> Trouve la direction normale au plan cristallin (<em>hkl</em>). Si aucune maille n'est définie, alors la symétrie cubique est utilisée, c'est-à-dire que la normale au plan (hkl) est simplement la direction [hkl]. Si une maille H(:,:) est définie (par ex. avec les commandes précédentes a0, b0, alpha, etc.), alors cette maille est utilisée pour trouver la normale. Notez que les indices <em>hkl</em> ne doivent pas être entourés de parenthèses, car cela interfèrerait avec l'interpréteur bash.</li>
+  <li class="clist"><strong>hkil2uvw [<em>hkil</em>]</strong> Convertit des indices de Miller-Bravais [<em>hkil</em>] en indices de Miller [<em>uvw</em>]</li>
+  <li class="clist"><strong>uvw2hkil [<em>uvw</em>]</strong> Convertit des indices de Miller [<em>uvw</em>] en indices de Miller-Bravais [<em>hkil</em>]</li>
+  <li class="clist"><strong>C11 &#60;valeur&#62;</strong> Définit la constante élastique C<sub>11</sub>. Si les constantes élastiques C<sub>22</sub> et C<sub>33</sub> sont indéfinies, alors elles prennent automatiquement la même valeur. Notez que cette commande ne met pas à jour le tenseur C<sub>ij</sub> (voir ci-dessous).</li>
+  <li class="clist"><strong>C22 &#60;valeur&#62;</strong> Idem pour C<sub>22</sub></li>
+  <li class="clist"><strong>C33 &#60;valeur&#62;</strong> Idem pour C<sub>33</sub></li>
+  <li class="clist"><strong>C12 &#60;valeur&#62;</strong> Définit la constante élastique C<sub>12</sub>. Si les constantes élastiques C<sub>13</sub> et C<sub>23</sub> sont indéfinies, alors elles prennent automatiquement la même valeur. Notez que cette commande ne met pas à jour le tenseur C<sub>ij</sub> (voir ci-dessous).</li>
+  <li class="clist"><strong>C13 &#60;valeur&#62;</strong> Idem pour C<sub>13</sub></li>
+  <li class="clist"><strong>C23 &#60;valeur&#62;</strong> Idem pour C<sub>23</sub></li>
+  <li class="clist"><strong>C44 &#60;valeur&#62;</strong> Définit la constante élastique C<sub>44</sub>. Si les constantes élastiques C<sub>55</sub> et C<sub>66</sub> sont indéfinies, alors elles prennent automatiquement la même valeur. Notez que cette commande ne met pas à jour le tenseur C<sub>ij</sub> (voir ci-dessous).</li>
+  <li class="clist"><strong>C55 &#60;valeur&#62;</strong> Idem pour C<sub>55</sub></li>
+  <li class="clist"><strong>C66 &#60;valeur&#62;</strong> Idem pour C<sub>66</sub></li>
+  <li class="clist"><strong>Cij</strong> Construit le tenseur élastique C<sub>ij</sub> en utilisant les valeurs définies précédemment</li>
+  <li class="clist"><strong>moduli</strong> À partir du tenseur C<sub>ij</sub> défini précédemment, calcule et affiche le module de compressibilité B, le module de Young E, le module de cisaillement G, et le coefficient de Poisson &nu;</li>
+  <li class="clist"><strong>aniso</strong> À partir du tenseur C<sub>ij</sub> défini précédemment, calcule et affiche le ratio d'anisotropie A&nbsp;=&nbsp;2C<sub>44</sub>/(C<sub>11</sub>&minus;C<sub>12</sub>), et le facteur d'anisotropie H&nbsp;=&nbsp;2C<sub>44</sub>&nbsp;+&nbsp;C<sub>12</sub>&nbsp;&minus;&nbsp;C<sub>11</sub></li>
+  <li class="clist"><strong>Sij</strong> À partir du tenseur C<sub>ij</sub> défini précédemment, calcule et affiche le tenseur des compliances S<sub>ij</sub></li>
+  <li class="clist"><strong>atom &#60;element&#62; &#60;x&#62; &#60;y&#62; &#60;z&#62;</strong> Ajoute un atome de l'&#60;element&#62; donné à la position (<em>x</em>,<em>y</em>,<em>z</em>) donnée. Si les coordonnées contiennent des fractions (par ex. "1/2" ou "2/3"), elles sont traitées comme des coordonnées réduites&nbsp; sinon comme des coordonnées cartésiennes.</li>
+  <li class="clist"><strong>rotate &#60;X|Y|Z&#62; &#60;angle&#62;</strong> Opère une rotation des vecteurs de boîte H(:,:) et/ou du tenseur élastique C<sub>ij</sub> et/ou des positions des atomes (selon ce qui est défini) autour de l'axe cartésien donné (X, Y or Z), avec l'angle donné</li>
+</ul>
 
 <p>Les <a href="./options.html">options</a> d'Atomsk sont également disponibles. Elles doivent être appelées <em>sans</em> le tiret (-) et avec tous leurs paramètres.</p>
 

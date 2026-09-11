@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 22 July 2026                                     *
+!* Last modification: P. Hirel - 02 Sept. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,7 @@ USE constants
 USE crystallography
 USE elasticity
 USE messages
+USE messages_misc
 USE files
 USE math
 USE random
@@ -985,7 +986,7 @@ DO
           WRITE(*,*) "      ["//TRIM(ADJUSTL(msg))//"] = "//TRIM(ADJUSTL(temp))//" ["//TRIM(ADJUSTL(test))//"]"
         ENDIF
         !
-      CASE("anglehkl")
+      CASE("anglehkl","anglehkil")
         !Compute the angle between 2 crystal directions
         !Read Miller indices, convert them into proper vectors
         command = TRIM(ADJUSTL(instruction(9:)))
@@ -1028,22 +1029,25 @@ DO
         ENDIF
         !Check if cell vectors are defined
         IF( VECLENGTH(H(1,:))>1.d-6 .AND. VECLENGTH(H(2,:))>1.d-6 .AND. VECLENGTH(H(3,:))>1.d-6 ) THEN
-          !A cell was defined: check that it is indeed hexagonal
-          IF( IS_HEXAGONAL(H) ) THEN
-            !Cell H(:,:) is hexagonal: define a0 and c0
-            IF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) < 1.d-3 ) THEN
-              a0 = VECLENGTH(H(1,:))
-              c0 = VECLENGTH(H(3,:))
-            ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) < 1.d-3 ) THEN
-              a0 = VECLENGTH(H(1,:))
-              c0 = VECLENGTH(H(2,:))
+          !A cell is defined: use cell vectors to convert [hkl] into proper Cartesian vectors
+          IF( hexagonal ) THEN
+            !Verify that cell is indeed hexagonal
+            IF( IS_HEXAGONAL(H) ) THEN
+              !Cell H(:,:) is indeed hexagonal: define a0 and c0
+              IF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(2,:)))) < 1.d-3 ) THEN
+                a0 = VECLENGTH(H(1,:))
+                c0 = VECLENGTH(H(3,:))
+              ELSEIF( DABS(120.d0-RAD2DEG(ANGVEC(H(1,:),H(3,:)))) < 1.d-3 ) THEN
+                a0 = VECLENGTH(H(1,:))
+                c0 = VECLENGTH(H(2,:))
+              ELSE
+                a0 = VECLENGTH(H(2,:))
+                c0 = VECLENGTH(H(1,:))
+              ENDIF
             ELSE
-              a0 = VECLENGTH(H(2,:))
-              c0 = VECLENGTH(H(1,:))
+              WRITE(*,*) "      X!X ERROR: current cell is not hexagonal."
+              GOTO 400
             ENDIF
-          ELSE
-            WRITE(*,*) "      X!X ERROR: current cell is not hexagonal."
-            GOTO 400
           ENDIF
           !Multiply Miller indices by current cell vectors
           vector(:) = v1(:)
@@ -1073,8 +1077,8 @@ DO
         WRITE(temp,'(f9.3)') z
         WRITE(*,*) "      angle = "//TRIM(ADJUSTL(temp))//" °"
         !
-      CASE("normalhkl")
-        !Find normal to a (hkl) plane
+      CASE("normalhkl","normalhkil")
+        !Find normal to a (hkl) or (hkil) plane
         !Read Miller indices, convert them into proper vectors
         command = TRIM(ADJUSTL(instruction(10:)))
         READ(command,*,ERR=400,END=400) string1
@@ -1397,8 +1401,10 @@ DO
           IF( ANY(LEN_TRIM(criteria)>0) ) THEN
             CALL ATOMSK_MSG(2762,criteria,(/0.d0/))
           ENDIF
-          WRITE(*,*) "  Anisotropy ratio  A = 2*C44 / (C11-C12) = ", Cij_ANISO_A(C_tensor)
-          WRITE(*,*) "  Anisotropy factor H = 2*C44 + C12 - C11 = ", Cij_ANISO_H(C_tensor)
+          WRITE(temp,'(f12.6)') Cij_ANISO_A(C_tensor)
+          WRITE(*,*) "  Zener anisotropy ratio  A = 2*C44 / (C11-C12) = "//TRIM(ADJUSTL(temp))
+          WRITE(temp,'(f12.6)') Cij_ANISO_H(C_tensor)
+          WRITE(*,*) "        Anisotropy factor H = 2*C44 + C12 - C11 = "//TRIM(ADJUSTL(temp))//" GPa"
         ENDIF
         !
       CASE("modulus","moduli","young","shear","poisson","Poisson")
@@ -1878,47 +1884,6 @@ IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
 !
 !
 END SUBROUTINE INTERACT
-!
-!
-SUBROUTINE DISPLAY_MATRIX(name,M)
-!
-IMPLICIT NONE
-CHARACTER(LEN=*),INTENT(IN):: name
-CHARACTER(LEN=9):: shortx
-CHARACTER(LEN=10):: longx
-CHARACTER(LEN=256):: msg
-REAL(dp),DIMENSION(:,:),INTENT(IN):: M
-INTEGER:: i, j, iname, lname
-!
-iname = SIZE(M,2)/2 + 1
-lname = LEN_TRIM(ADJUSTL(name))
-!
-DO i=1,SIZE(M,1)
-  msg = ""
-  IF(SIZE(M,2)>3) THEN
-    DO j=1,SIZE(M,2)
-      IF( DABS(M(i,j))<1.d-8 .OR. DABS(M(i,j))>1.d-2 ) THEN
-        WRITE(shortx,'(f9.3)') M(i,j)
-      ELSE
-        WRITE(shortx,'(e9.3)') M(i,j)
-      ENDIF
-      msg = TRIM(msg)//"  "//ADJUSTR(shortx)
-    ENDDO
-  ELSE
-    DO j=1,SIZE(M,2)
-      WRITE(longx,'(f10.6)') M(i,j)
-      msg = TRIM(msg)//"  "//ADJUSTR(longx)
-    ENDDO
-  ENDIF
-  msg(lname+8:) = "|"//TRIM(msg)//" |"
-  msg(:lname+7) = ""
-  IF(i==iname) THEN
-    msg(5:lname+7) = TRIM(ADJUSTL(name))//" ="
-  ENDIF
-  WRITE(*,*) TRIM(msg)
-ENDDO
-!
-END SUBROUTINE DISPLAY_MATRIX
 !
 !
 END MODULE mode_interactive

@@ -9,7 +9,7 @@ MODULE messages_misc
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 June 2026                                     *
+!* Last modification: P. Hirel - 24 Aug. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,56 @@ USE strings
 !
 !
 CONTAINS
+!
+!
+!********************************************************
+! DISPLAY_MATRIX
+! This subroutine displays a 2-D matrix in the form:
+!         | M11 M12 M13 |
+!  name = | M21 M22 M23 |
+!         | M31 M32 M33 |
+! The matrix may have any number of rows and columns,
+! the display will be adjusted automatically.
+!********************************************************
+SUBROUTINE DISPLAY_MATRIX(name,M)
+!
+IMPLICIT NONE
+CHARACTER(LEN=*),INTENT(IN):: name
+CHARACTER(LEN=9):: shortx
+CHARACTER(LEN=10):: longx
+CHARACTER(LEN=256):: msg
+REAL(dp),DIMENSION(:,:),INTENT(IN):: M
+INTEGER:: i, j, iname, lname
+!
+iname = SIZE(M,2)/2 + 1
+lname = LEN_TRIM(ADJUSTL(name))
+!
+DO i=1,SIZE(M,1)
+  msg = ""
+  IF(SIZE(M,2)>3) THEN
+    DO j=1,SIZE(M,2)
+      IF( DABS(M(i,j))<1.d-8 .OR. DABS(M(i,j))>1.d-2 ) THEN
+        WRITE(shortx,'(f9.3)') M(i,j)
+      ELSE
+        WRITE(shortx,'(e9.3)') M(i,j)
+      ENDIF
+      msg = TRIM(msg)//"  "//ADJUSTR(shortx)
+    ENDDO
+  ELSE
+    DO j=1,SIZE(M,2)
+      WRITE(longx,'(f10.6)') M(i,j)
+      msg = TRIM(msg)//"  "//ADJUSTR(longx)
+    ENDDO
+  ENDIF
+  msg(lname+8:) = "|"//TRIM(msg)//" |"
+  msg(:lname+7) = ""
+  IF(i==iname) THEN
+    msg(5:lname+7) = TRIM(ADJUSTL(name))//" ="
+  ENDIF
+  WRITE(*,*) TRIM(msg)
+ENDDO
+!
+END SUBROUTINE DISPLAY_MATRIX
 !
 !
 !********************************************************

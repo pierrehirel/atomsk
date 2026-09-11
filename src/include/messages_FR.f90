@@ -3038,6 +3038,10 @@ CASE(4023)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "volume                     Affiche le volume de boîte courant"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "reciprocal                 Affiche les vecteurs réciproques de la boîte"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "anglehkl [hkl] [hkl]       Calcule l'angle entre deux directions cristallines"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "hkil2uvw [hkil]            Convertit une direction à 4 indices [hkil] en direction à 3 indices [uvw]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "uvw2hkil [uvw]             Convertit une direction à 3 indices [uvw] en direction à 4 indices [hkil]"

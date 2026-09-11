@@ -2990,6 +2990,10 @@ CASE(4023)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "volume                     Aktuelles Zellvolumen anzeigen"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "reciprocal                 Reziproke Vektoren der aktuellen Zelle anzeigen"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "anglehkl [hkl] [hkl]       Berechnen Sie den Winkel zwischen zwei Kristallrichtungen"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "hkil2uvw [hkil]            Konvertiere die 4-Index-Richtung [hkil] in die 3-Index-Richtung [uvw]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "uvw2hkil [uvw]             Konvertiere die 3-Index-Richtung [uvw] in die 4-Index-Richtung [hkil]"

@@ -2973,6 +2973,10 @@ CASE(4023)
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "volume                     Display current cell volume"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "reciprocal                 Display reciprocal vectors of current cell"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+    msg = "anglehkl [hkl] [hkl]       Compute the angle between two crystal directions"
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "hkil2uvw [hkil]            Convert 4-index [hkil] direction into 3-index [uvw]"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
     msg = "uvw2hkil [uvw]             Convert 3-index [uvw] direction into 4-index [hkil]"
