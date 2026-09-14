@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 Sept. 2026                                    *
+!* Last modification: P. Hirel - 14 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -620,8 +620,8 @@ DO WHILE(i<SIZE(cla))
     READ(cla(i),*,END=400,ERR=400) temp
     temp = TRIM(ADJUSTL(StrDnCase(temp)))
     SELECT CASE(temp)
-    CASE( "h1","h2","h3",'x','y','z',"xx","yy","zz", &
-        & "xy","xz","yx","yz","zx","zy","xyz","all"  )
+    CASE( "h1","h2","h3",'x','y','z',"xx","yy","zz",'a','b','c', &
+        & "xy","xz","yx","yz","zx","zy","xyz","alpha","beta","gamma","all"  )
       options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
     CASE DEFAULT
       GOTO 120

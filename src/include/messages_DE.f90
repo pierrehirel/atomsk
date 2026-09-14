@@ -2298,6 +2298,8 @@ CASE(2151)
   !strings(2) = component of cell vector
   !reals(1) = distance added (or removed)
   WRITE(temp2,'(f16.3)') reals(1)
+  temp3=""
+  temp4="Å"
   IF( strings(2)=="H1" ) THEN
     temp3 = "zum ersten Zellvektor"
   ELSEIF( strings(2)=="H2" ) THEN
@@ -2324,13 +2326,22 @@ CASE(2151)
     temp3 = "zur ZY-Neigung"
   ELSEIF( strings(2)=="xyz" .OR. strings(2)=="XYZ" ) THEN
     temp3 = "zu allen Zellvektoren"
+  ELSEIF( strings(2)=="alpha" ) THEN
+    temp3 = "des Winkels α"
+    temp4 = "°"
+  ELSEIF( strings(2)=="beta" ) THEN
+    temp3 = "des Winkels β"
+    temp4 = "°"
+  ELSEIF( strings(2)=="gamma" ) THEN
+    temp3 = "des Winkels γ"
+    temp4 = "°"
   ENDIF
   IF( strings(1)=="add" ) THEN
-    msg = ">>> Hinzufügen von "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+    msg = ">>> Hinzufügen von "//TRIM(ADJUSTL(temp2))//TRIM(temp4)//" um "//TRIM(ADJUSTL(temp3))//"..."
   ELSEIF( strings(1)=="rm" ) THEN
-    msg = ">>> Entfernen von "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+    msg = ">>> Entfernen von "//TRIM(ADJUSTL(temp2))//TRIM(temp4)//" um "//TRIM(ADJUSTL(temp3))//"..."
   ELSE
-    msg = ">>> Setting "//TRIM(ADJUSTL(temp3))//" to "//TRIM(ADJUSTL(temp2))//" A..."
+    msg = ">>> Einstellen "//TRIM(ADJUSTL(temp3))//" auf "//TRIM(ADJUSTL(temp2))//TRIM(temp4)//"..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2152)
@@ -2580,6 +2591,9 @@ CASE(2767)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2768)
   msg = TRIM(ADJUSTL(warnmsg))//" es gibt kein Atom mehr im System."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2769)
+  msg = TRIM(ADJUSTL(warnmsg))//" Das Boxvolumen ist jetzt null!"
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

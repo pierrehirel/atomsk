@@ -15,24 +15,26 @@
 
 <h4>Syntaxe</h4>
 
-<p><code>-cell &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62; &#60;add|rm|set&#62; &#60;d&#62;</code></p>
+<p><code>-cell &#60;a|b|c|alpha|beta|gamma|H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62; &#60;add|rm|set&#62; &#60;valeur&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>Cette option permet de modifier les vecteurs de boîte.</p>
+<p>Cette option permet de modifier les vecteurs de boîte, notés H1, H2, et H3 dans la suite. Les positions (cartésiennes) des atomes ne sont pas modifiées par cette option.</p>
 
-<p>Les mots-clés H1, H2, H3, font référence aux vecteurs de boîte. Ajouter une distance &#60;d&#62; à un vecteur signifie qu'il conservera la même direction, mais sa norme sera plus longue d'une quantité &#60;d&#62;. La même logique s'applique lorsqu'une distance est réduite (rm) ou définie (set).</p>
+<p>Les mots-clés a, b, c (ou H1, H2, H3), font référence aux vecteurs de boîte. Ajouter une distance &#60;valeur&#62; à un vecteur signifie qu'il conservera la même direction, mais sa norme sera plus longue d'une quantité égale à la &#60;valeur&#62;. La même logique s'applique lorsqu'une distance est réduite (rm) ou définie (set).</p>
 
-<p>Les mots-clés x, y, z, font référence aux composantes cartésiennes des vecteurs de boîte. Ajouter une distance &#60;d&#62; à la composante x, signifie que le vecteur avec la plus grande composante suivant X sera redimensionné de sorte que les "bornes de boîte" (la différence entre les coordonnées maximum et minimum suivant X) soit plus longue de &#60;d&#62;. Les vecteurs de boîte conservent leurs directions respectives et leurs angles relatifs. Notez que si les vecteurs de boîte sont inclinés par rapport aux axes cartésiens, alors leur longueur n'est pas modifiée de &#60;d&#62; mais d'une autre quantité. La composante "xyz" signifie que la même distance &#60;d&#62; sera ajoutée (ou enlevée) à toutes les composantes cartésiennes. Les composantes xy, xz, yx, yz, zx, zy, sont les éléments non-diagonaux de la matrice des vecteurs de boîte.</p>
+<p>Les mots-clés alpha, beta, gamma, se réfèrent aux angles entre les vecteurs de boîte&nbsp;: &alpha; entre H2 et H3, &beta; entre H1 et H3, &gamma; entre H1 and H2. Définir (set) un angle à la &#60;valeur&#62; donnée signifie que le vecteur de boîte avec le plus haut indice sera tourné afin d'atteindre l'angle spécifié (autrement dit, modifier &alpha; changera H3, &beta; changera H3, et &gamma; changera H2). La même logique s'applique lorsqu'un angle est augmenté (add) ou réduit (rm) de la &#60;valeur&#62; donnée.</p>
 
-<p>Notez que si les vecteurs de boîte sont alignés avec les axes cartésiens, tels que H1//x, H2//y, et H3//z, alors utiliser le mot-clé "H1" est strictement équivalent à "x", puisque le vecteur H1 a une composante non nulle uniquement suivant X. La même chose est vraie pour H2 et y, et pour H3 et z.</p>
+<p>Les mots-clés x, y, z, font référence aux composantes cartésiennes des vecteurs de boîte. Ajouter une &#60;valeur&#62; à la composante x, signifie que le vecteur avec la plus grande composante suivant X sera redimensionné de sorte que les "bornes de boîte" (la différence entre les coordonnées maximum et minimum suivant X) soit plus longue de &#60;valeur&#62;. Les vecteurs de boîte conservent leurs directions respectives et leurs angles relatifs. Notez que si les vecteurs de boîte sont inclinés par rapport aux axes cartésiens, alors leur longueur n'est pas modifiée de la &#60;valeur&#62; mais d'une autre quantité. La composante "xyz" signifie que la même &#60;valeur&#62; sera ajoutée (ou enlevée) à toutes les composantes cartésiennes. Les composantes xy, xz, yx, yz, zx, zy, sont les éléments non-diagonaux de la matrice des vecteurs de boîte.</p>
 
-<p>Il est possible d'ajouter ("add"), d'enlever ("rm"), ou d'attribuer ("set") une longueur &#60;d&#62; à la composante donnée d'un vecteur de boîte.</p>
+<p>Notez que si les vecteurs de boîte sont alignés avec les axes cartésiens, tels que H1//x, H2//y, et H3//z, alors utiliser le mot-clé "a" (ou "H1") est strictement équivalent à "x", puisque le vecteur H1 a une composante non nulle uniquement suivant X. La même chose est vraie pour b (ou H2) et y, et pour c (ou H3) et z.</p>
 
-<p>La distance &#60;d&#62; doit être donnée en (&Aring;), et il est recommandé qu'elle soit positive pour éviter toute confusion. Utiliser "add" avec une valeur négative de &#60;d&#62; va en réalité raccourcir le vecteur de boîte. De la même façon, utiliser "rm" avec une valeur négative de &#60;d&#62; va en fait allonger le vecteur de boîte.</p>
+<p>Il est possible d'ajouter ("add"), d'enlever ("rm"), ou d'attribuer ("set") une &#60;valeur&#62; à la composante donnée d'un vecteur de boîte.</p>
 
-<p>Les positions cartésiennes des atomes ne sont pas modifiées par cette option. Ainsi, allonger un vecteur de boîte (avec "add" ou "set") introduira une épaisseur de vide suivant la direction donnée. Inversement, si un vecteur est raccourci (avec "rm" ou "set"), alors certains atomes peuvent se retrouver en dehors de la boîte. Si des conditions aux limites périodiques sont utilisées, cela peut provoquer un chevauchement de certains atomes.</p>
+<p>La &#60;valeur&#62; doit être donnée en (&Aring;), ou en degrés pour les angles &alpha;, &beta;, &gamma;, et il est recommandé qu'elle soit positive pour éviter toute confusion. Utiliser "add" avec une &#60;valeur&#62; négative va en réalité raccourcir le vecteur de boîte. De la même façon, utiliser "rm" avec une &#60;valeur&#62; négative va en fait allonger le vecteur de boîte.</p>
+
+<p>Les positions cartésiennes des atomes ne sont pas modifiées par cette option. Ainsi, allonger un vecteur de boîte (avec "add" ou "set") introduira une épaisseur de vide suivant la direction donnée. Inversement, si un vecteur est raccourci (avec "rm" ou "set"), alors certains atomes peuvent se retrouver en dehors de la boîte. Si des conditions aux limites périodiques sont utilisées, cela peut provoquer un chevauchement de certains atomes. Si vous souhaitez déformer la boîte et les atomes ensemble, alors regardez l'<a href="./option_deform.html">option <code>-deform</code></a>.</p>
 
 <p>Si vous souhaitez donner toutes les composantes des vecteurs de boîte, il est possible de les écrire dans un fichier et d'utiliser l'<a href="./option_properties.html">option <code>-property</code></a>. Pour forcer Atomsk à construire automatiquement une nouvelle boîte, il est possible d'utiliser l'<a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 

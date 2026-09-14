@@ -13,7 +13,7 @@ MODULE cell
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 10 Dec. 2025                                     *
+!* Last modification: P. Hirel - 14 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -31,6 +31,7 @@ MODULE cell
 !
 USE comv
 USE constants
+USE math
 USE deterH
 USE messages
 USE files
@@ -44,7 +45,8 @@ SUBROUTINE CELL_XYZ(H,celldir,cellop,celllength)
 !
 !
 IMPLICIT NONE
-CHARACTER(LEN=5),INTENT(IN):: celldir  !direction in which the cell is modified: x,y,z,xy,yx,xz,zx,yz,zy,xyz,all
+CHARACTER(LEN=5),INTENT(IN):: celldir  !direction in which the cell is modified:
+                                       !a, b, c, alpha, beta, gamma, H1, H2, H3, x,y,z,xy,yx,xz,zx,yz,zy,xyz,all
 CHARACTER(LEN=5),INTENT(IN):: cellop   !operation to perform on the cell: add,rm,set,auto (or "rebox")
 CHARACTER(LEN=128):: msg
 LOGICAL:: checkzero !check for zero cell length?
@@ -52,10 +54,11 @@ INTEGER:: a1, a2, a3
 INTEGER:: i
 INTEGER:: Nmodified  !number of box vectors that were modified
 INTEGER,DIMENSION(3):: Hmodified !index of modified vectors
-REAL(dp):: alpha !angle between a cell vector and a Cartesian axis
+REAL(dp):: alpha !angle between two vectors
 REAL(dp):: dH  !change of cell vector (+celllength for "add" or -celllength for "rm")
 REAL(dp):: vl  !length of a cell vector
 REAL(dp),DIMENSION(3):: cartvec  !coordinates of a Cartesian vector
+REAL(dp),DIMENSION(3,3):: rotmat !rotation matrix
 REAL(dp),INTENT(IN):: celllength  !value by which the cell will be modified
 REAL(dp),DIMENSION(3,3),INTENT(INOUT):: H   !Base vectors of the supercell
 !
@@ -69,6 +72,7 @@ a3 = 0
 Nmodified = 0
 Hmodified(:) = 0
 dH = 0.d0
+rotmat(:,:) = Id_Matrix(:,:)
 !
 !
 100 CONTINUE
@@ -79,21 +83,42 @@ CALL ATOMSK_MSG(2151,(/cellop,celldir/),(/celllength/))
 !
 !Set direction(s) to modify
 SELECT CASE(StrDnCase(celldir))
-CASE("h1",'x')
+CASE("h1",'x','a')
   checkzero=.TRUE.
   Hmodified(1) = 1
   Hmodified(2) = 0
   Hmodified(3) = 0
-CASE("h2",'y')
+CASE("h2",'y','b')
   checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 1
   Hmodified(3) = 0
-CASE("h3",'z')
+CASE("h3",'z','c')
   checkzero=.TRUE.
   Hmodified(1) = 0
   Hmodified(2) = 0
   Hmodified(3) = 1
+CASE("alpha")
+  checkzero=.TRUE.
+  Hmodified(1) = 0
+  Hmodified(2) = 0
+  Hmodified(3) = 1
+  a1 = 3
+  a2 = 2
+CASE("beta")
+  checkzero=.TRUE.
+  Hmodified(1) = 0
+  Hmodified(2) = 0
+  Hmodified(3) = 1
+  a1 = 3
+  a2 = 1
+CASE("gamma")
+  checkzero=.TRUE.
+  Hmodified(1) = 0
+  Hmodified(2) = 1
+  Hmodified(3) = 0
+  a1 = 2
+  a2 = 1
 CASE("xyz","all")
   checkzero=.TRUE.
   Hmodified(1) = 1
@@ -152,7 +177,7 @@ ENDIF
 !Modify the box
 IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
   SELECT CASE(StrDnCase(celldir))
-  CASE("h1","h2","h3")
+  CASE("h1","h2","h3",'a','b','c')
     !Modify vector length along given directions
     DO i=1,3
       IF( Hmodified(i)==1 ) THEN
@@ -168,6 +193,23 @@ IF( cellop=="add" .OR. cellop=="rm" .OR. cellop=="set" ) THEN
         Nmodified = Nmodified+1
       ENDIF
     ENDDO
+    !
+  CASE("alpha","beta","gamma")
+    !Modify the angle between two cell vectors
+    !Find direction normal to the plane containing H(a1,:) and H(a2,:)
+    cartvec(:) = NORMALIZE( CROSS_PRODUCT(H(a2,:),H(a1,:)) )
+    !Construct rotation matrix
+    IF( cellop=="set" ) THEN
+      rotmat(:,:) = AXIS2ROTMAT(cartvec,celllength)
+    ELSE
+      alpha = RAD2DEG( ANGVEC(H(a2,:),H(a1,:)) )
+      rotmat(:,:) = AXIS2ROTMAT(cartvec,alpha+dH)
+    ENDIF
+    !Rotate vector H(a2,:) around cartvec(:) by the given angle
+    !Then give it the correct length, save it to H(a1,:)
+    vl = VECLENGTH(H(a1,:))
+    H(a1,:) = VECMATMUL(H(a2,:),rotmat)
+    H(a1,:) = vl*H(a1,:)/VECLENGTH(H(a1,:))
     !
   CASE('x','y','z',"xyz","all")
     !Expand the "bounding box" along Cartesian axes
@@ -233,6 +275,11 @@ nerr = nerr+1
 !
 !
 1000 CONTINUE
+!Verify that cell volume is not zero
+IF( VOLUME_PARA(H)<=1.d-6 ) THEN
+  nwarn = nwarn+1
+  CALL ATOMSK_MSG(2769,(/''/),(/0.d0/))
+ENDIF
 !
 !
 END SUBROUTINE CELL_XYZ

@@ -15,26 +15,28 @@
 
 <h4>Syntax</h4>
 
-<p><code>-cell &#60;H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62; &#60;add|rm|set&#62; &#60;d&#62;</code></p>
+<p><code>-cell &#60;a|b|c|alpha|beta|gamma|H1|H2|H3|x|y|z|xy|xz|yx|yz|zx|zy|xyz&#62; &#60;add|rm|set&#62; &#60;value&#62;</code></p>
 
 
 <h4>Description</h4>
 
-<p>This option allows to modify the cell vectors.</p>
+<p>This option allows to modify the cell vectors, noted H1, H2, and H3 in the following. The (Cartesian) positions of atoms are not modified by this option.</p>
 
-<p>Keywords H1, H2, H3 refer to the three box vectors. Adding a distance &#60;d&#62; to a cell vector means that it will keep the same direction, but its norm will be longer by &#60;d&#62;. The same logic applies for removing (rm) or setting (set) the distance.</p>
+<p>Keywords a, b, c (or H1, H2, H3) refer to the length of the three box vectors. Adding a &#60;value&#62; to a cell vector means that it will keep the same direction, but its norm will be elongated by the given &#60;value&#62;. The same logic applies for removing (rm) or setting (set) the distance.</p>
 
-<p>Keywords x, y, z, refer to the Cartesian components of cell vectors. Adding a distance &#60;d&#62; to the x component, means that the cell vector with the largest component along X will be rescaled so that the "bounding box" (difference between maximum and minimum coordinates along X) will be longer by &#60;d&#62;. Cell vectors will keep their respective directions and relative angles. Note that if cell vectors are inclined with respect to Cartesian axes, then their length is not modified by &#60;d&#62; but by another amount. The component "xyz" means that the same distance &#60;d&#62; will be added (or removed) to all Cartesian components. The components xy, xz, yx, yz, zx, zy are non-diagonal elements of the cell vectors matrix.</p>
+<p>Keywords alpha, beta, gamma, refer to the angles between box vectors: &alpha; between H2 and H3, &beta; between H1 and H3, &gamma; between H1 and H2. Setting the angle to the given &#60;value&#62; means that the cell vector with the largest index will be rotated to reach that angle (i.e., modifying &alpha; changes H3, &beta; changes H3, and &gamma; changes H2). The same logic applies for adding (add) or removing (rm) a &#60;value&#62; to an angle.</p>
 
-<p>Note that if cell vectors are aligned with Cartesian axis, such that H1//x, H2//y, and H3//z, then using "H1" is equivalent to using "x", because H1 only has a non-zero component along x. The same is true for H2 and y, and for H3 and z.</p>
+<p>Keywords x, y, z, refer to the Cartesian components of cell vectors. Adding a &#60;value&#62; to the x component, means that the cell vector with the largest component along X will be rescaled so that the "bounding box" (difference between maximum and minimum coordinates along X) will be longer by &#60;value&#62;. Cell vectors will keep their respective directions and relative angles. Note that if cell vectors are inclined with respect to Cartesian axes, then their length is not modified by &#60;value&#62; but by another amount. The component "xyz" means that the same &#60;value&#62; will be added (or removed) to all Cartesian components. The components xy, xz, yx, yz, zx, zy are non-diagonal elements of the cell vectors matrix.</p>
 
-<p>It is possible to add, remove, or set a given length &#60;d&#62; to the provided component(s) of the cell.</p>
+<p>Note that if cell vectors are aligned with Cartesian axis, such that H1//x, H2//y, and H3//z, then using "a" (or "H1") is equivalent to using "x", because H1 only has a non-zero component along x. The same is true for b (or H2) and y, and for c (or H3) and z.</p>
 
-<p>The distance &#60;d&#62; must be given in angströms (&Aring;), and should be positive to avoid confusion. Using "add" with a negative value of &#60;d&#62; will actually reduce the length of a box vector. Similarly, using "rm" with a negative value of &#60;d&#62; will increase the vector length.</p>
+<p>It is possible to add, remove, or set a given &#60;value&#62; to the provided component(s) of the cell.</p>
 
-<p>The Cartesian positions of atoms are not modified by this option. Therefore, elongating a box vector (with "add" or "set") will introduce a void region along the given direction. Inversely, if a box vector is reduced (with "rm" or "set"), then atoms may end up out of the box.</p>
+<p>The &#60;value&#62; must be given in angströms (&Aring;), or in degrees for angles &alpha;, &beta;, &gamma;, and should be positive to avoid confusion. Using "add" with a negative &#60;value&#62; will actually reduce the length of a box vector. Similarly, using "rm" with a negative &#60;value&#62; will increase the vector length.</p>
 
-<p>In order to specify all cell vectors components, it is possible to write them into a file and use the <a href="./option_properties.html">option <code>-property</code></a>. To force Atomsk to construct automatically a bounding box, one may use the <a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
+<p>The Cartesian positions of atoms are not modified by this option. Therefore, elongating a box vector (with "add" or "set") will introduce a void region along the given direction. Inversely, if a box vector is reduced (with "rm" or "set"), then atoms may end up out of the box. If you wish to deform both the cell and atoms together, look at <a href="./option_deform.html">option <code>-deform</code></a>.</p>
+
+<p>To define cell vectors components, it is possible to write them into a file and use the <a href="./option_properties.html">option <code>-property</code></a>. To force Atomsk to construct automatically a bounding box, one may use the <a href="./option_rebox.html">option <code>-rebox</code></a>.</p>
 
 
 <h4>Default</h4>

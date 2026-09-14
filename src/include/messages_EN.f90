@@ -2304,11 +2304,13 @@ CASE(2151)
   !strings(2) = component of cell vector
   !reals(1) = distance added (or removed)
   WRITE(temp2,'(f16.3)') reals(1)
-  IF( strings(2)=="H1" ) THEN
+  temp3=""
+  temp4=" Å"
+  IF( strings(2)=="H1" .OR. strings(2)=="a" ) THEN
     temp3 = "the first box vector"
-  ELSEIF( strings(2)=="H2" ) THEN
+  ELSEIF( strings(2)=="H2" .OR. strings(2)=="b" ) THEN
     temp3 = "the second box vector"
-  ELSEIF( strings(2)=="H3" ) THEN
+  ELSEIF( strings(2)=="H3" .OR. strings(2)=="c" ) THEN
     temp3 = "the third box vector"
   ELSEIF( strings(2)=="x" .OR. strings(2)=="X" ) THEN
     temp3 = "the X axis"
@@ -2330,13 +2332,22 @@ CASE(2151)
     temp3 = "the ZY tilt"
   ELSEIF( strings(2)=="xyz" .OR. strings(2)=="XYZ" ) THEN
     temp3 = "all box vectors"
+  ELSEIF( strings(2)=="alpha" ) THEN
+    temp3 = "the angle α"
+    temp4 = "°"
+  ELSEIF( strings(2)=="beta" ) THEN
+    temp3 = "the angle β"
+    temp4 = "°"
+  ELSEIF( strings(2)=="gamma" ) THEN
+    temp3 = "the angle γ"
+    temp4 = "°"
   ENDIF
   IF( strings(1)=="add" ) THEN
-    msg = ">>> Adding "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+    msg = ">>> Adding "//TRIM(ADJUSTL(temp2))//TRIM(temp4)//" to "//TRIM(ADJUSTL(temp3))//"..."
   ELSEIF( strings(1)=="rm" ) THEN
-    msg = ">>> Removing "//TRIM(ADJUSTL(temp2))//" A to "//TRIM(ADJUSTL(temp3))//"..."
+    msg = ">>> Removing "//TRIM(ADJUSTL(temp2))//TRIM(temp4)//" to "//TRIM(ADJUSTL(temp3))//"..."
   ELSE
-    msg = ">>> Setting "//TRIM(ADJUSTL(temp3))//" to "//TRIM(ADJUSTL(temp2))//" A..."
+    msg = ">>> Setting "//TRIM(ADJUSTL(temp3))//" to "//TRIM(ADJUSTL(temp2))//TRIM(temp4)//"..."
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(2152)
@@ -2582,6 +2593,9 @@ CASE(2767)
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(2768)
   msg = TRIM(ADJUSTL(warnmsg))//" there is no atom left in the system."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(2769)
+  msg = TRIM(ADJUSTL(warnmsg))//" box volume is now zero!"
   CALL DISPLAY_MSG(1,msg,logfile)
   !
 CASE(2799)

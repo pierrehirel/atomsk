@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 July 2026                                     *
+!* Last modification: P. Hirel - 14 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,6 +29,7 @@ MODULE math
 !* IS_INTEGER          determines if a real number is an integer                  *
 !* DIFFABS             computes difference between abs.values of 2 numbers        *
 !* VECLENGTH           calculates the length of a vector                          *
+!* NORMALIZE           normalizes a vector (equals its length to 1)               *
 !* VEC_PLANE           determines if a point is above or below a plane            *
 !* VEC_ANGLE           computes angle between 2 vectors                           *
 !* VECMAT              computes the product of a row and column vectors           *
@@ -124,6 +125,23 @@ REAL(dp):: Vlength
 Vlength = DSQRT(DABS( V(1)*V(1) + V(2)*V(2) + V(3)*V(3) ))
 !
 END FUNCTION VECLENGTH
+!
+!
+!********************************************************
+!  NORMALIZE
+!  This function normalizes a vector, i.e. equals its
+!  length to 1.
+!********************************************************
+FUNCTION NORMALIZE(V) RESULT(V1)
+!
+IMPLICIT NONE
+REAL(dp),DIMENSION(3),INTENT(IN):: V
+REAL(dp),DIMENSION(3):: V1
+REAL(dp):: Vlength
+!
+V1 = V(:) / VECLENGTH(V)
+!
+END FUNCTION NORMALIZE
 !
 !
 !********************************************************

@@ -35,7 +35,7 @@ MODULE options
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 Dec. 2025                                     *
+!* Last modification: P. Hirel - 14 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -470,12 +470,16 @@ DO ioptions=1,SIZE(options_array)
   CASE('-cell','-box','change_cell','change_box')
     READ(options_array(ioptions),*,END=800,ERR=800) optionname, celldir, cellop, treal(1)
     SELECT CASE(StrDnCase(celldir))
-    CASE('x',"xx","xy","xz")
+    CASE('a','x',"xx","xy","xz")
       CALL BOX2DBLE( H(:,1) , treal(1) , celllength , status )
-    CASE('y','yy',"yx","yz")
+    CASE('b','y','yy',"yx","yz")
       CALL BOX2DBLE( H(:,2) , treal(1) , celllength , status )
-    CASE('z',"zz","zx","zy")
+    CASE('c','z',"zz","zx","zy")
       CALL BOX2DBLE( H(:,3) , treal(1) , celllength , status )
+    CASE DEFAULT
+      j = SCAN(treal(1),'°')
+      IF(j>0) treal(1)(j:j) = ' '
+      CALL BOX2DBLE( (/1.d0,0.d0,0.d0/) , treal(1) , celllength , status )
     END SELECT
     IF(status>0) THEN
       temp = treal(1)
