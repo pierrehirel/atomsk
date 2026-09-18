@@ -10,7 +10,7 @@ MODULE rotate
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 March 2026                                    *
+!* Last modification: P. Hirel - 17 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -89,10 +89,7 @@ H3 = 0.d0
 MILLER(:) = 0.d0
 Vcom(:) = 0.d0
 Vrot(:) = 0.d0
-rot_matrix(:,:) = 0.d0
-DO i=1,3
-  rot_matrix(i,i) = 1.d0
-ENDDO
+rot_matrix(:,:) = Id_Matrix(:,:)
 !
 msg = 'Entering ROTATE_XYZ'
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

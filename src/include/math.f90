@@ -10,7 +10,7 @@ MODULE math
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Sept. 2026                                    *
+!* Last modification: P. Hirel - 17 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -435,7 +435,7 @@ REAL(dp):: c, s
 !
 axis_u(:) = axis(:) / VECLENGTH(axis)
 !
-rot_matrix(:,:) = 0.d0
+rot_matrix(:,:) = Id_Matrix(:,:)
 !
 !ux²*(1-c) + c
 rot_matrix(1,1) = (1.d0-c)*axis_u(1)**2 + c
@@ -480,10 +480,7 @@ REAL(dp),DIMENSION(3,3):: rot_matrix !final rotation matrix
 REAL(dp):: c    !cosinus
 !
 !
-rot_matrix(:,:) = 0.d0
-DO i=1,3
-  rot_matrix(i,i) = 1.d0
-ENDDO
+rot_matrix(:,:) = Id_Matrix(:,:)
 !
 !Normalize vectors
 an(:) = a(:) / VECLENGTH(a)

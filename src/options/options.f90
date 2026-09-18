@@ -289,10 +289,7 @@ lat_a0(:) = 1.d0
 IF( NINT(VECLENGTH(ORIENT(1,:))) == 0 .OR.          &
   & NINT(VECLENGTH(ORIENT(2,:))) == 0 .OR.          &
   & NINT(VECLENGTH(ORIENT(3,:))) == 0       ) THEN
-  ORIENT(:,:) = 0.d0
-  DO i=1,3
-    ORIENT(i,i) = 1.d0
-  ENDDO
+  ORIENT(:,:) = Id_Matrix(:,:)
 ENDIF
 !By default the elastic tensor is not set
  !C_tensor(:,:) = 0.d0

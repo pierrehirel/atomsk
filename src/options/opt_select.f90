@@ -11,7 +11,7 @@ MODULE select
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 26 Feb. 2025                                     *
+!* Last modification: P. Hirel - 17 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1634,8 +1634,9 @@ CASE('random','rand','random%','rand%')
       toselect = .FALSE.
     ENDIF
     !
+    !Create a list of indices of all atoms of the given species
     IF( snumber>0.1d0 ) THEN
-      !create a list of index of all atoms of the given species
+      !User specified a chemical species: atomlist() must contain indices of atoms of that species
       ALLOCATE(atomlist(sp_N))
       atomlist(:) = 0
       j = 0
@@ -1647,7 +1648,7 @@ CASE('random','rand','random%','rand%')
       ENDDO
       !
     ELSE
-      !the list simply contains all possible indices from 1 to NP
+      !All atoms are considered: the atomlist() simply contains all indices from 1 to NP
       ALLOCATE(atomlist(SIZE(P,1)))
       atomlist(:) = 0
       DO i=1,SIZE(P,1)
@@ -1656,7 +1657,7 @@ CASE('random','rand','random%','rand%')
     ENDIF
     !
     IF( among ) THEN
-      !If user specified "among", then atoms must be picked only among atoms that were previously selected
+      !If user specified "among", then atomlist() must be restricted to atoms that were previously selected
       ALLOCATE(templist(SIZE(atomlist)))
       j=0
       DO i=1,SIZE(atomlist)
@@ -1665,13 +1666,19 @@ CASE('random','rand','random%','rand%')
           templist(j) = atomlist(i)
         ENDIF
       ENDDO
-      !Replace old atomlist with new one
       DEALLOCATE(atomlist)
-      ALLOCATE(atomlist(j))
-      DO i=1,SIZE(atomlist)
-        atomlist(i) = templist(i)
-      ENDDO
-      DEALLOCATE(templist)
+      IF(j>0) THEN
+        !Replace old atomlist with new one
+        ALLOCATE(atomlist(j))
+        DO i=1,SIZE(atomlist)
+          atomlist(i) = templist(i)
+        ENDDO
+        DEALLOCATE(templist)
+      ELSE
+        !Among atoms in atomlist(), none was previously selected: exit
+        IF(ALLOCATED(SELECT)) SELECT(:) = .FALSE.
+        GOTO 1000
+      ENDIF
     ENDIF
     !
     !Now we are sure that the atomlist(:) contains only the index of atoms to be (un-)selected

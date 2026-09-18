@@ -10,7 +10,7 @@ MODULE mode_interactive
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 02 Sept. 2026                                     *
+!* Last modification: P. Hirel - 17 Sept. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -1811,11 +1811,12 @@ DO
             !
           ENDIF
           !
-        ELSEIF( ANY( command == optnames(:) ) ) THEN
+        ELSEIF( ANY( command == optnames(:) ) .OR. ANY( command(2:) == optnames(:) ) ) THEN
           !Apply the option
           IF(ALLOCATED(options_array)) DEALLOCATE(options_array)
           ALLOCATE(options_array(1))
-          options_array(1) = "-"//TRIM(ADJUSTL(instruction))
+          options_array(1) = TRIM(ADJUSTL(instruction))
+          IF( options_array(1)(1:1).NE.'-' ) options_array(1) = "-"//TRIM(options_array(1))
           CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
           DEALLOCATE(options_array)
           !System was changed: consider that modified version was not written to a file

@@ -11,7 +11,7 @@ MODULE deform
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 09 Oct. 2025                                     *
+!* Last modification: P. Hirel - 17 Sept. 2026                                    *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -57,7 +57,7 @@ i = 0
 a1 = 0
 a2 = 0
 a3 = 0
-meps(:,:) = 0.d0
+meps(:,:) = Id_Matrix(:,:)
 !
 !
 CALL ATOMSK_MSG(2058,(/def_dir/),(/def_strain,def_poisson/))
