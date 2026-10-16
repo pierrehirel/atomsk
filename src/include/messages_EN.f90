@@ -3243,6 +3243,8 @@ CASE(4054)
   !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
   !reals(2:4) = box dimensions
   !reals(5) = number of grains
+  !reals(6) = number of seeds
+  !reals(7) = 1 if there is an intergranular phase
   msg = ">>> Constructing a polycrystal using Voronoi method."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   WRITE(temp,'(f12.3)') reals(2)
@@ -3254,6 +3256,16 @@ CASE(4054)
   WRITE(msg,*) NINT(reals(5))
   msg = "..> Number of grains to be constructed: "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( NINT(reals(6))>1 ) THEN
+    WRITE(msg,*) NINT(reals(6))
+    msg = "..> Number of seeds: "//TRIM(ADJUSTL(msg))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+  IF( NINT(reals(7))>0 ) THEN
+    WRITE(msg,*) NINT(reals(6))
+    msg = "..> With an intergranular phase."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   IF( NINT(reals(1))==0 ) THEN
     msg = "..> Using a 3-D Voronoi tesselation."
   ELSE
@@ -3279,7 +3291,12 @@ CASE(4056)
   !reals(2) = volume of grain
   WRITE(temp1,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
-  msg = "..> Done, "//TRIM(ADJUSTL(temp1))//" atoms, volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  msg = "..> Done, "//TRIM(ADJUSTL(temp1))//" atoms"
+  IF( NINT(reals(2))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//", volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4057)
   !strings(1) = name of input file
@@ -3345,9 +3362,7 @@ CASE(4070)
   ELSE
     temp=""
     IF( LEN_TRIM(strings(1))>0 ) temp=": "//TRIM(ADJUSTL(strings(1)))
-    msg = ">>> No reference provided. Generating reference atomic environments"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "    by averaging sites from system to be analyzed"//TRIM(ADJUSTL(temp))//"..."
+    msg = ">>> Generating reference atomic environments by averaging atom positions..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(4071)
@@ -3428,6 +3443,9 @@ CASE(4081)
   !reals(1) = number of atoms in template grain
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Constructing template grain ("//TRIM(ADJUSTL(temp))//" atoms)..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4082)
+  msg = ">>> Filling space between grains with intergranular phase..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (type q to cancel)"
@@ -3631,6 +3649,9 @@ CASE(4721)
       & " vs "//TRIM(ADJUSTL(temp2))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Properties will be copied only for the first "//TRIM(ADJUSTL(temp3))//" atoms."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4722)
+  msg = TRIM(ADJUSTL(warnmsg))//" a matrix was detected, but clearance is zero, skipping."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES FOR MODES
@@ -3860,6 +3881,9 @@ CASE(4835)
   msg = TRIM(ADJUSTL(errmsg))//" No equivalence could be found between atoms of system 1 and those of system 2."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          Are you sure the two systems are of the same sort?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4836)
+  msg = TRIM(ADJUSTL(errmsg))//" Kein Seed definiert, Abbruch."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" only one mode can be used at a time."

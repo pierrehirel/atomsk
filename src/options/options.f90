@@ -76,6 +76,7 @@ USE cell
 USE crack
 USE cut_cell
 USE deform
+!USE denoise
 USE dislocation
 USE disturb
 USE duplicate
@@ -586,7 +587,7 @@ DO ioptions=1,SIZE(options_array)
     102 CONTINUE
     CALL DEFORM_XYZ(H,P,S,def_dir,def_strain,def_poisson,SELECT)
   !
-!   CASE('-denoise')
+!  CASE('-denoise')
 !     denoise_Niter = 0
 !     denoise_dmax = 0.d0
 !     !Read one value
@@ -600,7 +601,7 @@ DO ioptions=1,SIZE(options_array)
 !       !It is an integer value
 !       READ(temp,*,END=800,ERR=800) denoise_Niter
 !     ENDIF
-!     CALL DENOISE_XYZ(H,P,S,denoise_Niter,denoise_dmax,SELECT)
+!    CALL DENOISE_XYZ(H,P,S,SELECT)
   !
   CASE("-dislocation","-dislo","-disloc")
     nu = 0.d0

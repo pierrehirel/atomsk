@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 08 June 2026                                     *
+!* Last modification: P. Hirel - 05 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -114,6 +114,7 @@ CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary prope
 INTEGER,DIMENSION(:),ALLOCATABLE:: NPs, idseed !for seeds (in polycrystals)
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, ioptions, j, k, m
+INTEGER:: idmatrix !index of matrix seed (mode polycrystal)
 INTEGER:: Nimages   !number of images (mode --interpolate)
 INTEGER:: status, strlength
 INTEGER,DIMENSION(2):: NT_mn
@@ -136,6 +137,7 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: Hs, Ps, Ss, AUXs !for seeds (in polycrys
 inputfile=''
 outputfile=''
 axis = ''
+idmatrix = 0
 NT_mn(:) = 0
 file1 = pfiles(1)
 file2 = pfiles(2)
@@ -595,6 +597,7 @@ CASE('polycrystal')
   IF(ALLOCATED(Ps)) DEALLOCATE(Ps)
   IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
   IF(ALLOCATED(AUXs)) DEALLOCATE(AUXs)
+  idmatrix = 0
   !
   !Generate name of output file
   IF( LEN_TRIM(file2)>0 ) THEN
@@ -603,7 +606,7 @@ CASE('polycrystal')
   ELSEIF( LEN_TRIM(filefirst)>0 ) THEN
     !User did not provide name: generate one from parameter file (filefirst)
     outputfile = TRIM_EXT(filefirst)//"_polycrystal.cfg"
-  ELSEIF( LEN_TRIM(file1)>0 ) THEN
+  ELSEIF( LEN_TRIM(file1)>0 .AND. file1.NE."NULL" ) THEN
     !User did not provide name: generate one from seed file (file1)
     outputfile = TRIM_EXT(file1)//"_polycrystal.cfg"
   ELSE
@@ -617,7 +620,7 @@ CASE('polycrystal')
   prefix = TRIM_EXT(outputfile)
   !
   !Read file containing atom positions of seed (in this case there is only 1 seed)
-  IF( LEN_TRIM(file1)>0 ) THEN
+  IF( LEN_TRIM(file1)>0 .AND. file1.NE."NULL" ) THEN
     !Seed file name was provided as command-line argument: read data file
     CALL READ_AFF(file1,H,P,S,comment,AUXNAMES,AUX)
     IF(nerr>0 ) GOTO 1000
@@ -652,9 +655,13 @@ CASE('polycrystal')
   ENDIF
   !
   !Read parameter file
+  clearance = 0.1d0  !by default, atoms this close to the GB plane will be deleted
   CALL ATOMSK_MSG(4057,(/filefirst/),(/0.d0/))
-  CALL POLYX_READ_PARAM(filefirst,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,vnodes,vorient,H,clearance,status)
-  CALL ATOMSK_MSG(4057,(/filefirst/),(/1.d0/))
+  CALL POLYX_READ_PARAM(filefirst,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,idmatrix,vnodes,vorient,H,clearance,status)
+  IF(status.NE.0) THEN
+    GOTO 10000
+  ENDIF
+  CALL ATOMSK_MSG(4057,(/filefirst/),(/1.d0/)) !"file was successfully read"
   !
   !Verify that idseed matches number of nodes
   IF( .NOT.ALLOCATED(idseed) ) THEN
@@ -663,7 +670,7 @@ CASE('polycrystal')
   ENDIF
   !
   !Construct polycrystal, final results will be in H,P,S,AUX
-  CALL POLYCRYS(prefix,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,vnodes,vorient,H,P,S,AUX)
+  CALL POLYCRYS(prefix,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,idmatrix,vnodes,vorient,clearance,H,P,S,AUX)
   !
   !Apply options to the final system
   CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)

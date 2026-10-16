@@ -3307,6 +3307,8 @@ CASE(4054)
   !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
   !reals(2:4) = box dimensions
   !reals(5) = number of grains
+  !reals(6) = number of seeds
+  !reals(7) = 1 if there is an intergranular phase
   msg = ">>> Construction d'un polycrystal avec la méthode de Voronoï."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "..> Le fichier a bien été lu."
@@ -3320,6 +3322,16 @@ CASE(4054)
   WRITE(msg,*) NINT(reals(5))
   msg = "..> Nombre de grains à construire : "//TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( NINT(reals(6))>1 ) THEN
+    WRITE(msg,*) NINT(reals(6))
+    msg = "..> Nombre de germes : "//TRIM(ADJUSTL(msg))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+  IF( NINT(reals(7))>0 ) THEN
+    WRITE(msg,*) NINT(reals(6))
+    msg = "..> Avec une phase intergranulaire."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   IF( NINT(reals(1))==0 ) THEN
     msg = "..> Tesselation de Voronoi en 3-D."
   ELSE
@@ -3344,7 +3356,12 @@ CASE(4056)
   !reals(1) = number of atoms in the grain
   WRITE(temp1,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
-  msg = "..> Terminé, "//TRIM(ADJUSTL(temp1))//" atomes, volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  msg = "..> Terminé, "//TRIM(ADJUSTL(temp1))//" atomes"
+  IF( NINT(reals(2))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//", volume = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4057)
   !strings(1) = name of input file
@@ -3410,9 +3427,7 @@ CASE(4070)
   ELSE
     temp=""
     IF( LEN_TRIM(strings(1))>0 ) temp=" : "//TRIM(ADJUSTL(strings(1)))
-    msg = ">>> Aucune référence fournie. Construction des environnements atomiques de référence"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "    en moyennant les sites du système à analyser"//TRIM(ADJUSTL(temp))//"..."
+    msg = ">>> Construction des environnements de référence en moyennant les postions atomiques..."
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
 CASE(4071)
@@ -3493,6 +3508,9 @@ CASE(4081)
   !reals(1) = number of atoms in template grain
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Construction du grain modèle ("//TRIM(ADJUSTL(temp))//" atoms)..."
+CASE(4082)
+  msg = ">>> Remplissage de l'espace entre les grains par la phase intergranulaire..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (tapez q pour quitter)"
   WRITE(*,'(a45)',ADVANCE='NO') " Réseau cristallin (sc,bcc,fcc,dia,rs,per) : "
@@ -3707,6 +3725,9 @@ CASE(4721)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Les propriétés ne seront copiées que pour les "//TRIM(ADJUSTL(temp3)) &
       & //" premiers atomes."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4722)
+  msg = TRIM(ADJUSTL(warnmsg))//" une matrice a été détectée, mais la 'clearance' est nulle, je passe."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: ERROR MESSAGES
@@ -3932,6 +3953,9 @@ CASE(4835)
   msg = TRIM(ADJUSTL(errmsg))//" aucune équivalence n'a pu être trouvée entre les atomes du système 1 et ceux du système 2."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          Êtes-vous sûr que les deux systèmes sont du même type ?"
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4836)
+  msg = TRIM(ADJUSTL(errmsg))//" aucun germe n'est défini, abandon."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" un seul mode peut être utilisé à la fois."

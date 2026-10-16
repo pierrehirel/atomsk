@@ -11,7 +11,7 @@ MODULE polyx_readparam
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 July 2026                                     *
+!* Last modification: P. Hirel - 15 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,7 @@ USE writeout
 CONTAINS
 !
 !
-SUBROUTINE POLYX_READ_PARAM(vfile,Hs,Ps,Ss,AUXNAMESs,AUXs,NPs,idseed,vnodes,vorient,H,clearance,status)
+SUBROUTINE POLYX_READ_PARAM(vfile,Hs,Ps,Ss,AUXNAMESs,AUXs,NPs,idseed,idmatrix,vnodes,vorient,H,clearance,status)
 !
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: vfile   !name of file containing parameters for Voronoi construction
@@ -52,6 +52,7 @@ CHARACTER(LEN=128):: or1, or2, or3
 CHARACTER(LEN=4096):: line, prefix
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=4096):: outparamfile  !file where grain parameters are written (if some parameters equal "random")
+CHARACTER(LEN=4096),DIMENSION(10):: seednames !file names for seeds
 CHARACTER(LEN=5),DIMENSION(:),ALLOCATABLE:: outfileformats !list of formats to output
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: comment     !comments of a seed
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMESt   !names of aux.prop. of a seed
@@ -79,9 +80,10 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXt   !auxiliary properties of a seed
 REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray   !random numbers
 !
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMESs       !Names of aux.prop. of all seeds
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMESs       !Names of aux.prop. of all seeds + matrix
 CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: seedfiles      !Names of seed file for each grain
-INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: NPs          !Number of atoms for each seed
+INTEGER,INTENT(OUT):: idmatrix                                !index of matrix in Ps, S, AUXs
+INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: NPs          !Number of atoms for each seed + matrix
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: idseed       !Seed index for each node
 REAL(dp),DIMENSION(3,3),INTENT(OUT):: H                       !Base vectors of the final supercell
 REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(INOUT):: Hs      !Base vectors of all seeds
@@ -92,16 +94,20 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT):: vorient   !rotation matrix f
 !
 !Initialize variables
 outparamfile = TRIM_EXT(vfile)//"_param.txt"
+seednames(:) = ""
 doshells = .FALSE.
 Hset = .FALSE.
 miller = .FALSE.
 outparam(:) = .FALSE.
 linenumber = 0
 seed_id = 0
+idmatrix = 0
+Nnodes = 0
 status = 0
 twodim = 0
 H(:,:) = 0.d0
 IF(ALLOCATED(AUXNAMESs)) DEALLOCATE(AUXNAMESs)
+IF(ALLOCATED(idseed)) DEALLOCATE(idseed)
 IF(ALLOCATED(seedfiles)) DEALLOCATE(seedfiles)
 IF(ALLOCATED(vnodes)) DEALLOCATE(vnodes)
 IF(ALLOCATED(vorient)) DEALLOCATE(vorient)
@@ -112,6 +118,7 @@ IF( ALLOCATED(Hs) .AND. ALLOCATED(Ps) ) THEN
   IF( ANY(DABS(Hs(:,:,:))>1.d-3) .AND. SIZE(Ps,1)>0 .AND. SIZE(Ps,2)>0 .AND. ANY(DABS(Ps(:,:,:))>1.d-3) ) THEN
     !A seed was already provided as a "seed file"
     seedasfile = .TRUE.
+    seed_id = 1
   ELSE
     !Something is wrong with Ps: deallocate everything
     DEALLOCATE(Ps)
@@ -136,6 +143,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Read the file containing parameters for Voronoi construction
 CALL CHECKFILE(vfile,'read')
 OPEN(UNIT=31,FILE=vfile)
+!
 !Parse the file a first time to count number of nodes
 Nnodes = 0
 Hset=.FALSE.
@@ -159,105 +167,31 @@ DO
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       Hset=.TRUE.
       !
-      IF(ALLOCATED(Hs)) THEN
-        twodim = CHECK2DIM(Hs,H)
-      ENDIF
+      DO i=1,3
+        IF(H(i,i)<1.d-3) twodim = i
+      ENDDO
       !
       WRITE(msg,*) "            twodim = ", twodim
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !
-      IF( twodim>0 ) THEN
-        IF( DABS(H(twodim,twodim))<1.d-3 ) THEN
-          !Set the dimension of final cell to that of the seed along short axis
-          H(twodim,twodim) = MAXVAL(Hs(:,twodim,twodim))
-        ENDIF
-      ENDIF
-      !
-      Volume = H(1,1) * H(2,2) * H(3,3)
-      IF( twodim==0 .AND. Volume < 8000.d0 ) THEN
-        !Final cell is very small: display warning
-        nwarn = nwarn+1
-        CALL ATOMSK_MSG(4719,(/""/),(/Volume/))
-      ENDIF
-      !
     ELSEIF( StrDnCase(line(1:5))=="seed " ) THEN
-      !Name of input file containing the seed (there can be only one)
-      IF( ALLOCATED(Ps) ) THEN
-        !seed was already defined before
-        PRINT*, "Warning: only one seed can be defined"
-      ELSE
-        !Read data from file
-        temp = TRIM(ADJUSTL(line(5:)))
-        CALL READ_AFF(temp,Ht,Pt,St,comment,AUXNAMESt,AUXt)
-        IF(nerr>0 ) GOTO 1000
-        IF( .NOT.ALLOCATED(Pt) .OR. SIZE(Pt,1)<1 ) THEN
-          CALL ATOMSK_MSG(804,(/''/),(/0.d0/))
-          nerr=nerr+1
-          GOTO 1000
-        ENDIF
-        IF(ALLOCATED(comment)) DEALLOCATE(comment)
-        !
-        IF(ALLOCATED(idseed)) DEALLOCATE(idseed)
-        ALLOCATE(idseed(1))
-        idseed(1) = 1
-        IF(ALLOCATED(NPs)) DEALLOCATE(NPs)
-        ALLOCATE(NPs(1))
-        NPs(1) = SIZE(Pt,1)
-        !
-        !Copy this data to seeds arrays: Hs, Ps, Ss, AUXs
-        !NOTE: in this case the first dimension of these arrays will be =1
-        CALL RESIZE_DBLEARRAY3(Hs,1,3,3,status)
-        IF( status>0 ) GOTO 830
-        Hs(1,:,:) = Ht(:,:)
-        !Copy atom positions
-        n = MAX( SIZE(Ps,2) , SIZE(Pt,1) )
-        CALL RESIZE_DBLEARRAY3(Ps,1,n,4,status)
-        IF( status>0 ) GOTO 830
-        m = SIZE(Pt,1)
-        Ps(1,1:m,:) = Pt(1:m,:)
-        !Copy shells
-        IF( ALLOCATED(St) .AND. SIZE(St,1)==SIZE(Pt,1) ) THEN
-          CALL RESIZE_DBLEARRAY3(Ss,1,n,4,status)
-          IF( status>0 ) GOTO 830
-          IF( ALLOCATED(St) ) THEN
-            m = SIZE(St,1)
-            Ss(1,1:m,:) = St(1:m,:)
-          ENDIF
-        ENDIF
-        !Copy auxiliary properties
-        IF( ALLOCATED(AUXt) .AND. SIZE(AUXt,1)==SIZE(Pt,1) ) THEN
-          ALLOCATE(AUXNAMESs(SIZE(AUXNAMESt)))
-          AUXNAMESs(:) = AUXNAMESt(:)
-          CALL RESIZE_DBLEARRAY3(AUXs,1,n,SIZE(AUXt,2),status)
-          IF( status>0 ) GOTO 830
-          IF( ALLOCATED(AUXt) ) THEN
-            m = SIZE(AUXt,1)
-            AUXs(1,1:m,:) = AUXt(1:m,:)
-          ENDIF
-        ENDIF
-        !Free temporary arrays
-        IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
-        IF(ALLOCATED(St)) DEALLOCATE(St)
-        IF(ALLOCATED(AUXt)) DEALLOCATE(AUXt)
-        IF(ALLOCATED(AUXNAMESt)) DEALLOCATE(AUXNAMESt)
-        !
-        twodim = CHECK2DIM(Hs,H)
-        !
-      ENDIF
+      !One more seed is defined
+      seed_id = seed_id+1
+      seednames(seed_id) = TRIM(ADJUSTL(StrDnCase(line(6:))))
       !
-    ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:5))=="grain" ) THEN
+    ELSEIF( StrDnCase(line(1:7))=="matrix " ) THEN
+      !User defines a matrix, i.e. a seed that will fill the space between grains
+      seed_id = seed_id+1
+      seednames(seed_id) = TRIM(ADJUSTL(StrDnCase(line(6:))))
+      idmatrix = seed_id
+      !
+    ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:6))=="grain " ) THEN
       !Check that the box was defined
-      IF( .NOT.Hset ) THEN
-        GOTO 820
-      ENDIF
       Nnodes = Nnodes+1
       outparam(1) = .TRUE.
       !
     ELSEIF( StrDnCase(line(1:7))=="lattice" ) THEN
       !Check that the box was defined
-      IF( .NOT.Hset ) THEN
-        GOTO 820
-      ENDIF
       outparam(2) = .TRUE.
       lattice = TRIM(ADJUSTL(line(8:)))
       !Set the number of nodes according to the lattice type
@@ -292,14 +226,12 @@ DO
       !
     ELSEIF( StrDnCase(line(1:6))=="random" ) THEN
       !Check that the box was defined
-      IF( .NOT.Hset ) THEN
-        GOTO 820
-      ENDIF
       !Read total number of grains
-      READ(line(7:),*,END=800,ERR=800) Nnodes
+      READ(line(7:),*,END=800,ERR=800) n
       outparam(3) = .TRUE.
-      WRITE(msg,*) " Read random ", Nnodes
+      WRITE(msg,*) " Read random ", n
       CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      Nnodes = Nnodes+n
       !
     ELSEIF( StrDnCase(line(1:9))=="clearance" .OR. StrDnCase(line(1:5))=="clear" ) THEN
       !User wants to change default clearance around GB plane
@@ -346,9 +278,13 @@ ELSEIF( outparam(2) .AND. outparam(3) ) THEN
   GOTO 1000
 ENDIF
 !
+WRITE(msg,*) " First pass finished, allocating arrays..."
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
 !Check if system is pseudo-2D
 twodim = CHECK2DIM(Hs,H)
 !
+!Nnodes = total number of nodes/grains (+1 if a matrix is defined)
 !Final positions of nodes will be stored in array vnodes(:,:)
 !Final rotation matrix for each grain will be stored in array vorient(:,:)
 ALLOCATE(vnodes(Nnodes,3))
@@ -356,9 +292,46 @@ vnodes(:,:) = 0.d0
 ALLOCATE(vorient(Nnodes,3,3))
 vorient(:,:,:) = 0.d0
 !
+!Allocate array idseed(:) to save seed index for each grain
+IF( seed_id<=0 ) seed_id=1  !always at least one seed
+ALLOCATE(idseed(Nnodes))
+!Initialize idseed(:) with a rotation of seed indices
+!This will be overridden if seed is specified in "node" line (see below)
+idseed(:) = 1
+IF(idmatrix==1 .AND. seed_id>1) idseed(:) = 2
+IF( seed_id>1 ) THEN
+  m=0
+  DO i=1,Nnodes
+    m = m+1
+    IF(m>seed_id) m=1
+    DO WHILE(m==idmatrix)
+      m = m+1
+      IF(m>seed_id) m=1
+    ENDDO
+    idseed(i) = m
+  ENDDO
+ENDIF
+!
+IF( verbosity>=4 ) THEN
+  WRITE(msg,*) " Assigned seed id for each grain:"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  DO i=1,Nnodes
+    WRITE(msg,*) "    grain #i:", i, " | idseed = ", idseed(i)
+    CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  ENDDO
+ENDIF
+!
+!Allocate arrays NPs to store each seed's number of atoms
+IF( .NOT. ALLOCATED(NPs) ) THEN
+  ALLOCATE(NPs(seed_id))
+ENDIF
+!
+WRITE(msg,*) " Done, parsing parameter file again"
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 REWIND(31)
 linenumber = 0
 Nnodes = 0
+seed_id = 0
 DO
   READ(31,'(a)',END=250,ERR=250) line
   line = TRIM(ADJUSTL(line))
@@ -563,8 +536,73 @@ DO
       !
       GOTO 250
       !
+    ELSEIF( StrDnCase(line(1:5))=="seed " .OR. StrDnCase(line(1:7))=="matrix " ) THEN
+      !Name of input file containing the seed (there can be only one)
+      seed_id = seed_id+1
+      IF( StrDnCase(line(1:7))=="matrix " ) THEN
+        idmatrix = seed_id
+        WRITE(msg,*) " Read matrix: ", TRIM(line(8:))
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ELSE
+        WRITE(msg,*) " Read seed:   ", TRIM(line(6:))
+        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+      ENDIF
+      !Get file name
+      j = SCAN(line,' ')
+      temp = TRIM(ADJUSTL(line(j+1:)))
+      !Read data from file
+      CALL READ_AFF(temp,Ht,Pt,St,comment,AUXNAMESt,AUXt)
+      IF(nerr>0 ) GOTO 1000
+      IF( .NOT.ALLOCATED(Pt) .OR. SIZE(Pt,1)<1 ) THEN
+        CALL ATOMSK_MSG(804,(/''/),(/0.d0/))
+        nerr=nerr+1
+        GOTO 1000
+      ENDIF
+      IF(ALLOCATED(comment)) DEALLOCATE(comment)
       !
-    ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:5))=="grain" ) THEN
+      NPs(seed_id) = SIZE(Pt,1)
+      !
+      !Copy this data to seeds arrays: Hs, Ps, Ss, AUXs
+      !NOTE: in this case the first dimension of these arrays will be =1
+      CALL RESIZE_DBLEARRAY3(Hs,seed_id,3,3,status)
+      IF( status>0 ) GOTO 830
+      Hs(seed_id,:,:) = Ht(:,:)
+      !Copy atom positions
+      n = MAX( SIZE(Ps,2) , SIZE(Pt,1) )
+      CALL RESIZE_DBLEARRAY3(Ps,seed_id,n,4,status)
+      IF( status>0 ) GOTO 830
+      m = SIZE(Pt,1)
+      Ps(seed_id,1:m,:) = Pt(1:m,:)
+      !Copy shells
+      IF( ALLOCATED(St) .AND. SIZE(St,1)==SIZE(Pt,1) ) THEN
+        CALL RESIZE_DBLEARRAY3(Ss,seed_id,n,4,status)
+        IF( status>0 ) GOTO 830
+        IF( ALLOCATED(St) ) THEN
+          m = SIZE(St,1)
+          Ss(seed_id,1:m,:) = St(1:m,:)
+        ENDIF
+      ENDIF
+      !Copy auxiliary properties
+      IF( ALLOCATED(AUXt) .AND. SIZE(AUXt,1)==SIZE(Pt,1) ) THEN
+        ALLOCATE(AUXNAMESs(SIZE(AUXNAMESt)))
+        AUXNAMESs(:) = AUXNAMESt(:)
+        CALL RESIZE_DBLEARRAY3(AUXs,seed_id,n,SIZE(AUXt,2),status)
+        IF( status>0 ) GOTO 830
+        IF( ALLOCATED(AUXt) ) THEN
+          m = SIZE(AUXt,1)
+          AUXs(seed_id,1:m,:) = AUXt(1:m,:)
+        ENDIF
+      ENDIF
+      !Free temporary arrays
+      IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
+      IF(ALLOCATED(St)) DEALLOCATE(St)
+      IF(ALLOCATED(AUXt)) DEALLOCATE(AUXt)
+      IF(ALLOCATED(AUXNAMESt)) DEALLOCATE(AUXNAMESt)
+      !
+      twodim = CHECK2DIM(Hs,H)
+      !
+      !
+    ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:6))=="grain " ) THEN
       !Check that the box was defined
       IF( .NOT.Hset ) THEN
         GOTO 820
@@ -590,23 +628,27 @@ DO
       !
       !Read position of that grain
       !Note: position may be given with respect to box dimension, e.g. "box/2"
+      !Read X
       line = TRIM(ADJUSTL(line(6:)))
       i=SCAN(line,' ')
       temp = TRIM(ADJUSTL(line(:i)))
       CALL BOX2DBLE( H(1,:),temp,vnodes(Nnodes,1),status )
       IF( status>0 ) GOTO 830
+      !Read Y
       line = TRIM(ADJUSTL(line(i+1:)))
       i=SCAN(line,' ')
       temp = TRIM(ADJUSTL(line(:i)))
       CALL BOX2DBLE( H(2,:),temp,vnodes(Nnodes,2),status )
       IF( status>0 ) GOTO 830
+      !Read Z
       line = TRIM(ADJUSTL(line(i+1:)))
       i=SCAN(line,' ')
       temp = TRIM(ADJUSTL(line(:i)))
       CALL BOX2DBLE( H(3,:),temp,vnodes(Nnodes,3),status )
-      line = TRIM(ADJUSTL(line(i+1:)))
       IF( status>0 ) GOTO 830
       !
+      !Save the rest of the line
+      line = TRIM(ADJUSTL(line(i+1:)))
       !Read crystallographic orientation of that grain
       !(can be explicitely given as Miller indices, or random)
       IF( line(1:6)=="random" ) THEN
@@ -659,6 +701,15 @@ DO
       ELSE
         !The user provides 3 angles or 3 Miller indices
         READ(line,*,END=830,ERR=830) or1, or2, or3
+        !
+        !Remove these 3 values from "line" string
+        i=SCAN(line,' ')
+        line = TRIM(ADJUSTL(line(i+1:)))
+        i=SCAN(line,' ')
+        line = TRIM(ADJUSTL(line(i+1:)))
+        i=SCAN(line,' ')
+        line = TRIM(ADJUSTL(line(i+1:)))
+        !
         miller=.TRUE.
         IF( SCAN(or1,"[")>0 .OR. SCAN(or2,"[")>0 .OR. SCAN(or3,"[")>0 .OR.          &
           & SCAN(or1,"]")>0 .OR. SCAN(or2,"]")>0 .OR. SCAN(or3,"]")>0 .OR.          &
@@ -730,6 +781,17 @@ DO
             WRITE(msg,*) "Node # "//TRIM(ADJUSTL(msg))//": matrix constructed from angles"
             CALL ATOMSK_MSG(2823,(/msg/),(/0.d0/))
           ENDIF
+        ENDIF
+      ENDIF
+      !
+      i=SCAN(line,' ')
+      line = TRIM(ADJUSTL(line(i+1:)))
+      !
+      !A seed number may be appened
+      IF( LEN_TRIM(line)>0 ) THEN
+        READ(line,*,END=830,ERR=830) j
+        IF( j>0 .AND. j<=SIZE(seedfiles) ) THEN
+          idseed(Nnodes) = j
         ENDIF
       ENDIF
       !
@@ -897,6 +959,26 @@ IF(Nnodes<1) THEN
   nerr=nerr+1
   GOTO 1000
 ENDIF
+!Check that number of seeds is not zero
+IF( .NOT.ALLOCATED(Ps) .OR. SIZE(Ps,1)<1 ) THEN
+  CALL ATOMSK_MSG(4836,(/""/),(/0.d0/))
+  nerr=nerr+1
+  GOTO 1000
+ENDIF
+!
+!Check one last time if system is pseudo-2D
+twodim = CHECK2DIM(Hs,H)
+IF( twodim>0 ) THEN
+  !Set the dimension of final cell to that of the seed along short axis
+  H(twodim,twodim) = MAXVAL(Hs(:,twodim,twodim))
+ENDIF
+!
+Volume = H(1,1) * H(2,2) * H(3,3)
+IF( twodim==0 .AND. Volume < 8000.d0 ) THEN
+  !Final cell is very small: display warning
+  nwarn = nwarn+1
+  CALL ATOMSK_MSG(4719,(/""/),(/Volume/))
+ENDIF
 !
 !Make sure that all nodes are inside the final box H(:,:)
 CALL CART2FRAC(vnodes,H)
@@ -923,11 +1005,10 @@ DO i=1,SIZE(vnodes,1) !loop on all nodes
 ENDDO
 CALL FRAC2CART(vnodes,H)
 !
-!Check one last time if system is pseudo-2D
-twodim = CHECK2DIM(Hs,H)
-!
 IF( twodim > 0 ) THEN
-  !System is pseudo 2-D => place all nodes on the same plane
+  !System is pseudo 2-D
+  H(twodim,twodim) = MAXVAL(Hs(:,twodim,twodim))
+  !Place all nodes on the same plane
   !in the middle of the cell along the short direction
   vnodes(:,twodim) = 0.5d0*H(twodim,twodim)
 ENDIF

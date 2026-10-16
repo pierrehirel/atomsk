@@ -3265,6 +3265,8 @@ CASE(4054)
   !reals(1) = 0 if 3-D, 1,2,3 if thin along x, y, z
   !reals(2:4) = box dimensions
   !reals(5) = number of grains
+  !reals(6) = number of seeds
+  !reals(7) = 1 if there is an intergranular phase
   msg = ">>> Konstruiere Polykristall mit der Voronoi Methode."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
   msg = "..> Datei erfolgreich eingelesen."
@@ -3279,6 +3281,16 @@ CASE(4054)
   msg = "..> Anzahl der zu erstellenden Koerner: "// &
       & TRIM(ADJUSTL(msg))
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+  IF( NINT(reals(6))>1 ) THEN
+    WRITE(msg,*) NINT(reals(6))
+    msg = "..> Anzahl der Samen: "//TRIM(ADJUSTL(msg))
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
+  IF( NINT(reals(7))>0 ) THEN
+    WRITE(msg,*) NINT(reals(6))
+    msg = "..> Mit einer intergranularen Phase."
+    CALL DISPLAY_MSG(verbosity,msg,logfile)
+  ENDIF
   IF( NINT(reals(1))==0 ) THEN
     msg = "..> Verwende eine 3-D Voronoi Parkettierung."
   ELSE
@@ -3306,7 +3318,12 @@ CASE(4056)
   !reals(2) = volume of grain
   WRITE(temp1,*) NINT(reals(1))
   WRITE(temp2,*) NINT(reals(2))
-  msg = "..> Erledigt, "//TRIM(ADJUSTL(temp1))//" Atome, Volumen = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  msg = "..> Erledigt, "//TRIM(ADJUSTL(temp1))//" Atome"
+  IF( NINT(reals(2))>0 ) THEN
+    msg = TRIM(ADJUSTL(msg))//", Volumen = "//TRIM(ADJUSTL(temp2))//" Å^3."
+  ELSE
+    msg = TRIM(ADJUSTL(msg))//"."
+  ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4057)
   !strings(1) = name of input file
@@ -3374,9 +3391,7 @@ CASE(4070)
   ELSE
     temp=""
     IF( LEN_TRIM(strings(1))>0 ) temp=" : "//TRIM(ADJUSTL(strings(1)))
-    msg = ">>> Kein Bezugssystem vorhanden. Erzeugen atomarer Referenzumgebungen durch Mittelung"
-    CALL DISPLAY_MSG(verbosity,msg,logfile)
-    msg = "    der Standorte des zu analysierenden Systems"//TRIM(ADJUSTL(temp))//"..."
+    msg = ">>> Erzeugen atomarer Referenzumgebungen durch Mittelung der Standorte des zu Systems"
     CALL DISPLAY_MSG(verbosity,msg,logfile)
   ENDIF
   CALL DISPLAY_MSG(verbosity,msg,logfile)
@@ -3457,6 +3472,9 @@ CASE(4081)
   !reals(1) = number of atoms in template grain
   WRITE(temp,*) NINT(reals(1))
   msg = "..> Erstellen einer Schablonenkörnung ("//TRIM(ADJUSTL(temp))//" atoms)..."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(4082)
+  msg = ">>> Füllen des Zwischenraums zwischen den Körnern mit intergranularer Phase..."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
 CASE(4200)
   WRITE(*,*) " (Gib 'q' ein um abzubrechen)"
@@ -3667,6 +3685,9 @@ CASE(4721)
       & " vs "//TRIM(ADJUSTL(temp2))//")."
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            Eigenschaften werden nur für die ersten 4 "//TRIM(ADJUSTL(temp3))//" Atome kopiert."
+  CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4722)
+  msg = TRIM(ADJUSTL(warnmsg))//" Eine Matrix wurde erkannt, aber der Freiraum beträgt null; sie wird übersprungen."
   CALL DISPLAY_MSG(1,msg,logfile)
 !
 !4800-4899: FEHLER MESSAGES

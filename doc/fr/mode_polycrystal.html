@@ -22,13 +22,17 @@
 
 <p>Ce mode génère un polycristal à partir d'une cellule élémentaire, en utilisant la méthode de Voronoi et les paramètres fournis dans le fichier &#60;fichier_param&#62;. Les positions et orientations cristallographiques des grains peuvent être explicitement données, ou bien générées aléatoirement.</p>
 
-<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule, un système complexe contenant des défauts, un polycristal, ou bien n'importe quel autre système atomique.</p>
+<p>Le fichier &#60;germe&#62; doit contenir un système atomique dans l'un des <a href="./formats.html">formats supportés</a>. Habituellement il s'agit d'une cellule élémentaire d'un matériau (de tels systèmes simples peuvent être créés grâce au <a href="./mode_create.html">mode <code>--create</code></a>). Cependant le &#60;germe&#62; peut également être une super-cellule, un système complexe contenant des défauts, un polycristal, ou bien n'importe quel autre système atomique. Si le &#60;germe&#62; est défini comme <code>NULL</code>, alors un germe doit être défini avec le mot-clé "seed" (voir ci-dessous).</p>
 
 <p>Le &#60;fichier_param&#62; est un fichier texte qui doit contenir des mots-clés suivis des valeurs appropriées. Les lignes vides et celles commençant par un croisillon (&#35;) sont ignorées.</p>
 
 <p>Le mot-clé <strong>box</strong> est obligatoire et doit apparaître avant tout autre mot-clé. Il doit être suivi (sur la même ligne) de trois nombres réels indiquant les dimensions de la boîte finale (en &Aring;). La boîte finale ne peut être qu'un parallélépipède.</p>
 
-<p>Le mot-clé <strong>random &#60;N&#62;</strong> peut être utilisé pour générer une structure aléatoire constituée de &#60;N&#62; grains. Les positions et les orientations cristallographiques des grains seront générées aléatoirement par le programme. Notez que cette option tente de définir des nombres au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même germe et du même &#60;fichier_param&#62; il est très probable d'obtenir des résultats différents. Atomsk créera un nouveau fichier de paramètres, dont le nom se terminera par "_param.txt", contenant les positions et orientations aléatoires des grains qui ont été générées. Ce nouveau fichier de paramètres peut être réutilisé afin de reproduire le même polycrystal.</p>
+<p>Le mot-clé <strong>seed</strong> peut être utilisé pour définir une "graine". Chaque ligne commençant avec le mot-clé <strong>seed</strong> définit une nouvelle graine, qui sera utilisée pour remplir les grains. Le mot-clé <strong>seed</strong> est optionnel si un fichier &#60;germe&#62; a été fourni en ligne de commande. Il est en revanche obligatoire si le fichier &#60;germe&#62; a été défini comme <code>NULL</code>.</p>
+
+<p>Le mot-clé <strong>matrix</strong> est optionnel, il peut être utilisé pour définir une matrice, ou une phase intergranulaire, qui remplira l'espace entre les grains. Une seule matrice peut être définie. Pour que la matrice remplisse l'espace entre les grains, une "clearance" non nulle doit être définie (voir ci-dessous).</p>
+
+<p>Le mot-clé <strong>random &#60;N&#62;</strong> peut être utilisé pour générer une structure aléatoire constituée de &#60;N&#62; grains. Les positions et les orientations cristallographiques des grains seront générées aléatoirement par le programme. Notez que cette option tente de définir des nombres au hasard, elle est donc largement non-reproductible, c-à-d. qu'en partant du même germe et du même &#60;fichier_param&#62; il est très probable d'obtenir des résultats différents. Atomsk créera un nouveau fichier de paramètres, dont le nom se terminera par "_param.txt", contenant les positions et orientations aléatoires des grains qui ont été générées. Ce nouveau fichier de paramètres peut être réutilisé afin de reproduire le même polycrystal. Si plusieurs germes ont été définis (avec le mot-clé <strong>seed</strong>), alors un germe différent sera assigné au hasard à chaque grain.</p>
 
 <p>Avec le mot-clé <strong>lattice</strong>, suivi d'un type de réseau, les positions des grains seront similaires à celles du réseau donné. Les types de réseau supportés sont "bcc", "fcc", "diamond", "hcp". Par exemple avec un réseau "fcc", les germes seront placés à chaque coin de la boîte ainsi qu'au centre de chaque face. Les orientations cristallographiques des grains seront définies de façon aléatoire par le programe.</p>
 
@@ -44,7 +48,7 @@
 
 <p>Les mots-clés <strong>random</strong>, <strong>lattice</strong> et <strong>node</strong> sont mutuellement exclusifs. Un seul de ces mots-clé peut être utilisé dans un fichier de paramètres.</p>
 
-<p>Le mot-clé <strong>clearance</strong> peut être utilisé pour contrôler l'épaisseur de la zone autour des joints de grains où les atomes sont supprimés. Tous les atomes situés à &plusmn;clearance du joint seront supprimés. La valeur par défaut est clearance = 0,1&nbsp;&Aring;.</strong>
+<p>Le mot-clé <strong>clearance</strong> peut être utilisé pour contrôler l'épaisseur de la zone autour des joints de grains où les atomes sont supprimés. Tous les atomes situés à &plusmn;clearance du joint seront supprimés, autrement dit l'espace entre deux grains est égal à 2&times;clearance. La valeur par défaut est clearance = 0,1&nbsp;&Aring;.</strong>
 
 <p>Les grains sont construits en utilisant une méthode de tessellation de type Voronoï <strong>en 3-D</strong> : le &#60;germe&#62; est placé à la position d'un n&oelig;ud, et multiplié dans les trois directions de l'espace à l'intérieur de son polyèdre de Voronoï.</p>
 
@@ -117,6 +121,30 @@ random 12<br/>
 </code></p></div>
 <code class="command">atomsk --polycrystal bcc_cellule.xsf bcc_polycrystal.txt bcc_polycrystal.xsf -wrap -duplicate 1 1 16</code>
 <p>Supposons que le fichier <code>bcc_cellule.xsf</code> contienne une cellule unité d'un métal bcc de paramètre de maille 2.9 &Aring;. Le fichier <code>bcc_polycrystal.txt</code> indique de construire un système de taille 300x300x0 &Aring;<sup>3</sup>, avec 12 grains générés aléatoirement. Puisque la taille du système suivant Z (0 &Aring;) est plus petite que le paramètre de maille, il sera automatiquement modifié pour être égal au paramètre de maille (2.9 &Aring;), et un polycristal en 2-D sera généré (i.e. les grains auront tous la même orientation crystallographique suivant Z). Après que le polycristal aura été généré, l'<a href="./option_wrap.html">option <code>-wrap</code></a> va remettre tous les atomes dans la boîte. Pour terminer, l'<a href="./option_duplicate.html">option <code>-duplicate</code></a> va répéter le système 16 fois suivant Z, créant ainsi un système colonnaire.</p></li>
+
+<li>
+<div class="txtfile"><h5>multiphase.txt</h5>
+<p><code>&#35; Polycristal avec plusieurs phases<br/>
+box 300 300 300<br/>
+seed Al.cfg<br/>
+seed Fe.cfg<br/>
+seed W.cfg<br/>
+random 12<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal NULL multiphase.txt Al-Fe-W.cfg -wrap</code>
+<p>Supposons que les fichiers <code>Al.cfg</code>, <code>Fe.cfg</code>, et <code>W.cfg</code> existent, contenant des mailles élémentaires de Al cfc, Fe bcc, et W bcc respectivement. Le fichier <code>multiphase.txt</code> indique de construire un système de taille 300x300x300 &Aring;<sup>3</sup>, définit les trois mailles comme "germes" ("seeds"), avec 12 grains générés aléatoirement. Puisque le mot-clé "random" est utilisé, les mailles élémentaires seront assignées de façon aléatoire à chaque grain. À la fin, un polycristal de 12 grains, certains faits de Al, d'autres de Fe, et d'autres de W, sera écrit dans le fichier "<code>Al-Fe-W.cfg</code>".</p></li>
+
+<li>
+<div class="txtfile"><h5>interphase.txt</h5>
+<p><code>&#35; Polycristal avec une phase intergranulaire<br/>
+box 300 300 300<br/>
+seed Fe.cfg<br/>
+matrix Al.cfg<br/>
+random 12<br/>
+clearance 10<br/>
+</code></p></div>
+<code class="command">atomsk --polycrystal NULL interphase.txt interphase.cfg -wrap</code>
+<p>Supposons que les fichiers <code>Al.cfg</code> et <code>Fe.cfg</code> existent, contenant des mailles élémentaires de Al fcc et Fe bcc respectivement. Le fichier <code>interphase.txt</code> indique de construire un système de taille 300x300x300 &Aring;<sup>3</sup>, définie le germe "Fe.cfg", qui constituera l'intérieur des grains, et la matrice "Al.cfg", qui remplira l'espace entre les grains. Douze grains seront générés aléatoirement, avec une "clearance" de 10&nbsp;&Aring; (c'est-à-dire que l'espace entre les grains sera de 20&nbsp;&Aring;). À la fin, un polycristal contenant 12 grains de Fe, séparés par une phase intergranulaire de Al, sera écrit dans le fichier "<code>interphase.cfg</code>".</p></li>
 
 <li><p>D'autres exemples sont fournis dans le dossier "examples" fourni avec le programme. Le dossier "<code>Al_polycrystal</code>" contient un script bash construisant un polycristal d'aluminium cubique faces centrées. Le dossier "<code>Fe_polycrystal</code>" montre comment créer un polycristal de fer cubique centré. Le dossier "<code>MgO_2Dpolycrystal</code>" contient un script bash qui construit un polycristal en 2-D d'oxyde de magnésium (MgO).</p></li>
 </ul>

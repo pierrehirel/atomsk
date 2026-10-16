@@ -718,10 +718,10 @@ DO WHILE(i<SIZE(cla))
   CASE("-denoise")
     ioptions = ioptions+1
     options_array(ioptions) = TRIM(clarg)
-    i=i+1
-    READ(cla(i),*,END=400,ERR=400) temp
-      READ(temp,*,END=120,ERR=120) tempreal
-    options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
+!     i=i+1
+!     READ(cla(i),*,END=400,ERR=400) temp
+!       READ(temp,*,END=120,ERR=120) tempreal
+!     options_array(ioptions) = TRIM(options_array(ioptions))//' '//TRIM(temp)
   !
   CASE("-dislocation","-disloc","-dislo")
     m=0
