@@ -228,26 +228,31 @@ ELSE
 ENDIF
 !Check NPs(:): size must be = number of seeds, and values must be < max.Natoms for a seed
 IF( .NOT.ALLOCATED(NPs) ) THEN
+  msg = "/!\ WARNING: NPs not allocated, allocating it now"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Number of atoms for each seed not defined: try to count them
-  !For each seed, parse atom coordinates from the end, first that is >0 is assumed
-  !to be last atom in the list (all zeros at the end are dismissed)
+  !For each seed, parse atomis number, the first =0 marks the end of the list
   ALLOCATE(NPs(SIZE(Ps,1)))
   NPs(:) = SIZE(Ps,2)
   DO i=1,SIZE(Ps,1)
-    DO j=SIZE(Ps,2),1,-1
-      IF( VECLENGTH(Ps(i,j,1:3)) > 1.d-12 ) THEN
-        n = j
-        EXIT
-      ENDIF
+    j = 1
+    DO WHILE( j<=SIZE(Ps,2) )
+      NPs(i) = j
+      IF( Ps(i,j,4) > 1.d-3 ) EXIT
     ENDDO
-    NPs(i) = n
   ENDDO
 ELSEIF( SIZE(NPs).NE.SIZE(Ps,1) ) THEN
+  WRITE(msg,*) "/!\ WARNING: NPs size does not match Ps", SIZE(NPs), SIZE(Ps,1)
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   !Natoms are defined but do not match number of seeds
   ALLOCATE(Nvertices(SIZE(Ps,1)))
   Nvertices(:) = SIZE(Ps,2)
-  DO i=1,MIN(SIZE(NPs),SIZE(Nvertices))
-    Nvertices(i) = NPs(i)
+  DO i=1,SIZE(Ps,1)
+    j = 1
+    DO WHILE( j<=SIZE(Ps,2) )
+      Nvertices(i) = j
+      IF( Ps(i,j,4) > 1.d-3 ) EXIT
+    ENDDO
   ENDDO
   DEALLOCATE(NPs)
   ALLOCATE(NPs(SIZE(Nvertices)))

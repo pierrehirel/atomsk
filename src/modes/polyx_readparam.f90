@@ -11,7 +11,7 @@ MODULE polyx_readparam
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 15 Oct. 2026                                     *
+!* Last modification: P. Hirel - 19 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -68,6 +68,7 @@ INTEGER:: seed_id       !index of current seed
 INTEGER:: status        !=0 if successful, >0 otherwise
 INTEGER:: twodim        !=0 if system is 3-D, =1,2,3 if system is thin along x, y, z
 INTEGER:: Nnodes      !number of nodes
+INTEGER,DIMENSION(:),ALLOCATABLE:: NPtemp      !when resizing NPs
 REAL(dp):: distance    !distance between two points
 REAL(dp):: grad1, grad2!gradient values
 REAL(dp):: P1, P2, P3  !temporary position
@@ -111,6 +112,7 @@ IF(ALLOCATED(idseed)) DEALLOCATE(idseed)
 IF(ALLOCATED(seedfiles)) DEALLOCATE(seedfiles)
 IF(ALLOCATED(vnodes)) DEALLOCATE(vnodes)
 IF(ALLOCATED(vorient)) DEALLOCATE(vorient)
+IF(ALLOCATED(NPtemp)) DEALLOCATE(NPtemp)
 !
 !Check if a seed was already defined as input in arrays Hs, Ps, Ss
 seedasfile = .FALSE.
@@ -120,7 +122,7 @@ IF( ALLOCATED(Hs) .AND. ALLOCATED(Ps) ) THEN
     seedasfile = .TRUE.
     seed_id = 1
   ELSE
-    !Something is wrong with Ps: deallocate everything
+    !Something is wrong with Hs and/or Ps: deallocate everything
     DEALLOCATE(Ps)
     IF(ALLOCATED(Hs)) DEALLOCATE(Hs)
     IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
@@ -128,7 +130,7 @@ IF( ALLOCATED(Hs) .AND. ALLOCATED(Ps) ) THEN
     IF(ALLOCATED(AUXNAMESs)) DEALLOCATE(AUXNAMESs)
   ENDIF
 ELSE
-  !Ps is not allocated: make sure the other arrays are unallocated too
+  !Ps is unallocated: make sure the other arrays are unallocated too
   IF(ALLOCATED(Hs)) DEALLOCATE(Hs)
   IF(ALLOCATED(Ps)) DEALLOCATE(Ps)
   IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
@@ -138,6 +140,8 @@ ENDIF
 !
 !
 msg = 'ENTERING POLYX_READ_PARAM...'
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+WRITE(msg,*) "SeedAsFile is ", seedasfile
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Read the file containing parameters for Voronoi construction
@@ -321,9 +325,18 @@ IF( verbosity>=4 ) THEN
   ENDDO
 ENDIF
 !
-!Allocate arrays NPs to store each seed's number of atoms
-IF( .NOT. ALLOCATED(NPs) ) THEN
+!(Re)-allocate array NPs to store each seed's number of atoms
+IF( ALLOCATED(NPs) ) THEN
+  ALLOCATE(NPtemp(seed_id))
+  NPtemp(:) = 0
+  NPtemp(1) = NPs(1)
+  DEALLOCATE(NPs)
   ALLOCATE(NPs(seed_id))
+  NPs(:) = NPtemp(:)
+  DEALLOCATE(NPtemp)
+ELSE
+  ALLOCATE(NPs(seed_id))
+  NPs(:) = 0
 ENDIF
 !
 WRITE(msg,*) " Done, parsing parameter file again"
@@ -332,6 +345,13 @@ REWIND(31)
 linenumber = 0
 Nnodes = 0
 seed_id = 0
+!Check if a seed was provided as a file
+IF(seedasfile) THEN
+  seed_id = 1
+  !Save number of atoms for this seed
+  NPs(1) = SIZE(Ps,2)
+ENDIF
+!
 DO
   READ(31,'(a)',END=250,ERR=250) line
   line = TRIM(ADJUSTL(line))
@@ -600,6 +620,9 @@ DO
       IF(ALLOCATED(AUXNAMESt)) DEALLOCATE(AUXNAMESt)
       !
       twodim = CHECK2DIM(Hs,H)
+      !
+      WRITE(msg,*) " Done reading seed, SIZE Ps =   ", SIZE(Ps,1), SIZE(Ps,2), SIZE(Ps,3)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       !
       !
     ELSEIF( StrDnCase(line(1:5))=="node " .OR. StrDnCase(line(1:6))=="grain " ) THEN
