@@ -344,7 +344,7 @@ END SUBROUTINE RESIZE_INTARRAY2
 ! RESIZE_CHAR1
 ! This routine changes the size of the provided character Array.
 ! Initial data is preserved in the new array.
-! If the new size is larger, unknown data is set to .FALSE.
+! If the new size is larger, unknown data is set to empty.
 ! If the new size is smaller, some data is lost.
 !********************************************************
 SUBROUTINE RESIZE_CHAR1(Array,L1,status)

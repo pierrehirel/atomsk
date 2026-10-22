@@ -16,7 +16,7 @@ MODULE mode_polycrystal
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 14 Oct. 2026                                     *
+!* Last modification: P. Hirel - 21 Oct. 2026                                     *
 !**********************************************************************************
 !* OUTLINE:                                                                       *
 !* 100        Read atom positions of seed (usually a unit cell) from ucfile       *
@@ -71,7 +71,7 @@ REAL(dp),DIMENSION(:,:,:),INTENT(IN):: AUXs    !auxiliary properties of atoms in
 REAL(dp),DIMENSION(:,:),ALLOCATABLE:: vnodes   !cartesian coordinate of each node
 REAL(dp),DIMENSION(:,:,:):: vorient            !rotation matrix for each node
 !Output parameters
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: AUXNAMES !names of aux.prop. of atoms
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of aux.prop. of atoms
 REAL(dp),DIMENSION(3,3):: H                            !Base vectors of final polycrystal
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: P, S !positions of atoms, shells in final polycrystal
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: AUX  !aux.prop. of atoms in final polycrystal
@@ -138,11 +138,8 @@ REAL(dp),DIMENSION(:,:,:),ALLOCATABLE:: vvertex !for each node, position of neig
 !
 !
 !Initialize variables
-CALL NAME_OUTFILE(prefix,temp,"     ")
-i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
-temp = temp(1:i-1)
-distfile = TRIM(ADJUSTL(temp))//"_size-dist.txt"
-idsizefile = TRIM(ADJUSTL(temp))//"_id-size.txt"
+distfile = TRIM(TRIM_EXT(prefix))//"_size-dist.txt"
+idsizefile = TRIM(TRIM_EXT(prefix))//"_id-size.txt"
 doaux = .FALSE.
 doshells = .FALSE.
 protectuc = .FALSE.
@@ -174,6 +171,9 @@ ENDDO
 !
 CALL ATOMSK_MSG(4054,(/''/),(/DBLE(twodim),H(1,1),H(2,2),H(3,3),DBLE(Nnodes)/))
 !
+DO i=1,SIZE(AUXs,1)
+  PRINT*, i, " # ", AUXs(i,1,:)
+ENDDO
 !Check that the user provided enough information
 IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
   !User did not provide box, or a box with negative or zero size
@@ -199,19 +199,23 @@ IF( ALLOCATED(Ss) .AND. SIZE(Ss,1)==SIZE(Ps,1) ) THEN
   doshells = .TRUE.
 ENDIF
 !Check if auxiliary properties are defined
-IF( ALLOCATED(AUX) .AND. SIZE(AUX,1)==SIZE(Ps,1) .AND. SIZE(AUX,2)==SIZE(AUXNAMES) ) THEN
+IF( SIZE(AUXs,1)==SIZE(Ps,1) .AND. SIZE(AUXs,2)==SIZE(Ps,2) .AND. SIZE(AUXs,3)==SIZE(AUXNAMES) ) THEN
   doaux = .TRUE.
 ENDIF
 !Check idseed(:): size must be Nnodes, and values must be < number of seeds
 IF( .NOT.ALLOCATED(idseed) ) THEN
   !No seed id defined: assume all nodes use the first seed
+  WRITE(msg,*) "/!\ WARNING: no seed defined, allocating idseed(:)"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ALLOCATE(idseed(Nnodes))
   idseed(:) = 1
 ELSEIF( SIZE(idseed).NE.Nnodes ) THEN
   !Seeds are defined but do not match number of nodes
+  WRITE(msg,*) "/!\ WARNING: idseed(:) size is not Nnodes, resizing"
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   ALLOCATE(Nvertices(Nnodes))
   Nvertices(:) = 1
-  DO i=1,MIN(Nnodes,SIZE(Nvertices))
+  DO i=1,MIN(Nnodes,SIZE(idseed))
     Nvertices(i) = idseed(i)
   ENDDO
   DEALLOCATE(idseed)
@@ -222,6 +226,8 @@ ELSE
   !Seeds are defined, check that seed IDs are within range
   DO i=1,SIZE(idseed)
     IF( idseed(i)>SIZE(Ps,1) ) THEN
+      WRITE(msg,*) "/!\ WARNING: idseed(", i, ") out of bounds"
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
       idseed(i) = SIZE(Ps,1)
     ENDIF
   ENDDO
@@ -521,13 +527,14 @@ ELSE
   IF( MAXVAL(idseed(:))>1 .OR. idmatrix>0 ) THEN
     ALLOCATE(AUXNAMES(2))
     seedID = 2
-    AUXNAMES(seedID) = "seedID"
   ELSE
     ALLOCATE(AUXNAMES(1))
   ENDIF
+  AUXNAMES(:) = ""
   grainID = 1
 ENDIF
 AUXNAMES(grainID) = "grainID"
+IF(seedID>0) AUXNAMES(seedID) = "seedID"
 ALLOCATE(newAUX(NP,SIZE(AUXNAMES)) , STAT=i)
 IF( i>0 ) THEN
   ! Allocation failed (not enough memory)
@@ -627,7 +634,7 @@ DO inode=1,Nnodes
   istart = NP+1
   !
   !Duplicate seed to fill the grain
-  !Loop on all atoms in seed/unit cell
+  !Loop on all atoms in seed/unit cell and their periodic images
   !$OMP PARALLEL DO DEFAULT(SHARED) &
   !$OMP& PRIVATE(i,j,m,n,o,P1,P2,P3,keepatom,vector,vnormal)
   DO o=0,expandmatrix(3)
@@ -690,8 +697,10 @@ DO inode=1,Nnodes
               ENDIF
             ENDIF
             IF(doaux) THEN
+              !Copy auxiliary properties of atom #i in newAUX
               newAUX(NP,:) = AUXs(idseed(inode),i,:)
             ENDIF
+            !Save grainID and seedID for this atom
             newAUX(NP,grainID) = DBLE(inode)
             IF(seedID>0) newAUX(NP,seedID) = idseed(inode)
             !$OMP END CRITICAL
@@ -1030,10 +1039,7 @@ IF( ofu.NE.6 ) THEN
   comment(1) = "# Positions of grains centers of mass"
   ALLOCATE(outfileformats(1))
   outfileformats(1) = "xsf"
-  CALL NAME_OUTFILE(prefix,temp,"     ")
-  i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
-  temp = temp(1:i-1)
-  msg = TRIM(ADJUSTL(temp))//"_grains-com.xsf"
+  msg = TRIM(TRIM_EXT(prefix))//"_grains-com.xsf"
   CALL WRITE_AFF(msg,outfileformats,H,Q,S,comment,newAUXNAMES,newAUX)
   IF(ALLOCATED(Q)) DEALLOCATE(Q)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)

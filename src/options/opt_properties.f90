@@ -12,7 +12,7 @@ MODULE properties
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 27 June 2025                                     *
+!* Last modification: P. Hirel - 20 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -162,7 +162,8 @@ DO
             ENDIF
           ENDIF
           !Convert [hkil] into [uvw]
-          CALL HKIL2UVW(ORIENT(i,1),ORIENT(i,2),0.d0,ORIENT(i,3),u,v,w)
+          tempreal = -1.d0 * (ORIENT(i,1)+ORIENT(i,2))
+          CALL HKIL2UVW(ORIENT(i,1),ORIENT(i,2),tempreal,ORIENT(i,3),u,v,w)
           !Set box vectors in ORIENT
           ORIENT(i,1) = u
           ORIENT(i,2) = v
@@ -200,7 +201,7 @@ DO
       !
       !If vectors are not orthonormal, display a warning
       areortho(1) = ORTHOVEC( ORIENT(1,:), ORIENT(2,:) )
-      areortho(2) = ORTHOVEC( ORIENT(2,:), ORIENT(3,:)  )
+      areortho(2) = ORTHOVEC( ORIENT(2,:), ORIENT(3,:) )
       areortho(3) = ORTHOVEC( ORIENT(3,:), ORIENT(1,:) )
       IF( ANY(.NOT.areortho(:)) ) THEN
         nwarn=nwarn+1
@@ -208,11 +209,16 @@ DO
       ENDIF
       !
       !If the elastic tensor is defined, rotate it
-      IF( C_tensor(1,1).NE.0.d0 ) THEN
+      IF( C_tensor(1,1).NE.0.d0 .OR. C_tensor(1,2).NE.0.d0 .OR. C_tensor(4,4).NE.0.d0 ) THEN
         !Define rotation matrix
+        temp2 = "  Rotation matrix for elastic tensor:"
+        CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
         DO i=1,3
           rot_matrix(i,:) = ORIENT(i,:)/VECLENGTH(ORIENT(i,:))
+          WRITE(temp2,'(3(f10.3,1X))') (rot_matrix(i,j), j=1,3)
+          CALL ATOMSK_MSG(999,(/TRIM(temp2)/),(/0.d0/))
         ENDDO
+        !Rotate elastic tensor
         C_tensor = ROTELAST( C_tensor, rot_matrix )
         CALL ATOMSK_MSG(2099,(/""/),(/0.d0/))
       ENDIF

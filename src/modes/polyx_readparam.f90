@@ -11,7 +11,7 @@ MODULE polyx_readparam
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 19 Oct. 2026                                     *
+!* Last modification: P. Hirel - 21 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -43,7 +43,7 @@ USE writeout
 CONTAINS
 !
 !
-SUBROUTINE POLYX_READ_PARAM(vfile,Hs,Ps,Ss,AUXNAMESs,AUXs,NPs,idseed,idmatrix,vnodes,vorient,H,clearance,status)
+SUBROUTINE POLYX_READ_PARAM(vfile,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,idmatrix,vnodes,vorient,H,clearance,status)
 !
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: vfile   !name of file containing parameters for Voronoi construction
@@ -62,7 +62,7 @@ LOGICAL:: miller          !are Miller indices given? (if no then angles are give
 LOGICAL:: seedasfile      !was seed already defined in a file?
 LOGICAL,DIMENSION(4):: outparam  !Are keywords (1) "node", (2) "lattice", (3) "random" used?
                                              !(4) Must parameters be saved in a text file?
-INTEGER:: i, j, m, n, o
+INTEGER:: i, j, k, m, n, o
 INTEGER:: linenumber    !line number
 INTEGER:: seed_id       !index of current seed
 INTEGER:: status        !=0 if successful, >0 otherwise
@@ -81,8 +81,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE:: AUXt   !auxiliary properties of a seed
 REAL(dp),DIMENSION(3,3):: rotmat  !rotation matrix
 REAL(dp),DIMENSION(:),ALLOCATABLE:: randarray   !random numbers
 !
-CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMESs       !Names of aux.prop. of all seeds + matrix
-CHARACTER(LEN=4096),DIMENSION(:),ALLOCATABLE:: seedfiles      !Names of seed file for each grain
+CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES        !Names of aux.prop. of all seeds + matrix
 INTEGER,INTENT(OUT):: idmatrix                                !index of matrix in Ps, S, AUXs
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: NPs          !Number of atoms for each seed + matrix
 INTEGER,DIMENSION(:),ALLOCATABLE,INTENT(INOUT):: idseed       !Seed index for each node
@@ -94,7 +93,7 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(OUT):: vnodes      !cartesian coordin
 REAL(dp),DIMENSION(:,:,:),ALLOCATABLE,INTENT(OUT):: vorient   !rotation matrix for each node
 !
 !Initialize variables
-outparamfile = TRIM_EXT(vfile)//"_param.txt"
+outparamfile = TRIM(TRIM_EXT(vfile))//"_param.txt"
 seednames(:) = ""
 doshells = .FALSE.
 Hset = .FALSE.
@@ -107,27 +106,29 @@ Nnodes = 0
 status = 0
 twodim = 0
 H(:,:) = 0.d0
-IF(ALLOCATED(AUXNAMESs)) DEALLOCATE(AUXNAMESs)
 IF(ALLOCATED(idseed)) DEALLOCATE(idseed)
-IF(ALLOCATED(seedfiles)) DEALLOCATE(seedfiles)
 IF(ALLOCATED(vnodes)) DEALLOCATE(vnodes)
 IF(ALLOCATED(vorient)) DEALLOCATE(vorient)
 IF(ALLOCATED(NPtemp)) DEALLOCATE(NPtemp)
 !
+msg = 'ENTERING POLYX_READ_PARAM...'
+CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+!
 !Check if a seed was already defined as input in arrays Hs, Ps, Ss
 seedasfile = .FALSE.
-IF( ALLOCATED(Hs) .AND. ALLOCATED(Ps) ) THEN
-  IF( ANY(DABS(Hs(:,:,:))>1.d-3) .AND. SIZE(Ps,1)>0 .AND. SIZE(Ps,2)>0 .AND. ANY(DABS(Ps(:,:,:))>1.d-3) ) THEN
+IF( ALLOCATED(Hs) .OR. ALLOCATED(Ps) .OR. ALLOCATED(AUXs) ) THEN
+  IF( ANY(DABS(Hs(:,:,:))>1.d-3) .AND. SIZE(Ps,1)>0 .AND. SIZE(Ps,2)>0 .AND. ANY(DABS(Ps(:,:,:))>1.d-3) &
+    & .AND. SIZE(AUXs,1)==SIZE(Ps,1) .AND. SIZE(AUXs,2)==SIZE(Ps,2) .AND. SIZE(AUXs,3)==SIZE(AUXNAMES) ) THEN
     !A seed was already provided as a "seed file"
     seedasfile = .TRUE.
     seed_id = 1
   ELSE
-    !Something is wrong with Hs and/or Ps: deallocate everything
+    !Something is wrong with Hs, Ps, and/or AUXs: deallocate everything
     DEALLOCATE(Ps)
     IF(ALLOCATED(Hs)) DEALLOCATE(Hs)
     IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
     IF(ALLOCATED(AUXs)) DEALLOCATE(AUXs)
-    IF(ALLOCATED(AUXNAMESs)) DEALLOCATE(AUXNAMESs)
+    IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
   ENDIF
 ELSE
   !Ps is unallocated: make sure the other arrays are unallocated too
@@ -135,12 +136,10 @@ ELSE
   IF(ALLOCATED(Ps)) DEALLOCATE(Ps)
   IF(ALLOCATED(Ss)) DEALLOCATE(Ss)
   IF(ALLOCATED(AUXs)) DEALLOCATE(AUXs)
-  IF(ALLOCATED(AUXNAMESs)) DEALLOCATE(AUXNAMESs)
+  IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
 ENDIF
 !
 !
-msg = 'ENTERING POLYX_READ_PARAM...'
-CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 WRITE(msg,*) "SeedAsFile is ", seedasfile
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
@@ -604,13 +603,62 @@ DO
       ENDIF
       !Copy auxiliary properties
       IF( ALLOCATED(AUXt) .AND. SIZE(AUXt,1)==SIZE(Pt,1) ) THEN
-        ALLOCATE(AUXNAMESs(SIZE(AUXNAMESt)))
-        AUXNAMESs(:) = AUXNAMESt(:)
-        CALL RESIZE_DBLEARRAY3(AUXs,seed_id,n,SIZE(AUXt,2),status)
-        IF( status>0 ) GOTO 830
-        IF( ALLOCATED(AUXt) ) THEN
-          m = SIZE(AUXt,1)
-          AUXs(seed_id,1:m,:) = AUXt(1:m,:)
+        IF( .NOT.ALLOCATED(AUXNAMES) ) THEN
+          !No aux.prop. existed before: create arrays AUXNAMES and AUXs
+          ALLOCATE(AUXNAMES(SIZE(AUXNAMESt)))
+          AUXNAMES(:) = AUXNAMESt(:)
+          IF(ALLOCATED(AUXs)) DEALLOCATE(AUXs)
+          ALLOCATE(AUXs(seed_id,SIZE(Ps,2),SIZE(AUXNAMES)))
+          AUXs(:,:,:) = 0.d0
+          DO i=1,SIZE(AUXt,1)
+            DO j=1,SIZE(AUXt,2)
+              AUXs(seed_id,i,j) = AUXt(i,j)
+            ENDDO
+          ENDDO
+          !
+        ELSE
+          !AUXNAMES was allocated, i.e. aux.prop. already existed
+          !Resize array AUXs to match number of seeds
+          j = MAX( SIZE(AUXs,2) , SIZE(AUXt,1) )
+          CALL RESIZE_DBLEARRAY3(AUXs,seed_id,j,SIZE(AUXNAMES),status)
+          !Parse auxiliary property names of current system
+          DO i=1,SIZE(AUXNAMESt)
+            o=0
+            !Parse global aux.prop. names
+            DO j=1,SIZE(AUXNAMES)
+              IF( TRIM(AUXNAMESt(i)) == TRIM(AUXNAMES(j)) ) THEN
+                !Matching property name: copy values of aux.prop. in this column
+                o=1
+                DO k=1,SIZE(AUXt,1)
+                  AUXs(seed_id,k,j) = AUXt(k,i)
+                ENDDO
+                !We can now exit the loop on j
+                EXIT
+              ENDIF
+            ENDDO
+            !If o is zero, no matching property name was found, create a new one
+            IF( o==0 ) THEN
+              j = SIZE(AUXNAMES)+1
+              !Resize AUXNAMES
+              CALL RESIZE_CHAR1(AUXNAMES,j,status)
+              IF( status>0 ) GOTO 830
+              AUXNAMES(j) = AUXNAMESt(i)
+              !Also resize AUXs
+              CALL RESIZE_DBLEARRAY3(AUXs,seed_id,SIZE(AUXs,2),SIZE(AUXNAMES),status)
+              IF( status>0 ) GOTO 830
+              !Copy values into this new column
+              DO k=1,SIZE(AUXt,1)
+                AUXs(seed_id,k,j) = AUXt(k,i)
+              ENDDO
+            ENDIF
+          ENDDO
+        ENDIF
+        !
+      ELSE
+        !No aux.prop. in current seed
+        IF( ALLOCATED(AUXs) ) THEN
+          !Resize array AUXs to match number of seeds
+          CALL RESIZE_DBLEARRAY3(AUXs,seed_id,SIZE(AUXs,2),SIZE(AUXNAMES),status)
         ENDIF
       ENDIF
       !Free temporary arrays
@@ -671,10 +719,10 @@ DO
       IF( status>0 ) GOTO 830
       !
       !Save the rest of the line
-      line = TRIM(ADJUSTL(line(i+1:)))
+      line = TRIM(ADJUSTL(line(i:)))
       !Read crystallographic orientation of that grain
       !(can be explicitely given as Miller indices, or random)
-      IF( line(1:6)=="random" ) THEN
+      IF( line(1:6)=="random" .OR. LEN_TRIM(line)<5 ) THEN
         !Generated random parameters will be written into a file later
         outparam(4) = .TRUE.
         !
@@ -719,6 +767,11 @@ DO
           rotmat(3,3) = 1.d0
           !Compute final rotation matrix:  M = ( 2*V^T*V - I ) * R
           vorient(Nnodes,:,:) = MATMUL( 2.d0*VECMAT(vector,vector) - Id_Matrix , rotmat )
+        ENDIF
+        !
+        IF( line(1:6)=="random" ) THEN
+          i=SCAN(line,' ')
+          line = TRIM(ADJUSTL(line(i:)))
         ENDIF
         !
       ELSE
@@ -807,13 +860,10 @@ DO
         ENDIF
       ENDIF
       !
-      i=SCAN(line,' ')
-      line = TRIM(ADJUSTL(line(i+1:)))
-      !
       !A seed number may be appened
       IF( LEN_TRIM(line)>0 ) THEN
         READ(line,*,END=830,ERR=830) j
-        IF( j>0 .AND. j<=SIZE(seedfiles) ) THEN
+        IF( j>0 .AND. j<=SIZE(Ps,1) ) THEN
           idseed(Nnodes) = j
         ENDIF
       ENDIF
@@ -976,6 +1026,8 @@ CLOSE(31)
 !
 !
 300 CONTINUE
+IF(ALLOCATED(AUXt)) DEALLOCATE(AUXt)
+IF(ALLOCATED(AUXNAMESt)) DEALLOCATE(AUXNAMESt)
 !Check that number of nodes is not zero
 IF(Nnodes<1) THEN
   CALL ATOMSK_MSG(4831,(/vfile/),(/0.d0/))
@@ -1073,6 +1125,7 @@ IF( outparam(4) .AND. ofu.NE.6 ) THEN
     CALL MAT2EULER_ZYX(vorient(i,:,:),P1,P2,P3)
     WRITE(41,'(a5,6f16.6)') "node ", vnodes(i,:), RAD2DEG(P1), RAD2DEG(P2), RAD2DEG(P3)
   ENDDO
+  WRITE(41,'(a10,f16.6)') "clearance ", clearance
   CLOSE(41)
   !Random parameters were written into a file => inform user
   temp = "parameter"
@@ -1090,10 +1143,7 @@ IF( ofu.NE.6 ) THEN
     Pt(i,1:3) = vnodes(i,1:3)
     Pt(i,4) = 1.d0  !nodes are given the atomic number of hydrogen
   ENDDO
-  CALL NAME_OUTFILE(prefix,temp,"     ")
-  i=SCAN(temp,".",BACK=.TRUE.)  !remove trailing dot
-  temp = temp(1:i-1)
-  outparamfile = TRIM(ADJUSTL(temp))//"_nodes.xsf"
+  outparamfile = TRIM(TRIM_EXT(vfile))//"_nodes.xsf"
   CALL WRITE_AFF(outparamfile,outfileformats,H,Pt,St,comment,AUXNAMESt,AUXt)
   IF(ALLOCATED(Pt)) DEALLOCATE(Pt)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)
@@ -1129,7 +1179,6 @@ GOTO 1000
 !
 !
 1000 CONTINUE
-IF(ALLOCATED(seedfiles)) DEALLOCATE(seedfiles)
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) " Final parameters:"
@@ -1140,6 +1189,12 @@ IF( verbosity==4 ) THEN
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) "   Clearance = ", clearance
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  IF( ALLOCATED(idseed) ) THEN
+    DO i=1,SIZE(idseed)
+      WRITE(msg,*) "   idseed(", i, ") = ", idseed(i)
+      CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+    ENDDO
+  ENDIF
 ENDIF
 WRITE(msg,*) "EXITING POLYX_READ_PARAM (", status, ")"
 CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))

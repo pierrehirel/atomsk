@@ -10,7 +10,7 @@ MODULE files
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 17 Feb. 2026                                     *
+!* Last modification: P. Hirel - 21 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -29,6 +29,7 @@ MODULE files
 !* FREEUNIT            returns an unused I/O UNIT number                          *
 !* SET_OUTPUT          sets one or all output to TRUE or FALSE                    *
 !* NAME_OUTFILE        names an output file based on the name of an input file    *
+!* TRIM_EXT            returns the file name without its extension                *
 !* FILE_SIZE           returns the size of a file (in bytes or a multiple)        *
 !**********************************************************************************
 !
@@ -238,16 +239,18 @@ FUNCTION TRIM_EXT(infile) RESULT(outfile)
 IMPLICIT NONE
 CHARACTER(LEN=*),INTENT(IN):: infile
 CHARACTER(LEN=LEN(infile)):: outfile
-INTEGER:: i, j
+INTEGER:: i
 !
-i = SCAN(infile,pathsep,BACK=.TRUE.)
-j = SCAN(infile,'.',BACK=.TRUE.)
-IF(j>i) THEN
-  outfile = infile(i+1:j-1)
-ELSEIF(i>0) THEN
-  outfile = TRIM(ADJUSTL(infile(i+1:)))
-ELSE
-  outfile = TRIM(ADJUSTL(infile))
+outfile = TRIM(ADJUSTL(infile))
+!Keep only what is after last path separator
+i = SCAN(outfile,pathsep,BACK=.TRUE.)
+IF(i>0) THEN
+  outfile = TRIM(infile(i:))
+ENDIF
+!Remove extension (i.e. what is after the last dot)
+i = SCAN(outfile,'.',BACK=.TRUE.)
+IF( i>1 .AND. i>LEN_TRIM(outfile)-5 ) THEN
+  outfile = TRIM(ADJUSTL(infile(:i-1)))
 ENDIF
 !
 END FUNCTION TRIM_EXT

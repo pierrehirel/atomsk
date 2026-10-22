@@ -18,7 +18,7 @@ MODULE modes
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 05 Oct. 2026                                     *
+!* Last modification: P. Hirel - 22 Oct. 2026                                     *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -111,6 +111,7 @@ CHARACTER(LEN=2),DIMENSION(20):: create_species
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: options_array !options and their parameters
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: mode_param  !parameters for some special modes
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE:: AUXNAMES !names of auxiliary properties
+CHARACTER(LEN=128),DIMENSION(:,:),ALLOCATABLE:: AUXNAMESs !names of auxiliary properties (seeds for polycrystal)
 INTEGER,DIMENSION(:),ALLOCATABLE:: NPs, idseed !for seeds (in polycrystals)
 LOGICAL,DIMENSION(:),ALLOCATABLE:: SELECT  !mask for atom list
 INTEGER:: i, ioptions, j, k, m
@@ -155,6 +156,11 @@ IF(mode=='list') THEN
 ENDIF
 IF(ALLOCATED(S)) DEALLOCATE(S)
 IF(ALLOCATED(SELECT)) DEALLOCATE(SELECT)
+IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
+IF(ALLOCATED(AUXNAMESs)) DEALLOCATE(AUXNAMESs)
+IF(ALLOCATED(NPs)) DEALLOCATE(NPs)
+IF(ALLOCATED(idseed)) DEALLOCATE(idseed)
+IF(ALLOCATED(AUXs)) DEALLOCATE(AUXs)
 !
 !
 IF(verbosity==4) THEN
@@ -658,7 +664,7 @@ CASE('polycrystal')
   clearance = 0.1d0  !by default, atoms this close to the GB plane will be deleted
   CALL ATOMSK_MSG(4057,(/filefirst/),(/0.d0/))
   CALL POLYX_READ_PARAM(filefirst,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,idmatrix,vnodes,vorient,H,clearance,status)
-  IF(status.NE.0) THEN
+  IF(status.NE.0 .OR. nerr>0) THEN
     GOTO 10000
   ENDIF
   CALL ATOMSK_MSG(4057,(/filefirst/),(/1.d0/)) !"file was successfully read"
@@ -670,11 +676,12 @@ CASE('polycrystal')
   ENDIF
   !
   !Construct polycrystal, final results will be in H,P,S,AUX
-  CALL POLYCRYS(prefix,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,idmatrix,vnodes,vorient,clearance,H,P,S,AUX)
+  CALL POLYCRYS(filefirst,Hs,Ps,Ss,AUXNAMES,AUXs,NPs,idseed,idmatrix,vnodes,vorient,clearance,H,P,S,AUX)
+  IF(nerr>0) GOTO 10000
   !
   !Apply options to the final system
   CALL OPTIONS_AFF(options_array,Huc,H,P,S,AUXNAMES,AUX,ORIENT,SELECT,C_tensor)
-  IF(nerr>0) GOTO 1000
+  IF(nerr>0) GOTO 10000
   !
   !Generate comment for output file(s)
   IF(ALLOCATED(comment)) DEALLOCATE(comment)
@@ -694,7 +701,7 @@ CASE('polycrystal')
   IF(ALLOCATED(AUX)) DEALLOCATE(AUX)
   IF(ALLOCATED(AUXNAMES)) DEALLOCATE(AUXNAMES)
   IF(ALLOCATED(outfileformats)) DEALLOCATE(outfileformats)
-  IF(nerr>0) GOTO 1000
+  IF(nerr>0) GOTO 10000
 !
 !
 !
