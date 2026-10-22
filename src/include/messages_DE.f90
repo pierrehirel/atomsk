@@ -3928,6 +3928,9 @@ CASE(4835)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "          Sind Sie sicher, dass die beiden Systeme vom gleichen Typ sind?"
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(4836)
+  msg = TRIM(ADJUSTL(errmsg))//" Kein Seed definiert, Abbruch."
+  CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" Es kann immer nur ein Modus verwendet werden."
   CALL DISPLAY_MSG(1,msg,logfile)

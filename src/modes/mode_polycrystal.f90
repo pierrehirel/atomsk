@@ -171,9 +171,6 @@ ENDDO
 !
 CALL ATOMSK_MSG(4054,(/''/),(/DBLE(twodim),H(1,1),H(2,2),H(3,3),DBLE(Nnodes)/))
 !
-DO i=1,SIZE(AUXs,1)
-  PRINT*, i, " # ", AUXs(i,1,:)
-ENDDO
 !Check that the user provided enough information
 IF( .NOT. ANY( NINT(H).NE.0 ) ) THEN
   !User did not provide box, or a box with negative or zero size

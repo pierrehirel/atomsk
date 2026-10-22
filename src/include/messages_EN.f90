@@ -3883,7 +3883,7 @@ CASE(4835)
   msg = "          Are you sure the two systems are of the same sort?"
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4836)
-  msg = TRIM(ADJUSTL(errmsg))//" Kein Seed definiert, Abbruch."
+  msg = TRIM(ADJUSTL(errmsg))//" no seed is defined, aborting."
   CALL DISPLAY_MSG(1,msg,logfile)
 CASE(4900)
   msg = TRIM(ADJUSTL(errmsg))//" only one mode can be used at a time."

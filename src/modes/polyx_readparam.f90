@@ -117,8 +117,7 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !Check if a seed was already defined as input in arrays Hs, Ps, Ss
 seedasfile = .FALSE.
 IF( ALLOCATED(Hs) .OR. ALLOCATED(Ps) .OR. ALLOCATED(AUXs) ) THEN
-  IF( ANY(DABS(Hs(:,:,:))>1.d-3) .AND. SIZE(Ps,1)>0 .AND. SIZE(Ps,2)>0 .AND. ANY(DABS(Ps(:,:,:))>1.d-3) &
-    & .AND. SIZE(AUXs,1)==SIZE(Ps,1) .AND. SIZE(AUXs,2)==SIZE(Ps,2) .AND. SIZE(AUXs,3)==SIZE(AUXNAMES) ) THEN
+  IF( ANY(DABS(Hs(:,:,:))>1.d-3) .AND. SIZE(Ps,1)>0 .AND. SIZE(Ps,2)>0 .AND. ANY(DABS(Ps(:,:,:))>1.d-3) ) THEN
     !A seed was already provided as a "seed file"
     seedasfile = .TRUE.
     seed_id = 1
